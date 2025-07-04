@@ -5,14 +5,14 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-	title: "Babylon.JS Editor",
+	title: "Babylon.js Editor",
 	description: "Focus more on creating and less on coding.",
 };
 
 export default function RootLayout({
 	children,
 }: {
-    children: React.ReactNode;
+	children: React.ReactNode;
 }) {
 	return (
 		<html lang="en">

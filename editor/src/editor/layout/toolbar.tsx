@@ -218,7 +218,7 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 		const file = openSingleFileDialog({
 			title: "Open Project",
 			filters: [
-				{ name: "BabylonJS Editor Project File", extensions: ["bjseditor"] }
+				{ name: "Babylon.js Editor Project File", extensions: ["bjseditor"] }
 			],
 		});
 

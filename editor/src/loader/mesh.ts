@@ -53,7 +53,7 @@ export function parseMesh(runtime: AssimpJSRuntime, data: IAssimpJSNodeData): Me
 
 	vertexData.indices = indices.flat();
 
-	// Indices are in clockwise order, but BabylonJS expects counter-clockwise
+	// Indices are in clockwise order, but Babylon.js expects counter-clockwise
 	if (vertexData.indices) {
 		for (let i = 0, len = vertexData.indices.length; i < len; i += 3) {
 			const tmp = vertexData.indices[i + 1];
@@ -139,15 +139,15 @@ export function parseMesh(runtime: AssimpJSRuntime, data: IAssimpJSNodeData): Me
 	if (data.meshes!.length > 1) {
 		const material = new MultiMaterial(Tools.RandomId(), runtime.scene);
 
-        data.meshes!.forEach((meshIndex) => {
-        	const materialIndex = runtime.data.meshes?.[meshIndex].materialindex ?? null;
-        	if (materialIndex !== null) {
-        		material.subMaterials.push(runtime.materials[materialIndex] ?? null);
-        	}
-        });
+		data.meshes!.forEach((meshIndex) => {
+			const materialIndex = runtime.data.meshes?.[meshIndex].materialindex ?? null;
+			if (materialIndex !== null) {
+				material.subMaterials.push(runtime.materials[materialIndex] ?? null);
+			}
+		});
 
-        mesh.material = material;
-        runtime.container.multiMaterials.push(material);
+		mesh.material = material;
+		runtime.container.multiMaterials.push(material);
 	} else {
 		const materialIndex = runtime.data.meshes?.[data.meshes![0]].materialindex ?? null;
 		if (materialIndex !== null) {

@@ -10,7 +10,7 @@ import { QuixelJsonType, QuixelLodListType } from "./typings";
 import { importMeshes, saveMeshesAsBabylonFormat } from "./mesh";
 
 export const title = "Quixel Bridge";
-export const description = "Quixel Bridge integration for Babylon.JS Editor";
+export const description = "Quixel Bridge integration for Babylon.js Editor";
 
 let server: Server | null = null;
 

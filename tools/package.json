@@ -1,7 +1,7 @@
 {
     "name": "babylonjs-editor-tools",
     "version": "0.0.12",
-    "description": "Babylon.js Editor Tools is a set of tools to help you create, edit and manage your Babylon.js scenes made using the Babylon.JS Editor",
+    "description": "Babylon.js Editor Tools is a set of tools to help you create, edit and manage your Babylon.js scenes made using the Babylon.js Editor",
     "productName": "Babylon.js Editor Tools",
     "scripts": {
         "build": "tsc -p . && node esbuild.mjs",

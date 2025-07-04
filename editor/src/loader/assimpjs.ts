@@ -14,7 +14,7 @@ import { parseAnimations } from "./animation";
 import { AssimpJSRuntime, IAssimpJSRootData } from "./types";
 
 export class AssimpJSLoader implements ISceneLoaderPluginAsync {
-	public name: string = "Babylon.JS Editor AssimpJS Loader";
+	public name: string = "Babylon.js Editor AssimpJS Loader";
 
 	public extensions: ISceneLoaderPluginExtensions = {
 		".x": {
@@ -47,15 +47,15 @@ export class AssimpJSLoader implements ISceneLoaderPluginAsync {
 	};
 
 	/**
-     * Import meshes into a scene.
-     * @param meshesNames An array of mesh names, a single mesh name, or empty string for all meshes that filter what meshes are imported
-     * @param scene The scene to import into
-     * @param data The data to import
-     * @param rootUrl The root url for scene and resources
-     * @param onProgress The callback when the load progresses
-     * @param fileName Defines the name of the file to load
-     * @returns The loaded objects (e.g. meshes, particle systems, skeletons, animation groups, etc.)
-     */
+	 * Import meshes into a scene.
+	 * @param meshesNames An array of mesh names, a single mesh name, or empty string for all meshes that filter what meshes are imported
+	 * @param scene The scene to import into
+	 * @param data The data to import
+	 * @param rootUrl The root url for scene and resources
+	 * @param onProgress The callback when the load progresses
+	 * @param fileName Defines the name of the file to load
+	 * @returns The loaded objects (e.g. meshes, particle systems, skeletons, animation groups, etc.)
+	 */
 	public async importMeshAsync(meshesNames: any, scene: Scene, data: any, rootUrl: string, onProgress?: (event: ISceneLoaderProgressEvent) => void, fileName?: string): Promise<ISceneLoaderAsyncResult> {
 		// Compute meshes names to import
 		if (meshesNames) {
@@ -80,27 +80,27 @@ export class AssimpJSLoader implements ISceneLoaderPluginAsync {
 	}
 
 	/**
-     * Load into a scene.
-     * @param scene The scene to load into.
-     * @param data The data to import.
-     * @param rootUrl The root url for scene and resources.
-     * @param onProgress The callback when the load progresses.
-     * @param fileName Defines the name of the file to load.
-     */
+	 * Load into a scene.
+	 * @param scene The scene to load into.
+	 * @param data The data to import.
+	 * @param rootUrl The root url for scene and resources.
+	 * @param onProgress The callback when the load progresses.
+	 * @param fileName Defines the name of the file to load.
+	 */
 	public async loadAsync(scene: Scene, data: any, rootUrl: string, onProgress?: (event: ISceneLoaderProgressEvent) => void, fileName?: string): Promise<void> {
 		const container = await this.loadAssetContainerAsync(scene, data, rootUrl, onProgress, fileName);
 		container.addAllToScene();
 	}
 
 	/**
-     * Load into an asset container.
-     * @param scene The scene to load into
-     * @param data The data to import
-     * @param rootUrl The root url for scene and resources
-     * @param onProgress The callback when the load progresses
-     * @param fileName Defines the name of the file to load
-     * @returns The loaded asset container
-     */
+	 * Load into an asset container.
+	 * @param scene The scene to load into
+	 * @param data The data to import
+	 * @param rootUrl The root url for scene and resources
+	 * @param onProgress The callback when the load progresses
+	 * @param fileName Defines the name of the file to load
+	 * @returns The loaded asset container
+	 */
 	public async loadAssetContainerAsync(scene: Scene, data: IAssimpJSRootData[], rootUrl: string, _?: (event: ISceneLoaderProgressEvent) => void, fileName?: string): Promise<AssetContainer> {
 		const container = new AssetContainer(scene);
 

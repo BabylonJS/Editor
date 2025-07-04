@@ -39,14 +39,14 @@ export function createDashboard(): void {
 }
 
 export interface IDashboardProps {
-    // ...
+	// ...
 }
 
 export interface IDashboardState {
-    projects: ProjectType[];
-    openedProjects: string[];
+	projects: ProjectType[];
+	openedProjects: string[];
 
-    createProject: boolean;
+	createProject: boolean;
 }
 
 export class Dashboard extends Component<IDashboardProps, IDashboardState> {
@@ -72,13 +72,13 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
 					<Fade delay={0}>
 						<div className="flex justify-between items-end w-full mt-1">
 							<div className="text-5xl font-semibold">
-                                Dashboard
+								Dashboard
 							</div>
 
 							<div className="flex flex-col items-end gap-2">
 								<img alt="" src="assets/babylonjs_icon.png" className="w-[48px] object-contain" />
 								<div className="text-xs">
-                                    Babylon.JS Editor v{packageJson.version}
+									Babylon.js Editor v{packageJson.version}
 								</div>
 							</div>
 						</div>
@@ -91,15 +91,15 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
 					<Fade delay={500}>
 						<div className="flex justify-between items-center">
 							<div className="text-3xl font-semibold">
-                                Projects
+								Projects
 							</div>
 
 							<div className="flex gap-2">
 								<Button variant="secondary" className="font-semibold" onClick={() => this._handleImportProject()}>
-                                    Import project
+									Import project
 								</Button>
 								<Button className="font-semibold" onClick={() => this.setState({ createProject: true })}>
-                                    Create project
+									Create project
 								</Button>
 							</div>
 						</div>
@@ -108,21 +108,21 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
 					<Fade delay={750}>
 						{!this.state.projects.length && (
 							<div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                                No project found.
+								No project found.
 							</div>
 						)}
 
 						{this.state.projects.length &&
-                            <div className="grid sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-4">
-                            	{this.state.projects.map((project) => (
-                            		<DashboardProjectItem
-                            			project={project}
-                            			key={project.absolutePath}
-                            			isOpened={this.state.openedProjects.includes(project.absolutePath)}
-                            			onRemove={() => this._tryRemoveProjectFromLocalStorage(project)}
-                            		/>
-                            	))}
-                            </div>
+							<div className="grid sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-4">
+								{this.state.projects.map((project) => (
+									<DashboardProjectItem
+										project={project}
+										key={project.absolutePath}
+										isOpened={this.state.openedProjects.includes(project.absolutePath)}
+										onRemove={() => this._tryRemoveProjectFromLocalStorage(project)}
+									/>
+								))}
+							</div>
 						}
 					</Fade>
 				</div>
@@ -182,10 +182,10 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
 				"Node.js not found",
 				<div className="flex flex-col">
 					<div>
-                        Node.js was not found on your system.
+						Node.js was not found on your system.
 					</div>
 					<div>
-                        Node.js is required to build and run projects. You can install Node.js following <a className="underline transition-all duration-300 ease-in-out" onClick={() => shell.openExternal("https://nodejs.org/en/download")}>this link</a>.
+						Node.js is required to build and run projects. You can install Node.js following <a className="underline transition-all duration-300 ease-in-out" onClick={() => shell.openExternal("https://nodejs.org/en/download")}>this link</a>.
 					</div>
 				</div>
 			).wait();
@@ -196,7 +196,7 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
 		const file = openSingleFileDialog({
 			title: "Open Project",
 			filters: [
-				{ name: "BabylonJS Editor Project File", extensions: ["bjseditor"] }
+				{ name: "Babylon.js Editor Project File", extensions: ["bjseditor"] }
 			],
 		});
 

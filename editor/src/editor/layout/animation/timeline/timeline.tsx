@@ -18,26 +18,26 @@ import { EditorAnimationTracker } from "./tracker";
 import { EditorAnimationTimelineItem } from "./track";
 
 export interface IEditorAnimationTimelinePanelProps {
-    editor: Editor;
-    animatable: IAnimatable | null;
-    animationEditor: EditorAnimation;
+	editor: Editor;
+	animatable: IAnimatable | null;
+	animationEditor: EditorAnimation;
 }
 
 export interface IEditorAnimationTimelinePanelState {
-    scale: number;
-    moving: boolean;
-    currentTime: number;
+	scale: number;
+	moving: boolean;
+	currentTime: number;
 }
 
 export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTimelinePanelProps, IEditorAnimationTimelinePanelState> {
 	/**
-     * This class acts as an IAnimatable. This is used to animate the currentTime value on the state
-     * and be synchronized with the animations being edited and played by Babylon.JS.
-     */
+	 * This class acts as an IAnimatable. This is used to animate the currentTime value on the state
+	 * and be synchronized with the animations being edited and played by Babylon.js.
+	 */
 	public animations: Animation[] = [];
 	/**
-     * Defines the list of all available track items in the timeline.
-     */
+	 * Defines the list of all available track items in the timeline.
+	 */
 	public tracks: (EditorAnimationTimelineItem | null)[] = [];
 
 	private _animation!: Animation;
@@ -75,7 +75,7 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
 	private _getEmpty(): ReactNode {
 		return (
 			<div className="flex justify-center items-center text-center font-semibold text-xl w-full h-full">
-                No object selected.
+				No object selected.
 			</div>
 		);
 	}
@@ -84,7 +84,7 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
 		return (
 			<div className="flex flex-col gap-2 justify-center items-center text-center font-semibold text-xl w-full h-full">
 				<div>
-                    No animations found on this object.
+					No animations found on this object.
 				</div>
 
 				<Button variant="secondary" className="flex items-center gap-2" onClick={() => this.props.animationEditor.tracks.addTrack()}>
@@ -167,16 +167,16 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
 	}
 
 	/**
-     * Updates all the track using the current time as reference.
-     */
+	 * Updates all the track using the current time as reference.
+	 */
 	public updateTracksAtCurrentTime(): void {
 		this.setCurrentTime(this.state.currentTime);
 	}
 
 	/**
-     * Sets the current time being edited in the timeline.
-     * @param currentTime defines the current time expressed in frame.
-     */
+	 * Sets the current time being edited in the timeline.
+	 * @param currentTime defines the current time expressed in frame.
+	 */
 	public setCurrentTime(currentTime: number): void {
 		if (!this.props.animatable?.animations) {
 			return;
@@ -195,9 +195,9 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
 	}
 
 	/**
-     * Sets the new scale of the timeline.
-     * @param scale defines the new scale value to apply on the timeline.
-     */
+	 * Sets the new scale of the timeline.
+	 * @param scale defines the new scale value to apply on the timeline.
+	 */
 	public setScale(scale: number): void {
 		this.setState({ scale }, () => {
 			this.props.animationEditor.forceUpdate();
@@ -205,10 +205,10 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
 	}
 
 	/**
-     * Adds a key at the current time for all tracks in the timeline.
-     * Checks for each track if a key already exists at the current time and if not, adds a new key.
-     * For the value, sets the current value of the animatable object property being animated.
-     */
+	 * Adds a key at the current time for all tracks in the timeline.
+	 * Checks for each track if a key already exists at the current time and if not, adds a new key.
+	 * For the value, sets the current value of the animatable object property being animated.
+	 */
 	public addKeysAtCurrentTime(): void {
 		const frame = Math.round(this.state.currentTime / this.state.scale);
 
@@ -252,8 +252,8 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
 	}
 
 	/**
-     * Plays the current timeline starting from the current tracker position.
-     */
+	 * Plays the current timeline starting from the current tracker position.
+	 */
 	public play(): void {
 		if (!this.props.animatable?.animations) {
 			return;
@@ -291,8 +291,8 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
 	}
 
 	/**
-     * Stops the current timeline being played
-     */
+	 * Stops the current timeline being played
+	 */
 	public stop(): void {
 		const scene = this.props.editor.layout.preview.scene;
 		const engine = this.props.editor.layout.preview.engine;

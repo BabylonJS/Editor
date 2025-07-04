@@ -132,14 +132,14 @@ node_modules
 # Env
 .env
 
-# Babylon.JS Editor
+# Babylon.js Editor
 editor/build
 editor/declaration
 editor/templates
 editor/electron-packages
 editor/coverage
 
-# Babylon.JS Editor Tools
+# Babylon.js Editor Tools
 tools/build
 tools/declaration
 tools/coverage

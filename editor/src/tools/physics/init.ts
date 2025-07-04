@@ -5,7 +5,7 @@ import HavokPhysics from "@babylonjs/havok";
 let isInitialized = false;
 
 /**
- * Initializes the Havok physics engine for being used in the Editor with Babylon.JS.
+ * Initializes the Havok physics engine for being used in the Editor with Babylon.js.
  * @param appPath defines the absolute path to the Editor application.
  */
 export async function initializeHavok(appPath: string) {

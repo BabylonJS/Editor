@@ -45,14 +45,14 @@ export class Splash extends Component {
 
 				<Fade delay={500}>
 					<div className="text-center w-full text-3xl">
-                        Babylon.JS Editor
+						Babylon.js Editor
 					</div>
 				</Fade>
 
 				<div className="flex items-center gap-[10px]">
 					<Grid width={24} height={24} color="gray" />
 					<div className="animate-pulse">
-                        Loading...
+						Loading...
 					</div>
 				</div>
 			</div>

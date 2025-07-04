@@ -6,10 +6,10 @@ import { cameraCommandItems, lightCommandItems, meshCommandItems } from "./dialo
 export function setupEditorMenu(): void {
 	Menu.setApplicationMenu(Menu.buildFromTemplate([
 		{
-			label: "Babylon.JS Editor",
+			label: "Babylon.js Editor",
 			submenu: [
 				{
-					label: "Exit BabylonJS Editor",
+					label: "Exit Babylon.js Editor",
 					accelerator: "CommandOrControl+Q",
 					click: () => BrowserWindow.getFocusedWindow()?.webContents.send("editor:quit-app"),
 				},

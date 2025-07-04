@@ -5,11 +5,11 @@ import { isDarwin } from "../tools/os";
 export function setupDashboardMenu(): void {
 	Menu.setApplicationMenu(Menu.buildFromTemplate([
 		{
-			label: "Babylon.JS Editor",
+			label: "Babylon.js Editor",
 			submenu: [
 				{
 					click: () => ipcMain.emit("app:quit"),
-					label: "Exit BabylonJS Editor",
+					label: "Exit Babylon.js Editor",
 					accelerator: "CommandOrControl+Q",
 				},
 			],

@@ -23,7 +23,7 @@ export default function DownloadPage() {
 				<Fade cascade damping={0.1} triggerOnce className="w-full">
 					<Fade>
 						<div className="text-3xl md:text-5xl lg:text-6xl font-semibold font-sans tracking-tighter text-center">
-							Download Babylon.JS Editor
+							Download Babylon.js Editor
 						</div>
 					</Fade>
 

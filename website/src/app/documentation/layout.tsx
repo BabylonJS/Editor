@@ -6,7 +6,7 @@ import { PropsWithChildren } from "react";
 import { DocumentationSidebar } from "./sidebar/sidebar";
 
 export const metadata: Metadata = {
-	title: "Babylon.JS Editor Documentation",
+	title: "Babylon.js Editor Documentation",
 	description: "Focus more on creating and less on coding.",
 };
 
@@ -21,7 +21,7 @@ export default function DocumentationLayout(props: PropsWithChildren) {
 				</Link>
 
 				<Link href="/download" className="flex items-center gap-2 text-black bg-neutral-50 rounded-full px-5 py-2">
-                    Download
+					Download
 				</Link>
 			</div>
 
