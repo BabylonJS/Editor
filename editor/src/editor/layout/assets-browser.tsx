@@ -884,7 +884,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 			return;
 		}
 
-		const material: Material | null = command.action() as Material;
+		const material = command.action() as Material | null;
 
 		if (!material) {
 			return;
