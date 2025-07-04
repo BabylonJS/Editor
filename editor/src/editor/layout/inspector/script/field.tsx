@@ -19,6 +19,7 @@ import { ensureTemporaryDirectoryExists } from "../../../../tools/project";
 
 import { projectConfiguration } from "../../../../project/configuration";
 
+import { EditorInspectorListField } from "../fields/list";
 import { EditorInspectorColorField } from "../fields/color";
 import { EditorInspectorSwitchField } from "../fields/switch";
 import { EditorInspectorNumberField } from "../fields/number";
@@ -157,11 +158,19 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 				);
 
 			case "animationGroup":
-				// TODO: Implement animation group inspector
-				return null;
-
-			default:
-				return null;
+				return (
+					<EditorInspectorListField
+						key={value.propertyKey}
+						object={props.script[scriptValues][value.propertyKey]}
+						property="value"
+						label={value.label ?? value.propertyKey}
+						tooltip={value.configuration.description}
+						items={props.editor.layout.preview.scene.animationGroups.map((animationGroup) => ({
+							text: animationGroup.name,
+							value: animationGroup.name,
+						}))}
+					/>
+				);
 		}
 	}
 
