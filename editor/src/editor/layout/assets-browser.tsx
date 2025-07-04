@@ -72,6 +72,8 @@ import { openModelViewer } from "./assets-browser/viewers/model-viewer";
 import "babylonjs-loaders";
 
 import "../../loader/assimpjs";
+import { getMaterialCommands } from "../dialogs/command-palette/material";
+import { ICommandPaletteType } from "../dialogs/command-palette/command-palette";
 
 
 const HDRSelectable = createSelectable(AssetBrowserHDRItem);
