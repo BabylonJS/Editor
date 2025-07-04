@@ -11,7 +11,10 @@ export function addFreeCamera(editor: Editor) {
 	camera.id = Tools.RandomId();
 	camera.uniqueId = UniqueNumber.Get();
 
-	editor.layout.graph.refresh();
+	editor.layout.graph.refresh().then(() => {
+		editor.layout.graph.setSelectedNode(camera);
+	});
+
 	editor.layout.inspector.setEditedObject(camera);
 	editor.layout.preview.gizmo.setAttachedNode(camera);
 }
@@ -23,7 +26,10 @@ export function addArcRotateCamera(editor: Editor) {
 	camera.id = Tools.RandomId();
 	camera.uniqueId = UniqueNumber.Get();
 
-	editor.layout.graph.refresh();
+	editor.layout.graph.refresh().then(() => {
+		editor.layout.graph.setSelectedNode(camera);
+	});
+
 	editor.layout.inspector.setEditedObject(camera);
 	editor.layout.preview.gizmo.setAttachedNode(camera);
 }

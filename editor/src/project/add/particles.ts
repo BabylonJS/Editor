@@ -21,7 +21,10 @@ export function addParticleSystem(editor: Editor, emitter: AbstractMesh) {
 	particleSystem.minEmitBox.set(-100, -100, -100);
 	particleSystem.maxEmitBox.set(100, 100, 100);
 
-	editor.layout.graph.refresh();
+	editor.layout.graph.refresh().then(() => {
+		editor.layout.graph.setSelectedNode(particleSystem);
+	});
+
 	editor.layout.inspector.setEditedObject(particleSystem);
 	editor.layout.preview.gizmo.setAttachedNode(particleSystem.emitter);
 }
@@ -45,7 +48,10 @@ export function addGPUParticleSystem(editor: Editor, emitter: AbstractMesh) {
 	particleSystem.minEmitBox.set(-100, -100, -100);
 	particleSystem.maxEmitBox.set(100, 100, 100);
 
-	editor.layout.graph.refresh();
+	editor.layout.graph.refresh().then(() => {
+		editor.layout.graph.setSelectedNode(particleSystem);
+	});
+
 	editor.layout.inspector.setEditedObject(particleSystem);
 	editor.layout.preview.gizmo.setAttachedNode(particleSystem.emitter);
 }

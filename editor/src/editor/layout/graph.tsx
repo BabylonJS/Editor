@@ -29,7 +29,7 @@ import { isAdvancedDynamicTexture } from "../../tools/guards/texture";
 import { updateIblShadowsRenderPipeline } from "../../tools/light/ibl";
 import { UniqueNumber, waitNextAnimationFrame } from "../../tools/tools";
 import { isMeshMetadataNotVisibleInGraph } from "../../tools/mesh/metadata";
-import { isGPUParticleSystem, isParticleSystem } from "../../tools/guards/particles";
+import { isAnyParticleSystem, isGPUParticleSystem, isParticleSystem } from "../../tools/guards/particles";
 import { isAbstractMesh, isCamera, isCollisionInstancedMesh, isCollisionMesh, isEditorCamera, isInstancedMesh, isLight, isMesh, isNode, isTransformNode } from "../../tools/guards/nodes";
 import { onNodeModifiedObservable, onNodesAddedObservable, onParticleSystemAddedObservable, onParticleSystemModifiedObservable, onTextureModifiedObservable } from "../../tools/observables";
 
@@ -213,7 +213,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 	/**
 	 * Refreshes the graph.
 	 */
-	public refresh(): void {
+	public refresh(): Promise<void> {
 		const scene = this.props.editor.layout.preview.scene;
 
 		this._soundsList = scene.soundTracks?.map((st) => st.soundCollection).flat() ?? [];
@@ -257,6 +257,8 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		this.setState({
 			nodes: nodes.filter((n) => n !== null) as TreeNodeInfo[],
 		});
+
+		return waitNextAnimationFrame();
 	}
 
 	/**
@@ -264,8 +266,14 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 	 * become unselected to have only the given node selected. All parents are expanded.
 	 * @param node defines the reference tot the node to select in the graph.
 	 */
-	public setSelectedNode(node: Node | Sound | ParticleSystem): void {
-		let source = isSound(node) ? node["_connectedTransformNode"] : node;
+	public setSelectedNode(node: Node | Sound | IParticleSystem): void {
+		let source =
+			isSound(node)
+				? node["_connectedTransformNode"]
+				: isAnyParticleSystem(node)
+					? node.emitter
+					: node;
+
 		if (!source) {
 			return;
 		}

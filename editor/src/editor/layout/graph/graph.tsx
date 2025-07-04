@@ -38,6 +38,10 @@ export interface IEditorGraphContextMenuProps extends PropsWithChildren {
 
 export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuProps> {
 	public render(): ReactNode {
+		const parent = this.props.object && isScene(this.props.object)
+			? undefined
+			: this.props.object;
+
 		return (
 			<ContextMenu onOpenChange={(o) => this.props.onOpenChange?.(o)}>
 				<ContextMenuTrigger className="w-full h-full">
@@ -82,14 +86,14 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
 										<AiOutlinePlus className="w-5 h-5" /> Add
 									</ContextMenuSubTrigger>
 									<ContextMenuSubContent>
-										{getMeshCommands(this.props.editor).map((command) => (
-											<ContextMenuItem key={command.ipcRendererChannelKey} onClick={command.action}>
+										{getMeshCommands(this.props.editor, parent).map((command) => (
+											<ContextMenuItem key={command.key} onClick={command.action}>
 												{command.text}
 											</ContextMenuItem>
 										))}
 										<ContextMenuSeparator />
-										{getLightCommands(this.props.editor).map((command) => (
-											<ContextMenuItem key={command.ipcRendererChannelKey} onClick={command.action}>
+										{getLightCommands(this.props.editor, parent).map((command) => (
+											<ContextMenuItem key={command.key} onClick={command.action}>
 												{command.text}
 											</ContextMenuItem>
 										))}

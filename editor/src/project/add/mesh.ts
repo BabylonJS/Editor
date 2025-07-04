@@ -10,7 +10,10 @@ export function addTransformNode(editor: Editor, parent?: Node) {
 	transformNode.uniqueId = UniqueNumber.Get();
 	transformNode.parent = parent ?? null;
 
-	editor.layout.graph.refresh();
+	editor.layout.graph.refresh().then(() => {
+		editor.layout.graph.setSelectedNode(transformNode);
+	});
+
 	editor.layout.inspector.setEditedObject(transformNode);
 	editor.layout.preview.gizmo.setAttachedNode(transformNode);
 }
@@ -37,7 +40,10 @@ export function addBoxMesh(editor: Editor, parent?: Node) {
 		light.getShadowGenerator()?.getShadowMap()?.renderList?.push(box);
 	});
 
-	editor.layout.graph.refresh();
+	editor.layout.graph.refresh().then(() => {
+		editor.layout.graph.setSelectedNode(box);
+	});
+
 	editor.layout.inspector.setEditedObject(box);
 	editor.layout.preview.gizmo.setAttachedNode(box);
 }
@@ -62,7 +68,10 @@ export function addPlaneMesh(editor: Editor, parent?: Node) {
 		light.getShadowGenerator()?.getShadowMap()?.renderList?.push(plane);
 	});
 
-	editor.layout.graph.refresh();
+	editor.layout.graph.refresh().then(() => {
+		editor.layout.graph.setSelectedNode(plane);
+	});
+
 	editor.layout.inspector.setEditedObject(plane);
 	editor.layout.preview.gizmo.setAttachedNode(plane);
 }
@@ -89,7 +98,10 @@ export function addGroundMesh(editor: Editor, parent?: Node) {
 		light.getShadowGenerator()?.getShadowMap()?.renderList?.push(ground);
 	});
 
-	editor.layout.graph.refresh();
+	editor.layout.graph.refresh().then(() => {
+		editor.layout.graph.setSelectedNode(ground);
+	});
+
 	editor.layout.inspector.setEditedObject(ground);
 	editor.layout.preview.gizmo.setAttachedNode(ground);
 }
@@ -115,7 +127,10 @@ export function addSphereMesh(editor: Editor, parent?: Node) {
 		light.getShadowGenerator()?.getShadowMap()?.renderList?.push(sphere);
 	});
 
-	editor.layout.graph.refresh();
+	editor.layout.graph.refresh().then(() => {
+		editor.layout.graph.setSelectedNode(sphere);
+	});
+
 	editor.layout.inspector.setEditedObject(sphere);
 	editor.layout.preview.gizmo.setAttachedNode(sphere);
 }
@@ -145,7 +160,10 @@ export function addSkyboxMesh(editor: Editor, parent?: Node) {
 		skybox.geometry.uniqueId = UniqueNumber.Get();
 	}
 
-	editor.layout.graph.refresh();
+	editor.layout.graph.refresh().then(() => {
+		editor.layout.graph.setSelectedNode(skybox);
+	});
+
 	editor.layout.inspector.setEditedObject(skybox);
 	editor.layout.preview.gizmo.setAttachedNode(skybox);
 }
@@ -156,7 +174,10 @@ export function addEmptyMesh(editor: Editor, parent?: Node) {
 	emptyMesh.uniqueId = UniqueNumber.Get();
 	emptyMesh.parent = parent ?? null;
 
-	editor.layout.graph.refresh();
+	editor.layout.graph.refresh().then(() => {
+		editor.layout.graph.setSelectedNode(emptyMesh);
+	});
+
 	editor.layout.inspector.setEditedObject(emptyMesh);
 	editor.layout.preview.gizmo.setAttachedNode(emptyMesh);
 }

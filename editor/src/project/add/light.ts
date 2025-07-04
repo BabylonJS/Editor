@@ -11,7 +11,10 @@ export function addPointLight(editor: Editor, parent?: Node) {
 	light.uniqueId = UniqueNumber.Get();
 	light.parent = parent ?? null;
 
-	editor.layout.graph.refresh();
+	editor.layout.graph.refresh().then(() => {
+		editor.layout.graph.setSelectedNode(light);
+	});
+
 	editor.layout.inspector.setEditedObject(light);
 	editor.layout.preview.gizmo.setAttachedNode(light);
 }
@@ -23,7 +26,10 @@ export function addDirectionalLight(editor: Editor, parent?: Node) {
 	light.uniqueId = UniqueNumber.Get();
 	light.parent = parent ?? null;
 
-	editor.layout.graph.refresh();
+	editor.layout.graph.refresh().then(() => {
+		editor.layout.graph.setSelectedNode(light);
+	});
+
 	editor.layout.inspector.setEditedObject(light);
 	editor.layout.preview.gizmo.setAttachedNode(light);
 }
@@ -34,7 +40,10 @@ export function addSpotLight(editor: Editor, parent?: Node) {
 	light.uniqueId = UniqueNumber.Get();
 	light.parent = parent ?? null;
 
-	editor.layout.graph.refresh();
+	editor.layout.graph.refresh().then(() => {
+		editor.layout.graph.setSelectedNode(light);
+	});
+
 	editor.layout.inspector.setEditedObject(light);
 	editor.layout.preview.gizmo.setAttachedNode(light);
 }
@@ -45,7 +54,10 @@ export function addHemisphericLight(editor: Editor, parent?: Node) {
 	light.uniqueId = UniqueNumber.Get();
 	light.parent = parent ?? null;
 
-	editor.layout.graph.refresh();
+	editor.layout.graph.refresh().then(() => {
+		editor.layout.graph.setSelectedNode(light);
+	});
+
 	editor.layout.inspector.setEditedObject(light);
 	editor.layout.preview.gizmo.setAttachedNode(light);
 }
