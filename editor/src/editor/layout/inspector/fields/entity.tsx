@@ -8,18 +8,23 @@ import { Scene, Node, IParticleSystem, Sound } from "babylonjs";
 import { Button } from "../../../../ui/shadcn/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../../../ui/shadcn/ui/tooltip";
 
+import { isNode } from "../../../../tools/guards/nodes";
+import { isSound } from "../../../../tools/guards/sound";
 import { getSoundById } from "../../../../tools/sound/tools";
 import { registerSimpleUndoRedo } from "../../../../tools/undoredo";
+import { isAnyParticleSystem } from "../../../../tools/guards/particles";
 import { getInspectorPropertyValue, setInspectorEffectivePropertyValue } from "../../../../tools/property";
 
 import { IEditorInspectorFieldProps } from "./field";
 
-export interface IEditorInspectorNodeFieldProps<T = Node | IParticleSystem | Sound> extends IEditorInspectorFieldProps {
+export interface IEditorInspectorSceneEntityFieldProps<T = Node | IParticleSystem | Sound> extends IEditorInspectorFieldProps {
 	scene: Scene;
+	type?: "node" | "particleSystem" | "sound";
+
 	onChange?: (value: T | null) => void;
 }
 
-export function EditorInspectorNodeField<T extends Node | IParticleSystem | Sound>(props: IEditorInspectorNodeFieldProps<T>) {
+export function EditorInspectorSceneEntityField<T extends Node | IParticleSystem | Sound>(props: IEditorInspectorSceneEntityFieldProps<T>) {
 	const [dragOver, setDragOver] = useState(false);
 	const [value, setValue] = useState<T | null>(null);
 
@@ -65,6 +70,20 @@ export function EditorInspectorNodeField<T extends Node | IParticleSystem | Soun
 		}
 
 		setDragOver(false);
+
+		const entity = getObjectById(data[0]);
+
+		if (props.type === "sound" && !isSound(entity)) {
+			return;
+		}
+
+		if (props.type === "particleSystem" && !isAnyParticleSystem(entity)) {
+			return;
+		}
+
+		if (props.type === "node" && !isNode(entity)) {
+			return;
+		}
 
 		handleSetNode(
 			getObjectById(data[0]),

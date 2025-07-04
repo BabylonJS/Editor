@@ -19,11 +19,11 @@ import { ensureTemporaryDirectoryExists } from "../../../../tools/project";
 
 import { projectConfiguration } from "../../../../project/configuration";
 
-import { EditorInspectorNodeField } from "../fields/node";
 import { EditorInspectorColorField } from "../fields/color";
 import { EditorInspectorSwitchField } from "../fields/switch";
 import { EditorInspectorNumberField } from "../fields/number";
 import { EditorInspectorVectorField } from "../fields/vector";
+import { EditorInspectorSceneEntityField } from "../fields/entity";
 
 import { VisibleInInspectorDecoratorObject, computeDefaultValuesForObject, scriptValues } from "./tools";
 
@@ -135,8 +135,9 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 			case "particleSystem":
 			case "sound":
 				return (
-					<EditorInspectorNodeField
+					<EditorInspectorSceneEntityField
 						noUndoRedo
+						type={entityType}
 						key={value.propertyKey}
 						object={props.script[scriptValues][value.propertyKey]}
 						property="value"

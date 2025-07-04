@@ -211,7 +211,7 @@ export type VisibleInInspectorDecoratorColor4Configuration = VisibleInInspectorD
 export function visibleAsEntity(
 	entityType: VisibleAsEntityType,
 	label?: string,
-	configuration?: Omit<VisibleInInspectorDecoratorEntityConfiguration, "type">,
+	configuration?: Omit<VisibleInInspectorDecoratorEntityConfiguration, "type" | "entityType">,
 ) {
 	return function (target: any, propertyKey: string | Symbol) {
 		const ctor = target.constructor as ISceneDecoratorData;
