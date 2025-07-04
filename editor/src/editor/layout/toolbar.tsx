@@ -17,9 +17,9 @@ import { saveProject } from "../../project/save/save";
 import { exportProject } from "../../project/export/export";
 
 import { Editor } from "../main";
+import { getMeshCommands } from "../dialogs/command-palette/mesh";
 import { getLightCommands } from "../dialogs/command-palette/light";
 import { getCameraCommands } from "../dialogs/command-palette/camera";
-import { getMeshCommands } from "../dialogs/command-palette/mesh";
 import { ICommandPaletteType } from "../dialogs/command-palette/command-palette";
 
 export interface IEditorToolbarProps {
@@ -27,13 +27,12 @@ export interface IEditorToolbarProps {
 }
 
 export class EditorToolbar extends Component<IEditorToolbarProps> {
-	private _meshCommands: ICommandPaletteType[] = [];
-	private _lightCommands: ICommandPaletteType[] = [];
-	private _cameraCommands: ICommandPaletteType[] = [];
+	private _meshCommands: ICommandPaletteType[];
+	private _lightCommands: ICommandPaletteType[];
+	private _cameraCommands: ICommandPaletteType[];
 
 	public constructor(props: IEditorToolbarProps) {
 		super(props);
-		
 
 		ipcRenderer.on("editor:open-project", () => this._handleOpenProject());
 		ipcRenderer.on("editor:open-vscode", () => this._handleOpenVisualStudioCode());
@@ -48,9 +47,9 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 			...this._cameraCommands,
 		];
 
-		for (const command of commands) {
+		commands.forEach((command) => {
 			ipcRenderer.on(`add:${command.ipcRendererChannelKey}`, command.action);
-		}
+		});
 	}
 
 	public render(): ReactNode {

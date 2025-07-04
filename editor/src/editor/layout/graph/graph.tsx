@@ -13,6 +13,9 @@ import {
 
 import { SceneAssetBrowserDialogMode, showAssetBrowserDialog } from "../../../ui/scene-asset-browser";
 
+import { getMeshCommands } from "../../dialogs/command-palette/mesh";
+import { getLightCommands } from "../../dialogs/command-palette/light";
+
 import { isSound } from "../../../tools/guards/sound";
 import { reloadSound } from "../../../tools/sound/tools";
 import { registerUndoRedo } from "../../../tools/undoredo";
@@ -25,8 +28,6 @@ import { addGPUParticleSystem, addParticleSystem } from "../../../project/add/pa
 import { Editor } from "../../main";
 
 import { removeNodes } from "./remove";
-import { getMeshCommands } from "../../dialogs/command-palette/mesh";
-import { getLightCommands } from "../../dialogs/command-palette/light";
 
 export interface IEditorGraphContextMenuProps extends PropsWithChildren {
 	editor: Editor;
@@ -77,7 +78,7 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
 
 							{((isNode(this.props.object) || isScene(this.props.object)) && !isSceneLinkNode(this.props.object)) &&
 								<ContextMenuSub>
-									<ContextMenuSubTrigger className="flex items-center gap-2 min-h-40">
+									<ContextMenuSubTrigger className="flex items-center gap-2">
 										<AiOutlinePlus className="w-5 h-5" /> Add
 									</ContextMenuSubTrigger>
 									<ContextMenuSubContent>

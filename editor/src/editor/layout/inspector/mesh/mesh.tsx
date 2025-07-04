@@ -18,6 +18,9 @@ import { Button } from "../../../../ui/shadcn/ui/button";
 import { Separator } from "../../../../ui/shadcn/ui/separator";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../../../ui/shadcn/ui/dropdown-menu";
 
+import { getMaterialCommands } from "../../../dialogs/command-palette/material";
+import { ICommandPaletteType } from "../../../dialogs/command-palette/command-palette";
+
 import { registerUndoRedo } from "../../../../tools/undoredo";
 import { onNodeModifiedObservable } from "../../../../tools/observables";
 import { updateIblShadowsRenderPipeline } from "../../../../tools/light/ibl";
@@ -47,9 +50,6 @@ import { MeshDecalInspector } from "./decal";
 import { MeshGeometryInspector } from "./geometry";
 import { EditorMeshPhysicsInspector } from "./physics";
 import { EditorMeshCollisionInspector } from "./collision";
-
-import { getMaterialCommands } from "../../../dialogs/command-palette/material";
-import { ICommandPaletteType } from "../../../dialogs/command-palette/command-palette";
 
 export class EditorMeshInspector extends Component<IEditorInspectorImplementationProps<AbstractMesh>> {
 	/**
@@ -168,28 +168,6 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 		}
 	}
 
-	private _handleAddMaterial(command: ICommandPaletteType): void {
-		if(this.props.object.material) {return;}
-		const material = command.action() as Material | null;
-		
-		if (!material) {
-			return;
-		}
-
-
-
-		this.props.object.material = material;
-
-		registerUndoRedo({
-			executeRedo: true,
-			onLost: () => material.dispose(),
-			undo: () => this.props.object.material = null,
-			redo: () => this.props.object.material = material,
-		});
-
-		this.forceUpdate();
-	}
-
 	private _getLODsComponent(): ReactNode {
 		const mesh = this.props.object as Mesh;
 
@@ -230,11 +208,11 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 				<EditorInspectorSectionField title="Material">
 					<div className="flex justify-center items-center gap-2">
 						<div className="text-center text-xl">
-                        No material
+							No material
 						</div>
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild>
-								<Button variant="ghost">
+								<Button variant="ghost" className="w-8 h-8 !rounded-lg p-0.5">
 									<AiOutlinePlus className="w-4 h-4" />
 								</Button>
 							</DropdownMenuTrigger>
@@ -246,7 +224,7 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 								))}
 							</DropdownMenuContent>
 						</DropdownMenu>
-					</div>			
+					</div>
 				</EditorInspectorSectionField>
 			);
 		}
@@ -267,6 +245,23 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 				{inspector}
 			</div>
 		);
+	}
+
+	private _handleAddMaterial(command: ICommandPaletteType): void {
+		const material = command.action() as Material | null;
+
+		if (!material) {
+			return;
+		}
+
+		registerUndoRedo({
+			executeRedo: true,
+			onLost: () => material.dispose(),
+			undo: () => this.props.object.material = null,
+			redo: () => this.props.object.material = material,
+		});
+
+		this.forceUpdate();
 	}
 
 	private _getMaterialInspectorComponent(material: Material): ReactNode {

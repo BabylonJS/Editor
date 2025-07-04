@@ -1,8 +1,7 @@
 import { platform } from "os";
 import { BrowserWindow, Menu } from "electron";
-import { getMeshCommands } from "./dialogs/command-palette/mesh";
-import { getLightCommands } from "./dialogs/command-palette/light";
-import { getCameraCommands } from "./dialogs/command-palette/camera";
+
+import { cameraCommandItems, lightCommandItems, meshCommandItems } from "./dialogs/command-palette/shared-commands";
 
 export function setupEditorMenu(): void {
 	Menu.setApplicationMenu(Menu.buildFromTemplate([
@@ -148,21 +147,21 @@ export function setupEditorMenu(): void {
 		{
 			label: "Add",
 			submenu: [
-				...getMeshCommands().map((command) => ({
+				...Object.values(meshCommandItems).map((command) => ({
 					label: command.text,
 					click: () => BrowserWindow.getFocusedWindow()?.webContents.send(`add:${command.ipcRendererChannelKey}`),
 				})),
 				{
 					type: "separator",
 				},
-				...getLightCommands().map((command) => ({
+				...Object.values(lightCommandItems).map((command) => ({
 					label: command.text,
 					click: () => BrowserWindow.getFocusedWindow()?.webContents.send(`add:${command.ipcRendererChannelKey}`),
 				})),
 				{
 					type: "separator",
 				},
-				...getCameraCommands().map((command) => ({
+				...Object.values(cameraCommandItems).map((command) => ({
 					label: command.text,
 					click: () => BrowserWindow.getFocusedWindow()?.webContents.send(`add:${command.ipcRendererChannelKey}`),
 				})),
