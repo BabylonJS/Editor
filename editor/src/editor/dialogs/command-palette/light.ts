@@ -4,11 +4,45 @@ import { addDirectionalLight, addHemisphericLight, addPointLight, addSpotLight }
 
 import { ICommandPaletteType } from "./command-palette";
 
-export function getLightCommands(editor: Editor): ICommandPaletteType[] {
+export enum LightKey {
+	AddPointLight = "add-point-light",
+	AddDirectionalLight = "add-directional-light",
+	AddSpotLight = "add-spot-light",
+	AddHemisphericLight = "add-hemispheric-light",
+}
+
+export enum LightIPCRendererChannelKey {
+	PointLight = "point-light",
+	DirectionalLight = "directional-light",
+	SpotLight = "spot-light",
+	HemisphericLight = "hemispheric-light",
+}
+
+export function getLightCommands(editor?: Editor): ICommandPaletteType[] {
 	return [
-		{ text: "Add Point Light", label: "Add a new point light to the scene", action: () => addPointLight(editor) },
-		{ text: "Add Directional Light", label: "Add a new directional light to the scene", action: () => addDirectionalLight(editor) },
-		{ text: "Add Spot Light", label: "Add a new spot light to the scene", action: () => addSpotLight(editor) },
-		{ text: "Add Hemispheric Light", label: "Add a new hemispheric light to the scene", action: () => addHemisphericLight(editor) },
+		{ 
+			text: "Point Light", 
+			label: "Add a new point light to the scene", 
+			key: LightKey.AddPointLight, 
+			ipcRendererChannelKey: LightIPCRendererChannelKey.PointLight, 
+			action: () => editor && addPointLight(editor) },
+		{ 
+			text: "Directional Light", 
+			label: "Add a new directional light to the scene", 
+			key: LightKey.AddDirectionalLight, 
+			ipcRendererChannelKey: LightIPCRendererChannelKey.DirectionalLight,
+			action: () => editor && addDirectionalLight(editor) },
+		{ 
+			text: "Spot Light", 
+			label: "Add a new spot light to the scene", 
+			key: LightKey.AddSpotLight, 
+			ipcRendererChannelKey: LightIPCRendererChannelKey.SpotLight, 
+			action: () => editor && addSpotLight(editor) },
+		{ 
+			text: "Hemispheric Light", 
+			label: "Add a new hemispheric light to the scene", 
+			key: LightKey.AddHemisphericLight, 
+			ipcRendererChannelKey: LightIPCRendererChannelKey.HemisphericLight, 
+			action: () => editor && addHemisphericLight(editor) },
 	];
 }
