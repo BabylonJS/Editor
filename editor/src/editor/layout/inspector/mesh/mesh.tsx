@@ -170,13 +170,22 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 
 	private _handleAddMaterial(command: ICommandPaletteType): void {
 		if(this.props.object.material) {return;}
-		const material: Material | null = command.action() as Material;
+		const material = command.action() as Material | null;
 		
 		if (!material) {
 			return;
 		}
 
+
+
 		this.props.object.material = material;
+
+		registerUndoRedo({
+			executeRedo: true,
+			onLost: () => material.dispose(),
+			undo: () => this.props.object.material = null,
+			redo: () => this.props.object.material = material,
+		});
 		this.forceUpdate();
 	}
 

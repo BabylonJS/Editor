@@ -37,6 +37,9 @@ import { openMultipleFilesDialog } from "../../tools/dialog";
 import { onSelectedAssetChanged } from "../../tools/observables";
 import { checkProjectCachedCompressedTextures, processingCompressedTextures } from "../../tools/ktx/check";
 
+import { getMaterialCommands } from "../dialogs/command-palette/material";
+import { ICommandPaletteType } from "../dialogs/command-palette/command-palette";
+
 import { loadScene } from "../../project/load/scene";
 import { saveProject } from "../../project/save/save";
 import { onProjectConfigurationChangedObservable, projectConfiguration } from "../../project/configuration";
@@ -69,8 +72,7 @@ import { openModelViewer } from "./assets-browser/viewers/model-viewer";
 import "babylonjs-loaders";
 
 import "../../loader/assimpjs";
-import { getMaterialCommands } from "../dialogs/command-palette/material";
-import { ICommandPaletteType } from "../dialogs/command-palette/command-palette";
+
 
 const HDRSelectable = createSelectable(AssetBrowserHDRItem);
 const GuiSelectable = createSelectable(AssetBrowserGUIItem);
@@ -884,7 +886,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 			return;
 		}
 
-		const material: Material | null = command.action() as Material;
+		const material = command.action() as Material | null;
 
 		if (!material) {
 			return;
