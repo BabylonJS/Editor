@@ -77,7 +77,7 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
 
 							{((isNode(this.props.object) || isScene(this.props.object)) && !isSceneLinkNode(this.props.object)) &&
 								<ContextMenuSub>
-									<ContextMenuSubTrigger className="flex items-center gap-2">
+									<ContextMenuSubTrigger className="flex items-center gap-2 min-h-40">
 										<AiOutlinePlus className="w-5 h-5" /> Add
 									</ContextMenuSubTrigger>
 									<ContextMenuSubContent>

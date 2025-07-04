@@ -31,3 +31,4 @@ export function getCameraCommands(editor?: Editor): ICommandPaletteType[] {
 	];
 }
 
+

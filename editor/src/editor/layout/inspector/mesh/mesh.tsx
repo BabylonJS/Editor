@@ -186,6 +186,7 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 			undo: () => this.props.object.material = null,
 			redo: () => this.props.object.material = material,
 		});
+
 		this.forceUpdate();
 	}
 
@@ -238,15 +239,14 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 								</Button>
 							</DropdownMenuTrigger>
 							<DropdownMenuContent>
-								{getMaterialCommands().map((command) => (
+								{getMaterialCommands(this.props.editor).map((command) => (
 									<DropdownMenuItem key={command.key} onClick={() => this._handleAddMaterial(command)}>
 										{command.text}
 									</DropdownMenuItem>
 								))}
 							</DropdownMenuContent>
 						</DropdownMenu>
-					</div>
-					
+					</div>			
 				</EditorInspectorSectionField>
 			);
 		}
