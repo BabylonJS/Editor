@@ -16,38 +16,41 @@ import { ToolbarComponent } from "../../ui/toolbar";
 import { saveProject } from "../../project/save/save";
 import { exportProject } from "../../project/export/export";
 
-import { addArcRotateCamera, addFreeCamera } from "../../project/add/camera";
-import { addDirectionalLight, addHemisphericLight, addPointLight, addSpotLight } from "../../project/add/light";
-import { addTransformNode, addBoxMesh, addGroundMesh, addSphereMesh, addPlaneMesh, addSkyboxMesh, addEmptyMesh } from "../../project/add/mesh";
-
 import { Editor } from "../main";
+import { getLightCommands } from "../dialogs/command-palette/light";
+import { getCameraCommands } from "../dialogs/command-palette/camera";
+import { getMeshCommands } from "../dialogs/command-palette/mesh";
+import { ICommandPaletteType } from "../dialogs/command-palette/command-palette";
 
 export interface IEditorToolbarProps {
 	editor: Editor;
 }
 
 export class EditorToolbar extends Component<IEditorToolbarProps> {
+	private _meshCommands: ICommandPaletteType[] = [];
+	private _lightCommands: ICommandPaletteType[] = [];
+	private _cameraCommands: ICommandPaletteType[] = [];
+
 	public constructor(props: IEditorToolbarProps) {
 		super(props);
+		
 
 		ipcRenderer.on("editor:open-project", () => this._handleOpenProject());
 		ipcRenderer.on("editor:open-vscode", () => this._handleOpenVisualStudioCode());
 
-		ipcRenderer.on("add:transform-node", () => addTransformNode(this.props.editor));
-		ipcRenderer.on("add:box-mesh", () => addBoxMesh(this.props.editor));
-		ipcRenderer.on("add:plane-mesh", () => addPlaneMesh(this.props.editor));
-		ipcRenderer.on("add:sphere-mesh", () => addSphereMesh(this.props.editor));
-		ipcRenderer.on("add:ground-mesh", () => addGroundMesh(this.props.editor));
-		ipcRenderer.on("add:skybox-mesh", () => addSkyboxMesh(this.props.editor));
-		ipcRenderer.on("add:empty-mesh", () => addEmptyMesh(this.props.editor));
+		this._meshCommands = getMeshCommands(this.props.editor);
+		this._lightCommands = getLightCommands(this.props.editor);
+		this._cameraCommands = getCameraCommands(this.props.editor);
 
-		ipcRenderer.on("add:point-light", () => addPointLight(this.props.editor));
-		ipcRenderer.on("add:directional-light", () => addDirectionalLight(this.props.editor));
-		ipcRenderer.on("add:spot-light", () => addSpotLight(this.props.editor));
-		ipcRenderer.on("add:hemispheric-light", () => addHemisphericLight(this.props.editor));
+		const commands = [
+			...this._meshCommands,
+			...this._lightCommands,
+			...this._cameraCommands,
+		];
 
-		ipcRenderer.on("add:free-camera", () => addFreeCamera(this.props.editor));
-		ipcRenderer.on("add:arc-rotate-camera", () => addArcRotateCamera(this.props.editor));
+		for (const command of commands) {
+			ipcRenderer.on(`add:${command.ipcRendererChannelKey}`, command.action);
+		}
 	}
 
 	public render(): ReactNode {
@@ -173,54 +176,23 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 							Add
 						</MenubarTrigger>
 						<MenubarContent className="border-black/50">
-							<MenubarItem onClick={() => addTransformNode(this.props.editor)}>
-								Transform Node
-							</MenubarItem>
-
+							{this._meshCommands.map((command) => (
+								<MenubarItem key={command.key} onClick={command.action}>
+									{command.text}
+								</MenubarItem>
+							))}
 							<MenubarSeparator />
-
-							<MenubarItem onClick={() => addBoxMesh(this.props.editor)}>
-								Box Mesh
-							</MenubarItem>
-							<MenubarItem onClick={() => addPlaneMesh(this.props.editor)}>
-								Plane Mesh
-							</MenubarItem>
-							<MenubarItem onClick={() => addSphereMesh(this.props.editor)}>
-								Sphere Mesh
-							</MenubarItem>
-							<MenubarItem onClick={() => addGroundMesh(this.props.editor)}>
-								Ground Mesh
-							</MenubarItem>
-							<MenubarItem onClick={() => addSkyboxMesh(this.props.editor)}>
-								SkyBox Mesh
-							</MenubarItem>
-							<MenubarItem onClick={() => addEmptyMesh(this.props.editor)}>
-								Empty Mesh
-							</MenubarItem>
-
+							{this._lightCommands.map((command) => (
+								<MenubarItem key={command.key} onClick={command.action}>
+									{command.text}
+								</MenubarItem>
+							))}
 							<MenubarSeparator />
-
-							<MenubarItem onClick={() => addPointLight(this.props.editor)}>
-								Point Light
-							</MenubarItem>
-							<MenubarItem onClick={() => addDirectionalLight(this.props.editor)}>
-								Directional Light
-							</MenubarItem>
-							<MenubarItem onClick={() => addSpotLight(this.props.editor)}>
-								Spot Light
-							</MenubarItem>
-							<MenubarItem onClick={() => addHemisphericLight(this.props.editor)}>
-								Hemispheric Light
-							</MenubarItem>
-
-							<MenubarSeparator />
-
-							<MenubarItem onClick={() => addFreeCamera(this.props.editor)}>
-								Free Camera
-							</MenubarItem>
-							<MenubarItem onClick={() => addArcRotateCamera(this.props.editor)}>
-								Arc Rotate Camera
-							</MenubarItem>
+							{this._cameraCommands.map((command) => (
+								<MenubarItem key={command.key} onClick={command.action}>
+									{command.text}
+								</MenubarItem>
+							))}
 						</MenubarContent>
 					</MenubarMenu>
 

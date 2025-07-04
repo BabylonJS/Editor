@@ -4,9 +4,8 @@ import { copyFile, mkdir, move, pathExists, readdir, stat, writeFile, writeJSON 
 
 import filenamify from "filenamify";
 
-import { SkyMaterial } from "babylonjs-materials";
 import { AdvancedDynamicTexture } from "babylonjs-gui";
-import { Camera, Material, NodeMaterial, PBRMaterial, StandardMaterial, Tools } from "babylonjs";
+import { Camera, Material, NodeMaterial, Tools } from "babylonjs";
 
 import { ICinematic } from "babylonjs-editor-tools";
 
@@ -70,6 +69,8 @@ import { openModelViewer } from "./assets-browser/viewers/model-viewer";
 import "babylonjs-loaders";
 
 import "../../loader/assimpjs";
+import { getMaterialCommands } from "../dialogs/command-palette/material";
+import { ICommandPaletteType } from "../dialogs/command-palette/command-palette";
 
 const HDRSelectable = createSelectable(AssetBrowserHDRItem);
 const GuiSelectable = createSelectable(AssetBrowserGUIItem);
@@ -661,12 +662,13 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 							<ContextMenuSubContent>
 								<ContextMenuItem onClick={() => this._handleAddScene()}>Scene</ContextMenuItem>
 								<ContextMenuSeparator />
-								<ContextMenuItem onClick={() => this._handleAddMaterial("PBRMaterial")}>PBR Material</ContextMenuItem>
-								<ContextMenuItem onClick={() => this._handleAddMaterial("StandardMaterial")}>Standard Material</ContextMenuItem>
-								<ContextMenuItem onClick={() => this._handleAddMaterial("SkyMaterial")}>Sky Material</ContextMenuItem>
+								{getMaterialCommands(this.props.editor).map((command) => (
+									<ContextMenuItem key={command.key} onClick={() => this._handleAddMaterial(command)}>
+										{command.text}
+									</ContextMenuItem>
+								))}
 
 								<ContextMenuSeparator />
-								<ContextMenuItem onClick={() => this._handleAddMaterial("NodeMaterial")}>Node Material</ContextMenuItem>
 								<ContextMenuItem onClick={() => this._handleAddNodeMaterialFromSnippet()}>Node Material From Snippet...</ContextMenuItem>
 
 								{this.props.editor.state.enableExperimentalFeatures &&
@@ -877,37 +879,16 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 		this._refreshItems(this.state.browsedPath!);
 	}
 
-	private async _handleAddMaterial(type: string): Promise<void> {
+	private async _handleAddMaterial(command: ICommandPaletteType): Promise<void> {
 		if (!this.state.browsedPath) {
 			return;
 		}
 
-		let material: Material | null = null;
-		switch (type) {
-			case "PBRMaterial":
-				material = new PBRMaterial("New PBR Material", this.props.editor.layout.preview.scene);
-				break;
-			case "StandardMaterial":
-				material = new StandardMaterial("New Standard Material", this.props.editor.layout.preview.scene);
-				break;
-			case "NodeMaterial":
-				const nodeMaterial = new NodeMaterial("New Node Material", this.props.editor.layout.preview.scene);
-				nodeMaterial.setToDefault();
-
-				material = nodeMaterial;
-				break;
-
-			case "SkyMaterial":
-				material = new SkyMaterial("New Sky Material", this.props.editor.layout.preview.scene);
-				break;
-		}
+		const material: Material | null = command.action() as Material;
 
 		if (!material) {
 			return;
 		}
-
-		material.id = Tools.RandomId();
-		material.uniqueId = UniqueNumber.Get();
 
 		let index: number | undefined = undefined;
 		while (await pathExists(join(this.state.browsedPath, `${material.name}${index !== undefined ? ` ${index}` : ""}.material`))) {

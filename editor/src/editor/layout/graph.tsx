@@ -33,13 +33,13 @@ import { isGPUParticleSystem, isParticleSystem } from "../../tools/guards/partic
 import { isAbstractMesh, isCamera, isCollisionInstancedMesh, isCollisionMesh, isEditorCamera, isInstancedMesh, isLight, isMesh, isNode, isTransformNode } from "../../tools/guards/nodes";
 import { onNodeModifiedObservable, onNodesAddedObservable, onParticleSystemAddedObservable, onParticleSystemModifiedObservable, onTextureModifiedObservable } from "../../tools/observables";
 
-import { addArcRotateCamera, addFreeCamera } from "../../project/add/camera";
 import { onProjectConfigurationChangedObservable } from "../../project/configuration";
-import { addDirectionalLight, addHemisphericLight, addPointLight, addSpotLight } from "../../project/add/light";
-import { addBoxMesh, addEmptyMesh, addGroundMesh, addPlaneMesh, addSkyboxMesh, addSphereMesh, addTransformNode } from "../../project/add/mesh";
 
 import { EditorGraphLabel } from "./graph/label";
 import { EditorGraphContextMenu } from "./graph/graph";
+import { getMeshCommands } from "../dialogs/command-palette/mesh";
+import { getLightCommands } from "../dialogs/command-palette/light";
+import { getCameraCommands } from "../dialogs/command-palette/camera";
 
 export interface IEditorGraphProps {
 	/**
@@ -158,7 +158,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 				/>
 
 				<div
-					className="w-full h-full"
+					className="w-full h-full min-h-20"
 					onDragOver={(ev) => ev.preventDefault()}
 					onDrop={(ev) => this._handleDropEmpty(ev)}
 				>
@@ -172,48 +172,29 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 									<AiOutlinePlus className="w-5 h-5" /> Add
 								</ContextMenuSubTrigger>
 								<ContextMenuSubContent>
-									<ContextMenuItem onClick={() => addTransformNode(this.props.editor)}>
-										Transform Node
-									</ContextMenuItem>
+									{getMeshCommands(this.props.editor).map((command) => {
+										return (
+											<ContextMenuItem key={command.key} onClick={command.action}>
+												{command.text}
+											</ContextMenuItem>
+										);
+									})}
 									<ContextMenuSeparator />
-									<ContextMenuItem onClick={() => addBoxMesh(this.props.editor)}>
-										Box Mesh
-									</ContextMenuItem>
-									<ContextMenuItem onClick={() => addPlaneMesh(this.props.editor)}>
-										Plane Mesh
-									</ContextMenuItem>
-									<ContextMenuItem onClick={() => addSphereMesh(this.props.editor)}>
-										Sphere Mesh
-									</ContextMenuItem>
-									<ContextMenuItem onClick={() => addGroundMesh(this.props.editor)}>
-										Ground Mesh
-									</ContextMenuItem>
-									<ContextMenuItem onClick={() => addSkyboxMesh(this.props.editor)}>
-										SkyBox Mesh
-									</ContextMenuItem>
-									<ContextMenuItem onClick={() => addEmptyMesh(this.props.editor)}>
-										Empty Mesh
-									</ContextMenuItem>
+									{getLightCommands(this.props.editor).map((command) => {
+										return (
+											<ContextMenuItem key={command.key} onClick={command.action}>
+												{command.text}
+											</ContextMenuItem>
+										);
+									})}
 									<ContextMenuSeparator />
-									<ContextMenuItem onClick={() => addPointLight(this.props.editor)}>
-										Point Light
-									</ContextMenuItem>
-									<ContextMenuItem onClick={() => addDirectionalLight(this.props.editor)}>
-										Directional Light
-									</ContextMenuItem>
-									<ContextMenuItem onClick={() => addSpotLight(this.props.editor)}>
-										Spot Light
-									</ContextMenuItem>
-									<ContextMenuItem onClick={() => addHemisphericLight(this.props.editor)}>
-										Hemispheric Light
-									</ContextMenuItem>
-									<ContextMenuSeparator />
-									<ContextMenuItem onClick={() => addFreeCamera(this.props.editor)}>
-										Free Camera
-									</ContextMenuItem>
-									<ContextMenuItem onClick={() => addArcRotateCamera(this.props.editor)}>
-										Arc Rotate Camera
-									</ContextMenuItem>
+									{getCameraCommands(this.props.editor).map((command) => {
+										return (
+											<ContextMenuItem key={command.key} onClick={command.action}>
+												{command.text}
+											</ContextMenuItem>
+										);
+									})}
 								</ContextMenuSubContent>
 							</ContextMenuSub>
 						</ContextMenuContent>
