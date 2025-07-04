@@ -21,12 +21,12 @@ import { UniqueNumber, waitNextAnimationFrame } from "../../../tools/tools";
 import { isAbstractMesh, isMesh, isNode } from "../../../tools/guards/nodes";
 
 import { addGPUParticleSystem, addParticleSystem } from "../../../project/add/particles";
-import { addDirectionalLight, addHemisphericLight, addPointLight, addSpotLight } from "../../../project/add/light";
-import { addBoxMesh, addEmptyMesh, addGroundMesh, addPlaneMesh, addSphereMesh, addTransformNode } from "../../../project/add/mesh";
 
 import { Editor } from "../../main";
 
 import { removeNodes } from "./remove";
+import { getMeshCommands } from "../../dialogs/command-palette/mesh";
+import { getLightCommands } from "../../dialogs/command-palette/light";
 
 export interface IEditorGraphContextMenuProps extends PropsWithChildren {
 	editor: Editor;
@@ -81,19 +81,17 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
 										<AiOutlinePlus className="w-5 h-5" /> Add
 									</ContextMenuSubTrigger>
 									<ContextMenuSubContent>
-										<ContextMenuItem onClick={() => addTransformNode(this.props.editor, isScene(this.props.object) ? null : this.props.object)}>Transform Node</ContextMenuItem>
+										{getMeshCommands(this.props.editor).map((command) => (
+											<ContextMenuItem key={command.ipcRendererChannelKey} onClick={command.action}>
+												{command.text}
+											</ContextMenuItem>
+										))}
 										<ContextMenuSeparator />
-										<ContextMenuItem onClick={() => addBoxMesh(this.props.editor, isScene(this.props.object) ? null : this.props.object)}>Box</ContextMenuItem>
-										<ContextMenuItem onClick={() => addPlaneMesh(this.props.editor, isScene(this.props.object) ? null : this.props.object)}>Plane</ContextMenuItem>
-										<ContextMenuItem onClick={() => addGroundMesh(this.props.editor, isScene(this.props.object) ? null : this.props.object)}>Ground</ContextMenuItem>
-										<ContextMenuItem onClick={() => addSphereMesh(this.props.editor, isScene(this.props.object) ? null : this.props.object)}>Sphere</ContextMenuItem>
-										<ContextMenuItem onClick={() => addEmptyMesh(this.props.editor, isScene(this.props.object) ? null : this.props.object)}>Empty Mesh</ContextMenuItem>
-										<ContextMenuSeparator />
-										<ContextMenuItem onClick={() => addPointLight(this.props.editor, isScene(this.props.object) ? null : this.props.object)}>Point Light</ContextMenuItem>
-										<ContextMenuItem onClick={() => addDirectionalLight(this.props.editor, isScene(this.props.object) ? null : this.props.object)}>Directional Light</ContextMenuItem>
-										<ContextMenuItem onClick={() => addSpotLight(this.props.editor, isScene(this.props.object) ? null : this.props.object)}>Spot Light</ContextMenuItem>
-										<ContextMenuItem onClick={() => addHemisphericLight(this.props.editor, isScene(this.props.object) ? null : this.props.object)}>Hemispheric Light</ContextMenuItem>
-
+										{getLightCommands(this.props.editor).map((command) => (
+											<ContextMenuItem key={command.ipcRendererChannelKey} onClick={command.action}>
+												{command.text}
+											</ContextMenuItem>
+										))}
 										{isAbstractMesh(this.props.object) &&
 											<>
 												<ContextMenuSeparator />

@@ -33,7 +33,9 @@ export interface ICommandPaletteState {
 
 export interface ICommandPaletteType {
 	text: string;
+	key: string;
 	label: string;
+	ipcRendererChannelKey?: string;
 	action: () => unknown;
 }
 
@@ -57,7 +59,7 @@ export class CommandPalette extends Component<ICommandPaletteProps, ICommandPale
 
 					<CommandGroup heading="Commands">
 						{getProjectCommands(this.props.editor).map((command) => (
-							<CommandItem key={command.text} onSelect={() => this._executeCommand(command)} className="flex items-center gap-2">
+							<CommandItem key={command.key} onSelect={() => this._executeCommand(command)} className="flex items-center gap-2">
 								<HiMiniCommandLine className="w-10 h-10" /> {command.text}
 							</CommandItem>
 						))}
@@ -65,25 +67,25 @@ export class CommandPalette extends Component<ICommandPaletteProps, ICommandPale
 
 					<CommandGroup heading="Scene">
 						{getLightCommands(this.props.editor).map((command) => (
-							<CommandItem key={command.text} onSelect={() => this._executeCommand(command)} className="flex items-center gap-2">
+							<CommandItem key={command.key} onSelect={() => this._executeCommand(command)} className="flex items-center gap-2">
 								<FaCirclePlus className="w-10 h-10" /> {command.text}
 							</CommandItem>
 						))}
 
 						{getMeshCommands(this.props.editor).map((command) => (
-							<CommandItem key={command.text} onSelect={() => this._executeCommand(command)} className="flex items-center gap-2">
+							<CommandItem key={command.key} onSelect={() => this._executeCommand(command)} className="flex items-center gap-2">
 								<FaCirclePlus className="w-10 h-10" /> {command.text}
 							</CommandItem>
 						))}
 
 						{getCameraCommands(this.props.editor).map((command) => (
-							<CommandItem key={command.text} onSelect={() => this._executeCommand(command)} className="flex items-center gap-2">
+							<CommandItem key={command.key} onSelect={() => this._executeCommand(command)} className="flex items-center gap-2">
 								<FaCirclePlus className="w-10 h-10" /> {command.text}
 							</CommandItem>
 						))}
 
 						{getParticleSystemsCommands(this.props.editor).map((command) => (
-							<CommandItem key={command.text} onSelect={() => this._executeCommand(command)} className="flex items-center gap-2">
+							<CommandItem key={command.key} onSelect={() => this._executeCommand(command)} className="flex items-center gap-2">
 								<IoSparklesSharp className="w-10 h-10" /> {command.text}
 							</CommandItem>
 						))}
@@ -91,7 +93,7 @@ export class CommandPalette extends Component<ICommandPaletteProps, ICommandPale
 
 					<CommandGroup heading="Files">
 						{this.state.files.map((file) => (
-							<CommandItem key={file.text} onSelect={() => this._executeCommand(file)} className="flex items-center gap-2">
+							<CommandItem key={file.key} onSelect={() => this._executeCommand(file)} className="flex items-center gap-2">
 								<FaFileAlt className="w-10 h-10" /> {file.text}
 							</CommandItem>
 						))}
@@ -128,6 +130,7 @@ export class CommandPalette extends Component<ICommandPaletteProps, ICommandPale
 		});
 
 		const files = glob.map((file) => ({
+			key: basename(file),
 			text: basename(file),
 			label: file.path,
 			action: () => onSelectedAssetChanged.notifyObservers(file),
