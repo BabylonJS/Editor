@@ -169,7 +169,7 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 	}
 
 	private _handleAddMaterial(command: ICommandPaletteType): void {
-		if(this.props.object.material) return;
+		if(this.props.object.material) {return;}
 		const material: Material | null = command.action() as Material;
 		
 		if (!material) {

@@ -5,13 +5,13 @@ import { addFreeCamera, addArcRotateCamera } from "../../../project/add/camera";
 import { ICommandPaletteType } from "./command-palette";
 
 export enum CameraKey {
-	ADD_FREE_CAMERA = "add-free-camera",
-	ADD_ARC_ROTATE_CAMERA = "add-arc-rotate-camera",
+	AddFreeCamera = "add-free-camera",
+	AddArcRotateCamera = "add-arc-rotate-camera",
 }
 
 export enum CameraIPCRendererChannelKey {
-	FREE_CAMERA = "free-camera",
-	ARC_ROTATE_CAMERA = "arc-rotate-camera",
+	FreeCamera = "free-camera",
+	ArcRotateCamera = "arc-rotate-camera",
 }
 
 export function getCameraCommands(editor?: Editor): ICommandPaletteType[] {
@@ -19,14 +19,14 @@ export function getCameraCommands(editor?: Editor): ICommandPaletteType[] {
 		{ 
 			text: "Free Camera", 
 			label: "Add a new free camera to the scene", 
-			key: CameraKey.ADD_FREE_CAMERA, 
-			ipcRendererChannelKey: CameraIPCRendererChannelKey.FREE_CAMERA, 
+			key: CameraKey.AddFreeCamera, 
+			ipcRendererChannelKey: CameraIPCRendererChannelKey.FreeCamera, 
 			action: () => editor && addFreeCamera(editor) },
 		{ 
 			text: "Arc Rotate Camera", 
 			label: "Add a new arc-rotate camera to the scene", 
-			key: CameraKey.ADD_ARC_ROTATE_CAMERA, 
-			ipcRendererChannelKey: CameraIPCRendererChannelKey.ARC_ROTATE_CAMERA, 
+			key: CameraKey.AddArcRotateCamera, 
+			ipcRendererChannelKey: CameraIPCRendererChannelKey.ArcRotateCamera, 
 			action: () => editor && addArcRotateCamera(editor) },
 	];
 }

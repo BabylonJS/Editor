@@ -8,23 +8,23 @@ import {
 import { ICommandPaletteType } from "./command-palette";
 
 export enum MeshKey {
-	ADD_TRANSFORM_NODE = "add-transform-node",
-	ADD_BOX_MESH = "add-box-mesh",
-	ADD_PLANE_MESH = "add-plane-mesh",
-	ADD_GROUND_MESH = "add-ground-mesh",
-	ADD_SPHERE_MESH = "add-sphere-mesh",
-	ADD_SKYBOX_MESH = "add-skybox-mesh",
-	ADD_EMPTY_MESH = "add-empty-mesh",
+	AddTransformNode = "add-transform-node",
+	AddBoxMesh = "add-box-mesh",
+	AddPlaneMesh = "add-plane-mesh",
+	AddGroundMesh = "add-ground-mesh",
+	AddSphereMesh = "add-sphere-mesh",
+	AddSkyboxMesh = "add-skybox-mesh",
+	AddEmptyMesh = "add-empty-mesh",
 }
 
 export enum MeshIPCRendererChannelKey {
-	TRANSFORM_NODE = "transform-node",
-	BOX_MESH = "box-mesh",
-	PLANE_MESH = "plane-mesh",
-	GROUND_MESH = "ground-mesh",
-	SPHERE_MESH = "sphere-mesh",
-	SKYBOX_MESH = "skybox-mesh",
-	EMPTY_MESH = "empty-mesh",
+	TransformNode = "transform-node",
+	BoxMesh = "box-mesh",
+	PlaneMesh = "plane-mesh",
+	GroundMesh = "ground-mesh",
+	SphereMesh = "sphere-mesh",
+	SkyboxMesh = "skybox-mesh",
+	EmptyMesh = "empty-mesh",
 }
 
 export function getMeshCommands(editor?: Editor): ICommandPaletteType[] {
@@ -32,44 +32,44 @@ export function getMeshCommands(editor?: Editor): ICommandPaletteType[] {
 		{ 
 			text: "Transform Node", 
 			label: "Add a new transform node to the scene", 
-			key: MeshKey.ADD_TRANSFORM_NODE, 
-			ipcRendererChannelKey: MeshIPCRendererChannelKey.TRANSFORM_NODE, 
+			key: MeshKey.AddTransformNode, 
+			ipcRendererChannelKey: MeshIPCRendererChannelKey.TransformNode, 
 			action: () => editor && addTransformNode(editor) },
 		{ 
 			text: "Box Mesh", 
 			label: "Add a new box mesh to the scene", 
-			key: MeshKey.ADD_BOX_MESH, 
-			ipcRendererChannelKey: MeshIPCRendererChannelKey.BOX_MESH,
+			key: MeshKey.AddBoxMesh, 
+			ipcRendererChannelKey: MeshIPCRendererChannelKey.BoxMesh,
 			action: () => editor && addBoxMesh(editor) },
 		{ 
 			text: "Plane Mesh", 
 			label: "Add a new plane mesh to the scene", 
-			key: MeshKey.ADD_PLANE_MESH, 
-			ipcRendererChannelKey: MeshIPCRendererChannelKey.PLANE_MESH, 
+			key: MeshKey.AddPlaneMesh, 
+			ipcRendererChannelKey: MeshIPCRendererChannelKey.PlaneMesh, 
 			action: () => editor && addPlaneMesh(editor) },
 		{ 
 			text: "Ground Mesh", 
 			label: "Add a new ground mesh to the scene", 
-			key: MeshKey.ADD_GROUND_MESH, 
-			ipcRendererChannelKey: MeshIPCRendererChannelKey.GROUND_MESH, 
+			key: MeshKey.AddGroundMesh, 
+			ipcRendererChannelKey: MeshIPCRendererChannelKey.GroundMesh, 
 			action: () => editor && addGroundMesh(editor) },
 		{ 
 			text: "Sphere Mesh", 
 			label: "Add a new sphere mesh to the scene", 
-			key: MeshKey.ADD_SPHERE_MESH, 
-			ipcRendererChannelKey: MeshIPCRendererChannelKey.SPHERE_MESH, 
+			key: MeshKey.AddSphereMesh, 
+			ipcRendererChannelKey: MeshIPCRendererChannelKey.SphereMesh, 
 			action: () => editor && addSphereMesh(editor) },
 		{ 
 			text: "Skybox Mesh", 
 			label: "Add a new skybox mesh to the scene", 
-			key: MeshKey.ADD_SKYBOX_MESH, 
-			ipcRendererChannelKey: MeshIPCRendererChannelKey.SKYBOX_MESH, 
+			key: MeshKey.AddSkyboxMesh, 
+			ipcRendererChannelKey: MeshIPCRendererChannelKey.SkyboxMesh, 
 			action: () => editor && addSkyboxMesh(editor) },
 		{ 
 			text: "Empty Mesh", 
 			label: "Add a new empty mesh to the scene", 
-			key: MeshKey.ADD_EMPTY_MESH, 
-			ipcRendererChannelKey: MeshIPCRendererChannelKey.EMPTY_MESH, 
+			key: MeshKey.AddEmptyMesh, 
+			ipcRendererChannelKey: MeshIPCRendererChannelKey.EmptyMesh, 
 			action: () => editor && addEmptyMesh(editor) },
 	];
 }

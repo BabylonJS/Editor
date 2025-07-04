@@ -5,7 +5,7 @@ import { saveProject } from "../../../project/save/save";
 import { ICommandPaletteType } from "./command-palette";
 
 export enum ProjectKey {
-	SAVE_PROJECT = "save-project",
+	SaveProject = "save-project",
 }
 
 export function getProjectCommands(editor: Editor): ICommandPaletteType[] {
@@ -13,7 +13,7 @@ export function getProjectCommands(editor: Editor): ICommandPaletteType[] {
 		{ 
 			text: "Save", 
 			label: "Saves the project.", 
-			key: ProjectKey.SAVE_PROJECT, 
+			key: ProjectKey.SaveProject, 
 			action: () => saveProject(editor) 
 		},
 	];
