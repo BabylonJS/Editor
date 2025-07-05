@@ -1,4 +1,5 @@
 export * from "./loading/loader";
+export * from "./loading/material";
 
 export * from "./tools/guards";
 export * from "./tools/texture";

@@ -28,6 +28,7 @@ const supportedJsonExtensions: string[] = [
 
 const supportedMiscExtensions: string[] = [
 	".3dl", ".exr", ".hdr",
+	".material",
 ];
 
 const supportedExtensions: string[] = [
