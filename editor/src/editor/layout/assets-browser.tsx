@@ -27,7 +27,6 @@ import { Editor } from "../main";
 
 import { EditorCamera } from "../nodes/camera";
 
-import { normalizedGlob } from "../../tools/fs";
 import { UniqueNumber } from "../../tools/tools";
 import { execNodePty } from "../../tools/node-pty";
 import { clearUndoRedo } from "../../tools/undoredo";
@@ -35,6 +34,7 @@ import { isTexture } from "../../tools/guards/texture";
 import { renameScene } from "../../tools/scene/rename";
 import { openMultipleFilesDialog } from "../../tools/dialog";
 import { onSelectedAssetChanged } from "../../tools/observables";
+import { findAvailableFilename, normalizedGlob } from "../../tools/fs";
 import { checkProjectCachedCompressedTextures, processingCompressedTextures } from "../../tools/ktx/check";
 
 import { getMaterialCommands } from "../dialogs/command-palette/material";
@@ -812,20 +812,13 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 			return;
 		}
 
-		let index: number | undefined = undefined;
-		while (await pathExists(join(this.state.browsedPath, `New folder${index !== undefined ? ` ${index}` : ""}`))) {
-			index ??= 0;
-			++index;
-		}
-
-		const folderName = `New folder${index !== undefined ? ` ${index}` : ""}`;
-
-		await mkdir(join(this.state.browsedPath, folderName));
+		const name = await findAvailableFilename(this.state.browsedPath, "New Folder", "");
+		await mkdir(join(this.state.browsedPath, name));
 		await this._refreshItems(this.state.browsedPath);
 
 		this.setState({
 			selectedKeys: [
-				join(this.state.browsedPath, folderName),
+				join(this.state.browsedPath, name),
 			],
 		});
 	}
@@ -848,13 +841,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 			return;
 		}
 
-		let index: number | undefined = undefined;
-		while (await pathExists(join(this.state.browsedPath, `New Scene${index !== undefined ? ` ${index}` : ""}.scene`))) {
-			index ??= 0;
-			++index;
-		}
-
-		const name = `New Scene${index !== undefined ? ` ${index}` : ""}.scene`;
+		const name = await findAvailableFilename(this.state.browsedPath, "New Scene", ".scene");
 		const absolutePath = join(this.state.browsedPath, name);
 
 		const serializedCamera = this.props.editor.layout.preview.camera.serialize();
@@ -892,13 +879,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 			return;
 		}
 
-		let index: number | undefined = undefined;
-		while (await pathExists(join(this.state.browsedPath, `${material.name}${index !== undefined ? ` ${index}` : ""}.material`))) {
-			index ??= 0;
-			++index;
-		}
-
-		const name = `${material.name}${index !== undefined ? ` ${index}` : ""}.material`;
+		const name = await findAvailableFilename(this.state.browsedPath, material.name, ".material");
 		await writeJSON(join(this.state.browsedPath, name), material.serialize(), {
 			spaces: "\t",
 			encoding: "utf-8",
@@ -923,15 +904,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 		material.id = Tools.RandomId();
 		material.uniqueId = UniqueNumber.Get();
 
-		const filename = filenamify(material.name);
-
-		let index: number | undefined = undefined;
-		while (await pathExists(join(this.state.browsedPath, `${filename}${index !== undefined ? ` ${index}` : ""}.material`))) {
-			index ??= 0;
-			++index;
-		}
-
-		const name = `${filename}${index !== undefined ? ` ${index}` : ""}.material`;
+		const name = await findAvailableFilename(this.state.browsedPath, filenamify(material.name), ".material");
 		await writeJSON(join(this.state.browsedPath, name), material.serialize(), {
 			spaces: "\t",
 			encoding: "utf-8",
@@ -954,13 +927,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 			outputFramesPerSecond: 60,
 		} as ICinematic;
 
-		let index: number | undefined = undefined;
-		while (await pathExists(join(this.state.browsedPath, `${cinematic.name}${index !== undefined ? ` ${index}` : ""}.cinematic`))) {
-			index ??= 0;
-			++index;
-		}
-
-		const name = `${cinematic.name}${index !== undefined ? ` ${index}` : ""}.cinematic`;
+		const name = await findAvailableFilename(this.state.browsedPath, cinematic.name, ".cinematic");
 		await writeJSON(join(this.state.browsedPath, name), cinematic, {
 			spaces: "\t",
 			encoding: "utf-8",
@@ -979,18 +946,12 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 		const gui = AdvancedDynamicTexture.CreateFullscreenUI("New GUI", true, this.props.editor.layout.preview.scene);
 		gui.uniqueId = UniqueNumber.Get();
 
-		let index: number | undefined = undefined;
-		while (await pathExists(join(this.state.browsedPath, `${gui.name}${index !== undefined ? ` ${index}` : ""}.gui`))) {
-			index ??= 0;
-			++index;
-		}
-
 		const data = gui.serialize();
 		data.uniqueId = gui.uniqueId;
 		data.content = gui.serializeContent();
 		data.guiType = "fullscreen";
 
-		const name = `${gui.name}${index !== undefined ? ` ${index}` : ""}.gui`;
+		const name = await findAvailableFilename(this.state.browsedPath, gui.name, ".gui");
 		await writeJSON(join(this.state.browsedPath, name), data, {
 			spaces: "\t",
 			encoding: "utf-8",
@@ -1012,13 +973,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 
 		const content = await fetch(url).then(r => r.text());
 
-		let index: number | undefined = undefined;
-		while (await pathExists(join(this.state.browsedPath, `new-script${index !== undefined ? ` ${index}` : ""}.ts`))) {
-			index ??= 0;
-			++index;
-		}
-
-		const name = `new-script${index !== undefined ? ` ${index}` : ""}.ts`;
+		const name = await findAvailableFilename(this.state.browsedPath, "new-script", ".ts");
 		const scriptPath = join(this.state.browsedPath, name);
 
 		await writeFile(scriptPath, content, {

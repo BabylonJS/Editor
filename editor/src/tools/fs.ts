@@ -1,4 +1,5 @@
 import { glob } from "glob";
+import { join } from "path/posix";
 import { FSWatcher, mkdir, pathExists, watch } from "fs-extra";
 
 /**
@@ -49,4 +50,20 @@ export function watchFile(absolutePath: string, onChange: () => void): FSWatcher
 	});
 
 	return watcher;
+}
+
+/**
+ * Finds an available filename for the given filename and extension in the specified directory.
+ * @param absoluteDirname defines the absolute path of the directory to search in
+ * @param originalName defines the original name of the file
+ * @param extension defines the file extension (without dot)
+ */
+export async function findAvailableFilename(absoluteDirname: string, originalName: string, extension: string): Promise<string> {
+	let index: number | undefined = undefined;
+	while (await pathExists(join(absoluteDirname, `${originalName}${index !== undefined ? ` ${index}` : ""}${extension}`))) {
+		index ??= 0;
+		++index;
+	}
+
+	return `${originalName}${index !== undefined ? ` ${index}` : ""}${extension}`;
 }
