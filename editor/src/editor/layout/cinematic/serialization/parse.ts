@@ -10,12 +10,7 @@ import { getDefaultRenderingPipeline } from "../../../rendering/default-pipeline
 
 export function parseCinematic(data: ICinematic, scene: Scene) {
 	const tracks = data.tracks.map((track) => {
-		const result = parseCinematicTrack(track, scene);
-		if (result?.keyFrameAnimations === null) {
-			result.keyFrameAnimations = [];
-		}
-
-		return result;
+		return parseCinematicTrack(track, scene);
 	});
 
 	return {

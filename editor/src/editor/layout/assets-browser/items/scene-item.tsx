@@ -18,8 +18,8 @@ export class AssetBrowserSceneItem extends AssetsBrowserItem {
 	private _previewPath: string | null = null;
 
 	/**
-     * @override
-     */
+	 * @override
+	 */
 	protected getContextMenuContent(): ReactNode {
 		return (
 			<>
@@ -34,8 +34,8 @@ export class AssetBrowserSceneItem extends AssetsBrowserItem {
 	}
 
 	/**
-     * @override
-     */
+	 * @override
+	 */
 	protected getIcon(): ReactNode {
 		return this._previewPath
 			? <img alt="" src={this._previewPath} className="w-[120px] aspect-square object-contain ring-purple-500 ring-2 rounded-lg" />
@@ -81,6 +81,7 @@ export class AssetBrowserSceneItem extends AssetsBrowserItem {
 
 	private async _handleEdit(): Promise<void> {
 		ipcRenderer.send("window:open", "build/src/editor/windows/scene", {
+			appPath: this.props.editor.path,
 			scenePath: this.props.absolutePath,
 			projectPath: this.props.editor.state.projectPath,
 		});

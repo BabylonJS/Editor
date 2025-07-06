@@ -10,7 +10,7 @@ export function listenMaterialAssetsEvents(editor: Editor) {
 			return;
 		}
 
-		const material = editor.layout.preview.scene.getMaterialByUniqueID(data.uniqueId);
+		const material = editor.layout.preview.scene.getMaterialByUniqueId(data.uniqueId);
 		if (!material) {
 			return;
 		}

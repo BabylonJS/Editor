@@ -12,8 +12,9 @@ import { onProjectSavedObservable } from "../../../tools/observables";
 import { Editor } from "../../main";
 
 export interface ISceneEditorWindowProps {
-    scenePath: string;
-    projectPath: string;
+	appPath: string;
+	scenePath: string;
+	projectPath: string;
 }
 
 export default class SceneEditorWindow extends Component<ISceneEditorWindowProps> {
@@ -37,6 +38,8 @@ export default class SceneEditorWindow extends Component<ISceneEditorWindowProps
 		if (!this._editor) {
 			return;
 		}
+
+		this._editor.path = this.props.appPath;
 
 		await waitUntil(() => this._editor!.layout?.preview?.scene);
 

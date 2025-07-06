@@ -5,6 +5,8 @@ import { isSceneLinkNode } from "../../../../tools/guards/scene";
 
 import { projectConfiguration } from "../../../../project/configuration";
 
+import { checkProjectCachedCompressedTextures } from "../../../../export";
+
 import { Editor } from "../../../main";
 
 export function listenSceneAssetsEvents(editor: Editor) {
@@ -24,6 +26,9 @@ export function listenSceneAssetsEvents(editor: Editor) {
 			if (transformNode.relativePath === relativePath) {
 				await transformNode.reload();
 			}
+
+			checkProjectCachedCompressedTextures(editor);
+			editor.layout.preview.setRenderScene(true);
 		});
 	});
 }
