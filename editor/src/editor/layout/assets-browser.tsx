@@ -1,4 +1,4 @@
-import { webUtils } from "electron";
+import { clipboard, webUtils } from "electron";
 import { dirname, join, extname, basename } from "path/posix";
 import { copyFile, mkdir, move, pathExists, readdir, stat, writeFile, writeJSON } from "fs-extra";
 
@@ -351,6 +351,11 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 	 */
 	public copySelectedFiles(): void {
 		this._selectedFiles = this.state.selectedKeys;
+
+		const projectDir = join(dirname(projectConfiguration.path!), "/");
+		const relativePaths = this.state.selectedKeys.map((f) => f.replace(projectDir, ""));
+
+		clipboard.writeText(relativePaths.join("\n"));
 	}
 
 	private async _pasteSelectedFiles(): Promise<void> {
