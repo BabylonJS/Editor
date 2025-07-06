@@ -9,6 +9,7 @@ import { Scene } from "@babylonjs/core/scene";
 import { Engine } from "@babylonjs/core/Engines/engine";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { CubicEase } from "@babylonjs/core/Animations/easing";
+import { AnimationGroup } from "@babylonjs/core/Animations/animationGroup";
 import { SceneLoaderFlags } from "@babylonjs/core/Loading/sceneLoaderFlags";
 import { HavokPlugin } from "@babylonjs/core/Physics/v2/Plugins/havokPlugin";
 
@@ -97,6 +98,8 @@ class MansionExperimentComponent extends Component<unknown, IMansionExperimentCo
 
 	private _mainMenuComponents: MainMenuComponent = null!;
 	private _cinematicComponents: CinematicComponent = null!;
+
+	private _cinematicAnimationGroup: AnimationGroup | null = null;
 
 	public constructor(props: unknown) {
 		super(props);
@@ -206,8 +209,8 @@ class MansionExperimentComponent extends Component<unknown, IMansionExperimentCo
 
 			await Tween.wait(1);
 
-			const group = generateCinematicAnimationGroup(cinematic, this._scene);
-			group.play(true);
+			this._cinematicAnimationGroup = generateCinematicAnimationGroup(cinematic, this._scene);
+			this._cinematicAnimationGroup.play(true);
 
 			this._mainMenuComponents.show();
 
@@ -226,6 +229,7 @@ class MansionExperimentComponent extends Component<unknown, IMansionExperimentCo
 
 		await Tween.create(getDefaultRenderingPipeline()!.imageProcessing, 3, {
 			exposure: 0,
+			onComplete: () => this._cinematicAnimationGroup?.stop(),
 		});
 
 		this._mainMenuComponents.hideTitle();
@@ -254,10 +258,12 @@ class MansionExperimentComponent extends Component<unknown, IMansionExperimentCo
 		outisde?.setEnabled(false);
 		inside?.setEnabled(true);
 		this._configureSceneAndMaterials();
+		this._scene.render();
 
 		outisde?.setEnabled(true);
 		inside?.setEnabled(false);
 		this._configureSceneAndMaterials();
+		this._scene.render();
 
 		const response = await fetch(`${rootUrl}assets/cinematic.cinematic`);
 		const data = await response.json();
@@ -268,8 +274,8 @@ class MansionExperimentComponent extends Component<unknown, IMansionExperimentCo
 				loading: false,
 			});
 
-			const group = generateCinematicAnimationGroup(cinematic, this._scene);
-			group.play(false);
+			this._cinematicAnimationGroup = generateCinematicAnimationGroup(cinematic, this._scene);
+			this._cinematicAnimationGroup.play(false);
 
 			setTimeout(() => {
 				this._cinematicComponents.showIntro();
