@@ -92,4 +92,9 @@ body {
     body {
         @apply bg-background text-foreground;
     }
+
+    pre.shiki {
+        padding: 10px 20px;
+        border-radius: var(--radius);
+    }
 }

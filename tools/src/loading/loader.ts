@@ -5,7 +5,7 @@ import { SceneLoaderFlags } from "@babylonjs/core/Loading/sceneLoaderFlags";
 
 import { isMesh } from "../tools/guards";
 
-import { applyScriptForObject } from "./script";
+import { _applyScriptsForObject } from "./script";
 import { configurePhysicsAggregate } from "./physics";
 import { applyRenderingConfigurations } from "./rendering";
 import { applyRenderingConfigurationForCamera } from "../rendering/tools";
@@ -99,22 +99,22 @@ export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scen
 		scene.getPhysicsEngine()?.setGravity(Vector3.FromArray(scene.metadata?.physicsGravity));
 	}
 
-	applyScriptForObject(scene, scene, scriptsMap, rootUrl);
+	_applyScriptsForObject(scene, scene, scriptsMap, rootUrl);
 
 	scene.transformNodes.forEach((transformNode) => {
-		applyScriptForObject(scene, transformNode, scriptsMap, rootUrl);
+		_applyScriptsForObject(scene, transformNode, scriptsMap, rootUrl);
 	});
 
 	scene.meshes.forEach((mesh) => {
 		configurePhysicsAggregate(mesh);
-		applyScriptForObject(scene, mesh, scriptsMap, rootUrl);
+		_applyScriptsForObject(scene, mesh, scriptsMap, rootUrl);
 	});
 
 	scene.lights.forEach((light) => {
-		applyScriptForObject(scene, light, scriptsMap, rootUrl);
+		_applyScriptsForObject(scene, light, scriptsMap, rootUrl);
 	});
 
 	scene.cameras.forEach((camera) => {
-		applyScriptForObject(scene, camera, scriptsMap, rootUrl);
+		_applyScriptsForObject(scene, camera, scriptsMap, rootUrl);
 	});
 }

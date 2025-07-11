@@ -1,15 +1,22 @@
+import { clipboard } from "electron";
 import { join, dirname } from "path/posix";
 import { pathExists, stat, FSWatcher } from "fs-extra";
 
 import { useEffect, useState } from "react";
+
+import { FaCopy } from "react-icons/fa";
 import { SiTypescript } from "react-icons/si";
 
 import { XMarkIcon } from "@heroicons/react/20/solid";
+
+import { toast } from "sonner";
 
 import { Vector2, Vector3, Color3, Color4 } from "babylonjs";
 import { VisibleInInspectorDecoratorEntityConfiguration } from "babylonjs-editor-tools";
 
 import { Editor } from "../../../main";
+
+import { Button } from "../../../../ui/shadcn/ui/button";
 
 import { watchFile } from "../../../../tools/fs";
 import { execNodePty } from "../../../../tools/node-pty";
@@ -174,6 +181,11 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 		}
 	}
 
+	function handleCopyName(): void {
+		clipboard.writeText(props.script.key);
+		toast.success("Name copied to clipboard.");
+	};
+
 	return (
 		<div className="flex flex-col gap-2 bg-muted-foreground/35 dark:bg-muted-foreground/5 rounded-lg px-5 pb-2.5">
 			<div className="flex gap-[10px]">
@@ -183,11 +195,17 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 				/>
 
 				<div className="flex flex-col gap-1 w-full py-2.5">
-					<div
-						onClick={() => srcAbsolutePath && execNodePty(`code ${srcAbsolutePath}`)}
-						className={`font-bold px-2 hover:underline transition-all duration-300 ease-in-out cursor-pointer ${exists !== false ? "" : "text-red-400"}`}
-					>
-						{props.script.key} {exists !== false ? "" : "(Not found)"}
+					<div className="flex items-center">
+						<div
+							onClick={() => srcAbsolutePath && execNodePty(`code ${srcAbsolutePath}`)}
+							className={`font-bold px-2 hover:underline transition-all duration-300 ease-in-out cursor-pointer ${exists !== false ? "" : "text-red-400"}`}
+						>
+							{props.script.key} {exists !== false ? "" : "(Not found)"}
+						</div>
+
+						<Button variant="ghost" className="w-6 h-6 p-1" onClick={() => handleCopyName()}>
+							<FaCopy className="w-4 h-4" />
+						</Button>
 					</div>
 
 					<EditorInspectorSwitchField object={props.script} property="enabled" label="Enabled" onChange={(v) => setEnabled(v)} />

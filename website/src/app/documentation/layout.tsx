@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 
 import { PropsWithChildren } from "react";
 
+import { Toaster } from "@/components/ui/sonner";
+
 import { DocumentationSidebar } from "./sidebar/sidebar";
 
 export const metadata: Metadata = {
@@ -28,6 +30,8 @@ export default function DocumentationLayout(props: PropsWithChildren) {
 			<div className="pl-96 w-full">
 				{props.children}
 			</div>
+
+			<Toaster className="dark" />
 		</div>
 	);
 }

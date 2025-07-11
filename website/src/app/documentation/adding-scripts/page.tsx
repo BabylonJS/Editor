@@ -1,17 +1,15 @@
 "use client";
 
 import { Fade } from "react-awesome-reveal";
-import { CopyBlock, github } from "react-code-blocks";
 
 import { IoIosWarning } from "react-icons/io";
 
 import { NextChapterComponent } from "../components/next-chapter";
 
+import { CodeBlock } from "../code";
+
 import { tsClassDecoratorsExample } from "./from-scene";
 import { tsClassBasedExample, tsFunctionBasedExample } from "./examples";
-
-github.codeColor = "rgb(250, 250, 250)";
-github.backgroundColor = "rgb(250, 250, 250)";
 
 export default function DocumentationAddingScriptsPage() {
 	return (
@@ -20,7 +18,7 @@ export default function DocumentationAddingScriptsPage() {
 				<Fade cascade damping={0.1} triggerOnce className="w-full">
 					<Fade>
 						<div className="text-3xl md:text-5xl lg:text-6xl font-semibold font-sans tracking-tighter text-center">
-                            Adding scripts
+							Adding scripts
 						</div>
 					</Fade>
 				</Fade>
@@ -28,12 +26,12 @@ export default function DocumentationAddingScriptsPage() {
 				<Fade triggerOnce>
 					<div className="flex flex-col gap-4">
 						<div className="text-3xl md:text-2xl lg:text-3xl my-3">
-                            Introduction
+							Introduction
 						</div>
 
 						<div>
-                            The editor allows to add scripts to your project in order to add interactivity to your scenes.
-                            The scripts are written in TypeScript and consist on 2 main methods:
+							The editor allows to add scripts to your project in order to add interactivity to your scenes.
+							The scripts are written in TypeScript and consist on 2 main methods:
 						</div>
 
 						<ul className="list-disc">
@@ -42,49 +40,39 @@ export default function DocumentationAddingScriptsPage() {
 						</ul>
 
 						<div>
-                            Scripts are made to be attached to objects and multiple scripts can be attached to the same object.
-                            Linked with the <b>babylonjs-editor-tools</b> package installed with the project, some useful decorators are available
-                            to help retrieving objects and customizing the scripts.
+							Scripts are made to be attached to objects and multiple scripts can be attached to the same object.
+							Linked with the <b>babylonjs-editor-tools</b> package installed with the project, some useful decorators are available
+							to help retrieving objects and customizing the scripts.
 						</div>
 
 						<div className="flex gap-2 items-center">
 							<IoIosWarning size="32px" />
 
 							<div>
-                                This feature is still <b>Work in progress</b> and some features like decorators are not yet available for function-based scripts.
+								This feature is still <b>Work in progress</b> and some features like decorators are not yet available for function-based scripts.
 							</div>
 						</div>
 
 						<div>
-                            Scripts can be written using both methods <b>class-based</b>:
+							Scripts can be written using both methods <b>class-based</b>:
 						</div>
 
-						<CopyBlock
-							theme={github}
-							language="typescript"
-							showLineNumbers={false}
-							text={tsClassBasedExample}
-						/>
+						<CodeBlock code={tsClassBasedExample} />
 
 						<div>
-                            and <b>function-based</b>:
+							and <b>function-based</b>:
 						</div>
 
-						<CopyBlock
-							theme={github}
-							language="typescript"
-							showLineNumbers={false}
-							text={tsFunctionBasedExample}
-						/>
+						<CodeBlock code={tsFunctionBasedExample} />
 
 						<div className="text-3xl md:text-2xl lg:text-3xl my-3">
-                            Adding script
+							Adding script
 						</div>
 
 						<div>
-                            The first steps consists on creating a new script before it can be applied on an object.
+							The first steps consists on creating a new script before it can be applied on an object.
 							<br />
-                            To do so, right-click somewhere in the <b>src</b> folder of the project using the <b>Assets Browser</b> panel in the editor and select <b>Add {"->"} Script {"->"} Class based</b> or <b>Add {"->"} Script {"->"} Function based</b>
+							To do so, right-click somewhere in the <b>src</b> folder of the project using the <b>Assets Browser</b> panel in the editor and select <b>Add {"->"} Script {"->"} Class based</b> or <b>Add {"->"} Script {"->"} Function based</b>
 						</div>
 
 						<div className="mx-auto p-10 w-full object-contain">
@@ -94,16 +82,16 @@ export default function DocumentationAddingScriptsPage() {
 						</div>
 
 						<div className="text-3xl md:text-2xl lg:text-3xl my-3">
-                            Attaching script
+							Attaching script
 						</div>
 
 						<div>
-                            Once a script is available in the sources folder, just select an object in the scene (a mesh for example) so the inspector shows the properties of the mesh
-                            and then drag'n'drop the script file from the <b>Assets Browser</b> panel to the <b>Scripts</b> section in the inspector.
+							Once a script is available in the sources folder, just select an object in the scene (a mesh for example) so the inspector shows the properties of the mesh
+							and then drag'n'drop the script file from the <b>Assets Browser</b> panel to the <b>Scripts</b> section in the inspector.
 						</div>
 
 						<div>
-                            Once done, the script is attached to be object and will be executed automatically when running the application.
+							Once done, the script is attached to be object and will be executed automatically when running the application.
 						</div>
 
 						<div className="mx-auto p-10 w-full object-contain">
@@ -113,15 +101,15 @@ export default function DocumentationAddingScriptsPage() {
 						</div>
 
 						<div className="text-3xl md:text-2xl lg:text-3xl my-3">
-                            Using decorators
+							Using decorators
 						</div>
 
 						<div>
-                            The <b>babylonjs-editor-tools</b> package provides some useful decorators to help retrieving objects and customizing the scripts.
+							The <b>babylonjs-editor-tools</b> package provides some useful decorators to help retrieving objects and customizing the scripts.
 						</div>
 
 						<div>
-                            Available decorators are:
+							Available decorators are:
 						</div>
 
 						<ul className="list-disc">
@@ -132,19 +120,14 @@ export default function DocumentationAddingScriptsPage() {
 						</ul>
 
 						<div>
-                            Those decorators are equivalent to calling the associated methods like <b>scene.getMeshById("...")</b>, <b>scene.getTransformNodeById("...")</b>.
+							Those decorators are equivalent to calling the associated methods like <b>scene.getMeshById("...")</b>, <b>scene.getTransformNodeById("...")</b>.
 						</div>
 
 						<div>
-                            Example:
+							Example:
 						</div>
 
-						<CopyBlock
-							theme={github}
-							language="typescript"
-							showLineNumbers={false}
-							text={tsClassDecoratorsExample}
-						/>
+						<CodeBlock code={tsClassDecoratorsExample} />
 
 						<NextChapterComponent href="/documentation/advanced/compressing-textures" title="Compressing textures" />
 					</div>

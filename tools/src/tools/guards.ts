@@ -1,3 +1,6 @@
+import { Scene } from "@babylonjs/core/scene";
+
+import { Node } from "@babylonjs/core/node";
 import { Bone } from "@babylonjs/core/Bones/bone";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { GroundMesh } from "@babylonjs/core/Meshes/groundMesh";
@@ -10,10 +13,15 @@ import { Camera } from "@babylonjs/core/Cameras/camera";
 import { FreeCamera } from "@babylonjs/core/Cameras/freeCamera";
 import { ArcRotateCamera } from "@babylonjs/core/Cameras/arcRotateCamera";
 
+import { Light } from "@babylonjs/core/Lights/light";
 import { SpotLight } from "@babylonjs/core/Lights/spotLight";
 import { PointLight } from "@babylonjs/core/Lights/pointLight";
 import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
 import { DirectionalLight } from "@babylonjs/core/Lights/directionalLight";
+
+import { ParticleSystem } from "@babylonjs/core/Particles/particleSystem";
+import { IParticleSystem } from "@babylonjs/core/Particles/IParticleSystem";
+import { GPUParticleSystem } from "@babylonjs/core/Particles/gpuParticleSystem";
 
 /**
  * Returns wether or not the given object is an AbstractMesh.
@@ -155,4 +163,67 @@ export function isSpotLight(object: any): object is SpotLight {
  */
 export function isHemisphericLight(object: any): object is HemisphericLight {
 	return object.getClassName?.() === "HemisphericLight";
+}
+
+/**
+ * Returns wether or not the given object is a Light.
+ * @param object defines the reference to the object to test its class name.
+ */
+export function isLight(object: any): object is Light {
+	switch (object.getClassName?.()) {
+		case "Light":
+		case "PointLight":
+		case "SpotLight":
+		case "DirectionalLight":
+		case "HemisphericLight":
+			return true;
+	}
+
+	return false;
+}
+
+/**
+ * Returns wether or not the given object is a Node.
+ * @param object defines the reference to the object to test its class name.
+ */
+export function isNode(object: any): object is Node {
+	return isAbstractMesh(object) || isTransformNode(object) || isLight(object) || isCamera(object);
+}
+
+/**
+ * Returns wether or not the given object is a Scene.
+ * @param object defines the reference to the object to test its class name.
+ */
+export function isScene(object: any): object is Scene {
+	return object.getClassName?.() === "Scene";
+}
+
+/**
+ * Returns wether or not the given object is a ParticleSystem.
+ * @param object defines the reference to the object to test its class name.
+ */
+export function isParticleSystem(object: any): object is ParticleSystem {
+	return object.getClassName?.() === "ParticleSystem";
+}
+
+/**
+ * Returns wether or not the given object is a GPUParticleSystem.
+ * @param object defines the reference to the object to test its class name.
+ */
+export function isGPUParticleSystem(object: any): object is GPUParticleSystem {
+	return object.getClassName?.() === "GPUParticleSystem";
+}
+
+/**
+ * Returns wether or not the given object is a IParticleSystem.
+ * @param object defines the reference to the object to test its class name.
+ */
+export function isAnyParticleSystem(object: any): object is IParticleSystem {
+	switch (object.getClassName?.()) {
+		case "ParticleSystem":
+		case "GPUParticleSystem":
+			return true;
+	}
+
+	return false;
 }
