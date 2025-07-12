@@ -11,8 +11,8 @@ import { GiWireframeGlobe } from "react-icons/gi";
 import { IoIosOptions, IoIosStats } from "react-icons/io";
 
 import {
-	AbstractEngine, AbstractMesh, Animation, Camera, Color3, CubicEase, EasingFunction, Engine, GizmoCoordinatesMode,
-	ISceneLoaderAsyncResult, Node, Scene, Vector2, Vector3, Viewport, WebGPUEngine, HavokPlugin, PickingInfo,
+	AbstractEngine, AbstractMesh, Animation, Color3, CubicEase, EasingFunction, Engine, GizmoCoordinatesMode,
+	ISceneLoaderAsyncResult, Scene, Vector2, Vector3, WebGPUEngine, HavokPlugin, PickingInfo,
 } from "babylonjs";
 
 import { Input } from "../../ui/shadcn/ui/input";
@@ -140,6 +140,10 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
 	private _playIframeRef: HTMLIFrameElement | null = null;
 
+	private _workingCanvas: HTMLCanvasElement | null = null;
+
+	private _mainCanvas: HTMLCanvasElement | null = null;		
+
 	public constructor(props: IEditorPreviewProps) {
 		super(props);
 
@@ -253,15 +257,15 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	 * Resets the preview component by re-creating the engine and an empty scene.
 	 */
 	public async reset(): Promise<void> {
-		const canvas = this.engine?.getRenderingCanvas();
-		if (!canvas) {
+		if (!this._mainCanvas) {
 			return;
 		}
 
 		this.icons?.stop();
-
+		this.engine?.unRegisterView(this._mainCanvas);
 		this.scene?.dispose();
 		this.engine?.dispose();
+		this.props.editor.layout.cameraPreview?.dispose();
 
 		disposeSSRRenderingPipeline();
 		disposeMotionBlurPostProcess();
@@ -271,7 +275,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		this.scene = null!;
 		this.engine = null!;
 
-		return this._onGotCanvasRef(canvas);
+		return this._onGotCanvasRef(this._mainCanvas);
 	}
 
 	/**
@@ -317,30 +321,6 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		}
 	}
 
-	/**
-	 * Sets the given camera active as a preview.
-	 * This helps to visualize what the selected camera sees when being manipulated
-	 * using gizmos for example.
-	 * When "null", the preview is removed.
-	 * @param camera the camera to activate the preview
-	 */
-	public setCameraPreviewActive(camera: Camera | null): void {
-		if (!camera) {
-			this.scene.activeCameras?.forEach((camera) => {
-				camera.viewport = new Viewport(0, 0, 1, 1);
-			});
-			this.scene.activeCameras = null;
-		} else {
-			this.scene.activeCameras = [this.camera, camera];
-
-			camera.viewport = new Viewport(0, 0, 0.5, 0.5);
-			this.camera.viewport = new Viewport(0, 0, 1, 1);
-		}
-
-		this.scene.activeCamera = this.camera;
-		this.scene.cameraToUseForPointers = this.camera;
-	}
-
 	private _onGotIconsRef(ref: EditorPreviewIcons): void {
 		if (this.icons) {
 			return;
@@ -353,9 +333,14 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	}
 
 	private async _onGotCanvasRef(canvas: HTMLCanvasElement): Promise<void> {
+	
+
 		if (this.engine) {
 			return;
 		}
+
+		this._mainCanvas ??= canvas;
+		this._workingCanvas ??= document.createElement("canvas");;
 
 		await waitUntil(() => this.props.editor.path);
 		await initializeHavok(this.props.editor.path!);
@@ -366,10 +351,11 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		const webGpuSupported = false;
 		// const webGpuSupported = await WebGPUEngine.IsSupportedAsync;
 
+		
 		if (webGpuSupported) {
-			this.engine = await this._createWebgpuEngine(canvas);
+			this.engine = await this._createWebgpuEngine(this._workingCanvas);
 		} else {
-			this.engine = new Engine(canvas, true, {
+			this.engine = new Engine(this._workingCanvas, true, {
 				antialias: true,
 				audioEngine: true,
 				adaptToDeviceRatio: true,
@@ -383,6 +369,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		}
 
 		this.engine.disableContextMenu = false;
+		this.engine.inputElement = this._mainCanvas;
 
 		this.scene = new Scene(this.engine);
 		this.scene.autoClear = true;
@@ -392,11 +379,13 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		}
 
 		this.camera = new EditorCamera("camera", Vector3.Zero(), this.scene);
-		this.camera.attachControl(true);
+		this.camera.attachControl(this.camera, true);
 
 		this.gizmo = new EditorPreviewGizmo(this.scene);
 
 		this.engine.hideLoadingUI();
+
+		this.engine.registerView(this._mainCanvas);
 
 		this.engine.runRenderLoop(() => {
 			if (this._renderScene && !this.play.state.playing) {
@@ -466,7 +455,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		const pickingInfo = this._getPickingInfo(x, y);
 		const mesh = pickingInfo.pickedMesh?._masterMesh ?? pickingInfo.pickedMesh;
 
-		if (mesh && this._meshUnderPointer !== mesh) {
+		if (mesh && this._meshUnderPointer !== mesh && mesh.isPickable) {
 			this._restoreCurrentMeshUnderPointer();
 			this._highlightCurrentMeshUnderPointer(mesh);
 
@@ -520,14 +509,12 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
 		const pickingInfo = this._getPickingInfo(this.scene.pointerX, this.scene.pointerY);
 
-		let mesh = (pickingInfo.pickedMesh?._masterMesh ?? pickingInfo.pickedMesh) as Node;
-		if (mesh) {
+		let mesh = (pickingInfo.pickedMesh?._masterMesh ?? pickingInfo.pickedMesh) ;
+		if (mesh && mesh.isPickable) {
 			const sceneLink = getRootSceneLink(mesh);
 			if (sceneLink) {
-				mesh = sceneLink;
+				mesh = sceneLink as unknown as AbstractMesh;
 			}
-
-			// this.setCameraPreviewActive(null);
 
 			this.gizmo.setAttachedNode(mesh);
 			this.props.editor.layout.graph.setSelectedNode(mesh);
@@ -539,11 +526,11 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	private _getPickingInfo(x: number, y: number): PickingInfo {
 		const decalPick = this.scene.pick(x, y, (m) => {
 			return m.metadata?.decal && m.isVisible && m.isEnabled();
-		}, false);
+		}, false, this.camera);
 
 		const meshPick = this.scene.pick(x, y, (m) => {
 			return !m._masterMesh && !isCollisionMesh(m) && !isCollisionInstancedMesh(m) && m.isVisible && m.isEnabled();
-		}, false);
+		}, false, this.camera);
 
 		let pickingInfo = meshPick;
 		if (decalPick?.pickedPoint && meshPick?.pickedPoint) {

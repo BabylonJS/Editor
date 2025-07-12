@@ -1,9 +1,12 @@
 import { platform } from "os";
 
 import { Component, ReactNode } from "react";
-import { Actions, IJsonModel, Layout, Model, TabNode } from "flexlayout-react";
+import { Actions, BorderNode, ITabSetRenderValues, IJsonModel, Layout, Model, TabNode, TabSetNode } from "flexlayout-react";
 
-import { Tools } from "babylonjs";
+import { AiOutlinePlus } from "react-icons/ai";
+import { FaCamera } from "react-icons/fa";
+
+import { Tools, Camera } from "babylonjs";
 
 import { waitNextAnimationFrame } from "../tools/tools";
 
@@ -17,6 +20,12 @@ import { EditorConsole } from "./layout/console";
 import { EditorInspector } from "./layout/inspector";
 import { EditorAnimation } from "./layout/animation";
 import { EditorAssetsBrowser } from "./layout/assets-browser";
+import { CameraPreview } from "./layout/preview/camera-preview";
+
+import { Button } from "../ui/shadcn/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/shadcn/ui/dropdown-menu";
+
+
 
 export interface IEditorLayoutProps {
 	/**
@@ -50,6 +59,9 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
 	 * The animation editor of the editor.
 	 */
 	public animations: EditorAnimation;
+
+
+	public cameraPreview: CameraPreview | null = null;
 
 	private _layoutRef: Layout | null = null;
 	private _model: Model = Model.fromJson(layoutModel as any);
@@ -90,6 +102,7 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
 						ref={(r) => this._layoutRef = r}
 						factory={(n) => this._layoutFactory(n)}
 						onModelChange={(m) => this._saveLayout(m)}
+						onRenderTabSet={this._onRenderTabSet}
 					/>
 				</div>
 			</div>
@@ -100,6 +113,43 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
 		localStorage.removeItem("babylonjs-editor-layout");
 		window.location.reload();
 	}
+
+	private _onRenderTabSet = (node: TabSetNode | BorderNode, renderValues: ITabSetRenderValues) => {
+		if (node.getId() === "modules-tabset") {
+			renderValues.stickyButtons.push(
+				<DropdownMenu>
+					<DropdownMenuTrigger asChild>
+						<Button variant="ghost" className="h-full p-1">
+							<AiOutlinePlus className="h-full" strokeWidth={1} />
+						</Button>
+					</DropdownMenuTrigger>
+					<DropdownMenuContent onClick={() => this.forceUpdate()}>
+						<DropdownMenuLabel>Add tab</DropdownMenuLabel>
+						<DropdownMenuSeparator />
+						{
+							!this.cameraPreview && (
+								<DropdownMenuItem 
+									key="camera-preview"
+									className="flex gap-2 items-center" 
+									onClick={() => this.setActivePreviewCamera(null)}
+								>
+									<div className="flex gap-2 items-center">
+										<FaCamera className="h-4" />
+										<span className="text-sm font-medium">
+									Camera Preview
+										</span>
+									</div>
+								</DropdownMenuItem>
+							)
+						}
+						
+					</DropdownMenuContent>
+				</DropdownMenu>
+			);
+		}
+	};
+
+	
 
 	private _layoutFactory(node: TabNode): ReactNode {
 		const componentName = node.getComponent();
@@ -150,15 +200,40 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
 	 * @param title defines the title of the tab.
 	 * @param component defines the reference to the React component to draw in.
 	 */
-	public addLayoutTab(title: string, component: React.ReactNode): void {
+	public addLayoutTab(title: string, component: React.ReactNode, tabSetId?: string): void {
 		const id = Tools.RandomId();
 
 		this._components[id] = component;
-		this._layoutRef?.addTabToActiveTabSet({
-			id,
-			name: title,
-			type: "tab",
-			component: id,
-		});
+		if (tabSetId) {
+			this._layoutRef?.addTabToTabSet(tabSetId, {
+				id,
+				name: title,
+				type: "tab",
+				component: id,
+			});
+		} else {
+			this._layoutRef?.addTabToActiveTabSet({
+				id,
+				name: title,
+				type: "tab",
+				component: id,
+			});
+		}
+	}
+
+	public setActivePreviewCamera(camera: Camera | null): void {
+		if (!this.cameraPreview) {
+			this._addCameraPreview(camera);
+		} else {
+			this.cameraPreview.setCamera(camera);
+		}
+	}
+
+
+	private _addCameraPreview(camera: Camera | null): void {
+		this.addLayoutTab(
+			"Camera Preview", 
+			<CameraPreview editor={this.props.editor} ref={(r) => this.cameraPreview = r} camera={camera} />, 
+			"modules-tabset");
 	}
 }

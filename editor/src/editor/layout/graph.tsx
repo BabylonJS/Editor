@@ -1,6 +1,8 @@
 import { Component, DragEvent, ReactNode } from "react";
 import { Button, Tree, TreeNodeInfo } from "@blueprintjs/core";
 
+import { platform } from "os";
+
 import { FaLink } from "react-icons/fa6";
 import { IoMdCube } from "react-icons/io";
 import { GiSparkles } from "react-icons/gi";
@@ -37,6 +39,7 @@ import { onProjectConfigurationChangedObservable } from "../../project/configura
 
 import { EditorGraphLabel } from "./graph/label";
 import { EditorGraphContextMenu } from "./graph/graph";
+import { removeNodes } from "./graph/remove";
 import { getMeshCommands } from "../dialogs/command-palette/mesh";
 import { getLightCommands } from "../dialogs/command-palette/light";
 import { getCameraCommands } from "../dialogs/command-palette/camera";
@@ -105,6 +108,8 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 
 		document.addEventListener("copy", () => this.state.isFocused && this.copySelectedNodes());
 		document.addEventListener("paste", () => this.state.isFocused && this.pasteSelectedNodes());
+		document.addEventListener("keydown", (event) => this.state.isFocused && this._handleKeyDown(event));
+		
 	}
 
 	public render(): ReactNode {
@@ -425,6 +430,30 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		});
 	}
 
+	private _handleKeyDown(event: KeyboardEvent): void {
+		const isMac = platform() === "darwin";
+		
+		if (isMac) {
+			this._handleMacShortcuts(event);
+		} else {
+			this._handleWindowsShortcuts(event);
+		}
+	}
+
+	private _handleMacShortcuts(event: KeyboardEvent): void {
+		if (event.metaKey && event.key === "Delete") {
+			event.preventDefault();
+			removeNodes(this.props.editor);
+		}
+	}
+
+	private _handleWindowsShortcuts(event: KeyboardEvent): void {
+		if (event.key === "Delete" || (event.ctrlKey && event.key === "Delete")) {
+			event.preventDefault();
+			removeNodes(this.props.editor);
+		}
+	}
+
 	private _handleSearch(search: string) {
 		this.setState({ search }, () => {
 			this.refresh();
@@ -437,6 +466,10 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 
 		if (isNode(node.nodeData)) {
 			this.props.editor.layout.preview.gizmo.setAttachedNode(node.nodeData);
+		}
+
+		if (isCamera(node.nodeData)) {
+			this.props.editor.layout.setActivePreviewCamera(node.nodeData);
 		}
 
 		if (ev.ctrlKey || ev.metaKey) {
