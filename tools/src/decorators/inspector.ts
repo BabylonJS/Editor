@@ -17,7 +17,7 @@ export type VisibleInInspectorDecoratorConfiguration = {
  */
 export function visibleAsBoolean(
 	label?: string,
-	configuration?: Omit<VisibleInInspectorDecoratorNumberConfiguration, "type">,
+	configuration?: Omit<VisibleInInspectorDecoratorConfiguration, "type">,
 ) {
 	return function (target: any, propertyKey: string | Symbol) {
 		const ctor = target.constructor as ISceneDecoratorData;

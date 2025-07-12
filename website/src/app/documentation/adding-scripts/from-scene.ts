@@ -23,6 +23,17 @@ export default class MyScriptComponent {
     @soundFromScene("assets/sound.mp3")
     private _mySound: Sound;
 
-    ...
+    public constructor(public object: TransformNode) {
+        // 🚫 decorators were not processed, the sound is NOT available.
+        this._mySound.play();
+    }
+
+    /**
+     * Called on the script is being started.
+     */
+    public onStart(): void {
+        // ✅ decorators were processed, the sound is available.
+        this._mySound.play();
+    }
 }
 `;

@@ -17,7 +17,7 @@ export function CodeBlock(props: ICodeBlock) {
 
 	useEffect(() => {
 		handleCreateHtmlCode();
-	}, []);
+	}, [props.code]);
 
 	async function handleCreateHtmlCode() {
 		const html = await codeToHtml(props.code, {

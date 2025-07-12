@@ -35,14 +35,24 @@ export type ScriptMap = Record<
 /**
  * Defines the overall desired quality of the scene.
  * In other words, defines the quality of textures that will be loaded in terms of dimensions.
- * The editor computes automatic "hight (untouched)", "medium (half)", and "low (quarter)" quality levels for textures.
+ * The editor computes automatic "high (untouched)", "medium (half)", and "low (quarter)" quality levels for textures.
  * Using "medium" or "low" quality levels will reduce the memory usage and improve the performance of the scene
  * especially on mobiles where memory is limited.
  */
 export type SceneLoaderQualitySelector = "low" | "medium" | "high";
 
 export type SceneLoaderOptions = {
+	/**
+	 * Defines the quality of the scene.
+	 * This will affect the quality of textures that will be loaded in terms of dimensions.
+	 * The editor computes automatic "high (untouched)", "medium (half)", and "low (quarter)" quality levels for textures.
+	 * Using "medium" or "low" quality levels will reduce the memory usage and improve the performance of the scene
+	 * especially on mobiles where memory is limited.
+	 */
 	quality?: SceneLoaderQualitySelector;
+	/**
+	 * Defines the function called to notify the loading progress in interval [0, 1]
+	 */
 	onProgress?: (value: number) => void;
 };
 
