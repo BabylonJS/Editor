@@ -203,7 +203,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 						{this.play?.state.playing &&
 							<>
 								{this.play.state.playingAddress &&
-									<iframe ref={(r) => this._playIframeRef = r} src={this.play.state.playingAddress} className="w-full h-full select-none outline-none" />
+									<iframe ref={(r) => this._playIframeRef = r} src={`${this.play.state.playingAddress}/editor_debug${this.play.getSearchParams()}`} className="w-full h-full select-none outline-none" />
 								}
 
 								{!this.play.state.playingAddress &&

@@ -140,3 +140,6 @@ public/scene
 
 # Test
 /test
+
+# Editor debug
+src/app/editor_debug

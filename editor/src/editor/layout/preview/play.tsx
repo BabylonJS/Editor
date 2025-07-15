@@ -1,5 +1,6 @@
-import { dirname } from "path/posix";
 import { ipcRenderer, shell } from "electron";
+import { ensureDir, writeFile } from "fs-extra";
+import { basename, dirname, join } from "path/posix";
 
 import { Button } from "@blueprintjs/core";
 import { Component, ReactNode } from "react";
@@ -21,30 +22,30 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../
 import { Editor } from "../../main";
 
 export interface IEditorPreviewPlayComponentProps {
-    /**
-     * The editor reference.
-     */
-    editor: Editor;
+	/**
+	 * The editor reference.
+	 */
+	editor: Editor;
 
-    /**
-     * Called on the user wants to restart the game / application (aka. refresh the page of the game / application).
-     */
-    onRestart: () => void;
+	/**
+	 * Called on the user wants to restart the game / application (aka. refresh the page of the game / application).
+	 */
+	onRestart: () => void;
 }
 
 export interface IEditorPreviewPlayComponentState {
-    /**
-     * Defines wether or not the game / application is playing in the editor.
-     */
-    playing: boolean;
-    /**
-     * Defines the address of the game / application being played.
-     */
-    playingAddress: string;
-    /**
-     * Defines wether or not the player is being prepared.
-     */
-    preparingPlay: boolean;
+	/**
+	 * Defines wether or not the game / application is playing in the editor.
+	 */
+	playing: boolean;
+	/**
+	 * Defines the address of the game / application being played.
+	 */
+	playingAddress: string;
+	/**
+	 * Defines wether or not the player is being prepared.
+	 */
+	preparingPlay: boolean;
 }
 
 export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComponentProps, IEditorPreviewPlayComponentState> {
@@ -72,20 +73,20 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 		return (
 			<TooltipProvider>
 				{this.state.playing && this.state.playingAddress && !this.state.preparingPlay &&
-                    <Tooltip>
-                    	<TooltipTrigger asChild>
-                    		<Button
-                    			minimal
-                    			onClick={() => this.props.onRestart()}
-                    			icon={<IoRefresh className="w-6 h-6" strokeWidth={1} color="red" />}
-                    			className="w-10 h-10 bg-muted/50 !rounded-lg transition-all duration-300 ease-in-out"
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<Button
+								minimal
+								onClick={() => this.props.onRestart()}
+								icon={<IoRefresh className="w-6 h-6" strokeWidth={1} color="red" />}
+								className="w-10 h-10 bg-muted/50 !rounded-lg transition-all duration-300 ease-in-out"
 
-                    		/>
-                    	</TooltipTrigger>
-                    	<TooltipContent>
-                            Restart the game / application
-                    	</TooltipContent>
-                    </Tooltip>
+							/>
+						</TooltipTrigger>
+						<TooltipContent>
+							Restart the game / application
+						</TooltipContent>
+					</Tooltip>
 				}
 
 				<Tooltip>
@@ -110,7 +111,7 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 						/>
 					</TooltipTrigger>
 					<TooltipContent className="flex gap-2 items-center">
-                        Play the game / application
+						Play the game / application
 					</TooltipContent>
 				</Tooltip>
 			</TooltipProvider>
@@ -118,19 +119,25 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 	}
 
 	/**
-     * Sets the game / application to play or stop.
-     * If stopped, the process created to server the game / application keeps alive in order to be played again but faster than the first launch.
-     */
+	 * Sets the game / application to play or stop.
+	 * If stopped, the process created to server the game / application keeps alive in order to be played again but faster than the first launch.
+	 */
 	public async playOrStopApplication(): Promise<void> {
 		if (!this.state.playing) {
-			this.setState({ preparingPlay: true });
+			this.setState({
+				preparingPlay: true,
+			});
 
 			await Promise.all([
 				this._preparePlayProcess(),
-				exportProject(this.props.editor, { optimize: false }),
+				exportProject(this.props.editor, {
+					optimize: false,
+				}),
 			]);
 
-			this.setState({ preparingPlay: false });
+			this.setState({
+				preparingPlay: false,
+			});
 		}
 
 		this.setState({ playing: !this.state.playing }, () => {
@@ -172,8 +179,24 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 			default: command = "yarn dev"; break;
 		}
 
+		const projectDir = dirname(projectConfiguration.path);
+
+		// Copy debug page
+		await ensureDir(join(projectDir, "src/app/editor_debug"));
+
+		const [layoutData, pageData] = await Promise.all([
+			fetch("assets/play/layout.tsx").then(r => r.text()),
+			fetch("assets/play/page.tsx").then(r => r.text()),
+		]);
+
+		await Promise.all([
+			writeFile(join(projectDir, "src/app/editor_debug/layout.tsx"), layoutData),
+			writeFile(join(projectDir, "src/app/editor_debug/page.tsx"), pageData),
+		]);
+
+		// Create play process
 		this._playProcess = await execNodePty(command, {
-			cwd: dirname(projectConfiguration.path),
+			cwd: projectDir,
 		});
 
 		const localhostRegex = /http:\/\/localhost:(\d+)/;
@@ -198,7 +221,7 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 					done: true,
 					message: (
 						<div>
-                            Game / application is ready at <a className="underline underline-offset-4" onClick={() => shell.openExternal(playingAddress)}>{playingAddress}</a>
+							Game / application is ready at <a className="underline underline-offset-4" onClick={() => shell.openExternal(playingAddress)}>{playingAddress}</a>
 						</div>
 					),
 				});
@@ -206,5 +229,18 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 				this._playProcess?.onGetDataObservable.clear();
 			}
 		});
+	}
+
+	/**
+	 * Returns the search params used by the debug page of the project to load the current scene.
+	 */
+	public getSearchParams(): string {
+		let searchParams = "";
+		if (this.props.editor.state.lastOpenedScenePath) {
+			const sceneName = basename(this.props.editor.state.lastOpenedScenePath).split(".").shift()!;
+			searchParams = `?scene=${sceneName}.babylon`;
+		}
+
+		return searchParams;
 	}
 }
