@@ -1,6 +1,6 @@
 import { ISceneDecoratorData } from "./apply";
 
-export type VisibleInInspectorDecoratorType = "number" | "boolean" | "vector2" | "vector3" | "color3" | "color4" | "entity";
+export type VisibleInInspectorDecoratorType = "number" | "boolean" | "vector2" | "vector3" | "color3" | "color4" | "entity" | "texture";
 
 export type VisibleInInspectorDecoratorConfiguration = {
 	type: VisibleInInspectorDecoratorType;
@@ -233,4 +233,36 @@ export type VisibleAsEntityType = "node" | "sound" | "animationGroup" | "particl
 
 export type VisibleInInspectorDecoratorEntityConfiguration = VisibleInInspectorDecoratorConfiguration & {
 	entityType?: VisibleAsEntityType;
+};
+
+/**
+ * Makes the decorated property visible in the editor inspector as a Texture.
+ * The property can be customized per object in the editor and the custom value is applied
+ * once the script is invoked at runtime in the game/application.
+ * This can be used only by scripts using Classes.
+ * @param label defines the optional label displayed in the inspector in the editor.
+ * @param configuration defines the optional configuration for the field in the inspector (accept cubes, etc.).
+ */
+export function visibleAsTexture(
+	label?: string,
+	configuration?: Omit<VisibleInInspectorDecoratorTextureConfiguration, "type">,
+) {
+	return function (target: any, propertyKey: string | Symbol) {
+		const ctor = target.constructor as ISceneDecoratorData;
+
+		ctor._VisibleInInspector ??= [];
+		ctor._VisibleInInspector.push({
+			label,
+			propertyKey,
+			configuration: {
+				...configuration,
+				type: "texture",
+			},
+		});
+	};
+}
+
+export type VisibleInInspectorDecoratorTextureConfiguration = VisibleInInspectorDecoratorConfiguration & {
+	acceptCubes?: boolean;
+	onlyCubes?: boolean;
 };

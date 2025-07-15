@@ -1,6 +1,7 @@
 import { Node } from "@babylonjs/core/node";
 import { Scene } from "@babylonjs/core/scene";
 import { Color3, Color4 } from "@babylonjs/core/Maths/math.color";
+import { Texture } from "@babylonjs/core/Materials/Textures/texture";
 import { Vector2, Vector3 } from "@babylonjs/core/Maths/math.vector";
 
 import { AdvancedDynamicTexture } from "@babylonjs/gui/2D/advancedDynamicTexture";
@@ -163,6 +164,10 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 							instance[propertyKey] = scene.particleSystems?.find((ps) => ps.id === value) ?? null;
 							break;
 					}
+					break;
+
+				case "texture":
+					instance[propertyKey] = Texture.Parse(value, scene, rootUrl);
 					break;
 			}
 		}

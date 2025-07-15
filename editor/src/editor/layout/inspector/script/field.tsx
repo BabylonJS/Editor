@@ -11,7 +11,7 @@ import { XMarkIcon } from "@heroicons/react/20/solid";
 
 import { toast } from "sonner";
 
-import { Vector2, Vector3, Color3, Color4 } from "babylonjs";
+import { Vector2, Vector3, Color3, Color4, Texture, CubeTexture } from "babylonjs";
 import { VisibleInInspectorDecoratorEntityConfiguration } from "babylonjs-editor-tools";
 
 import { Editor } from "../../../main";
@@ -19,10 +19,13 @@ import { Editor } from "../../../main";
 import { Button } from "../../../../ui/shadcn/ui/button";
 
 import { watchFile } from "../../../../tools/fs";
+import { UniqueNumber } from "../../../../tools/tools";
 import { execNodePty } from "../../../../tools/node-pty";
 import { registerUndoRedo } from "../../../../tools/undoredo";
 import { executeSimpleWorker } from "../../../../tools/worker";
 import { ensureTemporaryDirectoryExists } from "../../../../tools/project";
+
+import { configureImportedTexture } from "../../preview/import/import";
 
 import { projectConfiguration } from "../../../../project/configuration";
 
@@ -31,6 +34,7 @@ import { EditorInspectorColorField } from "../fields/color";
 import { EditorInspectorSwitchField } from "../fields/switch";
 import { EditorInspectorNumberField } from "../fields/number";
 import { EditorInspectorVectorField } from "../fields/vector";
+import { EditorInspectorTextureField } from "../fields/texture";
 import { EditorInspectorSceneEntityField } from "../fields/entity";
 
 import { VisibleInInspectorDecoratorObject, computeDefaultValuesForObject, scriptValues } from "./tools";
@@ -48,6 +52,8 @@ export interface IInspectorScriptFieldProps {
 	onRemove: () => void;
 }
 
+const textures: (Texture | CubeTexture)[] = [];
+
 export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 	let srcAbsolutePath = "";
 	if (projectConfiguration.path) {
@@ -59,6 +65,18 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 	const [output, setOutput] = useState<VisibleInInspectorDecoratorObject[] | null>(cachedScripts[srcAbsolutePath]?.output);
 
 	const [watcher, setWatcher] = useState<FSWatcher | null>(null);
+
+	const [updateId, setUpdateId] = useState(0); // Used to force re-render when a texture is changed
+
+	useEffect(() => {
+		return () => {
+			textures.forEach((texture) => {
+				texture.dispose();
+			});
+
+			textures.splice(0, textures.length);
+		};
+	}, []);
 
 	useEffect(() => {
 		return () => {
@@ -179,6 +197,51 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 					/>
 				);
 		}
+	}
+
+	function getTextureInspector(value: VisibleInInspectorDecoratorObject) {
+		let texture: Texture | CubeTexture | null = null;
+
+		const serializedTexture = props.script[scriptValues][value.propertyKey]?.value;
+		const existingTexture = textures.find((texture) => texture.uniqueId === serializedTexture?.uniqueId);
+
+		if (!existingTexture && serializedTexture) {
+			const rootUrl = join(dirname(projectConfiguration.path!), "/");
+			const parsedTexture = Texture.Parse(serializedTexture, props.editor.layout.preview.scene, rootUrl) as Texture | CubeTexture;
+
+			if (parsedTexture) {
+				texture = configureImportedTexture(parsedTexture);
+				texture.uniqueId = serializedTexture?.uniqueId ?? UniqueNumber.Get();
+				textures.push(texture);
+			}
+		}
+
+		const tempTexture = {
+			value: texture,
+		};
+
+		return (
+			<EditorInspectorTextureField
+				noUndoRedo
+				key={value.propertyKey}
+				object={tempTexture}
+				property="value"
+				title={value.label ?? value.propertyKey}
+				scene={props.editor.layout.preview.scene}
+				acceptCubeTexture={value.configuration.acceptCubes}
+				onChange={(v) => {
+					const oldSerializedTexture = props.script[scriptValues][value.propertyKey].value;
+
+					registerUndoRedo({
+						executeRedo: true,
+						undo: () => props.script[scriptValues][value.propertyKey].value = oldSerializedTexture,
+						redo: () => props.script[scriptValues][value.propertyKey].value = v?.serialize() ?? null,
+					});
+
+					setUpdateId(updateId + 1);
+				}}
+			/>
+		);
 	}
 
 	function handleCopyName(): void {
@@ -306,6 +369,9 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 
 							case "entity":
 								return getEntityInspector(value);
+
+							case "texture":
+								return getTextureInspector(value);
 
 							default:
 								return null;

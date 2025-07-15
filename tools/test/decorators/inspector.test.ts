@@ -1,7 +1,7 @@
 import { ISceneDecoratorData } from "../../src/decorators/apply";
 import {
     visibleAsBoolean, visibleAsColor3, visibleAsColor4, visibleAsNumber,
-    visibleAsVector2, visibleAsVector3,
+    visibleAsVector2, visibleAsVector3, visibleAsTexture, visibleAsEntity,
 } from "../../src/decorators/inspector";
 
 describe("decorators/inspector", () => {
@@ -133,6 +133,42 @@ describe("decorators/inspector", () => {
                 type: "color4",
                 noClamp: true,
                 noColorPicker: true,
+            });
+        });
+    });
+
+    describe("@visibleAsEntity", () => {
+        test("should add configuration to the target", () => {
+            const fn = visibleAsEntity("node", "test");
+            fn(target, "testProperty");
+
+            expect(target.constructor._VisibleInInspector).toBeDefined();
+            expect(target.constructor._VisibleInInspector.length).toBe(1);
+            expect(target.constructor._VisibleInInspector[0].label).toBe("test");
+            expect(target.constructor._VisibleInInspector[0].propertyKey).toBe("testProperty");
+            expect(target.constructor._VisibleInInspector[0].configuration).toEqual({
+                type: "entity",
+                entityType: "node",
+            });
+        });
+    });
+
+    describe("@visibleAsTexture", () => {
+        test("should add configuration to the target", () => {
+            const fn = visibleAsTexture("test", {
+                onlyCubes: false,
+                acceptCubes: false,
+            });
+            fn(target, "testProperty");
+
+            expect(target.constructor._VisibleInInspector).toBeDefined();
+            expect(target.constructor._VisibleInInspector.length).toBe(1);
+            expect(target.constructor._VisibleInInspector[0].label).toBe("test");
+            expect(target.constructor._VisibleInInspector[0].propertyKey).toBe("testProperty");
+            expect(target.constructor._VisibleInInspector[0].configuration).toEqual({
+                type: "texture",
+                onlyCubes: false,
+                acceptCubes: false,
             });
         });
     });

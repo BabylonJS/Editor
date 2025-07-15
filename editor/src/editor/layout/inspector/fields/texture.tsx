@@ -37,11 +37,13 @@ export interface IEditorInspectorTextureFieldProps extends PropsWithChildren {
 	acceptCubeTexture?: boolean;
 	object: any;
 
+	noUndoRedo?: boolean;
+
 	hideLevel?: boolean;
 	hideSize?: boolean;
 
 	scene?: Scene;
-	onChange?: (texture: Texture | CubeTexture | null) => void;
+	onChange?: (texture: Texture | CubeTexture | ColorGradingTexture | null) => void;
 }
 
 export interface IEditorInspectorTextureFieldState {
@@ -87,25 +89,39 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 						{textureUrl &&
 							<div className="flex flex-col gap-1 mt-1 w-full">
 								{!this.props.hideLevel &&
-									<EditorInspectorNumberField label="Level" object={texture} property="level" />
+									<EditorInspectorNumberField
+										noUndoRedo={this.props.noUndoRedo}
+										label="Level"
+										object={texture}
+										property="level"
+										onChange={() => this.props.onChange?.(texture)}
+										onFinishChange={() => this.props.onChange?.(texture)}
+									/>
 								}
 
 								{isTexture(texture) &&
 									<>
 										{!this.props.hideSize &&
-											<EditorInspectorNumberField label="Size" object={texture} property="uScale" onChange={(v) => {
-												texture.vScale = v;
-											}} />
+											<EditorInspectorNumberField
+												noUndoRedo={this.props.noUndoRedo}
+												label="Size"
+												object={texture}
+												property="uScale"
+												onChange={(v) => texture.vScale = v}
+												onFinishChange={() => this.props.onChange?.(texture)}
+											/>
 										}
-										<EditorInspectorSwitchField label="Invert Y" object={texture} property="_invertY" onChange={() => {
+										<EditorInspectorSwitchField noUndoRedo={this.props.noUndoRedo} label="Invert Y" object={texture} property="_invertY" onChange={() => {
 											this._handleReloadTexture(texture);
-										}} />
+											this.props.onChange?.(texture);
+										}}
+										/>
 									</>
 								}
 
 								{isCubeTexture(texture) &&
 									<>
-										<EditorInspectorNumberField label="Rotation Y" object={texture} property="rotationY" />
+										<EditorInspectorNumberField label="Rotation Y" object={texture} property="rotationY" onFinishChange={() => this.props.onChange?.(texture)} />
 									</>
 								}
 							</div>
@@ -115,16 +131,21 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 						onClick={() => {
 							const oldTexture = this.props.object[this.props.property];
 
-							registerUndoRedo({
-								executeRedo: true,
-								undo: () => {
-									this.props.object[this.props.property] = oldTexture;
-									this._computeTemporaryPreview();
-								},
-								redo: () => {
-									this.props.object[this.props.property] = null;
-								},
-							});
+							this.props.object[this.props.property] = null;
+							this.props.onChange?.(null);
+
+							if (!this.props.noUndoRedo) {
+								registerUndoRedo({
+									executeRedo: true,
+									undo: () => {
+										this.props.object[this.props.property] = oldTexture;
+										this._computeTemporaryPreview();
+									},
+									redo: () => {
+										this.props.object[this.props.property] = null;
+									},
+								});
+							}
 
 							this.forceUpdate();
 						}}
@@ -220,26 +241,42 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 						</div>
 					</div>
 
-					<EditorInspectorSwitchField label="Gamma Space" object={texture} property="gammaSpace" />
-					<EditorInspectorSwitchField label="Invert Z" object={texture} property="invertZ" />
+					<EditorInspectorSwitchField label="Gamma Space" object={texture} property="gammaSpace" onChange={() => this.props.onChange?.(texture)} />
+					<EditorInspectorSwitchField label="Invert Z" object={texture} property="invertZ" onChange={() => this.props.onChange?.(texture)} />
 				</EditorInspectorSectionField>
 
 				<EditorInspectorSectionField title="Coordinates">
-					<EditorInspectorNumberField label="Index" object={texture} property="coordinatesIndex" step={1} min={0} onChange={(v) => {
-						texture.coordinatesIndex = Math.round(v);
-					}} />
-					<EditorInspectorListField label="Mode" object={texture} property="coordinatesMode" onChange={() => this.forceUpdate()} items={[
-						{ text: "Explicit", value: Texture.EXPLICIT_MODE },
-						{ text: "Spherical", value: Texture.SPHERICAL_MODE },
-						{ text: "Planar", value: Texture.PLANAR_MODE },
-						{ text: "Cubic", value: Texture.CUBIC_MODE },
-						{ text: "Projection", value: Texture.PROJECTION_MODE },
-						{ text: "Skybox", value: Texture.SKYBOX_MODE },
-						{ text: "Inversed Cubic", value: Texture.INVCUBIC_MODE },
-						{ text: "Equirectangular", value: Texture.EQUIRECTANGULAR_MODE },
-						{ text: "Fixed Equirectangular", value: Texture.FIXED_EQUIRECTANGULAR_MODE },
-						{ text: "Equirectangular Mirrored", value: Texture.FIXED_EQUIRECTANGULAR_MIRRORED_MODE },
-					]} />
+					<EditorInspectorNumberField
+						label="Index"
+						object={texture}
+						property="coordinatesIndex"
+						step={1} min={0}
+						onChange={(v) => texture.coordinatesIndex = Math.round(v)}
+						onFinishChange={() => this.props.onChange?.(texture)}
+					/>
+
+					<EditorInspectorListField
+						noUndoRedo={this.props.noUndoRedo}
+						label="Mode"
+						object={texture}
+						property="coordinatesMode"
+						onChange={() => {
+							this.forceUpdate();
+							this.props.onChange?.(texture);
+						}}
+						items={[
+							{ text: "Explicit", value: Texture.EXPLICIT_MODE },
+							{ text: "Spherical", value: Texture.SPHERICAL_MODE },
+							{ text: "Planar", value: Texture.PLANAR_MODE },
+							{ text: "Cubic", value: Texture.CUBIC_MODE },
+							{ text: "Projection", value: Texture.PROJECTION_MODE },
+							{ text: "Skybox", value: Texture.SKYBOX_MODE },
+							{ text: "Inversed Cubic", value: Texture.INVCUBIC_MODE },
+							{ text: "Equirectangular", value: Texture.EQUIRECTANGULAR_MODE },
+							{ text: "Fixed Equirectangular", value: Texture.FIXED_EQUIRECTANGULAR_MODE },
+							{ text: "Equirectangular Mirrored", value: Texture.FIXED_EQUIRECTANGULAR_MIRRORED_MODE },
+						]}
+					/>
 				</EditorInspectorSectionField>
 			</div>
 		);
@@ -305,46 +342,65 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 							{texture.name}
 						</div>
 					</div>
-					<EditorInspectorSwitchField label="Gamma Space" object={texture} property="gammaSpace" />
-					<EditorInspectorSwitchField label="Get Alpha From RGB" object={texture} property="getAlphaFromRGB" />
+					<EditorInspectorSwitchField noUndoRedo={this.props.noUndoRedo} label="Gamma Space" object={texture} property="gammaSpace" onChange={() => this.props.onChange?.(texture)} />
+					<EditorInspectorSwitchField noUndoRedo={this.props.noUndoRedo} label="Get Alpha From RGB" object={texture} property="getAlphaFromRGB" onChange={() => this.props.onChange?.(texture)} />
 				</EditorInspectorSectionField>
 
 				<EditorInspectorSectionField title="Scale">
-					<EditorInspectorNumberField label="U Scale" object={texture} property="uScale" onChange={() => this.forceUpdate()} />
-					<EditorInspectorNumberField label="V Scale" object={texture} property="vScale" onChange={() => this.forceUpdate()} />
+					<EditorInspectorNumberField noUndoRedo={this.props.noUndoRedo} label="U Scale" object={texture} property="uScale" onChange={() => this.forceUpdate()} onFinishChange={() => this.props.onChange?.(texture)} />
+					<EditorInspectorNumberField noUndoRedo={this.props.noUndoRedo} label="V Scale" object={texture} property="vScale" onChange={() => this.forceUpdate()} onFinishChange={() => this.props.onChange?.(texture)} />
 				</EditorInspectorSectionField>
 
 				<EditorInspectorSectionField title="Offset">
-					<EditorInspectorNumberField label="U Offset" object={texture} property="uOffset" />
-					<EditorInspectorNumberField label="V Offset" object={texture} property="vOffset" />
+					<EditorInspectorNumberField noUndoRedo={this.props.noUndoRedo} label="U Offset" object={texture} property="uOffset" onFinishChange={() => this.props.onChange?.(texture)} />
+					<EditorInspectorNumberField noUndoRedo={this.props.noUndoRedo} label="V Offset" object={texture} property="vOffset" onFinishChange={() => this.props.onChange?.(texture)} />
 				</EditorInspectorSectionField>
 
 				<EditorInspectorSectionField title="Coordinates">
-					<EditorInspectorNumberField label="Index" object={texture} property="coordinatesIndex" step={1} min={0} onChange={(v) => {
-						texture.coordinatesIndex = Math.round(v);
-					}} />
-					<EditorInspectorListField label="Mode" object={texture} property="coordinatesMode" onChange={() => this.forceUpdate()} items={[
-						{ text: "Explicit", value: Texture.EXPLICIT_MODE },
-						{ text: "Spherical", value: Texture.SPHERICAL_MODE },
-						{ text: "Planar", value: Texture.PLANAR_MODE },
-						{ text: "Cubic", value: Texture.CUBIC_MODE },
-						{ text: "Projection", value: Texture.PROJECTION_MODE },
-						{ text: "Skybox", value: Texture.SKYBOX_MODE },
-						{ text: "Inversed Cubic", value: Texture.INVCUBIC_MODE },
-						{ text: "Equirectangular", value: Texture.EQUIRECTANGULAR_MODE },
-						{ text: "Fixed Equirectangular", value: Texture.FIXED_EQUIRECTANGULAR_MODE },
-						{ text: "Equirectangular Mirrored", value: Texture.FIXED_EQUIRECTANGULAR_MIRRORED_MODE },
-					]} />
+					<EditorInspectorNumberField
+						noUndoRedo={this.props.noUndoRedo}
+						label="Index"
+						object={texture}
+						property="coordinatesIndex"
+						step={1}
+						min={0}
+						onChange={(v) => texture.coordinatesIndex = Math.round(v)}
+						onFinishChange={() => this.props.onChange?.(texture)}
+					/>
+					<EditorInspectorListField
+						noUndoRedo={this.props.noUndoRedo}
+						label="Mode"
+						object={texture}
+						property="coordinatesMode"
+						onChange={() => {
+							this.forceUpdate();
+							this.props.onChange?.(texture);
+						}}
+						items={[
+							{ text: "Explicit", value: Texture.EXPLICIT_MODE },
+							{ text: "Spherical", value: Texture.SPHERICAL_MODE },
+							{ text: "Planar", value: Texture.PLANAR_MODE },
+							{ text: "Cubic", value: Texture.CUBIC_MODE },
+							{ text: "Projection", value: Texture.PROJECTION_MODE },
+							{ text: "Skybox", value: Texture.SKYBOX_MODE },
+							{ text: "Inversed Cubic", value: Texture.INVCUBIC_MODE },
+							{ text: "Equirectangular", value: Texture.EQUIRECTANGULAR_MODE },
+							{ text: "Fixed Equirectangular", value: Texture.FIXED_EQUIRECTANGULAR_MODE },
+							{ text: "Equirectangular Mirrored", value: Texture.FIXED_EQUIRECTANGULAR_MIRRORED_MODE },
+						]}
+					/>
 				</EditorInspectorSectionField>
 
 				<EditorInspectorSectionField title="Sampling">
 					<EditorInspectorListField
+						noUndoRedo={this.props.noUndoRedo}
 						label="Mode"
 						object={o}
 						property="samplingMode"
 						onChange={(v) => {
 							this.forceUpdate();
 							texture.updateSamplingMode(v);
+							this.props.onChange?.(texture);
 						}}
 						items={[
 							{ text: "Nearest", value: Texture.NEAREST_SAMPLINGMODE },
@@ -355,17 +411,17 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 				</EditorInspectorSectionField>
 
 				<EditorInspectorSectionField title="Wrap">
-					<EditorInspectorListField label="Wrap U" object={texture} property="wrapU" items={[
+					<EditorInspectorListField noUndoRedo={this.props.noUndoRedo} label="Wrap U" object={texture} property="wrapU" onChange={() => this.props.onChange?.(texture)} items={[
 						{ text: "Wrap", value: Texture.WRAP_ADDRESSMODE },
 						{ text: "Clamp", value: Texture.CLAMP_ADDRESSMODE },
 						{ text: "Mirror", value: Texture.MIRROR_ADDRESSMODE },
 					]} />
-					<EditorInspectorListField label="Wrap V" object={texture} property="wrapV" items={[
+					<EditorInspectorListField noUndoRedo={this.props.noUndoRedo} label="Wrap V" object={texture} property="wrapV" onChange={() => this.props.onChange?.(texture)} items={[
 						{ text: "Wrap", value: Texture.WRAP_ADDRESSMODE },
 						{ text: "Clamp", value: Texture.CLAMP_ADDRESSMODE },
 						{ text: "Mirror", value: Texture.MIRROR_ADDRESSMODE },
 					]} />
-					<EditorInspectorListField label="Wrap R" object={texture} property="wrapR" items={[
+					<EditorInspectorListField noUndoRedo={this.props.noUndoRedo} label="Wrap R" object={texture} property="wrapR" onChange={() => this.props.onChange?.(texture)} items={[
 						{ text: "Wrap", value: Texture.WRAP_ADDRESSMODE },
 						{ text: "Clamp", value: Texture.CLAMP_ADDRESSMODE },
 						{ text: "Mirror", value: Texture.MIRROR_ADDRESSMODE },
@@ -389,7 +445,9 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 			URL.revokeObjectURL(this.state.previewTemporaryUrl);
 		}
 
-		this.setState({ previewTemporaryUrl: URL.createObjectURL(new Blob([buffer])) });
+		this.setState({
+			previewTemporaryUrl: URL.createObjectURL(new Blob([buffer])),
+		});
 	}
 
 	private _handleDragOver(ev: DragEvent<HTMLDivElement>): void {
@@ -420,15 +478,18 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 					new Texture(absolutePath, this.props.scene ?? (isScene(this.props.object) ? this.props.object : this.props.object.getScene())),
 				);
 
-				this.props.onChange?.(this.props.object[this.props.property]);
-
 				if (oldTexture !== newTexture) {
-					registerUndoRedo({
-						executeRedo: true,
-						undo: () => this.props.object[this.props.property] = oldTexture,
-						redo: () => this.props.object[this.props.property] = newTexture,
-						onLost: () => newTexture?.dispose(),
-					});
+					this.props.object[this.props.property] = newTexture;
+					this.props.onChange?.(newTexture);
+
+					if (!this.props.noUndoRedo) {
+						registerUndoRedo({
+							executeRedo: true,
+							undo: () => this.props.object[this.props.property] = oldTexture,
+							redo: () => this.props.object[this.props.property] = newTexture,
+							onLost: () => newTexture?.dispose(),
+						});
+					}
 
 					onTextureAddedObservable.notifyObservers(newTexture);
 				}
@@ -443,15 +504,18 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 						new ColorGradingTexture(absolutePath, this.props.scene ?? (isScene(this.props.object) ? this.props.object : this.props.object.getScene())),
 					);
 
-					this.props.onChange?.(this.props.object[this.props.property]);
-
 					if (oldTexture !== newTexture) {
-						registerUndoRedo({
-							executeRedo: true,
-							undo: () => this.props.object[this.props.property] = oldTexture,
-							redo: () => this.props.object[this.props.property] = newTexture,
-							onLost: () => newTexture?.dispose(),
-						});
+						this.props.object[this.props.property] = newTexture;
+						this.props.onChange?.(newTexture);
+
+						if (!this.props.noUndoRedo) {
+							registerUndoRedo({
+								executeRedo: true,
+								undo: () => this.props.object[this.props.property] = oldTexture,
+								redo: () => this.props.object[this.props.property] = newTexture,
+								onLost: () => newTexture?.dispose(),
+							});
+						}
 
 						onTextureAddedObservable.notifyObservers(newTexture);
 					}
@@ -467,9 +531,14 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 
 					const scene = newTexture.getScene();
 
+					this.props.object[this.props.property] = newTexture;
+					if (scene) {
+						updateIblShadowsRenderPipeline(scene, true);
+					}
+
 					this.props.onChange?.(this.props.object[this.props.property]);
 
-					if (oldTexture !== newTexture) {
+					if (oldTexture !== newTexture && !this.props.noUndoRedo) {
 						registerUndoRedo({
 							executeRedo: true,
 							undo: () => {

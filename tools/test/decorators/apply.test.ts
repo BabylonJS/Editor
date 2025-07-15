@@ -82,11 +82,26 @@ jest.mock("@babylonjs/core/Maths/math.color", () => ({
     },
 }));
 
+jest.mock("@babylonjs/core/Materials/Textures/texture", () => ({
+    Texture: class {
+        name: string;
+
+        constructor(name: string) {
+            this.name = name;
+        }
+
+        static Parse(data: any) {
+            return new this(data.name);
+        }
+    },
+}));
+
 import { Node } from "@babylonjs/core/node";
 import { Scene } from "@babylonjs/core/scene";
 import { Sound } from "@babylonjs/core/Audio/sound";
-import { Vector2, Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { Color3, Color4 } from "@babylonjs/core/Maths/math.color";
+import { Texture } from "@babylonjs/core/Materials/Textures/texture";
+import { Vector2, Vector3 } from "@babylonjs/core/Maths/math.vector";
 
 import { AdvancedDynamicTexture } from "@babylonjs/gui/2D/advancedDynamicTexture";
 
@@ -95,7 +110,7 @@ import { soundFromScene } from "../../src/decorators/sound";
 import { applyDecorators } from "../../src/decorators/apply";
 import { particleSystemFromScene } from "../../src/decorators/particle-systems";
 import { animationGroupFromScene, nodeFromDescendants, nodeFromScene } from "../../src/decorators/scene";
-import { visibleAsBoolean, visibleAsColor3, visibleAsColor4, visibleAsEntity, visibleAsNumber, visibleAsVector2, visibleAsVector3 } from "../../src/decorators/inspector";
+import { visibleAsBoolean, visibleAsColor3, visibleAsColor4, visibleAsEntity, visibleAsNumber, visibleAsTexture, visibleAsVector2, visibleAsVector3 } from "../../src/decorators/inspector";
 
 describe("decorators/apply", () => {
     class EmptyTarget { }
@@ -138,6 +153,9 @@ describe("decorators/apply", () => {
         public animationGroupEntityProperty: any = null!;
         @visibleAsEntity("particleSystem", "test")
         public particleSystemEntityProperty: any = null!;
+
+        @visibleAsTexture("test")
+        public textureProperty: Texture = null!;
 
         @guiFromAsset("path/file.gui")
         public gui: AdvancedDynamicTexture = null!;
@@ -207,6 +225,11 @@ describe("decorators/apply", () => {
                         "particleSystemEntityProperty": {
                             value: "particleSystemId",
                         },
+                        "textureProperty": {
+                            value: {
+                                name: "testTexture",
+                            },
+                        },
                     }
                 }
             ],
@@ -273,6 +296,8 @@ describe("decorators/apply", () => {
             expect(target.soundEntityProperty).toBe(soundEntityObject);
             expect(target.animationGroupEntityProperty).toBe(animationGroupObject);
             expect(target.particleSystemEntityProperty).toBe(particleSystemObject);
+
+            expect(target.textureProperty?.name).toBe("testTexture");
 
             setTimeout(() => {
                 expect(target.gui.name).toBe(mockedGuiResult.name);

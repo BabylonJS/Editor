@@ -16,6 +16,9 @@ export type VisibleInInspectorDecoratorConfiguration = {
 
 	noClamp?: boolean;
 	noColorPicker?: boolean;
+
+	acceptCubes?: boolean;
+	onlyCubes?: boolean;
 };
 
 export const scriptValues = "values";
@@ -101,6 +104,14 @@ export function computeDefaultValuesForObject(script: any, output: VisibleInInsp
 				break;
 
 			case "entity":
+				attachedScripts[value.propertyKey] = {
+					type: value.configuration.type,
+					description: value.configuration.description,
+					value: attachedScripts[value.propertyKey]?.value ?? null,
+				};
+				break;
+
+			case "texture":
 				attachedScripts[value.propertyKey] = {
 					type: value.configuration.type,
 					description: value.configuration.description,
