@@ -110,7 +110,7 @@ import { soundFromScene } from "../../src/decorators/sound";
 import { applyDecorators } from "../../src/decorators/apply";
 import { particleSystemFromScene } from "../../src/decorators/particle-systems";
 import { animationGroupFromScene, nodeFromDescendants, nodeFromScene } from "../../src/decorators/scene";
-import { visibleAsBoolean, visibleAsColor3, visibleAsColor4, visibleAsEntity, visibleAsNumber, visibleAsTexture, visibleAsVector2, visibleAsVector3 } from "../../src/decorators/inspector";
+import { visibleAsBoolean, visibleAsColor3, visibleAsColor4, visibleAsEntity, visibleAsKeyMap, visibleAsNumber, visibleAsTexture, visibleAsVector2, visibleAsVector3 } from "../../src/decorators/inspector";
 
 describe("decorators/apply", () => {
     class EmptyTarget { }
@@ -159,6 +159,9 @@ describe("decorators/apply", () => {
 
         @guiFromAsset("path/file.gui")
         public gui: AdvancedDynamicTexture = null!;
+
+        @visibleAsKeyMap("test")
+        public keymapProperty: number = 0;
     }
 
     const soundObject = {};
@@ -230,6 +233,9 @@ describe("decorators/apply", () => {
                                 name: "testTexture",
                             },
                         },
+                        "keymapProperty": {
+                            value: 42,
+                        },
                     }
                 }
             ],
@@ -298,6 +304,8 @@ describe("decorators/apply", () => {
             expect(target.particleSystemEntityProperty).toBe(particleSystemObject);
 
             expect(target.textureProperty?.name).toBe("testTexture");
+
+            expect(target.keymapProperty).toBe(42);
 
             setTimeout(() => {
                 expect(target.gui.name).toBe(mockedGuiResult.name);

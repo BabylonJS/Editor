@@ -29,6 +29,7 @@ import { configureImportedTexture } from "../../preview/import/import";
 
 import { projectConfiguration } from "../../../../project/configuration";
 
+import { EditorInspectorKeyField } from "../fields/key";
 import { EditorInspectorListField } from "../fields/list";
 import { EditorInspectorColorField } from "../fields/color";
 import { EditorInspectorSwitchField } from "../fields/switch";
@@ -365,6 +366,13 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 										}}
 										tooltip={value.configuration.description}
 									/>
+								);
+
+							case "keymap":
+								return (
+									<EditorInspectorKeyField value={props.script[scriptValues][value.propertyKey]?.value?.toString() ?? ""} label={value.label ?? value.propertyKey} onChange={(v) => {
+										props.script[scriptValues][value.propertyKey].value = v;
+									}} />
 								);
 
 							case "entity":

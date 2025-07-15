@@ -131,6 +131,7 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 			switch (params.configuration.type) {
 				case "number":
 				case "boolean":
+				case "keymap":
 					instance[propertyKey] = value;
 					break;
 
@@ -167,7 +168,9 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 					break;
 
 				case "texture":
-					instance[propertyKey] = Texture.Parse(value, scene, rootUrl);
+					if (value) {
+						instance[propertyKey] = Texture.Parse(value, scene, rootUrl);
+					}
 					break;
 			}
 		}

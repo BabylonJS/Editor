@@ -103,6 +103,14 @@ export function computeDefaultValuesForObject(script: any, output: VisibleInInsp
 				};
 				break;
 
+			case "keymap":
+				attachedScripts[value.propertyKey] = {
+					type: value.configuration.type,
+					description: value.configuration.description,
+					value: attachedScripts[value.propertyKey]?.value ?? 0,
+				};
+				break;
+
 			case "entity":
 				attachedScripts[value.propertyKey] = {
 					type: value.configuration.type,
