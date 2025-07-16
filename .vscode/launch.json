@@ -5,85 +5,53 @@
             "name": "Electron With Devtools",
             "type": "node",
             "request": "launch",
-            "protocol": "inspector",
-            "cwd": "${workspaceFolder}",
+            "cwd": "${workspaceFolder}/editor",
             "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron",
+            "sourceMaps": true,
             "windows": {
                 "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron.cmd"
             },
             "env": {
-                "DEBUG": "true",
-                "ONE_WINDOW_AT_A_TIME": "false",
+                "EDITOR_TOOLS_URL": "http://localhost:3000"
             },
             "args": [
-                "."
+                ".",
+                // "${workspaceFolder}/template/project.bjseditor"
             ],
             "outFiles": [
-                "${workspaceFolder}/build/**/*.js"
+                "${workspaceFolder}/editor/build/**/*.js"
             ],
             "outputCapture": "std",
         },
         {
-            "name": "Attach Electron Renderer",
-            "type": "chrome",
-            "request": "attach",
-            "webRoot": "${workspaceFolder}",
-            "sourceMaps": true,
-            "port": 8315,
-            "sourceMapPathOverrides": {
-                "file://*": "${workspaceFolder}/src/*",
-                "file://./*": "${workspaceFolder}/src/*",
-            },
-            "internalConsoleOptions": "openOnSessionStart"
+            "name": "Website",
+            "type": "node-terminal",
+            "cwd": "${workspaceFolder}/website",
+            "request": "launch",
+            "command": "yarn dev -p 3000"
         },
         {
-            "name": "Electron",
-            "type": "node",
+            "name": "Debug Tools Tests",
+            "type": "node-terminal",
+            "cwd": "${workspaceFolder}/tools",
             "request": "launch",
-            "cwd": "${workspaceFolder}",
-            "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron",
-            "windows": {
-                "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron.cmd"
-            },
-            "args": [
-                "."
-            ],
-            "outFiles": [
-                "${workspaceFolder}/build/**/*.js"
-            ],
+            "command": "yarn test --watch"
         },
         {
-            "name": "Run Tests",
-            "type": "node",
+            "name": "Debug Editor Tests",
+            "type": "node-terminal",
+            "cwd": "${workspaceFolder}/editor",
             "request": "launch",
-            "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
-            "stopOnEntry": false,
-            "sourceMaps": true,
-            "args": [
-                "${workspaceFolder}/build/test/index.js"
-            ],
-            "preLaunchTask": "clean-tests",
-            "presentation": {
-                "hidden": false,
-                "group": "test",
-                "order": 1
-            },
-            "console": "internalConsole",
-            "cwd": "${workspaceFolder}",
-            "runtimeExecutable": null,
-            "env": {
-                "NODE_ENV": "development"
-            },
+            "command": "yarn test --watch"
         }
     ],
     "compounds": [
         {
-            "name": "Editor",
+            "name": "Debug Editor & Website",
             "configurations": [
                 "Electron With Devtools",
-                "Attach Electron Renderer"
+                "Website"
             ],
-            "preLaunchTask": "watch-all-editor",
             "stopAll": true,
             "presentation": {
                 "group": "Editor",

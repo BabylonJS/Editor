@@ -1,0 +1,42 @@
+#ge-propertyTab .floatLine .label {
+    color: #666666 !important;
+}
+
+#ge-propertyTab .textLine .label {
+    color: #666666 !important;
+}
+
+#ge-sceneExplorer .itemContainer .title .titleText {
+    color: black !important;
+}
+
+#ge-propertyTab .checkBoxLine .label {
+    color: #666666 !important;
+}
+
+#ge-propertyTab .listLine .options select {
+    color: black !important;
+}
+
+#ge-propertyTab .range {
+    color: black !important;
+}
+
+#ge-propertyTab .sliderLine .floatLine .short input[type=number] {
+    color: black !important;
+}
+
+#ge-propertyTab .textInputLine .label,
+#ge-propertyTab .floatLine .label {
+    color: #666666 !important;
+}
+
+#ge-propertyTab input:focus,
+#ge-propertyTab select:focus {
+    border-color: black !important;
+}
+
+#ge-propertyTab input,
+#ge-propertyTab select {
+    color: black !important;
+}

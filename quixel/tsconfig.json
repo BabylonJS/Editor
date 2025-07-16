@@ -1,0 +1,26 @@
+{
+    "compilerOptions": {
+        "target": "ESNext",
+        "module": "CommonJS",
+        "moduleResolution": "node",
+        "sourceMap": true,
+        "declaration": true,
+        "outDir": "./build",
+        "declarationDir": "./declaration",
+        "strictNullChecks": true,
+        "noUnusedLocals": true,
+        "jsx": "react-jsx",
+        "noUnusedParameters": true,
+        "allowSyntheticDefaultImports": true,
+        "resolveJsonModule": true,
+        "esModuleInterop": true,
+        "downlevelIteration": true,
+        "experimentalDecorators": true,
+        "skipLibCheck": true
+    },
+    "exclude": [
+        "node_modules",
+        "build",
+        "declaration"
+    ]
+}
