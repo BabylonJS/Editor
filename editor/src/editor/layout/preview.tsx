@@ -139,6 +139,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	private _meshUnderPointer: AbstractMesh | null;
 
 	private _playIframeRef: HTMLIFrameElement | null = null;
+	private _playMessageListener: ((event: MessageEvent) => void) | null = null;
 
 	public constructor(props: IEditorPreviewProps) {
 		super(props);
@@ -203,7 +204,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 						{this.play?.state.playing &&
 							<>
 								{this.play.state.playingAddress &&
-									<iframe ref={(r) => this._playIframeRef = r} src={`${this.play.state.playingAddress}/editor_debug${this.play.getSearchParams()}`} className="w-full h-full select-none outline-none" />
+									<iframe ref={(r) => this._onGotIframeRef(r)} src={`${this.play.state.playingAddress}/editor_debug${this.play.getSearchParams()}`} className="w-full h-full select-none outline-none" />
 								}
 
 								{!this.play.state.playingAddress &&
@@ -1069,6 +1070,40 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 						});
 					}
 					break;
+			}
+		});
+	}
+
+	private _onGotIframeRef(ref: HTMLIFrameElement | null): void {
+		this._playIframeRef = ref;
+
+		if (!ref || this._playMessageListener) {
+			return;
+		}
+
+		window.addEventListener("message", this._playMessageListener = (event) => {
+			if (event.data.id === "console") {
+				const node = (
+					<div>
+						<b className="font-bold text-[#2d72d2]">[DEBUG] </b>
+						{event.data.args.join("\n")}
+					</div>
+				);
+
+				switch (event.data.method) {
+					case "log":
+						this.props.editor.layout.console.log(node);
+						break;
+					case "warn":
+						this.props.editor.layout.console.warn(node);
+						break;
+					case "error":
+						this.props.editor.layout.console.error(node);
+						break;
+					case "info":
+						this.props.editor.layout.console.log(node);
+						break;
+				}
 			}
 		});
 	}

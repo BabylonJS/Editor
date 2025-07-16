@@ -21,8 +21,37 @@ import "@babylonjs/materials";
 
 export default function DebugPage() {
 	const params = useSearchParams();
-
 	const canvasRef = useRef<HTMLCanvasElement>(null);
+
+	useEffect(() => {
+		const anyConsole = console as any;
+		const methodsList = ["log", "warn", "error", "info"];
+		const originalMethods: ((...args: any[]) => void)[] = [];
+
+		// Override all console methods
+		methodsList.forEach((method) => {
+			const original = anyConsole[method];
+
+			anyConsole[method] = function (...args: any[]) {
+				window.parent.postMessage({
+					method,
+					id: "console",
+					args: args.map((a) => a instanceof Error ? a.stack : a.toString()),
+				}, "*");
+
+				original.apply(window, args);
+			};
+
+			originalMethods.push(original);
+		});
+
+		return () => {
+			// Restore console methods
+			methodsList.forEach((method, index) => {
+				anyConsole[method] = originalMethods[index];
+			});
+		};
+	}, []);
 
 	useEffect(() => {
 		if (!canvasRef.current) {
