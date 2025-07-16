@@ -71,7 +71,7 @@
         "@xterm/addon-fit": "^0.10.0",
         "@xterm/xterm": "^5.5.0",
         "assimpjs": "0.0.10",
-        "axios": "^1.7.7",
+        "axios": "^1.8.2",
         "babylonjs": "8.15.1",
         "babylonjs-editor-tools": "link:../tools",
         "babylonjs-gui": "8.15.1",
