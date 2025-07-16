@@ -1,5 +1,5 @@
 import { platform } from "os";
-import { join } from "path/posix";
+import { basename, dirname, join } from "path/posix";
 import { BrowserWindow, app, globalShortcut, ipcMain, nativeTheme } from "electron";
 
 import { getFilePathArgument } from "./tools/process";
@@ -90,6 +90,7 @@ async function openDashboard(): Promise<void> {
 		setupDashboardMenu();
 
 		dashboardWindow = await createDashboardWindow();
+		dashboardWindow.setTitle("Dashboard");
 
 		dashboardWindow.on("focus", () => setupDashboardMenu());
 		dashboardWindow.on("closed", () => dashboardWindow = null);
@@ -122,6 +123,7 @@ async function openProject(filePath: string): Promise<void> {
 	setupEditorMenu();
 
 	const window = await createEditorWindow();
+	window.setTitle(basename(dirname(filePath)));
 
 	window.on("focus", () => setupEditorMenu());
 	window.once("closed", () => {
