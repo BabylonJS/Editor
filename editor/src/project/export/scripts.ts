@@ -27,9 +27,10 @@ export async function handleExportScripts(editor: Editor): Promise<void> {
 
 	const scriptsMap: Record<string, string> = {};
 
-	await Promise.all(sceneFolders.map(async (file) => {
-		const availableMetadata: any[] = [];
+	const availableMetadata: any[] = [];
 
+	// Check on all scenes in assets
+	await Promise.all(sceneFolders.map(async (file) => {
 		try {
 			const config = await readJSON(join(file, "config.json"));
 			if (config.metadata) {
@@ -57,30 +58,42 @@ export async function handleExportScripts(editor: Editor): Promise<void> {
 				availableMetadata.push(data.metadata);
 			}
 		}));
-
-		const promises: Promise<void>[] = [];
-		for (const metadata of availableMetadata) {
-			if (!metadata.scripts) {
-				continue;
-			}
-
-			for (const script of metadata.scripts) {
-				promises.push(new Promise<void>(async (resolve) => {
-					const path = join(projectPath, "src", script.key);
-					if (!await pathExists(path)) {
-						return resolve();
-					}
-
-					const extension = extname(script.key).toLowerCase();
-					scriptsMap[script.key] = `@/${script.key.replace(extension, "")}`;
-
-					resolve();
-				}));
-			}
-		}
-
-		await Promise.all(promises);
 	}));
+
+	// Check on all nodes in current scene
+	const entities = [
+		...editor.layout.preview.scene.meshes,
+		...editor.layout.preview.scene.lights,
+		...editor.layout.preview.scene.cameras,
+		...editor.layout.preview.scene.transformNodes,
+		...editor.layout.preview.scene.particleSystems,
+	] as { metadata?: any; }[];
+
+	entities.forEach((entity) => {
+		if (entity.metadata) {
+			availableMetadata.push(entity.metadata);
+		}
+	});
+
+	const promises: Promise<void>[] = [];
+	availableMetadata.forEach((metadata) => {
+		metadata.scripts?.forEach((script) => {
+			promises.push(new Promise<void>(async (resolve) => {
+				const path = join(projectPath, "src", script.key);
+				if (!await pathExists(path)) {
+					return resolve();
+				}
+
+				const extension = extname(script.key).toLowerCase();
+				scriptsMap[script.key] = `@/${script.key.replace(extension, "")}`;
+
+				resolve();
+			}));
+		});
+	});
+
+
+	await Promise.all(promises);
 
 	await writeFile(
 		join(projectPath, "src/scripts.ts"),
