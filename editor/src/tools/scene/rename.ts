@@ -1,5 +1,7 @@
-import { join, basename } from "path/posix";
-import { readJSON, writeJson, readdir } from "fs-extra";
+import { join, basename, dirname } from "path/posix";
+import { readJSON, writeJson, readdir, pathExists, remove } from "fs-extra";
+
+import { projectConfiguration } from "../../project/configuration";
 
 /**
  * Called on a scene has been renamed. This function will update all the references to the old scene
@@ -48,4 +50,20 @@ export async function renameScene(oldAbsolutePath: string, newAbsolutePath: stri
 			}
 		})),
 	]);
+
+	// Remove output if exists to keep clean public/scene folder.
+	if (projectConfiguration.path) {
+		const outputFolder = join(dirname(projectConfiguration.path), "public/scene");
+
+		const outputSceneFilename = join(outputFolder, `${name}.babylon`);
+		const geometryFoldername = join(outputFolder, name);
+
+		if (await pathExists(outputSceneFilename)) {
+			remove(outputSceneFilename);
+		}
+
+		if (await pathExists(geometryFoldername)) {
+			remove(geometryFoldername);
+		}
+	}
 }

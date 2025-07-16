@@ -15,7 +15,6 @@ import {
 	ISceneLoaderAsyncResult, Node, Scene, Vector2, Vector3, Viewport, WebGPUEngine, HavokPlugin, PickingInfo,
 } from "babylonjs";
 
-import { Input } from "../../ui/shadcn/ui/input";
 import { Toggle } from "../../ui/shadcn/ui/toggle";
 import { Button } from "../../ui/shadcn/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/shadcn/ui/select";
@@ -204,11 +203,15 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 						{this.play?.state.playing &&
 							<>
 								{this.play.state.playingAddress &&
-									<iframe ref={(r) => this._onGotIframeRef(r)} src={`${this.play.state.playingAddress}/editor_debug${this.play.getSearchParams()}`} className="w-full h-full select-none outline-none" />
+									<iframe
+										ref={(r) => this._onGotIframeRef(r)}
+										src={`${this.play.state.playingAddress}/editor_debug${this.play.getSearchParams()}`}
+										className="w-full h-full select-none outline-none bg-black"
+									/>
 								}
 
 								{!this.play.state.playingAddress &&
-									<div className="flex justify-center items-center w-full h-full">
+									<div className="flex justify-center items-center w-full h-full bg-black">
 										<Grid width={24} height={24} color="gray" />
 									</div>
 								}
@@ -628,7 +631,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	private _getToolbar(): ReactNode {
 		return (
 			<div className="absolute top-0 left-0 w-full h-12 z-10">
-				<div className="flex justify-between gap-4 h-full bg-background/95 w-full p-1">
+				<div className="flex justify-between items-center gap-4 h-full bg-background/95 w-full px-2 py-1">
 					{this.play?.state.playing
 						? this._getPlayToolbar()
 						: this._getEditToolbar()
@@ -653,15 +656,9 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	private _getPlayToolbar(): ReactNode {
 		return (
 			<div className="flex gap-2 items-center h-10 flex-1">
-				<Input
-					className="w-full"
-					value={this.play?.state.playingAddress}
-					onChange={(ev) => {
-						this.play?.setState({ playingAddress: ev.currentTarget.value }, () => {
-							this.forceUpdate();
-						});
-					}}
-				/>
+				<div className="w-full font-semibold">
+					{this.play?.state.playingAddress}
+				</div>
 			</div>
 		);
 	}
@@ -672,6 +669,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 				<TooltipProvider>
 					<Select
 						value={this.scene?.activeCamera?.id}
+						onOpenChange={(o) => o && this.forceUpdate()}
 						onValueChange={(v) => this._switchToCamera(v)}
 					>
 						<SelectTrigger className="w-36 border-none bg-muted/50">
