@@ -28,13 +28,13 @@ export default function DownloadPage() {
 					</Fade>
 
 					<DownloadVersionComponent
-						version="v5.0.0-alpha.11"
-						windowsx64Link="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/BabylonJS%20Editor%20Setup%205.0.0.exe"
-						macArm64Link="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/BabylonJS%20Editor-5.0.0-arm64.dmg"
-						macIntelLink="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/BabylonJS%20Editor-5.0.0.dmg"
+						version="v5.0.0"
+						windowsx64Link="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/updates/BabylonJS%20Editor%20Setup%205.0.0.exe"
+						macArm64Link="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/updates/BabylonJS%20Editor-5.0.0-arm64.dmg"
+						macIntelLink="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/updates/BabylonJS%20Editor-5.0.0.dmg"
 
-						linuxx64Link="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/BabylonJS%20Editor-4.7.0.AppImage"
-						linuxArm64Link="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/BabylonJS%20Editor-5.0.0-arm64.AppImage"
+						linuxx64Link="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/updates/BabylonJS%20Editor-5.0.0.AppImage"
+						linuxArm64Link="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/updates/BabylonJS%20Editor-5.0.0-arm64.AppImage"
 					/>
 
 					<DownloadVersionComponent

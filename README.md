@@ -15,11 +15,13 @@ It includes built-in templates, including a Next.js template, allowing you to by
 
 ## Download
 
-**v5.0.0-alpha.11**
+**v5.0.0**
 
-- Windows x64: https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/BabylonJS%20Editor%20Setup%205.0.0.exe
-- macOS Apple Chip: https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/BabylonJS%20Editor-5.0.0-arm64.dmg
-- macOS Intel Chip: https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/BabylonJS%20Editor-5.0.0.dmg
+- Windows x64: https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/updates/BabylonJS%20Editor%20Setup%205.0.0.exe
+- macOS Apple Chip: https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/updates/BabylonJS%20Editor-5.0.0-arm64.dmg
+- macOS Intel Chip: https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/updates/BabylonJS%20Editor-5.0.0.dmg
+- Linux x64: https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/updates/BabylonJS%20Editor-5.0.0.AppImage
+- Linux arm64: https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/updates/BabylonJS%20Editor-5.0.0-arm64.AppImage
 
 ## Prerequisites
 
