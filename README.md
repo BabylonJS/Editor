@@ -17,16 +17,11 @@ It includes built-in templates, including a Next.js template, allowing you to by
 
 **v5.0.0-alpha.11**
 
-* Windows x64: https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/BabylonJS%20Editor%20Setup%205.0.0.exe
-* macOS Apple Chip: https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/BabylonJS%20Editor-5.0.0-arm64.dmg
-* macOS Intel Chip: https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/BabylonJS%20Editor-5.0.0.dmg
+- Windows x64: https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/BabylonJS%20Editor%20Setup%205.0.0.exe
+- macOS Apple Chip: https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/BabylonJS%20Editor-5.0.0-arm64.dmg
+- macOS Intel Chip: https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/BabylonJS%20Editor-5.0.0.dmg
 
-## Building
-
-### Prerequisites for macOS
-
-On **macOS**, you need to install XCode in order to compile native modules used by the Editor.
-You can get XCode from the [AppStore](https://apps.apple.com/fr/app/xcode/id497799835?mt=12)
+## Prerequisites
 
 ### Prerequisites for Window
 
@@ -42,7 +37,18 @@ The following are also needed:
 - [Windows SDK](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk) - only the "Desktop C++ Apps" components are needed to be installed
 - Spectre-mitigated libraries - In order to avoid the build error "MSB8040: Spectre-mitigated libraries are required for this project", open the Visual Studio Installer, press the Modify button, navigate to the "Individual components" tab, search "Spectre", and install an option like "MSVC v143 - VS 2022 C++ x64/x86 Spectre-mitigated libs (Latest)" (the exact option to install will depend on your version of Visual Studio as well as your operating system architecture)
 
-### Installing and building
+### Prerequisites for macOS
+
+On **macOS**, you need to install XCode in order to compile native modules used by the Editor.
+You can get XCode from the [AppStore](https://apps.apple.com/fr/app/xcode/id497799835?mt=12)
+
+### Prerequisites for Linux (apt)
+
+```bash
+sudo apt install -y make python build-essential
+```
+
+## Installing and building
 
 First, install the dependencies. This repository uses yarn classic.
 

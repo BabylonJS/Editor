@@ -4,9 +4,10 @@ import { Grid } from "react-loader-spinner";
 import { TbPackageExport } from "react-icons/tb";
 
 import { Progress } from "../../ui/shadcn/ui/progress";
+import { ipcRenderer } from "electron";
 
 export interface IEditorExportProjectProgressComponentState {
-    progress: number;
+	progress: number;
 }
 
 export class EditorExportProjectProgressComponent extends Component<{}, IEditorExportProjectProgressComponentState> {
@@ -27,7 +28,7 @@ export class EditorExportProjectProgressComponent extends Component<{}, IEditorE
 
 				<div className="flex flex-col gap-2 w-full">
 					<div className="flex gap-5 items-center justify-between text-lg font-[400]">
-                        Exporting...
+						Exporting...
 						<TbPackageExport className="w-8 h-8" />
 					</div>
 					<Progress value={this.state.progress} />
@@ -36,8 +37,17 @@ export class EditorExportProjectProgressComponent extends Component<{}, IEditorE
 		);
 	}
 
+	public componentWillUnmount(): void {
+		ipcRenderer.send("editor:export-progress", 1);
+	}
+
 	public step(step: number): void {
 		this._step += step;
-		this.setState({ progress: this._step });
+
+		this.setState({
+			progress: this._step,
+		});
+
+		ipcRenderer.send("editor:export-progress", this._step / 100);
 	}
 }

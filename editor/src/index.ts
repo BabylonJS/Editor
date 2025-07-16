@@ -17,6 +17,7 @@ import "./electron/events/dialog";
 import "./electron/events/editor";
 import "./electron/events/window";
 import "./electron/assimp/assimpjs";
+import "./electron/events/export";
 
 try {
 	if (!app.isPackaged) {
