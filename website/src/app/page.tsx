@@ -230,8 +230,8 @@ export default function HomePage() {
 						</div>
 					</div>
 
-					<div className="relative flex flex-col lg:flex-row w-screen h-screen bg-black">
-						<Fade triggerOnce className="flex justify-center items-center w-full p-10 lg:p-20">
+					<div className="relative flex flex-col w-screen h-screen bg-black">
+						<Fade triggerOnce className="flex justify-center items-center w-full p-10 lg:pt-20 lg:pb-0">
 							<div className="flex flex-col gap-10">
 								<GiBookmarklet color="white" className="w-52 h-52 lg:w-96 lg:h-96 mx-auto drop-shadow-[0_1px_1px_rgba(0,0,0,1)]" />
 
