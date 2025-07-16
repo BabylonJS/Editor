@@ -89,6 +89,16 @@ export async function checkPackageManagerAvailable(packageManager: EditorProject
 		return;
 	}
 
+	if (await isPackageManagerAvailable(packageManager)) {
+		packageManagerAvailable = true;
+	}
+}
+
+/**
+ * Returns wether or not the given package manager is available on the system.
+ * @param packageManager The package manager to check for availability.
+ */
+export async function isPackageManagerAvailable(packageManager: EditorProjectPackageManager): Promise<boolean> {
 	try {
 		let command = "";
 		switch (packageManager) {
@@ -101,10 +111,8 @@ export async function checkPackageManagerAvailable(packageManager: EditorProject
 		const p = await execNodePty(command);
 		const code = await p.wait();
 
-		if (code === 0) {
-			packageManagerAvailable = true;
-		}
+		return code === 0;
 	} catch (e) {
-		// Catch silently.
+		return false;
 	}
 }
