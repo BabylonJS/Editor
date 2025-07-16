@@ -15,6 +15,10 @@ function build({ x64, arm64 } = options) {
         arm64,
         projectDir: "./editor",
         config: {
+            publish: {
+                provider: "generic",
+                url: "https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/updates/",
+            },
             mac: platform() !== "darwin" ? null : {
                 hardenedRuntime: true,
                 appId: "com.babylonjs.editor",

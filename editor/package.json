@@ -85,6 +85,7 @@
         "cmdk": "^1.0.0",
         "decompress": "^4.2.1",
         "decompress-targz": "^4.1.1",
+        "electron-updater": "^6.6.2",
         "esbuild": "0.25.5",
         "filenamify": "4.3.0",
         "flexlayout-react": "0.7.15",
