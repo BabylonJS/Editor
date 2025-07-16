@@ -64,15 +64,11 @@ await rm(join(import.meta.dirname, "editor/electron-packages"), {
 });
 
 // Create build(s)
-const archs = [
-    { type: "x64", enabled: args.x64 },
-    { type: "arm64", enabled: args.arm64 },
-];
-
-if (archs.find((a) => a.enabled)) {
-    for (const a of archs.filter((a) => a.enabled)) {
-        await build({ [a.type]: true });
-    }
+if (args.x64 || args.arm64) {
+    await build({
+        x64: args.x64,
+        arm64: args.arm64,
+    });
 } else {
     const architecture = arch();
     const x64 = architecture === "x64";
