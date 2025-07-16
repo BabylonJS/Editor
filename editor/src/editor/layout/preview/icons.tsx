@@ -12,16 +12,16 @@ import { projectVectorOnScreen } from "../../../tools/maths/projection";
 import { isCamera, isEditorCamera, isLight, isNode } from "../../../tools/guards/nodes";
 
 export interface IEditorPreviewIconsProps {
-    editor: Editor;
+	editor: Editor;
 }
 
 export interface IEditorPreviewIconsState {
-    buttons: _IButtonData[];
+	buttons: _IButtonData[];
 }
 
 interface _IButtonData {
-    position: Vector2;
-    node: Node | Sound;
+	position: Vector2;
+	node: Node | Sound;
 }
 
 export class EditorPreviewIcons extends Component<IEditorPreviewIconsProps, IEditorPreviewIconsState> {
@@ -45,6 +45,13 @@ export class EditorPreviewIcons extends Component<IEditorPreviewIconsProps, IEdi
 						style={{
 							top: `${button.position.y}px`,
 							left: `${button.position.x}px`,
+						}}
+						onContextMenu={() => {
+							if (isNode(button.node)) {
+								this.props.editor.layout.preview.setState({
+									rightClickedObject: button.node,
+								});
+							}
 						}}
 						onClick={() => {
 							// if (isCamera(button.node)) {
@@ -72,15 +79,15 @@ export class EditorPreviewIcons extends Component<IEditorPreviewIconsProps, IEdi
 	}
 
 	/**
-     * Gets wether or not icons are enabled.
-     */
+	 * Gets wether or not icons are enabled.
+	 */
 	public get enabled(): boolean {
 		return this._renderFunction !== null;
 	}
 
 	/**
-     * Starts rendering icons on the preview scene.
-     */
+	 * Starts rendering icons on the preview scene.
+	 */
 	public start(): void {
 		const scene = this.props.editor.layout.preview.scene;
 
@@ -117,7 +124,7 @@ export class EditorPreviewIcons extends Component<IEditorPreviewIconsProps, IEdi
 
 				if (
 					!this._isInFrustrum(camera.computeWorldMatrix().getTranslation(), scene) ||
-                    this.props.editor.layout.preview.gizmo.attachedNode === camera
+					this.props.editor.layout.preview.gizmo.attachedNode === camera
 				) {
 					return;
 				}
@@ -154,13 +161,13 @@ export class EditorPreviewIcons extends Component<IEditorPreviewIconsProps, IEdi
 			this._tempMesh.setAbsolutePosition(absolutePosition);
 		}
 
-        this._tempMesh!.computeWorldMatrix(true);
-        return scene.activeCamera!.isInFrustum(this._tempMesh!);
+		this._tempMesh!.computeWorldMatrix(true);
+		return scene.activeCamera!.isInFrustum(this._tempMesh!);
 	}
 
 	/**
-     * Stops rendering icons on the preview scene.
-     */
+	 * Stops rendering icons on the preview scene.
+	 */
 	public stop(): void {
 		if (this._renderFunction) {
 			this.props.editor.layout.preview.engine.stopRenderLoop(this._renderFunction);

@@ -28,7 +28,7 @@ import { onTextureAddedObservable } from "../../tools/observables";
 import { waitNextAnimationFrame, waitUntil } from "../../tools/tools";
 import { checkProjectCachedCompressedTextures } from "../../tools/ktx/check";
 import { createSceneLink, getRootSceneLink } from "../../tools/scene/scene-link";
-import { isAbstractMesh, isCollisionInstancedMesh, isCollisionMesh, isInstancedMesh, isMesh, isTransformNode } from "../../tools/guards/nodes";
+import { isAbstractMesh, isCamera, isCollisionInstancedMesh, isCollisionMesh, isInstancedMesh, isMesh, isTransformNode } from "../../tools/guards/nodes";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../../ui/shadcn/ui/dropdown-menu";
 
 import { EditorCamera } from "../nodes/camera";
@@ -220,7 +220,13 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 					</EditorGraphContextMenu>
 				</div>
 
-				<EditorPreviewIcons ref={(r) => this._onGotIconsRef(r!)} editor={this.props.editor} />
+				<EditorGraphContextMenu
+					editor={this.props.editor}
+					object={this.state.rightClickedObject}
+					onOpenChange={(o) => !o && this._resetPointerContextInfo()}
+				>
+					<EditorPreviewIcons ref={(r) => this._onGotIconsRef(r!)} editor={this.props.editor} />
+				</EditorGraphContextMenu>
 
 				<div
 					style={{
@@ -230,7 +236,9 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 					className="absolute left-0 flex gap-2 items-center px-2 h-10 bg-black/50 transition-all duration-300 pointer-events-none"
 				>
 					<SpinnerUIComponent width="16" />
-					<div>{this.state.informationMessage}</div>
+					<div>
+						{this.state.informationMessage}
+					</div>
 				</div>
 			</div>
 		);
@@ -312,7 +320,10 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 			return;
 		}
 
-		const position = selectedNode.getAbsolutePosition?.();
+		const position = isCamera(selectedNode)
+			? selectedNode.globalPosition
+			: selectedNode.getAbsolutePosition?.();
+
 		const camera = this.scene.activeCamera;
 		if (position && camera) {
 			Tween.create(camera, 0.5, {
@@ -564,7 +575,10 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
 	private _resetPointerContextInfo(): void {
 		if (this.state.rightClickedObject) {
-			this.setState({ rightClickedObject: null });
+			this.setState({
+				rightClickedObject: null
+			});
+
 			this.scene.activeCamera?.inputs.attachElement();
 		}
 	}
