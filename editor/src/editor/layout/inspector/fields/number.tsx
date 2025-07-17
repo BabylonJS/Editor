@@ -52,9 +52,6 @@ export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldPro
 	const [value, setValue] = useState<string>(startValue);
 	const [oldValue, setOldValue] = useState<string>(startValue);
 
-	const hasMinMax = props.min !== undefined && props.max !== undefined;
-	const ratio = hasMinMax ? (Scalar.InverseLerp(props.min!, props.max!, parseFloat(value)) * 100).toFixed(0) : 0;
-
 	useEventListener("keydown", (ev) => {
 		if (ev.key === "Shift") {
 			setShiftDown(true);
@@ -66,6 +63,23 @@ export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldPro
 			setShiftDown(false);
 		}
 	});
+
+	function getRatio() {
+		let finalValue = parseFloat(value);
+		if (isNaN(finalValue)) {
+			finalValue = 0;
+		}
+
+		if (props.asDegrees) {
+			finalValue = Tools.ToRadians(finalValue);
+		}
+
+		const ratio = Scalar.InverseLerp(props.min!, props.max!, finalValue) * 100;
+		return ratio.toFixed(0);
+	}
+
+	const hasMinMax = props.min !== undefined && props.max !== undefined;
+	const ratio = hasMinMax ? getRatio() : 0;
 
 	return (
 		<div
@@ -114,6 +128,10 @@ export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldPro
 					}
 
 					if (!isNaN(float)) {
+						if (props.asDegrees) {
+							float = Tools.ToRadians(float);
+						}
+
 						if (props.min !== undefined && float < props.min) {
 							float = props.min;
 							setValue(float.toFixed(digitCount));
@@ -122,10 +140,6 @@ export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldPro
 						if (props.max !== undefined && float > props.max) {
 							float = props.max;
 							setValue(float.toFixed(digitCount));
-						}
-
-						if (props.asDegrees) {
-							float = Tools.ToRadians(float);
 						}
 
 						setInspectorEffectivePropertyValue(props.object, props.property, float);
@@ -176,11 +190,16 @@ export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldPro
 						v = 0;
 					}
 
-					if (props.min !== undefined && v < props.min) {
+					let finalValue = v;
+					if (props.asDegrees) {
+						finalValue = Tools.ToRadians(finalValue);
+					}
+
+					if (props.min !== undefined && finalValue < props.min) {
 						v = props.min;
 					}
 
-					if (props.max !== undefined && v > props.max) {
+					if (props.max !== undefined && finalValue > props.max) {
 						v = props.max;
 					}
 
@@ -194,20 +213,20 @@ export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldPro
 					document.body.addEventListener("mousemove", mouseMoveListener = (ev) => {
 						v += ev.movementX * step * (shiftDown ? 10 : 1);
 
-						if (props.min !== undefined && v < props.min) {
-							v = props.min;
-						}
-
-						if (props.max !== undefined && v > props.max) {
-							v = props.max;
-						}
-
-						setValue(v.toFixed(digitCount));
-
 						let finalValue = v;
 						if (props.asDegrees) {
 							finalValue = Tools.ToRadians(finalValue);
 						}
+
+						if (props.min !== undefined && finalValue < props.min) {
+							v = props.min;
+						}
+
+						if (props.max !== undefined && finalValue > props.max) {
+							v = props.max;
+						}
+
+						setValue(v.toFixed(digitCount));
 
 						setInspectorEffectivePropertyValue(props.object, props.property, finalValue);
 						props.onChange?.(finalValue);
