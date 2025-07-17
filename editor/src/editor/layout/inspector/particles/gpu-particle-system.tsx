@@ -147,8 +147,8 @@ export class EditorGPUParticleSystemInspector extends Component<IEditorInspector
 							Angular Speed
 						</div>
 						<div className="flex items-center">
-							<EditorInspectorNumberField grayLabel object={this.props.object} property="minAngularSpeed" label="Min" min={0} />
-							<EditorInspectorNumberField grayLabel object={this.props.object} property="maxAngularSpeed" label="Max" min={0} />
+							<EditorInspectorNumberField grayLabel asDegrees object={this.props.object} property="minAngularSpeed" label="Min" step={0.1} />
+							<EditorInspectorNumberField grayLabel asDegrees object={this.props.object} property="maxAngularSpeed" label="Max" step={0.1} />
 						</div>
 					</EditorInspectorBlockField>
 

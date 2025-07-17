@@ -8,11 +8,11 @@ import { EditorInspectorNumberField } from "../fields/number";
 import { EditorInspectorSectionField } from "../fields/section";
 
 export interface IMeshDecalInspectorProps {
-    object: Mesh;
+	object: Mesh;
 }
 
 export interface IMeshDecalInspectorState {
-    meshExists: boolean;
+	meshExists: boolean;
 }
 
 export class MeshDecalInspector extends Component<IMeshDecalInspectorProps, IMeshDecalInspectorState> {
@@ -38,16 +38,16 @@ export class MeshDecalInspector extends Component<IMeshDecalInspectorProps, IMes
 				<EditorInspectorNumberField object={proxy} property="sizeX" step={1} label="Width" onChange={() => this._handleUpdateCurrentDecalMesh()} />
 				<EditorInspectorNumberField object={proxy} property="sizeY" step={1} label="Height" onChange={() => this._handleUpdateCurrentDecalMesh()} />
 
-				<EditorInspectorNumberField object={proxy} property="angle" asDegrees step={0.1} label="Angle" onChange={() => this._handleUpdateCurrentDecalMesh()} />
+				<EditorInspectorNumberField asDegrees object={proxy} property="angle" step={0.1} label="Angle" onChange={() => this._handleUpdateCurrentDecalMesh()} />
 
 				{!this.state.meshExists &&
-                    <div className="flex justify-center items-center gap-2">
-                    	<IoIosWarning size="24px" />
+					<div className="flex justify-center items-center gap-2">
+						<IoIosWarning size="24px" />
 
-                    	<div className="text-yellow-500">
-                            Source mesh not found.
-                    	</div>
-                    </div>
+						<div className="text-yellow-500">
+							Source mesh not found.
+						</div>
+					</div>
 				}
 			</EditorInspectorSectionField>
 		);

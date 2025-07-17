@@ -43,7 +43,7 @@ export class EditorFreeCameraInspector extends Component<IEditorInspectorImpleme
 
 				<EditorInspectorSectionField title="Transforms">
 					<EditorInspectorVectorField label={<div className="w-14">Position</div>} object={this.props.object} property="position" />
-					<EditorInspectorVectorField label={<div className="w-14">Rotation</div>} object={this.props.object} property="rotation" />
+					<EditorInspectorVectorField asDegrees label={<div className="w-14">Rotation</div>} object={this.props.object} property="rotation" step={0.1} />
 				</EditorInspectorSectionField>
 
 				<EditorInspectorSectionField title="Fov">
