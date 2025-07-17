@@ -62,6 +62,9 @@ export class NodePtyInstance {
      * @param data The data to write.
      */
 	public write(data: string): void {
+		if (this._exited) {
+			return;
+		}
 		ipcRenderer.send("editor:node-pty-write", this.id, data);
 	}
 
@@ -69,6 +72,9 @@ export class NodePtyInstance {
      * Kills the pty process.
      */
 	public kill(): void {
+		if (this._exited) {
+			return;
+		}
 		ipcRenderer.send("editor:kill-node-pty", this.id);
 	}
 
@@ -89,6 +95,9 @@ export class NodePtyInstance {
      * Resizes the node-pty process in case it is used using xterm.
      */
 	public resize(cols: number, rows: number): void {
+		if (this._exited) {
+			return;
+		}
 		ipcRenderer.send("editor:resize-node-pty", this.id, cols, rows);
 	}
 }
