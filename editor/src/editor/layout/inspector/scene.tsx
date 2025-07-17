@@ -111,7 +111,7 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 				{this._getSSRPipelineComponent()}
 				{this._getVLSComponent()}
 
-				{this.props.editor.state.enableExperimentalFeatures && this._getIblShadowsRenderingPipelineComponent()}
+				{/* {this.props.editor.state.enableExperimentalFeatures && this._getIblShadowsRenderingPipelineComponent()} */}
 
 				{this._getAnimationGroupsComponent()}
 			</>
@@ -684,6 +684,7 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 		}
 	}
 
+	// @ts-ignore
 	private _getIblShadowsRenderingPipelineComponent(): ReactNode {
 		const iblShadowsRenderPipeline = getIblShadowsRenderingPipeline();
 
