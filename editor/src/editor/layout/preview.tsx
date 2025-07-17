@@ -8,11 +8,12 @@ import { Grid } from "react-loader-spinner";
 
 import { FaCheck } from "react-icons/fa6";
 import { GiWireframeGlobe } from "react-icons/gi";
+import { AiOutlineClose } from "react-icons/ai";
 import { IoIosOptions, IoIosStats } from "react-icons/io";
 
 import {
 	AbstractEngine, AbstractMesh, Animation, Camera, Color3, CubicEase, EasingFunction, Engine, GizmoCoordinatesMode,
-	ISceneLoaderAsyncResult, Node, Scene, Vector2, Vector3, Viewport, WebGPUEngine, HavokPlugin, PickingInfo,
+	ISceneLoaderAsyncResult, Node, Scene, Vector2, Vector3, EngineView, WebGPUEngine, HavokPlugin, PickingInfo,
 } from "babylonjs";
 
 import { Toggle } from "../../ui/shadcn/ui/toggle";
@@ -140,6 +141,14 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	private _playIframeRef: HTMLIFrameElement | null = null;
 	private _playMessageListener: ((event: MessageEvent) => void) | null = null;
 
+	private _workingCanvas: HTMLCanvasElement | null = null;
+	private _mainCanvas: HTMLCanvasElement | null = null;
+	private _previewCanvas: HTMLCanvasElement | null = null;
+
+	private _previewCamera: Camera | null = null;
+
+	private _previewView: EngineView | null = null;
+
 	public constructor(props: IEditorPreviewProps) {
 		super(props);
 
@@ -173,7 +182,22 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 			<div className="relative w-full h-full text-foreground">
 				<div className="flex flex-col w-full h-full">
 					{this._getToolbar()}
-
+					{this._previewCamera && (
+						<div
+							className="absolute bottom-0 right-0 w-1/4 h-1/4 flex flex-col shadow-lg rounded bg-background/80 border border-border overflow-hidden m-2"
+						>
+							<div className="absolute top-0 left-0 w-full bg-black/70 text-white text-xs px-2 py-1  border-b border-border flex justify-between items-center">
+								{this._previewCamera.name ?? "Preview Camera"}
+								<Button variant="ghost" className="px-1 py-1 w-5 h-5" onClick={() => this.setCameraPreviewActive(null)}>
+									<AiOutlineClose  />
+								</Button>
+							</div>
+							<canvas
+								ref={(r) => this._onGotPreviewCanvasRef(r!)}
+								className="w-full h-full bg-black"
+							/>
+						</div>
+					)}
 					<EditorGraphContextMenu
 						editor={this.props.editor}
 						object={this.state.rightClickedObject}
@@ -265,15 +289,15 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	 * Resets the preview component by re-creating the engine and an empty scene.
 	 */
 	public async reset(): Promise<void> {
-		const canvas = this.engine?.getRenderingCanvas();
-		if (!canvas) {
+		if (!this._mainCanvas) {
 			return;
 		}
 
 		this.icons?.stop();
-
 		this.scene?.dispose();
 		this.engine?.dispose();
+
+		this._unregisterAllCanvases();
 
 		disposeSSRRenderingPipeline();
 		disposeMotionBlurPostProcess();
@@ -283,7 +307,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		this.scene = null!;
 		this.engine = null!;
 
-		return this._onGotCanvasRef(canvas);
+		return this._onGotCanvasRef(this._mainCanvas);
 	}
 
 	/**
@@ -340,20 +364,23 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	 * @param camera the camera to activate the preview
 	 */
 	public setCameraPreviewActive(camera: Camera | null): void {
-		if (!camera) {
-			this.scene.activeCameras?.forEach((camera) => {
-				camera.viewport = new Viewport(0, 0, 1, 1);
-			});
-			this.scene.activeCameras = null;
+		if(this._previewCamera === camera) {return;}
+
+		this._previewCamera = camera;
+
+		if(!this._previewCanvas) {return;}
+
+
+		if(this._previewCamera) {
+			if(!this._previewView) {
+				this._previewView = this.engine?.registerView(this._previewCanvas, this._previewCamera);
+			}
+			this._previewView.camera = this._previewCamera;
 		} else {
-			this.scene.activeCameras = [this.camera, camera];
-
-			camera.viewport = new Viewport(0, 0, 0.5, 0.5);
-			this.camera.viewport = new Viewport(0, 0, 1, 1);
+			this.engine?.unRegisterView(this._previewCanvas);
+			this._previewView = null;
 		}
-
-		this.scene.activeCamera = this.camera;
-		this.scene.cameraToUseForPointers = this.camera;
+		this.forceUpdate();
 	}
 
 	private _onGotIconsRef(ref: EditorPreviewIcons): void {
@@ -372,6 +399,9 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 			return;
 		}
 
+		this._mainCanvas ??= canvas;
+		this._workingCanvas ??= document.createElement("canvas");
+
 		await waitUntil(() => this.props.editor.path);
 		await initializeHavok(this.props.editor.path!);
 
@@ -382,9 +412,9 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		// const webGpuSupported = await WebGPUEngine.IsSupportedAsync;
 
 		if (webGpuSupported) {
-			this.engine = await this._createWebgpuEngine(canvas);
+			this.engine = await this._createWebgpuEngine(this._workingCanvas);
 		} else {
-			this.engine = new Engine(canvas, true, {
+			this.engine = new Engine(this._workingCanvas, true, {
 				antialias: true,
 				audioEngine: true,
 				adaptToDeviceRatio: true,
@@ -398,6 +428,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		}
 
 		this.engine.disableContextMenu = false;
+		this.engine.inputElement = this._mainCanvas;
 
 		this.scene = new Scene(this.engine);
 		this.scene.autoClear = true;
@@ -407,11 +438,13 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		}
 
 		this.camera = new EditorCamera("camera", Vector3.Zero(), this.scene);
-		this.camera.attachControl(true);
+		this.camera.attachControl(this.camera, true);
 
 		this.gizmo = new EditorPreviewGizmo(this.scene);
 
 		this.engine.hideLoadingUI();
+
+		this.engine.registerView(this._mainCanvas);
 
 		this.engine.runRenderLoop(() => {
 			if (this._renderScene && !this.play.state.playing) {
@@ -438,6 +471,18 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
 		this.icons?.start();
 		this.forceUpdate();
+	}
+
+	private _onGotPreviewCanvasRef(ref: HTMLCanvasElement): void {
+		this._previewCanvas = ref;
+		if(!this._previewCanvas) {
+			this.engine?.unRegisterView(this._previewCanvas);
+			this._previewView = null;
+			return;
+		}
+		if(this._previewCamera && !this._previewView) {
+			this._previewView = this.engine?.registerView(this._previewCanvas, this._previewCamera);
+		}
 	}
 
 	private async _createWebgpuEngine(canvas: HTMLCanvasElement): Promise<WebGPUEngine> {
@@ -542,8 +587,6 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 				mesh = sceneLink;
 			}
 
-			// this.setCameraPreviewActive(null);
-
 			this.gizmo.setAttachedNode(mesh);
 			this.props.editor.layout.graph.setSelectedNode(mesh);
 			this.props.editor.layout.inspector.setEditedObject(mesh);
@@ -554,11 +597,11 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	private _getPickingInfo(x: number, y: number): PickingInfo {
 		const decalPick = this.scene.pick(x, y, (m) => {
 			return m.metadata?.decal && m.isVisible && m.isEnabled();
-		}, false);
+		}, false, this.camera);
 
 		const meshPick = this.scene.pick(x, y, (m) => {
 			return !m._masterMesh && !isCollisionMesh(m) && !isCollisionInstancedMesh(m) && m.isVisible && m.isEnabled();
-		}, false);
+		}, false, this.camera);
 
 		let pickingInfo = meshPick;
 		if (decalPick?.pickedPoint && meshPick?.pickedPoint) {
@@ -1118,5 +1161,22 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 				}
 			}
 		});
+	}
+
+	private _unregisterAllCanvases(): void {
+		if (this._mainCanvas) {
+			this.engine?.unRegisterView(this._mainCanvas);
+		}
+
+		if (this._workingCanvas) {
+			this.engine?.unRegisterView(this._workingCanvas);
+		}
+
+		if (this._previewCanvas) {
+			this.engine?.unRegisterView(this._previewCanvas);
+			this._previewView = null;
+			this._previewCamera = null;
+			this._previewCanvas = null;
+		}
 	}
 }
