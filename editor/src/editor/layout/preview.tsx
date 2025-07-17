@@ -236,6 +236,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
 				{this._previewCamera &&
 					<EditorPreviewCamera
+						hidden={this.play?.state.playing}
 						key={this._previewCamera.id}
 						editor={this.props.editor}
 						camera={this._previewCamera}
@@ -417,7 +418,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		}
 
 		this.camera = new EditorCamera("camera", Vector3.Zero(), this.scene);
-		this.camera.attachControl(this.camera, true);
+		this.camera.attachControl(true);
 
 		this.gizmo = new EditorPreviewGizmo(this.scene);
 
