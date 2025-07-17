@@ -1108,7 +1108,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 			case ".jsx":
 			case ".fx":
 			case ".json":
-				return execNodePty(`code ${item.props.absolutePath}`);
+				return execNodePty(`code "${item.props.absolutePath}"`);
 		}
 	}
 
