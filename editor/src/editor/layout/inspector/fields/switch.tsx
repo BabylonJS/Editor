@@ -38,8 +38,9 @@ export function EditorInspectorSwitchField(props: IEditorInspectorSwitchFieldPro
 
 			<div className="flex justify-end w-14 my-auto">
 				<Switch
-					checked={value}
 					className="mt-2"
+					checked={value}
+					onChange={() => { }}
 					onClick={(ev) => ev.stopPropagation()}
 				/>
 			</div>
