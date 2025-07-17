@@ -372,9 +372,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
 
 		if(this._previewCamera) {
-			if(!this._previewView) {
-				this._previewView = this.engine?.registerView(this._previewCanvas, this._previewCamera);
-			}
+			this._previewView ??= this.engine?.registerView(this._previewCanvas, this._previewCamera);
 			this._previewView.camera = this._previewCamera;
 		} else {
 			this.engine?.unRegisterView(this._previewCanvas);
