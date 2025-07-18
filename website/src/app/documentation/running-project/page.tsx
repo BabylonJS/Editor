@@ -44,8 +44,7 @@ export default function DocumentationRunningProjectPage() {
 							<IoIosWarning size="32px" />
 
 							<div className="italic">
-								It is highly recommanded to have a basic understanding
-								of <b><Link target="_blank" href="https://react.dev/" className="underline underline-offset-4">React</Link></b> and <b><Link target="_blank" href="https://nextjs.org" className="underline underline-offset-4">Next.JS</Link></b> before starting.
+								Only the current scene being edited in the editor will be executed and all the scripts that are attached to the objects will be executed.
 							</div>
 						</div>
 
@@ -106,7 +105,7 @@ export default function DocumentationRunningProjectPage() {
 							</video>
 						</div>
 
-						<NextChapterComponent href="/documentation/adding-scripts" title="Adding scripts" />
+						<NextChapterComponent href="/documentation/customizing-scripts" title="Customizing scripts" />
 					</div>
 				</Fade>
 			</div>

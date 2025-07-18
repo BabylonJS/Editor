@@ -10,12 +10,6 @@ import { CodeBlock } from "../code";
 
 import { tsClassDecoratorsExample } from "./from-scene";
 import { tsClassBasedExample, tsFunctionBasedExample } from "./examples";
-import {
-	visibleAsBooleanDecoratorsExample, visibleAsColor3DecoratorsExample,
-	visibleAsColor4DecoratorsExample, visibleAsEntityDecoratorsExample,
-	visibleAsNumberDecoratorsExample, visibleAsVector2DecoratorsExample,
-	visibleAsVector3DecoratorsExample,
-} from "./visible-as";
 
 export default function DocumentationAddingScriptsPage() {
 	return (
@@ -144,63 +138,7 @@ export default function DocumentationAddingScriptsPage() {
 
 						<CodeBlock code={tsClassDecoratorsExample} />
 
-						<div className="text-xl md:text-2xl lg:text-3xl my-3">
-							Using decorators to customize the script
-						</div>
-
-						<div>
-							A same script can be attached to multiple objects in the scene. Each object may have its own configuration for the script so they can behave differently.
-							To do so, properties like booleans, numbers, vectors, colors etc. can be decorated so they become customizable in the editor per script and per object.
-						</div>
-
-						<div>
-							Each decorator is composed of at least a label and an optional description. This label is used to be displayed in the editor, where the description is used as a tooltip
-							to help the user to understand what's the purpose of the property.
-						</div>
-
-						<div className="md:text-lg lg:text-xl my-3">
-							@visibleAsBoolean
-						</div>
-
-						<CodeBlock code={visibleAsBooleanDecoratorsExample} />
-
-						<div className="md:text-lg lg:text-xl my-3">
-							@visibleAsNumber
-						</div>
-
-						<CodeBlock code={visibleAsNumberDecoratorsExample} />
-
-						<div className="md:text-lg lg:text-xl my-3">
-							@visibleAsVector2
-						</div>
-
-						<CodeBlock code={visibleAsVector2DecoratorsExample} />
-
-						<div className="md:text-lg lg:text-xl my-3">
-							@visibleAsVector3
-						</div>
-
-						<CodeBlock code={visibleAsVector3DecoratorsExample} />
-
-						<div className="md:text-lg lg:text-xl my-3">
-							@visibleAsColor3
-						</div>
-
-						<CodeBlock code={visibleAsColor3DecoratorsExample} />
-
-						<div className="md:text-lg lg:text-xl my-3">
-							@visibleAsColor4
-						</div>
-
-						<CodeBlock code={visibleAsColor4DecoratorsExample} />
-
-						<div className="md:text-lg lg:text-xl my-3">
-							@visibleAsEntity
-						</div>
-
-						<CodeBlock code={visibleAsEntityDecoratorsExample} />
-
-						<NextChapterComponent href="/documentation/advanced/compressing-textures" title="Compressing textures" />
+						<NextChapterComponent href="/documentation/running-project" title="Running project" />
 					</div>
 				</Fade>
 			</div>

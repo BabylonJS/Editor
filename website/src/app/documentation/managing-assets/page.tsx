@@ -165,7 +165,7 @@ export default function DocumentationManagingAssetsPage() {
 							</video>
 						</div>
 
-						<NextChapterComponent href="/documentation/running-project" title="Running project" />
+						<NextChapterComponent href="/documentation/adding-scripts" title="Adding scripts" />
 					</div>
 				</Fade>
 			</div>
