@@ -9,6 +9,8 @@ import Builder from "electron-builder";
 dotEnv.config();
 const args = yargs(process.argv.slice(2));
 
+const architecture = arch();
+
 function build({ x64, arm64 } = options) {
     return Builder.build({
         x64,
@@ -17,7 +19,7 @@ function build({ x64, arm64 } = options) {
         config: {
             publish: {
                 provider: "generic",
-                url: "https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/updates/",
+                url: `https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/updates/${platform() === "darwin" && architecture === "x64" ? "x64/" : ""}`,
             },
             mac: platform() !== "darwin" ? null : {
                 hardenedRuntime: true,
@@ -70,7 +72,6 @@ if (args.x64 || args.arm64) {
         arm64: args.arm64,
     });
 } else {
-    const architecture = arch();
     const x64 = architecture === "x64";
     const arm64 = architecture === "arm64";
 

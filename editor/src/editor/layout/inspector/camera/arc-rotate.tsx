@@ -39,8 +39,8 @@ export class EditorArcRotateCameraInspector extends Component<IEditorInspectorIm
 
 				<EditorInspectorSectionField title="Transforms">
 					<EditorInspectorVectorField label={<div className="w-14">Target</div>} object={this.props.object} property="target" />
-					<EditorInspectorNumberField object={this.props.object} property="alpha" label="Alpha" />
-					<EditorInspectorNumberField object={this.props.object} property="beta" label="Beta" />
+					<EditorInspectorNumberField asDegrees object={this.props.object} property="alpha" label="Alpha" step={0.1} />
+					<EditorInspectorNumberField asDegrees object={this.props.object} property="beta" label="Beta" step={0.1} />
 					<EditorInspectorNumberField object={this.props.object} property="radius" label="Radius" min={0} />
 				</EditorInspectorSectionField>
 

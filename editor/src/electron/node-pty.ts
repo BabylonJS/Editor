@@ -18,7 +18,12 @@ const spawnsMap = new Map<string, IStoredNodePty>();
 export function closeAllNodePtyForWebContentsId(id: number) {
 	for (const [key, value] of spawnsMap) {
 		if (value.webContentsId === id) {
-			value.pty.kill();
+			try {
+				value.pty.kill();
+			} catch (error) {
+				// Process might already be killed, ignore the error
+				console.log('Process already killed:', error.message);
+			}
 			spawnsMap.delete(key);
 		}
 	}
@@ -46,13 +51,16 @@ ipcMain.on("editor:create-node-pty", (ev, command, id, options) => {
 	});
 
 	p.onData((data) => {
-		ev.sender.send(`editor:node-pty-data:${id}`, data);
+		if (!ev.sender.isDestroyed()) {
+			ev.sender.send(`editor:node-pty-data:${id}`, data);
+		}
 	});
 
 	p.onExit((event) => {
 		spawnsMap.delete(id);
-		p.kill();
-		ev.sender.send(`editor:node-pty-exit:${id}`, event.exitCode);
+		if (!ev.sender.isDestroyed()) {
+			ev.sender.send(`editor:node-pty-exit:${id}`, event.exitCode);
+		}
 	});
 
 	spawnsMap.set(id, {
@@ -82,7 +90,12 @@ ipcMain.on("editor:node-pty-write", (_, id, data) => {
 ipcMain.on("editor:kill-node-pty", (_, id) => {
 	const p = spawnsMap.get(id);
 	if (p) {
-		p.pty.kill();
+		try {
+			p.pty.kill();
+		} catch (error) {
+			// Process might already be killed, ignore the error
+			console.log('Process already killed:', error.message);
+		}
 		spawnsMap.delete(id);
 	}
 });

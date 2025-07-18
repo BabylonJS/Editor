@@ -22,10 +22,10 @@ import { EditorLightShadowsInspector } from "./shadows";
 
 export class EditorSpotLightInspector extends Component<IEditorInspectorImplementationProps<SpotLight>> {
 	/**
-     * Returns whether or not the given object is supported by this inspector.
-     * @param object defines the object to check.
-     * @returns true if the object is supported by this inspector.
-     */
+	 * Returns whether or not the given object is supported by this inspector.
+	 * @param object defines the object to check.
+	 * @returns true if the object is supported by this inspector.
+	 */
 	public static IsSupported(object: unknown): boolean {
 		return isSpotLight(object);
 	}
@@ -36,7 +36,7 @@ export class EditorSpotLightInspector extends Component<IEditorInspectorImplemen
 				<EditorInspectorSectionField title="Common">
 					<div className="flex justify-between items-center px-2 py-2">
 						<div className="w-1/2">
-                            Type
+							Type
 						</div>
 
 						<div className="text-white/50 w-full">
@@ -71,7 +71,7 @@ export class EditorSpotLightInspector extends Component<IEditorInspectorImplemen
 					<Divider />
 
 					<EditorInspectorNumberField label="Intensity" object={this.props.object} property="intensity" />
-					<EditorInspectorNumberField label="Angle" object={this.props.object} property="angle" min={0} max={Math.PI * 2} />
+					<EditorInspectorNumberField asDegrees label="Angle" object={this.props.object} property="angle" min={0} max={Math.PI} step={0.1} />
 					<EditorInspectorNumberField label="Exponent" object={this.props.object} property="exponent" />
 				</EditorInspectorSectionField>
 

@@ -7,7 +7,7 @@ import { getInspectorPropertyValue, setInspectorEffectivePropertyValue } from ".
 import { IEditorInspectorFieldProps } from "./field";
 
 export interface IEditorInspectorSwitchFieldProps extends IEditorInspectorFieldProps {
-    onChange?: (value: boolean) => void;
+	onChange?: (value: boolean) => void;
 }
 
 export function EditorInspectorSwitchField(props: IEditorInspectorSwitchFieldProps) {
@@ -38,23 +38,10 @@ export function EditorInspectorSwitchField(props: IEditorInspectorSwitchFieldPro
 
 			<div className="flex justify-end w-14 my-auto">
 				<Switch
-					checked={value}
 					className="mt-2"
-					onChange={(ev) => {
-						setValue(ev.currentTarget.checked);
-						setInspectorEffectivePropertyValue(props.object, props.property, ev.currentTarget.checked);
-						props.onChange?.(ev.currentTarget.checked);
-
-						if (!props.noUndoRedo) {
-							registerSimpleUndoRedo({
-								object: props.object,
-								property: props.property,
-
-								oldValue: !ev.currentTarget.checked,
-								newValue: ev.currentTarget.checked,
-							});
-						}
-					}}
+					checked={value}
+					onChange={() => { }}
+					onClick={(ev) => ev.stopPropagation()}
 				/>
 			</div>
 		</div>

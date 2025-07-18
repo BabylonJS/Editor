@@ -1,6 +1,6 @@
 {
     "name": "babylonjs-editor",
-    "version": "5.0.1",
+    "version": "5.0.2",
     "description": "Babylon.js Editor is a Web Application helping artists to work with Babylon.js",
     "productName": "Babylon.js Editor",
     "main": "build/src/index.js",
@@ -105,7 +105,7 @@
         "react-loader-spinner": "6.1.6",
         "react-resizable-panels": "^2.1.2",
         "react-selectable": "^2.1.1",
-        "sharp": "0.32.6",
+        "sharp": "0.34.3",
         "sonner": "^1.4.41",
         "tailwind-merge": "^2.2.1",
         "tailwindcss-animate": "^1.0.7",

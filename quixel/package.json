@@ -18,6 +18,6 @@
         "babylonjs": "8.15.1",
         "babylonjs-editor": "link:../editor",
         "fs-extra": "^11.2.0",
-        "sharp": "0.32.6"
+        "sharp": "0.34.3"
     }
 }
