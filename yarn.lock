@@ -3912,16 +3912,11 @@ babylon@^6.18.0:
   resolved "https://registry.yarnpkg.com/babylon/-/babylon-6.18.0.tgz#af2f3b88fa6f5c1e4c634d1a0f8eac4f55b395e3"
   integrity sha512-q/UEjfGJ2Cm3oKV71DJz9d25TPnq5rhBVL2Q4fA5wcC3jcrdn7+SssEybFIxwAvvP+YCsCYNKughoF33GxgycQ==
 
-babylonjs-editor-tools@latest:
-  version "0.0.7"
-  resolved "https://registry.yarnpkg.com/babylonjs-editor-tools/-/babylonjs-editor-tools-0.0.7.tgz#d7af25586c499e6969fd462854837c4ce1432ecf"
-  integrity sha512-+BwvVgR8sYPQNyUO9xNcGEYadbTVSB6QQ0rVmv2X6eW2sJTRxenS89pjQqu9xHvDMht3GBZoFQON+IpNTnjqfg==
-
 "babylonjs-editor-tools@link:tools":
   version "5.0.0"
 
 "babylonjs-editor@link:editor":
-  version "5.0.1"
+  version "5.0.2"
   dependencies:
     "@babylonjs/core" "8.15.1"
     "@babylonjs/havok" "1.3.10"
