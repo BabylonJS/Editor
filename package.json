@@ -19,7 +19,7 @@
         "website"
     ],
     "scripts": {
-        "postinstall": "electron-rebuild -f -w node-pty -m ./node_modules/node-pty && electron-builder install-app-deps && rm -rf template/node_modules/babylonjs-editor-tools && node ./postinstall.mjs",
+        "postinstall": "electron-rebuild -f -w node-pty -m ./node_modules/node-pty && electron-builder install-app-deps && rm -rf template/**/node_modules/babylonjs-editor-tools && node ./postinstall.mjs",
         "watch-editor": "yarn workspace babylonjs-editor watch",
         "watch-editor-css": "yarn workspace babylonjs-editor watch-css",
         "watch-editor-all": "yarn workspace babylonjs-editor watch-all",
@@ -34,14 +34,14 @@
         "build-all": "yarn build && yarn build-template && yarn build-website",
         "start": "yarn workspace babylonjs-editor start",
         "package": "yarn clean && yarn clean:node_modules && yarn && yarn lint && yarn build-all && yarn test && node build.mjs && yarn",
-        "clean": "rm -rf editor/build editor/declaration editor/electron-packages editor/coverage quixel/build quixel/declaration tools/build tools/declaration tools/coverage template/.next website/.next",
-        "clean:node_modules": "rm -rf ./node_modules ./editor/node_modules ./quixel/node_modules ./tools/node_modules ./template/node_modules ./website/node_modules",
+        "clean": "rm -rf editor/build editor/declaration editor/electron-packages editor/coverage quixel/build quixel/declaration tools/build tools/declaration tools/coverage template/nextjs/.next website/.next",
+        "clean:node_modules": "rm -rf ./node_modules ./editor/node_modules ./quixel/node_modules ./tools/node_modules ./template/**/node_modules ./website/node_modules",
         "test": "yarn workspace babylonjs-editor-tools test && yarn workspace babylonjs-editor test",
         "coverage": "yarn workspace babylonjs-editor-tools coverage && yarn workspace babylonjs-editor coverage",
         "lint-editor": "cross-env NODE_OPTIONS='--max-old-space-size=8192' eslint --cache --no-warn-ignored ./editor/src/**",
         "lint-tools": "cross-env NODE_OPTIONS='--max-old-space-size=8192' eslint --cache --no-warn-ignored ./tools/src/**",
         "lint-quixel": "cross-env NODE_OPTIONS='--max-old-space-size=8192' eslint --cache --no-warn-ignored ./quixel/src/**",
-        "lint-template": "cross-env NODE_OPTIONS='--max-old-space-size=8192' eslint --cache --no-warn-ignored ./template/src/**",
+        "lint-template": "cross-env NODE_OPTIONS='--max-old-space-size=8192' eslint --cache --no-warn-ignored ./template/**/src/**",
         "lint-website": "cross-env NODE_OPTIONS='--max-old-space-size=8192' eslint --cache --no-warn-ignored ./website/src/**",
         "lint": "concurrently \"yarn lint-editor\" \"yarn lint-tools\" \"yarn lint-quixel\" \"yarn lint-template\" \"yarn lint-website\" --names editor,tools,quixel,template,website",
         "lint-fix": "concurrently \"yarn lint-editor --fix\" \"yarn lint-tools --fix\" \"yarn lint-quixel --fix\" \"yarn lint-template --fix\" \"yarn lint-website --fix\" --names editor,tools,quixel,template,website"
