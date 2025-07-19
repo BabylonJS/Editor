@@ -54,7 +54,7 @@ export default function DocumentationPage() {
 						</div>
 
 						<div>
-							Of course, a basic understanding of the <b><Link target="_blank" href="https://babylonjs.com/" className="underline underline-offset-4">Babylon.js</Link></b> engine. The most powerful, beautiful, simple, and open web rendering engines in the world.
+							Of course, a basic understanding of the <b><Link target="_blank" href="https://babylonjs.com/" className="underline underline-offset-4">Babylon.js</Link></b> engine. The most powerful, beautiful, simple, and open web rendering engine in the world.
 						</div>
 
 						<NextChapterComponent href="/documentation/creating-project" title="Creating project" />
