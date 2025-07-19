@@ -2,7 +2,7 @@
     "plugins": [],
     "version": "5.0.0",
     "packageManager": "yarn",
-    "template": "nextjs",
+    "template": "vanillajs",
     "lastOpenedScene": "/assets/example.scene",
     "compressedTexturesEnabled": false,
     "compressedTexturesEnabledInPreview": false

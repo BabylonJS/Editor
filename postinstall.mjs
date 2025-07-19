@@ -4,6 +4,7 @@ import { access, rename, rm, mkdir, copyFile } from "node:fs/promises";
 
 import nextjsTemplatePackageJson from "./template/nextjs/package.json" with { type: "json" };
 import solidjsTemplatePackageJson from "./template/solidjs/package.json" with { type: "json" };
+import vanillajsTemplatePackageJson from "./template/vanillajs/package.json" with { type: "json" };
 
 const rootNodeModules = join(process.cwd(), "./node_modules/@babylonjs/core");
 const editorNodeModules = join(process.cwd(), "./editor/node_modules/@babylonjs/core");
@@ -16,6 +17,10 @@ const templates = [
     {
         name: "solidjs",
         packageJson: solidjsTemplatePackageJson,
+    },
+    {
+        name: "vanillajs",
+        packageJson: vanillajsTemplatePackageJson,
     },
 ];
 
