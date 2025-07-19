@@ -21,7 +21,7 @@ import { openSingleFolderDialog } from "../tools/dialog";
 import { isPackageManagerAvailable } from "../tools/process";
 import { tryAddProjectToLocalStorage } from "../tools/local-storage";
 
-import { EditorProjectPackageManager, IEditorProject } from "../project/typings";
+import { EditorProjectPackageManager, IEditorProject, EditorProjectTemplate } from "../project/typings";
 
 export interface IDashboardCreateProjectDialogProps {
 	isOpened: boolean;
@@ -33,7 +33,7 @@ type PackageManagerCheckState = "processing" | "available" | "not-available";
 export function DashboardCreateProjectDialog(props: IDashboardCreateProjectDialogProps) {
 	const [destination, setDestination] = useState("");
 	const [packageManager, setPackageManager] = useState<EditorProjectPackageManager>("yarn");
-
+	const [template, setTemplate] = useState<EditorProjectTemplate>("nextjs");
 	const [creating, setCreating] = useState(false);
 
 	const [npmAvailable, setNpmAvailable] = useState<PackageManagerCheckState>("processing");
@@ -58,38 +58,44 @@ export function DashboardCreateProjectDialog(props: IDashboardCreateProjectDialo
 		}
 	}
 
+
+	async function setupTemplate(destination: string, template: EditorProjectTemplate) {
+		const templatePath = process.env.DEBUG
+			? `templates/${template}.tgz`
+			: `../../templates/${template}.tgz`;
+		const templateBlob = await fetch(templatePath).then(r => r.blob());
+		const buffer = Buffer.from(await templateBlob.arrayBuffer());
+
+		await decompress(buffer, destination, {
+			plugins: [
+				decompressTargz(),
+			],
+			map: (file) => {
+				file.path = file.path.replace("package/", "");
+				return file;
+			}
+		});
+
+		await remove(join(destination, "package"));
+
+		const projectAbsolutePath = join(destination, "project.bjseditor");
+
+		const projectContent = await readJSON(projectAbsolutePath) as IEditorProject;
+		projectContent.packageManager = packageManager;
+		projectContent.template = template;
+		await writeJSON(projectAbsolutePath, projectContent, {
+			spaces: "\t",
+			encoding: "utf-8",
+		});
+	}
+
 	async function handleCreateProject() {
 		setCreating(true);
 
 		try {
-			const templatePath = process.env.DEBUG
-				? "templates/template.tgz"
-				: "../../templates/template.tgz";
-
-			const templateBlob = await fetch(templatePath).then(r => r.blob());
-			const buffer = Buffer.from(await templateBlob.arrayBuffer());
-
-			await decompress(buffer, destination, {
-				plugins: [
-					decompressTargz(),
-				],
-				map: (file) => {
-					file.path = file.path.replace("package/", "");
-					return file;
-				}
-			});
-
-			await remove(join(destination, "package"));
-
 			const projectAbsolutePath = join(destination, "project.bjseditor");
 
-			const projectContent = await readJSON(projectAbsolutePath) as IEditorProject;
-			projectContent.packageManager = packageManager;
-
-			await writeJSON(projectAbsolutePath, projectContent, {
-				spaces: "\t",
-				encoding: "utf-8",
-			});
+			await setupTemplate(destination, template);
 
 			tryAddProjectToLocalStorage(projectAbsolutePath);
 
@@ -125,6 +131,18 @@ export function DashboardCreateProjectDialog(props: IDashboardCreateProjectDialo
 
 					<div>
 						{packageManager}
+					</div>
+				</div>
+			</SelectItem>
+		);
+	}
+
+	function getTemplateSelectItem(template: EditorProjectTemplate) {
+		return (
+			<SelectItem value={template}>
+				<div className="flex items-center gap-2">
+					<div>
+						{template}
 					</div>
 				</div>
 			</SelectItem>
@@ -171,6 +189,26 @@ export function DashboardCreateProjectDialog(props: IDashboardCreateProjectDialo
 											{getPackageManagerSelectItem("yarn", yarnAvailable)}
 											{getPackageManagerSelectItem("pnpm", pnpmAvailable)}
 											{getPackageManagerSelectItem("bun", bunAvailable)}
+										</SelectContent>
+									</Select>
+								</div>
+
+								<div className="flex flex-col gap-2">
+									<div>
+										Template
+									</div>
+
+									<Select
+										value={template}
+										onValueChange={(v) => setTemplate(v as EditorProjectTemplate)}
+									>
+										<SelectTrigger className="w-full">
+											<SelectValue placeholder="Template" />
+										</SelectTrigger>
+										<SelectContent>
+											{getTemplateSelectItem("nextjs")}
+											{getTemplateSelectItem("solid")}
+											{getTemplateSelectItem("vanilla")}
 										</SelectContent>
 									</Select>
 								</div>
