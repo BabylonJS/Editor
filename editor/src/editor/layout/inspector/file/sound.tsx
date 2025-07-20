@@ -6,7 +6,7 @@ import { BiSolidSpeaker } from "react-icons/bi";
 import { FileInspectorObject } from "../file";
 
 export interface IEditorInspectorSoundComponentProps {
-    object: FileInspectorObject;
+	object: FileInspectorObject;
 }
 
 export function EditorInspectorSoundComponent(props: IEditorInspectorSoundComponentProps) {

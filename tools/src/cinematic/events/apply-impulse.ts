@@ -3,18 +3,16 @@ import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 
 export type SetEnabledEventType = {
-    mesh: AbstractMesh;
-    radius: number;
-    force: Vector3;
-    contactPoint: Vector3;
+	mesh: AbstractMesh;
+	radius: number;
+	force: Vector3;
+	contactPoint: Vector3;
 };
 
 const zeroVector = Vector3.Zero();
 
 export function handleApplyImpulseEvent(scene: Scene, config: SetEnabledEventType) {
-	let meshes = config.mesh
-		? [config.mesh]
-		: scene.meshes.filter((m) => m.physicsAggregate);
+	let meshes = config.mesh ? [config.mesh] : scene.meshes.filter((m) => m.physicsAggregate);
 
 	if (config.radius) {
 		meshes = meshes.filter((mesh) => {

@@ -4,13 +4,22 @@ import { createRoot } from "react-dom/client";
 import { IAnimatable } from "babylonjs";
 
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../../../../ui/shadcn/ui/command";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../../../../ui/shadcn/ui/alert-dialog";
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from "../../../../ui/shadcn/ui/alert-dialog";
 
 import { getAllAnimatableProperties } from "../tools/properties";
 
 export interface IEditorAnimationAddTrackPromptProps {
-    animatable: IAnimatable;
-    onSelectProperty: (property: string | null) => void;
+	animatable: IAnimatable;
+	onSelectProperty: (property: string | null) => void;
 }
 
 export function showAddTrackPrompt(animatable: IAnimatable): Promise<string | null> {
@@ -50,32 +59,20 @@ export function EditorAnimationAddTrackPrompt(props: IEditorAnimationAddTrackPro
 				</AlertDialogHeader>
 
 				<Command className="border-muted border-[1px]">
-					<CommandInput
-						ref={(r) => r?.focus()}
-						onValueChange={(v) => setValue(v)}
-						placeholder="Search for a property to animate..."
-					/>
+					<CommandInput ref={(r) => r?.focus()} onValueChange={(v) => setValue(v)} placeholder="Search for a property to animate..." />
 					<CommandList>
-						<CommandEmpty>
-                            Animate "{value}"
-						</CommandEmpty>
+						<CommandEmpty>Animate "{value}"</CommandEmpty>
 						<CommandGroup heading="Suggestions">
 							{properties.map((property) => (
-								<CommandItem onSelect={() => props.onSelectProperty(property)}>
-									{property}
-								</CommandItem>
+								<CommandItem onSelect={() => props.onSelectProperty(property)}>{property}</CommandItem>
 							))}
 						</CommandGroup>
 					</CommandList>
 				</Command>
 
 				<AlertDialogFooter>
-					<AlertDialogCancel onClick={() => props.onSelectProperty(null)}>
-                        Cancel
-					</AlertDialogCancel>
-					<AlertDialogAction onClick={() => props.onSelectProperty(value)}>
-                        Continue
-					</AlertDialogAction>
+					<AlertDialogCancel onClick={() => props.onSelectProperty(null)}>Cancel</AlertDialogCancel>
+					<AlertDialogAction onClick={() => props.onSelectProperty(value)}>Continue</AlertDialogAction>
 				</AlertDialogFooter>
 			</AlertDialogContent>
 		</AlertDialog>

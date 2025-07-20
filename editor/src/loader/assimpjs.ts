@@ -1,9 +1,6 @@
 import { join, dirname } from "path/posix";
 
-import {
-	ISceneLoaderPluginAsync, ISceneLoaderPluginExtensions, ISceneLoaderProgressEvent,
-	ISceneLoaderAsyncResult, Scene, AssetContainer, SceneLoader,
-} from "babylonjs";
+import { ISceneLoaderPluginAsync, ISceneLoaderPluginExtensions, ISceneLoaderProgressEvent, ISceneLoaderAsyncResult, Scene, AssetContainer, SceneLoader } from "babylonjs";
 
 import { ipcSendAsyncWithMessageId } from "../tools/ipc";
 
@@ -56,7 +53,14 @@ export class AssimpJSLoader implements ISceneLoaderPluginAsync {
 	 * @param fileName Defines the name of the file to load
 	 * @returns The loaded objects (e.g. meshes, particle systems, skeletons, animation groups, etc.)
 	 */
-	public async importMeshAsync(meshesNames: any, scene: Scene, data: any, rootUrl: string, onProgress?: (event: ISceneLoaderProgressEvent) => void, fileName?: string): Promise<ISceneLoaderAsyncResult> {
+	public async importMeshAsync(
+		meshesNames: any,
+		scene: Scene,
+		data: any,
+		rootUrl: string,
+		onProgress?: (event: ISceneLoaderProgressEvent) => void,
+		fileName?: string
+	): Promise<ISceneLoaderAsyncResult> {
 		// Compute meshes names to import
 		if (meshesNames) {
 			meshesNames = Array.isArray(meshesNames) ? meshesNames : [meshesNames];
@@ -101,7 +105,13 @@ export class AssimpJSLoader implements ISceneLoaderPluginAsync {
 	 * @param fileName Defines the name of the file to load
 	 * @returns The loaded asset container
 	 */
-	public async loadAssetContainerAsync(scene: Scene, data: IAssimpJSRootData[], rootUrl: string, _?: (event: ISceneLoaderProgressEvent) => void, fileName?: string): Promise<AssetContainer> {
+	public async loadAssetContainerAsync(
+		scene: Scene,
+		data: IAssimpJSRootData[],
+		rootUrl: string,
+		_?: (event: ISceneLoaderProgressEvent) => void,
+		fileName?: string
+	): Promise<AssetContainer> {
 		const container = new AssetContainer(scene);
 
 		const absolutePath = join(rootUrl, fileName ?? "");

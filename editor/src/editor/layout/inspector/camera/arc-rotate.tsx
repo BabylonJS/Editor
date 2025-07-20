@@ -29,12 +29,15 @@ export class EditorArcRotateCameraInspector extends Component<IEditorInspectorIm
 	public render(): ReactNode {
 		return (
 			<>
-				<div className="text-center text-3xl">
-					Arc-Rotate Camera
-				</div>
+				<div className="text-center text-3xl">Arc-Rotate Camera</div>
 
 				<EditorInspectorSectionField title="Common">
-					<EditorInspectorStringField label="Name" object={this.props.object} property="name" onChange={() => onNodeModifiedObservable.notifyObservers(this.props.object)} />
+					<EditorInspectorStringField
+						label="Name"
+						object={this.props.object}
+						property="name"
+						onChange={() => onNodeModifiedObservable.notifyObservers(this.props.object)}
+					/>
 				</EditorInspectorSectionField>
 
 				<EditorInspectorSectionField title="Transforms">

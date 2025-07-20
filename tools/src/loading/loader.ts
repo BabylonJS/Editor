@@ -96,9 +96,7 @@ export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scen
 			});
 		}
 
-		options?.onProgress?.(
-			0.5 + (loadedItemsCount / waitingItemsCount) * 0.5,
-		);
+		options?.onProgress?.(0.5 + (loadedItemsCount / waitingItemsCount) * 0.5);
 	}
 
 	options?.onProgress?.(1);

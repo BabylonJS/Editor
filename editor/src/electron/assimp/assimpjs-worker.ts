@@ -5,10 +5,7 @@ const assimpjs = require("assimpjs")();
 
 assimpjs.then((ajs) => {
 	const fileList = new ajs.FileList();
-	fileList.AddFile(
-		basename(workerData.absolutePath),
-		new Uint8Array(workerData.content),
-	);
+	fileList.AddFile(basename(workerData.absolutePath), new Uint8Array(workerData.content));
 
 	const result = ajs.ConvertFileList(fileList, "assjson");
 	if (!result.IsSuccess() || result.FileCount() === 0) {

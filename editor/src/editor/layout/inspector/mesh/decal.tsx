@@ -40,15 +40,13 @@ export class MeshDecalInspector extends Component<IMeshDecalInspectorProps, IMes
 
 				<EditorInspectorNumberField asDegrees object={proxy} property="angle" step={0.1} label="Angle" onChange={() => this._handleUpdateCurrentDecalMesh()} />
 
-				{!this.state.meshExists &&
+				{!this.state.meshExists && (
 					<div className="flex justify-center items-center gap-2">
 						<IoIosWarning size="24px" />
 
-						<div className="text-yellow-500">
-							Source mesh not found.
-						</div>
+						<div className="text-yellow-500">Source mesh not found.</div>
 					</div>
-				}
+				)}
 			</EditorInspectorSectionField>
 		);
 	}

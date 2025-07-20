@@ -27,22 +27,22 @@ export async function execNodePty(command: string, options: IPtyForkOptions | IW
 
 export class NodePtyInstance {
 	/**
-     * The id of the node-pty instance.
-     */
+	 * The id of the node-pty instance.
+	 */
 	public readonly id: string;
 
 	/**
-     * An observable that is triggered when data is received from the pty.
-     */
+	 * An observable that is triggered when data is received from the pty.
+	 */
 	public onGetDataObservable: Observable<string> = new Observable<string>();
 
 	private _exited: boolean = false;
 	private _exitCode: number = -1;
 
 	/**
-     * Constructor.
-     * @param id The id of the node-pty instance.
-     */
+	 * Constructor.
+	 * @param id The id of the node-pty instance.
+	 */
 	public constructor(id: string) {
 		this.id = id;
 
@@ -58,9 +58,9 @@ export class NodePtyInstance {
 	}
 
 	/**
-     * Writes data to the pty.
-     * @param data The data to write.
-     */
+	 * Writes data to the pty.
+	 * @param data The data to write.
+	 */
 	public write(data: string): void {
 		if (this._exited) {
 			return;
@@ -69,8 +69,8 @@ export class NodePtyInstance {
 	}
 
 	/**
-     * Kills the pty process.
-     */
+	 * Kills the pty process.
+	 */
 	public kill(): void {
 		if (this._exited) {
 			return;
@@ -79,8 +79,8 @@ export class NodePtyInstance {
 	}
 
 	/**
-     * Waits until the 
-     */
+	 * Waits until the
+	 */
 	public wait(): Promise<number> {
 		if (this._exited) {
 			return Promise.resolve(this._exitCode);
@@ -92,8 +92,8 @@ export class NodePtyInstance {
 	}
 
 	/**
-     * Resizes the node-pty process in case it is used using xterm.
-     */
+	 * Resizes the node-pty process in case it is used using xterm.
+	 */
 	public resize(cols: number, rows: number): void {
 		if (this._exited) {
 			return;

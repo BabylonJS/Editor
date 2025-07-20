@@ -2,9 +2,7 @@ import { Component, ReactNode } from "react";
 
 import { Divider } from "@blueprintjs/core";
 
-import {
-	AbstractMesh, PhysicsAggregate, PhysicsShape, PhysicsShapeType, PhysicsMotionType, PhysicsMassProperties,
-} from "babylonjs";
+import { AbstractMesh, PhysicsAggregate, PhysicsShape, PhysicsShapeType, PhysicsMotionType, PhysicsMassProperties } from "babylonjs";
 
 import { isMesh } from "../../../../tools/guards/nodes";
 import { registerUndoRedo } from "../../../../tools/undoredo";
@@ -16,7 +14,7 @@ import { EditorInspectorSectionField } from "../fields/section";
 import { EditorInspectorListField, IEditorInspectorListFieldItem } from "../fields/list";
 
 export interface IEditorMeshPhysicsInspectorProps {
-    mesh: AbstractMesh;
+	mesh: AbstractMesh;
 }
 
 export class EditorMeshPhysicsInspector extends Component<IEditorMeshPhysicsInspectorProps> {
@@ -29,9 +27,7 @@ export class EditorMeshPhysicsInspector extends Component<IEditorMeshPhysicsInsp
 			<EditorInspectorSectionField title="Physics">
 				<EditorInspectorSwitchField object={o} property="hasPhysicsBody" label="Enabled" noUndoRedo onChange={() => this._handleHasPhysicsAggregateChange()} />
 
-				{this.props.mesh.physicsAggregate &&
-                    this._getPhysicsInspector(this.props.mesh.physicsAggregate)
-				}
+				{this.props.mesh.physicsAggregate && this._getPhysicsInspector(this.props.mesh.physicsAggregate)}
 			</EditorInspectorSectionField>
 		);
 	}
@@ -83,17 +79,24 @@ export class EditorMeshPhysicsInspector extends Component<IEditorMeshPhysicsInsp
 
 				<Divider />
 
-				{aggregate.body.getMotionType() !== PhysicsMotionType.STATIC &&
-                    <EditorInspectorNumberField noUndoRedo object={massProperties} property="mass" label="Mass" min={0} onFinishChange={(value, oldValue) => {
-                    	registerUndoRedo({
-                    		executeRedo: true,
-                    		undo: () => setMassProperties({ mass: oldValue }),
-                    		redo: () => setMassProperties({ mass: value }),
-                    	});
+				{aggregate.body.getMotionType() !== PhysicsMotionType.STATIC && (
+					<EditorInspectorNumberField
+						noUndoRedo
+						object={massProperties}
+						property="mass"
+						label="Mass"
+						min={0}
+						onFinishChange={(value, oldValue) => {
+							registerUndoRedo({
+								executeRedo: true,
+								undo: () => setMassProperties({ mass: oldValue }),
+								redo: () => setMassProperties({ mass: value }),
+							});
 
-                    	this.forceUpdate();
-                    }} />
-				}
+							this.forceUpdate();
+						}}
+					/>
+				)}
 
 				<EditorInspectorNumberField object={material} property="friction" label="Friction" min={0} max={1} />
 				<EditorInspectorNumberField object={material} property="restitution" label="Restitution" min={0} max={1} />
@@ -115,24 +118,34 @@ export class EditorMeshPhysicsInspector extends Component<IEditorMeshPhysicsInsp
 		];
 
 		const configureShape = (value: PhysicsShapeType) => {
-			aggregate.shape = new PhysicsShape({
-				type: value,
-				parameters: {
-					mesh: value === PhysicsShapeType.MESH && isMesh(this.props.mesh) ? this.props.mesh : undefined,
+			aggregate.shape = new PhysicsShape(
+				{
+					type: value,
+					parameters: {
+						mesh: value === PhysicsShapeType.MESH && isMesh(this.props.mesh) ? this.props.mesh : undefined,
+					},
 				},
-			}, this.props.mesh.getScene());
+				this.props.mesh.getScene()
+			);
 
 			aggregate.body.disableSync = true;
 		};
 
 		return (
-			<EditorInspectorListField noUndoRedo object={o} property="type" label="Shape Type" items={items} onChange={(value, oldValue) => {
-				registerUndoRedo({
-					executeRedo: true,
-					undo: () => configureShape(oldValue),
-					redo: () => configureShape(value),
-				});
-			}} />
+			<EditorInspectorListField
+				noUndoRedo
+				object={o}
+				property="type"
+				label="Shape Type"
+				items={items}
+				onChange={(value, oldValue) => {
+					registerUndoRedo({
+						executeRedo: true,
+						undo: () => configureShape(oldValue),
+						redo: () => configureShape(value),
+					});
+				}}
+			/>
 		);
 	}
 
@@ -147,19 +160,26 @@ export class EditorMeshPhysicsInspector extends Component<IEditorMeshPhysicsInsp
 		};
 
 		return (
-			<EditorInspectorListField noUndoRedo object={o} property="type" label="Shape Type" items={[
-				{ text: "Static", value: PhysicsMotionType.STATIC },
-				{ text: "Dynamic", value: PhysicsMotionType.DYNAMIC },
-				{ text: "Animated", value: PhysicsMotionType.ANIMATED },
-			]} onChange={(value, oldValue) => {
-				registerUndoRedo({
-					executeRedo: true,
-					undo: () => configureMotionType(oldValue),
-					redo: () => configureMotionType(value),
-				});
+			<EditorInspectorListField
+				noUndoRedo
+				object={o}
+				property="type"
+				label="Shape Type"
+				items={[
+					{ text: "Static", value: PhysicsMotionType.STATIC },
+					{ text: "Dynamic", value: PhysicsMotionType.DYNAMIC },
+					{ text: "Animated", value: PhysicsMotionType.ANIMATED },
+				]}
+				onChange={(value, oldValue) => {
+					registerUndoRedo({
+						executeRedo: true,
+						undo: () => configureMotionType(oldValue),
+						redo: () => configureMotionType(value),
+					});
 
-				this.forceUpdate();
-			}} />
+					this.forceUpdate();
+				}}
+			/>
 		);
 	}
 }

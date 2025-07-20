@@ -13,9 +13,9 @@ import { exportAnimationsAs } from "./tools/export";
 import { importAnimationsFrom } from "./tools/import";
 
 export interface IEditorAnimationToolbarProps {
-    playing: boolean;
-    animatable: IAnimatable | null;
-    animationEditor: EditorAnimation;
+	playing: boolean;
+	animatable: IAnimatable | null;
+	animationEditor: EditorAnimation;
 }
 
 export class EditorAnimationToolbar extends Component<IEditorAnimationToolbarProps> {
@@ -25,40 +25,37 @@ export class EditorAnimationToolbar extends Component<IEditorAnimationToolbarPro
 				<Menubar className="border-none rounded-none pl-3 my-auto bg-primary-foreground h-10">
 					{/* File */}
 					<MenubarMenu>
-						<MenubarTrigger disabled={this.props.animatable === null}>
-                            File
-						</MenubarTrigger>
+						<MenubarTrigger disabled={this.props.animatable === null}>File</MenubarTrigger>
 
 						<MenubarContent className="border-black/50">
-							<MenubarItem onClick={() => importAnimationsFrom(this.props.animationEditor, this.props.animatable)}>
-                                Load Animations From...
-							</MenubarItem>
+							<MenubarItem onClick={() => importAnimationsFrom(this.props.animationEditor, this.props.animatable)}>Load Animations From...</MenubarItem>
 							<MenubarSeparator />
-							<MenubarItem onClick={() => exportAnimationsAs(this.props.animatable)}>
-                                Save Animations As...
-							</MenubarItem>
+							<MenubarItem onClick={() => exportAnimationsAs(this.props.animatable)}>Save Animations As...</MenubarItem>
 						</MenubarContent>
 					</MenubarMenu>
 
 					{/* Edit */}
 					<MenubarMenu>
-						<MenubarTrigger disabled={this.props.animatable === null}>
-                            Edit
-						</MenubarTrigger>
+						<MenubarTrigger disabled={this.props.animatable === null}>Edit</MenubarTrigger>
 
 						<MenubarContent className="border-black/50">
-							<MenubarItem onClick={() => this.props.animationEditor.timelines.addKeysAtCurrentTime()}>
-                                Add Key Frames At Current Time
-							</MenubarItem>
+							<MenubarItem onClick={() => this.props.animationEditor.timelines.addKeysAtCurrentTime()}>Add Key Frames At Current Time</MenubarItem>
 						</MenubarContent>
 					</MenubarMenu>
 				</Menubar>
 
 				{/* Buttons */}
 				<div className="flex gap-2 items-center pr-2">
-					<Slider min={1} max={20} step={0.01} className="w-32" value={[this.props.animationEditor.timelines?.state.scale]} onValueChange={(v) => {
-						this.props.animationEditor.timelines?.setScale(v[0]);
-					}} />
+					<Slider
+						min={1}
+						max={20}
+						step={0.01}
+						className="w-32"
+						value={[this.props.animationEditor.timelines?.state.scale]}
+						onValueChange={(v) => {
+							this.props.animationEditor.timelines?.setScale(v[0]);
+						}}
+					/>
 
 					<Button
 						variant="ghost"

@@ -11,9 +11,7 @@ import { IEditorInspectorImplementationProps } from "./inspector";
 export class FileInspectorObject {
 	public readonly isFileInspectorObject = true;
 
-	public constructor(
-		public readonly absolutePath: string,
-	) { }
+	public constructor(public readonly absolutePath: string) {}
 }
 
 export class EditorFileInspector extends Component<IEditorInspectorImplementationProps<FileInspectorObject>> {
@@ -51,7 +49,8 @@ export class EditorFileInspector extends Component<IEditorInspectorImplementatio
 			case ".wave":
 				return <EditorInspectorSoundComponent object={this.props.object} />;
 
-			default: return null;
+			default:
+				return null;
 		}
 	}
 }

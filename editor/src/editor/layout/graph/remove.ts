@@ -25,7 +25,8 @@ type _RemoveNodeData = {
 export function removeNodes(editor: Editor) {
 	const scene = editor.layout.preview.scene;
 
-	const allData = editor.layout.graph.getSelectedNodes()
+	const allData = editor.layout.graph
+		.getSelectedNodes()
 		.filter((n) => n.nodeData)
 		.map((n) => n.nodeData);
 
@@ -34,20 +35,24 @@ export function removeNodes(editor: Editor) {
 		.map((node) => {
 			const attached = [node]
 				.concat(node.getDescendants(false, (n) => isNode(n)))
-				.map((descendant) => isMesh(descendant) ? [descendant, ...descendant.instances] : [descendant])
+				.map((descendant) => (isMesh(descendant) ? [descendant, ...descendant.instances] : [descendant]))
 				.flat()
 				.map((descendant) => {
 					return {
 						node: descendant,
 						parent: descendant.parent,
 						lights: scene.lights.filter((light) => {
-							return light.getShadowGenerator()?.getShadowMap()?.renderList?.includes(descendant as AbstractMesh);
+							return light
+								.getShadowGenerator()
+								?.getShadowMap()
+								?.renderList?.includes(descendant as AbstractMesh);
 						}),
 					} as _RemoveNodeData;
 				});
 
 			return attached;
-		}).flat();
+		})
+		.flat();
 
 	const sounds = allData
 		.filter((d) => isSound(d))
@@ -59,12 +64,7 @@ export function removeNodes(editor: Editor) {
 	const particleSystems = allData.filter((d) => isParticleSystem(d));
 	const advancedGuiTextures = allData.filter((d) => isAdvancedDynamicTexture(d));
 
-	const animationGroups = getLinkedAnimationGroupsFor([
-		...particleSystems,
-		...advancedGuiTextures,
-		...sounds.map((d) => d.sound),
-		...nodes.map((d) => d.node),
-	], scene);
+	const animationGroups = getLinkedAnimationGroupsFor([...particleSystems, ...advancedGuiTextures, ...sounds.map((d) => d.sound), ...nodes.map((d) => d.node)], scene);
 
 	registerUndoRedo({
 		executeRedo: true,

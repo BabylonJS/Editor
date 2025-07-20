@@ -77,7 +77,7 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 	public render(): ReactNode {
 		return (
 			<TooltipProvider>
-				{this.state.playing && !this.state.preparingPlay &&
+				{this.state.playing && !this.state.preparingPlay && (
 					<Tooltip>
 						<TooltipTrigger asChild>
 							<Button
@@ -85,14 +85,11 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 								onClick={() => this.props.onRestart()}
 								icon={<IoRefresh className="w-6 h-6" strokeWidth={1} color="red" />}
 								className="w-10 h-10 bg-muted/50 !rounded-lg transition-all duration-300 ease-in-out"
-
 							/>
 						</TooltipTrigger>
-						<TooltipContent>
-							Restart the game / application
-						</TooltipContent>
+						<TooltipContent>Restart the game / application</TooltipContent>
 					</Tooltip>
-				}
+				)}
 
 				<Tooltip>
 					<TooltipTrigger asChild>
@@ -101,11 +98,13 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 							active={this.state.playing}
 							disabled={this.state.preparingPlay}
 							icon={
-								this.state.preparingPlay
-									? <Grid width={24} height={24} color="gray" />
-									: this.state.playing
-										? <IoStop className="w-6 h-6" strokeWidth={1} color="red" />
-										: <IoPlay className="w-6 h-6" strokeWidth={1} color="green" />
+								this.state.preparingPlay ? (
+									<Grid width={24} height={24} color="gray" />
+								) : this.state.playing ? (
+									<IoStop className="w-6 h-6" strokeWidth={1} color="red" />
+								) : (
+									<IoPlay className="w-6 h-6" strokeWidth={1} color="green" />
+								)
 							}
 							onClick={() => this.playOrStopApplication()}
 							className={`
@@ -115,9 +114,7 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
                             `}
 						/>
 					</TooltipTrigger>
-					<TooltipContent className="flex gap-2 items-center">
-						Play the game / application
-					</TooltipContent>
+					<TooltipContent className="flex gap-2 items-center">Play the game / application</TooltipContent>
 				</Tooltip>
 			</TooltipProvider>
 		);
@@ -281,9 +278,10 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 
 		try {
 			await compilePlayScript(this._temporaryDirectory!, {
-				onTransformSource: (path) => log.setState({
-					message: `Compiling source: ${basename(path)}`,
-				}),
+				onTransformSource: (path) =>
+					log.setState({
+						message: `Compiling source: ${basename(path)}`,
+					}),
 			});
 
 			log.setState({
@@ -329,9 +327,10 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 
 		await exports.loadScene(rootUrl, `${sceneName}.babylon`, scene, exports.scriptsMap, {
 			quality: "high",
-			onProgress: (progress) => this.props.editor.layout.preview.setState({
-				playSceneLoadingProgress: progress,
-			}),
+			onProgress: (progress) =>
+				this.props.editor.layout.preview.setState({
+					playSceneLoadingProgress: progress,
+				}),
 		});
 
 		if (scene.isDisposed) {

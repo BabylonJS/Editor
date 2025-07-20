@@ -42,11 +42,7 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 		this._lightCommands = getLightCommands(this.props.editor);
 		this._cameraCommands = getCameraCommands(this.props.editor);
 
-		const commands = [
-			...this._meshCommands,
-			...this._lightCommands,
-			...this._cameraCommands,
-		];
+		const commands = [...this._meshCommands, ...this._lightCommands, ...this._cameraCommands];
 
 		commands.forEach((command) => {
 			ipcRenderer.on(`add:${command.ipcRendererChannelKey}`, command.action);
@@ -56,13 +52,9 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 	public render(): ReactNode {
 		return (
 			<>
-				{isDarwin() &&
-					<div className="absolute top-0 left-0 w-screen h-10 electron-draggable" />
-				}
+				{isDarwin() && <div className="absolute top-0 left-0 w-screen h-10 electron-draggable" />}
 
-				{(!isDarwin() || process.env.DEBUG) &&
-					this._getToolbar()
-				}
+				{(!isDarwin() || process.env.DEBUG) && this._getToolbar()}
 			</>
 		);
 	}
@@ -75,9 +67,7 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 
 					{/* File */}
 					<MenubarMenu>
-						<MenubarTrigger>
-							File
-						</MenubarTrigger>
+						<MenubarTrigger>File</MenubarTrigger>
 						<MenubarContent className="border-black/50">
 							<MenubarItem onClick={() => this._handleOpenProject()}>
 								Open Project <MenubarShortcut>CTRL+O</MenubarShortcut>
@@ -101,17 +91,13 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 
 							<MenubarSeparator />
 
-							<MenubarItem onClick={() => startProjectDevProcess(this.props.editor)}>
-								Run Project...
-							</MenubarItem>
+							<MenubarItem onClick={() => startProjectDevProcess(this.props.editor)}>Run Project...</MenubarItem>
 						</MenubarContent>
 					</MenubarMenu>
 
 					{/* Edit */}
 					<MenubarMenu>
-						<MenubarTrigger>
-							Edit
-						</MenubarTrigger>
+						<MenubarTrigger>Edit</MenubarTrigger>
 						<MenubarContent className="border-black/50">
 							<MenubarItem>
 								Undo <MenubarShortcut>CTRL+Z</MenubarShortcut>
@@ -134,23 +120,17 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 
 							<MenubarSeparator />
 
-							<MenubarItem onClick={() => this.props.editor.setState({ editProject: true })}>
-								Project...
-							</MenubarItem>
+							<MenubarItem onClick={() => this.props.editor.setState({ editProject: true })}>Project...</MenubarItem>
 
 							<MenubarSeparator />
 
-							<MenubarItem onClick={() => this.props.editor.setState({ editPreferences: true })}>
-								Preferences...
-							</MenubarItem>
+							<MenubarItem onClick={() => this.props.editor.setState({ editPreferences: true })}>Preferences...</MenubarItem>
 						</MenubarContent>
 					</MenubarMenu>
 
 					{/* Preview */}
 					<MenubarMenu>
-						<MenubarTrigger>
-							Preview
-						</MenubarTrigger>
+						<MenubarTrigger>Preview</MenubarTrigger>
 						<MenubarContent className="border-black/50">
 							<MenubarItem onClick={() => this.props.editor.layout.preview.setActiveGizmo("position")}>
 								Position <MenubarShortcut>CTRL+T</MenubarShortcut>
@@ -178,9 +158,7 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 
 					{/* Add */}
 					<MenubarMenu>
-						<MenubarTrigger>
-							Add
-						</MenubarTrigger>
+						<MenubarTrigger>Add</MenubarTrigger>
 						<MenubarContent className="border-black/50">
 							{this._meshCommands.map((command) => (
 								<MenubarItem key={command.key} onClick={command.action}>
@@ -204,9 +182,7 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 
 					{/* Window */}
 					<MenubarMenu>
-						<MenubarTrigger>
-							Window
-						</MenubarTrigger>
+						<MenubarTrigger>Window</MenubarTrigger>
 						<MenubarContent className="border-black/50">
 							<MenubarItem onClick={() => ipcRenderer.send("window:minimize")}>
 								Minimize <MenubarShortcut>CTRL+M</MenubarShortcut>
@@ -224,9 +200,7 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 	private async _handleOpenProject(): Promise<void> {
 		const file = openSingleFileDialog({
 			title: "Open Project",
-			filters: [
-				{ name: "Babylon.js Editor Project File", extensions: ["bjseditor"] }
-			],
+			filters: [{ name: "Babylon.js Editor Project File", extensions: ["bjseditor"] }],
 		});
 
 		if (!file) {

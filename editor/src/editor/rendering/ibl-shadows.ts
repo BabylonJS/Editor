@@ -34,15 +34,20 @@ export function createIblShadowsRenderingPipeline(editor: Editor): IblShadowsRen
 
 	scene.enableIblCdfGenerator();
 
-	iblShadowsRenderingPipeline = new IblShadowsRenderPipeline("iblShadowsPipeline", scene, {
-		resolutionExp: 7,
-		sampleDirections: 2,
-		ssShadowsEnabled: true,
-		shadowRemanence: 0.8,
-		triPlanarVoxelization: true,
-		shadowOpacity: 1.0,
-		voxelShadowOpacity: 1.0,
-	}, [scene.activeCamera!]);
+	iblShadowsRenderingPipeline = new IblShadowsRenderPipeline(
+		"iblShadowsPipeline",
+		scene,
+		{
+			resolutionExp: 7,
+			sampleDirections: 2,
+			ssShadowsEnabled: true,
+			shadowRemanence: 0.8,
+			triPlanarVoxelization: true,
+			shadowOpacity: 1.0,
+			voxelShadowOpacity: 1.0,
+		},
+		[scene.activeCamera!]
+	);
 
 	iblShadowsRenderingPipeline.addShadowReceivingMaterial();
 

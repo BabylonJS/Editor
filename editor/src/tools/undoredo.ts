@@ -5,25 +5,25 @@ import { Observable } from "babylonjs";
 import { setInspectorEffectivePropertyValue } from "./property";
 
 export type SimpleUndoRedoStackItem = {
-    object: any;
-    property: string;
+	object: any;
+	property: string;
 
-    oldValue: any;
-    newValue: any;
+	oldValue: any;
+	newValue: any;
 
-    onLost?: () => void;
+	onLost?: () => void;
 
-    executeRedo?: boolean;
+	executeRedo?: boolean;
 };
 
 export type UndoRedoStackItem = {
-    undo: () => void;
-    redo: () => void;
+	undo: () => void;
+	redo: () => void;
 
-    action?: () => void;
-    onLost?: () => void;
+	action?: () => void;
+	onLost?: () => void;
 
-    executeRedo?: boolean;
+	executeRedo?: boolean;
 };
 
 export const stack: UndoRedoStackItem[] = [];

@@ -64,10 +64,10 @@ export function unique<T>(array: T[]): T[] {
 }
 
 /**
-* Sorts the given array alphabetically.
-* @param array defines the array containing the elements to sort alphabetically.
-* @param property in case of an array of objects, this property will be used to get the right value to sort.
-*/
+ * Sorts the given array alphabetically.
+ * @param array defines the array containing the elements to sort alphabetically.
+ * @param property in case of an array of objects, this property will be used to get the right value to sort.
+ */
 export function sortAlphabetically(array: any[], property?: string): any[] {
 	array.sort((a, b) => {
 		a = property ? a[property] : a;
@@ -76,7 +76,7 @@ export function sortAlphabetically(array: any[], property?: string): any[] {
 		a = a.toUpperCase();
 		b = b.toUpperCase();
 
-		return (a < b) ? -1 : (a > b) ? 1 : 0;
+		return a < b ? -1 : a > b ? 1 : 0;
 	});
 
 	return array;

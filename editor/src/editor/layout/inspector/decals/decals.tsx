@@ -65,14 +65,36 @@ export class EditorDecalsInspector extends Component<IEditorDecalsInspectorProps
 			<div className="flex flex-col gap-2 w-full h-full">
 				{this._getMaterialDragAndDropComponent()}
 
-				{this.state.material &&
+				{this.state.material && (
 					<EditorInspectorSectionField title="Options">
-						<EditorInspectorNumberField object={decalsConfiguration.size} property="x" step={1} label="Width" noUndoRedo onChange={() => this._handleUpdateCurrentDecalMesh()} />
-						<EditorInspectorNumberField object={decalsConfiguration.size} property="y" step={1} label="Height" noUndoRedo onChange={() => this._handleUpdateCurrentDecalMesh()} />
+						<EditorInspectorNumberField
+							object={decalsConfiguration.size}
+							property="x"
+							step={1}
+							label="Width"
+							noUndoRedo
+							onChange={() => this._handleUpdateCurrentDecalMesh()}
+						/>
+						<EditorInspectorNumberField
+							object={decalsConfiguration.size}
+							property="y"
+							step={1}
+							label="Height"
+							noUndoRedo
+							onChange={() => this._handleUpdateCurrentDecalMesh()}
+						/>
 
-						<EditorInspectorNumberField object={decalsConfiguration} property="angle" asDegrees step={0.1} label="Angle" noUndoRedo onChange={() => this._handleUpdateCurrentDecalMesh()} />
+						<EditorInspectorNumberField
+							object={decalsConfiguration}
+							property="angle"
+							asDegrees
+							step={0.1}
+							label="Angle"
+							noUndoRedo
+							onChange={() => this._handleUpdateCurrentDecalMesh()}
+						/>
 					</EditorInspectorSectionField>
-				}
+				)}
 			</div>
 		);
 	}
@@ -80,29 +102,44 @@ export class EditorDecalsInspector extends Component<IEditorDecalsInspectorProps
 	public async componentDidMount(): Promise<void> {
 		const canvas = this.props.editor.layout.preview.engine.getRenderingCanvas()!;
 
-		canvas.addEventListener("mousemove", this._mouseMoveListener = (ev) => {
-			this._handleMouseMove(ev.offsetX, ev.offsetY);
-		});
+		canvas.addEventListener(
+			"mousemove",
+			(this._mouseMoveListener = (ev) => {
+				this._handleMouseMove(ev.offsetX, ev.offsetY);
+			})
+		);
 
-		canvas.addEventListener("pointerdown", this._mouseDownListener = (ev) => {
-			this._handleMouseDown(ev);
-		});
+		canvas.addEventListener(
+			"pointerdown",
+			(this._mouseDownListener = (ev) => {
+				this._handleMouseDown(ev);
+			})
+		);
 
-		canvas.addEventListener("pointerup", this._mouseUpListener = (ev) => {
-			this._handleMouseUp(ev);
-		});
+		canvas.addEventListener(
+			"pointerup",
+			(this._mouseUpListener = (ev) => {
+				this._handleMouseUp(ev);
+			})
+		);
 
-		document.addEventListener("keydown", this._keyDownListener = (ev) => {
-			if (ev.ctrlKey || ev.metaKey) {
-				this.setState({ ctrlOrMetaKeyDown: true });
-			}
-		});
+		document.addEventListener(
+			"keydown",
+			(this._keyDownListener = (ev) => {
+				if (ev.ctrlKey || ev.metaKey) {
+					this.setState({ ctrlOrMetaKeyDown: true });
+				}
+			})
+		);
 
-		document.addEventListener("keyup", this._keyUpListener = (ev) => {
-			if (!ev.ctrlKey && !ev.metaKey) {
-				this.setState({ ctrlOrMetaKeyDown: false });
-			}
-		});
+		document.addEventListener(
+			"keyup",
+			(this._keyUpListener = (ev) => {
+				if (!ev.ctrlKey && !ev.metaKey) {
+					this.setState({ ctrlOrMetaKeyDown: false });
+				}
+			})
+		);
 
 		this.props.editor.layout.preview.setState({ pickingEnabled: false });
 
@@ -158,28 +195,19 @@ export class EditorDecalsInspector extends Component<IEditorDecalsInspectorProps
                         transition-all duration-300 ease-in-out
                     `}
 				>
-					{!decalsConfiguration.materialPath &&
-						<MdOutlineQuestionMark className="w-8 h-8" />
-					}
+					{!decalsConfiguration.materialPath && <MdOutlineQuestionMark className="w-8 h-8" />}
 
-					{decalsConfiguration.materialPath &&
-						<GiMaterialsScience className="w-8 h-8" />
-					}
+					{decalsConfiguration.materialPath && <GiMaterialsScience className="w-8 h-8" />}
 				</div>
 
 				<div className="flex flex-1 flex-col gap-2 justify-center items-center">
-					<div className="text-xl font-semibold text-center w-full">
-						{this.state.material?.name ?? "No material set"}
-					</div>
+					<div className="text-xl font-semibold text-center w-full">{this.state.material?.name ?? "No material set"}</div>
 					<div className="font-thin">
-						{this.state.material
-							? (
-								<Fade className="text-center">
-									{`${isDarwin() ? "Cmd" : "Ctrl"} + Click in the preview panel to place the decal.`}
-								</Fade>
-							)
-							: "Drag and drop a material asset here."
-						}
+						{this.state.material ? (
+							<Fade className="text-center">{`${isDarwin() ? "Cmd" : "Ctrl"} + Click in the preview panel to place the decal.`}</Fade>
+						) : (
+							"Drag and drop a material asset here."
+						)}
 					</div>
 				</div>
 			</div>
@@ -231,9 +259,14 @@ export class EditorDecalsInspector extends Component<IEditorDecalsInspectorProps
 		this._disposeTemporaryDecalMesh();
 
 		const scene = this.props.editor.layout.preview.scene;
-		const pick = scene.pick(offsetX, offsetY, (m) => {
-			return m !== this._decalMesh && !m.metadata?.decal && m.isVisible && m.isEnabled();
-		}, false);
+		const pick = scene.pick(
+			offsetX,
+			offsetY,
+			(m) => {
+				return m !== this._decalMesh && !m.metadata?.decal && m.isVisible && m.isEnabled();
+			},
+			false
+		);
 
 		if (pick.pickedMesh && pick.pickedPoint) {
 			EditorDecalsInspector._lastPickedMesh = pick.pickedMesh;
@@ -246,11 +279,7 @@ export class EditorDecalsInspector extends Component<IEditorDecalsInspectorProps
 	}
 
 	private _handleUpdateCurrentDecalMesh(): void {
-		if (
-			!EditorDecalsInspector._lastPickedMesh ||
-			!EditorDecalsInspector._lastPickPosition ||
-			!this.state.material
-		) {
+		if (!EditorDecalsInspector._lastPickedMesh || !EditorDecalsInspector._lastPickPosition || !this.state.material) {
 			return;
 		}
 
@@ -288,10 +317,7 @@ export class EditorDecalsInspector extends Component<IEditorDecalsInspectorProps
 			return;
 		}
 
-		const distance = Vector2.Distance(
-			this._mouseDownPosition,
-			new Vector2(event.offsetX, event.offsetY),
-		);
+		const distance = Vector2.Distance(this._mouseDownPosition, new Vector2(event.offsetX, event.offsetY));
 
 		if (distance > 2) {
 			return;

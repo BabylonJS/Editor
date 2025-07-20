@@ -15,9 +15,7 @@ export function EditorInspectorStringField(props: IEditorInspectorStringFieldPro
 
 	return (
 		<div className="flex gap-2 items-center px-2">
-			<div className="w-1/3 text-ellipsis overflow-hidden whitespace-nowrap">
-				{props.label}
-			</div>
+			<div className="w-1/3 text-ellipsis overflow-hidden whitespace-nowrap">{props.label}</div>
 
 			<input
 				type="text"

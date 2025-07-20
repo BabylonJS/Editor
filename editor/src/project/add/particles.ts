@@ -30,9 +30,13 @@ export function addParticleSystem(editor: Editor, emitter: AbstractMesh) {
 }
 
 export function addGPUParticleSystem(editor: Editor, emitter: AbstractMesh) {
-	const particleSystem = new GPUParticleSystem("New GPU Particle System", {
-		capacity: 100_000
-	}, editor.layout.preview.scene);
+	const particleSystem = new GPUParticleSystem(
+		"New GPU Particle System",
+		{
+			capacity: 100_000,
+		},
+		editor.layout.preview.scene
+	);
 	particleSystem.id = Tools.RandomId();
 	particleSystem.uniqueId = UniqueNumber.Get();
 	particleSystem.emitter = emitter;

@@ -5,11 +5,11 @@ import { Component, ReactNode } from "react";
 import { Progress } from "../../../../ui/shadcn/ui/progress";
 
 export interface IEditorPreviewConvertProgressProps {
-    absolutePath: string;
+	absolutePath: string;
 }
 
 export interface IEditorPreviewConvertProgressState {
-    value: number;
+	value: number;
 }
 
 export class EditorPreviewConvertProgress extends Component<IEditorPreviewConvertProgressProps, IEditorPreviewConvertProgressState> {
@@ -24,9 +24,7 @@ export class EditorPreviewConvertProgress extends Component<IEditorPreviewConver
 	public render(): ReactNode {
 		return (
 			<div className="flex flex-col gap-2">
-				<div>
-                    Converting scene {basename(this.props.absolutePath)}...
-				</div>
+				<div>Converting scene {basename(this.props.absolutePath)}...</div>
 				<Progress value={this.state.value} />
 			</div>
 		);

@@ -5,10 +5,7 @@ import { readFile, readJSON, writeFile } from "fs-extra";
 import axios from "axios";
 import { toast } from "sonner";
 
-import {
-	CubeTexture, ISceneLoaderAsyncResult, Material, Node, Scene, SceneLoader, Texture, Tools,
-	ColorGradingTexture,
-} from "babylonjs";
+import { CubeTexture, ISceneLoaderAsyncResult, Material, Node, Scene, SceneLoader, Texture, Tools, ColorGradingTexture } from "babylonjs";
 
 import { UniqueNumber } from "../../../../tools/tools";
 import { isMesh } from "../../../../tools/guards/nodes";
@@ -56,12 +53,7 @@ export async function loadImportedSceneFile(scene: Scene, absolutePath: string, 
 	let result: ISceneLoaderAsyncResult;
 
 	try {
-		result = await SceneLoader.ImportMeshAsync(
-			"",
-			join(dirname(absolutePath), "/"),
-			basename(absolutePath),
-			scene,
-		);
+		result = await SceneLoader.ImportMeshAsync("", join(dirname(absolutePath), "/"), basename(absolutePath), scene);
 	} catch (e) {
 		console.error(e);
 		toast.error("Failed to load the scene file.");
@@ -99,7 +91,7 @@ export async function loadImportedSceneFile(scene: Scene, absolutePath: string, 
 
 	result.lights.forEach((light) => configureImportedNodeIds(light));
 	result.transformNodes.forEach((transformNode) => configureImportedNodeIds(transformNode));
-	result.animationGroups.forEach((animationGroup) => animationGroup.uniqueId = UniqueNumber.Get());
+	result.animationGroups.forEach((animationGroup) => (animationGroup.uniqueId = UniqueNumber.Get()));
 
 	scene.lights.forEach((light) => {
 		const shadowMap = light.getShadowGenerator()?.getShadowMap();
@@ -188,15 +180,24 @@ export async function configureEmbeddedTexture(texture: Texture, absolutePath: s
 
 	let extension = "";
 	switch (texture.mimeType) {
-		case "image/png": extension = "png"; break;
-		case "image/gif": extension = "gif"; break;
-		case "image/jpeg": extension = "jpg"; break;
-		case "image/bmp": extension = "bmp"; break;
-		default: return;
+		case "image/png":
+			extension = "png";
+			break;
+		case "image/gif":
+			extension = "gif";
+			break;
+		case "image/jpeg":
+			extension = "jpg";
+			break;
+		case "image/bmp":
+			extension = "bmp";
+			break;
+		default:
+			return;
 	}
 
 	let buffer: Buffer;
-	if (typeof (texture._buffer) === "string") {
+	if (typeof texture._buffer === "string") {
 		const byteString = atob(texture._buffer);
 		const ab = new ArrayBuffer(byteString.length);
 

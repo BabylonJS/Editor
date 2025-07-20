@@ -9,13 +9,11 @@ export function getCameraCommands(editor?: Editor): ICommandPaletteType[] {
 	return [
 		{
 			...cameraCommandItems.freeCamera,
-			action: () => editor && addFreeCamera(editor)
+			action: () => editor && addFreeCamera(editor),
 		},
 		{
 			...cameraCommandItems.arcRotateCamera,
-			action: () => editor && addArcRotateCamera(editor)
+			action: () => editor && addArcRotateCamera(editor),
 		},
 	];
 }
-
-

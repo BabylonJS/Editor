@@ -29,9 +29,7 @@ const replaceImportMetaDirname = {
 
 async function compile(srcAbsolutePath: string, outputAbsolutePath: string) {
 	const buildOptions = {
-		entryPoints: [
-			srcAbsolutePath,
-		],
+		entryPoints: [srcAbsolutePath],
 		bundle: true,
 		platform: "node",
 		target: "node20",
@@ -42,14 +40,9 @@ async function compile(srcAbsolutePath: string, outputAbsolutePath: string) {
 			".ts": "ts",
 			".node": "file",
 		},
-		external: [
-			"sharp",
-			"electron"
-		],
+		external: ["sharp", "electron"],
 		keepNames: true,
-		plugins: [
-			replaceImportMetaDirname,
-		],
+		plugins: [replaceImportMetaDirname],
 	};
 
 	try {

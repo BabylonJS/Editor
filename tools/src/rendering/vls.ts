@@ -36,7 +36,16 @@ export function disposeVLSPostProcess(scene: Scene): void {
 export function createVLSPostProcess(scene: Scene, mesh?: Mesh | null): VolumetricLightScatteringPostProcess {
 	mesh ??= scene.meshes.find((mesh) => isMesh(mesh)) as Mesh;
 
-	vlsPostProcess = new VolumetricLightScatteringPostProcess("VolumetricLightScatteringPostProcess", 1.0, scene.activeCamera, mesh, 100, Texture.BILINEAR_SAMPLINGMODE, scene.getEngine(), false);
+	vlsPostProcess = new VolumetricLightScatteringPostProcess(
+		"VolumetricLightScatteringPostProcess",
+		1.0,
+		scene.activeCamera,
+		mesh,
+		100,
+		Texture.BILINEAR_SAMPLINGMODE,
+		scene.getEngine(),
+		false
+	);
 
 	return vlsPostProcess;
 }

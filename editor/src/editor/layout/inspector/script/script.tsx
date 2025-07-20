@@ -11,13 +11,13 @@ import { EditorInspectorSectionField } from "../fields/section";
 import { InspectorScriptField } from "./field";
 
 export interface IScriptInspectorComponent {
-    object: any;
-    editor: Editor;
+	object: any;
+	editor: Editor;
 }
 
 export interface IScriptInspectorComponentState {
-    dragOver: boolean;
-    scriptFound: boolean;
+	dragOver: boolean;
+	scriptFound: boolean;
 }
 
 export class ScriptInspectorComponent extends Component<IScriptInspectorComponent, IScriptInspectorComponentState> {
@@ -63,14 +63,12 @@ export class ScriptInspectorComponent extends Component<IScriptInspectorComponen
 	private _getEmptyComponent(): ReactNode {
 		return (
 			<div
-				onDrop={((ev) => this._handleDropEmptyComponent(ev))}
-				onDragLeave={(() => this.setState({ dragOver: false }))}
-				onDragOver={((ev) => this._handleDragOverEmptyComponent(ev))}
+				onDrop={(ev) => this._handleDropEmptyComponent(ev)}
+				onDragLeave={() => this.setState({ dragOver: false })}
+				onDragOver={(ev) => this._handleDragOverEmptyComponent(ev)}
 				className={`flex flex-col justify-center items-center w-full h-[64px] rounded-lg border-[1px] border-secondary-foreground/35 border-dashed ${this.state.dragOver ? "bg-secondary-foreground/35" : ""} transition-all duration-300 ease-in-out`}
 			>
-				<div>
-                    Drag'n'drop a script here
-				</div>
+				<div>Drag'n'drop a script here</div>
 			</div>
 		);
 	}

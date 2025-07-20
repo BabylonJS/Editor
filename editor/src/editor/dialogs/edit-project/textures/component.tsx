@@ -15,7 +15,7 @@ import { openSingleFileDialog } from "../../../../tools/dialog";
 import { getCompressedTexturesCliPath, setCompressedTexturesCliPath } from "../../../../project/export/ktx";
 
 export interface IEditorEditProjectTextureComponentProps {
-    editor: Editor;
+	editor: Editor;
 }
 
 export class EditorEditProjectTextureComponent extends Component<IEditorEditProjectTextureComponentProps> {
@@ -28,10 +28,9 @@ export class EditorEditProjectTextureComponent extends Component<IEditorEditProj
 
 				<div className="flex justify-between items-start gap-2">
 					<div className="text-muted-foreground">
-                        Compress textures using PVRTexTool CLI.
-                        Compressed textures are used to reduce the size in video memory without sacrificing quality.
-                        This requires the PVRTexTool CLI to be installed and the path to the executable to be set.
-                        Compressing textures is done automatically when exporting the project but can require time to compute depending on the number of textures and their size.
+						Compress textures using PVRTexTool CLI. Compressed textures are used to reduce the size in video memory without sacrificing quality. This requires the
+						PVRTexTool CLI to be installed and the path to the executable to be set. Compressing textures is done automatically when exporting the project but can
+						require time to compute depending on the number of textures and their size.
 					</div>
 
 					<Button variant="ghost" className="flex items-center gap-[5px]" onClick={() => shell.openExternal("https://www.imaginationtech.com/")}>
@@ -44,18 +43,25 @@ export class EditorEditProjectTextureComponent extends Component<IEditorEditProj
 						<Label>PVRTexTool CLI path</Label>
 					</div>
 
-					<Button variant="outline" className="justify-start w-[460px] text-muted whitespace-nowrap overflow-hidden text-ellipsis" onClick={() => this._handleBrowsePVRTexToolCliPath()}>
+					<Button
+						variant="outline"
+						className="justify-start w-[460px] text-muted whitespace-nowrap overflow-hidden text-ellipsis"
+						onClick={() => this._handleBrowsePVRTexToolCliPath()}
+					>
 						{getCompressedTexturesCliPath() ?? "None"}
 					</Button>
 
 					<div className="flex justify-between items-center gap-2">
-                        Enabled
+						Enabled
 						<Switch checked={this.props.editor.state.compressedTexturesEnabled} onCheckedChange={(v) => this.props.editor.setState({ compressedTexturesEnabled: v })} />
 					</div>
 
 					<div className="flex justify-between items-center gap-2">
-                        Enabled in preview
-						<Switch checked={this.props.editor.state.compressedTexturesEnabledInPreview} onCheckedChange={(v) => this.props.editor.setState({ compressedTexturesEnabledInPreview: v })} />
+						Enabled in preview
+						<Switch
+							checked={this.props.editor.state.compressedTexturesEnabledInPreview}
+							onCheckedChange={(v) => this.props.editor.setState({ compressedTexturesEnabledInPreview: v })}
+						/>
 					</div>
 				</div>
 			</div>

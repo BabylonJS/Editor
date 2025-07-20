@@ -10,8 +10,8 @@ import { Editor } from "../../editor/main";
 import { compressFileToKtx } from "./ktx";
 
 export type ComputeExportedTextureOptions = {
-    force: boolean;
-    exportedAssets: string[];
+	force: boolean;
+	exportedAssets: string[];
 };
 
 export async function processExportedTexture(editor: Editor, absolutePath: string, options: ComputeExportedTextureOptions): Promise<void> {
@@ -27,69 +27,69 @@ export async function processExportedTexture(editor: Editor, absolutePath: strin
 
 	const isPowerOfTwo = width === getPowerOfTwoUntil(width) || height === getPowerOfTwoUntil(height);
 
-    type _DownscaledTextureSize = {
-        width: number;
-        height: number;
-    };
+	type _DownscaledTextureSize = {
+		width: number;
+		height: number;
+	};
 
-    const availableSizes: _DownscaledTextureSize[] = [];
+	const availableSizes: _DownscaledTextureSize[] = [];
 
-    let midWidth = (width * 0.66) >> 0;
-    let midHeight = (height * 0.66) >> 0;
+	let midWidth = (width * 0.66) >> 0;
+	let midHeight = (height * 0.66) >> 0;
 
-    if (isPowerOfTwo) {
-    	midWidth = getPowerOfTwoUntil(midWidth);
-    	midHeight = getPowerOfTwoUntil(midHeight);
-    }
+	if (isPowerOfTwo) {
+		midWidth = getPowerOfTwoUntil(midWidth);
+		midHeight = getPowerOfTwoUntil(midHeight);
+	}
 
-    availableSizes.push({
-    	width: midWidth,
-    	height: midHeight,
-    });
+	availableSizes.push({
+		width: midWidth,
+		height: midHeight,
+	});
 
-    let lowWidth = (width * 0.33) >> 0;
-    let lowHeight = (height * 0.33) >> 0;
+	let lowWidth = (width * 0.33) >> 0;
+	let lowHeight = (height * 0.33) >> 0;
 
-    if (isPowerOfTwo) {
-    	lowWidth = getPowerOfTwoUntil(lowWidth);
-    	lowHeight = getPowerOfTwoUntil(lowHeight);
-    }
+	if (isPowerOfTwo) {
+		lowWidth = getPowerOfTwoUntil(lowWidth);
+		lowHeight = getPowerOfTwoUntil(lowHeight);
+	}
 
-    availableSizes.push({
-    	width: lowWidth,
-    	height: lowHeight,
-    });
+	availableSizes.push({
+		width: lowWidth,
+		height: lowHeight,
+	});
 
-    for (const size of availableSizes) {
-    	const nameWithoutExtension = basename(absolutePath).replace(extension, "");
-    	const finalName = `${nameWithoutExtension}_${size.width}_${size.height}${extension}`;
-    	const finalPath = join(dirname(absolutePath), finalName);
+	for (const size of availableSizes) {
+		const nameWithoutExtension = basename(absolutePath).replace(extension, "");
+		const finalName = `${nameWithoutExtension}_${size.width}_${size.height}${extension}`;
+		const finalPath = join(dirname(absolutePath), finalName);
 
-    	options.exportedAssets.push(finalPath);
+		options.exportedAssets.push(finalPath);
 
-    	if (options.force || !await pathExists(finalPath)) {
-    		const log = await editor.layout.console.progress(`Exporting scaled image "${finalName}"`);
+		if (options.force || !(await pathExists(finalPath))) {
+			const log = await editor.layout.console.progress(`Exporting scaled image "${finalName}"`);
 
-    		try {
-    			const buffer = await sharp(absolutePath).resize(size.width, size.height).toBuffer();
+			try {
+				const buffer = await sharp(absolutePath).resize(size.width, size.height).toBuffer();
 
-    			await writeFile(finalPath, buffer);
+				await writeFile(finalPath, buffer);
 
-    			log.setState({
-    				done: true,
-    				message: `Exported image scaled image "${finalName}"`,
-    			});
-    		} catch (e) {
-    			log.setState({
-    				error: true,
-    				message: `Failed to export image scaled image "${finalName}"`,
-    			});
-    		}
-    	}
+				log.setState({
+					done: true,
+					message: `Exported image scaled image "${finalName}"`,
+				});
+			} catch (e) {
+				log.setState({
+					error: true,
+					message: `Failed to export image scaled image "${finalName}"`,
+				});
+			}
+		}
 
-    	await compressFileToKtx(editor, finalPath, {
-    		force: options.force,
-    		exportedAssets: options.exportedAssets,
-    	});
-    }
+		await compressFileToKtx(editor, finalPath, {
+			force: options.force,
+			exportedAssets: options.exportedAssets,
+		});
+	}
 }

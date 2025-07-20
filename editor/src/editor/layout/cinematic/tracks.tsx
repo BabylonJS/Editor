@@ -17,12 +17,10 @@ import { CinematicEditorPropertyTrack } from "./tracks/property";
 import { CinematicEditorAnimationGroupTrack } from "./tracks/animation-group";
 
 export interface ICinematicEditorTracksProps {
-    cinematicEditor: CinematicEditor;
+	cinematicEditor: CinematicEditor;
 }
 
-export interface ICinematicEditorTracksState {
-
-}
+export interface ICinematicEditorTracksState {}
 
 export class CinematicEditorTracks extends Component<ICinematicEditorTracksProps, ICinematicEditorTracksState> {
 	public render(): ReactNode {
@@ -63,33 +61,13 @@ export class CinematicEditorTracks extends Component<ICinematicEditorTracksProps
 				onMouseEnter={() => this.props.cinematicEditor.setState({ hoverTrack: track })}
 				onMouseLeave={() => this.props.cinematicEditor.setState({ hoverTrack: null })}
 			>
-				{track.keyFrameAnimations &&
-                    <CinematicEditorPropertyTrack
-                    	cinematicEditor={this.props.cinematicEditor}
-                    	track={track}
-                    />
-				}
+				{track.keyFrameAnimations && <CinematicEditorPropertyTrack cinematicEditor={this.props.cinematicEditor} track={track} />}
 
-				{track.animationGroups &&
-                    <CinematicEditorAnimationGroupTrack
-                    	cinematicEditor={this.props.cinematicEditor}
-                    	track={track}
-                    />
-				}
+				{track.animationGroups && <CinematicEditorAnimationGroupTrack cinematicEditor={this.props.cinematicEditor} track={track} />}
 
-				{track.sounds &&
-                    <CinematicEditorSoundTrack
-                    	cinematicEditor={this.props.cinematicEditor}
-                    	track={track}
-                    />
-				}
+				{track.sounds && <CinematicEditorSoundTrack cinematicEditor={this.props.cinematicEditor} track={track} />}
 
-				{track.keyFrameEvents &&
-                    <CinematicEditorEventTrack
-                    	cinematicEditor={this.props.cinematicEditor}
-                    	track={track}
-                    />
-				}
+				{track.keyFrameEvents && <CinematicEditorEventTrack cinematicEditor={this.props.cinematicEditor} track={track} />}
 			</div>
 		);
 	}

@@ -13,9 +13,9 @@ import { CinematicEditorSetEnabledKeyInspector } from "./set-enabled";
 import { CinematicEditorApplyImpulseKeyInspector } from "./apply-impulse";
 
 export interface ICinematicEditorEventKeyInspectorProps {
-    cinematicEditor: CinematicEditor;
-    cinematicKey: ICinematicKeyEvent;
-    track: ICinematicTrack;
+	cinematicEditor: CinematicEditor;
+	cinematicKey: ICinematicKeyEvent;
+	track: ICinematicTrack;
 }
 
 export function CinematicEditorEventKeyInspector(props: ICinematicEditorEventKeyInspectorProps) {
@@ -28,7 +28,7 @@ export function CinematicEditorEventKeyInspector(props: ICinematicEditorEventKey
 
 		registerUndoRedo({
 			executeRedo: true,
-			undo: () => props.cinematicKey.data = oldData,
+			undo: () => (props.cinematicKey.data = oldData),
 			redo: () => {
 				switch (value) {
 					case "set-enabled":
@@ -60,10 +60,17 @@ export function CinematicEditorEventKeyInspector(props: ICinematicEditorEventKey
 
 	return (
 		<EditorInspectorSectionField title="Event">
-			<EditorInspectorNumberField object={props.cinematicKey} property="frame" label="Frame" min={0} step={1} onChange={() => {
-				props.cinematicEditor.timelines.sortAnimationsKeys();
-				props.cinematicEditor.timelines.updateTracksAtCurrentTime();
-			}} />
+			<EditorInspectorNumberField
+				object={props.cinematicKey}
+				property="frame"
+				label="Frame"
+				min={0}
+				step={1}
+				onChange={() => {
+					props.cinematicEditor.timelines.sortAnimationsKeys();
+					props.cinematicEditor.timelines.updateTracksAtCurrentTime();
+				}}
+			/>
 
 			<EditorInspectorListField
 				noUndoRedo
@@ -78,19 +85,13 @@ export function CinematicEditorEventKeyInspector(props: ICinematicEditorEventKey
 				onChange={onEventTypeChange}
 			/>
 
-			{props.cinematicKey.data?.type === "set-enabled" &&
-                <CinematicEditorSetEnabledKeyInspector
-                	cinematicKey={props.cinematicKey}
-                	scene={props.cinematicEditor.editor.layout.preview.scene}
-                />
-			}
+			{props.cinematicKey.data?.type === "set-enabled" && (
+				<CinematicEditorSetEnabledKeyInspector cinematicKey={props.cinematicKey} scene={props.cinematicEditor.editor.layout.preview.scene} />
+			)}
 
-			{props.cinematicKey.data?.type === "apply-impulse" &&
-                <CinematicEditorApplyImpulseKeyInspector
-                	cinematicKey={props.cinematicKey}
-                	scene={props.cinematicEditor.editor.layout.preview.scene}
-                />
-			}
+			{props.cinematicKey.data?.type === "apply-impulse" && (
+				<CinematicEditorApplyImpulseKeyInspector cinematicKey={props.cinematicKey} scene={props.cinematicEditor.editor.layout.preview.scene} />
+			)}
 		</EditorInspectorSectionField>
 	);
 }

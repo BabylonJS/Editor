@@ -23,12 +23,12 @@ export async function compilePlayScript(temporaryDirectory: string, options?: IC
 				const source = await readFile(args.path, "utf8");
 
 				const transformedSource = source
-					.replace(/"@babylonjs\/core\/?.*"/g, "\"babylonjs\"")
-					.replace(/"@babylonjs\/gui\/?.*"/g, "\"babylonjs-gui\"")
-					.replace(/"@babylonjs\/loaders\/?.*"/g, "\"babylonjs-loaders\"")
-					.replace(/"@babylonjs\/materials\/?.*"/g, "\"babylonjs-materials\"")
-					.replace(/"@babylonjs\/post-processes\/?.*"/g, "\"babylonjs-post-process\"")
-					.replace(/"@babylonjs\/procedural-textures\/?.*"/g, "\"babylonjs-procedural-textures\"")
+					.replace(/"@babylonjs\/core\/?.*"/g, '"babylonjs"')
+					.replace(/"@babylonjs\/gui\/?.*"/g, '"babylonjs-gui"')
+					.replace(/"@babylonjs\/loaders\/?.*"/g, '"babylonjs-loaders"')
+					.replace(/"@babylonjs\/materials\/?.*"/g, '"babylonjs-materials"')
+					.replace(/"@babylonjs\/post-processes\/?.*"/g, '"babylonjs-post-process"')
+					.replace(/"@babylonjs\/procedural-textures\/?.*"/g, '"babylonjs-procedural-textures"')
 					.replace(/import\.meta\.dirname/g, "__dirname");
 
 				options?.onTransformSource?.(args.path);
@@ -50,9 +50,7 @@ export async function compilePlayScript(temporaryDirectory: string, options?: IC
 	// - babylonjs-*: it is **IMPORTANT HERE** that all the babylonjs dependencies are set external. The editor overrides module loading in order to always return the editor's version of the library.
 
 	const buildOptions = {
-		entryPoints: [
-			join(projectDir, "src/scripts.ts"),
-		],
+		entryPoints: [join(projectDir, "src/scripts.ts")],
 		bundle: true,
 		platform: "node",
 		target: "node20",
@@ -86,9 +84,7 @@ export async function compilePlayScript(temporaryDirectory: string, options?: IC
 			// "babylonjs-editor-tools",
 		],
 		keepNames: true,
-		plugins: [
-			replaceImports,
-		],
+		plugins: [replaceImports],
 		supported: {
 			decorators: true,
 		},

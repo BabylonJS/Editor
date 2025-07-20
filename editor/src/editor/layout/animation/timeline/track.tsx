@@ -14,21 +14,21 @@ import { EditorAnimation } from "../../animation";
 import { EditorAnimationTimelineKey, IAnimationKeyConfigurationToMove } from "./key";
 
 export interface IEditorAnimationTimelineItemProps {
-    scale: number;
-    currentTime: number;
-    animation: Animation;
-    animatable: IAnimatable | null;
-    animationEditor: EditorAnimation;
+	scale: number;
+	currentTime: number;
+	animation: Animation;
+	animatable: IAnimatable | null;
+	animationEditor: EditorAnimation;
 }
 
 export interface IEditorAnimationTimelineItemState {
-    rightClickPositionX: number | null;
+	rightClickPositionX: number | null;
 }
 
 export class EditorAnimationTimelineItem extends Component<IEditorAnimationTimelineItemProps, IEditorAnimationTimelineItemState> {
 	/**
-     * Defines the list of all available key frames in the track.
-     */
+	 * Defines the list of all available key frames in the track.
+	 */
 	public keyFrames: (EditorAnimationTimelineKey | null)[] = [];
 
 	public constructor(props: IEditorAnimationTimelineItemProps) {
@@ -63,7 +63,7 @@ export class EditorAnimationTimelineItem extends Component<IEditorAnimationTimel
 									animationKey={key}
 									scale={this.props.scale}
 									animatable={this.props.animatable!}
-									ref={(r) => this.keyFrames[index] = r}
+									ref={(r) => (this.keyFrames[index] = r)}
 									animationEditor={this.props.animationEditor}
 									onRemoved={(key) => this._onAnimationKeyRemoved(key)}
 									onClicked={() => this.props.animationEditor.inspector.setEditedKey(key)}
@@ -71,14 +71,14 @@ export class EditorAnimationTimelineItem extends Component<IEditorAnimationTimel
 								/>
 							))}
 
-							{this.state.rightClickPositionX &&
-                                <div
-                                	style={{
-                                		left: `${this.state.rightClickPositionX}px`,
-                                	}}
-                                	className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-4 h-4 rotate-45 bg-muted-foreground/35 border-foreground/35 border-2"
-                                />
-							}
+							{this.state.rightClickPositionX && (
+								<div
+									style={{
+										left: `${this.state.rightClickPositionX}px`,
+									}}
+									className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-4 h-4 rotate-45 bg-muted-foreground/35 border-foreground/35 border-2"
+								/>
+							)}
 						</TooltipProvider>
 					</div>
 				</ContextMenuTrigger>
@@ -95,9 +95,9 @@ export class EditorAnimationTimelineItem extends Component<IEditorAnimationTimel
 	}
 
 	/**
-     * Adds a new animation key for this track located at the current time selected in
-     * the animation editor using the time tracker.
-     */
+	 * Adds a new animation key for this track located at the current time selected in
+	 * the animation editor using the time tracker.
+	 */
 	public addAnimationKey(positionX?: number | null): void {
 		positionX ??= this.state.rightClickPositionX;
 

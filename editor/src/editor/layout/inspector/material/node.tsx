@@ -6,9 +6,7 @@ import { Component, ReactNode } from "react";
 
 import { Grid } from "react-loader-spinner";
 
-import {
-	AbstractMesh, NodeMaterial, Observer, InputBlock, NodeMaterialBlockConnectionPointTypes,
-} from "babylonjs";
+import { AbstractMesh, NodeMaterial, Observer, InputBlock, NodeMaterialBlockConnectionPointTypes } from "babylonjs";
 
 import { Button } from "../../../../ui/shadcn/ui/button";
 
@@ -53,22 +51,14 @@ export class EditorNodeMaterialInspector extends Component<IEditorNodeMaterialIn
 					<EditorInspectorStringField label="Name" object={this.props.material} property="name" />
 					<EditorInspectorSwitchField label="Back Face Culling" object={this.props.material} property="backFaceCulling" />
 
-					<EditorMaterialInspectorUtilsComponent
-						mesh={this.props.mesh}
-						material={this.props.material}
-					/>
+					<EditorMaterialInspectorUtilsComponent mesh={this.props.mesh} material={this.props.material} />
 
-					<Button
-						variant="default"
-						disabled={this.state.searchingToEdit}
-						className="flex gap-2 items-center w-full"
-						onClick={() => this._openNodeMaterialEditor()}
-					>
-						{this.state.searchingToEdit &&
+					<Button variant="default" disabled={this.state.searchingToEdit} className="flex gap-2 items-center w-full" onClick={() => this._openNodeMaterialEditor()}>
+						{this.state.searchingToEdit && (
 							<div className="dark:invert">
 								<Grid width={14} height={14} color="#ffffff" />
 							</div>
-						}
+						)}
 						Edit...
 					</Button>
 				</EditorInspectorSectionField>
@@ -100,21 +90,23 @@ export class EditorNodeMaterialInspector extends Component<IEditorNodeMaterialIn
 			nodir: true,
 		});
 
-		await Promise.all(materialFiles.map(async (filePath) => {
-			try {
-				const data = await readJSON(filePath, {
-					encoding: "utf-8",
-				});
-
-				if (data.customType === "BABYLON.NodeMaterial" && data.uniqueId === this.props.material.uniqueId) {
-					ipcRenderer.send("window:open", "build/src/editor/windows/nme", {
-						filePath,
+		await Promise.all(
+			materialFiles.map(async (filePath) => {
+				try {
+					const data = await readJSON(filePath, {
+						encoding: "utf-8",
 					});
+
+					if (data.customType === "BABYLON.NodeMaterial" && data.uniqueId === this.props.material.uniqueId) {
+						ipcRenderer.send("window:open", "build/src/editor/windows/nme", {
+							filePath,
+						});
+					}
+				} catch (e) {
+					// Catch silently
 				}
-			} catch (e) {
-				// Catch silently
-			}
-		}));
+			})
+		);
 
 		this.setState({
 			searchingToEdit: false,
@@ -167,25 +159,11 @@ export class EditorNodeMaterialInspector extends Component<IEditorNodeMaterialIn
 							case NodeMaterialBlockConnectionPointTypes.Vector2:
 							case NodeMaterialBlockConnectionPointTypes.Vector3:
 							case NodeMaterialBlockConnectionPointTypes.Vector4:
-								return (
-									<EditorInspectorVectorField
-										object={uniform}
-										property="value"
-										label={uniform.name}
-										tooltip={uniform.comments}
-									/>
-								);
+								return <EditorInspectorVectorField object={uniform} property="value" label={uniform.name} tooltip={uniform.comments} />;
 
 							case NodeMaterialBlockConnectionPointTypes.Color3:
 							case NodeMaterialBlockConnectionPointTypes.Color4:
-								return (
-									<EditorInspectorColorField
-										object={uniform}
-										property="value"
-										label={uniform.name}
-										tooltip={uniform.comments}
-									/>
-								);
+								return <EditorInspectorColorField object={uniform} property="value" label={uniform.name} tooltip={uniform.comments} />;
 
 							default:
 								return null;

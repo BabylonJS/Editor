@@ -5,15 +5,15 @@ import { waitNextAnimationFrame } from "../../../../tools/tools";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../../../ui/shadcn/ui/tooltip";
 
 export interface IEditorAnimationTrackerProps {
-    width: number;
-    scale: number;
-    currentTime: number;
+	width: number;
+	scale: number;
+	currentTime: number;
 
-    onTimeChange: (currentTime: number) => void;
+	onTimeChange: (currentTime: number) => void;
 }
 
 export interface IEditorAnimationTrackerState {
-    moving: boolean;
+	moving: boolean;
 }
 
 export class EditorAnimationTracker extends Component<IEditorAnimationTrackerProps, IEditorAnimationTrackerState> {
@@ -50,9 +50,7 @@ export class EditorAnimationTracker extends Component<IEditorAnimationTrackerPro
 								className="w-7 h-7 rotate-45 bg-accent cursor-pointer hover:scale-125 transition-transform duration-300 ease-in-out"
 							/>
 						</TooltipTrigger>
-						<TooltipContent>
-							{this._getTooltipContent()}
-						</TooltipContent>
+						<TooltipContent>{this._getTooltipContent()}</TooltipContent>
 					</Tooltip>
 				</div>
 			</TooltipProvider>
@@ -61,9 +59,7 @@ export class EditorAnimationTracker extends Component<IEditorAnimationTrackerPro
 
 	private _handleClick(ev: MouseEvent<HTMLDivElement, globalThis.MouseEvent>): void {
 		if (!this.state.moving) {
-			const currentTime = Math.round(
-				Math.max(0, ev.nativeEvent.offsetX / this.props.scale),
-			);
+			const currentTime = Math.round(Math.max(0, ev.nativeEvent.offsetX / this.props.scale));
 
 			this.props.onTimeChange(currentTime);
 		}
@@ -87,32 +83,36 @@ export class EditorAnimationTracker extends Component<IEditorAnimationTrackerPro
 
 		const startPosition = this.props.currentTime;
 
-		document.body.addEventListener("mousemove", mouseMoveListener = (ev) => {
-			if (clientX === null) {
-				clientX = ev.clientX;
-			}
+		document.body.addEventListener(
+			"mousemove",
+			(mouseMoveListener = (ev) => {
+				if (clientX === null) {
+					clientX = ev.clientX;
+				}
 
-			const delta = clientX - ev.clientX;
+				const delta = clientX - ev.clientX;
 
-			const currentTime = Math.round(
-				Math.max(0, startPosition - delta / this.props.scale),
-			);
+				const currentTime = Math.round(Math.max(0, startPosition - delta / this.props.scale));
 
-			this.props.onTimeChange(currentTime);
-		});
+				this.props.onTimeChange(currentTime);
+			})
+		);
 
-		document.body.addEventListener("mouseup", mouseUpListener = (ev) => {
-			ev.stopPropagation();
+		document.body.addEventListener(
+			"mouseup",
+			(mouseUpListener = (ev) => {
+				ev.stopPropagation();
 
-			document.body.style.cursor = "auto";
+				document.body.style.cursor = "auto";
 
-			document.body.removeEventListener("mouseup", mouseUpListener);
-			document.body.removeEventListener("mousemove", mouseMoveListener);
+				document.body.removeEventListener("mouseup", mouseUpListener);
+				document.body.removeEventListener("mousemove", mouseMoveListener);
 
-			waitNextAnimationFrame().then(() => {
-				this.setState({ moving: false });
-			});
-		});
+				waitNextAnimationFrame().then(() => {
+					this.setState({ moving: false });
+				});
+			})
+		);
 	}
 
 	private _getTooltipContent(): ReactNode {
@@ -121,15 +121,9 @@ export class EditorAnimationTracker extends Component<IEditorAnimationTrackerPro
 
 		return (
 			<div className="flex flex-col gap-2 justify-center items-center p-2">
-				<div className="font-semibold text-primary-foreground">
-					{this.props.currentTime}
-				</div>
+				<div className="font-semibold text-primary-foreground">{this.props.currentTime}</div>
 				<div className="flex gap-1 items-center text-primary-foreground">
-					{minutes >= 1 &&
-                        <>
-                        	{minutes >> 0}min
-                        </>
-					}
+					{minutes >= 1 && <>{minutes >> 0}min</>}
 					{(seconds - minutes * 60).toFixed(1)}s
 				</div>
 			</div>

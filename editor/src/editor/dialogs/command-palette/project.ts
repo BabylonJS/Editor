@@ -10,7 +10,7 @@ export function getProjectCommands(editor: Editor): ICommandPaletteType[] {
 			text: "Save",
 			label: "Saves the project.",
 			key: "save-project",
-			action: () => saveProject(editor)
+			action: () => saveProject(editor),
 		},
 	];
 }

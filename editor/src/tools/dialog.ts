@@ -1,8 +1,8 @@
 import { FileFilter, ipcRenderer } from "electron";
 
 export type OpenFileDialogOptions = {
-    title?: string;
-    filters?: FileFilter[];
+	title?: string;
+	filters?: FileFilter[];
 };
 
 export function openSingleFileDialog(options?: OpenFileDialogOptions): string {
@@ -18,9 +18,9 @@ export function openSingleFolderDialog(title?: string): string {
 }
 
 export type SaveFileDialogOptions = {
-    title?: string;
-    defaultPath?: string;
-    filters?: FileFilter[];
+	title?: string;
+	defaultPath?: string;
+	filters?: FileFilter[];
 };
 
 export function saveSingleFileDialog(options?: SaveFileDialogOptions): string {

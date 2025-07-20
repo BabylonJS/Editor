@@ -1,7 +1,5 @@
 import { Scene, Sound, Vector3 } from "babylonjs";
-import {
-	ICinematic, ICinematicKey, ICinematicKeyCut, ICinematicTrack, parseCinematicKeyValue, getAnimationTypeForObject
-} from "babylonjs-editor-tools";
+import { ICinematic, ICinematicKey, ICinematicKeyCut, ICinematicTrack, parseCinematicKeyValue, getAnimationTypeForObject } from "babylonjs-editor-tools";
 
 import { getSoundById } from "../../../../tools/sound/tools";
 import { getInspectorPropertyValue } from "../../../../tools/property";
@@ -80,43 +78,45 @@ export function parseCinematicTrack(track: ICinematicTrack, scene: Scene) {
 						contactPoint: Vector3.FromArray(event.data.contactPoint),
 					};
 					break;
-
 			}
 
 			return result;
 		}),
 
-		keyFrameAnimations: node && animationType !== null && track.keyFrameAnimations?.map((keyFrame) => {
-			const animationKey = keyFrame.type === "key" ? keyFrame as ICinematicKey : null;
-			if (animationKey) {
-				return {
-					...animationKey,
-					value: parseCinematicKeyValue(animationKey.value, animationType),
-					inTangent: parseCinematicKeyValue(animationKey.inTangent, animationType),
-					outTangent: parseCinematicKeyValue(animationKey.outTangent, animationType),
-				} as ICinematicKey;
-			}
+		keyFrameAnimations:
+			node &&
+			animationType !== null &&
+			track.keyFrameAnimations?.map((keyFrame) => {
+				const animationKey = keyFrame.type === "key" ? (keyFrame as ICinematicKey) : null;
+				if (animationKey) {
+					return {
+						...animationKey,
+						value: parseCinematicKeyValue(animationKey.value, animationType),
+						inTangent: parseCinematicKeyValue(animationKey.inTangent, animationType),
+						outTangent: parseCinematicKeyValue(animationKey.outTangent, animationType),
+					} as ICinematicKey;
+				}
 
-			const animationKeyCut = keyFrame.type === "cut" ? keyFrame as ICinematicKeyCut : null;
-			if (animationKeyCut) {
-				return {
-					...animationKeyCut,
-					key1: {
-						...animationKeyCut.key1,
-						value: parseCinematicKeyValue(animationKeyCut.key1.value, animationType),
-						inTangent: parseCinematicKeyValue(animationKeyCut.key1.inTangent, animationType),
-						outTangent: parseCinematicKeyValue(animationKeyCut.key1.outTangent, animationType),
-					} as ICinematicKey,
-					key2: {
-						...animationKeyCut.key2,
-						value: parseCinematicKeyValue(animationKeyCut.key2.value, animationType),
-						inTangent: parseCinematicKeyValue(animationKeyCut.key2.inTangent, animationType),
-						outTangent: parseCinematicKeyValue(animationKeyCut.key2.outTangent, animationType),
-					},
-				} as ICinematicKeyCut;
-			}
+				const animationKeyCut = keyFrame.type === "cut" ? (keyFrame as ICinematicKeyCut) : null;
+				if (animationKeyCut) {
+					return {
+						...animationKeyCut,
+						key1: {
+							...animationKeyCut.key1,
+							value: parseCinematicKeyValue(animationKeyCut.key1.value, animationType),
+							inTangent: parseCinematicKeyValue(animationKeyCut.key1.inTangent, animationType),
+							outTangent: parseCinematicKeyValue(animationKeyCut.key1.outTangent, animationType),
+						} as ICinematicKey,
+						key2: {
+							...animationKeyCut.key2,
+							value: parseCinematicKeyValue(animationKeyCut.key2.value, animationType),
+							inTangent: parseCinematicKeyValue(animationKeyCut.key2.inTangent, animationType),
+							outTangent: parseCinematicKeyValue(animationKeyCut.key2.outTangent, animationType),
+						},
+					} as ICinematicKeyCut;
+				}
 
-			throw new Error(`Unknown key frame type: ${keyFrame.type}`);
-		}),
+				throw new Error(`Unknown key frame type: ${keyFrame.type}`);
+			}),
 	};
 }

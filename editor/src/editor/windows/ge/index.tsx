@@ -17,7 +17,7 @@ import { waitNextAnimationFrame } from "../../../tools/tools";
 const { GUIEditor } = require("babylonjs-gui-editor");
 
 export interface INodeMaterialEditorWindowProps {
-    filePath: string;
+	filePath: string;
 }
 
 export default class NodeMaterialEditorWindow extends Component<INodeMaterialEditorWindowProps> {
@@ -36,15 +36,13 @@ export default class NodeMaterialEditorWindow extends Component<INodeMaterialEdi
 					<ToolbarComponent>
 						<div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
 							<div className="flex items-center gap-1 font-semibold text-lg select-none">
-                                GUI Editor
-								<div className="text-sm font-thin">
-                                    (...{this.props.filePath.substring(this.props.filePath.length - 30)})
-								</div>
+								GUI Editor
+								<div className="text-sm font-thin">(...{this.props.filePath.substring(this.props.filePath.length - 30)})</div>
 							</div>
 						</div>
 					</ToolbarComponent>
 
-					<div ref={(r) => this._divRef = r} className="w-full h-full overflow-hidden" />
+					<div ref={(r) => (this._divRef = r)} className="w-full h-full overflow-hidden" />
 				</div>
 
 				<Toaster />

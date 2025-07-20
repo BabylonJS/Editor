@@ -12,36 +12,45 @@ import { unique, waitNextAnimationFrame } from "../tools/tools";
 import { Checkbox } from "./shadcn/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./shadcn/ui/tabs";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "./shadcn/ui/table";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "./shadcn/ui/alert-dialog";
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from "./shadcn/ui/alert-dialog";
 
 import { showAlert } from "./dialog";
 import { SpinnerUIComponent } from "./spinner";
 
 export enum SceneAssetBrowserDialogMode {
-    Meshes = 1,
-    Skeletons = 2,
-    Materials = 4,
-    Lights = 8,
-    AnimationGroups = 16,
+	Meshes = 1,
+	Skeletons = 2,
+	Materials = 4,
+	Lights = 8,
+	AnimationGroups = 16,
 }
 
 export type AssetsBrowserDialogOptions = {
-    /**
-     * Defines wether or not multi selection is enabled.
-     */
-    multiSelect: boolean;
-    /**
-     * Defines the filter to apply to the scene asset browser dialog to only show specific elements.
-     */
-    filter: SceneAssetBrowserDialogMode;
+	/**
+	 * Defines wether or not multi selection is enabled.
+	 */
+	multiSelect: boolean;
+	/**
+	 * Defines the filter to apply to the scene asset browser dialog to only show specific elements.
+	 */
+	filter: SceneAssetBrowserDialogMode;
 };
 
 export type AssetsBrowserDialogResult = {
-    container: AssetContainer;
+	container: AssetContainer;
 
-    selectedMeshes: Mesh[];
-    selectedSkeletons: Skeleton[];
-    selectedAnimationGroups: AnimationGroup[];
+	selectedMeshes: Mesh[];
+	selectedSkeletons: Skeleton[];
+	selectedAnimationGroups: AnimationGroup[];
 };
 
 /**
@@ -97,51 +106,51 @@ export function showAssetBrowserDialog(editor: Editor, options: AssetsBrowserDia
 }
 
 export interface ISceneAssetBrowserDialogProps {
-    /**
-     * Defines the reference to the editor.
-     */
-    editor: Editor;
-    /**
-     * Defines the absolute path to the scene file to load and pick items in.
-     */
-    filename: string;
+	/**
+	 * Defines the reference to the editor.
+	 */
+	editor: Editor;
+	/**
+	 * Defines the absolute path to the scene file to load and pick items in.
+	 */
+	filename: string;
 
-    /**
-     * Defines wether or not multi-select is enabled.
-     */
-    multiSelect: boolean;
-    /**
-     * Defines the filter to apply to the scene asset browser dialog to only show specific elements.
-     */
-    filter: SceneAssetBrowserDialogMode;
+	/**
+	 * Defines wether or not multi-select is enabled.
+	 */
+	multiSelect: boolean;
+	/**
+	 * Defines the filter to apply to the scene asset browser dialog to only show specific elements.
+	 */
+	filter: SceneAssetBrowserDialogMode;
 
-    /**
-     * Defines the callback called on the user wants to close the dialog.
-     */
-    onClose: () => void;
-    /**
-     * Defines the callback called on the user wants to import some assets.
-     */
-    onSelectedAssets: (result: AssetsBrowserDialogResult) => void;
+	/**
+	 * Defines the callback called on the user wants to close the dialog.
+	 */
+	onClose: () => void;
+	/**
+	 * Defines the callback called on the user wants to import some assets.
+	 */
+	onSelectedAssets: (result: AssetsBrowserDialogResult) => void;
 }
 
 export interface ISceneAssetBrowserDialogState {
-    /**
-     * Defines wether or not the scene file is being loaded.
-     */
-    loading: boolean;
-    /**
-     * Defines the list of all selected meshes.
-     */
-    selectedMeshes: Mesh[];
-    /**
-     * Defines the list of all selected skeletons.
-     */
-    selectedSkeletons: Skeleton[];
-    /**
-     * Defines the list of all selected animation groups.
-     */
-    selectedAnimationGroups: AnimationGroup[];
+	/**
+	 * Defines wether or not the scene file is being loaded.
+	 */
+	loading: boolean;
+	/**
+	 * Defines the list of all selected meshes.
+	 */
+	selectedMeshes: Mesh[];
+	/**
+	 * Defines the list of all selected skeletons.
+	 */
+	selectedSkeletons: Skeleton[];
+	/**
+	 * Defines the list of all selected animation groups.
+	 */
+	selectedAnimationGroups: AnimationGroup[];
 }
 
 export class SceneAssetBrowserDialog extends Component<ISceneAssetBrowserDialogProps, ISceneAssetBrowserDialogState> {
@@ -163,49 +172,42 @@ export class SceneAssetBrowserDialog extends Component<ISceneAssetBrowserDialogP
 			<AlertDialog open>
 				<AlertDialogContent className="w-full h-fit transition-all duration-300 ease-in-out">
 					<AlertDialogHeader className="w-full">
-						<AlertDialogTitle>
-                            Scene Browser
-						</AlertDialogTitle>
+						<AlertDialogTitle>Scene Browser</AlertDialogTitle>
 						<AlertDialogDescription className="w-full">
 							<Tabs defaultValue="meshes" className="w-full">
 								<TabsList className="w-full">
-									{(this.props.filter & SceneAssetBrowserDialogMode.Meshes) !== 0 &&
-                                        <TabsTrigger value="meshes" className="w-full">Meshes</TabsTrigger>
-									}
-									{(this.props.filter & SceneAssetBrowserDialogMode.Skeletons) !== 0 &&
-                                        <TabsTrigger value="skeletons" className="w-full">Skeletons</TabsTrigger>
-									}
+									{(this.props.filter & SceneAssetBrowserDialogMode.Meshes) !== 0 && (
+										<TabsTrigger value="meshes" className="w-full">
+											Meshes
+										</TabsTrigger>
+									)}
+									{(this.props.filter & SceneAssetBrowserDialogMode.Skeletons) !== 0 && (
+										<TabsTrigger value="skeletons" className="w-full">
+											Skeletons
+										</TabsTrigger>
+									)}
 								</TabsList>
 
-								{!this.state.loading && (this.props.filter & SceneAssetBrowserDialogMode.Meshes) !== 0 &&
-                                    <TabsContent value="meshes">
-                                    	{this._getMeshesGridComponent()}
-                                    </TabsContent>
-								}
+								{!this.state.loading && (this.props.filter & SceneAssetBrowserDialogMode.Meshes) !== 0 && (
+									<TabsContent value="meshes">{this._getMeshesGridComponent()}</TabsContent>
+								)}
 
-								{!this.state.loading && (this.props.filter & SceneAssetBrowserDialogMode.Skeletons) !== 0 &&
-                                    <TabsContent value="skeletons">
-                                    	{this._getSkeletonsGridComponent()}
-                                    </TabsContent>
-								}
+								{!this.state.loading && (this.props.filter & SceneAssetBrowserDialogMode.Skeletons) !== 0 && (
+									<TabsContent value="skeletons">{this._getSkeletonsGridComponent()}</TabsContent>
+								)}
 							</Tabs>
 
-							{this.state.loading &&
-                                <div className="flex justify-center items-center w-full h-full">
-                                	<SpinnerUIComponent />
-                                </div>
-							}
+							{this.state.loading && (
+								<div className="flex justify-center items-center w-full h-full">
+									<SpinnerUIComponent />
+								</div>
+							)}
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>
-						<AlertDialogCancel onClick={() => this.props.onClose()}>
-                            Cancel
-						</AlertDialogCancel>
-						<AlertDialogAction
-							disabled={this.state.loading}
-							onClick={() => this._handleImport()}
-						>
-                            Import
+						<AlertDialogCancel onClick={() => this.props.onClose()}>Cancel</AlertDialogCancel>
+						<AlertDialogAction disabled={this.state.loading} onClick={() => this._handleImport()}>
+							Import
 						</AlertDialogAction>
 					</AlertDialogFooter>
 				</AlertDialogContent>
@@ -321,9 +323,7 @@ export class SceneAssetBrowserDialog extends Component<ISceneAssetBrowserDialogP
 
 		return (
 			<Table>
-				<TableCaption>
-                    List of all available meshes with geometry.
-				</TableCaption>
+				<TableCaption>List of all available meshes with geometry.</TableCaption>
 				<TableHeader>
 					<TableRow>
 						<TableHead className="w-[48px]"></TableHead>
@@ -356,9 +356,7 @@ export class SceneAssetBrowserDialog extends Component<ISceneAssetBrowserDialogP
 	private _getSkeletonsGridComponent(): ReactNode {
 		return (
 			<Table>
-				<TableCaption>
-                    List of all available skeletons.
-				</TableCaption>
+				<TableCaption>List of all available skeletons.</TableCaption>
 				<TableHeader>
 					<TableRow>
 						<TableHead className="w-[48px]"></TableHead>

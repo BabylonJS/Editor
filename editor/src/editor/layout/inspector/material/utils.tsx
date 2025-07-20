@@ -28,11 +28,11 @@ export class EditorMaterialInspectorUtilsComponent extends Component<IEditorMate
 					Export...
 				</Button>
 
-				{this.props.mesh &&
+				{this.props.mesh && (
 					<Button variant="secondary" className="w-full hover:bg-destructive" onClick={() => this._handleRemove()}>
 						Remove
 					</Button>
-				}
+				)}
 			</div>
 		);
 	}
@@ -48,8 +48,8 @@ export class EditorMaterialInspectorUtilsComponent extends Component<IEditorMate
 
 		registerUndoRedo({
 			executeRedo: true,
-			undo: () => mesh.material = material,
-			redo: () => mesh.material = null,
+			undo: () => (mesh.material = material),
+			redo: () => (mesh.material = null),
 		});
 
 		onRedoObservable.notifyObservers();
@@ -60,9 +60,7 @@ export class EditorMaterialInspectorUtilsComponent extends Component<IEditorMate
 
 		const destination = saveSingleFileDialog({
 			title: "Export Material",
-			filters: [
-				{ name: "Material File", extensions: ["material"] },
-			],
+			filters: [{ name: "Material File", extensions: ["material"] }],
 			defaultPath: join(dirname(projectConfiguration.path!), "assets"),
 		});
 

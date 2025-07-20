@@ -59,11 +59,7 @@ export class AssetBrowserMaterialItem extends AssetsBrowserItem {
 		data.id = Tools.RandomId();
 		data.uniqueId = UniqueNumber.Get();
 
-		let name = await showPrompt(
-			"Enter the name for the cloned material",
-			undefined,
-			basename(this.props.absolutePath).replace(".material", ""),
-		);
+		let name = await showPrompt("Enter the name for the cloned material", undefined, basename(this.props.absolutePath).replace(".material", ""));
 
 		if (!name) {
 			return;
@@ -76,10 +72,7 @@ export class AssetBrowserMaterialItem extends AssetsBrowserItem {
 		const absoluteDestination = join(dirname(this.props.absolutePath), name);
 
 		if (await pathExists(absoluteDestination)) {
-			return showAlert(
-				"Can't clone material",
-				`A material with name ("${name}") already exists in the current folder.`,
-			);
+			return showAlert("Can't clone material", `A material with name ("${name}") already exists in the current folder.`);
 		}
 
 		await writeJSON(absoluteDestination, data, {

@@ -13,42 +13,43 @@ export async function renameScene(oldAbsolutePath: string, newAbsolutePath: stri
 	const name = basename(oldAbsolutePath, ".scene");
 	const newName = basename(newAbsolutePath);
 
-	const [meshesFiles, lodsFiles] = await Promise.all([
-		readdir(join(newAbsolutePath, "meshes")),
-		readdir(join(newAbsolutePath, "lods")),
-	]);
+	const [meshesFiles, lodsFiles] = await Promise.all([readdir(join(newAbsolutePath, "meshes")), readdir(join(newAbsolutePath, "lods"))]);
 
 	await Promise.all([
-		Promise.all(meshesFiles.map(async (file) => {
-			const data = await readJSON(join(newAbsolutePath, "meshes", file));
+		Promise.all(
+			meshesFiles.map(async (file) => {
+				const data = await readJSON(join(newAbsolutePath, "meshes", file));
 
-			try {
-				data.meshes.forEach((mesh) => {
-					mesh.delayLoadingFile = mesh.delayLoadingFile.replace(`assets/${name}.scene/`, `assets/${newName}/`);
-				});
+				try {
+					data.meshes.forEach((mesh) => {
+						mesh.delayLoadingFile = mesh.delayLoadingFile.replace(`assets/${name}.scene/`, `assets/${newName}/`);
+					});
 
-				await writeJson(join(newAbsolutePath, "meshes", file), data, {
-					spaces: 4
-				});
-			} catch (e) {
-				// Catch silently.
-			}
-		})),
-		Promise.all(lodsFiles.map(async (file) => {
-			const data = await readJSON(join(newAbsolutePath, "lods", file));
+					await writeJson(join(newAbsolutePath, "meshes", file), data, {
+						spaces: 4,
+					});
+				} catch (e) {
+					// Catch silently.
+				}
+			})
+		),
+		Promise.all(
+			lodsFiles.map(async (file) => {
+				const data = await readJSON(join(newAbsolutePath, "lods", file));
 
-			try {
-				data.meshes.forEach((mesh) => {
-					mesh.delayLoadingFile = mesh.delayLoadingFile.replace(`assets/${name}.scene/`, `assets/${newName}/`);
-				});
+				try {
+					data.meshes.forEach((mesh) => {
+						mesh.delayLoadingFile = mesh.delayLoadingFile.replace(`assets/${name}.scene/`, `assets/${newName}/`);
+					});
 
-				await writeJson(join(newAbsolutePath, "lods", file), data, {
-					spaces: 4
-				});
-			} catch (e) {
-				// Catch silently.
-			}
-		})),
+					await writeJson(join(newAbsolutePath, "lods", file), data, {
+						spaces: 4,
+					});
+				} catch (e) {
+					// Catch silently.
+				}
+			})
+		),
 	]);
 
 	// Remove output if exists to keep clean public/scene folder.

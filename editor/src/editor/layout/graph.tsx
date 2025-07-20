@@ -19,7 +19,16 @@ import { BaseTexture, Node, Scene, Sound, Tools, IParticleSystem, ParticleSystem
 import { Editor } from "../main";
 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "../../ui/shadcn/ui/dropdown-menu";
-import { ContextMenu, ContextMenuItem, ContextMenuContent, ContextMenuTrigger, ContextMenuSeparator, ContextMenuSub, ContextMenuSubContent, ContextMenuSubTrigger } from "../../ui/shadcn/ui/context-menu";
+import {
+	ContextMenu,
+	ContextMenuItem,
+	ContextMenuContent,
+	ContextMenuTrigger,
+	ContextMenuSeparator,
+	ContextMenuSub,
+	ContextMenuSubContent,
+	ContextMenuSubTrigger,
+} from "../../ui/shadcn/ui/context-menu";
 
 import { isSound } from "../../tools/guards/sound";
 import { isSceneLinkNode } from "../../tools/guards/scene";
@@ -30,8 +39,25 @@ import { updateIblShadowsRenderPipeline } from "../../tools/light/ibl";
 import { UniqueNumber, waitNextAnimationFrame } from "../../tools/tools";
 import { isMeshMetadataNotVisibleInGraph } from "../../tools/mesh/metadata";
 import { isAnyParticleSystem, isGPUParticleSystem, isParticleSystem } from "../../tools/guards/particles";
-import { isAbstractMesh, isCamera, isCollisionInstancedMesh, isCollisionMesh, isEditorCamera, isInstancedMesh, isLight, isMesh, isNode, isTransformNode } from "../../tools/guards/nodes";
-import { onNodeModifiedObservable, onNodesAddedObservable, onParticleSystemAddedObservable, onParticleSystemModifiedObservable, onTextureModifiedObservable } from "../../tools/observables";
+import {
+	isAbstractMesh,
+	isCamera,
+	isCollisionInstancedMesh,
+	isCollisionMesh,
+	isEditorCamera,
+	isInstancedMesh,
+	isLight,
+	isMesh,
+	isNode,
+	isTransformNode,
+} from "../../tools/guards/nodes";
+import {
+	onNodeModifiedObservable,
+	onNodesAddedObservable,
+	onParticleSystemAddedObservable,
+	onParticleSystemModifiedObservable,
+	onTextureModifiedObservable,
+} from "../../tools/observables";
 
 import { onProjectConfigurationChangedObservable } from "../../project/configuration";
 
@@ -128,20 +154,29 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 							<Button minimal icon="settings" className="transition-all duration-300" />
 						</DropdownMenuTrigger>
 						<DropdownMenuContent>
-							<DropdownMenuItem className="flex gap-1 items-center" onClick={() => {
-								this.setState({ hideInstancedMeshes: !this.state.hideInstancedMeshes }, () => this.refresh());
-							}}>
+							<DropdownMenuItem
+								className="flex gap-1 items-center"
+								onClick={() => {
+									this.setState({ hideInstancedMeshes: !this.state.hideInstancedMeshes }, () => this.refresh());
+								}}
+							>
 								{this.state.hideInstancedMeshes ? <IoCheckmark /> : ""} Hide Instanced Meshes
 							</DropdownMenuItem>
 							<DropdownMenuSeparator />
-							<DropdownMenuItem className="flex gap-1 items-center" onClick={() => {
-								this.setState({ showOnlyLights: !this.state.showOnlyLights }, () => this.refresh());
-							}}>
+							<DropdownMenuItem
+								className="flex gap-1 items-center"
+								onClick={() => {
+									this.setState({ showOnlyLights: !this.state.showOnlyLights }, () => this.refresh());
+								}}
+							>
 								{this.state.showOnlyLights ? <IoCheckmark /> : ""} Show Only Lights
 							</DropdownMenuItem>
-							<DropdownMenuItem className="flex gap-1 items-center" onClick={() => {
-								this.setState({ showOnlyDecals: !this.state.showOnlyDecals }, () => this.refresh());
-							}}>
+							<DropdownMenuItem
+								className="flex gap-1 items-center"
+								onClick={() => {
+									this.setState({ showOnlyDecals: !this.state.showOnlyDecals }, () => this.refresh());
+								}}
+							>
 								{this.state.showOnlyDecals ? <IoCheckmark /> : ""} Show Only Decals
 							</DropdownMenuItem>
 						</DropdownMenuContent>
@@ -157,11 +192,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 					onNodeDoubleClick={(n, _, ev) => this._handleNodeDoubleClicked(n, ev)}
 				/>
 
-				<div
-					className="w-full h-full min-h-20"
-					onDragOver={(ev) => ev.preventDefault()}
-					onDrop={(ev) => this._handleDropEmpty(ev)}
-				>
+				<div className="w-full h-full min-h-20" onDragOver={(ev) => ev.preventDefault()} onDrop={(ev) => this._handleDropEmpty(ev)}>
 					<ContextMenu>
 						<ContextMenuTrigger className="w-full h-full">
 							<div className="w-full h-full"></div>
@@ -226,15 +257,10 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			}
 
 			if (this.state.showOnlyDecals) {
-				nodes.push(...scene.meshes
-					.filter((mesh) => mesh.metadata?.decal)
-					.map((mesh) => this._parseSceneNode(mesh, true))
-				);
+				nodes.push(...scene.meshes.filter((mesh) => mesh.metadata?.decal).map((mesh) => this._parseSceneNode(mesh, true)));
 			}
 		} else {
-			nodes = scene.rootNodes
-				.filter((n) => !isEditorCamera(n))
-				.map((n) => this._parseSceneNode(n));
+			nodes = scene.rootNodes.filter((n) => !isEditorCamera(n)).map((n) => this._parseSceneNode(n));
 		}
 
 		const guiNode = this._parseGuiNode(scene);
@@ -267,12 +293,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 	 * @param node defines the reference tot the node to select in the graph.
 	 */
 	public setSelectedNode(node: Node | Sound | IParticleSystem): void {
-		let source =
-			isSound(node)
-				? node["_connectedTransformNode"]
-				: isAnyParticleSystem(node)
-					? node.emitter
-					: node;
+		let source = isSound(node) ? node["_connectedTransformNode"] : isAnyParticleSystem(node) ? node.emitter : node;
 
 		if (!source) {
 			return;
@@ -285,7 +306,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		}
 
 		this._forEachNode(this.state.nodes, (n) => {
-			if (typeof (n.id) === "string" && idsToExpand.includes(n.id)) {
+			if (typeof n.id === "string" && idsToExpand.includes(n.id)) {
 				n.isExpanded = true;
 			}
 
@@ -342,11 +363,9 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 
 			if (isAbstractMesh(object)) {
 				const suffix = "(Instanced Mesh)";
-				const name = isInstancedMesh(object)
-					? object.name
-					: `${object.name.replace(` ${suffix}`, "")} ${suffix}`;
+				const name = isInstancedMesh(object) ? object.name : `${object.name.replace(` ${suffix}`, "")} ${suffix}`;
 
-				const instance = node = object.createInstance(name);
+				const instance = (node = object.createInstance(name));
 				instance.position.copyFrom(object.position);
 				instance.rotation.copyFrom(object.rotation);
 				instance.scaling.copyFrom(object.scaling);
@@ -444,7 +463,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		} else if (ev.shiftKey) {
 			this._handleShiftSelect(node);
 		} else {
-			this._forEachNode(this.state.nodes, (n) => n.isSelected = n.id === node.id);
+			this._forEachNode(this.state.nodes, (n) => (n.isSelected = n.id === node.id));
 		}
 
 		this.setState({ nodes: this.state.nodes });
@@ -657,11 +676,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 	}
 
 	private _parseSceneNode(node: Node, noChildren?: boolean): TreeNodeInfo | null {
-		if (
-			isMesh(node) && (node._masterMesh || isMeshMetadataNotVisibleInGraph(node)) ||
-			isCollisionMesh(node) ||
-			isCollisionInstancedMesh(node)
-		) {
+		if ((isMesh(node) && (node._masterMesh || isMeshMetadataNotVisibleInGraph(node))) || isCollisionMesh(node) || isCollisionInstancedMesh(node)) {
 			return null;
 		}
 
@@ -833,13 +848,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 	}
 
 	private _getNodeLabelComponent(object: any, name?: string | null, noContextMenu?: boolean): JSX.Element {
-		const label = (
-			<EditorGraphLabel
-				object={object}
-				editor={this.props.editor}
-				name={name ?? "Unnamed Node"}
-			/>
-		);
+		const label = <EditorGraphLabel object={object} editor={this.props.editor} name={name ?? "Unnamed Node"} />;
 
 		if (noContextMenu) {
 			return label;

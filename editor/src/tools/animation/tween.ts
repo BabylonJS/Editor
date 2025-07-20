@@ -1,13 +1,7 @@
 import { getAnimationTypeForObject } from "babylonjs-editor-tools";
 import { Animatable, Animation, EasingFunction, IAnimationKey, Nullable, Scene } from "babylonjs";
 
-import {
-	tweensMap,
-	registerTarget,
-	registerTween,
-	checkTargetTweens,
-	registerTweenEnded,
-} from "./tools";
+import { tweensMap, registerTarget, registerTween, checkTargetTweens, registerTweenEnded } from "./tools";
 
 export interface ITweenEasingConfiguration {
 	mode: number;
@@ -46,21 +40,7 @@ export interface ITweenConfiguration {
 	killAllTweensOfTarget?: boolean;
 }
 
-const reservedProperties = [
-	"scene",
-	"delay",
-	"easing",
-
-	"loop",
-
-	"killAllTweensOfTarget",
-
-	"properties",
-
-	"onStart",
-	"onUpdate",
-	"onComplete",
-];
+const reservedProperties = ["scene", "delay", "easing", "loop", "killAllTweensOfTarget", "properties", "onStart", "onUpdate", "onComplete"];
 
 export class Tween {
 	/**
@@ -164,15 +144,11 @@ export class Tween {
 	 * @param properties defines the dictionary of all animated properties.
 	 * @returns a reference to a tween.
 	 */
-	public static createForCSS(
-		target: HTMLElement,
-		duration: number,
-		options: ITweenConfiguration
-	): Tween {
+	public static createForCSS(target: HTMLElement, duration: number, options: ITweenConfiguration): Tween {
 		this._configureOptions(options);
 
 		const keys = Object.keys(options.properties!);
-		const values: { [propertyPath: string]: number; } = {};
+		const values: { [propertyPath: string]: number } = {};
 
 		keys.forEach((k: any) => {
 			values[k] = options.properties![k].from ?? (parseFloat(target.style[k]) || 0);
@@ -207,11 +183,7 @@ export class Tween {
 	 * @param options defines the options the tween (easing, delay, etc.).
 	 * @returns a reference to a tween.
 	 */
-	public static create<T>(
-		target: Nullable<T> | Nullable<T>[],
-		duration: number,
-		options: ITweenConfiguration
-	): Tween {
+	public static create<T>(target: Nullable<T> | Nullable<T>[], duration: number, options: ITweenConfiguration): Tween {
 		if (!this.Scene) {
 			throw new Error("Scene not available for tween");
 		}
@@ -251,9 +223,7 @@ export class Tween {
 				const animatedProperty = effectiveTarget?.[targetProperty];
 
 				if ((animatedProperty ?? null) === null) {
-					return console.warn(
-						`Can't create tween for animated property "${k}" on target ${t}: the property doesn't exist.`
-					);
+					return console.warn(`Can't create tween for animated property "${k}" on target ${t}: the property doesn't exist.`);
 				}
 
 				// Delay
@@ -292,13 +262,7 @@ export class Tween {
 					]
 				);
 
-				const a = new Animation(
-					k,
-					k,
-					60,
-					getAnimationTypeForObject(animatedProperty)!,
-					Animation.ANIMATIONLOOPMODE_RELATIVE
-				);
+				const a = new Animation(k, k, 60, getAnimationTypeForObject(animatedProperty)!, Animation.ANIMATIONLOOPMODE_RELATIVE);
 				a.setKeys(keys);
 
 				// Easing
@@ -314,17 +278,9 @@ export class Tween {
 				animations.push(a);
 			});
 
-			const animatable = scene.beginDirectAnimation(
-				t,
-				animations,
-				0,
-				maxFrame,
-				options.loop ?? false,
-				1.0,
-				() => {
-					options.onComplete?.();
-				}
-			);
+			const animatable = scene.beginDirectAnimation(t, animations, 0, maxFrame, options.loop ?? false, 1.0, () => {
+				options.onComplete?.();
+			});
 
 			animatables.push(animatable);
 		});

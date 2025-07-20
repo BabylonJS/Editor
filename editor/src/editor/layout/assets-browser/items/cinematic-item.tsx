@@ -11,25 +11,19 @@ import { AssetsBrowserItem } from "./item";
 
 export class AssetBrowserCinematicItem extends AssetsBrowserItem {
 	/**
-     * @override
-     */
+	 * @override
+	 */
 	protected getIcon(): ReactNode {
 		return <FaFilm size="64px" />;
 	}
 
 	/**
-     * @override
-     */
+	 * @override
+	 */
 	protected async onDoubleClick(): Promise<void> {
 		const data = await readJSON(this.props.absolutePath);
 		const cinematic = parseCinematic(data, this.props.editor.layout.preview.scene);
 
-		this.props.editor.layout.addLayoutTab("Cinematic Editor", (
-			<CinematicEditor
-				cinematic={cinematic}
-				editor={this.props.editor}
-				absolutePath={this.props.absolutePath}
-			/>
-		));
+		this.props.editor.layout.addLayoutTab("Cinematic Editor", <CinematicEditor cinematic={cinematic} editor={this.props.editor} absolutePath={this.props.absolutePath} />);
 	}
 }

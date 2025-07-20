@@ -44,9 +44,7 @@ export function parseMesh(runtime: AssimpJSRuntime, data: IAssimpJSNodeData): Me
 		const indicesStart = offset;
 		const indicesCount = i.length;
 
-		subMeshes.push(
-			new SubMesh(index, verticesStart, verticesCount, indicesStart, indicesCount, mesh, mesh, false, true)
-		);
+		subMeshes.push(new SubMesh(index, verticesStart, verticesCount, indicesStart, indicesCount, mesh, mesh, false, true));
 
 		offset += i.length;
 	});
@@ -73,7 +71,7 @@ export function parseMesh(runtime: AssimpJSRuntime, data: IAssimpJSNodeData): Me
 		const allMatricesWeights = new Array(meshes.length);
 
 		meshes.forEach((meshData) => {
-			const map: { boneIndex: number; weight: number; }[][] = [];
+			const map: { boneIndex: number; weight: number }[][] = [];
 
 			meshData.bones?.forEach((boneData, boneIndex) => {
 				let bone = skeleton.bones.find((bone) => bone.name === boneData.name);

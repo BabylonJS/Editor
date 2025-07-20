@@ -49,7 +49,16 @@ import { showConfirm, showPrompt } from "../../ui/dialog";
 import { Input } from "../../ui/shadcn/ui/input";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator } from "../../ui/shadcn/ui/breadcrumb";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "../../ui/shadcn/ui/dropdown-menu";
-import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger, ContextMenuSeparator, ContextMenuSubTrigger, ContextMenuSub, ContextMenuSubContent } from "../../ui/shadcn/ui/context-menu";
+import {
+	ContextMenu,
+	ContextMenuContent,
+	ContextMenuItem,
+	ContextMenuTrigger,
+	ContextMenuSeparator,
+	ContextMenuSubTrigger,
+	ContextMenuSub,
+	ContextMenuSubContent,
+} from "../../ui/shadcn/ui/context-menu";
 
 import { FileInspectorObject } from "./inspector/file";
 
@@ -72,7 +81,6 @@ import { openModelViewer } from "./assets-browser/viewers/model-viewer";
 import "babylonjs-loaders";
 
 import "../../loader/assimpjs";
-
 
 const HDRSelectable = createSelectable(AssetBrowserHDRItem);
 const GuiSelectable = createSelectable(AssetBrowserGUIItem);
@@ -139,12 +147,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 	public render(): ReactNode {
 		return (
 			<PanelGroup direction="horizontal" className="w-full h-full text-foreground">
-				<Panel
-					order={1}
-					minSize={20}
-					className="w-full h-full"
-					defaultSize={this.state.sizes[0]}
-				>
+				<Panel order={1} minSize={20} className="w-full h-full" defaultSize={this.state.sizes[0]}>
 					<div className="flex flex-col w-full h-full">
 						<div className="relative flex items-center px-1 w-full h-10 min-h-10 bg-primary-foreground">
 							<Input
@@ -181,11 +184,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 
 				<PanelResizeHandle className="w-2 bg-border/10 h-full cursor-pointer hover:bg-black/30 transition-all duration-300" />
 
-				<Panel
-					order={2}
-					className="w-full h-full"
-					defaultSize={this.state.sizes[1]}
-				>
+				<Panel order={2} className="w-full h-full" defaultSize={this.state.sizes[1]}>
 					{this._getFilesGridComponent()}
 				</Panel>
 			</PanelGroup>
@@ -253,11 +252,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
                                     ${relativePath.startsWith("public") || relativePath.startsWith("node_modules") ? "opacity-35" : ""}
                                 `}
 								onDragOver={(ev) => ev.preventDefault()}
-								onDrop={
-									relativePath.startsWith("assets")
-										? (ev) => this._handleDropInTree(ev, relativePath)
-										: undefined
-								}
+								onDrop={relativePath.startsWith("assets") ? (ev) => this._handleDropInTree(ev, relativePath) : undefined}
 							>
 								{split[i]}
 							</div>
@@ -308,18 +303,16 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 		});
 
 		this.setState({
-			filesTreeNodes: [{
-				label: (
-					<div className="ml-2 p-1">
-						Project
-					</div>
-				),
-				id: "/",
-				nodeData: "/",
-				isExpanded: true,
-				childNodes: filesTreeNodes,
-				icon: <FaFolderOpen className="w-4 h-4" />,
-			}],
+			filesTreeNodes: [
+				{
+					label: <div className="ml-2 p-1">Project</div>,
+					id: "/",
+					nodeData: "/",
+					isExpanded: true,
+					childNodes: filesTreeNodes,
+					icon: <FaFolderOpen className="w-4 h-4" />,
+				},
+			],
 		});
 	}
 
@@ -363,16 +356,18 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 			return;
 		}
 
-		await Promise.all(this._selectedFiles.map(async (f) => {
-			const fStat = await stat(f);
-			const targetPath = join(this.state.browsedPath!, basename(f));
+		await Promise.all(
+			this._selectedFiles.map(async (f) => {
+				const fStat = await stat(f);
+				const targetPath = join(this.state.browsedPath!, basename(f));
 
-			if (fStat.isDirectory() || await pathExists(targetPath)) {
-				return;
-			}
+				if (fStat.isDirectory() || (await pathExists(targetPath))) {
+					return;
+				}
 
-			await copyFile(f, join(this.state.browsedPath!, basename(f)));
-		}));
+				await copyFile(f, join(this.state.browsedPath!, basename(f)));
+			})
+		);
 
 		this.refresh();
 	}
@@ -488,11 +483,13 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 	public async handleMoveSelectedFilesTo(absolutePath: string): Promise<void> {
 		const files = this.state.selectedKeys;
 
-		await Promise.all(files.map(async (file) => {
-			const newAbsolutePath = join(absolutePath, basename(file));
-			await move(file, newAbsolutePath);
-			await this.handleFileRenamed(file, newAbsolutePath);
-		}));
+		await Promise.all(
+			files.map(async (file) => {
+				const newAbsolutePath = join(absolutePath, basename(file));
+				await move(file, newAbsolutePath);
+				await this.handleFileRenamed(file, newAbsolutePath);
+			})
+		);
 
 		this.refresh();
 	}
@@ -519,9 +516,21 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 			<div className="flex flex-col w-full h-full">
 				<div className="flex gap-2 justify-between w-full h-10 min-h-10 bg-primary-foreground">
 					<div className="flex gap-2 h-full">
-						<Button disabled={this._isBrowsingProjectRootPath()} minimal icon="arrow-left" className="transition-all duration-300" onClick={() => this.setBrowsePath(dirname(this.state.browsedPath!))} />
+						<Button
+							disabled={this._isBrowsingProjectRootPath()}
+							minimal
+							icon="arrow-left"
+							className="transition-all duration-300"
+							onClick={() => this.setBrowsePath(dirname(this.state.browsedPath!))}
+						/>
 						<Button minimal icon="arrow-right" className="transition-all duration-300" />
-						<Button minimal icon="refresh" className="transition-all duration-300" disabled={!this.state.browsedPath} onClick={() => this._refreshItems(this.state.browsedPath!)} />
+						<Button
+							minimal
+							icon="refresh"
+							className="transition-all duration-300"
+							disabled={!this.state.browsedPath}
+							onClick={() => this._refreshItems(this.state.browsedPath!)}
+						/>
 
 						<Button minimal icon="import" text="Import" onClick={() => this._handleImportFiles()} />
 					</div>
@@ -544,19 +553,30 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 
 						<DropdownMenu onOpenChange={(o) => o && this.forceUpdate()}>
 							<DropdownMenuTrigger asChild>
-								<Button minimal icon={<IoIosOptions className="w-6 h-6" strokeWidth={1} />} className="transition-all duration-300" disabled={!this.state.browsedPath} onClick={() => this._refreshItems(this.state.browsedPath!)} />
+								<Button
+									minimal
+									icon={<IoIosOptions className="w-6 h-6" strokeWidth={1} />}
+									className="transition-all duration-300"
+									disabled={!this.state.browsedPath}
+									onClick={() => this._refreshItems(this.state.browsedPath!)}
+								/>
 							</DropdownMenuTrigger>
 							<DropdownMenuContent>
-								<DropdownMenuItem className="flex gap-1 items-center" onClick={() => {
-									this.setState({ showGeneratedFiles: !this.state.showGeneratedFiles }, () => this.refresh());
-								}}>
+								<DropdownMenuItem
+									className="flex gap-1 items-center"
+									onClick={() => {
+										this.setState({ showGeneratedFiles: !this.state.showGeneratedFiles }, () => this.refresh());
+									}}
+								>
 									{this.state.showGeneratedFiles ? <IoCheckmark /> : ""} Show Generated Files
 								</DropdownMenuItem>
 								<DropdownMenuSeparator />
-								<DropdownMenuItem disabled={processingCompressedTextures} className="flex gap-2 items-center" onClick={() => checkProjectCachedCompressedTextures(this.props.editor)}>
-									{processingCompressedTextures &&
-										<Grid width={14} height={14} color="#ffffff" />
-									}
+								<DropdownMenuItem
+									disabled={processingCompressedTextures}
+									className="flex gap-2 items-center"
+									onClick={() => checkProjectCachedCompressedTextures(this.props.editor)}
+								>
+									{processingCompressedTextures && <Grid width={14} height={14} color="#ffffff" />}
 									Check Compressed Textures
 								</DropdownMenuItem>
 							</DropdownMenuContent>
@@ -587,26 +607,24 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 			<div className="flex items-center px-2.5 h-10 min-h-10 bg-primary-foreground/50">
 				<Breadcrumb>
 					<BreadcrumbList>
-						{split.filter((s) => s !== "").map((s, i) => (
-							<Fade key={i} delay={0} duration={300}>
-								<BreadcrumbItem className="flex gap-[5px] items-center">
-									{(i === 0 || i < split.length - 1) &&
-										<FaRegFolderOpen className="text-foreground w-[20px] h-[20px]" />
-									}
+						{split
+							.filter((s) => s !== "")
+							.map((s, i) => (
+								<Fade key={i} delay={0} duration={300}>
+									<BreadcrumbItem className="flex gap-[5px] items-center">
+										{(i === 0 || i < split.length - 1) && <FaRegFolderOpen className="text-foreground w-[20px] h-[20px]" />}
 
-									<BreadcrumbLink
-										className="text-foreground font-[400] hover:text-foreground/50"
-										onClick={() => this.setBrowsePath(join(rootPath, split.slice(1, i + 1).join("/")))}
-									>
-										{s}
-									</BreadcrumbLink>
-								</BreadcrumbItem>
+										<BreadcrumbLink
+											className="text-foreground font-[400] hover:text-foreground/50"
+											onClick={() => this.setBrowsePath(join(rootPath, split.slice(1, i + 1).join("/")))}
+										>
+											{s}
+										</BreadcrumbLink>
+									</BreadcrumbItem>
 
-								{i < split.length - 1 &&
-									<BreadcrumbSeparator />
-								}
-							</Fade>
-						))}
+									{i < split.length - 1 && <BreadcrumbSeparator />}
+								</Fade>
+							))}
 					</BreadcrumbList>
 				</Breadcrumb>
 			</div>
@@ -628,8 +646,8 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 								gridTemplateRows: `repeat(auto-fill, ${120 * 1}px)`,
 								gridTemplateColumns: `repeat(auto-fill, ${120 * 1}px)`,
 							}}
-							onMouseMove={() => this._isMouseOver = true}
-							onMouseLeave={() => this._isMouseOver = false}
+							onMouseMove={() => (this._isMouseOver = true)}
+							onMouseLeave={() => (this._isMouseOver = false)}
 							onDragOver={(ev) => this._handleDragOver(ev)}
 							onDragLeave={() => this.setState({ dragAndDroppingFiles: false })}
 							onDrop={(ev) => this._handleDrop(ev)}
@@ -639,16 +657,14 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
                                 transition-colors duration-300 ease-in-out    
                             `}
 						>
-							{
-								this.state.files
-									.filter((f) => f.toLowerCase().includes(this.state.gridSearch.toLowerCase()))
-									.map((f) => {
-										const key = join(this.state.browsedPath!, f);
-										const selected = this.state.selectedKeys.indexOf(key) > -1;
+							{this.state.files
+								.filter((f) => f.toLowerCase().includes(this.state.gridSearch.toLowerCase()))
+								.map((f) => {
+									const key = join(this.state.browsedPath!, f);
+									const selected = this.state.selectedKeys.indexOf(key) > -1;
 
-										return this._getAssetBrowserItem(f, key, selected);
-									})
-							}
+									return this._getAssetBrowserItem(f, key, selected);
+								})}
 						</div>
 					</ContextMenuTrigger>
 					<ContextMenuContent>
@@ -658,7 +674,9 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 
 						<ContextMenuSeparator />
 
-						<ContextMenuItem disabled={this._selectedFiles.length === 0} onClick={() => this._pasteSelectedFiles()}>Paste</ContextMenuItem>
+						<ContextMenuItem disabled={this._selectedFiles.length === 0} onClick={() => this._pasteSelectedFiles()}>
+							Paste
+						</ContextMenuItem>
 
 						<ContextMenuSeparator />
 
@@ -678,30 +696,28 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 								<ContextMenuSeparator />
 								<ContextMenuItem onClick={() => this._handleAddNodeMaterialFromSnippet()}>Node Material From Snippet...</ContextMenuItem>
 
-								{this.props.editor.state.enableExperimentalFeatures &&
+								{this.props.editor.state.enableExperimentalFeatures && (
 									<>
 										<ContextMenuSeparator />
 										<ContextMenuItem onClick={() => this._handleAddCinematic()}>Cinematic</ContextMenuItem>
 									</>
-								}
+								)}
 
 								<ContextMenuSeparator />
 								<ContextMenuItem onClick={() => this._handleAddFullScreenGUI()}>Full Screen GUI</ContextMenuItem>
 
-								{this.state.browsedPath?.startsWith(join(dirname(projectConfiguration.path!), "/src")) &&
+								{this.state.browsedPath?.startsWith(join(dirname(projectConfiguration.path!), "/src")) && (
 									<>
 										<ContextMenuSeparator />
 										<ContextMenuSub>
-											<ContextMenuSubTrigger className="flex items-center gap-2">
-												Script
-											</ContextMenuSubTrigger>
+											<ContextMenuSubTrigger className="flex items-center gap-2">Script</ContextMenuSubTrigger>
 											<ContextMenuSubContent>
 												<ContextMenuItem onClick={() => this._handleAddScript("class")}>Class-based</ContextMenuItem>
 												<ContextMenuItem onClick={() => this._handleAddScript("function")}>Function-based</ContextMenuItem>
 											</ContextMenuSubContent>
 										</ContextMenuSub>
 									</>
-								}
+								)}
 							</ContextMenuSubContent>
 						</ContextMenuSub>
 
@@ -719,7 +735,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 	private _getAssetBrowserItem(filename: string, key: string, selected: boolean): ReactNode {
 		const extension = extname(filename).toLowerCase();
 
-		const props: IAssetsBrowserItemProps & { key: string; } = {
+		const props: IAssetsBrowserItemProps & { key: string } = {
 			key,
 			selected,
 			absolutePath: key,
@@ -777,7 +793,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 	private _handleDragOver(event: DragEvent<HTMLDivElement>): void {
 		event.preventDefault();
 		this.setState({
-			dragAndDroppingFiles: event.dataTransfer.types.includes("Files")
+			dragAndDroppingFiles: event.dataTransfer.types.includes("Files"),
 		});
 	}
 
@@ -806,9 +822,11 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 			filesToCopy[path] = absolutePath;
 		}
 
-		await Promise.all(Object.entries(filesToCopy).map(async ([source, destination]) => {
-			await copyFile(source, destination);
-		}));
+		await Promise.all(
+			Object.entries(filesToCopy).map(async ([source, destination]) => {
+				await copyFile(source, destination);
+			})
+		);
 
 		this.refresh();
 	}
@@ -823,9 +841,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 		await this._refreshItems(this.state.browsedPath);
 
 		this.setState({
-			selectedKeys: [
-				join(this.state.browsedPath, name),
-			],
+			selectedKeys: [join(this.state.browsedPath, name)],
 		});
 	}
 
@@ -973,11 +989,9 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 			return;
 		}
 
-		const url = type === "class"
-			? "assets/class-based-script.ts"
-			: "assets/function-based-script.ts";
+		const url = type === "class" ? "assets/class-based-script.ts" : "assets/function-based-script.ts";
 
-		const content = await fetch(url).then(r => r.text());
+		const content = await fetch(url).then((r) => r.text());
 
 		const name = await findAvailableFilename(this.state.browsedPath, "new-script", ".ts");
 		const scriptPath = join(this.state.browsedPath, name);
@@ -1119,7 +1133,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 			return;
 		}
 
-		if (!await pathExists(join(item.props.absolutePath, "config.json"))) {
+		if (!(await pathExists(join(item.props.absolutePath, "config.json")))) {
 			return;
 		}
 
@@ -1145,7 +1159,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 	private _handleNodeClicked(node: TreeNodeInfo): void {
 		this.setBrowsePath(join(dirname(projectConfiguration.path!), node.id as string));
 
-		this._forEachNode(this.state.filesTreeNodes, (n) => n.isSelected = n.id === node.id);
+		this._forEachNode(this.state.filesTreeNodes, (n) => (n.isSelected = n.id === node.id));
 		this.setState({ filesTreeNodes: this.state.filesTreeNodes });
 	}
 

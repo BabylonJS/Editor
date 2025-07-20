@@ -138,7 +138,7 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
 				nodesToMove.forEach((n) => {
 					if (n.nodeData && oldHierarchyMap.has(n.nodeData)) {
 						if (isNode(n.nodeData)) {
-							return n.nodeData.parent = oldHierarchyMap.get(n.nodeData) as Node;
+							return (n.nodeData.parent = oldHierarchyMap.get(n.nodeData) as Node);
 						}
 
 						if (isSound(n.nodeData)) {
@@ -150,11 +150,11 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
 
 							n.nodeData.detachFromMesh();
 							n.nodeData.spatialSound = false;
-							return n.nodeData["_connectedTransformNode"] = null;
+							return (n.nodeData["_connectedTransformNode"] = null);
 						}
 
 						if (isAnyParticleSystem(n.nodeData)) {
-							return n.nodeData.emitter = oldHierarchyMap.get(n.nodeData) as AbstractMesh;
+							return (n.nodeData.emitter = oldHierarchyMap.get(n.nodeData) as AbstractMesh);
 						}
 					}
 				});
@@ -167,7 +167,7 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
 
 					if (n.nodeData && oldHierarchyMap.has(n.nodeData)) {
 						if (isNode(n.nodeData)) {
-							return n.nodeData.parent = isScene(props.object) ? null : newParent;
+							return (n.nodeData.parent = isScene(props.object) ? null : newParent);
 						}
 
 						if (isSound(n.nodeData)) {
@@ -178,13 +178,13 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
 							if (isScene(newParent)) {
 								n.nodeData.detachFromMesh();
 								n.nodeData.spatialSound = false;
-								return n.nodeData["_connectedTransformNode"] = null;
+								return (n.nodeData["_connectedTransformNode"] = null);
 							}
 						}
 
 						if (isAnyParticleSystem(n.nodeData)) {
 							if (isAbstractMesh(newParent)) {
-								return n.nodeData.emitter = newParent;
+								return (n.nodeData.emitter = newParent);
 							}
 						}
 					}
@@ -238,8 +238,8 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
 	function handleInputNameBlurred() {
 		registerUndoRedo({
 			executeRedo: true,
-			undo: () => props.object.name = props.name,
-			redo: () => props.object.name = name,
+			undo: () => (props.object.name = props.name),
+			redo: () => (props.object.name = name),
 		});
 
 		setDoubleClicked(false);
@@ -262,19 +262,18 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
 			onDoubleClick={() => handleDoubleClick()}
 			onBlur={() => handleInputNameBlurred()}
 		>
-			{doubleClicked
-				? (
-					<Input
-						value={name}
-						ref={inputRef}
-						className="w-fit h-7"
-						onCopy={(ev) => ev.stopPropagation()}
-						onPaste={(ev) => ev.stopPropagation()}
-						onChange={(ev) => setName(ev.currentTarget.value)}
-					/>
-				)
-				: props.name
-			}
+			{doubleClicked ? (
+				<Input
+					value={name}
+					ref={inputRef}
+					className="w-fit h-7"
+					onCopy={(ev) => ev.stopPropagation()}
+					onPaste={(ev) => ev.stopPropagation()}
+					onChange={(ev) => setName(ev.currentTarget.value)}
+				/>
+			) : (
+				props.name
+			)}
 		</div>
 	);
 }

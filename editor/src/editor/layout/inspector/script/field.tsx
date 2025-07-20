@@ -42,10 +42,13 @@ import { EditorInspectorSceneEntityField } from "../fields/entity";
 
 import { VisibleInInspectorDecoratorObject, computeDefaultValuesForObject, scriptValues } from "./tools";
 
-const cachedScripts: Record<string, {
-	time: number;
-	output: VisibleInInspectorDecoratorObject[] | null;
-}> = {};
+const cachedScripts: Record<
+	string,
+	{
+		time: number;
+		output: VisibleInInspectorDecoratorObject[] | null;
+	}
+> = {};
 
 export interface IInspectorScriptFieldProps {
 	object: any;
@@ -134,7 +137,7 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 			const temporaryDirectory = await ensureTemporaryDirectoryExists(projectConfiguration.path);
 			const outputAbsolutePath = join(temporaryDirectory, "scripts", `${props.script.key.replace(/\//g, "_")}.js`);
 
-			const compilationSuccess = await executeSimpleWorker<{ success: boolean; error?: string; }>("workers/script.js", {
+			const compilationSuccess = await executeSimpleWorker<{ success: boolean; error?: string }>("workers/script.js", {
 				action: "compile",
 				srcAbsolutePath,
 				outputAbsolutePath,
@@ -184,8 +187,8 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 
 							registerUndoRedo({
 								executeRedo: true,
-								undo: () => props.script[scriptValues][value.propertyKey].value = oldValue,
-								redo: () => props.script[scriptValues][value.propertyKey].value = v?.id,
+								undo: () => (props.script[scriptValues][value.propertyKey].value = oldValue),
+								redo: () => (props.script[scriptValues][value.propertyKey].value = v?.id),
 							});
 						}}
 					/>
@@ -243,8 +246,8 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 
 					registerUndoRedo({
 						executeRedo: true,
-						undo: () => props.script[scriptValues][value.propertyKey].value = oldSerializedTexture,
-						redo: () => props.script[scriptValues][value.propertyKey].value = v?.serialize() ?? null,
+						undo: () => (props.script[scriptValues][value.propertyKey].value = oldSerializedTexture),
+						redo: () => (props.script[scriptValues][value.propertyKey].value = v?.serialize() ?? null),
 					});
 
 					setUpdateId(updateId + 1);
@@ -256,15 +259,12 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 	function handleCopyName(): void {
 		clipboard.writeText(props.script.key);
 		toast.success("Name copied to clipboard.");
-	};
+	}
 
 	return (
 		<div className="flex flex-col gap-2 bg-muted-foreground/35 dark:bg-muted-foreground/5 rounded-lg px-5 pb-2.5">
 			<div className="flex gap-[10px]">
-				<SiTypescript
-					size="80px"
-					className={`${enabled ? "opacity-100" : "opacity-15"} transition-all duration-300 ease-in-out`}
-				/>
+				<SiTypescript size="80px" className={`${enabled ? "opacity-100" : "opacity-15"} transition-all duration-300 ease-in-out`} />
 
 				<div className="flex flex-col gap-1 w-full py-2.5">
 					<div className="flex items-center">
@@ -288,7 +288,7 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 				</div>
 			</div>
 
-			{output &&
+			{output && (
 				<div className="flex flex-col gap-2">
 					{output.map((value) => {
 						switch (value.configuration.type) {
@@ -331,9 +331,10 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 							case "vector2":
 							case "vector3":
 								const tempVector = {
-									value: value.configuration.type === "vector2"
-										? Vector2.FromArray(props.script[scriptValues][value.propertyKey].value)
-										: Vector3.FromArray(props.script[scriptValues][value.propertyKey].value),
+									value:
+										value.configuration.type === "vector2"
+											? Vector2.FromArray(props.script[scriptValues][value.propertyKey].value)
+											: Vector3.FromArray(props.script[scriptValues][value.propertyKey].value),
 								};
 
 								return (
@@ -349,8 +350,8 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 
 											registerUndoRedo({
 												executeRedo: true,
-												undo: () => props.script[scriptValues][value.propertyKey].value = oldValue,
-												redo: () => props.script[scriptValues][value.propertyKey].value = tempVector.value.asArray(),
+												undo: () => (props.script[scriptValues][value.propertyKey].value = oldValue),
+												redo: () => (props.script[scriptValues][value.propertyKey].value = tempVector.value.asArray()),
 											});
 										}}
 										tooltip={value.configuration.description}
@@ -360,9 +361,10 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 							case "color3":
 							case "color4":
 								const tempColor = {
-									value: value.configuration.type === "color3"
-										? Color3.FromArray(props.script[scriptValues][value.propertyKey].value)
-										: Color4.FromArray(props.script[scriptValues][value.propertyKey].value),
+									value:
+										value.configuration.type === "color3"
+											? Color3.FromArray(props.script[scriptValues][value.propertyKey].value)
+											: Color4.FromArray(props.script[scriptValues][value.propertyKey].value),
 								};
 
 								return (
@@ -379,8 +381,8 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 
 											registerUndoRedo({
 												executeRedo: true,
-												undo: () => props.script[scriptValues][value.propertyKey].value = oldValue,
-												redo: () => props.script[scriptValues][value.propertyKey].value = tempColor.value.asArray(),
+												undo: () => (props.script[scriptValues][value.propertyKey].value = oldValue),
+												redo: () => (props.script[scriptValues][value.propertyKey].value = tempColor.value.asArray()),
 											});
 										}}
 										tooltip={value.configuration.description}
@@ -389,9 +391,13 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 
 							case "keymap":
 								return (
-									<EditorInspectorKeyField value={props.script[scriptValues][value.propertyKey]?.value?.toString() ?? ""} label={value.label ?? value.propertyKey} onChange={(v) => {
-										props.script[scriptValues][value.propertyKey].value = v;
-									}} />
+									<EditorInspectorKeyField
+										value={props.script[scriptValues][value.propertyKey]?.value?.toString() ?? ""}
+										label={value.label ?? value.propertyKey}
+										onChange={(v) => {
+											props.script[scriptValues][value.propertyKey].value = v;
+										}}
+									/>
 								);
 
 							case "entity":
@@ -405,7 +411,7 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 						}
 					})}
 				</div>
-			}
+			)}
 		</div>
 	);
 }

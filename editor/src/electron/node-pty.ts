@@ -4,8 +4,8 @@ import { ipcMain } from "electron";
 import { spawn, IPty } from "node-pty";
 
 interface IStoredNodePty {
-    pty: IPty;
-    webContentsId: number;
+	pty: IPty;
+	webContentsId: number;
 }
 
 const spawnsMap = new Map<string, IStoredNodePty>();
@@ -22,7 +22,7 @@ export function closeAllNodePtyForWebContentsId(id: number) {
 				value.pty.kill();
 			} catch (error) {
 				// Process might already be killed, ignore the error
-				console.log('Process already killed:', error.message);
+				console.log("Process already killed:", error.message);
 			}
 			spawnsMap.delete(key);
 		}
@@ -94,7 +94,7 @@ ipcMain.on("editor:kill-node-pty", (_, id) => {
 			p.pty.kill();
 		} catch (error) {
 			// Process might already be killed, ignore the error
-			console.log('Process already killed:', error.message);
+			console.log("Process already killed:", error.message);
 		}
 		spawnsMap.delete(id);
 	}

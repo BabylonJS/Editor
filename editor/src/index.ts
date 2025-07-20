@@ -28,7 +28,9 @@ try {
 	if (process.env.DEBUG) {
 		require("electron-reloader")(module);
 	}
-} catch (_) { /* Catch silently */ }
+} catch (_) {
+	/* Catch silently */
+}
 
 // Enable remote debugging of both the Editor and the edited Project.
 app.commandLine.appendSwitch("remote-debugging-port", "8315");
@@ -89,14 +91,13 @@ let dashboardWindow: BrowserWindow | null = null;
 
 async function openDashboard(): Promise<void> {
 	if (!dashboardWindow) {
-
 		setupDashboardMenu();
 
 		dashboardWindow = await createDashboardWindow();
 		dashboardWindow.setTitle("Dashboard");
 
 		dashboardWindow.on("focus", () => setupDashboardMenu());
-		dashboardWindow.on("closed", () => dashboardWindow = null);
+		dashboardWindow.on("closed", () => (dashboardWindow = null));
 	}
 
 	dashboardWindow.show();

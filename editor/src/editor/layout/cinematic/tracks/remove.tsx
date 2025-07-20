@@ -7,8 +7,8 @@ import { Button } from "../../../../ui/shadcn/ui/button";
 import { CinematicEditor } from "../editor";
 
 export interface ICinematicEditorRemoveTrackButtonProps {
-    track: ICinematicTrack;
-    cinematicEditor: CinematicEditor;
+	track: ICinematicTrack;
+	cinematicEditor: CinematicEditor;
 }
 
 export function CinematicEditorRemoveTrackButton(props: ICinematicEditorRemoveTrackButtonProps) {

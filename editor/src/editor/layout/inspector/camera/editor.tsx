@@ -24,9 +24,7 @@ export class EditorCameraInspector extends Component<IEditorInspectorImplementat
 	public render(): ReactNode {
 		return (
 			<>
-				<div className="text-center text-3xl">
-					Editor Camera
-				</div>
+				<div className="text-center text-3xl">Editor Camera</div>
 
 				<EditorInspectorSectionField title="Common">
 					<EditorInspectorNumberField object={this.props.object} property="speed" label="Speed" />

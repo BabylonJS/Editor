@@ -11,8 +11,25 @@ import { GiWireframeGlobe } from "react-icons/gi";
 import { IoIosOptions, IoIosStats } from "react-icons/io";
 
 import {
-	AbstractEngine, AbstractMesh, Animation, Camera, Color3, CubicEase, EasingFunction, Engine, GizmoCoordinatesMode,
-	ISceneLoaderAsyncResult, Node, Scene, Vector2, Vector3, Viewport, WebGPUEngine, HavokPlugin, PickingInfo, SceneLoaderFlags,
+	AbstractEngine,
+	AbstractMesh,
+	Animation,
+	Camera,
+	Color3,
+	CubicEase,
+	EasingFunction,
+	Engine,
+	GizmoCoordinatesMode,
+	ISceneLoaderAsyncResult,
+	Node,
+	Scene,
+	Vector2,
+	Vector3,
+	Viewport,
+	WebGPUEngine,
+	HavokPlugin,
+	PickingInfo,
+	SceneLoaderFlags,
 } from "babylonjs";
 
 import { Toggle } from "../../ui/shadcn/ui/toggle";
@@ -183,11 +200,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 				<div className="flex flex-col w-full h-full">
 					{this._getToolbar()}
 
-					<EditorGraphContextMenu
-						editor={this.props.editor}
-						object={this.state.rightClickedObject}
-						onOpenChange={(o) => !o && this._resetPointerContextInfo()}
-					>
+					<EditorGraphContextMenu editor={this.props.editor} object={this.state.rightClickedObject} onOpenChange={(o) => !o && this._resetPointerContextInfo()}>
 						<canvas
 							ref={(r) => this._onGotCanvasRef(r!)}
 							onDrop={(ev) => this._handleDrop(ev)}
@@ -208,25 +221,19 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
                             `}
 						/>
 
-						{(this.play?.state.preparingPlay || this.play?.state.loading) &&
+						{(this.play?.state.preparingPlay || this.play?.state.loading) && (
 							<div className="absolute top-0 left-0 w-full h-full bg-black">
 								<div className="flex flex-col justify-center items-center gap-10 w-full h-full bg-black">
 									<Grid width={24} height={24} color="gray" />
 
-									{this.play?.state.loading &&
-										<Progress className="w-1/2" value={this.state.playSceneLoadingProgress * 100} />
-									}
+									{this.play?.state.loading && <Progress className="w-1/2" value={this.state.playSceneLoadingProgress * 100} />}
 								</div>
 							</div>
-						}
+						)}
 					</EditorGraphContextMenu>
 				</div>
 
-				<EditorGraphContextMenu
-					editor={this.props.editor}
-					object={this.state.rightClickedObject}
-					onOpenChange={(o) => !o && this._resetPointerContextInfo()}
-				>
+				<EditorGraphContextMenu editor={this.props.editor} object={this.state.rightClickedObject} onOpenChange={(o) => !o && this._resetPointerContextInfo()}>
 					<EditorPreviewIcons ref={(r) => this._onGotIconsRef(r!)} editor={this.props.editor} />
 				</EditorGraphContextMenu>
 
@@ -238,9 +245,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 					className="absolute left-0 flex gap-2 items-center px-2 h-10 bg-black/50 transition-all duration-300 pointer-events-none"
 				>
 					<SpinnerUIComponent width="16" />
-					<div>
-						{this.state.informationMessage}
-					</div>
+					<div>{this.state.informationMessage}</div>
 				</div>
 			</div>
 		);
@@ -322,14 +327,12 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 			return;
 		}
 
-		const position = isCamera(selectedNode)
-			? selectedNode.globalPosition
-			: selectedNode.getAbsolutePosition?.();
+		const position = isCamera(selectedNode) ? selectedNode.globalPosition : selectedNode.getAbsolutePosition?.();
 
 		const camera = this.scene.activeCamera;
 		if (position && camera) {
 			Tween.create(camera, 0.5, {
-				"target": position,
+				target: position,
 			});
 		}
 	}
@@ -540,10 +543,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 			return;
 		}
 
-		const distance = Vector2.Distance(
-			this._mouseDownPosition,
-			new Vector2(event.clientX, event.clientY),
-		);
+		const distance = Vector2.Distance(this._mouseDownPosition, new Vector2(event.clientX, event.clientY));
 
 		if (distance > 2) {
 			return;
@@ -568,13 +568,23 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	}
 
 	private _getPickingInfo(x: number, y: number): PickingInfo {
-		const decalPick = this.scene.pick(x, y, (m) => {
-			return m.metadata?.decal && m.isVisible && m.isEnabled();
-		}, false);
+		const decalPick = this.scene.pick(
+			x,
+			y,
+			(m) => {
+				return m.metadata?.decal && m.isVisible && m.isEnabled();
+			},
+			false
+		);
 
-		const meshPick = this.scene.pick(x, y, (m) => {
-			return !m._masterMesh && !isCollisionMesh(m) && !isCollisionInstancedMesh(m) && m.isVisible && m.isEnabled();
-		}, false);
+		const meshPick = this.scene.pick(
+			x,
+			y,
+			(m) => {
+				return !m._masterMesh && !isCollisionMesh(m) && !isCollisionInstancedMesh(m) && m.isVisible && m.isEnabled();
+			},
+			false
+		);
 
 		let pickingInfo = meshPick;
 		if (decalPick?.pickedPoint && meshPick?.pickedPoint) {
@@ -592,7 +602,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	private _resetPointerContextInfo(): void {
 		if (this.state.rightClickedObject) {
 			this.setState({
-				rightClickedObject: null
+				rightClickedObject: null,
 			});
 
 			this.scene.activeCamera?.inputs.attachElement();
@@ -602,9 +612,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	private _highlightCurrentMeshUnderPointer(pickedMesh: AbstractMesh): void {
 		Tween.killTweensOf(pickedMesh);
 
-		const effectiveMesh = isInstancedMesh(pickedMesh)
-			? pickedMesh.sourceMesh
-			: pickedMesh;
+		const effectiveMesh = isInstancedMesh(pickedMesh) ? pickedMesh.sourceMesh : pickedMesh;
 
 		const meshes = [effectiveMesh];
 
@@ -618,9 +626,9 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
 		meshes.forEach((mesh) => {
 			Tween.create(mesh, 0.1, {
-				"overlayAlpha": 0.5,
-				"overlayColor": Color3.Black(),
-				onStart: () => mesh!.renderOverlay = true,
+				overlayAlpha: 0.5,
+				overlayColor: Color3.Black(),
+				onStart: () => (mesh!.renderOverlay = true),
 			});
 		});
 	}
@@ -629,9 +637,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		const mesh = this._meshUnderPointer;
 
 		if (mesh) {
-			const effectiveMesh = isInstancedMesh(mesh)
-				? mesh.sourceMesh
-				: mesh;
+			const effectiveMesh = isInstancedMesh(mesh) ? mesh.sourceMesh : mesh;
 
 			const meshes = [effectiveMesh];
 
@@ -650,9 +656,9 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 				mesh.overlayColor ??= Color3.Black();
 
 				Tween.create(mesh, 0.1, {
-					"overlayAlpha": 0,
-					"overlayColor": Color3.Black(),
-					onStart: () => mesh.renderOverlay = true,
+					overlayAlpha: 0,
+					overlayColor: Color3.Black(),
+					onStart: () => (mesh.renderOverlay = true),
 				});
 			});
 		}
@@ -662,18 +668,14 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		return (
 			<div className="absolute top-0 left-0 w-full h-12 z-10">
 				<div className="flex justify-between items-center gap-4 h-full bg-background/95 w-full px-2 py-1">
-					{this.play?.state.playing &&
-						<div /> // For justify between
+					{
+						this.play?.state.playing && <div /> // For justify between
 					}
 
 					{!this.play?.state.playing && this._getEditToolbar()}
 
 					<div className="flex gap-2 items-center h-10">
-						<EditorPreviewPlayComponent
-							editor={this.props.editor}
-							ref={(r) => this.play = r!}
-							onRestart={() => this.play.restart()}
-						/>
+						<EditorPreviewPlayComponent editor={this.props.editor} ref={(r) => (this.play = r!)} onRestart={() => this.play.restart()} />
 					</div>
 				</div>
 			</div>
@@ -684,17 +686,15 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		return (
 			<div className="flex gap-2 items-center h-10">
 				<TooltipProvider>
-					<Select
-						value={this.scene?.activeCamera?.id}
-						onOpenChange={(o) => o && this.forceUpdate()}
-						onValueChange={(v) => this._switchToCamera(v)}
-					>
+					<Select value={this.scene?.activeCamera?.id} onOpenChange={(o) => o && this.forceUpdate()} onValueChange={(v) => this._switchToCamera(v)}>
 						<SelectTrigger className="w-36 border-none bg-muted/50">
 							<SelectValue placeholder="Select Value..." />
 						</SelectTrigger>
 						<SelectContent>
 							{this.scene?.cameras.map((c) => (
-								<SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+								<SelectItem key={c.id} value={c.id}>
+									{c.name}
+								</SelectItem>
 							))}
 						</SelectContent>
 					</Select>
@@ -707,9 +707,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 								<PositionIcon height={16} />
 							</Toggle>
 						</TooltipTrigger>
-						<TooltipContent>
-							Toggle position gizmo
-						</TooltipContent>
+						<TooltipContent>Toggle position gizmo</TooltipContent>
 					</Tooltip>
 					<Tooltip>
 						<TooltipTrigger asChild>
@@ -717,9 +715,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 								<RotationIcon height={16} />
 							</Toggle>
 						</TooltipTrigger>
-						<TooltipContent>
-							Toggle rotation gizmo
-						</TooltipContent>
+						<TooltipContent>Toggle rotation gizmo</TooltipContent>
 					</Tooltip>
 					<Tooltip>
 						<TooltipTrigger asChild>
@@ -727,9 +723,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 								<ScalingIcon height={16} />
 							</Toggle>
 						</TooltipTrigger>
-						<TooltipContent>
-							Toggle scaling gizmo
-						</TooltipContent>
+						<TooltipContent>Toggle scaling gizmo</TooltipContent>
 					</Tooltip>
 
 					<Select
@@ -763,9 +757,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 								<GiWireframeGlobe className="w-6 h-6 scale-125" strokeWidth={1} color="white" />
 							</Toggle>
 						</TooltipTrigger>
-						<TooltipContent>
-							Toggle wireframe
-						</TooltipContent>
+						<TooltipContent>Toggle wireframe</TooltipContent>
 					</Tooltip>
 
 					<Separator orientation="vertical" className="mx-2 h-[24px]" />
@@ -779,26 +771,29 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 						<DropdownMenuContent onClick={() => this.forceUpdate()}>
 							<DropdownMenuLabel>Render options</DropdownMenuLabel>
 							<DropdownMenuSeparator />
-							<DropdownMenuItem className="flex gap-2 items-center" onClick={() => this.icons.enabled ? this.icons.stop() : this.icons.start()}>
+							<DropdownMenuItem className="flex gap-2 items-center" onClick={() => (this.icons.enabled ? this.icons.stop() : this.icons.start())}>
 								{this.icons?.enabled && <FaCheck className="w-4 h-4" />} Helper Icons
 							</DropdownMenuItem>
 							<DropdownMenuSeparator />
-							<DropdownMenuItem className="flex gap-2 items-center" onClick={() => this.scene.postProcessesEnabled = !this.scene.postProcessesEnabled}>
+							<DropdownMenuItem className="flex gap-2 items-center" onClick={() => (this.scene.postProcessesEnabled = !this.scene.postProcessesEnabled)}>
 								{this.scene?.postProcessesEnabled && <FaCheck className="w-4 h-4" />} Post-processes enabled
 							</DropdownMenuItem>
-							<DropdownMenuItem className="flex gap-2 items-center" onClick={() => this.scene.texturesEnabled = !this.scene.texturesEnabled}>
+							<DropdownMenuItem className="flex gap-2 items-center" onClick={() => (this.scene.texturesEnabled = !this.scene.texturesEnabled)}>
 								{this.scene?.texturesEnabled && <FaCheck className="w-4 h-4" />} Textures enabled
 							</DropdownMenuItem>
-							<DropdownMenuItem className="flex gap-2 items-center" onClick={() => this.scene.lightsEnabled = !this.scene.lightsEnabled}>
+							<DropdownMenuItem className="flex gap-2 items-center" onClick={() => (this.scene.lightsEnabled = !this.scene.lightsEnabled)}>
 								{this.scene?.lightsEnabled && <FaCheck className="w-4 h-4" />} Lights enabled
 							</DropdownMenuItem>
-							<DropdownMenuItem className="flex gap-2 items-center" onClick={() => {
-								this.scene.shadowsEnabled = !this.scene.shadowsEnabled;
-								this.scene.renderTargetsEnabled = this.scene.shadowsEnabled;
-							}}>
+							<DropdownMenuItem
+								className="flex gap-2 items-center"
+								onClick={() => {
+									this.scene.shadowsEnabled = !this.scene.shadowsEnabled;
+									this.scene.renderTargetsEnabled = this.scene.shadowsEnabled;
+								}}
+							>
 								{this.scene?.shadowsEnabled && <FaCheck className="w-4 h-4" />} Shadows enabled
 							</DropdownMenuItem>
-							<DropdownMenuItem className="flex gap-2 items-center" onClick={() => this.scene.particlesEnabled = !this.scene.particlesEnabled}>
+							<DropdownMenuItem className="flex gap-2 items-center" onClick={() => (this.scene.particlesEnabled = !this.scene.particlesEnabled)}>
 								{this.scene?.particlesEnabled && <FaCheck className="w-4 h-4" />} Particles enabled
 							</DropdownMenuItem>
 							<DropdownMenuSeparator />
@@ -935,9 +930,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 				case ".blend":
 					let progressRef: EditorPreviewConvertProgress;
 					this.setState({
-						informationMessage: (
-							<EditorPreviewConvertProgress absolutePath={absolutePath} ref={(r) => progressRef = r!} />
-						),
+						informationMessage: <EditorPreviewConvertProgress absolutePath={absolutePath} ref={(r) => (progressRef = r!)} />,
 					});
 
 					const newAbsolutePath = await tryConvertSceneFile(absolutePath, (value) => progressRef?.setState({ value }));

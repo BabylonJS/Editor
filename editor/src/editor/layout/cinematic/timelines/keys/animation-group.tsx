@@ -3,10 +3,10 @@ import { ICinematicAnimationGroup } from "babylonjs-editor-tools";
 import { CinematicEditor } from "../../editor";
 
 export interface ICinematicEditorAnimationGroupKeyProps {
-    cinematicEditor: CinematicEditor;
-    scale: number;
-    move: boolean;
-    cinematicKey: ICinematicAnimationGroup;
+	cinematicEditor: CinematicEditor;
+	scale: number;
+	move: boolean;
+	cinematicKey: ICinematicAnimationGroup;
 }
 
 export function CinematicEditorAnimationGroupKey(props: ICinematicEditorAnimationGroupKeyProps) {
@@ -17,7 +17,7 @@ export function CinematicEditorAnimationGroupKey(props: ICinematicEditorAnimatio
 	return (
 		<div
 			style={{
-				width: `${getAnimationGroupFramesCount() * props.scale / props.cinematicKey.speed}px`,
+				width: `${(getAnimationGroupFramesCount() * props.scale) / props.cinematicKey.speed}px`,
 			}}
 			className={`
                 h-4 rounded-md bg-muted ring-1 ring-accent dark:ring-black

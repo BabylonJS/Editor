@@ -37,7 +37,7 @@ export class EditorConsole extends Component<IEditorConsoleProps, IEditorConsole
 					</div>
 				</div>
 
-				<div ref={(r) => this._div = r} className="flex flex-col gap-1 p-2 text-foreground overflow-auto">
+				<div ref={(r) => (this._div = r)} className="flex flex-col gap-1 p-2 text-foreground overflow-auto">
 					{this.state.logs}
 				</div>
 			</div>
@@ -103,9 +103,7 @@ export class EditorConsole extends Component<IEditorConsoleProps, IEditorConsole
 		this.state.logs.push(
 			<ContextMenu key={`log-${this.state.logs.length}`}>
 				<ContextMenuTrigger>
-					<div ref={(r) => ref = r}>
-						{log}
-					</div>
+					<div ref={(r) => (ref = r)}>{log}</div>
 				</ContextMenuTrigger>
 				<ContextMenuContent>
 					<ContextMenuItem onClick={() => clipboard.writeText(ref?.innerText ?? "")}>Copy</ContextMenuItem>

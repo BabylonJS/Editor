@@ -1,8 +1,8 @@
 import { Observable } from "babylonjs";
 
 export interface IProjectConfiguration {
-    path: string | null;
-    compressedTexturesEnabled: boolean;
+	path: string | null;
+	compressedTexturesEnabled: boolean;
 }
 
 export const projectConfiguration: IProjectConfiguration = {

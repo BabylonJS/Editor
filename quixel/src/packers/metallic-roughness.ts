@@ -8,13 +8,13 @@ import { TextureUtils } from "../tools/textureMerger";
 
 export class MetallicRoughnessPacker {
 	/**
-     * Packs the given reflectivity and microsurface maps.
-     * @param editor defines the reference to the editor.
-     * @param material defines the reference to the material being configured.
-     * @param metallicTexture defines the reference to the metallic texture.
-     * @param roughnessTexture defines the reference to the roughness texture.
-     * @param rootFolder defines the root folder where to write the resulted texture.
-     */
+	 * Packs the given reflectivity and microsurface maps.
+	 * @param editor defines the reference to the editor.
+	 * @param material defines the reference to the material being configured.
+	 * @param metallicTexture defines the reference to the metallic texture.
+	 * @param roughnessTexture defines the reference to the roughness texture.
+	 * @param rootFolder defines the root folder where to write the resulted texture.
+	 */
 	public static async Pack(editor: Editor, material: PBRMaterial, metallicTexture: Texture | null, roughnessTexture: Texture | null, rootFolder: string): Promise<void> {
 		if (!editor.state.projectPath) {
 			return;
@@ -32,34 +32,42 @@ export class MetallicRoughnessPacker {
 			}));
 
 			if (packedMetallicTexturePath) {
-                metallicTexture!.dispose();
-                roughnessTexture!.dispose();
+				metallicTexture!.dispose();
+				roughnessTexture!.dispose();
 
-                try {
-                	await remove(join(rootFolder, basename(metallicTexture.name)));
-                	await remove(join(rootFolder, basename(roughnessTexture.name)));
-                } catch (e) {
-                	// Catch silently.
-                }
+				try {
+					await remove(join(rootFolder, basename(metallicTexture.name)));
+					await remove(join(rootFolder, basename(roughnessTexture.name)));
+				} catch (e) {
+					// Catch silently.
+				}
 
-                const packedMetallicTexture = await new Promise<Texture>((resolve, reject) => {
-                	const texture = new Texture(packedMetallicTexturePath, editor.layout.preview.scene, false, true, undefined, () => {
-                		texture.uniqueId = UniqueNumber.Get();
-                		texture.name = packedMetallicTexturePath.replace(projectFolder, "");
-                		texture.url = texture.name;
-                		resolve(texture);
-                	}, (_, e) => {
-                		reject(e);
-                		log.setState({ error: true });
-                	});
-                });
+				const packedMetallicTexture = await new Promise<Texture>((resolve, reject) => {
+					const texture = new Texture(
+						packedMetallicTexturePath,
+						editor.layout.preview.scene,
+						false,
+						true,
+						undefined,
+						() => {
+							texture.uniqueId = UniqueNumber.Get();
+							texture.name = packedMetallicTexturePath.replace(projectFolder, "");
+							texture.url = texture.name;
+							resolve(texture);
+						},
+						(_, e) => {
+							reject(e);
+							log.setState({ error: true });
+						}
+					);
+				});
 
-                material.metallicTexture = packedMetallicTexture;
-                material.metallic = 1;
-                material.roughness = 1;
-                material.useRoughnessFromMetallicTextureAlpha = false;
-                material.useRoughnessFromMetallicTextureGreen = true;
-                material.useMetallnessFromMetallicTextureBlue = true;
+				material.metallicTexture = packedMetallicTexture;
+				material.metallic = 1;
+				material.roughness = 1;
+				material.useRoughnessFromMetallicTextureAlpha = false;
+				material.useRoughnessFromMetallicTextureGreen = true;
+				material.useMetallnessFromMetallicTextureBlue = true;
 			}
 
 			log.setState({ done: true });

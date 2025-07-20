@@ -10,9 +10,7 @@ import type { AudioSceneComponent as _AudioSceneComponent } from "@babylonjs/cor
 
 import { getSoundById } from "../tools/sound";
 
-import {
-	VisibleInInspectorDecoratorConfiguration, VisibleInInspectorDecoratorEntityConfiguration,
-} from "./inspector";
+import { VisibleInInspectorDecoratorConfiguration, VisibleInInspectorDecoratorEntityConfiguration } from "./inspector";
 
 export interface ISceneDecoratorData {
 	// @nodeFromScene
@@ -122,10 +120,7 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 		const propertyKey = params.propertyKey.toString();
 		const attachedScripts = script.values;
 
-		if (
-			attachedScripts.hasOwnProperty(propertyKey) &&
-			attachedScripts[propertyKey].hasOwnProperty("value")
-		) {
+		if (attachedScripts.hasOwnProperty(propertyKey) && attachedScripts[propertyKey].hasOwnProperty("value")) {
 			const value = attachedScripts[propertyKey].value;
 
 			switch (params.configuration.type) {

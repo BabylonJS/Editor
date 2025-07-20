@@ -25,11 +25,18 @@ export function tryAddProjectToLocalStorage(absolutePath: string): void {
 	try {
 		const projects = tryGetProjectsFromLocalStorage();
 
-		localStorage.setItem(projectsKey, JSON.stringify(projects.concat([{
-			absolutePath,
-			createdAt: new Date(),
-			updatedAt: new Date(),
-		}])));
+		localStorage.setItem(
+			projectsKey,
+			JSON.stringify(
+				projects.concat([
+					{
+						absolutePath,
+						createdAt: new Date(),
+						updatedAt: new Date(),
+					},
+				])
+			)
+		);
 	} catch (e) {
 		console.error("Failed to import project.");
 	}

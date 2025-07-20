@@ -18,8 +18,8 @@ const convertingFiles: string[] = [];
 
 export class AssetBrowserMeshItem extends AssetsBrowserItem {
 	/**
-     * @override
-     */
+	 * @override
+	 */
 	protected getContextMenuContent(): ReactNode {
 		return (
 			<>
@@ -31,8 +31,8 @@ export class AssetBrowserMeshItem extends AssetsBrowserItem {
 	}
 
 	/**
-     * @override
-     */
+	 * @override
+	 */
 	protected getIcon(): ReactNode {
 		const index = convertingFiles.indexOf(this.props.absolutePath);
 		if (index !== -1) {
@@ -45,26 +45,28 @@ export class AssetBrowserMeshItem extends AssetsBrowserItem {
 	private async _handleConvertSceneFileToBabylon(): Promise<void> {
 		const selectedFiles = this.props.editor.layout.assets.state.selectedKeys;
 
-		await Promise.all(selectedFiles.map(async (file) => {
-			if (convertingFiles.includes(file)) {
-				return;
-			}
+		await Promise.all(
+			selectedFiles.map(async (file) => {
+				if (convertingFiles.includes(file)) {
+					return;
+				}
 
-			convertingFiles.push(file);
-			this.props.onRefresh();
+				convertingFiles.push(file);
+				this.props.onRefresh();
 
-			const scene = new Scene(this.props.editor.layout.preview.engine);
-			await loadImportedSceneFile(scene, file);
+				const scene = new Scene(this.props.editor.layout.preview.engine);
+				await loadImportedSceneFile(scene, file);
 
-			const data = await SceneSerializer.SerializeAsync(scene);
-			await writeJSON(`${file}.babylon`, data, "utf-8");
+				const data = await SceneSerializer.SerializeAsync(scene);
+				await writeJSON(`${file}.babylon`, data, "utf-8");
 
-			const index = convertingFiles.indexOf(file);
-			if (index !== -1) {
-				convertingFiles.splice(index, 1);
-			}
+				const index = convertingFiles.indexOf(file);
+				if (index !== -1) {
+					convertingFiles.splice(index, 1);
+				}
 
-			this.props.onRefresh();
-		}));
+				this.props.onRefresh();
+			})
+		);
 	}
 }

@@ -26,9 +26,7 @@ export function getAllAnimatableProperties(object: any, deep: number = 5, _proce
 		if (typeof value === "object" && !Array.isArray(value) && !_processedObjects.includes(value)) {
 			_processedObjects.push(value);
 
-			const otherProperties = deep > 0
-				? getAllAnimatableProperties(value, deep - 1, _processedObjects)
-				: [];
+			const otherProperties = deep > 0 ? getAllAnimatableProperties(value, deep - 1, _processedObjects) : [];
 
 			properties.push(...otherProperties.map((p) => `${key}.${p}`));
 		}

@@ -132,13 +132,7 @@ export class SceneLinkNode extends TransformNode {
 		}
 
 		if (data.autoAnimate) {
-			this._scene.beginAnimation(
-				this,
-				data.autoAnimateFrom,
-				data.autoAnimateTo,
-				data.autoAnimateLoop,
-				data.autoAnimateSpeed || 1.0
-			);
+			this._scene.beginAnimation(this, data.autoAnimateFrom, data.autoAnimateTo, data.autoAnimateLoop, data.autoAnimateSpeed || 1.0);
 		}
 	}
 }

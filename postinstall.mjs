@@ -10,76 +10,73 @@ const rootNodeModules = join(process.cwd(), "./node_modules/@babylonjs/core");
 const editorNodeModules = join(process.cwd(), "./editor/node_modules/@babylonjs/core");
 
 const templates = [
-    {
-        name: "nextjs",
-        packageJson: nextjsTemplatePackageJson,
-    },
-    {
-        name: "solidjs",
-        packageJson: solidjsTemplatePackageJson,
-    },
-    {
-        name: "vanillajs",
-        packageJson: vanillajsTemplatePackageJson,
-    },
+	{
+		name: "nextjs",
+		packageJson: nextjsTemplatePackageJson,
+	},
+	{
+		name: "solidjs",
+		packageJson: solidjsTemplatePackageJson,
+	},
+	{
+		name: "vanillajs",
+		packageJson: vanillajsTemplatePackageJson,
+	},
 ];
 
 async function renameAssets(path) {
-    try {
-        await access(path);
-    } catch (e) {
-        return;
-    }
+	try {
+		await access(path);
+	} catch (e) {
+		return;
+	}
 
-    const glslangJs = join(path, "assets/glslang/glslang.js");
+	const glslangJs = join(path, "assets/glslang/glslang.js");
 
-    try {
-        await access(glslangJs);
-        await rename(glslangJs, glslangJs.replace("glslang.js", "glslang.cjs"));
+	try {
+		await access(glslangJs);
+		await rename(glslangJs, glslangJs.replace("glslang.js", "glslang.cjs"));
 
-        console.log("Renamed glslang.js to glslang.cjs");
-    } catch (e) {
-        // Catch silently.
-    }
+		console.log("Renamed glslang.js to glslang.cjs");
+	} catch (e) {
+		// Catch silently.
+	}
 
-    const twgslJs = join(path, "assets/twgsl/twgsl.js");
+	const twgslJs = join(path, "assets/twgsl/twgsl.js");
 
-    try {
-        await access(twgslJs);
-        await rename(twgslJs, twgslJs.replace("twgsl.js", "twgsl.cjs"));
+	try {
+		await access(twgslJs);
+		await rename(twgslJs, twgslJs.replace("twgsl.js", "twgsl.cjs"));
 
-        console.log("Renamed twgsl.js to twgsl.cjs");
-    } catch (e) {
-        // Catch silently.
-    }
+		console.log("Renamed twgsl.js to twgsl.cjs");
+	} catch (e) {
+		// Catch silently.
+	}
 }
 
 await renameAssets(rootNodeModules);
 await renameAssets(editorNodeModules);
 
 async function packTemplates() {
-    for (const template of templates) {
-        const tgzName = `${template.packageJson.name}-v${template.packageJson.version}.tgz`;
+	for (const template of templates) {
+		const tgzName = `${template.packageJson.name}-v${template.packageJson.version}.tgz`;
 
-        execSync("yarn pack", {
-            cwd: join(import.meta.dirname, `templates/${template.name}`),
-        });
+		execSync("yarn pack", {
+			cwd: join(import.meta.dirname, `templates/${template.name}`),
+		});
 
-        try {
-            await access(join(import.meta.dirname, "editor/templates"));
-        } catch (e) {
-            await mkdir(join(import.meta.dirname, "editor/templates"));
-        }
+		try {
+			await access(join(import.meta.dirname, "editor/templates"));
+		} catch (e) {
+			await mkdir(join(import.meta.dirname, "editor/templates"));
+		}
 
-        await copyFile(
-            join(import.meta.dirname, `templates/${template.name}`, tgzName),
-            join(import.meta.dirname, `editor/templates/${template.name}.tgz`),
-        );
+		await copyFile(join(import.meta.dirname, `templates/${template.name}`, tgzName), join(import.meta.dirname, `editor/templates/${template.name}.tgz`));
 
-        await rm(join(import.meta.dirname, `templates/${template.name}`, tgzName));
+		await rm(join(import.meta.dirname, `templates/${template.name}`, tgzName));
 
-        console.log("Packed template: ", tgzName);
-    }
+		console.log("Packed template: ", tgzName);
+	}
 }
 
 await packTemplates();

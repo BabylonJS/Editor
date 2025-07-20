@@ -8,33 +8,14 @@ import { toast } from "sonner";
 import { isTexture } from "../../tools/guards/texture";
 import { getCollisionMeshFor } from "../../tools/mesh/collision";
 import { createDirectoryIfNotExist, normalizedGlob } from "../../tools/fs";
-import {
-	isCollisionMesh,
-	isEditorCamera,
-	isMesh,
-} from "../../tools/guards/nodes";
+import { isCollisionMesh, isEditorCamera, isMesh } from "../../tools/guards/nodes";
 
 import { saveRenderingConfigurationForCamera } from "../../editor/rendering/tools";
-import {
-	serializeVLSPostProcess,
-	vlsPostProcessCameraConfigurations,
-} from "../../editor/rendering/vls";
-import {
-	serializeSSRRenderingPipeline,
-	ssrRenderingPipelineCameraConfigurations,
-} from "../../editor/rendering/ssr";
-import {
-	serializeSSAO2RenderingPipeline,
-	ssaoRenderingPipelineCameraConfigurations,
-} from "../../editor/rendering/ssao";
-import {
-	motionBlurPostProcessCameraConfigurations,
-	serializeMotionBlurPostProcess,
-} from "../../editor/rendering/motion-blur";
-import {
-	defaultPipelineCameraConfigurations,
-	serializeDefaultRenderingPipeline,
-} from "../../editor/rendering/default-pipeline";
+import { serializeVLSPostProcess, vlsPostProcessCameraConfigurations } from "../../editor/rendering/vls";
+import { serializeSSRRenderingPipeline, ssrRenderingPipelineCameraConfigurations } from "../../editor/rendering/ssr";
+import { serializeSSAO2RenderingPipeline, ssaoRenderingPipelineCameraConfigurations } from "../../editor/rendering/ssao";
+import { motionBlurPostProcessCameraConfigurations, serializeMotionBlurPostProcess } from "../../editor/rendering/motion-blur";
+import { defaultPipelineCameraConfigurations, serializeDefaultRenderingPipeline } from "../../editor/rendering/default-pipeline";
 
 import { Editor } from "../../editor/main";
 
@@ -47,16 +28,13 @@ import { configureMeshesPhysics } from "./physics";
 import { EditorExportProjectProgressComponent } from "./progress";
 
 export type IExportProjectOptions = {
-  optimize: boolean;
-  noProgress?: boolean;
+	optimize: boolean;
+	noProgress?: boolean;
 };
 
 let exporting = false;
 
-export async function exportProject(
-	editor: Editor,
-	options: IExportProjectOptions
-): Promise<void> {
+export async function exportProject(editor: Editor, options: IExportProjectOptions): Promise<void> {
 	if (exporting) {
 		return;
 	}
@@ -75,22 +53,16 @@ export async function exportProject(
 	}
 }
 
-async function _exportProject(
-	editor: Editor,
-	options: IExportProjectOptions
-): Promise<void> {
+async function _exportProject(editor: Editor, options: IExportProjectOptions): Promise<void> {
 	if (!editor.state.projectPath || !editor.state.lastOpenedScenePath) {
 		return;
 	}
 
 	let progress: EditorExportProjectProgressComponent | null = null;
-	const toastId = toast(
-		<EditorExportProjectProgressComponent ref={(r) => (progress = r)} />,
-		{
-			dismissible: false,
-			duration: options.noProgress ? -1 : Infinity,
-		}
-	);
+	const toastId = toast(<EditorExportProjectProgressComponent ref={(r) => (progress = r)} />, {
+		dismissible: false,
+		duration: options.noProgress ? -1 : Infinity,
+	});
 
 	const scene = editor.layout.preview.scene;
 	const editorCamera = scene.cameras.find((camera) => isEditorCamera(camera));
@@ -113,34 +85,19 @@ async function _exportProject(
 		}
 	});
 
-	scene.meshes.forEach(
-		(mesh) => (mesh.doNotSerialize = mesh.metadata?.doNotSerialize ?? false)
-	);
-	scene.lights.forEach(
-		(light) => (light.doNotSerialize = light.metadata?.doNotSerialize ?? false)
-	);
-	scene.cameras.forEach(
-		(camera) =>
-			(camera.doNotSerialize = camera.metadata?.doNotSerialize ?? false)
-	);
-	scene.transformNodes.forEach(
-		(transformNode) =>
-			(transformNode.doNotSerialize =
-        transformNode.metadata?.doNotSerialize ?? false)
-	);
+	scene.meshes.forEach((mesh) => (mesh.doNotSerialize = mesh.metadata?.doNotSerialize ?? false));
+	scene.lights.forEach((light) => (light.doNotSerialize = light.metadata?.doNotSerialize ?? false));
+	scene.cameras.forEach((camera) => (camera.doNotSerialize = camera.metadata?.doNotSerialize ?? false));
+	scene.transformNodes.forEach((transformNode) => (transformNode.doNotSerialize = transformNode.metadata?.doNotSerialize ?? false));
 
 	const data = await SceneSerializer.SerializeAsync(scene);
 
 	scene.meshes.forEach((mesh) => (mesh.doNotSerialize = false));
 	scene.lights.forEach((light) => (light.doNotSerialize = false));
 	scene.cameras.forEach((camera) => (camera.doNotSerialize = false));
-	scene.transformNodes.forEach(
-		(transformNode) => (transformNode.doNotSerialize = false)
-	);
+	scene.transformNodes.forEach((transformNode) => (transformNode.doNotSerialize = false));
 
-	const editorCameraIndex = data.cameras?.findIndex(
-		(camera) => camera.id === editorCamera?.id
-	);
+	const editorCameraIndex = data.cameras?.findIndex((camera) => camera.id === editorCamera?.id);
 	if (editorCameraIndex !== -1) {
 		data.cameras?.splice(editorCameraIndex, 1);
 	}
@@ -158,13 +115,10 @@ async function _exportProject(
 		.filter((camera) => !isEditorCamera(camera))
 		.map((camera) => ({
 			cameraId: camera.id,
-			ssao2RenderingPipeline:
-        ssaoRenderingPipelineCameraConfigurations.get(camera),
+			ssao2RenderingPipeline: ssaoRenderingPipelineCameraConfigurations.get(camera),
 			vlsPostProcess: vlsPostProcessCameraConfigurations.get(camera),
-			ssrRenderingPipeline:
-        ssrRenderingPipelineCameraConfigurations.get(camera),
-			motionBlurPostProcess:
-        motionBlurPostProcessCameraConfigurations.get(camera),
+			ssrRenderingPipeline: ssrRenderingPipelineCameraConfigurations.get(camera),
+			motionBlurPostProcess: motionBlurPostProcessCameraConfigurations.get(camera),
 			defaultRenderingPipeline: defaultPipelineCameraConfigurations.get(camera),
 		}));
 
@@ -178,9 +132,7 @@ async function _exportProject(
 	const projectDir = dirname(editor.state.projectPath);
 	const publicPath = join(projectDir, "public");
 
-	const sceneName = basename(editor.state.lastOpenedScenePath)
-		.split(".")
-		.shift()!;
+	const sceneName = basename(editor.state.lastOpenedScenePath).split(".").shift()!;
 
 	await createDirectoryIfNotExist(publicPath);
 	await createDirectoryIfNotExist(join(publicPath, "scene"));
@@ -227,20 +179,14 @@ async function _exportProject(
 				}
 			}
 
-			const geometry = data.geometries?.vertexData?.find(
-				(v) => v.id === mesh.geometryId
-			);
+			const geometry = data.geometries?.vertexData?.find((v) => v.id === mesh.geometryId);
 
 			if (geometry) {
 				const geometryFileName = `${geometry.id}.babylonbinarymeshdata`;
 
 				mesh.delayLoadingFile = `${sceneName}/${geometryFileName}`;
-				mesh.boundingBoxMaximum = instantiatedMesh
-					?.getBoundingInfo()
-					?.maximum?.asArray() ?? [0, 0, 0];
-				mesh.boundingBoxMinimum = instantiatedMesh
-					?.getBoundingInfo()
-					?.minimum?.asArray() ?? [0, 0, 0];
+				mesh.boundingBoxMaximum = instantiatedMesh?.getBoundingInfo()?.maximum?.asArray() ?? [0, 0, 0];
+				mesh.boundingBoxMinimum = instantiatedMesh?.getBoundingInfo()?.minimum?.asArray() ?? [0, 0, 0];
 				mesh._binaryInfo = {};
 
 				const geometryPath = join(scenePath, sceneName, geometryFileName);
@@ -250,19 +196,15 @@ async function _exportProject(
 
 					let geometryIndex = -1;
 					do {
-						geometryIndex = data.geometries!.vertexData!.findIndex(
-							(g) => g.id === mesh.geometryId
-						);
+						geometryIndex = data.geometries!.vertexData!.findIndex((g) => g.id === mesh.geometryId);
 						if (geometryIndex !== -1) {
-              data.geometries!.vertexData!.splice(geometryIndex, 1);
+							data.geometries!.vertexData!.splice(geometryIndex, 1);
 						}
 					} while (geometryIndex !== -1);
 
 					savedGeometries.push(geometryFileName);
 				} catch (e) {
-					editor.layout.console.error(
-						`Export: Failed to write geometry for mesh ${mesh.name}`
-					);
+					editor.layout.console.error(`Export: Failed to write geometry for mesh ${mesh.name}`);
 				}
 			}
 		})
@@ -273,14 +215,10 @@ async function _exportProject(
 		const instantiatedLight = scene.getLightById(shadowGenerator.lightId);
 		const instantiatedShadowGenerator = instantiatedLight?.getShadowGenerator();
 
-		const light = data.lights?.find(
-			(light) => light.id === shadowGenerator.lightId
-		);
+		const light = data.lights?.find((light) => light.id === shadowGenerator.lightId);
 		if (light && instantiatedShadowGenerator) {
 			light.metadata ??= {};
-			light.metadata.refreshRate =
-        instantiatedShadowGenerator?.getShadowMap()?.refreshRate ??
-        RenderTargetTexture.REFRESHRATE_RENDER_ONEVERYFRAME;
+			light.metadata.refreshRate = instantiatedShadowGenerator?.getShadowMap()?.refreshRate ?? RenderTargetTexture.REFRESHRATE_RENDER_ONEVERYFRAME;
 		}
 	});
 
@@ -364,12 +302,9 @@ async function _exportProject(
 	if (options.optimize) {
 		toast.success("Project exported");
 
-		const publicFiles = await normalizedGlob(
-			join(projectDir, "/public/scene/assets/**/*"),
-			{
-				nodir: true,
-			}
-		);
+		const publicFiles = await normalizedGlob(join(projectDir, "/public/scene/assets/**/*"), {
+			nodir: true,
+		});
 
 		publicFiles.forEach((file) => {
 			if (!exportedAssets.includes(file.toString())) {

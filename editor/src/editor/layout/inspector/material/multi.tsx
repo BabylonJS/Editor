@@ -18,11 +18,11 @@ import { EditorPBRMaterialInspector } from "./pbr";
 import { EditorStandardMaterialInspector } from "./standard";
 
 export interface IEditorPBRMaterialInspectorProps {
-    material: MultiMaterial;
+	material: MultiMaterial;
 }
 
 export interface IEditorMultiMaterialInspectorState {
-    material: Material | null;
+	material: Material | null;
 }
 
 export class EditorMultiMaterialInspector extends Component<IEditorPBRMaterialInspectorProps, IEditorMultiMaterialInspectorState> {
@@ -37,9 +37,7 @@ export class EditorMultiMaterialInspector extends Component<IEditorPBRMaterialIn
 	public render(): ReactNode {
 		return (
 			<>
-				<EditorInspectorSectionField title="Multi Material">
-					{this._getMaterialSelectorComponent()}
-				</EditorInspectorSectionField>
+				<EditorInspectorSectionField title="Multi Material">{this._getMaterialSelectorComponent()}</EditorInspectorSectionField>
 
 				{this._getMaterialComponent()}
 			</>
@@ -108,17 +106,18 @@ export class EditorMultiMaterialInspector extends Component<IEditorPBRMaterialIn
 		if (!this.state.material) {
 			return (
 				<div className="flex flex-col gap-2 px-2">
-					<div className="text-center text-xl">
-                        No material
-					</div>
+					<div className="text-center text-xl">No material</div>
 				</div>
 			);
 		}
 
 		switch (this.state.material.getClassName()) {
-			case "PBRMaterial": return <EditorPBRMaterialInspector key={this.state.material.id} material={this.state.material as PBRMaterial} />;
-			case "StandardMaterial": return <EditorStandardMaterialInspector key={this.state.material.id} material={this.state.material as StandardMaterial} />;
-			case "SkyMaterial": return <EditorSkyMaterialInspector key={this.state.material.id} material={this.state.material as SkyMaterial} />;
+			case "PBRMaterial":
+				return <EditorPBRMaterialInspector key={this.state.material.id} material={this.state.material as PBRMaterial} />;
+			case "StandardMaterial":
+				return <EditorStandardMaterialInspector key={this.state.material.id} material={this.state.material as StandardMaterial} />;
+			case "SkyMaterial":
+				return <EditorSkyMaterialInspector key={this.state.material.id} material={this.state.material as SkyMaterial} />;
 		}
 	}
 }

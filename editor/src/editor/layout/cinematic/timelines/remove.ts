@@ -49,7 +49,6 @@ export function removeEventKey(cinematicEditor: CinematicEditor, track: ICinemat
 	cinematicEditor.forceUpdate();
 }
 
-
 export function removeAnimationGroupKey(cinematicEditor: CinematicEditor, track: ICinematicTrack, animationGroup: ICinematicAnimationGroup) {
 	const index = track.animationGroups!.indexOf(animationGroup);
 	if (index === -1) {

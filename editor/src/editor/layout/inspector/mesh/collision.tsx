@@ -19,7 +19,7 @@ import { EditorInspectorSwitchField } from "../fields/switch";
 import { EditorInspectorSectionField } from "../fields/section";
 
 export interface IEditorMeshInspectorState {
-    computingCollisionMesh: boolean;
+	computingCollisionMesh: boolean;
 }
 
 export class EditorMeshCollisionInspector extends Component<IEditorInspectorImplementationProps<AbstractMesh>, IEditorMeshInspectorState> {
@@ -48,50 +48,47 @@ export class EditorMeshCollisionInspector extends Component<IEditorInspectorImpl
 
 		return (
 			<EditorInspectorSectionField title="Collisions" isProcessing={this.state.computingCollisionMesh}>
-				<EditorInspectorSwitchField label="Check Collisions" object={mesh} property="checkCollisions" onChange={(v) => {
-					if (!v && isMesh(mesh) && collisionMesh) {
-						collisionMesh.dispose();
-					}
+				<EditorInspectorSwitchField
+					label="Check Collisions"
+					object={mesh}
+					property="checkCollisions"
+					onChange={(v) => {
+						if (!v && isMesh(mesh) && collisionMesh) {
+							collisionMesh.dispose();
+						}
 
-					this.forceUpdate();
-					this.props.editor.layout.graph.refresh();
-				}} />
+						this.forceUpdate();
+						this.props.editor.layout.graph.refresh();
+					}}
+				/>
 
-				{mesh.checkCollisions &&
-                    <div
-                    	className="flex gap-2 items-center"
-                    	onMouseLeave={() => {
-                    		mesh.visibility = 1;
-                    		if (this._collisionMesh) {
-                    			this._collisionMesh.isVisible = false;
-                    			this._collisionMesh.instances?.forEach((i) => i.isVisible = false);
-                    		}
-                    	}}
-                    	onMouseMove={() => {
-                    		mesh.visibility = 0.35;
-                    		if (this._collisionMesh) {
-                    			this._collisionMesh.isVisible = true;
-                    			this._collisionMesh.instances?.forEach((i) => i.isVisible = true);
-                    		}
-                    	}}
-                    >
-                    	{this._getCollisionType(mesh, collisionMesh, "cube", (
-                    		<RxCube size={42} />
-                    	))}
+				{mesh.checkCollisions && (
+					<div
+						className="flex gap-2 items-center"
+						onMouseLeave={() => {
+							mesh.visibility = 1;
+							if (this._collisionMesh) {
+								this._collisionMesh.isVisible = false;
+								this._collisionMesh.instances?.forEach((i) => (i.isVisible = false));
+							}
+						}}
+						onMouseMove={() => {
+							mesh.visibility = 0.35;
+							if (this._collisionMesh) {
+								this._collisionMesh.isVisible = true;
+								this._collisionMesh.instances?.forEach((i) => (i.isVisible = true));
+							}
+						}}
+					>
+						{this._getCollisionType(mesh, collisionMesh, "cube", <RxCube size={42} />)}
 
-                    	{this._getCollisionType(mesh, collisionMesh, "sphere", (
-                    		<ImSphere size={42} />
-                    	))}
+						{this._getCollisionType(mesh, collisionMesh, "sphere", <ImSphere size={42} />)}
 
-                    	{this._getCollisionType(mesh, collisionMesh, "capsule", (
-                    		<RiCapsuleFill size={42} />
-                    	))}
+						{this._getCollisionType(mesh, collisionMesh, "capsule", <RiCapsuleFill size={42} />)}
 
-                    	{this._getCollisionType(mesh, collisionMesh, "lod", (
-                    		<GiMeshNetwork size={42} />
-                    	))}
-                    </div>
-				}
+						{this._getCollisionType(mesh, collisionMesh, "lod", <GiMeshNetwork size={42} />)}
+					</div>
+				)}
 			</EditorInspectorSectionField>
 		);
 	}
@@ -108,9 +105,7 @@ export class EditorMeshCollisionInspector extends Component<IEditorInspectorImpl
 			>
 				{children}
 
-				<div className="capitalize">
-					{type}
-				</div>
+				<div className="capitalize">{type}</div>
 			</div>
 		);
 	}

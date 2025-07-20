@@ -12,11 +12,7 @@ import { projectConfiguration } from "../../../../project/configuration";
 import { Editor } from "../../../main";
 
 export function openMaterialViewer(editor: Editor, absolutePath: string) {
-	showAlert(
-		basename(absolutePath),
-		<AssetBrowserMaterialViewer editor={editor} absolutePath={absolutePath} />,
-		true,
-	);
+	showAlert(basename(absolutePath), <AssetBrowserMaterialViewer editor={editor} absolutePath={absolutePath} />, true);
 }
 
 export interface IAssetBrowserMaterialViewerProps {
