@@ -116,7 +116,6 @@ export async function handleExportScripts(editor: Editor): Promise<void> {
 		case "vanillajs":
 		case "solidjs":
 			template = es6ModuleTemplate;
-			// Для SolidJS создаем import statements
 			const importStatements: string[] = [];
 			Object.keys(scriptsMap).forEach((key) => {
 				const scriptName = key.replace(extname(key), "").split("/").pop();
@@ -124,7 +123,6 @@ export async function handleExportScripts(editor: Editor): Promise<void> {
 			});
 			importsContent = importStatements.join("\n");
 			
-			// Для SolidJS создаем exports с default свойствами
 			exportsContent = Object.keys(scriptsMap).map((key) => {
 				const scriptName = key.replace(extname(key), "").split("/").pop();
 				return `"${key}": {\n\t\tdefault: ${scriptName}\n\t}`;
