@@ -44,10 +44,18 @@ export async function startProjectDevProcess(editor: Editor) {
 
 	let command = "";
 	switch (editor.state.packageManager) {
-		case "npm": command = "npm run dev"; break;
-		case "pnpm": command = "pnpm dev"; break;
-		case "bun": command = "bun run dev"; break;
-		default: command = "yarn dev"; break;
+		case "npm":
+			command = "npm run dev";
+			break;
+		case "pnpm":
+			command = "pnpm dev";
+			break;
+		case "bun":
+			command = "bun run dev";
+			break;
+		default:
+			command = "yarn dev";
+			break;
 	}
 
 	const localhostRegex = /http:\/\/localhost:(\d+)/;
@@ -72,7 +80,10 @@ export async function startProjectDevProcess(editor: Editor) {
 				done: true,
 				message: (
 					<div>
-						Game / application is ready at <a className="underline underline-offset-4" onClick={() => shell.openExternal(devAddress!)}>{devAddress}</a>
+						Game / application is ready at{" "}
+						<a className="underline underline-offset-4" onClick={() => shell.openExternal(devAddress!)}>
+							{devAddress}
+						</a>
 					</div>
 				),
 			});

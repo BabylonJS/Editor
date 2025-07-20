@@ -6,7 +6,7 @@ import { EditorInspectorNumberField } from "../fields/number";
 import { EditorInspectorSectionField } from "../fields/section";
 
 export interface IMeshGeometryInspectorProps {
-    object: Mesh;
+	object: Mesh;
 }
 
 export class MeshGeometryInspector extends Component<IMeshGeometryInspectorProps> {
@@ -28,11 +28,14 @@ export class MeshGeometryInspector extends Component<IMeshGeometryInspectorProps
 
 	private _getBoxInspectorComponent(): ReactNode {
 		const proxy = this._getProxy(() => {
-			this.props.object.geometry?.setAllVerticesData(CreateBoxVertexData({
-				width: this.props.object.metadata.width,
-				height: this.props.object.metadata.height,
-				depth: this.props.object.metadata.depth,
-			}), false);
+			this.props.object.geometry?.setAllVerticesData(
+				CreateBoxVertexData({
+					width: this.props.object.metadata.width,
+					height: this.props.object.metadata.height,
+					depth: this.props.object.metadata.depth,
+				}),
+				false
+			);
 		});
 
 		return (
@@ -46,10 +49,13 @@ export class MeshGeometryInspector extends Component<IMeshGeometryInspectorProps
 
 	private _getSphereInspectorComponent(): ReactNode {
 		const proxy = this._getProxy(() => {
-			this.props.object.geometry?.setAllVerticesData(CreateSphereVertexData({
-				diameter: this.props.object.metadata.diameter,
-				segments: this.props.object.metadata.segments,
-			}), false);
+			this.props.object.geometry?.setAllVerticesData(
+				CreateSphereVertexData({
+					diameter: this.props.object.metadata.diameter,
+					segments: this.props.object.metadata.segments,
+				}),
+				false
+			);
 		});
 
 		return (
@@ -62,11 +68,14 @@ export class MeshGeometryInspector extends Component<IMeshGeometryInspectorProps
 
 	private _getGroundInspectorComponent(): ReactNode {
 		const proxy = this._getProxy(() => {
-			this.props.object.geometry?.setAllVerticesData(CreateGroundVertexData({
-				width: this.props.object.metadata.width,
-				height: this.props.object.metadata.height,
-				subdivisions: this.props.object.metadata.subdivisions >> 0,
-			}), false);
+			this.props.object.geometry?.setAllVerticesData(
+				CreateGroundVertexData({
+					width: this.props.object.metadata.width,
+					height: this.props.object.metadata.height,
+					subdivisions: this.props.object.metadata.subdivisions >> 0,
+				}),
+				false
+			);
 		});
 
 		return (

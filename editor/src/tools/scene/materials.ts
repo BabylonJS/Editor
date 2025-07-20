@@ -8,18 +8,22 @@ import { isInstancedMesh } from "../guards/nodes";
  * @param scene The scene to force compile all materials
  */
 export function forceCompileAllSceneMaterials(scene: Scene) {
-	return Promise.all(scene.materials.map(async (material) => {
-		const meshes = material.getBindedMeshes();
+	return Promise.all(
+		scene.materials.map(async (material) => {
+			const meshes = material.getBindedMeshes();
 
-		await Promise.all(meshes.map(async (mesh) => {
-			if (isInstancedMesh(mesh)) {
-				return;
-			}
+			await Promise.all(
+				meshes.map(async (mesh) => {
+					if (isInstancedMesh(mesh)) {
+						return;
+					}
 
-			await material.forceCompilationAsync(mesh, {
-				clipPlane: !!scene.clipPlane,
-				useInstances: mesh.hasInstances,
-			});
-		}));
-	}));
+					await material.forceCompilationAsync(mesh, {
+						clipPlane: !!scene.clipPlane,
+						useInstances: mesh.hasInstances,
+					});
+				})
+			);
+		})
+	);
 }

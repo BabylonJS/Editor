@@ -9,8 +9,8 @@ import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarSeparator, Me
 import { CinematicEditor } from "./editor";
 
 export interface ICinematicEditorToolbarProps {
-    cinematicEditor: CinematicEditor;
-    playing: boolean;
+	cinematicEditor: CinematicEditor;
+	playing: boolean;
 }
 
 export function CinematicEditorToolbar(props: ICinematicEditorToolbarProps): ReactNode {
@@ -19,53 +19,47 @@ export function CinematicEditorToolbar(props: ICinematicEditorToolbarProps): Rea
 			<Menubar className="border-none rounded-none pl-3 my-auto bg-primary-foreground h-10">
 				{/* File */}
 				<MenubarMenu>
-					<MenubarTrigger>
-                        File
-					</MenubarTrigger>
+					<MenubarTrigger>File</MenubarTrigger>
 
 					<MenubarContent className="border-black/50">
-						<MenubarItem>
-                            Load From File...
-						</MenubarItem>
+						<MenubarItem>Load From File...</MenubarItem>
 						<MenubarSeparator />
-						<MenubarItem onClick={() => props.cinematicEditor.save()}>
-                            Save
-						</MenubarItem>
-						<MenubarItem onClick={() => props.cinematicEditor.saveAs()}>
-                            Save As...
-						</MenubarItem>
+						<MenubarItem onClick={() => props.cinematicEditor.save()}>Save</MenubarItem>
+						<MenubarItem onClick={() => props.cinematicEditor.saveAs()}>Save As...</MenubarItem>
 					</MenubarContent>
 				</MenubarMenu>
 
 				{/* Render */}
 				<MenubarMenu>
-					<MenubarTrigger>
-                        Render
-					</MenubarTrigger>
+					<MenubarTrigger>Render</MenubarTrigger>
 
 					<MenubarContent className="border-black/50">
-						<MenubarItem onClick={() => props.cinematicEditor.openRenderDialog("720p")}>
-                            Render 720p
-						</MenubarItem>
-						<MenubarItem onClick={() => props.cinematicEditor.openRenderDialog("1080p")}>
-                            Render 1080p
-						</MenubarItem>
-						<MenubarItem onClick={() => props.cinematicEditor.openRenderDialog("4k")}>
-                            Render 4K
-						</MenubarItem>
+						<MenubarItem onClick={() => props.cinematicEditor.openRenderDialog("720p")}>Render 720p</MenubarItem>
+						<MenubarItem onClick={() => props.cinematicEditor.openRenderDialog("1080p")}>Render 1080p</MenubarItem>
+						<MenubarItem onClick={() => props.cinematicEditor.openRenderDialog("4k")}>Render 4K</MenubarItem>
 					</MenubarContent>
 				</MenubarMenu>
 			</Menubar>
 
 			{/* Buttons */}
 			<div className="flex gap-2 items-center pr-2">
-				<Slider min={0.1} max={5} step={0.01} className="w-32" value={[props.cinematicEditor.timelines?.state.scale]} onValueChange={(v) => {
-					props.cinematicEditor.timelines?.setState({
-						scale: v[0],
-					}, () => {
-						props.cinematicEditor.forceUpdate();
-					});
-				}} />
+				<Slider
+					min={0.1}
+					max={5}
+					step={0.01}
+					className="w-32"
+					value={[props.cinematicEditor.timelines?.state.scale]}
+					onValueChange={(v) => {
+						props.cinematicEditor.timelines?.setState(
+							{
+								scale: v[0],
+							},
+							() => {
+								props.cinematicEditor.forceUpdate();
+							}
+						);
+					}}
+				/>
 
 				<Button
 					variant="ghost"

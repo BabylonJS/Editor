@@ -54,12 +54,12 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
 	private _layoutRef: Layout | null = null;
 	private _model: Model = Model.fromJson(layoutModel as any);
 	private _components: Record<string, React.ReactNode> = {
-		"console": <EditorConsole editor={this.props.editor} ref={(r) => this.console = r!} />,
-		"preview": <EditorPreview editor={this.props.editor} ref={(r) => this.preview = r!} />,
-		"inspector": <EditorInspector editor={this.props.editor} ref={(r) => this.inspector = r!} />,
-		"graph": <EditorGraph editor={this.props.editor} ref={(r) => this.graph = r!} />,
-		"assets-browser": <EditorAssetsBrowser editor={this.props.editor} ref={(r) => this.assets = r!} />,
-		"animations": <EditorAnimation editor={this.props.editor} ref={(r) => this.animations = r!} />,
+		console: <EditorConsole editor={this.props.editor} ref={(r) => (this.console = r!)} />,
+		preview: <EditorPreview editor={this.props.editor} ref={(r) => (this.preview = r!)} />,
+		inspector: <EditorInspector editor={this.props.editor} ref={(r) => (this.inspector = r!)} />,
+		graph: <EditorGraph editor={this.props.editor} ref={(r) => (this.graph = r!)} />,
+		"assets-browser": <EditorAssetsBrowser editor={this.props.editor} ref={(r) => (this.assets = r!)} />,
+		animations: <EditorAnimation editor={this.props.editor} ref={(r) => (this.animations = r!)} />,
 	};
 
 	private _layoutVersion: string = "5.0.0-alpha.2";
@@ -85,12 +85,7 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
 				<EditorToolbar editor={this.props.editor} />
 
 				<div className="relative w-full h-full">
-					<Layout
-						model={this._model}
-						ref={(r) => this._layoutRef = r}
-						factory={(n) => this._layoutFactory(n)}
-						onModelChange={(m) => this._saveLayout(m)}
-					/>
+					<Layout model={this._model} ref={(r) => (this._layoutRef = r)} factory={(n) => this._layoutFactory(n)} onModelChange={(m) => this._saveLayout(m)} />
 				</div>
 			</div>
 		);
@@ -130,10 +125,7 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
 
 		layoutData.version = this._layoutVersion;
 
-		localStorage.setItem(
-			"babylonjs-editor-layout",
-			JSON.stringify(layoutData),
-		);
+		localStorage.setItem("babylonjs-editor-layout", JSON.stringify(layoutData));
 	}
 
 	/**
@@ -141,7 +133,7 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
 	 * If the tab is hidden, makes it visible and selected.
 	 * @param tabId defines the id of the tab to make active.
 	 */
-	public selectTab(tabId: "graph" | "preview" | "assets-browser" | "console" | "inspector" | string & {}): void {
+	public selectTab(tabId: "graph" | "preview" | "assets-browser" | "console" | "inspector" | (string & {})): void {
 		this._layoutRef?.props.model.doAction(Actions.selectTab(tabId));
 	}
 

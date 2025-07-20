@@ -1,8 +1,5 @@
 import { Sound, AnimationGroup } from "babylonjs";
-import {
-	ICinematicAnimationGroup, ICinematicKey, ICinematicKeyCut, ICinematicKeyEvent, ICinematicSound,
-	ICinematicTrack, isCinematicKeyCut,
-} from "babylonjs-editor-tools";
+import { ICinematicAnimationGroup, ICinematicKey, ICinematicKeyCut, ICinematicKeyEvent, ICinematicSound, ICinematicTrack, isCinematicKeyCut } from "babylonjs-editor-tools";
 
 import { registerUndoRedo } from "../../../../tools/undoredo";
 import { getInspectorPropertyValue } from "../../../../tools/property";
@@ -16,9 +13,7 @@ import { CinematicEditor } from "../editor";
 export function addAnimationKey(cinematicEditor: CinematicEditor, type: "key" | "cut", track: ICinematicTrack, positionX?: number | null) {
 	positionX ??= cinematicEditor.timelines.state.rightClickPositionX;
 
-	const node = track.defaultRenderingPipeline
-		? getDefaultRenderingPipeline()
-		: track.node;
+	const node = track.defaultRenderingPipeline ? getDefaultRenderingPipeline() : track.node;
 
 	if (positionX === null || !node || !track.propertyPath) {
 		return;
@@ -39,30 +34,31 @@ export function addAnimationKey(cinematicEditor: CinematicEditor, type: "key" | 
 		return;
 	}
 
-	const key = type === "key"
-		? {
-			frame,
-			type: "key",
-			value: value.clone?.() ?? value,
-		} as ICinematicKey
-		: {
-			type: "cut",
-			key1: {
-				frame,
-				value: value.clone?.() ?? value,
-			},
-			key2: {
-				frame,
-				value: value.clone?.() ?? value,
-			},
-		} as ICinematicKeyCut;
+	const key =
+		type === "key"
+			? ({
+					frame,
+					type: "key",
+					value: value.clone?.() ?? value,
+				} as ICinematicKey)
+			: ({
+					type: "cut",
+					key1: {
+						frame,
+						value: value.clone?.() ?? value,
+					},
+					key2: {
+						frame,
+						value: value.clone?.() ?? value,
+					},
+				} as ICinematicKeyCut);
 
 	registerUndoRedo({
 		executeRedo: true,
 		undo: () => {
 			const index = track.keyFrameAnimations!.indexOf(key);
 			if (index !== -1) {
-                track.keyFrameAnimations!.splice(index, 1);
+				track.keyFrameAnimations!.splice(index, 1);
 			}
 		},
 		redo: () => track.keyFrameAnimations!.push(key),
@@ -70,7 +66,7 @@ export function addAnimationKey(cinematicEditor: CinematicEditor, type: "key" | 
 	});
 
 	cinematicEditor.timelines.setState({
-		rightClickPositionX: null
+		rightClickPositionX: null,
 	});
 
 	cinematicEditor.forceUpdate();
@@ -96,7 +92,7 @@ export function addSoundKey(cinematicEditor: CinematicEditor, track: ICinematicT
 	if (!buffer) {
 		return showAlert(
 			"Can't add sound track",
-			"The sound track is not ready yet, please wait until the sound is loaded. If this problem persists, please verify the sound file is correctly loaded.",
+			"The sound track is not ready yet, please wait until the sound is loaded. If this problem persists, please verify the sound file is correctly loaded."
 		);
 	}
 
@@ -116,7 +112,7 @@ export function addSoundKey(cinematicEditor: CinematicEditor, track: ICinematicT
 		undo: () => {
 			const index = track.sounds!.indexOf(key);
 			if (index !== -1) {
-                track.sounds!.splice(index, 1);
+				track.sounds!.splice(index, 1);
 			}
 		},
 		redo: () => track.sounds!.push(key),
@@ -156,7 +152,7 @@ export function addEventKey(cinematicEditor: CinematicEditor, track: ICinematicT
 		undo: () => {
 			const index = track.keyFrameEvents!.indexOf(key);
 			if (index !== -1) {
-                track.keyFrameEvents!.splice(index, 1);
+				track.keyFrameEvents!.splice(index, 1);
 			}
 		},
 		redo: () => track.keyFrameEvents!.push(key),
@@ -164,7 +160,7 @@ export function addEventKey(cinematicEditor: CinematicEditor, track: ICinematicT
 	});
 
 	cinematicEditor.timelines.setState({
-		rightClickPositionX: null
+		rightClickPositionX: null,
 	});
 	cinematicEditor.forceUpdate();
 }
@@ -198,7 +194,7 @@ export function addAnimationGroupKey(cinematicEditor: CinematicEditor, track: IC
 		undo: () => {
 			const index = track.animationGroups!.indexOf(key);
 			if (index !== -1) {
-                track.animationGroups!.splice(index, 1);
+				track.animationGroups!.splice(index, 1);
 			}
 		},
 		redo: () => track.animationGroups!.push(key),
@@ -206,7 +202,7 @@ export function addAnimationGroupKey(cinematicEditor: CinematicEditor, track: IC
 	});
 
 	cinematicEditor.timelines.setState({
-		rightClickPositionX: null
+		rightClickPositionX: null,
 	});
 	cinematicEditor.forceUpdate();
 }

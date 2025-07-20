@@ -12,8 +12,8 @@ import { CinematicEditorRemoveTrackButton } from "./remove";
 import { Button } from "../../../../ui/shadcn/ui/button";
 
 export interface ICinematicEditorSoundTrackProps {
-    track: ICinematicTrack;
-    cinematicEditor: CinematicEditor;
+	track: ICinematicTrack;
+	cinematicEditor: CinematicEditor;
 }
 
 export function CinematicEditorSoundTrack(props: ICinematicEditorSoundTrackProps) {
@@ -76,9 +76,7 @@ export function CinematicEditorSoundTrack(props: ICinematicEditorSoundTrackProps
 
 			<div className="flex-1">
 				<Button variant="ghost" className="w-full h-8 bg-accent/35">
-					<span className="w-full text-xs whitespace-nowrap overflow-hidden overflow-ellipsis">
-						{props.track.sound?.name ?? "No sound"}
-					</span>
+					<span className="w-full text-xs whitespace-nowrap overflow-hidden overflow-ellipsis">{props.track.sound?.name ?? "No sound"}</span>
 				</Button>
 			</div>
 

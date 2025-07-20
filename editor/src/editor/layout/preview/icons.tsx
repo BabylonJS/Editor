@@ -103,57 +103,56 @@ export class EditorPreviewIcons extends Component<IEditorPreviewIconsProps, IEdi
 
 		const buttons: _IButtonData[] = [];
 
-		scene.getEngine().runRenderLoop(this._renderFunction = () => {
-			buttons.splice(0, buttons.length);
+		scene.getEngine().runRenderLoop(
+			(this._renderFunction = () => {
+				buttons.splice(0, buttons.length);
 
-			scene.lights.forEach((light) => {
-				if (!this._isInFrustrum(light.getAbsolutePosition(), scene)) {
-					return;
-				}
-
-				buttons.push({
-					node: light,
-					position: projectVectorOnScreen(light.getAbsolutePosition(), scene),
-				});
-			});
-
-			scene.cameras.forEach((camera) => {
-				if (isEditorCamera(camera) || camera === scene.activeCamera) {
-					return;
-				}
-
-				if (
-					!this._isInFrustrum(camera.computeWorldMatrix().getTranslation(), scene) ||
-					this.props.editor.layout.preview.gizmo.attachedNode === camera
-				) {
-					return;
-				}
-
-				buttons.push({
-					node: camera,
-					position: projectVectorOnScreen(camera.computeWorldMatrix().getTranslation(), scene),
-				});
-			});
-
-			scene.soundTracks?.forEach((soundtrack) => {
-				soundtrack.soundCollection.forEach((sound) => {
-					if (!sound.spatialSound) {
-						return;
-					}
-
-					if (!this._isInFrustrum(sound["_connectedTransformNode"].getAbsolutePosition(), scene)) {
+				scene.lights.forEach((light) => {
+					if (!this._isInFrustrum(light.getAbsolutePosition(), scene)) {
 						return;
 					}
 
 					buttons.push({
-						node: sound as any,
-						position: projectVectorOnScreen(sound["_connectedTransformNode"].computeWorldMatrix().getTranslation(), scene),
+						node: light,
+						position: projectVectorOnScreen(light.getAbsolutePosition(), scene),
 					});
 				});
-			});
 
-			this.setState({ buttons });
-		});
+				scene.cameras.forEach((camera) => {
+					if (isEditorCamera(camera) || camera === scene.activeCamera) {
+						return;
+					}
+
+					if (!this._isInFrustrum(camera.computeWorldMatrix().getTranslation(), scene) || this.props.editor.layout.preview.gizmo.attachedNode === camera) {
+						return;
+					}
+
+					buttons.push({
+						node: camera,
+						position: projectVectorOnScreen(camera.computeWorldMatrix().getTranslation(), scene),
+					});
+				});
+
+				scene.soundTracks?.forEach((soundtrack) => {
+					soundtrack.soundCollection.forEach((sound) => {
+						if (!sound.spatialSound) {
+							return;
+						}
+
+						if (!this._isInFrustrum(sound["_connectedTransformNode"].getAbsolutePosition(), scene)) {
+							return;
+						}
+
+						buttons.push({
+							node: sound as any,
+							position: projectVectorOnScreen(sound["_connectedTransformNode"].computeWorldMatrix().getTranslation(), scene),
+						});
+					});
+				});
+
+				this.setState({ buttons });
+			})
+		);
 	}
 
 	private _isInFrustrum(absolutePosition: Vector3, scene: Scene): boolean {
@@ -193,4 +192,4 @@ export class EditorPreviewIcons extends Component<IEditorPreviewIconsProps, IEdi
 			return <HiSpeakerWave color="white" stroke="black" strokeWidth={0.1} className="w-full h-full" />;
 		}
 	}
-};
+}

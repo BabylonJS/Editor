@@ -28,7 +28,6 @@ const createUniqueIdentifier = (filepath: string): string => {
 		.replace(/\//g, "_");
 };
 
-
 export async function handleExportScripts(editor: Editor): Promise<void> {
 	if (!editor.state.projectPath) {
 		return;
@@ -45,35 +44,39 @@ export async function handleExportScripts(editor: Editor): Promise<void> {
 	const availableMetadata: any[] = [];
 
 	// Check on all scenes in assets
-	await Promise.all(sceneFolders.map(async (file) => {
-		try {
-			const config = await readJSON(join(file, "config.json"));
-			if (config.metadata) {
-				availableMetadata.push(config.metadata);
+	await Promise.all(
+		sceneFolders.map(async (file) => {
+			try {
+				const config = await readJSON(join(file, "config.json"));
+				if (config.metadata) {
+					availableMetadata.push(config.metadata);
+				}
+			} catch (e) {
+				// Catch silently.
 			}
-		} catch (e) {
-			// Catch silently.
-		}
 
-		const [nodesFiles, meshesFiles, lightsFiles, cameraFiles] = await Promise.all([
-			readdir(join(file, "nodes")),
-			readdir(join(file, "meshes")),
-			readdir(join(file, "lights")),
-			readdir(join(file, "cameras")),
-		]);
+			const [nodesFiles, meshesFiles, lightsFiles, cameraFiles] = await Promise.all([
+				readdir(join(file, "nodes")),
+				readdir(join(file, "meshes")),
+				readdir(join(file, "lights")),
+				readdir(join(file, "cameras")),
+			]);
 
-		await Promise.all([
-			...nodesFiles.map((file) => join("nodes", file)),
-			...meshesFiles.map((file) => join("meshes", file)),
-			...lightsFiles.map((file) => join("lights", file)),
-			...cameraFiles.map((file) => join("cameras", file)),
-		].map(async (f) => {
-			const data = await readJSON(join(file, f), "utf-8");
-			if (data.metadata) {
-				availableMetadata.push(data.metadata);
-			}
-		}));
-	}));
+			await Promise.all(
+				[
+					...nodesFiles.map((file) => join("nodes", file)),
+					...meshesFiles.map((file) => join("meshes", file)),
+					...lightsFiles.map((file) => join("lights", file)),
+					...cameraFiles.map((file) => join("cameras", file)),
+				].map(async (f) => {
+					const data = await readJSON(join(file, f), "utf-8");
+					if (data.metadata) {
+						availableMetadata.push(data.metadata);
+					}
+				})
+			);
+		})
+	);
 
 	// Check on all nodes in current scene
 	const entities = [
@@ -82,7 +85,7 @@ export async function handleExportScripts(editor: Editor): Promise<void> {
 		...editor.layout.preview.scene.cameras,
 		...editor.layout.preview.scene.transformNodes,
 		...editor.layout.preview.scene.particleSystems,
-	] as { metadata?: any; }[];
+	] as { metadata?: any }[];
 
 	entities.forEach((entity) => {
 		if (entity.metadata) {
@@ -93,20 +96,21 @@ export async function handleExportScripts(editor: Editor): Promise<void> {
 	const promises: Promise<void>[] = [];
 	availableMetadata.forEach((metadata) => {
 		metadata.scripts?.forEach((script) => {
-			promises.push(new Promise<void>(async (resolve) => {
-				const path = join(projectPath, "src", script.key);
-				if (!await pathExists(path)) {
-					return resolve();
-				}
+			promises.push(
+				new Promise<void>(async (resolve) => {
+					const path = join(projectPath, "src", script.key);
+					if (!(await pathExists(path))) {
+						return resolve();
+					}
 
-				const extension = extname(script.key).toLowerCase();
-				scriptsMap[script.key] = `@/${script.key.replace(extension, "")}`;
+					const extension = extname(script.key).toLowerCase();
+					scriptsMap[script.key] = `@/${script.key.replace(extension, "")}`;
 
-				resolve();
-			}));
+					resolve();
+				})
+			);
 		});
 	});
-
 
 	await Promise.all(promises);
 
@@ -117,19 +121,16 @@ export async function handleExportScripts(editor: Editor): Promise<void> {
 	});
 	const importsContent = importStatements.join("\n");
 
-	const exportsContent = Object.keys(scriptsMap).map((key) => {
-		const scriptName = createUniqueIdentifier(key);
-		return `"${key}": ${scriptName}`;
-	}).join(",\n\t");
+	const exportsContent = Object.keys(scriptsMap)
+		.map((key) => {
+			const scriptName = createUniqueIdentifier(key);
+			return `"${key}": ${scriptName}`;
+		})
+		.join(",\n\t");
 
-	const finalContent = scriptsTemplate
-		.replace("{{imports}}", importsContent)
-		.replace("{{exports}}", exportsContent);
+	const finalContent = scriptsTemplate.replace("{{imports}}", importsContent).replace("{{exports}}", exportsContent);
 
-	await writeFile(
-		join(projectPath, "src/scripts.ts"),
-		finalContent,
-		{
-			encoding: "utf-8",
-		});
+	await writeFile(join(projectPath, "src/scripts.ts"), finalContent, {
+		encoding: "utf-8",
+	});
 }

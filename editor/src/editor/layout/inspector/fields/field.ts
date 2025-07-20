@@ -1,13 +1,13 @@
 import { ReactNode } from "react";
 
 export interface IEditorInspectorFieldProps<T = any> {
-    object: T;
-    property: string;
+	object: T;
+	property: string;
 
-    label?: ReactNode;
-    tooltip?: ReactNode;
+	label?: ReactNode;
+	tooltip?: ReactNode;
 
-    noUndoRedo?: boolean;
+	noUndoRedo?: boolean;
 }
 
 // TODO: remove export

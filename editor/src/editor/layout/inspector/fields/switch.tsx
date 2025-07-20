@@ -32,17 +32,10 @@ export function EditorInspectorSwitchField(props: IEditorInspectorSwitchFieldPro
 			}}
 			className="flex gap-2 justify-center items-center px-2 cursor-pointer hover:bg-white/10 hover:px-2 rounded-lg transition-all duration-300"
 		>
-			<div className="w-full text-ellipsis overflow-hidden whitespace-nowrap">
-				{props.label}
-			</div>
+			<div className="w-full text-ellipsis overflow-hidden whitespace-nowrap">{props.label}</div>
 
 			<div className="flex justify-end w-14 my-auto">
-				<Switch
-					className="mt-2"
-					checked={value}
-					onChange={() => { }}
-					onClick={(ev) => ev.stopPropagation()}
-				/>
+				<Switch className="mt-2" checked={value} onChange={() => {}} onClick={(ev) => ev.stopPropagation()} />
 			</div>
 		</div>
 	);

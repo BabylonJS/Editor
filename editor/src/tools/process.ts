@@ -15,8 +15,8 @@ export function getFilePathArgument(argv?: string[] | null): string | null {
 		return null;
 	}
 
-	let index = (platform() === "darwin") ? 2 : 2;
-	while (index < argv.length && argv[index].startsWith('--')) {
+	let index = platform() === "darwin" ? 2 : 2;
+	while (index < argv.length && argv[index].startsWith("--")) {
 		index += 1;
 	}
 
@@ -102,10 +102,18 @@ export async function isPackageManagerAvailable(packageManager: EditorProjectPac
 	try {
 		let command = "";
 		switch (packageManager) {
-			case "npm": command = "npm -v"; break;
-			case "pnpm": command = "pnpm -v"; break;
-			case "bun": command = "bun -v"; break;
-			default: command = "yarn -v"; break;
+			case "npm":
+				command = "npm -v";
+				break;
+			case "pnpm":
+				command = "pnpm -v";
+				break;
+			case "bun":
+				command = "bun -v";
+				break;
+			default:
+				command = "yarn -v";
+				break;
 		}
 
 		const p = await execNodePty(command);

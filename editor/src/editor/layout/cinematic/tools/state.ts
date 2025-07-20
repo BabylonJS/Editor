@@ -25,13 +25,10 @@ export function saveSceneState(scene: Scene) {
 
 			const physicsEngine = scene.getPhysicsEngine()?.getPhysicsPlugin() as HavokPlugin | null;
 
-			physicsEngine?._hknp.HP_Body_SetQTransform(
-				node.physicsAggregate.body._pluginData.hpBodyId,
-				[
-					[position.x, position.y, position.z],
-					[orientation.x, orientation.y, orientation.z, orientation.w],
-				],
-			);
+			physicsEngine?._hknp.HP_Body_SetQTransform(node.physicsAggregate.body._pluginData.hpBodyId, [
+				[position.x, position.y, position.z],
+				[orientation.x, orientation.y, orientation.z, orientation.w],
+			]);
 		}
 	});
 }

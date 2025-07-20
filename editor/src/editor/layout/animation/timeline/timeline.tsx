@@ -73,19 +73,13 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
 	}
 
 	private _getEmpty(): ReactNode {
-		return (
-			<div className="flex justify-center items-center text-center font-semibold text-xl w-full h-full">
-				No object selected.
-			</div>
-		);
+		return <div className="flex justify-center items-center text-center font-semibold text-xl w-full h-full">No object selected.</div>;
 	}
 
 	private _getEmptyAnimations(): ReactNode {
 		return (
 			<div className="flex flex-col gap-2 justify-center items-center text-center font-semibold text-xl w-full h-full">
-				<div>
-					No animations found on this object.
-				</div>
+				<div>No animations found on this object.</div>
 
 				<Button variant="secondary" className="flex items-center gap-2" onClick={() => this.props.animationEditor.tracks.addTrack()}>
 					<AiOutlinePlus className="w-5 h-5" /> Add Track
@@ -102,7 +96,7 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
 
 		return (
 			<div
-				ref={(r) => this._divRef = r}
+				ref={(r) => (this._divRef = r)}
 				onWheel={(ev) => this._onWheelEvent(ev)}
 				onMouseDown={(ev) => this._handlePointerDown(ev)}
 				className="relative flex flex-col w-full h-full overflow-x-auto overflow-y-hidden"
@@ -131,7 +125,7 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
 				>
 					{animations.map((animation, index) => (
 						<EditorAnimationTimelineItem
-							ref={(r) => this.tracks[index] = r}
+							ref={(r) => (this.tracks[index] = r)}
 							key={`${animation.targetProperty}${index}`}
 							animation={animation}
 							scale={this.state.scale}
@@ -285,9 +279,11 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
 			engine.stopRenderLoop(this._renderLoop);
 		}
 
-		engine.runRenderLoop(this._renderLoop = () => {
-			this.setState({ currentTime: this._animatedCurrentTime });
-		});
+		engine.runRenderLoop(
+			(this._renderLoop = () => {
+				this.setState({ currentTime: this._animatedCurrentTime });
+			})
+		);
 	}
 
 	/**
@@ -323,37 +319,41 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
 
 		this.setCurrentTime(startPosition);
 
-		document.body.addEventListener("mousemove", mouseMoveListener = (ev) => {
-			if (clientX === null) {
-				clientX = ev.clientX;
-			}
+		document.body.addEventListener(
+			"mousemove",
+			(mouseMoveListener = (ev) => {
+				if (clientX === null) {
+					clientX = ev.clientX;
+				}
 
-			const delta = clientX - ev.clientX;
-			if (moving || Math.abs(delta) > 5 * devicePixelRatio) {
-				moving = true;
-				this.setState({ moving: true });
-			} else {
-				return;
-			}
+				const delta = clientX - ev.clientX;
+				if (moving || Math.abs(delta) > 5 * devicePixelRatio) {
+					moving = true;
+					this.setState({ moving: true });
+				} else {
+					return;
+				}
 
-			const currentTime = Math.round(
-				Math.max(0, startPosition - delta / this.state.scale),
-			);
+				const currentTime = Math.round(Math.max(0, startPosition - delta / this.state.scale));
 
-			this.setCurrentTime(currentTime);
-		});
+				this.setCurrentTime(currentTime);
+			})
+		);
 
-		document.body.addEventListener("mouseup", mouseUpListener = (ev) => {
-			ev.stopPropagation();
+		document.body.addEventListener(
+			"mouseup",
+			(mouseUpListener = (ev) => {
+				ev.stopPropagation();
 
-			document.body.style.cursor = "auto";
+				document.body.style.cursor = "auto";
 
-			document.body.removeEventListener("mouseup", mouseUpListener);
-			document.body.removeEventListener("mousemove", mouseMoveListener);
+				document.body.removeEventListener("mouseup", mouseUpListener);
+				document.body.removeEventListener("mousemove", mouseMoveListener);
 
-			waitNextAnimationFrame().then(() => {
-				this.setState({ moving: false });
-			});
-		});
+				waitNextAnimationFrame().then(() => {
+					this.setState({ moving: false });
+				});
+			})
+		);
 	}
 }

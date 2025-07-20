@@ -11,19 +11,19 @@ export function getLightCommands(editor?: Editor, parent?: Node): ICommandPalett
 	return [
 		{
 			...lightCommandItems.pointLight,
-			action: () => editor && addPointLight(editor, parent)
+			action: () => editor && addPointLight(editor, parent),
 		},
 		{
 			...lightCommandItems.directionalLight,
-			action: () => editor && addDirectionalLight(editor, parent)
+			action: () => editor && addDirectionalLight(editor, parent),
 		},
 		{
 			...lightCommandItems.spotLight,
-			action: () => editor && addSpotLight(editor, parent)
+			action: () => editor && addSpotLight(editor, parent),
 		},
 		{
 			...lightCommandItems.hemisphericLight,
-			action: () => editor && addHemisphericLight(editor, parent)
+			action: () => editor && addHemisphericLight(editor, parent),
 		},
 	];
 }

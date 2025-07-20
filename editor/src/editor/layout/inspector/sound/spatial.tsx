@@ -9,7 +9,7 @@ import { EditorInspectorNumberField } from "../fields/number";
 import { EditorInspectorSectionField } from "../fields/section";
 
 export interface IEditorSpatialSoundInspectorComponentProps {
-    sound: Sound;
+	sound: Sound;
 }
 
 export class EditorSpatialSoundInspectorComponent extends Component<IEditorSpatialSoundInspectorComponentProps> {
@@ -18,10 +18,7 @@ export class EditorSpatialSoundInspectorComponent extends Component<IEditorSpati
 			<EditorInspectorSectionField title="Spatial">
 				{this._getDistanceModelComponent()}
 
-				{this.props.sound.distanceModel === "linear"
-					? this._getMaxDistanceComponent()
-					: [this._getRollOffFactorComponent(), this._getRefDistanceComponent()]
-				}
+				{this.props.sound.distanceModel === "linear" ? this._getMaxDistanceComponent() : [this._getRollOffFactorComponent(), this._getRefDistanceComponent()]}
 
 				{this._getPanningModelComponent()}
 			</EditorInspectorSectionField>
@@ -130,8 +127,8 @@ export class EditorSpatialSoundInspectorComponent extends Component<IEditorSpati
 				onChange={(value, oldValue) => {
 					registerUndoRedo({
 						executeRedo: true,
-						undo: () => oldValue === "HRTF" ? this.props.sound.switchPanningModelToHRTF() : this.props.sound.switchPanningModelToEqualPower(),
-						redo: () => value === "HRTF" ? this.props.sound.switchPanningModelToHRTF() : this.props.sound.switchPanningModelToEqualPower(),
+						undo: () => (oldValue === "HRTF" ? this.props.sound.switchPanningModelToHRTF() : this.props.sound.switchPanningModelToEqualPower()),
+						redo: () => (value === "HRTF" ? this.props.sound.switchPanningModelToHRTF() : this.props.sound.switchPanningModelToEqualPower()),
 					});
 				}}
 			/>

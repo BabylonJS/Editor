@@ -20,10 +20,34 @@ import { updateIblShadowsRenderPipeline } from "../../../tools/light/ibl";
 
 import { createVLSPostProcess, disposeVLSPostProcess, getVLSPostProcess, parseVLSPostProcess, serializeVLSPostProcess } from "../../rendering/vls";
 import { createSSRRenderingPipeline, disposeSSRRenderingPipeline, getSSRRenderingPipeline, parseSSRRenderingPipeline, serializeSSRRenderingPipeline } from "../../rendering/ssr";
-import { createSSAO2RenderingPipeline, disposeSSAO2RenderingPipeline, getSSAO2RenderingPipeline, parseSSAO2RenderingPipeline, serializeSSAO2RenderingPipeline } from "../../rendering/ssao";
-import { createMotionBlurPostProcess, disposeMotionBlurPostProcess, getMotionBlurPostProcess, parseMotionBlurPostProcess, serializeMotionBlurPostProcess } from "../../rendering/motion-blur";
-import { createDefaultRenderingPipeline, disposeDefaultRenderingPipeline, getDefaultRenderingPipeline, parseDefaultRenderingPipeline, serializeDefaultRenderingPipeline } from "../../rendering/default-pipeline";
-import { createIblShadowsRenderingPipeline, disposeIblShadowsRenderingPipeline, getIblShadowsRenderingPipeline, parseIblShadowsRenderingPipeline, serializeIblShadowsRenderingPipeline } from "../../rendering/ibl-shadows";
+import {
+	createSSAO2RenderingPipeline,
+	disposeSSAO2RenderingPipeline,
+	getSSAO2RenderingPipeline,
+	parseSSAO2RenderingPipeline,
+	serializeSSAO2RenderingPipeline,
+} from "../../rendering/ssao";
+import {
+	createMotionBlurPostProcess,
+	disposeMotionBlurPostProcess,
+	getMotionBlurPostProcess,
+	parseMotionBlurPostProcess,
+	serializeMotionBlurPostProcess,
+} from "../../rendering/motion-blur";
+import {
+	createDefaultRenderingPipeline,
+	disposeDefaultRenderingPipeline,
+	getDefaultRenderingPipeline,
+	parseDefaultRenderingPipeline,
+	serializeDefaultRenderingPipeline,
+} from "../../rendering/default-pipeline";
+import {
+	createIblShadowsRenderingPipeline,
+	disposeIblShadowsRenderingPipeline,
+	getIblShadowsRenderingPipeline,
+	parseIblShadowsRenderingPipeline,
+	serializeIblShadowsRenderingPipeline,
+} from "../../rendering/ibl-shadows";
 
 import { EditorInspectorSectionField } from "./fields/section";
 
@@ -70,35 +94,47 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 				</EditorInspectorSectionField>
 
 				<EditorInspectorSectionField title="Environment">
-					<EditorInspectorTextureField acceptCubeTexture object={this.props.object} property="environmentTexture" title="Environment Texture" onChange={() => this.forceUpdate()} />
+					<EditorInspectorTextureField
+						acceptCubeTexture
+						object={this.props.object}
+						property="environmentTexture"
+						title="Environment Texture"
+						onChange={() => this.forceUpdate()}
+					/>
 				</EditorInspectorSectionField>
 
 				<EditorInspectorSectionField title="Fog">
 					<EditorInspectorSwitchField object={this.props.object} property="fogEnabled" label="Enabled" onChange={() => this.forceUpdate()} />
 
-					{this.props.object.fogEnabled &&
+					{this.props.object.fogEnabled && (
 						<>
-							<EditorInspectorListField object={this.props.object} property="fogMode" label="Mode" items={[
-								{ text: "None", value: Scene.FOGMODE_NONE },
-								{ text: "Linear", value: Scene.FOGMODE_LINEAR },
-								{ text: "Exp", value: Scene.FOGMODE_EXP },
-								{ text: "Exp2", value: Scene.FOGMODE_EXP2 },
-							]} onChange={() => this.forceUpdate()} />
+							<EditorInspectorListField
+								object={this.props.object}
+								property="fogMode"
+								label="Mode"
+								items={[
+									{ text: "None", value: Scene.FOGMODE_NONE },
+									{ text: "Linear", value: Scene.FOGMODE_LINEAR },
+									{ text: "Exp", value: Scene.FOGMODE_EXP },
+									{ text: "Exp2", value: Scene.FOGMODE_EXP2 },
+								]}
+								onChange={() => this.forceUpdate()}
+							/>
 
-							{this.props.object.fogMode === Scene.FOGMODE_LINEAR &&
+							{this.props.object.fogMode === Scene.FOGMODE_LINEAR && (
 								<>
 									<EditorInspectorNumberField object={this.props.object} property="fogStart" label="Start" />
 									<EditorInspectorNumberField object={this.props.object} property="fogEnd" label="End" />
 								</>
-							}
+							)}
 
-							{(this.props.object.fogMode === Scene.FOGMODE_EXP || this.props.object.fogMode === Scene.FOGMODE_EXP2) &&
+							{(this.props.object.fogMode === Scene.FOGMODE_EXP || this.props.object.fogMode === Scene.FOGMODE_EXP2) && (
 								<EditorInspectorNumberField object={this.props.object} property="fogDensity" label="Density" />
-							}
+							)}
 
 							<EditorInspectorColorField object={this.props.object} property="fogColor" label="Color" />
 						</>
-					}
+					)}
 				</EditorInspectorSectionField>
 
 				<ScriptInspectorComponent editor={this.props.editor} object={this.props.object} />
@@ -165,72 +201,96 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 		return (
 			<>
 				<EditorInspectorSectionField title="Rendering Pipeline">
-					<EditorInspectorSwitchField object={config} property="enabled" label="Enabled" noUndoRedo onChange={() => {
-						const pipeline = defaultRenderingPipeline;
-						const serializedPipeline = serializeDefaultRenderingPipeline();
+					<EditorInspectorSwitchField
+						object={config}
+						property="enabled"
+						label="Enabled"
+						noUndoRedo
+						onChange={() => {
+							const pipeline = defaultRenderingPipeline;
+							const serializedPipeline = serializeDefaultRenderingPipeline();
 
-						registerUndoRedo({
-							executeRedo: true,
-							undo: () => {
-								if (!pipeline) {
-									disposeDefaultRenderingPipeline();
-								} else if (serializedPipeline) {
-									parseDefaultRenderingPipeline(this.props.editor, serializedPipeline);
-								}
-							},
-							redo: () => {
-								if (pipeline) {
-									disposeDefaultRenderingPipeline();
-								} else if (serializedPipeline) {
-									parseDefaultRenderingPipeline(this.props.editor, serializedPipeline);
-								} else {
-									createDefaultRenderingPipeline(this.props.editor);
-								}
-							},
-						});
+							registerUndoRedo({
+								executeRedo: true,
+								undo: () => {
+									if (!pipeline) {
+										disposeDefaultRenderingPipeline();
+									} else if (serializedPipeline) {
+										parseDefaultRenderingPipeline(this.props.editor, serializedPipeline);
+									}
+								},
+								redo: () => {
+									if (pipeline) {
+										disposeDefaultRenderingPipeline();
+									} else if (serializedPipeline) {
+										parseDefaultRenderingPipeline(this.props.editor, serializedPipeline);
+									} else {
+										createDefaultRenderingPipeline(this.props.editor);
+									}
+								},
+							});
 
-						this.forceUpdate();
-					}} />
+							this.forceUpdate();
+						}}
+					/>
 
-					{defaultRenderingPipeline &&
-						<EditorInspectorSwitchField object={defaultRenderingPipeline} property="fxaaEnabled" label="FXAA Enabled" />
-					}
+					{defaultRenderingPipeline && <EditorInspectorSwitchField object={defaultRenderingPipeline} property="fxaaEnabled" label="FXAA Enabled" />}
 				</EditorInspectorSectionField>
 
-				{defaultRenderingPipeline &&
+				{defaultRenderingPipeline && (
 					<>
 						<EditorInspectorSectionField title="Image Processing">
 							<EditorInspectorSwitchField object={defaultRenderingPipeline} property="imageProcessingEnabled" label="Enabled" onChange={() => this.forceUpdate()} />
-							{defaultRenderingPipeline.imageProcessingEnabled &&
+							{defaultRenderingPipeline.imageProcessingEnabled && (
 								<>
 									<EditorInspectorNumberField object={defaultRenderingPipeline.imageProcessing} property="exposure" label="Exposure" />
 									<EditorInspectorNumberField object={defaultRenderingPipeline.imageProcessing} property="contrast" label="Contrast" />
 									<EditorInspectorSwitchField object={defaultRenderingPipeline.imageProcessing} property="fromLinearSpace" label="From Linear Space" />
-									<EditorInspectorSwitchField object={defaultRenderingPipeline.imageProcessing} property="toneMappingEnabled" label="Tone Mapping Enabled" onChange={() => this.forceUpdate()} />
+									<EditorInspectorSwitchField
+										object={defaultRenderingPipeline.imageProcessing}
+										property="toneMappingEnabled"
+										label="Tone Mapping Enabled"
+										onChange={() => this.forceUpdate()}
+									/>
 
-									{defaultRenderingPipeline.imageProcessing.toneMappingEnabled &&
-										<EditorInspectorListField object={defaultRenderingPipeline.imageProcessing} property="toneMappingType" label="Tone Mapping Type" items={[
-											{ text: "Hable", value: TonemappingOperator.Hable },
-											{ text: "Reinhard", value: TonemappingOperator.Reinhard },
-											{ text: "Heji Dawson", value: TonemappingOperator.HejiDawson },
-											{ text: "Photographic", value: TonemappingOperator.Photographic },
-										]} />
-									}
+									{defaultRenderingPipeline.imageProcessing.toneMappingEnabled && (
+										<EditorInspectorListField
+											object={defaultRenderingPipeline.imageProcessing}
+											property="toneMappingType"
+											label="Tone Mapping Type"
+											items={[
+												{ text: "Hable", value: TonemappingOperator.Hable },
+												{ text: "Reinhard", value: TonemappingOperator.Reinhard },
+												{ text: "Heji Dawson", value: TonemappingOperator.HejiDawson },
+												{ text: "Photographic", value: TonemappingOperator.Photographic },
+											]}
+										/>
+									)}
 
-									<EditorInspectorSwitchField object={defaultRenderingPipeline.imageProcessing} property="ditheringEnabled" label="Dithering Enabled" onChange={() => this.forceUpdate()} />
-									{defaultRenderingPipeline.imageProcessing.ditheringEnabled &&
+									<EditorInspectorSwitchField
+										object={defaultRenderingPipeline.imageProcessing}
+										property="ditheringEnabled"
+										label="Dithering Enabled"
+										onChange={() => this.forceUpdate()}
+									/>
+									{defaultRenderingPipeline.imageProcessing.ditheringEnabled && (
 										<EditorInspectorNumberField object={defaultRenderingPipeline.imageProcessing} property="ditheringIntensity" label="Dithering Intensity" />
-									}
+									)}
 								</>
-							}
+							)}
 						</EditorInspectorSectionField>
 
-						{defaultRenderingPipeline.imageProcessingEnabled &&
+						{defaultRenderingPipeline.imageProcessingEnabled && (
 							<>
 								<EditorInspectorSectionField title="Color Grading">
-									<EditorInspectorSwitchField object={defaultRenderingPipeline.imageProcessing} property="colorGradingEnabled" label="Enabled" onChange={() => this.forceUpdate()} />
+									<EditorInspectorSwitchField
+										object={defaultRenderingPipeline.imageProcessing}
+										property="colorGradingEnabled"
+										label="Enabled"
+										onChange={() => this.forceUpdate()}
+									/>
 
-									{defaultRenderingPipeline.imageProcessing.colorGradingEnabled &&
+									{defaultRenderingPipeline.imageProcessing.colorGradingEnabled && (
 										<>
 											<EditorInspectorTextureField
 												accept3dlTexture
@@ -239,88 +299,215 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 												scene={this.props.editor.layout.preview.scene}
 												object={defaultRenderingPipeline.imageProcessing}
 											>
-												<EditorInspectorSwitchField object={defaultRenderingPipeline.imageProcessing.imageProcessingConfiguration} property="colorGradingWithGreenDepth" label="Use Green Depth" />
+												<EditorInspectorSwitchField
+													object={defaultRenderingPipeline.imageProcessing.imageProcessingConfiguration}
+													property="colorGradingWithGreenDepth"
+													label="Use Green Depth"
+												/>
 											</EditorInspectorTextureField>
 										</>
-									}
+									)}
 								</EditorInspectorSectionField>
 
 								<EditorInspectorSectionField title="Color Curves">
-									<EditorInspectorSwitchField object={defaultRenderingPipeline.imageProcessing} property="colorCurvesEnabled" label="Enabled" onChange={() => this.forceUpdate()} />
+									<EditorInspectorSwitchField
+										object={defaultRenderingPipeline.imageProcessing}
+										property="colorCurvesEnabled"
+										label="Enabled"
+										onChange={() => this.forceUpdate()}
+									/>
 
-									{defaultRenderingPipeline.imageProcessing.colorCurvesEnabled &&
+									{defaultRenderingPipeline.imageProcessing.colorCurvesEnabled && (
 										<>
 											<div className="text-xl font-semibold px-2 text-center">Global</div>
-											<EditorInspectorSliderField object={defaultRenderingPipeline.imageProcessing.colorCurves} property="globalHue" min={0} max={360} defaultValue={30} label={<div className="w-16">Hue</div>} />
-											<EditorInspectorSliderField object={defaultRenderingPipeline.imageProcessing.colorCurves} property="globalExposure" min={-100} max={100} defaultValue={0} label={<div className="w-16">Exposure</div>} />
-											<EditorInspectorSliderField object={defaultRenderingPipeline.imageProcessing.colorCurves} property="globalDensity" min={-100} max={100} defaultValue={0} label={<div className="w-16">Density</div>} />
-											<EditorInspectorSliderField object={defaultRenderingPipeline.imageProcessing.colorCurves} property="globalSaturation" min={-100} max={100} defaultValue={0} label={<div className="w-16">Saturation</div>} />
+											<EditorInspectorSliderField
+												object={defaultRenderingPipeline.imageProcessing.colorCurves}
+												property="globalHue"
+												min={0}
+												max={360}
+												defaultValue={30}
+												label={<div className="w-16">Hue</div>}
+											/>
+											<EditorInspectorSliderField
+												object={defaultRenderingPipeline.imageProcessing.colorCurves}
+												property="globalExposure"
+												min={-100}
+												max={100}
+												defaultValue={0}
+												label={<div className="w-16">Exposure</div>}
+											/>
+											<EditorInspectorSliderField
+												object={defaultRenderingPipeline.imageProcessing.colorCurves}
+												property="globalDensity"
+												min={-100}
+												max={100}
+												defaultValue={0}
+												label={<div className="w-16">Density</div>}
+											/>
+											<EditorInspectorSliderField
+												object={defaultRenderingPipeline.imageProcessing.colorCurves}
+												property="globalSaturation"
+												min={-100}
+												max={100}
+												defaultValue={0}
+												label={<div className="w-16">Saturation</div>}
+											/>
 
 											<div className="text-xl font-semibold px-2 text-center">Highlights</div>
-											<EditorInspectorSliderField object={defaultRenderingPipeline.imageProcessing.colorCurves} property="highlightsHue" min={0} max={360} defaultValue={30} label={<div className="w-16">Hue</div>} />
-											<EditorInspectorSliderField object={defaultRenderingPipeline.imageProcessing.colorCurves} property="highlightsExposure" min={-100} max={100} defaultValue={0} label={<div className="w-16">Exposure</div>} />
-											<EditorInspectorSliderField object={defaultRenderingPipeline.imageProcessing.colorCurves} property="highlightsDensity" min={-100} max={100} defaultValue={0} label={<div className="w-16">Density</div>} />
-											<EditorInspectorSliderField object={defaultRenderingPipeline.imageProcessing.colorCurves} property="highlightsSaturation" min={-100} max={100} defaultValue={0} label={<div className="w-16">Saturation</div>} />
+											<EditorInspectorSliderField
+												object={defaultRenderingPipeline.imageProcessing.colorCurves}
+												property="highlightsHue"
+												min={0}
+												max={360}
+												defaultValue={30}
+												label={<div className="w-16">Hue</div>}
+											/>
+											<EditorInspectorSliderField
+												object={defaultRenderingPipeline.imageProcessing.colorCurves}
+												property="highlightsExposure"
+												min={-100}
+												max={100}
+												defaultValue={0}
+												label={<div className="w-16">Exposure</div>}
+											/>
+											<EditorInspectorSliderField
+												object={defaultRenderingPipeline.imageProcessing.colorCurves}
+												property="highlightsDensity"
+												min={-100}
+												max={100}
+												defaultValue={0}
+												label={<div className="w-16">Density</div>}
+											/>
+											<EditorInspectorSliderField
+												object={defaultRenderingPipeline.imageProcessing.colorCurves}
+												property="highlightsSaturation"
+												min={-100}
+												max={100}
+												defaultValue={0}
+												label={<div className="w-16">Saturation</div>}
+											/>
 
 											<div className="text-xl font-semibold px-2 text-center">Midtones</div>
-											<EditorInspectorSliderField object={defaultRenderingPipeline.imageProcessing.colorCurves} property="midtonesHue" min={0} max={360} defaultValue={30} label={<div className="w-16">Hue</div>} />
-											<EditorInspectorSliderField object={defaultRenderingPipeline.imageProcessing.colorCurves} property="midtonesExposure" min={-100} max={100} defaultValue={0} label={<div className="w-16">Exposure</div>} />
-											<EditorInspectorSliderField object={defaultRenderingPipeline.imageProcessing.colorCurves} property="midtonesDensity" min={-100} max={100} defaultValue={0} label={<div className="w-16">Density</div>} />
-											<EditorInspectorSliderField object={defaultRenderingPipeline.imageProcessing.colorCurves} property="midtonesSaturation" min={-100} max={100} defaultValue={0} label={<div className="w-16">Saturation</div>} />
+											<EditorInspectorSliderField
+												object={defaultRenderingPipeline.imageProcessing.colorCurves}
+												property="midtonesHue"
+												min={0}
+												max={360}
+												defaultValue={30}
+												label={<div className="w-16">Hue</div>}
+											/>
+											<EditorInspectorSliderField
+												object={defaultRenderingPipeline.imageProcessing.colorCurves}
+												property="midtonesExposure"
+												min={-100}
+												max={100}
+												defaultValue={0}
+												label={<div className="w-16">Exposure</div>}
+											/>
+											<EditorInspectorSliderField
+												object={defaultRenderingPipeline.imageProcessing.colorCurves}
+												property="midtonesDensity"
+												min={-100}
+												max={100}
+												defaultValue={0}
+												label={<div className="w-16">Density</div>}
+											/>
+											<EditorInspectorSliderField
+												object={defaultRenderingPipeline.imageProcessing.colorCurves}
+												property="midtonesSaturation"
+												min={-100}
+												max={100}
+												defaultValue={0}
+												label={<div className="w-16">Saturation</div>}
+											/>
 
 											<div className="text-xl font-semibold px-2 text-center">Shadows</div>
-											<EditorInspectorSliderField object={defaultRenderingPipeline.imageProcessing.colorCurves} property="shadowsHue" min={0} max={360} defaultValue={30} label={<div className="w-16">Hue</div>} />
-											<EditorInspectorSliderField object={defaultRenderingPipeline.imageProcessing.colorCurves} property="shadowsExposure" min={-100} max={100} defaultValue={0} label={<div className="w-16">Exposure</div>} />
-											<EditorInspectorSliderField object={defaultRenderingPipeline.imageProcessing.colorCurves} property="shadowsDensity" min={-100} max={100} defaultValue={0} label={<div className="w-16">Density</div>} />
-											<EditorInspectorSliderField object={defaultRenderingPipeline.imageProcessing.colorCurves} property="shadowsSaturation" min={-100} max={100} defaultValue={0} label={<div className="w-16">Saturation</div>} />
+											<EditorInspectorSliderField
+												object={defaultRenderingPipeline.imageProcessing.colorCurves}
+												property="shadowsHue"
+												min={0}
+												max={360}
+												defaultValue={30}
+												label={<div className="w-16">Hue</div>}
+											/>
+											<EditorInspectorSliderField
+												object={defaultRenderingPipeline.imageProcessing.colorCurves}
+												property="shadowsExposure"
+												min={-100}
+												max={100}
+												defaultValue={0}
+												label={<div className="w-16">Exposure</div>}
+											/>
+											<EditorInspectorSliderField
+												object={defaultRenderingPipeline.imageProcessing.colorCurves}
+												property="shadowsDensity"
+												min={-100}
+												max={100}
+												defaultValue={0}
+												label={<div className="w-16">Density</div>}
+											/>
+											<EditorInspectorSliderField
+												object={defaultRenderingPipeline.imageProcessing.colorCurves}
+												property="shadowsSaturation"
+												min={-100}
+												max={100}
+												defaultValue={0}
+												label={<div className="w-16">Saturation</div>}
+											/>
 										</>
-									}
+									)}
 								</EditorInspectorSectionField>
 							</>
-						}
+						)}
 
 						<EditorInspectorSectionField title="Bloom">
 							<EditorInspectorSwitchField object={defaultRenderingPipeline} property="bloomEnabled" label="Enabled" onChange={() => this.forceUpdate()} />
-							{defaultRenderingPipeline.bloomEnabled &&
+							{defaultRenderingPipeline.bloomEnabled && (
 								<>
 									<EditorInspectorNumberField object={defaultRenderingPipeline} property="bloomThreshold" label="Threshold" />
 									<EditorInspectorNumberField object={defaultRenderingPipeline} property="bloomWeight" label="Weight" />
 									<EditorInspectorNumberField object={defaultRenderingPipeline} property="bloomScale" label="Scale" min={0} max={1} />
 									<EditorInspectorNumberField object={defaultRenderingPipeline} property="bloomKernel" label="Kernal" step={1} min={0} max={512} />
 								</>
-							}
+							)}
 						</EditorInspectorSectionField>
 
 						<EditorInspectorSectionField title="Sharpen">
 							<EditorInspectorSwitchField object={defaultRenderingPipeline} property="sharpenEnabled" label="Enabled" onChange={() => this.forceUpdate()} />
-							{defaultRenderingPipeline.sharpenEnabled &&
+							{defaultRenderingPipeline.sharpenEnabled && (
 								<>
 									<EditorInspectorNumberField object={defaultRenderingPipeline.sharpen} property="edgeAmount" label="Edge Amount" />
 									<EditorInspectorNumberField object={defaultRenderingPipeline.sharpen} property="colorAmount" label="Color Amount" />
 								</>
-							}
+							)}
 						</EditorInspectorSectionField>
 
 						<EditorInspectorSectionField title="Grain">
 							<EditorInspectorSwitchField object={defaultRenderingPipeline} property="grainEnabled" label="Enabled" onChange={() => this.forceUpdate()} />
-							{defaultRenderingPipeline.grainEnabled &&
+							{defaultRenderingPipeline.grainEnabled && (
 								<>
 									<EditorInspectorNumberField object={defaultRenderingPipeline.grain} property="intensity" label="Intensity" />
 									<EditorInspectorSwitchField object={defaultRenderingPipeline.grain} property="animated" label="Animated" />
 								</>
-							}
+							)}
 						</EditorInspectorSectionField>
 
 						<EditorInspectorSectionField title="Depth-of-field">
 							<EditorInspectorSwitchField object={defaultRenderingPipeline} property="depthOfFieldEnabled" label="Enabled" onChange={() => this.forceUpdate()} />
 
-							{defaultRenderingPipeline.depthOfFieldEnabled &&
+							{defaultRenderingPipeline.depthOfFieldEnabled && (
 								<>
-									<EditorInspectorListField object={defaultRenderingPipeline} property="depthOfFieldBlurLevel" label="Blur Level" items={[
-										{ text: "Low", value: DepthOfFieldEffectBlurLevel.Low },
-										{ text: "Medium", value: DepthOfFieldEffectBlurLevel.Medium },
-										{ text: "High", value: DepthOfFieldEffectBlurLevel.High },
-									]} onChange={() => this.forceUpdate()} />
+									<EditorInspectorListField
+										object={defaultRenderingPipeline}
+										property="depthOfFieldBlurLevel"
+										label="Blur Level"
+										items={[
+											{ text: "Low", value: DepthOfFieldEffectBlurLevel.Low },
+											{ text: "Medium", value: DepthOfFieldEffectBlurLevel.Medium },
+											{ text: "High", value: DepthOfFieldEffectBlurLevel.High },
+										]}
+										onChange={() => this.forceUpdate()}
+									/>
 
 									<EditorInspectorNumberField object={defaultRenderingPipeline.depthOfField} property="lensSize" label="Lens Size" step={0.1} min={0} />
 									<EditorInspectorNumberField object={defaultRenderingPipeline.depthOfField} property="fStop" label="F-stop" step={0.01} min={0} />
@@ -334,48 +521,83 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 									/>
 									<EditorInspectorNumberField object={defaultRenderingPipeline.depthOfField} property="focalLength" label="Focal Length" step={0.01} min={0} />
 								</>
-							}
+							)}
 						</EditorInspectorSectionField>
 
-						{defaultRenderingPipeline.imageProcessingEnabled &&
+						{defaultRenderingPipeline.imageProcessingEnabled && (
 							<EditorInspectorSectionField title="Vignette">
-								<EditorInspectorSwitchField object={defaultRenderingPipeline.imageProcessing} property="vignetteEnabled" label="Enabled" onChange={() => this.forceUpdate()} />
+								<EditorInspectorSwitchField
+									object={defaultRenderingPipeline.imageProcessing}
+									property="vignetteEnabled"
+									label="Enabled"
+									onChange={() => this.forceUpdate()}
+								/>
 
-								{defaultRenderingPipeline.imageProcessing.vignetteEnabled &&
+								{defaultRenderingPipeline.imageProcessing.vignetteEnabled && (
 									<>
-										<EditorInspectorNumberField object={defaultRenderingPipeline.imageProcessing} property="vignetteWeight" label="Weight" step={0.01} min={0} />
+										<EditorInspectorNumberField
+											object={defaultRenderingPipeline.imageProcessing}
+											property="vignetteWeight"
+											label="Weight"
+											step={0.01}
+											min={0}
+										/>
 										<EditorInspectorColorField object={defaultRenderingPipeline.imageProcessing} property="vignetteColor" label="Color" />
 									</>
-								}
+								)}
 							</EditorInspectorSectionField>
-						}
+						)}
 
 						<EditorInspectorSectionField title="Chromatic Aberration">
-							<EditorInspectorSwitchField object={defaultRenderingPipeline} property="chromaticAberrationEnabled" label="Enabled" onChange={() => this.forceUpdate()} />
+							<EditorInspectorSwitchField
+								object={defaultRenderingPipeline}
+								property="chromaticAberrationEnabled"
+								label="Enabled"
+								onChange={() => this.forceUpdate()}
+							/>
 
-							{defaultRenderingPipeline.chromaticAberrationEnabled &&
+							{defaultRenderingPipeline.chromaticAberrationEnabled && (
 								<>
-									<EditorInspectorNumberField object={defaultRenderingPipeline.chromaticAberration} property="aberrationAmount" label="Aberration Amount" step={0.01} min={0} />
-									<EditorInspectorNumberField object={defaultRenderingPipeline.chromaticAberration} property="radialIntensity" label="Radial Intensity" step={0.01} min={0} />
+									<EditorInspectorNumberField
+										object={defaultRenderingPipeline.chromaticAberration}
+										property="aberrationAmount"
+										label="Aberration Amount"
+										step={0.01}
+										min={0}
+									/>
+									<EditorInspectorNumberField
+										object={defaultRenderingPipeline.chromaticAberration}
+										property="radialIntensity"
+										label="Radial Intensity"
+										step={0.01}
+										min={0}
+									/>
 
 									<EditorInspectorVectorField object={defaultRenderingPipeline.chromaticAberration} property="direction" label="Direction" />
 									<EditorInspectorVectorField object={defaultRenderingPipeline.chromaticAberration} property="centerPosition" label="Center" />
 								</>
-							}
+							)}
 						</EditorInspectorSectionField>
 
 						<EditorInspectorSectionField title="Glow Layer">
 							<EditorInspectorSwitchField object={defaultRenderingPipeline} property="glowLayerEnabled" label="Enabled" onChange={() => this.forceUpdate()} />
 
-							{defaultRenderingPipeline.glowLayerEnabled && defaultRenderingPipeline.glowLayer &&
+							{defaultRenderingPipeline.glowLayerEnabled && defaultRenderingPipeline.glowLayer && (
 								<>
 									<EditorInspectorNumberField object={defaultRenderingPipeline.glowLayer} property="intensity" label="Intensity" step={0.01} min={0} />
-									<EditorInspectorNumberField object={defaultRenderingPipeline.glowLayer} property="blurKernelSize" label="Blur Kernel Size" step={1} min={0} max={512} />
+									<EditorInspectorNumberField
+										object={defaultRenderingPipeline.glowLayer}
+										property="blurKernelSize"
+										label="Blur Kernel Size"
+										step={1}
+										min={0}
+										max={512}
+									/>
 								</>
-							}
+							)}
 						</EditorInspectorSectionField>
 					</>
-				}
+				)}
 			</>
 		);
 	}
@@ -389,34 +611,40 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 
 		return (
 			<EditorInspectorSectionField title="SSAO2">
-				<EditorInspectorSwitchField object={config} property="enabled" label="Enabled" noUndoRedo onChange={() => {
-					const pipeline = ssao2RenderingPipeline;
-					const serializedPipeline = serializeSSAO2RenderingPipeline();
+				<EditorInspectorSwitchField
+					object={config}
+					property="enabled"
+					label="Enabled"
+					noUndoRedo
+					onChange={() => {
+						const pipeline = ssao2RenderingPipeline;
+						const serializedPipeline = serializeSSAO2RenderingPipeline();
 
-					registerUndoRedo({
-						executeRedo: true,
-						undo: () => {
-							if (!pipeline) {
-								disposeSSAO2RenderingPipeline();
-							} else if (serializedPipeline) {
-								parseSSAO2RenderingPipeline(this.props.editor, serializedPipeline);
-							}
-						},
-						redo: () => {
-							if (pipeline) {
-								disposeSSAO2RenderingPipeline();
-							} else if (serializedPipeline) {
-								parseSSAO2RenderingPipeline(this.props.editor, serializedPipeline);
-							} else {
-								createSSAO2RenderingPipeline(this.props.editor);
-							}
-						},
-					});
+						registerUndoRedo({
+							executeRedo: true,
+							undo: () => {
+								if (!pipeline) {
+									disposeSSAO2RenderingPipeline();
+								} else if (serializedPipeline) {
+									parseSSAO2RenderingPipeline(this.props.editor, serializedPipeline);
+								}
+							},
+							redo: () => {
+								if (pipeline) {
+									disposeSSAO2RenderingPipeline();
+								} else if (serializedPipeline) {
+									parseSSAO2RenderingPipeline(this.props.editor, serializedPipeline);
+								} else {
+									createSSAO2RenderingPipeline(this.props.editor);
+								}
+							},
+						});
 
-					this.forceUpdate();
-				}} />
+						this.forceUpdate();
+					}}
+				/>
 
-				{ssao2RenderingPipeline &&
+				{ssao2RenderingPipeline && (
 					<>
 						<EditorInspectorNumberField object={ssao2RenderingPipeline} property="radius" label="Radius" />
 						<EditorInspectorNumberField object={ssao2RenderingPipeline} property="totalStrength" label="Total Strength" />
@@ -435,7 +663,7 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 						<EditorInspectorSwitchField object={ssao2RenderingPipeline} property="bypassBlur" label="Bypass Blur" />
 						<EditorInspectorSwitchField object={ssao2RenderingPipeline} property="expensiveBlur" label="Expensive Blur" />
 					</>
-				}
+				)}
 			</EditorInspectorSectionField>
 		);
 	}
@@ -449,40 +677,46 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 
 		return (
 			<EditorInspectorSectionField title="Motion Blur">
-				<EditorInspectorSwitchField object={config} property="enabled" label="Enabled" noUndoRedo onChange={() => {
-					const pipeline = motionBlurPostProcess;
-					const serializedPipeline = serializeMotionBlurPostProcess();
+				<EditorInspectorSwitchField
+					object={config}
+					property="enabled"
+					label="Enabled"
+					noUndoRedo
+					onChange={() => {
+						const pipeline = motionBlurPostProcess;
+						const serializedPipeline = serializeMotionBlurPostProcess();
 
-					registerUndoRedo({
-						executeRedo: true,
-						undo: () => {
-							if (!pipeline) {
-								disposeMotionBlurPostProcess();
-							} else if (serializedPipeline) {
-								parseMotionBlurPostProcess(this.props.editor, serializedPipeline);
-							}
-						},
-						redo: () => {
-							if (pipeline) {
-								disposeMotionBlurPostProcess();
-							} else if (serializedPipeline) {
-								parseMotionBlurPostProcess(this.props.editor, serializedPipeline);
-							} else {
-								createMotionBlurPostProcess(this.props.editor);
-							}
-						},
-					});
+						registerUndoRedo({
+							executeRedo: true,
+							undo: () => {
+								if (!pipeline) {
+									disposeMotionBlurPostProcess();
+								} else if (serializedPipeline) {
+									parseMotionBlurPostProcess(this.props.editor, serializedPipeline);
+								}
+							},
+							redo: () => {
+								if (pipeline) {
+									disposeMotionBlurPostProcess();
+								} else if (serializedPipeline) {
+									parseMotionBlurPostProcess(this.props.editor, serializedPipeline);
+								} else {
+									createMotionBlurPostProcess(this.props.editor);
+								}
+							},
+						});
 
-					this.forceUpdate();
-				}} />
+						this.forceUpdate();
+					}}
+				/>
 
-				{motionBlurPostProcess &&
+				{motionBlurPostProcess && (
 					<>
 						<EditorInspectorSwitchField object={motionBlurPostProcess} property="isObjectBased" label="Object Based" />
 						<EditorInspectorNumberField object={motionBlurPostProcess} property="motionStrength" label="Motion Strength" />
 						<EditorInspectorNumberField object={motionBlurPostProcess} property="motionBlurSamples" label="Motion Blur Samples" min={0} step={1} />
 					</>
-				}
+				)}
 			</EditorInspectorSectionField>
 		);
 	}
@@ -496,39 +730,50 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 
 		return (
 			<EditorInspectorSectionField title="Reflections">
-				<EditorInspectorSwitchField object={config} property="enabled" label="Enabled" noUndoRedo onChange={() => {
-					const pipeline = ssrRenderingPipeline;
-					const serializedPipeline = serializeSSRRenderingPipeline();
+				<EditorInspectorSwitchField
+					object={config}
+					property="enabled"
+					label="Enabled"
+					noUndoRedo
+					onChange={() => {
+						const pipeline = ssrRenderingPipeline;
+						const serializedPipeline = serializeSSRRenderingPipeline();
 
-					registerUndoRedo({
-						executeRedo: true,
-						undo: () => {
-							if (!pipeline) {
-								disposeSSRRenderingPipeline();
-							} else if (serializedPipeline) {
-								parseSSRRenderingPipeline(this.props.editor, serializedPipeline);
-							}
-						},
-						redo: () => {
-							if (pipeline) {
-								disposeSSRRenderingPipeline();
-							} else if (serializedPipeline) {
-								parseSSRRenderingPipeline(this.props.editor, serializedPipeline);
-							} else {
-								createSSRRenderingPipeline(this.props.editor);
-							}
-						},
-					});
+						registerUndoRedo({
+							executeRedo: true,
+							undo: () => {
+								if (!pipeline) {
+									disposeSSRRenderingPipeline();
+								} else if (serializedPipeline) {
+									parseSSRRenderingPipeline(this.props.editor, serializedPipeline);
+								}
+							},
+							redo: () => {
+								if (pipeline) {
+									disposeSSRRenderingPipeline();
+								} else if (serializedPipeline) {
+									parseSSRRenderingPipeline(this.props.editor, serializedPipeline);
+								} else {
+									createSSRRenderingPipeline(this.props.editor);
+								}
+							},
+						});
 
-					this.forceUpdate();
-				}} />
+						this.forceUpdate();
+					}}
+				/>
 
-				{ssrRenderingPipeline &&
+				{ssrRenderingPipeline && (
 					<>
 						<EditorInspectorNumberField object={ssrRenderingPipeline} property="step" label="Step" min={0} />
 						<EditorInspectorNumberField object={ssrRenderingPipeline} property="thickness" label="Thickness" />
 						<EditorInspectorNumberField object={ssrRenderingPipeline} property="strength" label="Strength" min={0} />
-						<EditorInspectorNumberField object={ssrRenderingPipeline} property="reflectionSpecularFalloffExponent" label="Reflection Specular Falloff Exponent" min={0} />
+						<EditorInspectorNumberField
+							object={ssrRenderingPipeline}
+							property="reflectionSpecularFalloffExponent"
+							label="Reflection Specular Falloff Exponent"
+							min={0}
+						/>
 						<EditorInspectorNumberField object={ssrRenderingPipeline} property="maxSteps" label="Max Steps" min={0} />
 						<EditorInspectorNumberField object={ssrRenderingPipeline} property="maxDistance" label="Max Distance" min={0} />
 
@@ -554,9 +799,16 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 						<EditorInspectorNumberField object={ssrRenderingPipeline} property="blurDownsample" label="Blur Down Sample" step={1} min={1} max={5} />
 						<EditorInspectorNumberField object={ssrRenderingPipeline} property="selfCollisionNumSkip" label="Self Collision Num Skip" step={1} min={1} max={3} />
 						<EditorInspectorNumberField object={ssrRenderingPipeline} property="ssrDownsample" label="SSR Down Sample" step={1} min={1} max={5} />
-						<EditorInspectorNumberField object={ssrRenderingPipeline} property="backfaceDepthTextureDownsample" label="Backface Depth Texture Sample" step={1} min={1} max={5} />
+						<EditorInspectorNumberField
+							object={ssrRenderingPipeline}
+							property="backfaceDepthTextureDownsample"
+							label="Backface Depth Texture Sample"
+							step={1}
+							min={1}
+							max={5}
+						/>
 					</>
-				}
+				)}
 			</EditorInspectorSectionField>
 		);
 	}
@@ -570,34 +822,40 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 
 		return (
 			<EditorInspectorSectionField title="Volumetric Light Scattering">
-				<EditorInspectorSwitchField object={config} property="enabled" label="Enabled" noUndoRedo onChange={() => {
-					const pipeline = vlsPostProcess;
-					const serializedPostProcess = serializeVLSPostProcess();
+				<EditorInspectorSwitchField
+					object={config}
+					property="enabled"
+					label="Enabled"
+					noUndoRedo
+					onChange={() => {
+						const pipeline = vlsPostProcess;
+						const serializedPostProcess = serializeVLSPostProcess();
 
-					registerUndoRedo({
-						executeRedo: true,
-						undo: () => {
-							if (!pipeline) {
-								disposeVLSPostProcess(this.props.editor);
-							} else if (serializedPostProcess) {
-								parseVLSPostProcess(this.props.editor, serializedPostProcess);
-							}
-						},
-						redo: () => {
-							if (pipeline) {
-								disposeVLSPostProcess(this.props.editor);
-							} else if (serializedPostProcess) {
-								parseVLSPostProcess(this.props.editor, serializedPostProcess);
-							} else {
-								createVLSPostProcess(this.props.editor);
-							}
-						},
-					});
+						registerUndoRedo({
+							executeRedo: true,
+							undo: () => {
+								if (!pipeline) {
+									disposeVLSPostProcess(this.props.editor);
+								} else if (serializedPostProcess) {
+									parseVLSPostProcess(this.props.editor, serializedPostProcess);
+								}
+							},
+							redo: () => {
+								if (pipeline) {
+									disposeVLSPostProcess(this.props.editor);
+								} else if (serializedPostProcess) {
+									parseVLSPostProcess(this.props.editor, serializedPostProcess);
+								} else {
+									createVLSPostProcess(this.props.editor);
+								}
+							},
+						});
 
-					this.forceUpdate();
-				}} />
+						this.forceUpdate();
+					}}
+				/>
 
-				{vlsPostProcess &&
+				{vlsPostProcess && (
 					<>
 						<EditorInspectorNumberField object={vlsPostProcess} property="exposure" label="Exposure" min={0} />
 						<EditorInspectorNumberField object={vlsPostProcess} property="weight" label="Weight" min={0} />
@@ -608,9 +866,9 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 
 						<EditorInspectorSwitchField object={vlsPostProcess} property="useCustomMeshPosition" label="Use Custom Mesh Position" onChange={() => this.forceUpdate()} />
 
-						{vlsPostProcess.useCustomMeshPosition &&
+						{vlsPostProcess.useCustomMeshPosition && (
 							<EditorInspectorVectorField object={vlsPostProcess} property="customMeshPosition" label="Custom Mesh Position" step={1} />
-						}
+						)}
 
 						<div
 							onDrop={(ev) => this._handleDropVlsMesh(ev, vlsPostProcess)}
@@ -618,25 +876,20 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 							onDragLeave={() => this.setState({ dragOverVlsMesh: false })}
 							className={`flex flex-col justify-center items-center w-full h-[64px] rounded-lg border-[1px] border-secondary-foreground/35 border-dashed ${this.state.dragOverVlsMesh ? "bg-secondary-foreground/35" : ""} transition-all duration-300 ease-in-out`}
 						>
-							{!vlsPostProcess.mesh &&
-								<div>
-									Drag'n'drop a mesh here
-								</div>
-							}
+							{!vlsPostProcess.mesh && <div>Drag'n'drop a mesh here</div>}
 
-							{vlsPostProcess.mesh &&
+							{vlsPostProcess.mesh && (
 								<div className="flex flex-col items-center gap-2">
 									<div className="flex items-center gap-2">
-										<IoMdCube className="w-4 h-4" />{vlsPostProcess.mesh.name}
+										<IoMdCube className="w-4 h-4" />
+										{vlsPostProcess.mesh.name}
 									</div>
-									<div className="text-xs">
-										Drag'n'drop a mesh here
-									</div>
+									<div className="text-xs">Drag'n'drop a mesh here</div>
 								</div>
-							}
+							)}
 						</div>
 					</>
-				}
+				)}
 			</EditorInspectorSectionField>
 		);
 	}
@@ -694,37 +947,43 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 
 		return (
 			<EditorInspectorSectionField title="IBL Shadows">
-				<EditorInspectorSwitchField object={config} property="enabled" label="Enabled" noUndoRedo onChange={() => {
-					const pipeline = iblShadowsRenderPipeline;
-					const serializedPipeline = serializeIblShadowsRenderingPipeline();
+				<EditorInspectorSwitchField
+					object={config}
+					property="enabled"
+					label="Enabled"
+					noUndoRedo
+					onChange={() => {
+						const pipeline = iblShadowsRenderPipeline;
+						const serializedPipeline = serializeIblShadowsRenderingPipeline();
 
-					registerUndoRedo({
-						executeRedo: true,
-						action: () => {
-							updateAllLights(this.props.editor.layout.preview.scene);
-						},
-						undo: () => {
-							if (!pipeline) {
-								disposeIblShadowsRenderingPipeline();
-							} else if (serializedPipeline) {
-								parseIblShadowsRenderingPipeline(this.props.editor, serializedPipeline);
-							}
-						},
-						redo: () => {
-							if (pipeline) {
-								disposeIblShadowsRenderingPipeline();
-							} else if (serializedPipeline) {
-								parseIblShadowsRenderingPipeline(this.props.editor, serializedPipeline);
-							} else {
-								createIblShadowsRenderingPipeline(this.props.editor);
-							}
-						},
-					});
+						registerUndoRedo({
+							executeRedo: true,
+							action: () => {
+								updateAllLights(this.props.editor.layout.preview.scene);
+							},
+							undo: () => {
+								if (!pipeline) {
+									disposeIblShadowsRenderingPipeline();
+								} else if (serializedPipeline) {
+									parseIblShadowsRenderingPipeline(this.props.editor, serializedPipeline);
+								}
+							},
+							redo: () => {
+								if (pipeline) {
+									disposeIblShadowsRenderingPipeline();
+								} else if (serializedPipeline) {
+									parseIblShadowsRenderingPipeline(this.props.editor, serializedPipeline);
+								} else {
+									createIblShadowsRenderingPipeline(this.props.editor);
+								}
+							},
+						});
 
-					this.forceUpdate();
-				}} />
+						this.forceUpdate();
+					}}
+				/>
 
-				{iblShadowsRenderPipeline &&
+				{iblShadowsRenderPipeline && (
 					<>
 						<EditorInspectorNumberField object={iblShadowsRenderPipeline} property="shadowRemanence" label="Shadow Remanence" min={0} max={1} />
 						<EditorInspectorNumberField object={iblShadowsRenderPipeline} property="shadowOpacity" label="Shadow Opacity" min={0} max={1} />
@@ -735,7 +994,7 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 							Update voxelization
 						</Button>
 					</>
-				}
+				)}
 			</EditorInspectorSectionField>
 		);
 	}
@@ -743,11 +1002,7 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 	private _getAnimationGroupsComponent(): ReactNode {
 		return (
 			<EditorInspectorSectionField title="Animation Groups">
-				{!this.props.object.animationGroups.length &&
-					<div className="text-center text-xl">
-						No animation groups
-					</div>
-				}
+				{!this.props.object.animationGroups.length && <div className="text-center text-xl">No animation groups</div>}
 				<div className="flex flex-col">
 					{this.props.object.animationGroups.map((animationGroup) => (
 						<div key={animationGroup.name} className="flex flex-col">
@@ -767,27 +1022,18 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 											this.forceUpdate();
 										}}
 									>
-										{animationGroup.isPlaying
-											? <IoStop className="w-6 h-6" strokeWidth={1} />
-											: <IoPlay className="w-6 h-6" strokeWidth={1} />
-										}
+										{animationGroup.isPlaying ? <IoStop className="w-6 h-6" strokeWidth={1} /> : <IoPlay className="w-6 h-6" strokeWidth={1} />}
 									</Button>
 
 									<div className="flex flex-col">
-										<div>
-											{animationGroup.name}
-										</div>
+										<div>{animationGroup.name}</div>
 
-										<div className="text-xs">
-											Duration: {Math.round(animationGroup.to - animationGroup.from)} frames
-										</div>
+										<div className="text-xs">Duration: {Math.round(animationGroup.to - animationGroup.from)} frames</div>
 									</div>
 								</div>
 
 								<div className="flex gap-2 items-center">
-									{animationGroup.isPlaying &&
-										<Grid width={16} height={16} color="gray" />
-									}
+									{animationGroup.isPlaying && <Grid width={16} height={16} color="gray" />}
 
 									<Button variant="ghost" onClick={() => this._handleRemoveAnimationGroup(animationGroup)}>
 										<HiOutlineTrash className="w-5 h-5" />

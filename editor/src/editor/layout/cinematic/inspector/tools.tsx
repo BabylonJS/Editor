@@ -8,41 +8,32 @@ import { EditorInspectorNumberField } from "../../inspector/fields/number";
 import { CinematicEditor } from "../editor";
 
 export type PropertyInspectorType = {
-    animationType: number | null;
-    object: any;
-    property: string;
-    label: string;
-    step: number;
-    onChange: () => void;
+	animationType: number | null;
+	object: any;
+	property: string;
+	label: string;
+	step: number;
+	onChange: () => void;
 };
 
 export function getPropertyInspector(options: PropertyInspectorType) {
 	if (options.animationType === Animation.ANIMATIONTYPE_FLOAT) {
-		return <EditorInspectorNumberField
-			object={options.object}
-			label={options.label}
-			property={options.property}
-			step={options.step}
-			onChange={() => options.onChange()}
-		/>;
+		return <EditorInspectorNumberField object={options.object} label={options.label} property={options.property} step={options.step} onChange={() => options.onChange()} />;
 	}
 
 	if (options.animationType === Animation.ANIMATIONTYPE_VECTOR2 || options.animationType === Animation.ANIMATIONTYPE_VECTOR3) {
-		return <EditorInspectorVectorField
-			object={options.object}
-			property={options.property}
-			label={options.label}
-			onChange={() => options.onChange()}
-		/>;
+		return <EditorInspectorVectorField object={options.object} property={options.property} label={options.label} onChange={() => options.onChange()} />;
 	}
 
 	if (options.animationType === Animation.ANIMATIONTYPE_COLOR3 || options.animationType === Animation.ANIMATIONTYPE_COLOR4) {
-		return <EditorInspectorColorField
-			label={<div className="w-14">{options.label}</div>}
-			object={options.object}
-			property={options.property}
-			onChange={() => options.onChange()}
-		/>;
+		return (
+			<EditorInspectorColorField
+				label={<div className="w-14">{options.label}</div>}
+				object={options.object}
+				property={options.property}
+				onChange={() => options.onChange()}
+			/>
+		);
 	}
 }
 
@@ -50,13 +41,20 @@ export function getTangentDefaultValue(key: IAnimationKey): number | Vector2 | V
 	const animationType = getAnimationTypeForObject(key.value);
 
 	switch (animationType) {
-		case Animation.ANIMATIONTYPE_FLOAT: return 0;
-		case Animation.ANIMATIONTYPE_VECTOR2: return Vector2.Zero();
-		case Animation.ANIMATIONTYPE_VECTOR3: return Vector3.Zero();
-		case Animation.ANIMATIONTYPE_QUATERNION: return Quaternion.Zero();
-		case Animation.ANIMATIONTYPE_COLOR3: return Color3.Black();
-		case Animation.ANIMATIONTYPE_COLOR4: return Color3.Black().toColor4(0);
-		default: return null;
+		case Animation.ANIMATIONTYPE_FLOAT:
+			return 0;
+		case Animation.ANIMATIONTYPE_VECTOR2:
+			return Vector2.Zero();
+		case Animation.ANIMATIONTYPE_VECTOR3:
+			return Vector3.Zero();
+		case Animation.ANIMATIONTYPE_QUATERNION:
+			return Quaternion.Zero();
+		case Animation.ANIMATIONTYPE_COLOR3:
+			return Color3.Black();
+		case Animation.ANIMATIONTYPE_COLOR4:
+			return Color3.Black().toColor4(0);
+		default:
+			return null;
 	}
 }
 
@@ -72,6 +70,7 @@ export function getTangentInspector(key: IAnimationKey, property: "inTangent" | 
 		case Animation.ANIMATIONTYPE_COLOR3:
 		case Animation.ANIMATIONTYPE_COLOR4:
 			return <EditorInspectorColorField object={key} property={property} noColorPicker noClamp onChange={() => cinematicEditor.timelines.updateTracksAtCurrentTime()} />;
-		default: return null;
+		default:
+			return null;
 	}
 }

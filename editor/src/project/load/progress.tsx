@@ -15,14 +15,14 @@ export function showLoadSceneProgressDialog(name: string): Promise<LoadSceneProg
 }
 
 export interface ILoadSceneProgressComponentProps {
-    name: string;
-    root: Root;
-    container: HTMLDivElement;
+	name: string;
+	root: Root;
+	container: HTMLDivElement;
 }
 
 export interface ILoadSceneProgressComponentState {
-    name: string;
-    progress: number;
+	name: string;
+	progress: number;
 }
 
 export class LoadSceneProgressComponent extends Component<ILoadSceneProgressComponentProps, ILoadSceneProgressComponentState> {
@@ -42,15 +42,12 @@ export class LoadSceneProgressComponent extends Component<ILoadSceneProgressComp
 			<AlertDialog open>
 				<AlertDialogContent>
 					<AlertDialogHeader>
-						<AlertDialogTitle>
-							{this.state.name}...
-						</AlertDialogTitle>
+						<AlertDialogTitle>{this.state.name}...</AlertDialogTitle>
 						<AlertDialogDescription asChild>
 							<Progress value={this.state.progress} />
 						</AlertDialogDescription>
 					</AlertDialogHeader>
-					<AlertDialogFooter>
-					</AlertDialogFooter>
+					<AlertDialogFooter></AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>
 		);

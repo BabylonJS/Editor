@@ -19,9 +19,9 @@ import { showConfirm } from "../../../../ui/dialog";
 import { Editor } from "../../../main";
 
 export interface IEditorEditProjectPluginComponentProps {
-    editor: Editor;
-    pathOrName: string;
-    onRemoved: () => void;
+	editor: Editor;
+	pathOrName: string;
+	onRemoved: () => void;
 }
 
 export function EditorEditProjectPluginItemComponent(props: IEditorEditProjectPluginComponentProps) {
@@ -106,10 +106,18 @@ export function EditorEditProjectPluginItemComponent(props: IEditorEditProjectPl
 		try {
 			let command = "";
 			switch (props.editor.state.packageManager) {
-				case "npm": command = `npm update ${props.pathOrName}`; break;
-				case "pnpm": command = `pnpm up ${props.pathOrName}`; break;
-				case "bun": command = `bun update ${props.pathOrName}`; break;
-				default: command = `yarn upgrade ${props.pathOrName}`; break;
+				case "npm":
+					command = `npm update ${props.pathOrName}`;
+					break;
+				case "pnpm":
+					command = `pnpm up ${props.pathOrName}`;
+					break;
+				case "bun":
+					command = `bun update ${props.pathOrName}`;
+					break;
+				default:
+					command = `yarn upgrade ${props.pathOrName}`;
+					break;
 			}
 
 			const p = await execNodePty(command, {
@@ -149,43 +157,35 @@ export function EditorEditProjectPluginItemComponent(props: IEditorEditProjectPl
 	return (
 		<>
 			<div className="flex justify-between items-center w-full p-5 bg-secondary rounded-lg">
-				{!onError &&
-                    <div className="flex flex-col">
-                    	<div className="text-xl font-[400]">
-                    		{title}
-                    	</div>
-                    	<div className="font-[400]">
-                    		{description}
-                    	</div>
-                    	<div className="text-xs font-[400]">
-                    		{props.pathOrName} {version}
-                    	</div>
-                    </div>
-				}
+				{!onError && (
+					<div className="flex flex-col">
+						<div className="text-xl font-[400]">{title}</div>
+						<div className="font-[400]">{description}</div>
+						<div className="text-xs font-[400]">
+							{props.pathOrName} {version}
+						</div>
+					</div>
+				)}
 
-				{onError &&
-                    <div className="flex items-center gap-2">
-                    	<div className="flex justify-center items-center w-10 h-10 rounded-full p-2 bg-destructive">
-                    		<IoCloseOutline size={32} />
-                    	</div>
+				{onError && (
+					<div className="flex items-center gap-2">
+						<div className="flex justify-center items-center w-10 h-10 rounded-full p-2 bg-destructive">
+							<IoCloseOutline size={32} />
+						</div>
 
-                    	<div className="flex flex-col">
-                    		<div>
-                                Failed to load ...{basename(props.pathOrName)}
-                    		</div>
-                    		<div className="text-xs">
-                    			{props.pathOrName}
-                    		</div>
-                    	</div>
-                    </div>
-				}
+						<div className="flex flex-col">
+							<div>Failed to load ...{basename(props.pathOrName)}</div>
+							<div className="text-xs">{props.pathOrName}</div>
+						</div>
+					</div>
+				)}
 
 				<div className="flex flex-col">
-					{isFromNpm &&
-                        <Button variant="outline" className="w-10 h-10 rounded-full p-2" onClick={() => handleUpdate()}>
-                        	<IoReload className="w-10 h-10" />
-                        </Button>
-					}
+					{isFromNpm && (
+						<Button variant="outline" className="w-10 h-10 rounded-full p-2" onClick={() => handleUpdate()}>
+							<IoReload className="w-10 h-10" />
+						</Button>
+					)}
 
 					<Button variant="outline" className="w-10 h-10 rounded-full p-2" onClick={() => handleRemove()}>
 						<RxCross1 className="w-10 h-10" />
@@ -203,9 +203,7 @@ export function EditorEditProjectPluginItemComponent(props: IEditorEditProjectPl
 							</div>
 						</AlertDialogDescription>
 					</AlertDialogHeader>
-					<AlertDialogFooter>
-
-					</AlertDialogFooter>
+					<AlertDialogFooter></AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>
 		</>

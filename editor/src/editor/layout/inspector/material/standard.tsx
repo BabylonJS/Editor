@@ -12,8 +12,8 @@ import { EditorInspectorSectionField } from "../fields/section";
 import { EditorMaterialInspectorUtilsComponent } from "./utils";
 
 export interface IEditorStandardMaterialInspectorProps {
-    mesh?: AbstractMesh;
-    material: StandardMaterial;
+	mesh?: AbstractMesh;
+	material: StandardMaterial;
 }
 
 export class EditorStandardMaterialInspector extends Component<IEditorStandardMaterialInspectorProps> {
@@ -28,10 +28,7 @@ export class EditorStandardMaterialInspector extends Component<IEditorStandardMa
 					<EditorInspectorStringField label="Name" object={this.props.material} property="name" />
 					<EditorInspectorSwitchField label="Back Face Culling" object={this.props.material} property="backFaceCulling" />
 
-					<EditorMaterialInspectorUtilsComponent
-						mesh={this.props.mesh}
-						material={this.props.material}
-					/>
+					<EditorMaterialInspectorUtilsComponent mesh={this.props.mesh} material={this.props.material} />
 				</EditorInspectorSectionField>
 
 				<EditorInspectorSectionField title="Material Textures">
@@ -57,7 +54,13 @@ export class EditorStandardMaterialInspector extends Component<IEditorStandardMa
 					<EditorInspectorTextureField object={this.props.material} title="Opacity Texture" property="opacityTexture" />
 					<EditorInspectorTextureField object={this.props.material} title="Emissive Texture" property="emissiveTexture" />
 
-					<EditorInspectorTextureField object={this.props.material} title="Reflection Texture" property="reflectionTexture" acceptCubeTexture onChange={() => this.forceUpdate()} />
+					<EditorInspectorTextureField
+						object={this.props.material}
+						title="Reflection Texture"
+						property="reflectionTexture"
+						acceptCubeTexture
+						onChange={() => this.forceUpdate()}
+					/>
 				</EditorInspectorSectionField>
 
 				<EditorInspectorSectionField title="Material Colors">

@@ -22,19 +22,15 @@ export async function loadProject(editor: Editor, path: string): Promise<void> {
 		packageManager,
 		projectPath: path,
 		plugins: project.plugins.map((plugin) => plugin.nameOrPath),
-		lastOpenedScenePath: project.lastOpenedScene
-			? join(directory, project.lastOpenedScene)
-			: null,
+		lastOpenedScenePath: project.lastOpenedScene ? join(directory, project.lastOpenedScene) : null,
 
 		compressedTexturesEnabled: project.compressedTexturesEnabled ?? false,
-		compressedTexturesEnabledInPreview:
-			project.compressedTexturesEnabledInPreview ?? false,
+		compressedTexturesEnabledInPreview: project.compressedTexturesEnabledInPreview ?? false,
 	});
 
 	editor.layout.forceUpdate();
 
-	projectConfiguration.compressedTexturesEnabled =
-		project.compressedTexturesEnabled ?? false;
+	projectConfiguration.compressedTexturesEnabled = project.compressedTexturesEnabled ?? false;
 
 	// Update dependencies
 	const toastId = toast(<LoadScenePrepareComponent />, {
@@ -63,9 +59,7 @@ export async function loadProject(editor: Editor, path: string): Promise<void> {
 		toast.dismiss(toastId);
 
 		if (code !== 0) {
-			toast.warning(
-				`Package manager "${packageManager}" is not available on your system. Dependencies will not be updated.`
-			);
+			toast.warning(`Package manager "${packageManager}" is not available on your system. Dependencies will not be updated.`);
 		} else {
 			toast.success("Dependencies successfully updated");
 		}
@@ -80,9 +74,7 @@ export async function loadProject(editor: Editor, path: string): Promise<void> {
 		if (!(await pathExists(absolutePath))) {
 			toast(`Scene "${project.lastOpenedScene}" does not exist.`);
 
-			return editor.layout.console.error(
-				`Scene "${project.lastOpenedScene}" does not exist.`
-			);
+			return editor.layout.console.error(`Scene "${project.lastOpenedScene}" does not exist.`);
 		}
 
 		await loadScene(editor, directory, absolutePath);
@@ -92,11 +84,7 @@ export async function loadProject(editor: Editor, path: string): Promise<void> {
 	}
 }
 
-export async function loadProjectPlugins(
-	editor: Editor,
-	path: string,
-	project: IEditorProject
-) {
+export async function loadProjectPlugins(editor: Editor, path: string, project: IEditorProject) {
 	for (const plugin of project.plugins) {
 		try {
 			const isLocalPlugin = await pathExists(plugin.nameOrPath);
@@ -111,20 +99,13 @@ export async function loadProjectPlugins(
 			result.main(editor);
 
 			if (isLocalPlugin) {
-				editor.layout.console.log(
-					`Loaded plugin from local drive "${result.title ?? plugin.nameOrPath
-					}"`
-				);
+				editor.layout.console.log(`Loaded plugin from local drive "${result.title ?? plugin.nameOrPath}"`);
 			} else {
-				editor.layout.console.log(
-					`Loaded plugin "${result.title ?? plugin.nameOrPath}"`
-				);
+				editor.layout.console.log(`Loaded plugin "${result.title ?? plugin.nameOrPath}"`);
 			}
 		} catch (e) {
 			console.error(e);
-			editor.layout.console.error(
-				`Failed to load plugin from project "${plugin.nameOrPath}"`
-			);
+			editor.layout.console.error(`Failed to load plugin from project "${plugin.nameOrPath}"`);
 		}
 	}
 }

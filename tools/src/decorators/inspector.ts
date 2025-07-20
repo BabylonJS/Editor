@@ -15,10 +15,7 @@ export type VisibleInInspectorDecoratorConfiguration = {
  * @param label defines the optional label displayed in the inspector in the editor.
  * @param configuration defines the optional configuration for the field in the inspector (description, etc.).
  */
-export function visibleAsBoolean(
-	label?: string,
-	configuration?: Omit<VisibleInInspectorDecoratorConfiguration, "type">,
-) {
+export function visibleAsBoolean(label?: string, configuration?: Omit<VisibleInInspectorDecoratorConfiguration, "type">) {
 	return function (target: any, propertyKey: string | Symbol) {
 		const ctor = target.constructor as ISceneDecoratorData;
 
@@ -42,10 +39,7 @@ export function visibleAsBoolean(
  * @param label defines the optional label displayed in the inspector in the editor.
  * @param configuration defines the optional configuration for the field in the inspector (description, etc.).
  */
-export function visibleAsString(
-	label?: string,
-	configuration?: Omit<VisibleInInspectorDecoratorConfiguration, "type">,
-) {
+export function visibleAsString(label?: string, configuration?: Omit<VisibleInInspectorDecoratorConfiguration, "type">) {
 	return function (target: any, propertyKey: string | Symbol) {
 		const ctor = target.constructor as ISceneDecoratorData;
 
@@ -69,10 +63,7 @@ export function visibleAsString(
  * @param label defines the optional label displayed in the inspector in the editor.
  * @param configuration defines the optional configuration for the field in the inspector (min, max, etc.).
  */
-export function visibleAsNumber(
-	label?: string,
-	configuration?: Omit<VisibleInInspectorDecoratorNumberConfiguration, "type">,
-) {
+export function visibleAsNumber(label?: string, configuration?: Omit<VisibleInInspectorDecoratorNumberConfiguration, "type">) {
 	return function (target: any, propertyKey: string | Symbol) {
 		const ctor = target.constructor as ISceneDecoratorData;
 
@@ -102,10 +93,7 @@ export type VisibleInInspectorDecoratorNumberConfiguration = VisibleInInspectorD
  * @param label defines the optional label displayed in the inspector in the editor.
  * @param configuration defines the optional configuration for the field in the inspector (min, max, etc.).
  */
-export function visibleAsVector2(
-	label?: string,
-	configuration?: Omit<VisibleInInspectorDecoratorVector2Configuration, "type">,
-) {
+export function visibleAsVector2(label?: string, configuration?: Omit<VisibleInInspectorDecoratorVector2Configuration, "type">) {
 	return function (target: any, propertyKey: string | Symbol) {
 		const ctor = target.constructor as ISceneDecoratorData;
 
@@ -136,10 +124,7 @@ export type VisibleInInspectorDecoratorVector2Configuration = VisibleInInspector
  * @param label defines the optional label displayed in the inspector in the editor.
  * @param configuration defines the optional configuration for the field in the inspector (min, max, etc.).
  */
-export function visibleAsVector3(
-	label?: string,
-	configuration?: Omit<VisibleInInspectorDecoratorVector3Configuration, "type">,
-) {
+export function visibleAsVector3(label?: string, configuration?: Omit<VisibleInInspectorDecoratorVector3Configuration, "type">) {
 	return function (target: any, propertyKey: string | Symbol) {
 		const ctor = target.constructor as ISceneDecoratorData;
 
@@ -170,10 +155,7 @@ export type VisibleInInspectorDecoratorVector3Configuration = VisibleInInspector
  * @param label defines the optional label displayed in the inspector in the editor.
  * @param configuration defines the optional configuration for the field in the inspector (min, max, etc.).
  */
-export function visibleAsColor3(
-	label?: string,
-	configuration?: Omit<VisibleInInspectorDecoratorColor3Configuration, "type">,
-) {
+export function visibleAsColor3(label?: string, configuration?: Omit<VisibleInInspectorDecoratorColor3Configuration, "type">) {
 	return function (target: any, propertyKey: string | Symbol) {
 		const ctor = target.constructor as ISceneDecoratorData;
 
@@ -202,10 +184,7 @@ export type VisibleInInspectorDecoratorColor3Configuration = VisibleInInspectorD
  * @param label defines the optional label displayed in the inspector in the editor.
  * @param configuration defines the optional configuration for the field in the inspector (min, max, etc.).
  */
-export function visibleAsColor4(
-	label?: string,
-	configuration?: Omit<VisibleInInspectorDecoratorColor4Configuration, "type">,
-) {
+export function visibleAsColor4(label?: string, configuration?: Omit<VisibleInInspectorDecoratorColor4Configuration, "type">) {
 	return function (target: any, propertyKey: string | Symbol) {
 		const ctor = target.constructor as ISceneDecoratorData;
 
@@ -235,11 +214,7 @@ export type VisibleInInspectorDecoratorColor4Configuration = VisibleInInspectorD
  * @param label defines the optional label displayed in the inspector in the editor.
  * @param configuration defines the optional configuration for the field in the inspector (min, max, etc.).
  */
-export function visibleAsEntity(
-	entityType: VisibleAsEntityType,
-	label?: string,
-	configuration?: Omit<VisibleInInspectorDecoratorEntityConfiguration, "type" | "entityType">,
-) {
+export function visibleAsEntity(entityType: VisibleAsEntityType, label?: string, configuration?: Omit<VisibleInInspectorDecoratorEntityConfiguration, "type" | "entityType">) {
 	return function (target: any, propertyKey: string | Symbol) {
 		const ctor = target.constructor as ISceneDecoratorData;
 
@@ -270,10 +245,7 @@ export type VisibleInInspectorDecoratorEntityConfiguration = VisibleInInspectorD
  * @param label defines the optional label displayed in the inspector in the editor.
  * @param configuration defines the optional configuration for the field in the inspector (accept cubes, etc.).
  */
-export function visibleAsTexture(
-	label?: string,
-	configuration?: Omit<VisibleInInspectorDecoratorTextureConfiguration, "type">,
-) {
+export function visibleAsTexture(label?: string, configuration?: Omit<VisibleInInspectorDecoratorTextureConfiguration, "type">) {
 	return function (target: any, propertyKey: string | Symbol) {
 		const ctor = target.constructor as ISceneDecoratorData;
 
@@ -302,10 +274,7 @@ export type VisibleInInspectorDecoratorTextureConfiguration = VisibleInInspector
  * @param label defines the optional label displayed in the inspector in the editor.
  * @param configuration defines the optional configuration for the field in the inspector (description, etc.).
  */
-export function visibleAsKeyMap(
-	label?: string,
-	configuration?: Omit<VisibleInInspectorDecoratorConfiguration, "type">,
-) {
+export function visibleAsKeyMap(label?: string, configuration?: Omit<VisibleInInspectorDecoratorConfiguration, "type">) {
 	return function (target: any, propertyKey: string | Symbol) {
 		const ctor = target.constructor as ISceneDecoratorData;
 

@@ -70,12 +70,12 @@ async function createRootFolder(editor: Editor): Promise<void> {
 	}
 
 	const assetsFolder = join(dirname(editor.state.projectPath), "assets");
-	if (!await pathExists(assetsFolder)) {
+	if (!(await pathExists(assetsFolder))) {
 		await mkdir(assetsFolder);
 	}
 
 	const quixelFolder = join(assetsFolder, "quixel");
-	if (!await pathExists(quixelFolder)) {
+	if (!(await pathExists(quixelFolder))) {
 		await mkdir(quixelFolder);
 	}
 }
@@ -91,7 +91,7 @@ async function handleParsedAsset(editor: Editor, json: QuixelJsonType) {
 	const quixelFolder = join(dirname(editor.state.projectPath), "assets", "quixel");
 
 	const assetFolder = join(quixelFolder, basename(json.path));
-	if (!await pathExists(assetFolder)) {
+	if (!(await pathExists(assetFolder))) {
 		await mkdir(assetFolder);
 	}
 

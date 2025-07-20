@@ -10,11 +10,11 @@ import { RenderType } from "./render";
 export function getVideoDimensions(type: RenderType): ISize {
 	switch (type) {
 		case "720p":
-			return { width: 1280, height: 720, };
+			return { width: 1280, height: 720 };
 		case "1080p":
-			return { width: 1920, height: 1080, };
+			return { width: 1920, height: 1080 };
 		case "4k":
-			return { width: 3840, height: 2160, };
+			return { width: 3840, height: 2160 };
 	}
 }
 
@@ -25,7 +25,7 @@ export function createVideoEncoder(width: number, height: number) {
 			width,
 			height,
 			frameRate: 60,
-			codec: 'V_VP9',
+			codec: "V_VP9",
 		},
 		firstTimestampBehavior: "offset",
 	});
@@ -47,7 +47,7 @@ export function createVideoEncoder(width: number, height: number) {
 		codec: "vp09.00.10.08",
 		latencyMode: "quality",
 		avc: {
-			format: 'annexb',
+			format: "annexb",
 		},
 	});
 
@@ -70,12 +70,12 @@ export function encodeVideoFrame(canvas: HTMLCanvasElement, videoEncoder: VideoE
 }
 
 export type FlushVideoEncoderOptions = {
-    destinationFolder: string;
-    videoIndex: number;
-    width: number;
-    height: number;
-    videoEncoder: VideoEncoder;
-    muxer: Muxer<ArrayBufferTarget>;
+	destinationFolder: string;
+	videoIndex: number;
+	width: number;
+	height: number;
+	videoEncoder: VideoEncoder;
+	muxer: Muxer<ArrayBufferTarget>;
 };
 
 export async function flushVideoEncoder(options: FlushVideoEncoderOptions) {

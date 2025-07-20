@@ -35,10 +35,7 @@ export function applyTextureAssetToObject(editor: Editor, object: any, absoluteP
 
 	switch (extension) {
 		case ".env":
-			const newCubeTexture = configureImportedTexture(CubeTexture.CreateFromPrefilteredData(
-				absolutePath,
-				isScene(object) ? object : object.getScene(),
-			));
+			const newCubeTexture = configureImportedTexture(CubeTexture.CreateFromPrefilteredData(absolutePath, isScene(object) ? object : object.getScene()));
 			applyTextureToObject(editor, object, newCubeTexture);
 			break;
 
@@ -47,10 +44,7 @@ export function applyTextureAssetToObject(editor: Editor, object: any, absoluteP
 		case ".webp":
 		case ".bmp":
 		case ".jpeg":
-			const newTexture = configureImportedTexture(new Texture(
-				absolutePath,
-				isScene(object) ? object : object.getScene(),
-			));
+			const newTexture = configureImportedTexture(new Texture(absolutePath, isScene(object) ? object : object.getScene()));
 
 			applyTextureToObject(editor, object, newTexture);
 
@@ -120,9 +114,10 @@ export function applyTextureToObject(editor: Editor, object: any, texture: Textu
 		</div>
 	);
 
-	const dialog = showDialog(title, (
+	const dialog = showDialog(
+		title,
 		<div className="flex flex-col gap-4 w-64 pt-4">
-			{isPBRMaterial(material) &&
+			{isPBRMaterial(material) && (
 				<>
 					<TextureSlotComponent property="albedoTexture" />
 					<TextureSlotComponent property="bumpTexture" />
@@ -131,10 +126,9 @@ export function applyTextureToObject(editor: Editor, object: any, texture: Textu
 					<TextureSlotComponent property="metallicTexture" />
 					<TextureSlotComponent property="reflectionTexture" />
 				</>
-			}
+			)}
 
-			{
-				isStandardMaterial(material) &&
+			{isStandardMaterial(material) && (
 				<>
 					<TextureSlotComponent property="diffuseTexture" />
 					<TextureSlotComponent property="bumpTexture" />
@@ -142,7 +136,7 @@ export function applyTextureToObject(editor: Editor, object: any, texture: Textu
 					<TextureSlotComponent property="ambientTexture" />
 					<TextureSlotComponent property="reflectionTexture" />
 				</>
-			}
+			)}
 		</div>
-	));
+	);
 }

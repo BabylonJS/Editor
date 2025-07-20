@@ -8,7 +8,7 @@ import { mkdir, pathExists } from "fs-extra";
  * @param absolutePath the absolute path of the directory to create.
  */
 export async function createDirectoryIfNotExist(absolutePath: string) {
-	if (!await pathExists(absolutePath)) {
+	if (!(await pathExists(absolutePath))) {
 		await mkdir(absolutePath);
 	}
 }

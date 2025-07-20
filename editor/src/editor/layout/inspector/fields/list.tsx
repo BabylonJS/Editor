@@ -58,22 +58,17 @@ export function EditorInspectorListField(props: IEditorInspectorListFieldProps) 
 
 	return (
 		<div className="flex gap-2 items-center px-2">
-			{props.label &&
-				<div className="w-1/3 text-ellipsis overflow-hidden whitespace-nowrap">
-					{props.label}
-				</div>
-			}
+			{props.label && <div className="w-1/3 text-ellipsis overflow-hidden whitespace-nowrap">{props.label}</div>}
 
-			<Select
-				value={selectedItem?.value}
-				onValueChange={(v) => handleSetValue(v)}
-			>
+			<Select value={selectedItem?.value} onValueChange={(v) => handleSetValue(v)}>
 				<SelectTrigger className={`${props.label ? "w-2/3" : "w-full"}`}>
 					<SelectValue placeholder="Select Value..." />
 				</SelectTrigger>
 				<SelectContent>
 					{props.items.map((item) => (
-						<SelectItem key={item.text} value={item.value}>{item.text}</SelectItem>
+						<SelectItem key={item.text} value={item.value}>
+							{item.text}
+						</SelectItem>
 					))}
 				</SelectContent>
 			</Select>

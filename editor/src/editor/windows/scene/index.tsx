@@ -25,13 +25,7 @@ export default class SceneEditorWindow extends Component<ISceneEditorWindowProps
 	}
 
 	public render(): ReactNode {
-		return (
-			<Editor
-				ref={(r) => this._editor = r}
-				projectPath={this.props.projectPath}
-				editedScenePath={this.props.scenePath}
-			/>
-		);
+		return <Editor ref={(r) => (this._editor = r)} projectPath={this.props.projectPath} editedScenePath={this.props.scenePath} />;
 	}
 
 	public async componentDidMount(): Promise<void> {

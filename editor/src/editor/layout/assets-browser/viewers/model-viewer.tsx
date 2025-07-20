@@ -11,11 +11,7 @@ import { projectConfiguration } from "../../../../project/configuration";
 import { Editor } from "../../../main";
 
 export function openModelViewer(editor: Editor, absolutePath: string) {
-	showAlert(
-		basename(absolutePath),
-		<AssetBrowserModelViewer editor={editor} absolutePath={absolutePath} />,
-		true,
-	);
+	showAlert(basename(absolutePath), <AssetBrowserModelViewer editor={editor} absolutePath={absolutePath} />, true);
 }
 
 export interface IAssetBrowserModelViewerProps {

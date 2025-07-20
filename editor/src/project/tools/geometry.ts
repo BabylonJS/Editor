@@ -59,12 +59,7 @@ export async function writeBinaryGeometry(path: string, geometry: any, mesh: any
 		const matricesIndices: number[] = [];
 
 		for (let i = 0; i < geometry.matricesIndices.length; i += 4) {
-			const bone: number[] = [
-				geometry.matricesIndices[i],
-				geometry.matricesIndices[i + 1],
-				geometry.matricesIndices[i + 2],
-				geometry.matricesIndices[i + 3],
-			];
+			const bone: number[] = [geometry.matricesIndices[i], geometry.matricesIndices[i + 1], geometry.matricesIndices[i + 2], geometry.matricesIndices[i + 3]];
 
 			matricesIndices.push((bone[3] << 24) | (bone[2] << 16) | (bone[1] << 8) | bone[0]);
 		}

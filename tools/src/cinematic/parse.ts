@@ -81,38 +81,41 @@ export function parseCinematic(data: ICinematic, scene: Scene): ICinematic {
 					return result;
 				}),
 
-				keyFrameAnimations: node && animationType !== null && track.keyFrameAnimations?.map((keyFrame) => {
-					const animationKey = keyFrame.type === "key" ? keyFrame as ICinematicKey : null;
-					if (animationKey) {
-						return {
-							...animationKey,
-							value: parseCinematicKeyValue(animationKey.value, animationType),
-							inTangent: parseCinematicKeyValue(animationKey.inTangent, animationType),
-							outTangent: parseCinematicKeyValue(animationKey.outTangent, animationType),
-						} as ICinematicKey;
-					}
+				keyFrameAnimations:
+					node &&
+					animationType !== null &&
+					track.keyFrameAnimations?.map((keyFrame) => {
+						const animationKey = keyFrame.type === "key" ? (keyFrame as ICinematicKey) : null;
+						if (animationKey) {
+							return {
+								...animationKey,
+								value: parseCinematicKeyValue(animationKey.value, animationType),
+								inTangent: parseCinematicKeyValue(animationKey.inTangent, animationType),
+								outTangent: parseCinematicKeyValue(animationKey.outTangent, animationType),
+							} as ICinematicKey;
+						}
 
-					const animationKeyCut = keyFrame.type === "cut" ? keyFrame as ICinematicKeyCut : null;
-					if (animationKeyCut) {
-						return {
-							...animationKeyCut,
-							key1: {
-								...animationKeyCut.key1,
-								value: parseCinematicKeyValue(animationKeyCut.key1.value, animationType),
-								inTangent: parseCinematicKeyValue(animationKeyCut.key1.inTangent, animationType),
-								outTangent: parseCinematicKeyValue(animationKeyCut.key1.outTangent, animationType),
-							} as ICinematicKey,
-							key2: {
-								...animationKeyCut.key2,
-								value: parseCinematicKeyValue(animationKeyCut.key2.value, animationType),
-								inTangent: parseCinematicKeyValue(animationKeyCut.key2.inTangent, animationType),
-								outTangent: parseCinematicKeyValue(animationKeyCut.key2.outTangent, animationType),
-							},
-						} as ICinematicKeyCut;
-					}
+						const animationKeyCut = keyFrame.type === "cut" ? (keyFrame as ICinematicKeyCut) : null;
+						if (animationKeyCut) {
+							return {
+								...animationKeyCut,
+								key1: {
+									...animationKeyCut.key1,
+									value: parseCinematicKeyValue(animationKeyCut.key1.value, animationType),
+									inTangent: parseCinematicKeyValue(animationKeyCut.key1.inTangent, animationType),
+									outTangent: parseCinematicKeyValue(animationKeyCut.key1.outTangent, animationType),
+								} as ICinematicKey,
+								key2: {
+									...animationKeyCut.key2,
+									value: parseCinematicKeyValue(animationKeyCut.key2.value, animationType),
+									inTangent: parseCinematicKeyValue(animationKeyCut.key2.inTangent, animationType),
+									outTangent: parseCinematicKeyValue(animationKeyCut.key2.outTangent, animationType),
+								},
+							} as ICinematicKeyCut;
+						}
 
-					throw new Error(`Unknown key frame type: ${keyFrame.type}`);
-				}),
+						throw new Error(`Unknown key frame type: ${keyFrame.type}`);
+					}),
 			};
 		}),
 	} as ICinematic;
@@ -134,12 +137,19 @@ export function parseCinematicKeyValue(value: any, type: number): any {
 	}
 
 	switch (type) {
-		case Animation.ANIMATIONTYPE_FLOAT: return value;
-		case Animation.ANIMATIONTYPE_VECTOR2: return Vector2.FromArray(value);
-		case Animation.ANIMATIONTYPE_VECTOR3: return Vector3.FromArray(value);
-		case Animation.ANIMATIONTYPE_QUATERNION: return Quaternion.FromArray(value);
-		case Animation.ANIMATIONTYPE_COLOR3: return Color3.FromArray(value);
-		case Animation.ANIMATIONTYPE_COLOR4: return Color4.FromArray(value);
-		case Animation.ANIMATIONTYPE_MATRIX: return Matrix.FromArray(value);
+		case Animation.ANIMATIONTYPE_FLOAT:
+			return value;
+		case Animation.ANIMATIONTYPE_VECTOR2:
+			return Vector2.FromArray(value);
+		case Animation.ANIMATIONTYPE_VECTOR3:
+			return Vector3.FromArray(value);
+		case Animation.ANIMATIONTYPE_QUATERNION:
+			return Quaternion.FromArray(value);
+		case Animation.ANIMATIONTYPE_COLOR3:
+			return Color3.FromArray(value);
+		case Animation.ANIMATIONTYPE_COLOR4:
+			return Color4.FromArray(value);
+		case Animation.ANIMATIONTYPE_MATRIX:
+			return Matrix.FromArray(value);
 	}
 }

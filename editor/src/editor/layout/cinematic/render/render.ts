@@ -15,16 +15,16 @@ import { createVideoEncoder, encodeVideoFrame, flushVideoEncoder, getVideoDimens
 export type RenderType = "720p" | "1080p" | "4k";
 
 export type RenderCinematicBaseOptionsType = {
-    from: number;
-    to: number;
-    type: RenderType;
+	from: number;
+	to: number;
+	type: RenderType;
 };
 
 export type RenderCinematicOptionsType = RenderCinematicBaseOptionsType & {
-    cancelled: boolean;
-    destination: string;
-    animationGroup: AnimationGroup;
-    onProgress: (progress: number) => void;
+	cancelled: boolean;
+	destination: string;
+	animationGroup: AnimationGroup;
+	onProgress: (progress: number) => void;
 };
 
 export async function renderCinematic(cinematicEditor: CinematicEditor, options: RenderCinematicOptionsType) {

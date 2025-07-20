@@ -104,7 +104,7 @@ export function applyOverrides(editor: Editor) {
 		console[method] = (...args: any[]) => {
 			const node = (
 				<div>
-					<b className="font-bold text-[#2d72d2]" > [DEBUG] </b>
+					<b className="font-bold text-[#2d72d2]"> [DEBUG] </b>
 					{args.join("\n")}
 				</div>
 			);

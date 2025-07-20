@@ -136,12 +136,16 @@ export function addSphereMesh(editor: Editor, parent?: Node) {
 }
 
 export function addSkyboxMesh(editor: Editor, parent?: Node) {
-	const skybox = MeshBuilder.CreateBox("New SkyBox", {
-		width: 10_000,
-		height: 10_000,
-		depth: 10_000,
-		sideOrientation: Mesh.BACKSIDE,
-	}, editor.layout.preview.scene);
+	const skybox = MeshBuilder.CreateBox(
+		"New SkyBox",
+		{
+			width: 10_000,
+			height: 10_000,
+			depth: 10_000,
+			sideOrientation: Mesh.BACKSIDE,
+		},
+		editor.layout.preview.scene
+	);
 
 	skybox.receiveShadows = false;
 	skybox.id = Tools.RandomId();

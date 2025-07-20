@@ -29,26 +29,22 @@ export function EditorInspectorSliderField(props: IEditorInspectorSliderFieldPro
 
 	return (
 		<div className="flex gap-2 px-2">
-			{props.label &&
+			{props.label && (
 				<div className="flex items-center gap-2 text-ellipsis overflow-hidden whitespace-nowrap">
-					<div>
-						{props.label}
-					</div>
+					<div>{props.label}</div>
 
-					{props.tooltip &&
+					{props.tooltip && (
 						<TooltipProvider delayDuration={0}>
 							<Tooltip>
 								<TooltipTrigger>
 									<MdOutlineInfo size={24} />
 								</TooltipTrigger>
-								<TooltipContent className="bg-muted text-muted-foreground text-sm p-2">
-									{props.tooltip}
-								</TooltipContent>
+								<TooltipContent className="bg-muted text-muted-foreground text-sm p-2">{props.tooltip}</TooltipContent>
 							</Tooltip>
 						</TooltipProvider>
-					}
+					)}
 				</div>
-			}
+			)}
 
 			<Slider
 				min={props.min}

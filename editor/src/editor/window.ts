@@ -62,12 +62,14 @@ export async function createEditorWindow(): Promise<BrowserWindow> {
 
 		checkClose = false;
 
-		BrowserWindow.getAllWindows().slice(0).forEach((w) => {
-			if (w.getParentWindow() === window) {
-				w.close();
-				closeAllNodePtyForWebContentsId(w.webContents.id);
-			}
-		});
+		BrowserWindow.getAllWindows()
+			.slice(0)
+			.forEach((w) => {
+				if (w.getParentWindow() === window) {
+					w.close();
+					closeAllNodePtyForWebContentsId(w.webContents.id);
+				}
+			});
 
 		window.webContents.send("editor:closed");
 
@@ -97,7 +99,7 @@ export async function createEditorWindow(): Promise<BrowserWindow> {
 			nodeIntegration: true,
 			contextIsolation: process.env.DEBUG !== "true",
 			preload: join(app.getAppPath(), "build/src/splash/preload.js"),
-		}
+		},
 	});
 
 	splash.loadURL(join("file://", app.getAppPath(), "index.html"));
@@ -173,9 +175,7 @@ export function showCloseEditorWindowsDialog(window: BrowserWindow): boolean {
 		buttons: ["Yes", "No"],
 		title: "Close window",
 		message: "Are you sure you want to close the window?",
-		icon: isWindows()
-			? nativeImage.createFromPath(join(app.getAppPath(), "assets/babylonjs_icon.png"))
-			: undefined,
+		icon: isWindows() ? nativeImage.createFromPath(join(app.getAppPath(), "assets/babylonjs_icon.png")) : undefined,
 	});
 
 	return result === 0;

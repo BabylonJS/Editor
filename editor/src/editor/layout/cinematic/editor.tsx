@@ -6,8 +6,14 @@ import { toast } from "sonner";
 
 import { Observer, AnimationGroup, Animation } from "babylonjs";
 import {
-	generateCinematicAnimationGroup, ICinematic, ICinematicTrack, setDefaultRenderingPipelineRef, setMotionBlurPostProcessRef,
-	setSSAO2RenderingPipelineRef, setSSRRenderingPipelineRef, setVLSPostProcessRef,
+	generateCinematicAnimationGroup,
+	ICinematic,
+	ICinematicTrack,
+	setDefaultRenderingPipelineRef,
+	setMotionBlurPostProcessRef,
+	setSSAO2RenderingPipelineRef,
+	setSSRRenderingPipelineRef,
+	setVLSPostProcessRef,
 } from "babylonjs-editor-tools";
 
 import { Editor } from "../../main";
@@ -40,39 +46,39 @@ import { CinematicEditorTimelines } from "./timelines";
 import { CinematicEditorInspector } from "./inspector";
 
 export interface ICinematicEditorProps {
-    editor: Editor;
-    absolutePath: string;
-    cinematic: ICinematic;
+	editor: Editor;
+	absolutePath: string;
+	cinematic: ICinematic;
 }
 
 export interface ICinematicEditorState {
-    playing: boolean;
-    hoverTrack: ICinematicTrack | null;
+	playing: boolean;
+	hoverTrack: ICinematicTrack | null;
 
-    renderType: RenderType;
+	renderType: RenderType;
 }
 
 export class CinematicEditor extends Component<ICinematicEditorProps, ICinematicEditorState> {
 	/**
-     * Defines the reference to the tracks panel used to display and edit the cinematic tracks.
-     */
+	 * Defines the reference to the tracks panel used to display and edit the cinematic tracks.
+	 */
 	public tracks: CinematicEditorTracks;
 	/**
-     * Defines the reference to the timelines panel used to display and edit the cinematic timelines.
-     */
+	 * Defines the reference to the timelines panel used to display and edit the cinematic timelines.
+	 */
 	public timelines: CinematicEditorTimelines;
 	/**
-     * Defines the reference to the inspector used to display and edit the cinematic properties.
-     */
+	 * Defines the reference to the inspector used to display and edit the cinematic properties.
+	 */
 	public inspector: CinematicEditorInspector;
 
 	/**
-     * Defines the reference to the editor instance that owns this cinematic editor.
-     */
+	 * Defines the reference to the editor instance that owns this cinematic editor.
+	 */
 	public readonly editor: Editor;
 	/**
-     * Defines the reference to the cinematic object being edited.
-     */
+	 * Defines the reference to the cinematic object being edited.
+	 */
 	public readonly cinematic: ICinematic;
 
 	private _renderer: CinematicEditorRenderer;
@@ -107,28 +113,17 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 
 	public render(): ReactNode {
 		return (
-			<div
-				onMouseEnter={() => this._focused = true}
-				onMouseLeave={() => this._focused = false}
-				className="flex flex-col w-full h-full overflow-hidden"
-			>
-				<CinematicEditorToolbar
-					cinematicEditor={this}
-					playing={this.state.playing}
-				/>
+			<div onMouseEnter={() => (this._focused = true)} onMouseLeave={() => (this._focused = false)} className="flex flex-col w-full h-full overflow-hidden">
+				<CinematicEditorToolbar cinematicEditor={this} playing={this.state.playing} />
 
 				<div className="flex flex-1 overflow-hidden">
 					<div className="flex flex-col flex-1 overflow-hidden">
 						{/* Headers */}
 						<div className="flex w-full h-10">
-							<div className="flex justify-center items-center w-96 h-10 font-semibold bg-secondary border-r-2 border-r-muted">
-                                Tracks
-							</div>
+							<div className="flex justify-center items-center w-96 h-10 font-semibold bg-secondary border-r-2 border-r-muted">Tracks</div>
 
 							<div className="flex flex-1 justify-center items-center gap-2 w-full h-10 font-semibold bg-secondary">
-								<div>
-                                    Timelines
-								</div>
+								<div>Timelines</div>
 
 								<CinematicEditorTimelineOptions cinematicEditor={this} />
 							</div>
@@ -136,35 +131,19 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 
 						<div className="flex flex-1 overflow-y-auto">
 							<TooltipProvider>
-								<CinematicEditorTracks
-									cinematicEditor={this}
-									ref={ref => this.tracks = ref!}
-								/>
+								<CinematicEditorTracks cinematicEditor={this} ref={(ref) => (this.tracks = ref!)} />
 
-								<CinematicEditorTimelines
-									cinematicEditor={this}
-									ref={ref => this.timelines = ref!}
-								/>
+								<CinematicEditorTimelines cinematicEditor={this} ref={(ref) => (this.timelines = ref!)} />
 							</TooltipProvider>
 						</div>
 					</div>
 
-					<CinematicEditorInspector
-						cinematicEditor={this}
-						ref={(r) => this.inspector = r!}
-					/>
+					<CinematicEditorInspector cinematicEditor={this} ref={(r) => (this.inspector = r!)} />
 				</div>
 
-				<CinematicEditorRenderDialog
-					ref={(r) => this._renderDialog = r!}
-					cinematicEditor={this}
-					onRender={(from, to) => this.renderCinematic(from, to)}
-				/>
+				<CinematicEditorRenderDialog ref={(r) => (this._renderDialog = r!)} cinematicEditor={this} onRender={(from, to) => this.renderCinematic(from, to)} />
 
-				<CinematicEditorRenderer
-					ref={(r) => this._renderer = r!}
-					cinematicEditor={this}
-				/>
+				<CinematicEditorRenderer ref={(r) => (this._renderer = r!)} cinematicEditor={this} />
 			</div>
 		);
 	}
@@ -178,17 +157,20 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 			this.forceUpdate();
 		});
 
-		window.addEventListener("keydown", this._keydownListener = (event) => {
-			if (event.key === " ") {
-				event.preventDefault();
+		window.addEventListener(
+			"keydown",
+			(this._keydownListener = (event) => {
+				if (event.key === " ") {
+					event.preventDefault();
 
-				if (this.state.playing && this._focused) {
-					this.stop();
-				} else {
-					this.play();
+					if (this.state.playing && this._focused) {
+						this.stop();
+					} else {
+						this.play();
+					}
 				}
-			}
-		});
+			})
+		);
 	}
 
 	public componentWillUnmount(): void {
@@ -219,10 +201,7 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 	public createTemporaryAnimationGroup(): AnimationGroup {
 		this.prepareTemporaryAnimationGroup();
 
-		this._temporaryAnimationGroup ??= generateCinematicAnimationGroup(
-			this.cinematic,
-            this.props.editor.layout.preview.scene as any,
-		) as any;
+		this._temporaryAnimationGroup ??= generateCinematicAnimationGroup(this.cinematic, this.props.editor.layout.preview.scene as any) as any;
 
 		return this._temporaryAnimationGroup!;
 	}
@@ -243,9 +222,8 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 		saveSceneState(scene);
 
 		this.setState({
-			playing: true
+			playing: true,
 		});
-
 
 		this._currentTimeBeforePlay = this.timelines.state.currentTime;
 
@@ -286,15 +264,17 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 			engine.stopRenderLoop(this._playRenderLoop);
 		}
 
-		engine.runRenderLoop(this._playRenderLoop = () => {
-			this.timelines.setState({
-				currentTime: this._animatedCurrentTime,
-			});
+		engine.runRenderLoop(
+			(this._playRenderLoop = () => {
+				this.timelines.setState({
+					currentTime: this._animatedCurrentTime,
+				});
 
-			scene.lights.forEach((light) => {
-				updateLightShadowMapRefreshRate(light);
-			});
-		});
+				scene.lights.forEach((light) => {
+					updateLightShadowMapRefreshRate(light);
+				});
+			})
+		);
 	}
 
 	public stop(): void {
@@ -303,7 +283,7 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 		}
 
 		this.setState({
-			playing: false
+			playing: false,
 		});
 
 		const engine = this.props.editor.layout.preview.engine;
@@ -344,9 +324,7 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 	public async saveAs(): Promise<void> {
 		const destination = saveSingleFileDialog({
 			title: "Save Cinematic File",
-			filters: [
-				{ name: "Cinematic Files", extensions: ["cinematic"] },
-			],
+			filters: [{ name: "Cinematic Files", extensions: ["cinematic"] }],
 		});
 
 		if (!destination) {

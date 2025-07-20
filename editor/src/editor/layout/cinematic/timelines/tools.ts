@@ -14,10 +14,7 @@ export function getKeyFrame(key: CinematicKeyType | ICinematicTrackerKey) {
 	return key.frame;
 }
 
-export function transformKeyAs(
-	cinematicEditor: CinematicEditor,
-	cinematicKey: ICinematicKey | ICinematicKeyCut,
-) {
+export function transformKeyAs(cinematicEditor: CinematicEditor, cinematicKey: ICinematicKey | ICinematicKeyCut) {
 	const cloneKey = { ...cinematicKey } as ICinematicKey;
 	const cloneKeyCut = { ...cinematicKey } as ICinematicKeyCut;
 

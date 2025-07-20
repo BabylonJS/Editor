@@ -11,23 +11,23 @@ import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } 
 import { EditorAnimation } from "../../animation";
 
 export interface IEditorAnimationTimelineKeyProps {
-    scale: number;
-    animatable: IAnimatable;
-    animationKey: IAnimationKey;
-    animationEditor: EditorAnimation;
+	scale: number;
+	animatable: IAnimatable;
+	animationKey: IAnimationKey;
+	animationEditor: EditorAnimation;
 
-    onClicked: (key: IAnimationKey) => void;
-    onRemoved: (key: IAnimationKey) => void;
-    onMoved: (movedKeys: IAnimationKeyConfigurationToMove[][]) => void;
+	onClicked: (key: IAnimationKey) => void;
+	onRemoved: (key: IAnimationKey) => void;
+	onMoved: (movedKeys: IAnimationKeyConfigurationToMove[][]) => void;
 }
 
 export interface IEditorAnimationTimelineKeyState {
-    moving: boolean | undefined;
+	moving: boolean | undefined;
 }
 
 export interface IAnimationKeyConfigurationToMove {
-    key: IAnimationKey;
-    startPosition: number;
+	key: IAnimationKey;
+	startPosition: number;
 }
 
 export class EditorAnimationTimelineKey extends Component<IEditorAnimationTimelineKeyProps, IEditorAnimationTimelineKeyState> {
@@ -52,9 +52,7 @@ export class EditorAnimationTimelineKey extends Component<IEditorAnimationTimeli
                     `}
 				>
 					<ContextMenu>
-						<ContextMenuTrigger
-							onContextMenu={(ev) => ev.stopPropagation()}
-						>
+						<ContextMenuTrigger onContextMenu={(ev) => ev.stopPropagation()}>
 							<div
 								onMouseDown={(ev) => this._handlePointerDown(ev)}
 								onDoubleClick={() => this.props.animationEditor.timelines.setCurrentTime(this.props.animationKey.frame)}
@@ -62,18 +60,13 @@ export class EditorAnimationTimelineKey extends Component<IEditorAnimationTimeli
 							/>
 						</ContextMenuTrigger>
 						<ContextMenuContent>
-							<ContextMenuItem
-								className="flex items-center gap-2 !text-red-400"
-								onClick={() => this.props.onRemoved(this.props.animationKey)}
-							>
+							<ContextMenuItem className="flex items-center gap-2 !text-red-400" onClick={() => this.props.onRemoved(this.props.animationKey)}>
 								<AiOutlineClose className="w-5 h-5" fill="rgb(248, 113, 113)" /> Remove
 							</ContextMenuItem>
 						</ContextMenuContent>
 					</ContextMenu>
 				</TooltipTrigger>
-				<TooltipContent>
-					{this.props.animationKey.frame}
-				</TooltipContent>
+				<TooltipContent>{this.props.animationKey.frame}</TooltipContent>
 			</Tooltip>
 		);
 	}
@@ -89,15 +82,18 @@ export class EditorAnimationTimelineKey extends Component<IEditorAnimationTimeli
 		let mouseMoveListener: (event: globalThis.MouseEvent) => void;
 
 		if (this.props.animationKey.frame === 0) {
-			return document.body.addEventListener("mouseup", mouseUpListener = (ev) => {
-				ev.stopPropagation();
+			return document.body.addEventListener(
+				"mouseup",
+				(mouseUpListener = (ev) => {
+					ev.stopPropagation();
 
-				document.body.removeEventListener("mouseup", mouseUpListener);
+					document.body.removeEventListener("mouseup", mouseUpListener);
 
-				waitNextAnimationFrame().then(() => {
-					this.props.onClicked(this.props.animationKey);
-				});
-			});
+					waitNextAnimationFrame().then(() => {
+						this.props.onClicked(this.props.animationKey);
+					});
+				})
+			);
 		}
 
 		this.setState({ moving: true });
@@ -112,66 +108,75 @@ export class EditorAnimationTimelineKey extends Component<IEditorAnimationTimeli
 
 		if (ev.shiftKey) {
 			const keys = this.props.animatable.animations!.map<IAnimationKeyConfigurationToMove[]>((animation) => {
-				return animation.getKeys().filter((key) => key.frame >= startPosition).map((key) => ({
-					key,
-					startPosition: key.frame,
-				}));
+				return animation
+					.getKeys()
+					.filter((key) => key.frame >= startPosition)
+					.map((key) => ({
+						key,
+						startPosition: key.frame,
+					}));
 			});
 
 			animationsKeyConfigurationsToMove.push(...keys);
 		} else {
-			animationsKeyConfigurationsToMove.push([{
-				key: this.props.animationKey,
-				startPosition: this.props.animationKey.frame,
-			}]);
+			animationsKeyConfigurationsToMove.push([
+				{
+					key: this.props.animationKey,
+					startPosition: this.props.animationKey.frame,
+				},
+			]);
 		}
 
-		document.body.addEventListener("mousemove", mouseMoveListener = (ev) => {
-			if (clientX === null) {
-				clientX = ev.clientX;
-			}
-
-			const delta = clientX - ev.clientX;
-			if (moving || Math.abs(delta) > 5 * devicePixelRatio) {
-				moving = true;
-			} else {
-				return;
-			}
-
-			animationsKeyConfigurationsToMove.forEach((configuration) => {
-				configuration.forEach((key) => {
-					key.key.frame = Math.round(
-						Math.max(0, key.startPosition - delta / this.props.scale),
-					);
-				});
-			});
-
-			this.props.animationEditor.timelines.forceUpdate();
-		});
-
-		document.body.addEventListener("mouseup", mouseUpListener = (ev) => {
-			ev.stopPropagation();
-
-			document.body.style.cursor = "auto";
-
-			document.body.removeEventListener("mouseup", mouseUpListener);
-			document.body.removeEventListener("mousemove", mouseMoveListener);
-
-			this.setState({ moving: undefined });
-
-			this.props.animationEditor.timelines.tracks.forEach((track) => {
-				track?.keyFrames.forEach((key) => {
-					key?.setState({ moving: undefined });
-				});
-			});
-
-			waitNextAnimationFrame().then(() => {
-				this.props.onClicked(this.props.animationKey);
-
-				if (moving) {
-					this.props.onMoved(animationsKeyConfigurationsToMove);
+		document.body.addEventListener(
+			"mousemove",
+			(mouseMoveListener = (ev) => {
+				if (clientX === null) {
+					clientX = ev.clientX;
 				}
-			});
-		});
+
+				const delta = clientX - ev.clientX;
+				if (moving || Math.abs(delta) > 5 * devicePixelRatio) {
+					moving = true;
+				} else {
+					return;
+				}
+
+				animationsKeyConfigurationsToMove.forEach((configuration) => {
+					configuration.forEach((key) => {
+						key.key.frame = Math.round(Math.max(0, key.startPosition - delta / this.props.scale));
+					});
+				});
+
+				this.props.animationEditor.timelines.forceUpdate();
+			})
+		);
+
+		document.body.addEventListener(
+			"mouseup",
+			(mouseUpListener = (ev) => {
+				ev.stopPropagation();
+
+				document.body.style.cursor = "auto";
+
+				document.body.removeEventListener("mouseup", mouseUpListener);
+				document.body.removeEventListener("mousemove", mouseMoveListener);
+
+				this.setState({ moving: undefined });
+
+				this.props.animationEditor.timelines.tracks.forEach((track) => {
+					track?.keyFrames.forEach((key) => {
+						key?.setState({ moving: undefined });
+					});
+				});
+
+				waitNextAnimationFrame().then(() => {
+					this.props.onClicked(this.props.animationKey);
+
+					if (moving) {
+						this.props.onMoved(animationsKeyConfigurationsToMove);
+					}
+				});
+			})
+		);
 	}
 }

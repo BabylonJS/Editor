@@ -14,10 +14,7 @@ export async function exportAnimationsAs(animatable: IAnimatable | null) {
 	});
 
 	if (!data?.length) {
-		return showAlert(
-			"No animations to export.",
-			"The object has no animation to export. Please add at least one track",
-		);
+		return showAlert("No animations to export.", "The object has no animation to export. Please add at least one track");
 	}
 
 	const destination = saveSingleFileDialog({

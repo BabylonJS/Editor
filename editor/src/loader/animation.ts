@@ -1,6 +1,4 @@
-import {
-	Animation, AssetContainer, Bone, IAnimationKey, Quaternion, TransformNode, Vector3,
-} from "babylonjs";
+import { Animation, AssetContainer, Bone, IAnimationKey, Quaternion, TransformNode, Vector3 } from "babylonjs";
 
 import { AssimpJSRuntime } from "./types";
 
@@ -14,7 +12,13 @@ export function parseAnimations(runtime: AssimpJSRuntime): void {
 
 			// Position
 			if (channelData.positionkeys?.length) {
-				const animation = new Animation(`${animationData.name}-${channelData.name}-position`, "position", animationData.tickspersecond, Animation.ANIMATIONTYPE_VECTOR3, Animation.ANIMATIONLOOPMODE_CYCLE);
+				const animation = new Animation(
+					`${animationData.name}-${channelData.name}-position`,
+					"position",
+					animationData.tickspersecond,
+					Animation.ANIMATIONTYPE_VECTOR3,
+					Animation.ANIMATIONLOOPMODE_CYCLE
+				);
 				const keys = new Array<IAnimationKey>(channelData.positionkeys.length);
 
 				channelData.positionkeys.forEach((key, keyIndex) => {
@@ -31,15 +35,19 @@ export function parseAnimations(runtime: AssimpJSRuntime): void {
 
 			// Rotation
 			if (channelData.rotationkeys?.length) {
-				const animation = new Animation(`${animationData.name}-${channelData.name}-rotation`, "rotationQuaternion", animationData.tickspersecond, Animation.ANIMATIONTYPE_QUATERNION, Animation.ANIMATIONLOOPMODE_CYCLE);
+				const animation = new Animation(
+					`${animationData.name}-${channelData.name}-rotation`,
+					"rotationQuaternion",
+					animationData.tickspersecond,
+					Animation.ANIMATIONTYPE_QUATERNION,
+					Animation.ANIMATIONLOOPMODE_CYCLE
+				);
 				const keys = new Array<IAnimationKey>(channelData.rotationkeys.length);
 
 				channelData.rotationkeys.forEach((key, keyIndex) => {
 					keys[keyIndex] = {
 						frame: key[0],
-						value: key[1].length < 4
-							? Vector3.FromArray(key[1]).toQuaternion()
-							: Quaternion.FromArray(key[1]),
+						value: key[1].length < 4 ? Vector3.FromArray(key[1]).toQuaternion() : Quaternion.FromArray(key[1]),
 					};
 				});
 
@@ -50,7 +58,13 @@ export function parseAnimations(runtime: AssimpJSRuntime): void {
 
 			// Scaling
 			if (channelData.scalingkeys?.length) {
-				const animation = new Animation(`${animationData.name}-${channelData.name}-scaling`, "scaling", animationData.tickspersecond, Animation.ANIMATIONTYPE_VECTOR3, Animation.ANIMATIONLOOPMODE_CYCLE);
+				const animation = new Animation(
+					`${animationData.name}-${channelData.name}-scaling`,
+					"scaling",
+					animationData.tickspersecond,
+					Animation.ANIMATIONTYPE_VECTOR3,
+					Animation.ANIMATIONLOOPMODE_CYCLE
+				);
 				const keys = new Array<IAnimationKey>(channelData.scalingkeys.length);
 
 				channelData.scalingkeys.forEach((key, keyIndex) => {

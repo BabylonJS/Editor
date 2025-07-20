@@ -50,7 +50,9 @@ export interface IEditorInspectorState {
 }
 
 export class EditorInspector extends Component<IEditorInspectorProps, IEditorInspectorState> {
-	private static _inspectors: ((new (props: IEditorInspectorImplementationProps<any>) => Component<IEditorInspectorImplementationProps<any>>) & { IsSupported(object: any): boolean; })[] = [
+	private static _inspectors: ((new (props: IEditorInspectorImplementationProps<any>) => Component<IEditorInspectorImplementationProps<any>>) & {
+		IsSupported(object: any): boolean;
+	})[] = [
 		EditorTransformNodeInspector,
 		EditorMeshInspector,
 
@@ -106,9 +108,7 @@ export class EditorInspector extends Component<IEditorInspectorProps, IEditorIns
 					/>
 
 					<TabsContent value="entity" className="w-full h-full overflow-auto">
-						<div className="flex flex-col gap-2 h-full">
-							{this._getContent()}
-						</div>
+						<div className="flex flex-col gap-2 h-full">{this._getContent()}</div>
 					</TabsContent>
 
 					<TabsContent value="decals" className="w-full h-full overflow-auto">
@@ -129,27 +129,12 @@ export class EditorInspector extends Component<IEditorInspectorProps, IEditorIns
 
 	private _getContent(): ReactNode {
 		if (!this.state.editedObject) {
-			return <NonIdealState
-				icon={<Icon icon="search" size={96} />}
-				title={
-					<div className="text-white">
-						No object selected
-					</div>
-				}
-			/>;
+			return <NonIdealState icon={<Icon icon="search" size={96} />} title={<div className="text-white">No object selected</div>} />;
 		}
 
-		const inspectors = EditorInspector._inspectors
-			.filter((i) => i.IsSupported(this.state.editedObject))
-			.map((i) => ({ inspector: i }));
+		const inspectors = EditorInspector._inspectors.filter((i) => i.IsSupported(this.state.editedObject)).map((i) => ({ inspector: i }));
 
-		return inspectors.map((i) => (
-			<i.inspector
-				key={Tools.RandomId()}
-				editor={this.props.editor}
-				object={this.state.editedObject}
-			/>
-		));
+		return inspectors.map((i) => <i.inspector key={Tools.RandomId()} editor={this.props.editor} object={this.state.editedObject} />);
 	}
 
 	private _handleSearchChanged(search: string): void {

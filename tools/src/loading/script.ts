@@ -1,4 +1,3 @@
-
 import { Node } from "@babylonjs/core/node";
 import { Scene } from "@babylonjs/core/scene";
 import { IParticleSystem } from "@babylonjs/core/Particles/IParticleSystem";
@@ -103,7 +102,7 @@ export function registerScriptInstance(object: any, scriptInstance: IScript, key
  * @param classType defines the class of the type to retrieve
  * @example
  * import { IScript, getAllScriptsByClassForObject } from "babylonjs-editor-tools";
- * 
+ *
  * class ScriptClass implements IScript {
  * 	public onStart(): void {
  * 		const instances = getAllScriptsByClassForObject(mesh, OtherScriptClass);
@@ -112,7 +111,7 @@ export function registerScriptInstance(object: any, scriptInstance: IScript, key
  * 		});
  * 	}
  * }
- * 
+ *
  * class OtherScriptClass implements IScript {
  * 	public doSomething(): void {
  * 		console.log("Doing something!");
@@ -123,7 +122,7 @@ export function getAllScriptsByClassForObject<T extends new (...args: any) => an
 	const data = scriptsDictionary.get(object);
 	const result = data?.filter((s) => s.instance.constructor === classType);
 
-	return result?.map((r) => r.instance) as InstanceType<T>[] ?? null;
+	return (result?.map((r) => r.instance) as InstanceType<T>[]) ?? null;
 }
 
 /**
@@ -132,14 +131,14 @@ export function getAllScriptsByClassForObject<T extends new (...args: any) => an
  * @param classType defines the class of the type to retrieve
  * @example
  * import { IScript, getScriptByClassForObject } from "babylonjs-editor-tools";
- * 
+ *
  * class ScriptClass implements IScript {
  * 	public onStart(): void {
  * 		const instance = getScriptByClassForObject(mesh, OtherScriptClass);
  * 		instance.doSomething();
  * 	}
  * }
- * 
+ *
  * class OtherScriptClass implements IScript {
  * 	public doSomething(): void {
  * 		console.log("Doing something!");
@@ -148,5 +147,5 @@ export function getAllScriptsByClassForObject<T extends new (...args: any) => an
  */
 export function getScriptByClassForObject<T extends new (...args: any) => any>(object: any, classType: T) {
 	const result = getAllScriptsByClassForObject<T>(object, classType);
-	return result?.[0] as InstanceType<T> ?? null;
+	return (result?.[0] as InstanceType<T>) ?? null;
 }

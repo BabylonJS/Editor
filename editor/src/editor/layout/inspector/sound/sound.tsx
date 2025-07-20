@@ -21,10 +21,10 @@ import { IEditorInspectorImplementationProps } from "../inspector";
 
 export class EditorSoundInspector extends Component<IEditorInspectorImplementationProps<Sound>> {
 	/**
-     * Returns whether or not the given object is supported by this inspector.
-     * @param object defines the object to check.
-     * @returns true if the object is supported by this inspector.
-     */
+	 * Returns whether or not the given object is supported by this inspector.
+	 * @param object defines the object to check.
+	 * @returns true if the object is supported by this inspector.
+	 */
 	public static IsSupported(object: unknown): boolean {
 		return isSound(object);
 	}
@@ -34,14 +34,10 @@ export class EditorSoundInspector extends Component<IEditorInspectorImplementati
 			<>
 				<EditorInspectorSectionField title="Common">
 					<div className="flex justify-between items-center px-2 py-2">
-						<div className="w-1/2">
-                            Name
-						</div>
+						<div className="w-1/2">Name</div>
 
 						<div className="flex justify-between items-center w-full">
-							<div className="text-white/50">
-								{this.props.object.name}
-							</div>
+							<div className="text-white/50">{this.props.object.name}</div>
 
 							<Button variant="ghost" onClick={() => this._handleCopyName()}>
 								<FaCopy className="w-4 h-4" />
@@ -66,23 +62,18 @@ export class EditorSoundInspector extends Component<IEditorInspectorImplementati
 						}}
 					/>
 
-					<Button
-						variant={this.props.object.isPlaying ? "default" : "secondary"}
-						onClick={() => this.props.object.isPlaying ? this._handleStop() : this._handlePlay()}
-					>
+					<Button variant={this.props.object.isPlaying ? "default" : "secondary"} onClick={() => (this.props.object.isPlaying ? this._handleStop() : this._handlePlay())}>
 						{this.props.object.isPlaying ? "Stop" : "Play"}
 					</Button>
 				</EditorInspectorSectionField>
 
 				<EditorInspectorSectionField title="Helpers">
 					<Button variant="ghost" onClick={() => this._handleReload()}>
-                        Reload
+						Reload
 					</Button>
 				</EditorInspectorSectionField>
 
-				{this.props.object.spatialSound &&
-                    <EditorSpatialSoundInspectorComponent sound={this.props.object} />
-				}
+				{this.props.object.spatialSound && <EditorSpatialSoundInspectorComponent sound={this.props.object} />}
 			</>
 		);
 	}
@@ -108,8 +99,6 @@ export class EditorSoundInspector extends Component<IEditorInspectorImplementati
 	}
 
 	private _handleReload(): void {
-		this.props.editor.layout.inspector.setEditedObject(
-			reloadSound(this.props.editor, this.props.object),
-		);
+		this.props.editor.layout.inspector.setEditedObject(reloadSound(this.props.editor, this.props.object));
 	}
 }

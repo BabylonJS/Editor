@@ -11,7 +11,7 @@ import Markdown, { RuleType } from "markdown-to-jsx";
 import { FileInspectorObject } from "../file";
 
 export interface IEditorInspectorMarkdownComponentProps {
-    object: FileInspectorObject;
+	object: FileInspectorObject;
 }
 
 export function EditorInspectorMarkdownComponent(props: IEditorInspectorMarkdownComponentProps) {
@@ -38,10 +38,7 @@ export function EditorInspectorMarkdownComponent(props: IEditorInspectorMarkdown
 					renderRule(next, node, _, state) {
 						if (node.type === RuleType.codeBlock) {
 							return (
-								<Callout
-									key={state.key}
-									className="w-full whitespace-break-spaces p-5 rounded-lg mb-3"
-								>
+								<Callout key={state.key} className="w-full whitespace-break-spaces p-5 rounded-lg mb-3">
 									{node.text}
 								</Callout>
 							);
@@ -49,11 +46,7 @@ export function EditorInspectorMarkdownComponent(props: IEditorInspectorMarkdown
 
 						if (node.type === RuleType.link) {
 							return (
-								<a
-									key={state.key}
-									className="parent text-blue-400"
-									onClick={() => shell.openExternal(node.target)}
-								>
+								<a key={state.key} className="parent text-blue-400" onClick={() => shell.openExternal(node.target)}>
 									{node.children.map((c) => c["text"]).join(" ")}
 								</a>
 							);

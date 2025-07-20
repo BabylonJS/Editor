@@ -8,10 +8,10 @@ import { Button } from "../../../../ui/shadcn/ui/button";
 import { EditorAnimation } from "../../animation";
 
 export interface IEditorAnimationTrackItemProps {
-    animation: Animation;
-    animationEditor: EditorAnimation;
+	animation: Animation;
+	animationEditor: EditorAnimation;
 
-    onRemove: (animation: Animation) => void;
+	onRemove: (animation: Animation) => void;
 }
 
 export class EditorAnimationTrackItem extends Component<IEditorAnimationTrackItemProps> {
@@ -26,9 +26,7 @@ export class EditorAnimationTrackItem extends Component<IEditorAnimationTrackIte
                     transition-all duration-300 ease-in-out
                 `}
 			>
-				<div>
-					{this.props.animation.targetProperty}
-				</div>
+				<div>{this.props.animation.targetProperty}</div>
 
 				<Button
 					variant="ghost"

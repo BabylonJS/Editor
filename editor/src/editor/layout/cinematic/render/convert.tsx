@@ -10,11 +10,11 @@ import { isWindows } from "../../../../tools/os";
 import { Editor } from "../../../main";
 
 export type CinematicEditorConvertOptions = {
-    editor: Editor;
-    folderAbsolutePath: string;
-    absolutePath: string;
-    framesCount: number;
-    framesPerSecond: number;
+	editor: Editor;
+	folderAbsolutePath: string;
+	absolutePath: string;
+	framesCount: number;
+	framesPerSecond: number;
 };
 
 export async function convertCinematicVideoToMp4(options: CinematicEditorConvertOptions) {
@@ -26,29 +26,22 @@ export async function convertCinematicVideoToMp4(options: CinematicEditorConvert
 	files = files.filter((file) => extname(file) === ".webm");
 	files.sort((a, b) => parseInt(a) - parseInt(b));
 
-	let ffmpegPath = process.env.DEBUG
-		? "bin/ffmpeg"
-		: "../../bin/ffmpeg";
+	let ffmpegPath = process.env.DEBUG ? "bin/ffmpeg" : "../../bin/ffmpeg";
 
-	let ffprobePath = process.env.DEBUG
-		? "bin/ffprobe"
-		: "../../bin/ffprobe";
+	let ffprobePath = process.env.DEBUG ? "bin/ffprobe" : "../../bin/ffprobe";
 
 	if (isWindows()) {
 		ffmpegPath = ffmpegPath + ".exe";
 		ffprobePath = ffprobePath + ".exe";
 	}
 
-	const command = ffmpeg()
-		.setFfmpegPath(join(options.editor.path, ffmpegPath))
-		.setFfprobePath(join(options.editor.path, ffprobePath));
+	const command = ffmpeg().setFfmpegPath(join(options.editor.path, ffmpegPath)).setFfprobePath(join(options.editor.path, ffprobePath));
 
 	files.forEach((file) => {
 		command.addInput(join(options.folderAbsolutePath, file));
 	});
 
-	command
-		.fpsOutput(options.framesPerSecond);
+	command.fpsOutput(options.framesPerSecond);
 
 	let converting = true;
 	const intervalId = window.setInterval(() => {
@@ -58,15 +51,10 @@ export async function convertCinematicVideoToMp4(options: CinematicEditorConvert
 	}, 150);
 
 	let progress: CinematicConvertProgressComponent | null = null;
-	const toastId = toast(
-		<CinematicConvertProgressComponent
-			ref={(r) => progress = r}
-			onCancel={() => converting = false}
-		/>,
-		{
-			dismissible: false,
-			duration: Infinity,
-		});
+	const toastId = toast(<CinematicConvertProgressComponent ref={(r) => (progress = r)} onCancel={() => (converting = false)} />, {
+		dismissible: false,
+		duration: Infinity,
+	});
 
 	const tmpDirectory = join(options.folderAbsolutePath, "tmp");
 	await ensureDir(tmpDirectory);
@@ -116,11 +104,11 @@ import { Button } from "../../../../ui/shadcn/ui/button";
 import { Progress } from "../../../../ui/shadcn/ui/progress";
 
 export interface ICinematicConvertProgressComponentProps {
-    onCancel: () => void;
+	onCancel: () => void;
 }
 
 export interface IEditorExportProjectProgressComponentState {
-    progress: number;
+	progress: number;
 }
 
 export class CinematicConvertProgressComponent extends Component<ICinematicConvertProgressComponentProps, IEditorExportProjectProgressComponentState> {
@@ -139,9 +127,9 @@ export class CinematicConvertProgressComponent extends Component<ICinematicConve
 
 				<div className="flex flex-col gap-2 w-full">
 					<div className="flex gap-5 items-center justify-between text-lg font-[400]">
-                        Converting mp4...
+						Converting mp4...
 						<Button variant="ghost" onClick={() => this.props.onCancel()}>
-                            Cancel
+							Cancel
 						</Button>
 					</div>
 					<Progress value={this.state.progress} />

@@ -39,11 +39,7 @@ export function EditorInspectorKeyField(props: IEditorInspectorKeyFieldProps) {
 
 	return (
 		<div className="flex gap-2 items-center px-2">
-			{props.label &&
-				<div className="w-1/3 text-ellipsis overflow-hidden whitespace-nowrap">
-					{props.label}
-				</div>
-			}
+			{props.label && <div className="w-1/3 text-ellipsis overflow-hidden whitespace-nowrap">{props.label}</div>}
 
 			<Button
 				ref={buttonRef}
@@ -54,17 +50,9 @@ export function EditorInspectorKeyField(props: IEditorInspectorKeyFieldProps) {
 				`}
 			>
 				<div className="absolute left-1/2 -translate-x-1/2">
-					{!setting &&
-						<Fade delay={0}>
-							{String.fromCharCode(parseInt(value))}
-						</Fade>
-					}
+					{!setting && <Fade delay={0}>{String.fromCharCode(parseInt(value))}</Fade>}
 
-					{setting &&
-						<Fade delay={0}>
-							Press a key...
-						</Fade>
-					}
+					{setting && <Fade delay={0}>Press a key...</Fade>}
 				</div>
 			</Button>
 		</div>

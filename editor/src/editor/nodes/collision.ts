@@ -1,6 +1,19 @@
 import {
-	AbstractMesh, BoundingInfo, CreateBoxVertexData, CreateCapsuleVertexData, CreateSphereVertexData, Geometry, Mesh, MeshDebugPluginMaterial,
-	Node, PBRMaterial, QuadraticErrorSimplification, Scene, serialize, Tools, Vector3,
+	AbstractMesh,
+	BoundingInfo,
+	CreateBoxVertexData,
+	CreateCapsuleVertexData,
+	CreateSphereVertexData,
+	Geometry,
+	Mesh,
+	MeshDebugPluginMaterial,
+	Node,
+	PBRMaterial,
+	QuadraticErrorSimplification,
+	Scene,
+	serialize,
+	Tools,
+	Vector3,
 } from "babylonjs";
 
 import { UniqueNumber } from "../../tools/tools";
@@ -23,14 +36,7 @@ export class CollisionMesh extends Mesh {
 	 *                  This will make creation of children, recursive.
 	 * @param clonePhysicsImpostor When cloning, include cloning mesh physics impostor, default True.
 	 */
-	public constructor(
-		name: string,
-		scene: Scene,
-		parent?: Node | null,
-		source?: Mesh | null,
-		doNotCloneChildren?: boolean,
-		clonePhysicsImpostor?: boolean,
-	) {
+	public constructor(name: string, scene: Scene, parent?: Node | null, source?: Mesh | null, doNotCloneChildren?: boolean, clonePhysicsImpostor?: boolean) {
 		super(name, scene, parent, source, doNotCloneChildren, clonePhysicsImpostor);
 
 		this.id = Tools.RandomId();
@@ -144,9 +150,13 @@ export class CollisionMesh extends Mesh {
 	}
 
 	private _createCubeCollisionMesh(sourceMesh: AbstractMesh, boundingInfo: BoundingInfo): void {
-		const geometry = new Geometry(Tools.RandomId(), sourceMesh.getScene(), CreateBoxVertexData({
-			size: 1,
-		}));
+		const geometry = new Geometry(
+			Tools.RandomId(),
+			sourceMesh.getScene(),
+			CreateBoxVertexData({
+				size: 1,
+			})
+		);
 
 		geometry.uniqueId = UniqueNumber.Get();
 		geometry.applyToMesh(this);
@@ -155,10 +165,14 @@ export class CollisionMesh extends Mesh {
 	}
 
 	private _createSphereCollisionMesh(sourceMesh: AbstractMesh, boundingInfo: BoundingInfo): void {
-		const geometry = new Geometry(Tools.RandomId(), sourceMesh.getScene(), CreateSphereVertexData({
-			diameter: 1,
-			segments: 16,
-		}));
+		const geometry = new Geometry(
+			Tools.RandomId(),
+			sourceMesh.getScene(),
+			CreateSphereVertexData({
+				diameter: 1,
+				segments: 16,
+			})
+		);
 
 		geometry.uniqueId = UniqueNumber.Get();
 		geometry.applyToMesh(this);
@@ -169,16 +183,20 @@ export class CollisionMesh extends Mesh {
 	private _createCapsuleCollisionMesh(sourceMesh: AbstractMesh, boundingInfo: BoundingInfo): void {
 		const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingSphere.minimum);
 
-		const geometry = new Geometry(Tools.RandomId(), sourceMesh.getScene(), CreateCapsuleVertexData({
-			height: Math.abs(size.y),
-			radius: boundingInfo.boundingSphere.radius,
+		const geometry = new Geometry(
+			Tools.RandomId(),
+			sourceMesh.getScene(),
+			CreateCapsuleVertexData({
+				height: Math.abs(size.y),
+				radius: boundingInfo.boundingSphere.radius,
 
-			subdivisions: 16,
-			tessellation: 16,
-			capSubdivisions: 12,
-			topCapSubdivisions: 12,
-			orientation: Vector3.Up(),
-		}));
+				subdivisions: 16,
+				tessellation: 16,
+				capSubdivisions: 12,
+				topCapSubdivisions: 12,
+				orientation: Vector3.Up(),
+			})
+		);
 
 		geometry.uniqueId = UniqueNumber.Get();
 		geometry.applyToMesh(this);
@@ -205,9 +223,9 @@ export class CollisionMesh extends Mesh {
 	}
 
 	/**
-	  * Gets the current object class name.
-	  * @return the class name
-	  */
+	 * Gets the current object class name.
+	 * @return the class name
+	 */
 	public getClassName(): string {
 		return "CollisionMesh";
 	}
