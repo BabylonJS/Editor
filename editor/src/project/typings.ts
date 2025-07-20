@@ -24,7 +24,7 @@ export interface IEditorProject {
 
     packageManager?: EditorProjectPackageManager;
 
-    template: EditorProjectTemplate;
+    projectTemplate: EditorProjectTemplate;
 }
 
 export interface IEditorProjectPlugin {

@@ -8,16 +8,30 @@ import { createRoot } from "react-dom/client";
 import { HotkeysTarget2 } from "@blueprintjs/core";
 
 import { waitUntil } from "../tools/tools";
-import { onRedoObservable, onUndoObservable, redo, undo } from "../tools/undoredo";
-import { checkNodeJSAvailable, checkVisualStudioCodeAvailable } from "../tools/process";
+import {
+	onRedoObservable,
+	onUndoObservable,
+	redo,
+	undo,
+} from "../tools/undoredo";
+import {
+	checkNodeJSAvailable,
+	checkVisualStudioCodeAvailable,
+} from "../tools/process";
 import { tryGetExperimentalFeaturesEnabledFromLocalStorage } from "../tools/local-storage";
 
 import { saveProject } from "../project/save/save";
-import { onProjectConfigurationChangedObservable, projectConfiguration } from "../project/configuration";
+import {
+	onProjectConfigurationChangedObservable,
+	projectConfiguration,
+} from "../project/configuration";
 
 import { loadProject } from "../project/load/load";
 import { exportProject } from "../project/export/export";
-import { EditorProjectPackageManager } from "../project/typings";
+import {
+	EditorProjectPackageManager,
+	EditorProjectTemplate,
+} from "../project/typings";
 
 import { disposeVLSPostProcess } from "./rendering/vls";
 import { disposeSSRRenderingPipeline } from "./rendering/ssr";
@@ -53,73 +67,78 @@ export function createEditor(): void {
 }
 
 export interface IEditorProps {
-	/**
-	 * The path of the project.
-	 */
-	projectPath: string | null;
+  /**
+   * The path of the project.
+   */
+  projectPath: string | null;
 
-	/**
-	 * Defines the path to the currently edited scene path.
-	 */
-	editedScenePath?: string | null;
+  /**
+   * Defines the path to the currently edited scene path.
+   */
+  editedScenePath?: string | null;
 }
 
 export interface IEditorState {
-	/**
-	 * The path of the project.
-	 */
-	projectPath: string | null;
-	/**
-	 * The path of the last opened scene.
-	 */
-	lastOpenedScenePath: string | null;
-	/**
-	 * Defines the list of all plugins to load.
-	 */
-	plugins: string[];
-	/**
-	 * Defines the current package manager being used by the editor.
-	 */
-	packageManager?: EditorProjectPackageManager;
+  /**
+   * The path of the project.
+   */
+  projectPath: string | null;
+  /**
+   * The path of the last opened scene.
+   */
+  lastOpenedScenePath: string | null;
+  /**
+   * Defines the list of all plugins to load.
+   */
+  plugins: string[];
+  /**
+   * Defines the current package manager being used by the editor.
+   */
+  packageManager?: EditorProjectPackageManager;
 
-	/**
-	 * Defines wether or not compressed textures are enabled.
-	 */
-	compressedTexturesEnabled: boolean;
-	/**
-	 * Defines wether or not compressed textures are enabled in the preview.
-	 */
-	compressedTexturesEnabledInPreview: boolean;
+  /**
+   * Defines the current project template being used by the editor.
+   */
+  projectTemplate?: EditorProjectTemplate;
 
-	/**
-	 * Defines wether or not experimental features are enabled.
-	 */
-	enableExperimentalFeatures: boolean;
+  /**
+   * Defines wether or not compressed textures are enabled.
+   */
+  compressedTexturesEnabled: boolean;
+  /**
+   * Defines wether or not compressed textures are enabled in the preview.
+   */
+  compressedTexturesEnabledInPreview: boolean;
 
-	/**
-	 * Defines if the project is being edited.
-	 */
-	editProject: boolean;
-	/**
-	 * Defines if the preferences are being edited.
-	 */
-	editPreferences: boolean;
+  /**
+   * Defines wether or not experimental features are enabled.
+   */
+  enableExperimentalFeatures: boolean;
+
+  /**
+   * Defines if the project is being edited.
+   */
+  editProject: boolean;
+  /**
+   * Defines if the preferences are being edited.
+   */
+  editPreferences: boolean;
 }
 
 export class Editor extends Component<IEditorProps, IEditorState> {
 	/**
-	 * The layout of the editor.
-	 */
+   * The layout of the editor.
+   */
 	public layout: EditorLayout;
 	/**
-	 * The command palette of the editor.
-	 */
+   * The command palette of the editor.
+   */
 	public commandPalette: CommandPalette;
 
 	/**
-	 * Defines the path to the editor application.
-	 * This comes from electron `app.getAppPath();`
-	 */
+   * Defines the path to the editor application.
+   * This comes from electron `app.getAppPath();`
+   */
 	public path: string | null = null;
 
 	public constructor(props: IEditorProps) {
@@ -132,7 +151,8 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 
 			compressedTexturesEnabled: false,
 			compressedTexturesEnabledInPreview: false,
-			enableExperimentalFeatures: tryGetExperimentalFeaturesEnabledFromLocalStorage(),
+			enableExperimentalFeatures:
+        tryGetExperimentalFeaturesEnabledFromLocalStorage(),
 
 			editProject: false,
 			editPreferences: false,
@@ -144,21 +164,18 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 	public render(): ReactNode {
 		return (
 			<>
-				<HotkeysTarget2 hotkeys={[
-					{
-						global: true,
-						combo: platform() === "darwin"
-							? "cmd + p"
-							: "ctrl + p",
-						preventDefault: true,
-						label: "Show Command Palette",
-						onKeyDown: () => this.commandPalette.setOpen(true),
-					},
-				]}>
-					<EditorLayout
-						editor={this}
-						ref={ref => this.layout = ref!}
-					/>
+				<HotkeysTarget2
+					hotkeys={[
+						{
+							global: true,
+							combo: platform() === "darwin" ? "cmd + p" : "ctrl + p",
+							preventDefault: true,
+							label: "Show Command Palette",
+							onKeyDown: () => this.commandPalette.setOpen(true),
+						},
+					]}
+				>
+					<EditorLayout editor={this} ref={(ref) => (this.layout = ref!)} />
 				</HotkeysTarget2>
 
 				<EditorEditProjectComponent
@@ -173,7 +190,7 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 					onClose={() => this.setState({ editPreferences: false })}
 				/>
 
-				<CommandPalette ref={(r) => this.commandPalette = r!} editor={this} />
+				<CommandPalette ref={(r) => (this.commandPalette = r!)} editor={this} />
 				<Toaster />
 			</>
 		);
@@ -183,15 +200,22 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 		ipcRenderer.on("save", () => saveProject(this));
 		ipcRenderer.on("export", () => exportProject(this, { optimize: true }));
 
-		ipcRenderer.on("editor:edit-project", () => this.setState({ editProject: true }));
-		ipcRenderer.on("editor:edit-preferences", () => this.setState({ editPreferences: true }));
+		ipcRenderer.on("editor:edit-project", () =>
+			this.setState({ editProject: true })
+		);
+		ipcRenderer.on("editor:edit-preferences", () =>
+			this.setState({ editPreferences: true })
+		);
 
 		ipcRenderer.on("editor:open", (_, path) => this.openProject(join(path)));
 
 		ipcRenderer.on("editor:quit-app", () => this.quitApp());
 		ipcRenderer.on("editor:close-window", () => this.close());
 
-		ipcRenderer.on("editor:path", (_, path) => this.path = path.replace(/\\/g, sep));
+		ipcRenderer.on(
+			"editor:path",
+			(_, path) => (this.path = path.replace(/\\/g, sep))
+		);
 
 		// Undo-redo
 		ipcRenderer.on("undo", () => undo());
@@ -219,9 +243,9 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 	}
 
 	/**
-	 * Opens the project located at the given absolute path.
-	 * @param absolutePath defines the absolute path to the project to open.
-	 */
+   * Opens the project located at the given absolute path.
+   * @param absolutePath defines the absolute path to the project to open.
+   */
 	public async openProject(absolutePath: string): Promise<void> {
 		await waitUntil(() => this.layout.preview.scene);
 
@@ -237,21 +261,23 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 		disposeSSAO2RenderingPipeline();
 		disposeDefaultRenderingPipeline();
 
-		onProjectConfigurationChangedObservable.notifyObservers(projectConfiguration);
+		onProjectConfigurationChangedObservable.notifyObservers(
+			projectConfiguration
+		);
 
 		await loadProject(this, absolutePath);
 	}
 
 	/**
-	 * Closes the current editor window after asking for confirmation.
-	 */
+   * Closes the current editor window after asking for confirmation.
+   */
 	public close(): void {
 		ipcRenderer.send("window:close");
 	}
 
 	/**
-	 * Quits the app after asking for confirmation.
-	 */
+   * Quits the app after asking for confirmation.
+   */
 	public quitApp(): void {
 		ipcRenderer.send("app:quit");
 	}

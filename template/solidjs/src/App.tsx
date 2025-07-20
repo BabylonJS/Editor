@@ -41,66 +41,69 @@ import { loadScene } from "babylonjs-editor-tools";
 import { scriptsMap } from "./scripts";
 
 const App: Component = () => {
-  let canvasRef: HTMLCanvasElement | undefined;
+	let canvasRef: HTMLCanvasElement | undefined;
 
-  onMount(() => {
-    if (!canvasRef) {
-      return;
-    }
+	onMount(() => {
+		if (!canvasRef) {
+			return;
+		}
 
-    const engine = new Engine(canvasRef, true, {
-      stencil: true,
-      antialias: true,
-      audioEngine: true,
-      adaptToDeviceRatio: true,
-      disableWebGL2Support: false,
-      useHighPrecisionFloats: true,
-      powerPreference: "high-performance",
-      failIfMajorPerformanceCaveat: false,
-    });
+		const engine = new Engine(canvasRef, true, {
+			stencil: true,
+			antialias: true,
+			audioEngine: true,
+			adaptToDeviceRatio: true,
+			disableWebGL2Support: false,
+			useHighPrecisionFloats: true,
+			powerPreference: "high-performance",
+			failIfMajorPerformanceCaveat: false,
+		});
 
-    const scene = new Scene(engine);
+		const scene = new Scene(engine);
 
-    handleLoad(engine, scene);
+		handleLoad(engine, scene);
 
-    const handleResize = () => {
-      engine.resize();
-    };
+		const handleResize = () => {
+			engine.resize();
+		};
 
-    window.addEventListener("resize", handleResize);
+		window.addEventListener("resize", handleResize);
 
-    onCleanup(() => {
-      scene.dispose();
-      engine.dispose();
-      window.removeEventListener("resize", handleResize);
-    });
-  });
+		onCleanup(() => {
+			scene.dispose();
+			engine.dispose();
+			window.removeEventListener("resize", handleResize);
+		});
+	});
 
-  async function handleLoad(engine: Engine, scene: Scene) {
-    const havok = await HavokPhysics();
-    const gravityVector = new Vector3(0, -9.81, 0);
-    const physicsPlugin = new HavokPlugin(true, havok);
-    scene.enablePhysics(gravityVector, physicsPlugin);
+	async function handleLoad(engine: Engine, scene: Scene) {
+		const havok = await HavokPhysics();
+		const gravityVector = new Vector3(0, -9.81, 0);
+		const physicsPlugin = new HavokPlugin(true, havok);
+		scene.enablePhysics(gravityVector, physicsPlugin);
 
-    SceneLoaderFlags.ForceFullSceneLoadingForIncremental = true;
-    await loadScene("/scene/", "example.babylon", scene, scriptsMap, {
-      quality: "high",
-    });
+		SceneLoaderFlags.ForceFullSceneLoadingForIncremental = true;
+		await loadScene("/scene/", "example.babylon", scene, scriptsMap, {
+			quality: "high",
+		});
 
-    if (scene.activeCamera) {
-      scene.activeCamera.attachControl();
-    }
+		if (scene.activeCamera) {
+			scene.activeCamera.attachControl();
+		}
 
-    engine.runRenderLoop(() => {
-      scene.render();
-    });
-  }
+		engine.runRenderLoop(() => {
+			scene.render();
+		});
+	}
 
-  return (
-    <main class="flex w-screen h-screen flex-col items-center justify-between">
-      <canvas ref={canvasRef} class="w-full h-full outline-none select-none" />
-    </main>
-  );
+	return (
+		<main class="flex w-screen h-screen flex-col items-center justify-between">
+			<canvas
+				ref={(r) => (canvasRef = r)}
+				class="w-full h-full outline-none select-none"
+			/>
+		</main>
+	);
 };
 
 export default App;

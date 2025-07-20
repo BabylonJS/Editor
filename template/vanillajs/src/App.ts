@@ -39,65 +39,65 @@ import { loadScene } from "babylonjs-editor-tools";
 import { scriptsMap } from "./scripts";
 
 export class App {
-  private canvas: HTMLCanvasElement;
-  private engine: Engine | null = null;
-  private scene: Scene | null = null;
+	private _canvas: HTMLCanvasElement;
+	private _engine: Engine | null = null;
+	private _scene: Scene | null = null;
 
-  constructor() {
-    const canvasElement = document.getElementById('canvas') as HTMLCanvasElement;
-    if (!canvasElement) {
-      throw new Error('Canvas element not found');
-    }
-    this.canvas = canvasElement;
-  }
+	constructor() {
+		const canvasElement = document.getElementById('canvas') as HTMLCanvasElement;
+		if (!canvasElement) {
+			throw new Error('Canvas element not found');
+		}
+		this._canvas = canvasElement;
+	}
 
-  public async init(): Promise<void> {
-    this.engine = new Engine(this.canvas, true, {
-      stencil: true,
-      antialias: true,
-      audioEngine: true,
-      adaptToDeviceRatio: true,
-      disableWebGL2Support: false,
-      useHighPrecisionFloats: true,
-      powerPreference: "high-performance",
-      failIfMajorPerformanceCaveat: false,
-    });
+	public async init(): Promise<void> {
+		this._engine = new Engine(this._canvas, true, {
+			stencil: true,
+			antialias: true,
+			audioEngine: true,
+			adaptToDeviceRatio: true,
+			disableWebGL2Support: false,
+			useHighPrecisionFloats: true,
+			powerPreference: "high-performance",
+			failIfMajorPerformanceCaveat: false,
+		});
 
-    this.scene = new Scene(this.engine);
+		this._scene = new Scene(this._engine);
 
-    await this.handleLoad();
+		await this._handleLoad();
 
-    // Handle window resize
-    const handleResize = () => {
-      this.engine?.resize();
-    };
+		// Handle window resize
+		const handleResize = () => {
+			this._engine?.resize();
+		};
 
-    window.addEventListener("resize", handleResize);
+		window.addEventListener("resize", handleResize);
 
-    // Start render loop
-    this.engine.runRenderLoop(() => {
-      this.scene?.render();
-    });
-  }
+		// Start render loop
+		this._engine.runRenderLoop(() => {
+			this._scene?.render();
+		});
+	}
 
-  private async handleLoad(): Promise<void> {
-    if (!this.engine || !this.scene) return;
+	private async _handleLoad(): Promise<void> {
+		if (!this._engine || !this._scene) {return;}
 
-    const havok = await HavokPhysics();
-    this.scene.enablePhysics(new Vector3(0, -981, 0), new HavokPlugin(true, havok));
+		const havok = await HavokPhysics();
+		this._scene.enablePhysics(new Vector3(0, -981, 0), new HavokPlugin(true, havok));
 
-    SceneLoaderFlags.ForceFullSceneLoadingForIncremental = true;
-    await loadScene("/scene/", "example.babylon", this.scene, scriptsMap, {
-      quality: "high",
-    });
+		SceneLoaderFlags.ForceFullSceneLoadingForIncremental = true;
+		await loadScene("/scene/", "example.babylon", this._scene, scriptsMap, {
+			quality: "high",
+		});
 
-    if (this.scene.activeCamera) {
-      this.scene.activeCamera.attachControl();
-    }
-  }
+		if (this._scene.activeCamera) {
+			this._scene.activeCamera.attachControl();
+		}
+	}
 
-  public dispose(): void {
-    this.scene?.dispose();
-    this.engine?.dispose();
-  }
+	public dispose(): void {
+		this._scene?.dispose();
+		this._engine?.dispose();
+	}
 } 

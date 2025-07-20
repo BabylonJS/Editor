@@ -59,10 +59,15 @@ async function _saveProject(editor: Editor): Promise<void> {
 		})),
 		version: packageJson.version,
 		packageManager: editor.state.packageManager,
-		lastOpenedScene: editor.state.lastOpenedScenePath?.replace(dirname(editor.state.projectPath), ""),
+		projectTemplate: editor.state.projectTemplate,
+		lastOpenedScene: editor.state.lastOpenedScenePath?.replace(
+			dirname(editor.state.projectPath),
+			""
+		),
 
 		compressedTexturesEnabled: editor.state.compressedTexturesEnabled,
-		compressedTexturesEnabledInPreview: editor.state.compressedTexturesEnabledInPreview,
+		compressedTexturesEnabledInPreview:
+      editor.state.compressedTexturesEnabledInPreview,
 	};
 
 	if (!editor.props.editedScenePath) {
@@ -82,10 +87,14 @@ async function _saveProject(editor: Editor): Promise<void> {
 
 	if (!editor.props.editedScenePath) {
 		try {
-			const base64 = await getBase64SceneScreenshot(editor.layout.preview.scene);
+			const base64 = await getBase64SceneScreenshot(
+				editor.layout.preview.scene
+			);
 
 			const projects = tryGetProjectsFromLocalStorage();
-			const project = projects.find((project) => project.absolutePath === editor.state.projectPath);
+			const project = projects.find(
+				(project) => project.absolutePath === editor.state.projectPath
+			);
 			if (project) {
 				project.preview = base64;
 				project.updatedAt = new Date();
