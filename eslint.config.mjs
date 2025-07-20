@@ -4,14 +4,8 @@ import typeScriptPlugin from "@typescript-eslint/eslint-plugin";
 
 export default defineConfig([
     {
-        files: [
-            "**/src/**/*.{ts,tsx}",
-        ],
-        ignores: [
-            "./editor/src/ui/shadcn/**/*.{ts,tsx}",
-            "./template/src/scripts.ts",
-            "./website/src/scripts.ts",
-        ],
+        files: ["**/src/**/*.{ts,tsx}"],
+        ignores: ["./editor/src/ui/shadcn/**/*.{ts,tsx}", "./template/src/scripts.ts", "./website/src/scripts.ts"],
         languageOptions: {
             ecmaVersion: "latest",
             parser: typeScriptParser,
@@ -21,15 +15,12 @@ export default defineConfig([
         },
         rules: {
             // Recommended
-            "semi": ["error", "always"],
-            "indent": ["error", "tab", {
-                "SwitchCase": 1,
-            }],
+            semi: ["error", "always"],
             "eol-last": ["error", "always"],
             "no-useless-constructor": "error",
             "no-debugger": "error",
-            "eqeqeq": ["error", "always"],
-            "curly": ["error", "all"],
+            eqeqeq: ["error", "always"],
+            curly: ["error", "all"],
             "no-constant-binary-expression": "warn",
             "max-params": ["warn", 6],
             "no-sparse-arrays": "error",
@@ -73,38 +64,42 @@ export default defineConfig([
             "no-unsafe-negation": "error",
             "no-unsafe-optional-chaining": "error",
             "no-unused-private-class-members": "error",
-            "no-use-before-define": ["error", {
-                functions: false,
-                classes: false,
-                variables: true,
-                allowNamedExports: false
-            }],
+            "no-use-before-define": [
+                "error",
+                {
+                    functions: false,
+                    classes: false,
+                    variables: true,
+                    allowNamedExports: false,
+                },
+            ],
             "no-useless-backreference": "error",
             "use-isnan": "error",
             "valid-typeof": "error",
 
-            "@typescript-eslint/naming-convention": ["error",
+            "@typescript-eslint/naming-convention": [
+                "error",
                 {
-                    "selector": "enumMember",
-                    "format": ["PascalCase"],
+                    selector: "enumMember",
+                    format: ["PascalCase"],
                 },
                 {
-                    "selector": "function",
-                    "format": ["camelCase", "PascalCase"],
-                    "leadingUnderscore": "allow"
+                    selector: "function",
+                    format: ["camelCase", "PascalCase"],
+                    leadingUnderscore: "allow",
                 },
                 {
-                    "selector": "interface",
-                    "format": ["PascalCase"],
-                    "prefix": ["I"],
-                    "leadingUnderscore": "allow",
+                    selector: "interface",
+                    format: ["PascalCase"],
+                    prefix: ["I"],
+                    leadingUnderscore: "allow",
                 },
                 {
-                    "selector": "memberLike",
-                    "modifiers": ["private"],
-                    "format": ["camelCase"],
-                    "leadingUnderscore": "require"
-                }
+                    selector: "memberLike",
+                    modifiers: ["private"],
+                    format: ["camelCase"],
+                    leadingUnderscore: "require",
+                },
             ],
 
             // Suggestions
@@ -134,7 +129,7 @@ export default defineConfig([
             "no-useless-rename": "error",
             "no-var": "error",
             "no-useless-return": "error",
-            "yoda": ["error", "never"],
+            yoda: ["error", "never"],
         },
-    }
+    },
 ]);

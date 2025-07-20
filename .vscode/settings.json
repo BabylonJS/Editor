@@ -3,7 +3,7 @@
     "files.exclude": {
         "node_modules/": false,
         "build": true,
-        "declaration": true,
+        "declaration": true
     },
     "files.associations": {
         "*.fx": "glsl"
@@ -13,11 +13,26 @@
     "editor.insertSpaces": true,
     "editor.detectIndentation": true,
     "editor.codeActionsOnSave": {
-        "source.fixAll.eslint": "always",
+        "source.fixAll.eslint": "always"
     },
     "files.insertFinalNewline": true,
     "javascript.format.semicolons": "insert",
     "typescript.format.semicolons": "insert",
     "typescript.preferences.quoteStyle": "double",
     "javascript.preferences.quoteStyle": "double",
+    "[javascript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[typescript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[typescriptreact]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[json]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[jsonc]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    }
 }
