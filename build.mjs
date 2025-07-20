@@ -44,6 +44,10 @@ function build({ x64, arm64 } = options) {
                 target: "AppImage"
             },
             asar: true,
+            asarUnpack: [
+                "**/node_modules/sharp/**/*",
+                "**/node_modules/@img/**/*"
+            ],
             compression: "normal",
             extraFiles: [
                 "bin/**",
