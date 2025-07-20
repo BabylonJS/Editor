@@ -2,7 +2,7 @@
     "plugins": [],
     "version": "5.0.0",
     "packageManager": "yarn",
-    "template": "vanillajs",
+    "projectTemplate": "vanillajs",
     "lastOpenedScene": "/assets/example.scene",
     "compressedTexturesEnabled": false,
     "compressedTexturesEnabledInPreview": false
