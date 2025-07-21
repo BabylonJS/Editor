@@ -1,0 +1,8 @@
+{
+    "name": "babylonjs-editor-template",
+    "version": "0.1.0",
+    "private": true,
+    "scripts": {
+        "build": "yarn workspace babylonjs-editor-nextjs-template build && yarn workspace babylonjs-editor-solidjs-template build && yarn workspace babylonjs-editor-vanillajs-template build"
+    }
+}
