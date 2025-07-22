@@ -119,11 +119,11 @@ export function registerScriptInstance(object: any, scriptInstance: IScript, key
  * 	}
  * }
  */
-export function getAllScriptsByClassForObject<T>(object: any, classType: T) {
+export function getAllScriptsByClassForObject<T extends new (...args: any) => any>(object: any, classType: T) {
 	const data = scriptsDictionary.get(object);
 	const result = data?.filter((s) => s.instance.constructor === classType);
 
-	return result?.map((r) => r.instance) as T[] ?? null;
+	return result?.map((r) => r.instance) as InstanceType<T>[] ?? null;
 }
 
 /**
@@ -146,7 +146,7 @@ export function getAllScriptsByClassForObject<T>(object: any, classType: T) {
  * 	}
  * }
  */
-export function getScriptByClassForObject<T>(object: any, classType: T) {
+export function getScriptByClassForObject<T extends new (...args: any) => any>(object: any, classType: T) {
 	const result = getAllScriptsByClassForObject<T>(object, classType);
-	return result?.[0] as T ?? null;
+	return result?.[0] as InstanceType<T> ?? null;
 }
