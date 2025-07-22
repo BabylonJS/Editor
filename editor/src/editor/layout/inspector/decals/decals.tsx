@@ -24,14 +24,14 @@ import { EditorInspectorSectionField } from "../fields/section";
 import { decalsConfiguration } from "./configuration";
 
 export interface IEditorDecalsInspectorProps {
-    editor: Editor;
+	editor: Editor;
 }
 
 export interface IEditorDecalsInspectorState {
-    assetDragOver: boolean;
-    material: Material | null;
+	assetDragOver: boolean;
+	material: Material | null;
 
-    ctrlOrMetaKeyDown: boolean;
+	ctrlOrMetaKeyDown: boolean;
 }
 
 export class EditorDecalsInspector extends Component<IEditorDecalsInspectorProps, IEditorDecalsInspectorState> {
@@ -61,25 +61,17 @@ export class EditorDecalsInspector extends Component<IEditorDecalsInspectorProps
 	}
 
 	public render(): ReactNode {
-		if (!this.props.editor.state.enableExperimentalFeatures) {
-			return (
-				<div className="text-xl font-semibold text-center w-full">
-                    Coming soon...
-				</div>
-			);
-		}
-
 		return (
 			<div className="flex flex-col gap-2 w-full h-full">
 				{this._getMaterialDragAndDropComponent()}
 
 				{this.state.material &&
-                    <EditorInspectorSectionField title="Options">
-                    	<EditorInspectorNumberField object={decalsConfiguration.size} property="x" step={1} label="Width" noUndoRedo onChange={() => this._handleUpdateCurrentDecalMesh()} />
-                    	<EditorInspectorNumberField object={decalsConfiguration.size} property="y" step={1} label="Height" noUndoRedo onChange={() => this._handleUpdateCurrentDecalMesh()} />
+					<EditorInspectorSectionField title="Options">
+						<EditorInspectorNumberField object={decalsConfiguration.size} property="x" step={1} label="Width" noUndoRedo onChange={() => this._handleUpdateCurrentDecalMesh()} />
+						<EditorInspectorNumberField object={decalsConfiguration.size} property="y" step={1} label="Height" noUndoRedo onChange={() => this._handleUpdateCurrentDecalMesh()} />
 
-                    	<EditorInspectorNumberField object={decalsConfiguration} property="angle" asDegrees step={0.1} label="Angle" noUndoRedo onChange={() => this._handleUpdateCurrentDecalMesh()} />
-                    </EditorInspectorSectionField>
+						<EditorInspectorNumberField object={decalsConfiguration} property="angle" asDegrees step={0.1} label="Angle" noUndoRedo onChange={() => this._handleUpdateCurrentDecalMesh()} />
+					</EditorInspectorSectionField>
 				}
 			</div>
 		);
@@ -167,11 +159,11 @@ export class EditorDecalsInspector extends Component<IEditorDecalsInspectorProps
                     `}
 				>
 					{!decalsConfiguration.materialPath &&
-                        <MdOutlineQuestionMark className="w-8 h-8" />
+						<MdOutlineQuestionMark className="w-8 h-8" />
 					}
 
 					{decalsConfiguration.materialPath &&
-                        <GiMaterialsScience className="w-8 h-8" />
+						<GiMaterialsScience className="w-8 h-8" />
 					}
 				</div>
 
@@ -256,8 +248,8 @@ export class EditorDecalsInspector extends Component<IEditorDecalsInspectorProps
 	private _handleUpdateCurrentDecalMesh(): void {
 		if (
 			!EditorDecalsInspector._lastPickedMesh ||
-            !EditorDecalsInspector._lastPickPosition ||
-            !this.state.material
+			!EditorDecalsInspector._lastPickPosition ||
+			!this.state.material
 		) {
 			return;
 		}
