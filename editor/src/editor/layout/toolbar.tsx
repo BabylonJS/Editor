@@ -14,6 +14,7 @@ import { showConfirm } from "../../ui/dialog";
 import { ToolbarComponent } from "../../ui/toolbar";
 
 import { saveProject } from "../../project/save/save";
+import { startProjectDevProcess } from "../../project/run";
 import { exportProject } from "../../project/export/export";
 
 import { Editor } from "../main";
@@ -96,6 +97,12 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 
 							<MenubarItem disabled={!visualStudioCodeAvailable} onClick={() => this._handleOpenVisualStudioCode()}>
 								Open in Visual Studio Code
+							</MenubarItem>
+
+							<MenubarSeparator />
+
+							<MenubarItem onClick={() => startProjectDevProcess(this.props.editor)}>
+								Run Project...
 							</MenubarItem>
 						</MenubarContent>
 					</MenubarMenu>

@@ -1,6 +1,7 @@
 import { glob } from "glob";
 import { join } from "path/posix";
-import { FSWatcher, mkdir, pathExists, watch } from "fs-extra";
+import { watch, FSWatcher } from "chokidar";
+import { mkdir, pathExists } from "fs-extra";
 
 /**
  * Creates a directory if it doesn't exist.
@@ -33,20 +34,11 @@ export async function normalizedGlob(...args: Parameters<typeof glob>): ReturnTy
  */
 export function watchFile(absolutePath: string, onChange: () => void): FSWatcher {
 	const watcher = watch(absolutePath, {
-		persistent: true,
+		persistent: false,
 	});
 
-	let timeoutId: number | null = null;
-
 	watcher.on("change", () => {
-		if (timeoutId) {
-			window.clearTimeout(timeoutId);
-		}
-
-		timeoutId = window.setTimeout(() => {
-			timeoutId = null;
-			onChange();
-		}, 1000);
+		onChange();
 	});
 
 	return watcher;

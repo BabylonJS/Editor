@@ -8,6 +8,13 @@ export function setupDashboardMenu(): void {
 			label: "Babylon.js Editor",
 			submenu: [
 				{
+					label: "About Babylon.js Editor",
+					role: "about",
+				},
+				{
+					type: "separator",
+				},
+				{
 					click: () => ipcMain.emit("app:quit"),
 					label: "Exit Babylon.js Editor",
 					accelerator: "CommandOrControl+Q",

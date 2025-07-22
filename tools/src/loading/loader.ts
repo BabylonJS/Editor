@@ -1,5 +1,6 @@
 import { Scene } from "@babylonjs/core/scene";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { Constants } from "@babylonjs/core/Engines/constants";
 import { AppendSceneAsync } from "@babylonjs/core/Loading/sceneLoader";
 import { SceneLoaderFlags } from "@babylonjs/core/Loading/sceneLoaderFlags";
 
@@ -82,10 +83,18 @@ export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scen
 	const waitingItemsCount = scene.getWaitingItemsCount();
 
 	// Wait until scene is ready.
-	while (!scene.isReady() || scene.getWaitingItemsCount() > 0) {
+	while (!scene.isDisposed && (!scene.isReady() || scene.getWaitingItemsCount() > 0)) {
 		await new Promise<void>((resolve) => setTimeout(resolve, 150));
 
 		const loadedItemsCount = waitingItemsCount - scene.getWaitingItemsCount();
+
+		if (loadedItemsCount === waitingItemsCount) {
+			scene.textures.forEach((texture) => {
+				if (texture.delayLoadState === Constants.DELAYLOADSTATE_NONE) {
+					texture.delayLoadState = Constants.DELAYLOADSTATE_LOADED;
+				}
+			});
+		}
 
 		options?.onProgress?.(
 			0.5 + (loadedItemsCount / waitingItemsCount) * 0.5,

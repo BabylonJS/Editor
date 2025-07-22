@@ -81,3 +81,15 @@ export function sortAlphabetically(array: any[], property?: string): any[] {
 
 	return array;
 }
+
+/**
+ * Returns the current call stack as a string.
+ * This is mainly used to check if the current call is from outside of the editor.
+ * @example
+ * if (getCurrentCallStack().includes(projectDir)) {
+ * 	// We know that it comes from the project directory and not from the editor.
+ * }
+ */
+export function getCurrentCallStack(): string {
+	return new Error().stack ?? "";
+}
