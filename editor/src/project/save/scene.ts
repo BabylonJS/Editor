@@ -24,8 +24,8 @@ import { defaultPipelineCameraConfigurations } from "../../editor/rendering/defa
 import { motionBlurPostProcessCameraConfigurations } from "../../editor/rendering/motion-blur";
 import { iblShadowsRenderingPipelineCameraConfigurations } from "../../editor/rendering/ibl-shadows";
 
-import { writeBinaryGeometry } from "../geometry";
-import { writeBinaryMorphTarget } from "../morph-target";
+import { writeBinaryGeometry } from "../tools/geometry";
+import { writeBinaryMorphTarget } from "../tools/morph-target";
 
 export async function saveScene(editor: Editor, projectPath: string, scenePath: string): Promise<void> {
 	const fStat = await stat(scenePath);

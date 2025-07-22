@@ -3959,7 +3959,10 @@ babylonjs-editor-tools@latest:
     babylonjs-loaders "8.15.1"
     babylonjs-materials "8.15.1"
     babylonjs-node-editor "8.15.1"
+    babylonjs-post-process "8.15.1"
+    babylonjs-procedural-textures "8.15.1"
     cannon "0.6.2"
+    chokidar "^4.0.3"
     class-variance-authority "^0.7.0"
     clsx "^2.1.0"
     cmdk "^1.0.0"
@@ -4031,6 +4034,20 @@ babylonjs-node-editor@8.15.1:
   version "8.15.1"
   resolved "https://registry.yarnpkg.com/babylonjs-node-editor/-/babylonjs-node-editor-8.15.1.tgz#c2324f08309c74714320e9cbfa5df9f254d3f661"
   integrity sha512-bL3pY7nk4L5HteWQdnp0Opnl6tlsOi5/JPLgELz2VqrzDoSXAhpIbRWcRLs5MjTpEUCfY0A+GqjMS8GtLLufXQ==
+  dependencies:
+    babylonjs "^8.15.1"
+
+babylonjs-post-process@8.15.1:
+  version "8.15.1"
+  resolved "https://registry.yarnpkg.com/babylonjs-post-process/-/babylonjs-post-process-8.15.1.tgz#3011d5b7d823b6d6ead2ecaec5767510801575f7"
+  integrity sha512-4sA5RIA9etYmsqhA20bOvULs4e+LpHSJ+RjNEhuegkoYstg9yqhUtgSyr8MG8lQAJcrPru0N7Q1doYXE+Qs95g==
+  dependencies:
+    babylonjs "^8.15.1"
+
+babylonjs-procedural-textures@8.15.1:
+  version "8.15.1"
+  resolved "https://registry.yarnpkg.com/babylonjs-procedural-textures/-/babylonjs-procedural-textures-8.15.1.tgz#a23e77e62dbaa03df9a5d5a62300699cd0c07f44"
+  integrity sha512-sp2wxF4L70mxFEECkXxCl96STKRtO/sw0vIODWj5LP+rBufAQ9cmltMlLEVJTnPewWcidgV71TmWr8fEjCBFoQ==
   dependencies:
     babylonjs "^8.15.1"
 
@@ -4407,6 +4424,13 @@ chokidar@^3.5.0, chokidar@^3.5.3:
     readdirp "~3.6.0"
   optionalDependencies:
     fsevents "~2.3.2"
+
+chokidar@^4.0.3:
+  version "4.0.3"
+  resolved "https://registry.yarnpkg.com/chokidar/-/chokidar-4.0.3.tgz#7be37a4c03c9aee1ecfe862a4a23b2c70c205d30"
+  integrity sha512-Qgzu8kfBvo+cA4962jnP1KkS6Dop5NS6g7R5LFYJr4b8Ub94PPQXUksCw9PvXoeXPRRddRNC5C1JQUR2SMGtnA==
+  dependencies:
+    readdirp "^4.0.1"
 
 chownr@^2.0.0:
   version "2.0.0"
@@ -8727,6 +8751,11 @@ readable-stream@^3.4.0:
     inherits "^2.0.3"
     string_decoder "^1.1.1"
     util-deprecate "^1.0.1"
+
+readdirp@^4.0.1:
+  version "4.1.2"
+  resolved "https://registry.yarnpkg.com/readdirp/-/readdirp-4.1.2.tgz#eb85801435fbf2a7ee58f19e0921b068fc69948d"
+  integrity sha512-GDhwkLfywWL2s6vEjyhri+eXmfH6j1L7JE27WhqLeYzoh/A3DBaYGEj2H/HFZCn/kMfim73FXxEJTw06WtxQwg==
 
 readdirp@~3.6.0:
   version "3.6.0"

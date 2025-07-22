@@ -12,11 +12,12 @@ import { IoIosOptions, IoIosStats } from "react-icons/io";
 
 import {
 	AbstractEngine, AbstractMesh, Animation, Camera, Color3, CubicEase, EasingFunction, Engine, GizmoCoordinatesMode,
-	ISceneLoaderAsyncResult, Node, Scene, Vector2, Vector3, Viewport, WebGPUEngine, HavokPlugin, PickingInfo,
+	ISceneLoaderAsyncResult, Node, Scene, Vector2, Vector3, Viewport, WebGPUEngine, HavokPlugin, PickingInfo, SceneLoaderFlags,
 } from "babylonjs";
 
 import { Toggle } from "../../ui/shadcn/ui/toggle";
 import { Button } from "../../ui/shadcn/ui/button";
+import { Progress } from "../../ui/shadcn/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/shadcn/ui/select";
 
 import { Editor } from "../main";
@@ -78,9 +79,18 @@ export interface IEditorPreviewState {
 	 */
 	informationMessage: ReactNode;
 
+	/**
+	 * Defines wether or not picking is enabled in the preview.
+	 */
 	pickingEnabled: boolean;
+	/**
+	 * Defines the type of gizmo that is currently active.
+	 * If "none", no gizmo is active.
+	 */
 	activeGizmo: "position" | "rotation" | "scaling" | "none";
-
+	/**
+	 * Defines wether or not the preview is focused in the editor.
+	 */
 	isFocused: boolean;
 
 	/**
@@ -96,6 +106,8 @@ export interface IEditorPreviewState {
 
 	showStatsValues: boolean;
 	statsValues?: StatsValuesType;
+
+	playSceneLoadingProgress: number;
 }
 
 export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreviewState> {
@@ -137,22 +149,19 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
 	private _meshUnderPointer: AbstractMesh | null;
 
-	private _playIframeRef: HTMLIFrameElement | null = null;
-	private _playMessageListener: ((event: MessageEvent) => void) | null = null;
-
 	public constructor(props: IEditorPreviewProps) {
 		super(props);
 
 		this.state = {
 			activeGizmo: "none",
 			pickingEnabled: true,
-
 			isFocused: false,
 			informationMessage: "",
-
 			fixedDimensions: "fit",
 
 			showStatsValues: false,
+
+			playSceneLoadingProgress: 0,
 		};
 
 		ipcRenderer.on("gizmo:position", () => this.setActiveGizmo("position"));
@@ -180,7 +189,6 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 						onOpenChange={(o) => !o && this._resetPointerContextInfo()}
 					>
 						<canvas
-							hidden={this.play?.state.playing}
 							ref={(r) => this._onGotCanvasRef(r!)}
 							onDrop={(ev) => this._handleDrop(ev)}
 							onDragOver={(ev) => {
@@ -200,22 +208,16 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
                             `}
 						/>
 
-						{this.play?.state.playing &&
-							<>
-								{this.play.state.playingAddress &&
-									<iframe
-										ref={(r) => this._onGotIframeRef(r)}
-										src={`${this.play.state.playingAddress}/editor_debug${this.play.getSearchParams()}`}
-										className="w-full h-full select-none outline-none bg-black"
-									/>
-								}
+						{(this.play?.state.preparingPlay || this.play?.state.loading) &&
+							<div className="absolute top-0 left-0 w-full h-full bg-black">
+								<div className="flex flex-col justify-center items-center gap-10 w-full h-full bg-black">
+									<Grid width={24} height={24} color="gray" />
 
-								{!this.play.state.playingAddress &&
-									<div className="flex justify-center items-center w-full h-full bg-black">
-										<Grid width={24} height={24} color="gray" />
-									</div>
-								}
-							</>
+									{this.play?.state.loading &&
+										<Progress className="w-1/2" value={this.state.playSceneLoadingProgress * 100} />
+									}
+								</div>
+							</div>
 						}
 					</EditorGraphContextMenu>
 				</div>
@@ -375,6 +377,8 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		await waitUntil(() => this.props.editor.path);
 		await initializeHavok(this.props.editor.path!);
 
+		SceneLoaderFlags.ShowLoadingScreen = false;
+
 		Animation.AllowMatricesInterpolation = true;
 		Animation.AllowMatrixDecomposeForInterpolation = true;
 
@@ -415,7 +419,19 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
 		this.engine.runRenderLoop(() => {
 			if (this._renderScene && !this.play.state.playing) {
-				this.scene.render();
+				return this.scene.render();
+			}
+
+			if (this.play.canPlayScene) {
+				try {
+					return this.play.scene?.render();
+				} catch (e) {
+					if (e instanceof Error) {
+						this.props.editor.layout.console.error(`Error while playing the scene:\n${e.message}`);
+					}
+					console.error(e);
+					this.play.stop();
+				}
 			}
 		});
 
@@ -646,32 +662,19 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		return (
 			<div className="absolute top-0 left-0 w-full h-12 z-10">
 				<div className="flex justify-between items-center gap-4 h-full bg-background/95 w-full px-2 py-1">
-					{this.play?.state.playing
-						? this._getPlayToolbar()
-						: this._getEditToolbar()
+					{this.play?.state.playing &&
+						<div /> // For justify between
 					}
+
+					{!this.play?.state.playing && this._getEditToolbar()}
 
 					<div className="flex gap-2 items-center h-10">
 						<EditorPreviewPlayComponent
 							editor={this.props.editor}
 							ref={(r) => this.play = r!}
-							onRestart={() => {
-								if (this._playIframeRef) {
-									this._playIframeRef.src = this._playIframeRef.src;
-								}
-							}}
+							onRestart={() => this.play.restart()}
 						/>
 					</div>
-				</div>
-			</div>
-		);
-	}
-
-	private _getPlayToolbar(): ReactNode {
-		return (
-			<div className="flex gap-2 items-center h-10 flex-1">
-				<div className="w-full font-semibold">
-					{this.play?.state.playingAddress}
 				</div>
 			</div>
 		);
@@ -1083,40 +1086,6 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 						});
 					}
 					break;
-			}
-		});
-	}
-
-	private _onGotIframeRef(ref: HTMLIFrameElement | null): void {
-		this._playIframeRef = ref;
-
-		if (!ref || this._playMessageListener) {
-			return;
-		}
-
-		window.addEventListener("message", this._playMessageListener = (event) => {
-			if (event.data.id === "console") {
-				const node = (
-					<div>
-						<b className="font-bold text-[#2d72d2]">[DEBUG] </b>
-						{event.data.args.join("\n")}
-					</div>
-				);
-
-				switch (event.data.method) {
-					case "log":
-						this.props.editor.layout.console.log(node);
-						break;
-					case "warn":
-						this.props.editor.layout.console.warn(node);
-						break;
-					case "error":
-						this.props.editor.layout.console.error(node);
-						break;
-					case "info":
-						this.props.editor.layout.console.log(node);
-						break;
-				}
 			}
 		});
 	}

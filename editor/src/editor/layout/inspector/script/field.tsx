@@ -1,6 +1,7 @@
 import { clipboard } from "electron";
+import { FSWatcher } from "chokidar";
 import { join, dirname } from "path/posix";
-import { pathExists, stat, FSWatcher } from "fs-extra";
+import { pathExists, stat } from "fs-extra";
 
 import { useEffect, useState } from "react";
 
