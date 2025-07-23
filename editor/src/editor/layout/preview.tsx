@@ -1047,6 +1047,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 				case ".env":
 				case ".jpg":
 				case ".png":
+				case ".webp":
 				case ".bmp":
 				case ".jpeg":
 					applyTextureAssetToObject(this.props.editor, mesh ?? this.scene, absolutePath);

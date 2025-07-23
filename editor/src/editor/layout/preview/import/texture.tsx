@@ -44,6 +44,7 @@ export function applyTextureAssetToObject(editor: Editor, object: any, absoluteP
 
 		case ".jpg":
 		case ".png":
+		case ".webp":
 		case ".bmp":
 		case ".jpeg":
 			const newTexture = configureImportedTexture(new Texture(

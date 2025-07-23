@@ -9,7 +9,7 @@ import { compressFileToKtx } from "./ktx";
 import { processExportedTexture } from "./texture";
 
 const supportedImagesExtensions: string[] = [
-	".jpg", ".jpeg",
+	".jpg", ".jpeg", ".webp",
 	".png",
 	".bmp",
 ];
