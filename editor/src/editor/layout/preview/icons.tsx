@@ -54,9 +54,9 @@ export class EditorPreviewIcons extends Component<IEditorPreviewIconsProps, IEdi
 							}
 						}}
 						onClick={() => {
-							// if (isCamera(button.node)) {
-							//     this.props.editor.layout.preview.setCameraPreviewActive(button.node);
-							// }
+							if (isCamera(button.node)) {
+							    this.props.editor.layout.preview.setCameraPreviewActive(button.node);
+							}
 
 							this.props.editor.layout.graph.setSelectedNode(button.node);
 							this.props.editor.layout.inspector.setEditedObject(button.node);

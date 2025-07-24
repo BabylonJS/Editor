@@ -422,6 +422,9 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 				this.props.editor.layout.animations.setEditedObject(firstNode);
 				this.props.editor.layout.preview.gizmo.setAttachedNode(firstNode);
 			}
+			if(isCamera(firstNode)) {
+				this.props.editor.layout.preview.setCameraPreviewActive(firstNode);
+			}
 		});
 	}
 
@@ -437,6 +440,10 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 
 		if (isNode(node.nodeData)) {
 			this.props.editor.layout.preview.gizmo.setAttachedNode(node.nodeData);
+		}
+
+		if(isCamera(node.nodeData)) {
+			this.props.editor.layout.preview.setCameraPreviewActive(node.nodeData);
 		}
 
 		if (ev.ctrlKey || ev.metaKey) {
