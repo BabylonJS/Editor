@@ -469,6 +469,7 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 
 		switch (extension) {
 			case ".png":
+			case ".webp":
 			case ".jpg":
 			case ".jpeg":
 			case ".bmp":

@@ -209,6 +209,7 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
 				case ".env":
 				case ".jpg":
 				case ".png":
+				case ".webp":
 				case ".bmp":
 				case ".jpeg":
 					applyTextureAssetToObject(props.editor, props.object, absolutePath);
