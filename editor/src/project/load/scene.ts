@@ -37,6 +37,7 @@ import { parsePhysicsAggregate } from "../../tools/physics/serialization/aggrega
 import { isAbstractMesh, isCollisionMesh, isEditorCamera, isMesh } from "../../tools/guards/nodes";
 import { updateAllLights, updatePointLightShadowMapRenderListPredicate } from "../../tools/light/shadows";
 
+import { compileSavedEffects } from "./effects";
 import { showLoadSceneProgressDialog } from "./progress";
 
 import "./texture";
@@ -781,6 +782,15 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 		});
 	}
 
+	if (!options?.asLink) {
+		progress.setName("Compiling materials...");
+		await forceCompileAllSceneMaterials(scene);
+
+		progress.setName("Compiling effects...");
+
+		await compileSavedEffects(editor, scenePath);
+	}
+
 	setTimeout(() => {
 		updateAllLights(scene);
 		updateIblShadowsRenderPipeline(scene, true);
@@ -790,11 +800,6 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 			editor.layout.preview.setRenderScene(true);
 		}
 	}, 150);
-
-	if (!options?.asLink) {
-		progress.setName("Compiling materials...");
-		await forceCompileAllSceneMaterials(scene);
-	}
 
 	progress.dispose();
 

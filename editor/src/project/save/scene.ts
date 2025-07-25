@@ -27,6 +27,8 @@ import { iblShadowsRenderingPipelineCameraConfigurations } from "../../editor/re
 import { writeBinaryGeometry } from "../tools/geometry";
 import { writeBinaryMorphTarget } from "../tools/morph-target";
 
+import { saveCompiledEffects } from "./effects";
+
 export async function saveScene(editor: Editor, projectPath: string, scenePath: string): Promise<void> {
 	const fStat = await stat(scenePath);
 	if (!fStat.isDirectory()) {
@@ -183,7 +185,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 
 			try {
 				await writeJSON(meshPath, result, {
-					spaces: 4,
+					spaces: "\t",
 				});
 			} catch (e) {
 				editor.layout.console.error(`Failed to write mesh ${mesh.name}`);
@@ -204,7 +206,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 
 		try {
 			await writeJSON(skeletonPath, skeleton.serialize(), {
-				spaces: 4,
+				spaces: "\t",
 			});
 		} catch (e) {
 			editor.layout.console.error(`Failed to write skeleton ${skeleton.name}`);
@@ -247,7 +249,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 			}));
 
 			await writeJSON(morphTargetManagerPath, data, {
-				spaces: 4,
+				spaces: "\t",
 			});
 		} catch (e) {
 			editor.layout.console.error(`Failed to write morph target manager for mesh ${mesh.name}`);
@@ -273,7 +275,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 			delete data.parentId;
 
 			await writeJSON(transformNodePath, data, {
-				spaces: 4,
+				spaces: "\t",
 			});
 		} catch (e) {
 			editor.layout.console.error(`Failed to write transform node ${transformNode.name}`);
@@ -299,7 +301,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 			delete data.parentId;
 
 			await writeJSON(lightPath, data, {
-				spaces: 4,
+				spaces: "\t",
 			});
 		} catch (e) {
 			editor.layout.console.error(`Failed to write light ${light.name}`);
@@ -316,7 +318,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 				shadowGeneratorData.refreshRate = shadowGenerator.getShadowMap()?.refreshRate ?? RenderTargetTexture.REFRESHRATE_RENDER_ONEVERYFRAME;
 
 				await writeJSON(shadowGeneratorPath, shadowGeneratorData, {
-					spaces: 4,
+					spaces: "\t",
 				});
 			} catch (e) {
 				editor.layout.console.error(`Failed to write shadow generator for light ${light.name}`);
@@ -343,7 +345,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 			delete data.parentId;
 
 			await writeJSON(cameraPath, data, {
-				spaces: 4,
+				spaces: "\t",
 			});
 		} catch (e) {
 			editor.layout.console.error(`Failed to write camera ${camera.name}`);
@@ -362,7 +364,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 
 		try {
 			await writeJSON(sceneLinkPath, transformNode.serialize(), {
-				spaces: 4,
+				spaces: "\t",
 			});
 		} catch (e) {
 			editor.layout.console.error(`Failed to write scene link node ${transformNode.name}`);
@@ -401,7 +403,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 						relativePath,
 						name: guiTexture.name,
 					}, {
-						spaces: 4,
+						spaces: "\t",
 					});
 				} catch (e) {
 					editor.layout.console.error(`Failed to write gui node ${guiTexture.name}`);
@@ -425,7 +427,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 					id: sound.id,
 					uniqueId: sound.uniqueId,
 				}, {
-					spaces: 4,
+					spaces: "\t",
 				});
 			} catch (e) {
 				editor.layout.console.error(`Failed to write scene link node ${sound.name}`);
@@ -449,7 +451,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 			data.className = particleSystem.getClassName();
 
 			await writeJSON(particleSystemPath, data, {
-				spaces: 4,
+				spaces: "\t",
 			});
 		} catch (e) {
 			editor.layout.console.error(`Failed to write particle system ${particleSystem.name}`);
@@ -516,7 +518,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 			editorCamera: editor.layout.preview.camera.serialize(),
 			animations: scene.animations.map((animation) => animation.serialize()),
 		}, {
-			spaces: 4,
+			spaces: "\t",
 		});
 	} catch (e) {
 		editor.layout.console.error(`Failed to write configuration.`);
@@ -566,4 +568,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 	if (screenshotBuffer) {
 		await writeFile(join(scenePath, "preview.png"), screenshotBuffer);
 	}
+
+	// Save effects
+	await saveCompiledEffects(editor, scenePath);
 }

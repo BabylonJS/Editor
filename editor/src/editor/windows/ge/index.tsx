@@ -17,7 +17,7 @@ import { waitNextAnimationFrame } from "../../../tools/tools";
 const { GUIEditor } = require("babylonjs-gui-editor");
 
 export interface INodeMaterialEditorWindowProps {
-    filePath: string;
+	filePath: string;
 }
 
 export default class NodeMaterialEditorWindow extends Component<INodeMaterialEditorWindowProps> {
@@ -36,9 +36,9 @@ export default class NodeMaterialEditorWindow extends Component<INodeMaterialEdi
 					<ToolbarComponent>
 						<div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
 							<div className="flex items-center gap-1 font-semibold text-lg select-none">
-                                GUI Editor
+								GUI Editor
 								<div className="text-sm font-thin">
-                                    (...{this.props.filePath.substring(this.props.filePath.length - 30)})
+									(...{this.props.filePath.substring(this.props.filePath.length - 30)})
 								</div>
 							</div>
 						</div>
@@ -121,7 +121,9 @@ export default class NodeMaterialEditorWindow extends Component<INodeMaterialEdi
 		data.content = this._gui.serializeContent();
 		data.base64String = globalState.guiTexture.getContext().canvas.toDataURL("image/png");
 
-		await writeJSON(this.props.filePath, data, { spaces: 4 });
+		await writeJSON(this.props.filePath, data, {
+			spaces: "\t",
+		});
 
 		toast.success("GUI saved");
 

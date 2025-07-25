@@ -1,5 +1,5 @@
 import { join, basename, dirname } from "path/posix";
-import { readJSON, writeJson, readdir, pathExists, remove } from "fs-extra";
+import { readJSON, writeJSON, readdir, pathExists, remove } from "fs-extra";
 
 import { projectConfiguration } from "../../project/configuration";
 
@@ -27,8 +27,8 @@ export async function renameScene(oldAbsolutePath: string, newAbsolutePath: stri
 					mesh.delayLoadingFile = mesh.delayLoadingFile.replace(`assets/${name}.scene/`, `assets/${newName}/`);
 				});
 
-				await writeJson(join(newAbsolutePath, "meshes", file), data, {
-					spaces: 4
+				await writeJSON(join(newAbsolutePath, "meshes", file), data, {
+					spaces: "\t",
 				});
 			} catch (e) {
 				// Catch silently.
@@ -42,8 +42,8 @@ export async function renameScene(oldAbsolutePath: string, newAbsolutePath: stri
 					mesh.delayLoadingFile = mesh.delayLoadingFile.replace(`assets/${name}.scene/`, `assets/${newName}/`);
 				});
 
-				await writeJson(join(newAbsolutePath, "lods", file), data, {
-					spaces: 4
+				await writeJSON(join(newAbsolutePath, "lods", file), data, {
+					spaces: "\t",
 				});
 			} catch (e) {
 				// Catch silently.

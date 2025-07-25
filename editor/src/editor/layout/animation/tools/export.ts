@@ -30,7 +30,7 @@ export async function exportAnimationsAs(animatable: IAnimatable | null) {
 	}
 
 	await writeJSON(destination, data, {
-		spaces: 4,
+		spaces: "\t",
 		encoding: "utf8",
 	});
 

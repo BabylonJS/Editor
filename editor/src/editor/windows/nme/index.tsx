@@ -15,7 +15,7 @@ import { Toaster } from "../../../ui/shadcn/ui/sonner";
 import "babylonjs-loaders";
 
 export interface INodeMaterialEditorWindowProps {
-    filePath: string;
+	filePath: string;
 }
 
 export default class NodeMaterialEditorWindow extends Component<INodeMaterialEditorWindowProps> {
@@ -34,9 +34,9 @@ export default class NodeMaterialEditorWindow extends Component<INodeMaterialEdi
 					<ToolbarComponent>
 						<div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
 							<div className="flex items-center gap-1 font-semibold text-lg select-none">
-                                Node Material Editor
+								Node Material Editor
 								<div className="text-sm font-thin">
-                                    (...{this.props.filePath.substring(this.props.filePath.length - 30)})
+									(...{this.props.filePath.substring(this.props.filePath.length - 30)})
 								</div>
 							</div>
 						</div>
@@ -96,7 +96,9 @@ export default class NodeMaterialEditorWindow extends Component<INodeMaterialEdi
 		NodeEditor["_CurrentState"].stateManager.onRebuildRequiredObservable.notifyObservers();
 
 		const data = this._nodeMaterial.serialize();
-		await writeJSON(this.props.filePath, data, { spaces: 4 });
+		await writeJSON(this.props.filePath, data, {
+			spaces: "\t"
+		});
 
 		toast.success("Material saved");
 

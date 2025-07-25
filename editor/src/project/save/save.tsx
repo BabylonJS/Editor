@@ -67,7 +67,7 @@ async function _saveProject(editor: Editor): Promise<void> {
 
 	if (!editor.props.editedScenePath) {
 		await writeJSON(editor.state.projectPath, project, {
-			spaces: 4,
+			spaces: "\t",
 		});
 	}
 

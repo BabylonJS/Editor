@@ -70,7 +70,9 @@ export class EditorMaterialInspectorUtilsComponent extends Component<IEditorMate
 			return;
 		}
 
-		await writeJSON(destination, data, { spaces: 4 });
+		await writeJSON(destination, data, {
+			spaces: "\t",
+		});
 
 		toast.success("Material exported successfully!");
 	}
