@@ -7,8 +7,8 @@ import { CodeBlock } from "../code";
 import {
 	visibleAsBooleanDecoratorsExample, visibleAsColor3DecoratorsExample,
 	visibleAsColor4DecoratorsExample, visibleAsEntityDecoratorsExample,
-	visibleAsNumberDecoratorsExample, visibleAsVector2DecoratorsExample,
-	visibleAsVector3DecoratorsExample,
+	visibleAsNumberDecoratorsExample, visibleAsStringDecoratorsExample,
+	visibleAsVector2DecoratorsExample, visibleAsVector3DecoratorsExample,
 } from "./visible-as";
 
 import { NextChapterComponent } from "../components/next-chapter";
@@ -67,6 +67,17 @@ export default function DocumentationRunningProjectPage() {
 						</div>
 
 						<CodeBlock code={visibleAsNumberDecoratorsExample} />
+
+						<div className="text-3xl md:text-2xl lg:text-3xl my-3">
+							@visibleAsString
+						</div>
+
+						<div>
+							When a property is decorated with <b>@visibleAsString</b>, it will be displayed as a text input in the editor's inspector.
+							This field can be customized with a label that is the first parameter of the decorator and a description.
+						</div>
+
+						<CodeBlock code={visibleAsStringDecoratorsExample} />
 
 						<div className="text-3xl md:text-2xl lg:text-3xl my-3">
 							@visibleAsVector2
