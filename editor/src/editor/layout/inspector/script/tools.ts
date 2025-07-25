@@ -55,6 +55,14 @@ export function computeDefaultValuesForObject(script: any, output: VisibleInInsp
 				};
 				break;
 
+			case "string":
+				attachedScripts[value.propertyKey] = {
+					type: value.configuration.type,
+					description: value.configuration.description,
+					value: attachedScripts[value.propertyKey]?.value ?? "",
+				};
+				break;
+
 			case "vector2":
 				attachedScripts[value.propertyKey] = {
 					type: value.configuration.type,

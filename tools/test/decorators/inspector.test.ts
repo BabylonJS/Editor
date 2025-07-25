@@ -2,7 +2,7 @@ import { ISceneDecoratorData } from "../../src/decorators/apply";
 import {
     visibleAsBoolean, visibleAsColor3, visibleAsColor4, visibleAsNumber,
     visibleAsVector2, visibleAsVector3, visibleAsTexture, visibleAsEntity,
-    visibleAsKeyMap,
+    visibleAsKeyMap, visibleAsString,
 } from "../../src/decorators/inspector";
 
 describe("decorators/inspector", () => {
@@ -19,6 +19,18 @@ describe("decorators/inspector", () => {
     describe("@visibleAsBoolean", () => {
         test("should add configuration to the target", () => {
             const fn = visibleAsBoolean("test");
+            fn(target, "testProperty");
+
+            expect(target.constructor._VisibleInInspector).toBeDefined();
+            expect(target.constructor._VisibleInInspector.length).toBe(1);
+            expect(target.constructor._VisibleInInspector[0].label).toBe("test");
+            expect(target.constructor._VisibleInInspector[0].propertyKey).toBe("testProperty");
+        });
+    });
+
+    describe("@visibleAsString", () => {
+        test("should add configuration to the target", () => {
+            const fn = visibleAsString("test");
             fn(target, "testProperty");
 
             expect(target.constructor._VisibleInInspector).toBeDefined();

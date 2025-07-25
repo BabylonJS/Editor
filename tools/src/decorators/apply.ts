@@ -132,6 +132,7 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 				case "number":
 				case "boolean":
 				case "keymap":
+				case "string":
 					instance[propertyKey] = value;
 					break;
 
