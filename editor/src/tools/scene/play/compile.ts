@@ -1,5 +1,6 @@
 import { readFile } from "fs-extra";
 import { dirname, join } from "path/posix";
+
 import { build, BuildOptions, Plugin } from "esbuild";
 
 import { projectConfiguration } from "../../../project/configuration";
@@ -22,12 +23,12 @@ export async function compilePlayScript(temporaryDirectory: string, options?: IC
 				const source = await readFile(args.path, "utf8");
 
 				const transformedSource = source
-					.replace(/"@babylonjs\/core\/.*"/g, "\"babylonjs\"")
-					.replace(/"@babylonjs\/gui\/.*"/g, "\"babylonjs-gui\"")
-					.replace(/"@babylonjs\/loaders\/.*"/g, "\"babylonjs-loaders\"")
-					.replace(/"@babylonjs\/materials\/.*"/g, "\"babylonjs-materials\"")
-					.replace(/"@babylonjs\/post-processes\/.*"/g, "\"babylonjs-post-process\"")
-					.replace(/"@babylonjs\/procedural-textures\/.*"/g, "\"babylonjs-procedural-textures\"")
+					.replace(/"@babylonjs\/core\/?.*"/g, "\"babylonjs\"")
+					.replace(/"@babylonjs\/gui\/?.*"/g, "\"babylonjs-gui\"")
+					.replace(/"@babylonjs\/loaders\/?.*"/g, "\"babylonjs-loaders\"")
+					.replace(/"@babylonjs\/materials\/?.*"/g, "\"babylonjs-materials\"")
+					.replace(/"@babylonjs\/post-processes\/?.*"/g, "\"babylonjs-post-process\"")
+					.replace(/"@babylonjs\/procedural-textures\/?.*"/g, "\"babylonjs-procedural-textures\"")
 					.replace(/import\.meta\.dirname/g, "__dirname");
 
 				options?.onTransformSource?.(args.path);
@@ -72,6 +73,8 @@ export async function compilePlayScript(temporaryDirectory: string, options?: IC
 			"babylonjs-gui",
 			"babylonjs-loaders",
 			"babylonjs-materials",
+			"babylonjs-post-process",
+			"babylonjs-procedural-textures",
 
 			// IMPORTANT: Don't make babylonjs-editor-tools external. It has to be bundled
 			// so that one loaded in the editor is not altered by the one used by the play script.
@@ -81,6 +84,10 @@ export async function compilePlayScript(temporaryDirectory: string, options?: IC
 		plugins: [
 			replaceImports,
 		],
+		supported: {
+			decorators: true,
+		},
+		tsconfig: join(projectDir, "tsconfig.json"),
 	} as BuildOptions;
 
 	await build(buildOptions);
