@@ -43,6 +43,7 @@ async function compile(srcAbsolutePath: string, outputAbsolutePath: string) {
 			".node": "file",
 		},
 		external: [
+			"sharp",
 			"electron"
 		],
 		keepNames: true,
