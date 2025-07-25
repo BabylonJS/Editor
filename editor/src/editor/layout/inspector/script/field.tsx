@@ -65,13 +65,19 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 
 	const [exists, setExists] = useState<boolean | null>(null);
 	const [enabled, setEnabled] = useState(props.script.enabled);
-	const [output, setOutput] = useState<VisibleInInspectorDecoratorObject[] | null>(cachedScripts[srcAbsolutePath]?.output);
+	const [output, setOutput] = useState<VisibleInInspectorDecoratorObject[] | null>(null);
 
 	const [watcher, setWatcher] = useState<FSWatcher | null>(null);
 
 	const [updateId, setUpdateId] = useState(0); // Used to force re-render when a texture is changed
 
 	useEffect(() => {
+		const output = cachedScripts[srcAbsolutePath]?.output;
+		if (output) {
+			computeDefaultValuesForObject(props.script, output);
+			setOutput(output);
+		}
+
 		return () => {
 			textures.forEach((texture) => {
 				texture.dispose();
