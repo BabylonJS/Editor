@@ -1,6 +1,6 @@
 import { ISceneDecoratorData } from "./apply";
 
-export type VisibleInInspectorDecoratorType = "number" | "boolean" | "vector2" | "vector3" | "color3" | "color4" | "entity" | "texture" | "keymap";
+export type VisibleInInspectorDecoratorType = "number" | "boolean" | "string" | "vector2" | "vector3" | "color3" | "color4" | "entity" | "texture" | "keymap";
 
 export type VisibleInInspectorDecoratorConfiguration = {
 	type: VisibleInInspectorDecoratorType;
@@ -29,6 +29,33 @@ export function visibleAsBoolean(
 			configuration: {
 				...configuration,
 				type: "boolean",
+			},
+		});
+	};
+}
+
+/**
+ * Makes the decorated property visible in the editor inspector as a string.
+ * The property can be customized per object in the editor and the custom value is applied
+ * once the script is invoked at runtime in the game/application.
+ * This can be used only by scripts using Classes.
+ * @param label defines the optional label displayed in the inspector in the editor.
+ * @param configuration defines the optional configuration for the field in the inspector (description, etc.).
+ */
+export function visibleAsString(
+	label?: string,
+	configuration?: Omit<VisibleInInspectorDecoratorConfiguration, "type">,
+) {
+	return function (target: any, propertyKey: string | Symbol) {
+		const ctor = target.constructor as ISceneDecoratorData;
+
+		ctor._VisibleInInspector ??= [];
+		ctor._VisibleInInspector.push({
+			label,
+			propertyKey,
+			configuration: {
+				...configuration,
+				type: "string",
 			},
 		});
 	};

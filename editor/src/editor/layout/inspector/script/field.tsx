@@ -36,6 +36,7 @@ import { EditorInspectorColorField } from "../fields/color";
 import { EditorInspectorSwitchField } from "../fields/switch";
 import { EditorInspectorNumberField } from "../fields/number";
 import { EditorInspectorVectorField } from "../fields/vector";
+import { EditorInspectorStringField } from "../fields/string";
 import { EditorInspectorTextureField } from "../fields/texture";
 import { EditorInspectorSceneEntityField } from "../fields/entity";
 
@@ -306,6 +307,17 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 										min={value.configuration.min}
 										max={value.configuration.max}
 										step={value.configuration.step}
+										tooltip={value.configuration.description}
+									/>
+								);
+
+							case "string":
+								return (
+									<EditorInspectorStringField
+										key={value.propertyKey}
+										object={props.script[scriptValues][value.propertyKey]}
+										property="value"
+										label={value.label ?? value.propertyKey}
 										tooltip={value.configuration.description}
 									/>
 								);
