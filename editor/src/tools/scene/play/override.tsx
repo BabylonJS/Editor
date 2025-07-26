@@ -211,7 +211,7 @@ export function applyOverrides(editor: Editor) {
 
 	Observable.prototype.addOnce = function (callback: any, ...args: any[]) {
 		if (!getCurrentCallStack().includes(projectDir)) {
-			return savedObservableMethods.add.call(this, callback, ...args);
+			return savedObservableMethods.addOnce.call(this, callback, ...args);
 		}
 
 		const observer = savedObservableMethods.addOnce.call(this, callback, ...args);
