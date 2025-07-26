@@ -15,7 +15,8 @@
     "@tailwindcss/vite": "^4.0.7",
     "tailwindcss": "^4.0.7",
     "typescript": "^5.7.2",
-    "vite": "^6.0.0"
+    "vite": "^6.0.0",
+    "@types/node": "^22"
   },
   "dependencies": {
     "@babylonjs/core": "8.15.1",
@@ -24,4 +25,4 @@
     "@babylonjs/materials": "8.15.1",
     "babylonjs-editor-tools": "latest"
   }
-} 
+}
