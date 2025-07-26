@@ -375,5 +375,6 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 
 	private _closeWatchSrcDirectory(): void {
 		this._srcWatcher?.close();
+		this._srcWatcher = null;
 	}
 }
