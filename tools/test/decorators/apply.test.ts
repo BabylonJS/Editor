@@ -110,7 +110,10 @@ import { soundFromScene } from "../../src/decorators/sound";
 import { applyDecorators } from "../../src/decorators/apply";
 import { particleSystemFromScene } from "../../src/decorators/particle-systems";
 import { animationGroupFromScene, nodeFromDescendants, nodeFromScene } from "../../src/decorators/scene";
-import { visibleAsBoolean, visibleAsColor3, visibleAsColor4, visibleAsEntity, visibleAsKeyMap, visibleAsNumber, visibleAsTexture, visibleAsVector2, visibleAsVector3 } from "../../src/decorators/inspector";
+import {
+    visibleAsBoolean, visibleAsColor3, visibleAsColor4, visibleAsEntity, visibleAsKeyMap, visibleAsNumber,
+    visibleAsString, visibleAsTexture, visibleAsVector2, visibleAsVector3,
+} from "../../src/decorators/inspector";
 
 describe("decorators/apply", () => {
     class EmptyTarget { }
@@ -135,6 +138,8 @@ describe("decorators/apply", () => {
         public booleanProperty: boolean = false;
         @visibleAsNumber("test")
         public numberProperty: number = 0;
+        @visibleAsString("test")
+        public stringProperty: string = "";
         @visibleAsVector2("test")
         public vector2Property: Vector2 = Vector2.Zero();
         @visibleAsVector3("test")
@@ -200,6 +205,9 @@ describe("decorators/apply", () => {
                     values: {
                         "booleanProperty": {
                             value: true,
+                        },
+                        "stringProperty": {
+                            value: "hello",
                         },
                         "numberProperty": {
                             value: 1,
@@ -281,6 +289,7 @@ describe("decorators/apply", () => {
 
             expect(target.booleanProperty).toBe(true);
             expect(target.numberProperty).toBe(1);
+            expect(target.stringProperty).toBe("hello");
 
             expect(target.vector2Property.x).toBe(10);
             expect(target.vector2Property.y).toBe(20);

@@ -38,7 +38,7 @@ import {
 
 import { Editor } from "../../editor/main";
 
-import { writeBinaryGeometry } from "../geometry";
+import { writeBinaryGeometry } from "../tools/geometry";
 
 import { processAssetFile } from "./assets";
 import { configureMeshesLODs } from "./lod";

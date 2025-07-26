@@ -9,6 +9,21 @@ export function setupEditorMenu(): void {
 			label: "Babylon.js Editor",
 			submenu: [
 				{
+					label: "About Babylon.js Editor",
+					role: "about",
+				},
+				{
+					type: "separator",
+				},
+				{
+					label: "Preferences...",
+					accelerator: "Command+,",
+					click: () => BrowserWindow.getFocusedWindow()?.webContents.send("editor:edit-preferences"),
+				},
+				{
+					type: "separator",
+				},
+				{
 					label: "Exit Babylon.js Editor",
 					accelerator: "CommandOrControl+Q",
 					click: () => BrowserWindow.getFocusedWindow()?.webContents.send("editor:quit-app"),
@@ -42,7 +57,14 @@ export function setupEditorMenu(): void {
 				{
 					label: "Open in Visual Studio Code",
 					click: () => BrowserWindow.getFocusedWindow()?.webContents.send("editor:open-vscode"),
-				}
+				},
+				{
+					type: "separator",
+				},
+				{
+					label: "Run Project...",
+					click: () => BrowserWindow.getFocusedWindow()?.webContents.send("editor:run-project"),
+				},
 			],
 		},
 		{
@@ -91,13 +113,6 @@ export function setupEditorMenu(): void {
 				{
 					label: "Project...",
 					click: () => BrowserWindow.getFocusedWindow()?.webContents.send("editor:edit-project"),
-				},
-				{
-					type: "separator",
-				},
-				{
-					label: "Preferences...",
-					click: () => BrowserWindow.getFocusedWindow()?.webContents.send("editor:edit-preferences"),
 				},
 			],
 		},

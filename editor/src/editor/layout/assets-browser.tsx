@@ -757,6 +757,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 			case ".png":
 			case ".jpg":
 			case ".jpeg":
+			case ".webp":
 				return <ImageSelectable {...props} />;
 
 			case ".hdr":
@@ -1085,6 +1086,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 		switch (extension) {
 			case ".md":
 			case ".png":
+			case ".webp":
 			case ".jpg":
 			case ".bmp":
 			case ".jpeg":

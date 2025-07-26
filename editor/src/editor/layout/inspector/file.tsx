@@ -12,7 +12,7 @@ export class FileInspectorObject {
 	public readonly isFileInspectorObject = true;
 
 	public constructor(
-        public readonly absolutePath: string,
+		public readonly absolutePath: string,
 	) { }
 }
 
@@ -20,10 +20,10 @@ export class EditorFileInspector extends Component<IEditorInspectorImplementatio
 	private _extension: string;
 
 	/**
-     * Returns whether or not the given object is supported by this inspector.
-     * @param object defines the object to check.
-     * @returns true if the object is supported by this inspector.
-     */
+	 * Returns whether or not the given object is supported by this inspector.
+	 * @param object defines the object to check.
+	 * @returns true if the object is supported by this inspector.
+	 */
 	public static IsSupported(object: any): object is FileInspectorObject {
 		return object?.isFileInspectorObject;
 	}
@@ -37,6 +37,7 @@ export class EditorFileInspector extends Component<IEditorInspectorImplementatio
 	public render(): ReactNode {
 		switch (this._extension) {
 			case ".png":
+			case ".webp":
 			case ".jpg":
 			case ".bmp":
 			case ".jpeg":

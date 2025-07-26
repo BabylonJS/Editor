@@ -19,6 +19,31 @@ export default class MyMeshComponent {
 }
 `;
 
+export const visibleAsStringDecoratorsExample = `
+import { Mesh } from "@babylonjs/core/Meshes/mesh";
+import { TextBlock } from "@babylonjs/gui/2D/controls/textBlock";
+
+import { visibleAsString } from "babylonjs-editor-tools";
+
+export default class MyMeshComponent {
+    @visibleAsString("Text", {
+        description: "Defines the text drawn in the textblock."
+    })
+    private _text: string = "";
+
+    public constructor(public mesh: Mesh) { }
+
+    public onStart(): void {
+        // Assuming you have a GUI advanced texture setup somewhere
+
+        const textBlock = new TextBlock("name", this._text);
+        textBlock.fontSize = 100;
+        
+        advancedDynamicTexture.addControl(textBlock);
+    }
+}
+`;
+
 export const visibleAsNumberDecoratorsExample = `
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 

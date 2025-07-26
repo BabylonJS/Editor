@@ -1,6 +1,6 @@
 {
     "name": "babylonjs-editor",
-    "version": "5.0.2",
+    "version": "5.0.3",
     "description": "Babylon.js Editor is a Web Application helping artists to work with Babylon.js",
     "productName": "Babylon.js Editor",
     "main": "build/src/index.js",
@@ -10,7 +10,7 @@
         "url": "https://twitter.com/luaacro"
     },
     "scripts": {
-        "build": "tsc -p . && tailwindcss -i ./index.css -o ./build/index.css && node esbuild.mjs",
+        "build": "tsc -p . && tailwindcss -i ./index.css -o ./build/index.css",
         "watch": "tsc -p . --watch",
         "watch-css": "tailwindcss -i ./index.css -o ./build/index.css --watch",
         "watch-all": "concurrently \"yarn watch\" \"yarn watch-css\" -c bgYellow.bold,bgBlue.bold --names editor-ts,editor-css",
@@ -79,7 +79,10 @@
         "babylonjs-loaders": "8.15.1",
         "babylonjs-materials": "8.15.1",
         "babylonjs-node-editor": "8.15.1",
+        "babylonjs-post-process": "8.15.1",
+        "babylonjs-procedural-textures": "8.15.1",
         "cannon": "0.6.2",
+        "chokidar": "^4.0.3",
         "class-variance-authority": "^0.7.0",
         "clsx": "^2.1.0",
         "cmdk": "^1.0.0",

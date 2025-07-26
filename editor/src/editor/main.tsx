@@ -27,6 +27,7 @@ import {
 } from "../project/configuration";
 
 import { loadProject } from "../project/load/load";
+import { startProjectDevProcess } from "../project/run";
 import { exportProject } from "../project/export/export";
 import {
 	EditorProjectPackageManager,
@@ -216,6 +217,8 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 			"editor:path",
 			(_, path) => (this.path = path.replace(/\\/g, sep))
 		);
+
+		ipcRenderer.on("editor:run-project", () => startProjectDevProcess(this));
 
 		// Undo-redo
 		ipcRenderer.on("undo", () => undo());

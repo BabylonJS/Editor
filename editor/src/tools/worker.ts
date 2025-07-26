@@ -8,11 +8,7 @@ import { join } from "path/posix";
  * @returns a promise that resolves with the data posted by the worker.
  */
 export async function executeSimpleWorker<T>(path: string, data: any) {
-	if (process.env.DEBUG) {
-		path = join(__dirname.replace(/\\/g, "/"), path);
-	} else {
-		path = join(__dirname.replace(/\\/g, "/"), "src/tools", path);
-	}
+	path = join(__dirname.replace(/\\/g, "/"), path);
 
 	const worker = new Worker(path);
 	worker.postMessage(data);

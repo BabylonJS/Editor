@@ -1,6 +1,7 @@
 import { clipboard } from "electron";
+import { FSWatcher } from "chokidar";
 import { join, dirname } from "path/posix";
-import { pathExists, stat, FSWatcher } from "fs-extra";
+import { pathExists, stat } from "fs-extra";
 
 import { useEffect, useState } from "react";
 
@@ -35,6 +36,7 @@ import { EditorInspectorColorField } from "../fields/color";
 import { EditorInspectorSwitchField } from "../fields/switch";
 import { EditorInspectorNumberField } from "../fields/number";
 import { EditorInspectorVectorField } from "../fields/vector";
+import { EditorInspectorStringField } from "../fields/string";
 import { EditorInspectorTextureField } from "../fields/texture";
 import { EditorInspectorSceneEntityField } from "../fields/entity";
 
@@ -63,13 +65,19 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 
 	const [exists, setExists] = useState<boolean | null>(null);
 	const [enabled, setEnabled] = useState(props.script.enabled);
-	const [output, setOutput] = useState<VisibleInInspectorDecoratorObject[] | null>(cachedScripts[srcAbsolutePath]?.output);
+	const [output, setOutput] = useState<VisibleInInspectorDecoratorObject[] | null>(null);
 
 	const [watcher, setWatcher] = useState<FSWatcher | null>(null);
 
 	const [updateId, setUpdateId] = useState(0); // Used to force re-render when a texture is changed
 
 	useEffect(() => {
+		const output = cachedScripts[srcAbsolutePath]?.output;
+		if (output) {
+			computeDefaultValuesForObject(props.script, output);
+			setOutput(output);
+		}
+
 		return () => {
 			textures.forEach((texture) => {
 				texture.dispose();
@@ -305,6 +313,17 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 										min={value.configuration.min}
 										max={value.configuration.max}
 										step={value.configuration.step}
+										tooltip={value.configuration.description}
+									/>
+								);
+
+							case "string":
+								return (
+									<EditorInspectorStringField
+										key={value.propertyKey}
+										object={props.script[scriptValues][value.propertyKey]}
+										property="value"
+										label={value.label ?? value.propertyKey}
 										tooltip={value.configuration.description}
 									/>
 								);
