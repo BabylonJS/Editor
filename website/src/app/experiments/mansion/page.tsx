@@ -115,16 +115,16 @@ class MansionExperimentComponent extends Component<unknown, IMansionExperimentCo
 	public render(): ReactNode {
 		return (
 			<>
-				<canvas ref={(r) => this._canvas = r!} className="w-full h-full outline-none border-none select-none" />
+				<canvas ref={(r) => { this._canvas = r!; }} className="w-full h-full outline-none border-none select-none" />
 
 				<MainMenuComponent
 					step={this.state.step}
 					onStart={() => this._handleStart()}
-					ref={(r) => this._mainMenuComponents = r!}
+					ref={(r) => { this._mainMenuComponents = r!; }}
 				/>
 
 				<CinematicComponent
-					ref={(r) => this._cinematicComponents = r!}
+					ref={(r) => { this._cinematicComponents = r!; }}
 				/>
 
 				<BlackBarsComponent />

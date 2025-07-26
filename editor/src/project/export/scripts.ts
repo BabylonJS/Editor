@@ -11,6 +11,7 @@ const scriptsTemplate = `
  */
 
 import { loadScene } from "babylonjs-editor-tools";
+{{imports}}
 
 export const scriptsMap = {
     {{exports}}
@@ -18,6 +19,15 @@ export const scriptsMap = {
 
 export { loadScene };
 `;
+
+const createUniqueIdentifier = (filepath: string): string => {
+	const nameWithoutExt = filepath.replace(extname(filepath), "");
+	return nameWithoutExt
+		.replace(/[^a-zA-Z0-9_]/g, "_")
+		.replace(/^[0-9]/, "_$&")
+		.replace(/\//g, "_");
+};
+
 
 export async function handleExportScripts(editor: Editor): Promise<void> {
 	if (!editor.state.projectPath) {
@@ -100,9 +110,25 @@ export async function handleExportScripts(editor: Editor): Promise<void> {
 
 	await Promise.all(promises);
 
+	const importStatements: string[] = [];
+	Object.keys(scriptsMap).forEach((key) => {
+		const scriptName = createUniqueIdentifier(key);
+		importStatements.push(`import * as ${scriptName} from "./${key.replace(extname(key), "")}";`);
+	});
+	const importsContent = importStatements.join("\n");
+
+	const exportsContent = Object.keys(scriptsMap).map((key) => {
+		const scriptName = createUniqueIdentifier(key);
+		return `"${key}": ${scriptName}`;
+	}).join(",\n\t");
+
+	const finalContent = scriptsTemplate
+		.replace("{{imports}}", importsContent)
+		.replace("{{exports}}", exportsContent);
+
 	await writeFile(
 		join(projectPath, "src/scripts.ts"),
-		scriptsTemplate.replace("{{exports}}", Object.keys(scriptsMap).map((key) => `"${key}": require("${scriptsMap[key]}")`).join(",\n\t")),
+		finalContent,
 		{
 			encoding: "utf-8",
 		});

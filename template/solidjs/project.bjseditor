@@ -1,0 +1,9 @@
+{
+    "plugins": [],
+    "version": "5.0.0",
+    "packageManager": "yarn",
+    "projectTemplate": "solidjs",
+    "lastOpenedScene": "/assets/example.scene",
+    "compressedTexturesEnabled": false,
+    "compressedTexturesEnabledInPreview": false
+}
