@@ -313,7 +313,7 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 
 		applyOverrides(this.props.editor);
 
-		const scriptPath = join(this._temporaryDirectory!, "play/script.js");
+		const scriptPath = join(this._temporaryDirectory!, "play/script.cjs");
 		const exports = require(scriptPath);
 		delete require.cache[nativeJoin(scriptPath)];
 

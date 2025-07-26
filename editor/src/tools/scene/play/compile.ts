@@ -57,7 +57,12 @@ export async function compilePlayScript(temporaryDirectory: string, options?: IC
 		platform: "node",
 		target: "node20",
 		format: "cjs",
-		outfile: join(temporaryDirectory, "play/script.js"),
+
+		// IMPORTANT: force .cjs extension as the editor will use "require".
+		// When type is set to "module" in package.json, the output will be esm.
+		// Let "require" create a wrapper by naming the file extension ".cjs".
+		outfile: join(temporaryDirectory, "play/script.cjs"),
+
 		treeShaking: true,
 		sourcemap: true,
 		loader: {
