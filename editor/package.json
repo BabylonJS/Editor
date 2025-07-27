@@ -82,6 +82,7 @@
 		"babylonjs-node-editor": "8.15.1",
 		"babylonjs-post-process": "8.15.1",
 		"babylonjs-procedural-textures": "8.15.1",
+		"babylonjs-serializers": "8.15.1",
 		"cannon": "0.6.2",
 		"chokidar": "^4.0.3",
 		"class-variance-authority": "^0.7.0",

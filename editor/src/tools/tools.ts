@@ -93,3 +93,34 @@ export function sortAlphabetically(array: any[], property?: string): any[] {
 export function getCurrentCallStack(): string {
 	return new Error().stack ?? "";
 }
+
+/**
+ * Represents a cancellation token that can be used to signal cancellation requests.
+ * @example
+ * const cancellationToken = new CancellationToken();
+ *
+ * // Somewehre in the app
+ * cancellationToken.cancel(); // To signal cancellation
+ *
+ * // Where the cancellation should be checked
+ * if (cancellationToken.isCancelled) {
+ *   // Handle cancellation
+ * }
+ */
+export class CancellationToken {
+	private _isCancelled: boolean = false;
+
+	/**
+	 * Gets a value indicating whether the cancellation has been requested.
+	 */
+	public get isCancelled(): boolean {
+		return this._isCancelled;
+	}
+
+	/**
+	 * Sets the value indicating that cancellation has been requested.
+	 */
+	public cancel(): void {
+		this._isCancelled = true;
+	}
+}
