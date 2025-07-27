@@ -17,11 +17,9 @@ export async function loadProject(editor: Editor, path: string): Promise<void> {
 	const directory = dirname(path);
 	const project = (await readJSON(path, "utf-8")) as IEditorProject;
 	const packageManager = project.packageManager ?? "yarn";
-	const template = project.projectTemplate ?? "nextjs";
 
 	editor.setState({
 		packageManager,
-		projectTemplate: template,
 		projectPath: path,
 		plugins: project.plugins.map((plugin) => plugin.nameOrPath),
 		lastOpenedScenePath: project.lastOpenedScene
@@ -30,13 +28,13 @@ export async function loadProject(editor: Editor, path: string): Promise<void> {
 
 		compressedTexturesEnabled: project.compressedTexturesEnabled ?? false,
 		compressedTexturesEnabledInPreview:
-      project.compressedTexturesEnabledInPreview ?? false,
+			project.compressedTexturesEnabledInPreview ?? false,
 	});
 
 	editor.layout.forceUpdate();
 
 	projectConfiguration.compressedTexturesEnabled =
-    project.compressedTexturesEnabled ?? false;
+		project.compressedTexturesEnabled ?? false;
 
 	// Update dependencies
 	const toastId = toast(<LoadScenePrepareComponent />, {
@@ -114,8 +112,7 @@ export async function loadProjectPlugins(
 
 			if (isLocalPlugin) {
 				editor.layout.console.log(
-					`Loaded plugin from local drive "${
-						result.title ?? plugin.nameOrPath
+					`Loaded plugin from local drive "${result.title ?? plugin.nameOrPath
 					}"`
 				);
 			} else {

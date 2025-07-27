@@ -22,9 +22,10 @@ export interface IEditorProject {
      */
     compressedTexturesEnabledInPreview: boolean;
 
+    /**
+     * The package manager being used by the project.
+     */
     packageManager?: EditorProjectPackageManager;
-
-    projectTemplate: EditorProjectTemplate;
 }
 
 export interface IEditorProjectPlugin {

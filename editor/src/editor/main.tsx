@@ -31,7 +31,6 @@ import { startProjectDevProcess } from "../project/run";
 import { exportProject } from "../project/export/export";
 import {
 	EditorProjectPackageManager,
-	EditorProjectTemplate,
 } from "../project/typings";
 
 import { disposeVLSPostProcess } from "./rendering/vls";
@@ -68,62 +67,57 @@ export function createEditor(): void {
 }
 
 export interface IEditorProps {
-  /**
-   * The path of the project.
-   */
-  projectPath: string | null;
+	/**
+	 * The path of the project.
+	 */
+	projectPath: string | null;
 
-  /**
-   * Defines the path to the currently edited scene path.
-   */
-  editedScenePath?: string | null;
+	/**
+	 * Defines the path to the currently edited scene path.
+	 */
+	editedScenePath?: string | null;
 }
 
 export interface IEditorState {
-  /**
-   * The path of the project.
-   */
-  projectPath: string | null;
-  /**
-   * The path of the last opened scene.
-   */
-  lastOpenedScenePath: string | null;
-  /**
-   * Defines the list of all plugins to load.
-   */
-  plugins: string[];
-  /**
-   * Defines the current package manager being used by the editor.
-   */
-  packageManager?: EditorProjectPackageManager;
+	/**
+	 * The path of the project.
+	 */
+	projectPath: string | null;
+	/**
+	 * The path of the last opened scene.
+	 */
+	lastOpenedScenePath: string | null;
+	/**
+	 * Defines the list of all plugins to load.
+	 */
+	plugins: string[];
+	/**
+	 * Defines the current package manager being used by the editor.
+	 */
+	packageManager?: EditorProjectPackageManager;
 
-  /**
-   * Defines the current project template being used by the editor.
-   */
-  projectTemplate?: EditorProjectTemplate;
+	/**
+	 * Defines wether or not compressed textures are enabled.
+	 */
+	compressedTexturesEnabled: boolean;
+	/**
+	 * Defines wether or not compressed textures are enabled in the preview.
+	 */
+	compressedTexturesEnabledInPreview: boolean;
 
-  /**
-   * Defines wether or not compressed textures are enabled.
-   */
-  compressedTexturesEnabled: boolean;
-  /**
-   * Defines wether or not compressed textures are enabled in the preview.
-   */
-  compressedTexturesEnabledInPreview: boolean;
+	/**
+	 * Defines wether or not experimental features are enabled.
+	 */
+	enableExperimentalFeatures: boolean;
 
-  /**
-   * Defines wether or not experimental features are enabled.
-   */
-  enableExperimentalFeatures: boolean;
-
-  /**
-   * Defines if the project is being edited.
-   */
-  editProject: boolean;
-  /**
-   * Defines if the preferences are being edited.
-   */
-  editPreferences: boolean;
+	/**
+	 * Defines if the project is being edited.
+	 */
+	editProject: boolean;
+	/**
+	 * Defines if the preferences are being edited.
+	 */
+	editPreferences: boolean;
 }
 
 export class Editor extends Component<IEditorProps, IEditorState> {
@@ -153,7 +147,7 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 			compressedTexturesEnabled: false,
 			compressedTexturesEnabledInPreview: false,
 			enableExperimentalFeatures:
-        tryGetExperimentalFeaturesEnabledFromLocalStorage(),
+				tryGetExperimentalFeaturesEnabledFromLocalStorage(),
 
 			editProject: false,
 			editPreferences: false,

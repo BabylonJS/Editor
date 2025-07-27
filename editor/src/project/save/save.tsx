@@ -59,7 +59,6 @@ async function _saveProject(editor: Editor): Promise<void> {
 		})),
 		version: packageJson.version,
 		packageManager: editor.state.packageManager,
-		projectTemplate: editor.state.projectTemplate,
 		lastOpenedScene: editor.state.lastOpenedScenePath?.replace(
 			dirname(editor.state.projectPath),
 			""
@@ -67,7 +66,7 @@ async function _saveProject(editor: Editor): Promise<void> {
 
 		compressedTexturesEnabled: editor.state.compressedTexturesEnabled,
 		compressedTexturesEnabledInPreview:
-      editor.state.compressedTexturesEnabledInPreview,
+			editor.state.compressedTexturesEnabledInPreview,
 	};
 
 	if (!editor.props.editedScenePath) {
