@@ -97,6 +97,14 @@ export function getCurrentCallStack(): string {
 }
 
 /**
+ * Clones the given JavaScript object. This function does not handle cyclic references.
+ * @param source defines the reference to the JavaScript object to clone.
+ */
+export function cloneJSObject<T>(source: T): T {
+	return JSON.parse(JSON.stringify(source));
+}
+
+/**
  * Reads a blob and returns its data as a data URL.
  * @param blob defines the reference to the blob to read as data URL.
  */
@@ -117,9 +125,32 @@ export function readBlobAsDataUrl(blob: Blob): Promise<string> {
 }
 
 /**
- * Clones the given JavaScript object. This function does not handle cyclic references.
- * @param source defines the reference to the JavaScript object to clone.
+ * Represents a cancellation token that can be used to signal cancellation requests.
+ * @example
+ * const cancellationToken = new CancellationToken();
+ *
+ * // Somewehre in the app
+ * cancellationToken.cancel(); // To signal cancellation
+ *
+ * // Where the cancellation should be checked
+ * if (cancellationToken.isCancelled) {
+ *   // Handle cancellation
+ * }
  */
-export function cloneJSObject<T>(source: T): T {
-	return JSON.parse(JSON.stringify(source));
+export class CancellationToken {
+	private _isCancelled: boolean = false;
+
+	/**
+	 * Gets a value indicating whether the cancellation has been requested.
+	 */
+	public get isCancelled(): boolean {
+		return this._isCancelled;
+	}
+
+	/**
+	 * Sets the value indicating that cancellation has been requested.
+	 */
+	public cancel(): void {
+		this._isCancelled = true;
+	}
 }

@@ -149,7 +149,7 @@ export class EditorPBRMaterialInspector extends Component<IEditorPBRMaterialInsp
 					</EditorInspectorTextureField>
 
 					<EditorInspectorTextureField object={this.props.material} title="Emissive Texture" property="emissiveTexture" />
-					<EditorInspectorTextureField object={this.props.material} title="Lightmap Texture" property="lightmapTexture">
+					<EditorInspectorTextureField object={this.props.material} title="Lightmap Texture" property="lightmapTexture" onChange={() => this.forceUpdate()}>
 						{this.props.material.lightmapTexture && (
 							<>
 								<EditorInspectorSwitchField label="Use Lightmap As Shadowmap" object={this.props.material} property="useLightmapAsShadowmap" />

@@ -4905,6 +4905,15 @@ axios@1.12.0:
     form-data "^4.0.4"
     proxy-from-env "^1.1.0"
 
+axios@^1.8.2:
+  version "1.13.4"
+  resolved "https://registry.yarnpkg.com/axios/-/axios-1.13.4.tgz#15d109a4817fb82f73aea910d41a2c85606076bc"
+  integrity sha512-1wVkUaAO6WyaYtCkcYCOx12ZgpGf9Zif+qXa4n+oYzK558YryKqiL6UWwd5DqiH3VRW0GYhTZQ/vlgJrCoNQlg==
+  dependencies:
+    follow-redirects "^1.15.6"
+    form-data "^4.0.4"
+    proxy-from-env "^1.1.0"
+
 axobject-query@^3.2.1:
   version "3.2.1"
   resolved "https://registry.yarnpkg.com/axobject-query/-/axobject-query-3.2.1.tgz#39c378a6e3b06ca679f29138151e45b2b32da62a"
@@ -4966,10 +4975,6 @@ babylonjs-editor-tools@latest:
   version "5.0.0"
   resolved "https://registry.yarnpkg.com/babylonjs-editor-tools/-/babylonjs-editor-tools-5.0.0.tgz#d2e1919cc5d4defbcbcf60259a1eb73a589cf643"
   integrity sha512-AREjL0WjtjyOvud0EMG/II3zH73KlSif/u0HV965tPWmUZHrxr+g/4iX6eU0mIYlIjOuepfRAopaF04IYJOaHA==
-
-"babylonjs-editor-tools@link:../../../Library/Caches/Yarn/v6/npm-babylonjs-editor-5.2.4-3cce3a704dc0c4572a85041a993264060376230a-integrity/node_modules/tools":
-  version "0.0.0"
-  uid ""
 
 "babylonjs-editor-tools@link:tools":
   version "5.2.5"
@@ -5061,12 +5066,17 @@ babylonjs-editor@latest:
     usehooks-ts "^3.1.0"
     webm-muxer "^5.0.2"
 
+babylonjs-gltf2interface@^8.15.1:
+  version "8.49.6"
+  resolved "https://registry.yarnpkg.com/babylonjs-gltf2interface/-/babylonjs-gltf2interface-8.49.6.tgz#7e1b1a7eda516fe3b5eab31b843c23524b92a2a4"
+  integrity sha512-7qxi48GxEgX9SIZf1Eze+25YCUUY9X6ZIuoozg0rHZyY9gQBso7HUIWLznsQHeUXey19QS/zirrP1spm1PW8Vw==
+
 babylonjs-gltf2interface@^8.41.0:
   version "8.41.1"
   resolved "https://registry.yarnpkg.com/babylonjs-gltf2interface/-/babylonjs-gltf2interface-8.41.1.tgz#e8019573cc1510878e06444f7ed86dd7d8f19d27"
   integrity sha512-Bo2HTs75H8XNrNrWHNrGRqL2c/58K1qVhrzfTSWyuKtDU9uIZtmYsIc6K0gQeZ62aPJSjll3NRws3eaUDDIXyQ==
 
-babylonjs-gui-editor@8.41.0:
+babylonjs-gui-editor@8.15.1, babylonjs-gui-editor@8.41.0:
   version "8.41.0"
   resolved "https://registry.yarnpkg.com/babylonjs-gui-editor/-/babylonjs-gui-editor-8.41.0.tgz#76ca71ac81fcf26a270e6800f61773bf6f4ce827"
   integrity sha512-FVVbdPz8QlEkmsg0UX1G5nC7Wy1FzaaDz+BIE+iBNzbxSnDeH/ikN19OIw53N7jvQ/Uyywn1jZk3NunhVT57BQ==
@@ -5074,14 +5084,14 @@ babylonjs-gui-editor@8.41.0:
     babylonjs "^8.41.0"
     babylonjs-gui "^8.41.0"
 
-babylonjs-gui@8.41.0, babylonjs-gui@^8.41.0:
+babylonjs-gui@8.15.1, babylonjs-gui@8.41.0, babylonjs-gui@^8.41.0:
   version "8.41.0"
   resolved "https://registry.yarnpkg.com/babylonjs-gui/-/babylonjs-gui-8.41.0.tgz#56b81734f18ed12dac63f1f3e2a6b5e8c4bc11a0"
   integrity sha512-Sl6sHJUiEyaZ1i50XZ3Rsz7e8LDc18zRYIL17IrhwCZwgJ/6VE5Zsdup5/0WkChFDK5NA3OLa2KKi6Nnx0pcoQ==
   dependencies:
     babylonjs "^8.41.0"
 
-babylonjs-loaders@8.41.0:
+babylonjs-loaders@8.15.1, babylonjs-loaders@8.41.0:
   version "8.41.0"
   resolved "https://registry.yarnpkg.com/babylonjs-loaders/-/babylonjs-loaders-8.41.0.tgz#23eb704e91c4a7572d97460c3330c8c64ddfddbf"
   integrity sha512-pl4c1G7oF1g0sCEBNs/aFLAiCZTiFIJUl3ogyOn7beao2k3/aWMaoIEDlkdHCWVZ/TnqvzmPtSVh+B6ovVM61Q==
@@ -5089,14 +5099,14 @@ babylonjs-loaders@8.41.0:
     babylonjs "^8.41.0"
     babylonjs-gltf2interface "^8.41.0"
 
-babylonjs-materials@8.41.0:
+babylonjs-materials@8.15.1, babylonjs-materials@8.41.0:
   version "8.41.0"
   resolved "https://registry.yarnpkg.com/babylonjs-materials/-/babylonjs-materials-8.41.0.tgz#a2f70694f089e9206da1caf3ce5778ae1c433b30"
   integrity sha512-9di86QoXZEYmrfMR3R+YukOuZY05G+FtDtK/ETRuZpTG3nfvqqyjcZ4eK820XwfiD9ZL7wIvNdQl+8qZOjWsuw==
   dependencies:
     babylonjs "^8.41.0"
 
-babylonjs-node-editor@8.41.0:
+babylonjs-node-editor@8.15.1, babylonjs-node-editor@8.41.0:
   version "8.41.0"
   resolved "https://registry.yarnpkg.com/babylonjs-node-editor/-/babylonjs-node-editor-8.41.0.tgz#b75fd5c60e4233c353aa699171c6695a5d32da7e"
   integrity sha512-fuPL6FNxsuWFHSoA26QpqBqmOKb7QvWy5pxpGvAzNOdKDcZuFbNf7QWdNx/MlqHq/dC++rhUllJ9WjJyS8YppA==
@@ -5110,21 +5120,37 @@ babylonjs-node-particle-editor@8.41.0:
   dependencies:
     babylonjs "^8.41.0"
 
-babylonjs-post-process@8.41.0:
+babylonjs-post-process@8.15.1, babylonjs-post-process@8.41.0:
   version "8.41.0"
   resolved "https://registry.yarnpkg.com/babylonjs-post-process/-/babylonjs-post-process-8.41.0.tgz#83d3e20cbba27ce0f978fa6248bb0d3bdbaba58c"
   integrity sha512-cxncQUEswOQKpBOfHKLGjXArK8ggmLFctE33StApO5vJfP4CmME5zthmMdIfLdjfeugvABmh2o2uHu8OpzRxFg==
   dependencies:
     babylonjs "^8.41.0"
 
-babylonjs-procedural-textures@8.41.0:
+babylonjs-procedural-textures@8.15.1, babylonjs-procedural-textures@8.41.0:
   version "8.41.0"
   resolved "https://registry.yarnpkg.com/babylonjs-procedural-textures/-/babylonjs-procedural-textures-8.41.0.tgz#4742df736e70f82c395296a528dd6bbd38709904"
   integrity sha512-LAK5msSV0m4tMvm0fRVSUIiq40aKpTqSDU13IXX4U22l20rez91dypyXBHeUj983yJvbNEPMQOgAHbEuAGpuCQ==
   dependencies:
     babylonjs "^8.41.0"
 
-babylonjs@8.41.0, babylonjs@^8.41.0:
+babylonjs-serializers@8.15.1:
+  version "8.15.1"
+  resolved "https://registry.yarnpkg.com/babylonjs-serializers/-/babylonjs-serializers-8.15.1.tgz#090f97b77a6d4f12ebc86a00c8432f95f996dcf7"
+  integrity sha512-MldJPfHY+aHzyEiHFOjFUOItn408ksttTN9m1xC7UOsw/QEUoNBAhkpzo7MVs3svq+td77IP+cto7TZSNjurmw==
+  dependencies:
+    babylonjs "^8.15.1"
+    babylonjs-gltf2interface "^8.15.1"
+
+babylonjs-serializers@8.41.0:
+  version "8.41.0"
+  resolved "https://registry.yarnpkg.com/babylonjs-serializers/-/babylonjs-serializers-8.41.0.tgz#e6452b531e3a3c54ce1b51f0af86c5f23c12bf91"
+  integrity sha512-mJaXEV/OuITk/qIFtsY5lJkHZdxDWFgEzY0TN1DCnpLJZIMoF9/mH3DcFdO2if5BnIhpVaatDrzZqv89SaROlA==
+  dependencies:
+    babylonjs "^8.41.0"
+    babylonjs-gltf2interface "^8.41.0"
+
+babylonjs@8.15.1, babylonjs@8.41.0, babylonjs@^8.15.1, babylonjs@^8.41.0:
   version "8.41.0"
   resolved "https://registry.yarnpkg.com/babylonjs/-/babylonjs-8.41.0.tgz#e25a1a6f3f88c6f1e09001b7874d8cc97f071e76"
   integrity sha512-iHXsT6h4mvf+w1E1R2xNbl168W43pOno+2krv1cXM0UHZSnfWqUD0+KFe0ZVGdojFHPNFUhe3wOwUgnr9C/6Bg==
@@ -5394,6 +5420,11 @@ caniuse-lite@^1.0.30001538, caniuse-lite@^1.0.30001565, caniuse-lite@^1.0.300015
   version "1.0.30001761"
   resolved "https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30001761.tgz"
   integrity sha512-JF9ptu1vP2coz98+5051jZ4PwQgd2ni8A+gYSN7EA7dPKIMf0pDlSUxhdmVOaV3/fYK5uWBkgSXJaRLr4+3A6g==
+
+cannon@0.6.2:
+  version "0.6.2"
+  resolved "https://registry.yarnpkg.com/cannon/-/cannon-0.6.2.tgz#1e7bc72dd5841982f3c104c2bc578bfa4fb1c572"
+  integrity sha512-n/7wWSXr8KOSvjad2x0fJHgpMepKjOKi+NdSnjfYyijoDBZnp4JQKgPcpv28jlXoWM+N9zVYU09J0A6Qxx+Y7w==
 
 capital-case@^1.0.4:
   version "1.0.4"

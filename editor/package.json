@@ -87,6 +87,8 @@
 		"babylonjs-node-particle-editor": "8.41.0",
 		"babylonjs-post-process": "8.41.0",
 		"babylonjs-procedural-textures": "8.41.0",
+		"babylonjs-serializers": "8.41.0",
+		"cannon": "0.6.2",
 		"chokidar": "^4.0.3",
 		"class-variance-authority": "^0.7.0",
 		"clsx": "^2.1.0",

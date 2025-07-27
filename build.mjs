@@ -70,7 +70,7 @@ function build({ x64, arm64 } = options) {
 			asar: true,
 			asarUnpack: ["**/node_modules/sharp/**/*", "**/node_modules/@img/**/*"],
 			compression: "normal",
-			extraFiles: ["bin/**", "templates/**"],
+			extraFiles: ["bin/**", "templates/**", "assets/scripts/**"],
 			files: ["./build/**", "./fonts/**", "./assets/**", "./index.html"],
 		},
 	});

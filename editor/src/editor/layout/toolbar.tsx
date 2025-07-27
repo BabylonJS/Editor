@@ -3,7 +3,18 @@ import { ipcRenderer, shell } from "electron";
 
 import { Component, ReactNode } from "react";
 
-import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarSeparator, MenubarShortcut, MenubarTrigger } from "../../ui/shadcn/ui/menubar";
+import {
+	Menubar,
+	MenubarContent,
+	MenubarItem,
+	MenubarMenu,
+	MenubarSeparator,
+	MenubarShortcut,
+	MenubarSub,
+	MenubarSubContent,
+	MenubarSubTrigger,
+	MenubarTrigger,
+} from "../../ui/shadcn/ui/menubar";
 
 import { isDarwin } from "../../tools/os";
 import { execNodePty } from "../../tools/node-pty";
@@ -165,6 +176,18 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 							<MenubarSeparator />
 
 							<MenubarItem onClick={() => this.props.editor.layout.preview.play.triggerPlayScene()}>Play Scene</MenubarItem>
+
+							<MenubarSeparator />
+
+							<MenubarSub>
+								<MenubarSubTrigger>Generate Lightmaps...</MenubarSubTrigger>
+								<MenubarSubContent>
+									<MenubarItem onClick={() => this.props.editor.layout.preview.lightmaps.generate("low")}>Low</MenubarItem>
+									<MenubarItem onClick={() => this.props.editor.layout.preview.lightmaps.generate("medium")}>Medium</MenubarItem>
+									<MenubarItem onClick={() => this.props.editor.layout.preview.lightmaps.generate("high")}>High</MenubarItem>
+									<MenubarItem onClick={() => this.props.editor.layout.preview.lightmaps.generate("preview")}>Preview</MenubarItem>
+								</MenubarSubContent>
+							</MenubarSub>
 						</MenubarContent>
 					</MenubarMenu>
 

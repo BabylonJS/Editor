@@ -9,6 +9,7 @@ import { updateLightShadowMapRefreshRate, updatePointLightShadowMapRenderListPre
 
 import { IEditorInspectorImplementationProps } from "../inspector";
 
+import { EditorInspectorListField } from "../fields/list";
 import { EditorInspectorColorField } from "../fields/color";
 import { EditorInspectorStringField } from "../fields/string";
 import { EditorInspectorVectorField } from "../fields/vector";
@@ -77,6 +78,19 @@ export class EditorPointLightInspector extends Component<IEditorInspectorImpleme
 							updateLightShadowMapRefreshRate(this.props.object);
 							updatePointLightShadowMapRenderListPredicate(this.props.object);
 						}}
+					/>
+				</EditorInspectorSectionField>
+
+				<EditorInspectorSectionField title="Lightmaps">
+					<EditorInspectorListField
+						label="Mode"
+						object={this.props.object}
+						property="lightmapMode"
+						items={[
+							{ text: "Default", value: PointLight.LIGHTMAP_DEFAULT },
+							{ text: "Specular", value: PointLight.LIGHTMAP_SPECULAR },
+							{ text: "Shadowmap Only", value: PointLight.LIGHTMAP_SHADOWSONLY },
+						]}
 					/>
 				</EditorInspectorSectionField>
 

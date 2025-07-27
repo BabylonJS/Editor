@@ -9,6 +9,7 @@ import { updateLightShadowMapRefreshRate, updatePointLightShadowMapRenderListPre
 
 import { IEditorInspectorImplementationProps } from "../inspector";
 
+import { EditorInspectorListField } from "../fields/list";
 import { EditorInspectorColorField } from "../fields/color";
 import { EditorInspectorStringField } from "../fields/string";
 import { EditorInspectorVectorField } from "../fields/vector";
@@ -98,6 +99,19 @@ export class EditorSpotLightInspector extends Component<IEditorInspectorImplemen
 				{/* <EditorInspectorSectionField title="Texture">
                     <EditorInspectorTextureField object={this.props.object} title="Projection Texture" property="projectionTexture" onChange={() => this.forceUpdate()} />
                 </EditorInspectorSectionField> */}
+
+				<EditorInspectorSectionField title="Lightmaps">
+					<EditorInspectorListField
+						label="Mode"
+						object={this.props.object}
+						property="lightmapMode"
+						items={[
+							{ text: "Default", value: SpotLight.LIGHTMAP_DEFAULT },
+							{ text: "Specular", value: SpotLight.LIGHTMAP_SPECULAR },
+							{ text: "Shadowmap Only", value: SpotLight.LIGHTMAP_SHADOWSONLY },
+						]}
+					/>
+				</EditorInspectorSectionField>
 
 				<ScriptInspectorComponent editor={this.props.editor} object={this.props.object} />
 

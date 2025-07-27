@@ -8,6 +8,7 @@ import { onNodeModifiedObservable } from "../../../../tools/observables";
 
 import { IEditorInspectorImplementationProps } from "../inspector";
 
+import { EditorInspectorListField } from "../fields/list";
 import { EditorInspectorColorField } from "../fields/color";
 import { EditorInspectorStringField } from "../fields/string";
 import { EditorInspectorVectorField } from "../fields/vector";
@@ -56,6 +57,19 @@ export class EditorHemisphericLightInspector extends Component<IEditorInspectorI
 					<Divider />
 
 					<EditorInspectorNumberField label="Intensity" object={this.props.object} property="intensity" />
+				</EditorInspectorSectionField>
+
+				<EditorInspectorSectionField title="Lightmaps">
+					<EditorInspectorListField
+						label="Mode"
+						object={this.props.object}
+						property="lightmapMode"
+						items={[
+							{ text: "Default", value: HemisphericLight.LIGHTMAP_DEFAULT },
+							{ text: "Specular", value: HemisphericLight.LIGHTMAP_SPECULAR },
+							{ text: "Shadowmap Only", value: HemisphericLight.LIGHTMAP_SHADOWSONLY },
+						]}
+					/>
 				</EditorInspectorSectionField>
 
 				<ScriptInspectorComponent editor={this.props.editor} object={this.props.object} />
