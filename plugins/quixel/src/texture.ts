@@ -159,9 +159,15 @@ export async function copyTextures(editor: Editor, json: QuixelJsonType, assetsF
 		// Simply copy?
 		if (simpleCopy) {
 			const path = join(assetsFolder, c.name);
-			await copyFile(c.path, path);
 
-			return editor.layout.console.log(`Copied texture "${c.name}" at ${path}`);
+			try {
+				await copyFile(c.path, path);
+				editor.layout.console.log(`Copied texture "${c.name}" at ${path}`);
+			} catch (e) {
+				// Catch silently.
+			}
+
+			return;
 		}
 
 		// Check texture
