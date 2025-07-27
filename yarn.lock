@@ -4786,6 +4786,7 @@ babylonjs-editor-tools@latest:
     babylonjs-node-editor "8.24.0"
     babylonjs-post-process "8.24.0"
     babylonjs-procedural-textures "8.24.0"
+    babylonjs-serializers "8.24.0"
     cannon "0.6.2"
     chokidar "^4.0.3"
     class-variance-authority "^0.7.0"
@@ -4875,6 +4876,14 @@ babylonjs-procedural-textures@8.24.0:
   integrity sha512-Ni8j07IoRC4tqH6UO7HjIEGDhdzsZ4b28MOvWeSPS2yAc5qrvC47EMciXQTbpVSjgHgj3muHtjH8G51HxAJrbw==
   dependencies:
     babylonjs "^8.24.0"
+
+babylonjs-serializers@8.24.0:
+  version "8.24.0"
+  resolved "https://registry.yarnpkg.com/babylonjs-serializers/-/babylonjs-serializers-8.24.0.tgz#631bc64e3ae81b7e1584972bccc727ddd390293c"
+  integrity sha512-nZQUmZPJlC3i113WScx+w60rMfZhAPOl169jkp73/tO9ME5q93pBT0MUEFONt3Nqn9RNPLsGX0YgGMYijgRjLw==
+  dependencies:
+    babylonjs "^8.24.0"
+    babylonjs-gltf2interface "^8.24.0"
 
 babylonjs@8.24.0, babylonjs@^8.24.0:
   version "8.24.0"
