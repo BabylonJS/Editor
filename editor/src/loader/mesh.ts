@@ -44,7 +44,7 @@ export function parseMesh(runtime: AssimpJSRuntime, data: IAssimpJSNodeData): Me
 		const indicesStart = offset;
 		const indicesCount = i.length;
 
-		subMeshes.push(new SubMesh(index, verticesStart, verticesCount, indicesStart, indicesCount, mesh, mesh, false, true));
+		subMeshes.push(new SubMesh(index, verticesStart, verticesCount, indicesStart, indicesCount, mesh, mesh, true, true));
 
 		offset += i.length;
 	});
@@ -124,11 +124,9 @@ export function parseMesh(runtime: AssimpJSRuntime, data: IAssimpJSNodeData): Me
 		mesh.skeleton = skeleton;
 	}
 
-	const geometry = new Geometry(Tools.RandomId(), runtime.scene, vertexData, false);
+	const geometry = new Geometry(Tools.RandomId(), runtime.scene, vertexData, false, mesh);
 	geometry.toLeftHanded();
 	geometry.applyToMesh(mesh);
-
-	mesh.subMeshes = subMeshes;
 
 	runtime.container.meshes.push(mesh);
 	runtime.container.geometries.push(geometry);

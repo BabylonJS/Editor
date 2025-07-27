@@ -83,6 +83,7 @@ import { StatsValuesType } from "./preview/stats/types";
 
 import { applySoundAsset } from "./preview/import/sound";
 import { applyImportedGuiFile } from "./preview/import/gui";
+import { EditorPreviewLightmapGenerator } from "./preview/lightmap";
 import { applyTextureAssetToObject } from "./preview/import/texture";
 import { applyMaterialAssetToObject } from "./preview/import/material";
 import { EditorPreviewConvertProgress } from "./preview/import/progress";
@@ -159,6 +160,8 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	 * The play component of the preview.
 	 */
 	public play: EditorPreviewPlayComponent;
+
+	public lightmaps: EditorPreviewLightmapGenerator;
 
 	/**
 	 * The current statistics of the preview.
@@ -249,6 +252,8 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 					<SpinnerUIComponent width="16" />
 					<div>{this.state.informationMessage}</div>
 				</div>
+
+				<EditorPreviewLightmapGenerator ref={(r) => (this.lightmaps = r!)} editor={this.props.editor} />
 			</div>
 		);
 	}
