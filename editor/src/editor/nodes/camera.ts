@@ -7,12 +7,12 @@ export class EditorCamera extends FreeCamera {
 	private _keyboardDownListener: (ev: KeyboardEvent) => void;
 
 	/**
-     * Consstructor.
-     * @param name defines the name of the camera.
-     * @param position defines the start position of the camera.
-     * @param scene defines the reference to the scene where to add the camera.
-     * @param setActiveOnSceneIfNoneActive defines wether or not camera should be set as active 
-     */
+	 * Constructor.
+	 * @param name defines the name of the camera.
+	 * @param position defines the start position of the camera.
+	 * @param scene defines the reference to the scene where to add the camera.
+	 * @param setActiveOnSceneIfNoneActive defines wether or not camera should be set as active 
+	 */
 	public constructor(name: string, position: Vector3, scene: Scene, setActiveOnSceneIfNoneActive?: boolean) {
 		super(name, position, scene, setActiveOnSceneIfNoneActive);
 
@@ -42,10 +42,10 @@ export class EditorCamera extends FreeCamera {
 	}
 
 	/**
-     * Some preferences for the editor's camera are saved in the local storage in order
-     * to be global for each project. This function tries to get the preferences from the local storage
-     * and applies it to the camera.
-     */
+	 * Some preferences for the editor's camera are saved in the local storage in order
+	 * to be global for each project. This function tries to get the preferences from the local storage
+	 * and applies it to the camera.
+	 */
 	public configureFromPreferences(): void {
 		try {
 			const keys = JSON.parse(localStorage.getItem("editor-camera-controls") as string);
@@ -61,8 +61,8 @@ export class EditorCamera extends FreeCamera {
 	}
 
 	/**
-     * Destroy the camera and release the current resources hold by it.
-     */
+	 * Destroy the camera and release the current resources hold by it.
+	 */
 	public dispose(): void {
 		super.dispose();
 
@@ -71,9 +71,9 @@ export class EditorCamera extends FreeCamera {
 	}
 
 	/**
-     * Gets the current object class name.
-     * @return the class name
-     */
+	 * Gets the current object class name.
+	 * @return the class name
+	 */
 	public getClassName(): string {
 		return "EditorCamera";
 	}
