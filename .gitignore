@@ -145,7 +145,7 @@ tools/declaration
 tools/coverage
 
 # Template
-template/nextjs/.next
+templates/nextjs/.next
 
 # Website
 website/.next
