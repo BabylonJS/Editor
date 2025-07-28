@@ -2,9 +2,9 @@ import { join } from "node:path";
 import { execSync } from "node:child_process";
 import { access, rename, rm, mkdir, copyFile } from "node:fs/promises";
 
-import nextjsTemplatePackageJson from "./template/nextjs/package.json" with { type: "json" };
-import solidjsTemplatePackageJson from "./template/solidjs/package.json" with { type: "json" };
-import vanillajsTemplatePackageJson from "./template/vanillajs/package.json" with { type: "json" };
+import nextjsTemplatePackageJson from "./templates/nextjs/package.json" with { type: "json" };
+import solidjsTemplatePackageJson from "./templates/solidjs/package.json" with { type: "json" };
+import vanillajsTemplatePackageJson from "./templates/vanillajs/package.json" with { type: "json" };
 
 const rootNodeModules = join(process.cwd(), "./node_modules/@babylonjs/core");
 const editorNodeModules = join(process.cwd(), "./editor/node_modules/@babylonjs/core");
@@ -62,7 +62,7 @@ async function packTemplates() {
         const tgzName = `${template.packageJson.name}-v${template.packageJson.version}.tgz`;
 
         execSync("yarn pack", {
-            cwd: join(import.meta.dirname, `template/${template.name}`),
+            cwd: join(import.meta.dirname, `templates/${template.name}`),
         });
 
         try {
@@ -72,11 +72,11 @@ async function packTemplates() {
         }
 
         await copyFile(
-            join(import.meta.dirname, `template/${template.name}`, tgzName),
+            join(import.meta.dirname, `templates/${template.name}`, tgzName),
             join(import.meta.dirname, `editor/templates/${template.name}.tgz`),
         );
 
-        await rm(join(import.meta.dirname, `template/${template.name}`, tgzName));
+        await rm(join(import.meta.dirname, `templates/${template.name}`, tgzName));
 
         console.log("Packed template: ", tgzName);
     }
