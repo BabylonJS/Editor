@@ -19,80 +19,97 @@ import { GiCeilingLight } from "react-icons/gi";
 import { GrStatusUnknown } from "react-icons/gr";
 import { BsFiletypeMp3, BsFiletypeWav } from "react-icons/bs";
 import { AiFillFileMarkdown, AiOutlineClose } from "react-icons/ai";
-import { SiBabylondotjs, SiDotenv, SiJavascript, SiTypescript } from "react-icons/si";
+import {
+	SiBabylondotjs,
+	SiDotenv,
+	SiJavascript,
+	SiTypescript,
+} from "react-icons/si";
 
 import { FolderIcon } from "@heroicons/react/20/solid";
 
 import { EXRIcon } from "../../../../ui/icons/exr";
 import { Input } from "../../../../ui/shadcn/ui/input";
-import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger, ContextMenuSeparator } from "../../../../ui/shadcn/ui/context-menu";
+import {
+	ContextMenu,
+	ContextMenuContent,
+	ContextMenuItem,
+	ContextMenuTrigger,
+	ContextMenuSeparator,
+} from "../../../../ui/shadcn/ui/context-menu";
 
 import { Editor } from "../../../main";
 
-
 export interface IAssetsBrowserItemProps {
-	/**
-	 * The editor reference.
-	 */
-	editor: Editor;
-	/**
-	 * The absolute path of the item.
-	 */
-	absolutePath: string;
+  /**
+   * The editor reference.
+   */
+  editor: Editor;
+  /**
+   * The absolute path of the item.
+   */
+  absolutePath: string;
 
-	/**
-	 * Defines wether or not the item is selected.
-	 */
-	selected: boolean;
-	/**
-	 * Defines the key used to identify the item in the selectable context.
-	 */
-	selectableKey: string;
+  /**
+   * Defines wether or not the item is selected.
+   */
+  selected: boolean;
+  /**
+   * Defines the key used to identify the item in the selectable context.
+   */
+  selectableKey: string;
 
-	/**
-	 * Called on click.
-	 * @param event defines the mouse event.
-	 * @param item the item that has been clicked.
-	 * @param contextMenu defines whether or not the context menu has been triggered.
-	 */
-	onClick: (event: MouseEvent<HTMLDivElement, globalThis.MouseEvent>, item: AssetsBrowserItem, contextMenu: boolean) => void;
-	/**
-	 * Called on double click.
-	 * @param item the item that has been double clicked.
-	 */
-	onDoubleClick: (item: AssetsBrowserItem) => void;
+  /**
+   * Called on click.
+   * @param event defines the mouse event.
+   * @param item the item that has been clicked.
+   * @param contextMenu defines whether or not the context menu has been triggered.
+   */
+  onClick: (
+    event: MouseEvent<HTMLDivElement, globalThis.MouseEvent>,
+    item: AssetsBrowserItem,
+    contextMenu: boolean
+  ) => void;
+  /**
+   * Called on double click.
+   * @param item the item that has been double clicked.
+   */
+  onDoubleClick: (item: AssetsBrowserItem) => void;
 
-	/**
-	 * Called on the item asks for a refresh.
-	 */
-	onRefresh: () => void;
-	/**
-	 * Called on the item wants to control the state of the selectable context.
-	 */
-	setSelectionEnabled: (enabled: boolean) => void;
+  /**
+   * Called on the item asks for a refresh.
+   */
+  onRefresh: () => void;
+  /**
+   * Called on the item wants to control the state of the selectable context.
+   */
+  setSelectionEnabled: (enabled: boolean) => void;
 }
 
 export interface IAssetsBrowserItemState {
-	/**
-	 * Defines whether or not the item is loading.
-	 */
-	isLoading: boolean;
-	/**
-	 * Defines whether or not the item is a directory.
-	 */
-	isDirectory: boolean;
-	/**
-	 * Defines whether or not the item is being renamed.
-	 */
-	isRenaming: boolean;
+  /**
+   * Defines whether or not the item is loading.
+   */
+  isLoading: boolean;
+  /**
+   * Defines whether or not the item is a directory.
+   */
+  isDirectory: boolean;
+  /**
+   * Defines whether or not the item is being renamed.
+   */
+  isRenaming: boolean;
 
-	/**
-	 * Defines the optional preview image.
-	 */
-	previewImage: string | null;
+  /**
+   * Defines the optional preview image.
+   */
+  previewImage: string | null;
 }
 
-export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAssetsBrowserItemState> {
+export class AssetsBrowserItem extends Component<
+  IAssetsBrowserItemProps,
+  IAssetsBrowserItemState
+> {
 	private _renameValue: string = "";
 
 	public constructor(props: IAssetsBrowserItemProps) {
@@ -111,7 +128,11 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 		const icon = this.getIcon();
 
 		return (
-			<Tooltip position="bottom" content={basename(this.props.absolutePath)} disabled={this.state.isRenaming}>
+			<Tooltip
+				position="bottom"
+				content={basename(this.props.absolutePath)}
+				disabled={this.state.isRenaming}
+			>
 				<ContextMenu>
 					<ContextMenuTrigger>
 						<div
@@ -126,12 +147,24 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 									this.props.onClick(ev, this, false);
 								}
 							}}
-							onContextMenu={(ev) => !this.state.isLoading && !this.state.isRenaming && this.props.onClick(ev, this, true)}
+							onContextMenu={(ev) =>
+								!this.state.isLoading &&
+                !this.state.isRenaming &&
+                this.props.onClick(ev, this, true)
+							}
 							onDoubleClick={() => this._handleDoubleClick()}
 							className={`
                                 flex flex-col gap-2 w-[120px] h-[120px] py-2 cursor-pointer rounded-lg
-                                ${this.state.isRenaming ? "px-1 scale-150 relative z-[9999] backdrop-blur-sm" : "px-5 scale-100"}
-                                ${this.props.selected ? "bg-muted-foreground/35" : "hover:bg-secondary"}
+                                ${
+			this.state.isRenaming
+				? "px-1 scale-150 relative z-[9999] backdrop-blur-sm"
+				: "px-5 scale-100"
+			}
+                                ${
+			this.props.selected
+				? "bg-muted-foreground/35"
+				: "hover:bg-secondary"
+			}
                                 transition-all duration-300
                             `}
 						>
@@ -158,9 +191,13 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 									color: icon ? undefined : "gray",
 								}}
 								onDoubleClick={(ev) => this._handleNameDoubleClicked(ev)}
-								className={`select-none text-center w-full ${this.state.isRenaming ? "" : "text-ellipsis overflow-hidden whitespace-nowrap"}`}
+								className={`select-none text-center w-full ${
+									this.state.isRenaming
+										? ""
+										: "text-ellipsis overflow-hidden whitespace-nowrap"
+								}`}
 							>
-								{this.state.isRenaming &&
+								{this.state.isRenaming && (
 									<Input
 										className="h-5 py-0 text-center scale-75 bg-primary-foreground"
 										ref={(r) => {
@@ -170,13 +207,22 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 											}, 0);
 										}}
 										onClick={(ev) => ev.stopPropagation()}
-										onChange={(ev) => this._renameValue = ev.currentTarget.value}
+										onChange={(ev) =>
+											(this._renameValue = ev.currentTarget.value)
+										}
 										defaultValue={basename(this.props.absolutePath)}
-										onFocus={(ev) => this._renameValue = ev.currentTarget.value}
-										onBlur={(ev) => this._handleRenameFileOrFolder(ev.currentTarget.value)}
-										onKeyDown={(ev) => ev.key === "Enter" && this._handleRenameFileOrFolder(ev.currentTarget.value)}
+										onFocus={(ev) =>
+											(this._renameValue = ev.currentTarget.value)
+										}
+										onBlur={(ev) =>
+											this._handleRenameFileOrFolder(ev.currentTarget.value)
+										}
+										onKeyDown={(ev) =>
+											ev.key === "Enter" &&
+                      this._handleRenameFileOrFolder(ev.currentTarget.value)
+										}
 									/>
-								}
+								)}
 
 								{!this.state.isRenaming && basename(this.props.absolutePath)}
 							</div>
@@ -184,7 +230,6 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 					</ContextMenuTrigger>
 					{this._getContextMenuContent()}
 				</ContextMenu>
-
 			</Tooltip>
 		);
 	}
@@ -216,15 +261,17 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 	}
 
 	/**
-	 * Called on the item is double-clicked. To be overriden by the specialized items implementations.
-	 */
+   * Called on the item is double-clicked. To be overriden by the specialized items implementations.
+   */
 	protected onDoubleClick(): void | Promise<void> {
 		// Nothing to do by default.
 	}
 
 	private _handleDragStart(ev: DragEvent<HTMLDivElement>): void {
 		const extension = extname(this.props.absolutePath).toLowerCase();
-		const files = this.props.editor.layout.assets.state.selectedKeys.filter((key) => extname(key).toLowerCase() === extension);
+		const files = this.props.editor.layout.assets.state.selectedKeys.filter(
+			(key) => extname(key).toLowerCase() === extension
+		);
 
 		const alreadySelected = files.includes(this.props.absolutePath);
 
@@ -234,9 +281,13 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 
 		if (!alreadySelected) {
 			if (ev.ctrlKey || ev.metaKey) {
-				this.props.editor.layout.assets.addToSelectedFiles(this.props.absolutePath);
+				this.props.editor.layout.assets.addToSelectedFiles(
+					this.props.absolutePath
+				);
 			} else {
-				this.props.editor.layout.assets.setSelectedFile(this.props.absolutePath);
+				this.props.editor.layout.assets.setSelectedFile(
+					this.props.absolutePath
+				);
 			}
 		}
 
@@ -257,10 +308,13 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 			return;
 		}
 
-		return this.props.editor.layout.assets.handleMoveSelectedFilesTo(this.props.absolutePath);
+		return this.props.editor.layout.assets.handleMoveSelectedFilesTo(
+			this.props.absolutePath
+		);
 	}
 
-	private _renameMouseListener: ((ev: globalThis.MouseEvent) => void) | null = null;
+	private _renameMouseListener: ((ev: globalThis.MouseEvent) => void) | null =
+		null;
 	private _renameKeyboardListener: ((ev: KeyboardEvent) => void) | null = null;
 
 	private _handleNameDoubleClicked(ev: MouseEvent<HTMLDivElement>): void {
@@ -271,20 +325,26 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 				isRenaming: true,
 			});
 
-			window.addEventListener("keyup", this._renameKeyboardListener = (ev) => {
-				if (ev.key === "Escape") {
-					this.setState({
-						isRenaming: false,
-					});
-					this._removeRenameEventListeners();
+			window.addEventListener(
+				"keyup",
+				(this._renameKeyboardListener = (ev) => {
+					if (ev.key === "Escape") {
+						this.setState({
+							isRenaming: false,
+						});
+						this._removeRenameEventListeners();
 
-					this.props.setSelectionEnabled(true);
-				}
-			});
+						this.props.setSelectionEnabled(true);
+					}
+				})
+			);
 
-			window.addEventListener("click", this._renameMouseListener = () => {
-				this._handleRenameFileOrFolder(this._renameValue);
-			});
+			window.addEventListener(
+				"click",
+				(this._renameMouseListener = () => {
+					this._handleRenameFileOrFolder(this._renameValue);
+				})
+			);
 		}
 	}
 
@@ -298,20 +358,24 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 					value += existingExtenstion;
 				}
 
-				const newAbsolutePath = `${join(dirname(this.props.absolutePath), value)}`;
+				const newAbsolutePath = `${join(
+					dirname(this.props.absolutePath),
+					value
+				)}`;
 
 				await rename(this.props.absolutePath, newAbsolutePath);
 
 				// Check file renamed
-				this.props.editor.layout.assets.handleFileRenamed(this.props.absolutePath, newAbsolutePath);
+				this.props.editor.layout.assets.handleFileRenamed(
+					this.props.absolutePath,
+					newAbsolutePath
+				);
 
 				this.props.onRefresh();
 			}
 		} catch (e) {
 			console.error(e);
-			toast("Failed to rename the file or folder.", {
-				important: true,
-			});
+			toast("Failed to rename the file or folder.");
 		}
 
 		this.setState({
@@ -335,9 +399,9 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 	}
 
 	/**
-	 * Returns the context menu content for the current item.
-	 * To be overriden by the specialized items implementations.
-	 */
+   * Returns the context menu content for the current item.
+   * To be overriden by the specialized items implementations.
+   */
 	protected getContextMenuContent(): ReactNode {
 		return null;
 	}
@@ -348,35 +412,47 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 
 		return (
 			<ContextMenuContent>
-				<ContextMenuItem className="flex items-center gap-2" onClick={() => ipcRenderer.send("editor:show-item", this.props.absolutePath)}>
-					<ImFinder className="w-4 h-4" /> {`Show in ${isDarwin ? "Finder" : "Explorer"}`}
+				<ContextMenuItem
+					className="flex items-center gap-2"
+					onClick={() =>
+						ipcRenderer.send("editor:show-item", this.props.absolutePath)
+					}
+				>
+					<ImFinder className="w-4 h-4" />{" "}
+					{`Show in ${isDarwin ? "Finder" : "Explorer"}`}
 				</ContextMenuItem>
 
 				<ContextMenuSeparator />
 
 				{items.map((item, index) => (
-					<Fragment key={`context-menu-item-${index}`}>
-						{item}
-					</Fragment>
+					<Fragment key={`context-menu-item-${index}`}>{item}</Fragment>
 				))}
-				{items.filter((item) => item).length > 0 &&
-					<ContextMenuSeparator />
-				}
+				{items.filter((item) => item).length > 0 && <ContextMenuSeparator />}
 
-				<ContextMenuItem onClick={() => this.props.editor.layout.assets.copySelectedFiles()}>Copy</ContextMenuItem>
+				<ContextMenuItem
+					onClick={() => this.props.editor.layout.assets.copySelectedFiles()}
+				>
+          Copy
+				</ContextMenuItem>
 
 				<ContextMenuSeparator />
 
-				<ContextMenuItem onClick={() => {
-					this.setState({ isRenaming: true });
-					this.props.setSelectionEnabled(false);
-				}}>
-					Rename...
+				<ContextMenuItem
+					onClick={() => {
+						this.setState({ isRenaming: true });
+						this.props.setSelectionEnabled(false);
+					}}
+				>
+          Rename...
 				</ContextMenuItem>
 				<ContextMenuSeparator />
 
-				<ContextMenuItem className="flex items-center gap-2 !text-red-400" onClick={() => this._handleTrashItem()}>
-					<AiOutlineClose className="w-5 h-5" fill="rgb(248, 113, 113)" /> Remove
+				<ContextMenuItem
+					className="flex items-center gap-2 !text-red-400"
+					onClick={() => this._handleTrashItem()}
+				>
+					<AiOutlineClose className="w-5 h-5" fill="rgb(248, 113, 113)" />{" "}
+          Remove
 				</ContextMenuItem>
 			</ContextMenuContent>
 		);
@@ -386,13 +462,11 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 		try {
 			const result = ipcRenderer.sendSync(
 				"editor:trash-items",
-				this.props.editor.layout.assets.state.selectedKeys,
+				this.props.editor.layout.assets.state.selectedKeys
 			);
 
 			if (!result) {
-				toast("Failed to trash some assets", {
-					important: true,
-				});
+				toast("Failed to trash some assets");
 			}
 
 			this.props.onRefresh();
@@ -403,7 +477,11 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 
 	private async _computePreviewImage(): Promise<void> {
 		const files = await readdir(this.props.absolutePath);
-		const previewImage = files.find((f) => f.startsWith("editor_preview") && (f.endsWith(".png") || f.endsWith(".jpg") || f.endsWith(".jpeg")));
+		const previewImage = files.find(
+			(f) =>
+				f.startsWith("editor_preview") &&
+        (f.endsWith(".png") || f.endsWith(".jpg") || f.endsWith(".jpeg"))
+		);
 
 		if (previewImage) {
 			this.setState({
@@ -415,7 +493,12 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 	protected getIcon(): ReactNode {
 		if (this.state.isDirectory) {
 			if (this.state.previewImage) {
-				return <img src={this.state.previewImage} className="p-2 w-20 h-20 object-contain bg-secondary rounded-lg" />;
+				return (
+					<img
+						src={this.state.previewImage}
+						className="p-2 w-20 h-20 object-contain bg-secondary rounded-lg"
+					/>
+				);
 			}
 
 			return <FolderIcon width="80px" />;
@@ -428,7 +511,13 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 			case ".jpeg":
 			case ".svg":
 			case ".ico":
-				return <img alt="" src={this.props.absolutePath} className="w-[120px] aspect-square object-contain" />;
+				return (
+					<img
+						alt=""
+						src={this.props.absolutePath}
+						className="w-[120px] aspect-square object-contain"
+					/>
+				);
 
 			case ".env":
 				return <SiDotenv size="64px" />;
@@ -466,7 +555,8 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 			case ".exr":
 				return <EXRIcon size="64px" />;
 
-			default: return null;
+			default:
+				return null;
 		}
 	}
 }

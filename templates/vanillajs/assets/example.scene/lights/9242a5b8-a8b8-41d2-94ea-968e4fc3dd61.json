@@ -1,0 +1,52 @@
+{
+    "tags": null,
+    "shadowFrustumSize": 0,
+    "shadowOrthoScale": 0.1,
+    "autoUpdateExtends": true,
+    "autoCalcShadowZBounds": false,
+    "orthoLeft": 1.7976931348623157e+308,
+    "orthoRight": 5e-324,
+    "orthoTop": 5e-324,
+    "orthoBottom": 1.7976931348623157e+308,
+    "diffuse": [
+        1,
+        1,
+        1
+    ],
+    "specular": [
+        1,
+        1,
+        1
+    ],
+    "falloffType": 0,
+    "intensity": 3.432499999999996,
+    "range": 1.7976931348623157e+308,
+    "intensityMode": 0,
+    "radius": 0.00001,
+    "_renderPriority": 0,
+    "shadowEnabled": true,
+    "excludeWithLayerMask": 0,
+    "includeOnlyWithLayerMask": 0,
+    "lightmapMode": 0,
+    "position": [
+        100,
+        200,
+        100
+    ],
+    "direction": [
+        -1,
+        -2,
+        -1
+    ],
+    "name": "sun",
+    "id": "9242a5b8-a8b8-41d2-94ea-968e4fc3dd61",
+    "state": "",
+    "metadata": {
+        "refreshRate": 1
+    },
+    "uniqueId": 1711817431327,
+    "type": 1,
+    "animations": [],
+    "ranges": [],
+    "isEnabled": true
+}

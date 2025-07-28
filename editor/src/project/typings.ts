@@ -22,6 +22,9 @@ export interface IEditorProject {
      */
     compressedTexturesEnabledInPreview: boolean;
 
+    /**
+     * The package manager being used by the project.
+     */
     packageManager?: EditorProjectPackageManager;
 }
 
@@ -33,3 +36,6 @@ export interface IEditorProjectPlugin {
 }
 
 export type EditorProjectPackageManager = "npm" | "yarn" | "pnpm" | "bun";
+
+
+export type EditorProjectTemplate = "nextjs" | "solidjs" | "vanillajs";
