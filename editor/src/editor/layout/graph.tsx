@@ -34,10 +34,10 @@ import { isSound } from "../../tools/guards/sound";
 import { isSceneLinkNode } from "../../tools/guards/scene";
 import { updateAllLights } from "../../tools/light/shadows";
 import { getCollisionMeshFor } from "../../tools/mesh/collision";
+import { isNodeVisibleInGraph } from "../../tools/node/metadata";
 import { isAdvancedDynamicTexture } from "../../tools/guards/texture";
 import { updateIblShadowsRenderPipeline } from "../../tools/light/ibl";
 import { UniqueNumber, waitNextAnimationFrame } from "../../tools/tools";
-import { isMeshMetadataNotVisibleInGraph } from "../../tools/mesh/metadata";
 import { isAnyParticleSystem, isGPUParticleSystem, isParticleSystem } from "../../tools/guards/particles";
 import {
 	isAbstractMesh,
@@ -676,7 +676,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 	}
 
 	private _parseSceneNode(node: Node, noChildren?: boolean): TreeNodeInfo | null {
-		if ((isMesh(node) && (node._masterMesh || isMeshMetadataNotVisibleInGraph(node))) || isCollisionMesh(node) || isCollisionInstancedMesh(node)) {
+		if ((isMesh(node) && (node._masterMesh || !isNodeVisibleInGraph(node))) || isCollisionMesh(node) || isCollisionInstancedMesh(node)) {
 			return null;
 		}
 
@@ -773,7 +773,19 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		return (
 			<div
 				onClick={(ev) => {
-					node.setEnabled(!node.isEnabled());
+					const enabled = !node.isEnabled();
+
+					let selectedNodeData = this.getSelectedNodes().map((n) => n.nodeData);
+					if (!selectedNodeData.includes(node)) {
+						selectedNodeData = [node];
+					}
+
+					selectedNodeData.forEach((node) => {
+						if (isNode(node)) {
+							node.setEnabled(enabled);
+						}
+					});
+
 					this.refresh();
 					ev.stopPropagation();
 

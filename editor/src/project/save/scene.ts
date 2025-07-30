@@ -9,9 +9,9 @@ import { Editor } from "../../editor/main";
 
 import { isSceneLinkNode } from "../../tools/guards/scene";
 import { isFromSceneLink } from "../../tools/scene/scene-link";
+import { isNodeVisibleInGraph } from "../../tools/node/metadata";
 import { getBufferSceneScreenshot } from "../../tools/scene/screenshot";
 import { createDirectoryIfNotExist, normalizedGlob } from "../../tools/fs";
-import { isMeshMetadataNotVisibleInGraph } from "../../tools/mesh/metadata";
 import { isCollisionMesh, isEditorCamera, isMesh } from "../../tools/guards/nodes";
 import { isGPUParticleSystem, isParticleSystem } from "../../tools/guards/particles";
 import { serializePhysicsAggregate } from "../../tools/physics/serialization/aggregate";
@@ -60,7 +60,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 	// Write geometries and meshes
 	await Promise.all(
 		scene.meshes.map(async (mesh) => {
-			if ((!isMesh(mesh) && !isCollisionMesh(mesh)) || mesh._masterMesh || isFromSceneLink(mesh) || isMeshMetadataNotVisibleInGraph(mesh)) {
+			if ((!isMesh(mesh) && !isCollisionMesh(mesh)) || mesh._masterMesh || isFromSceneLink(mesh) || !isNodeVisibleInGraph(mesh)) {
 				return;
 			}
 
@@ -229,7 +229,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 	// Write morph targets
 	await Promise.all(
 		scene.meshes.map(async (mesh) => {
-			if (!mesh.morphTargetManager || isFromSceneLink(mesh) || isMeshMetadataNotVisibleInGraph(mesh)) {
+			if (!mesh.morphTargetManager || isFromSceneLink(mesh) || !isNodeVisibleInGraph(mesh)) {
 				return;
 			}
 

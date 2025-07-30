@@ -35,7 +35,7 @@ export * from "./tools/maths/scalar";
 export * from "./tools/maths/projection";
 
 export * from "./tools/light/shadows";
-export * from "./tools/mesh/metadata";
+export * from "./tools/node/metadata";
 export * from "./tools/mesh/material";
 export * from "./tools/mesh/collision";
 export * from "./tools/scene/materials";

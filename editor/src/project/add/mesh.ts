@@ -29,6 +29,7 @@ export function addBoxMesh(editor: Editor, parent?: Node) {
 		width: 100,
 		depth: 100,
 		height: 100,
+		sideOrientation: Mesh.FRONTSIDE,
 	};
 
 	if (box.geometry) {
@@ -116,6 +117,7 @@ export function addSphereMesh(editor: Editor, parent?: Node) {
 		type: "Sphere",
 		diameter: 100,
 		segments: 32,
+		sideOrientation: Mesh.FRONTSIDE,
 	};
 
 	if (sphere.geometry) {

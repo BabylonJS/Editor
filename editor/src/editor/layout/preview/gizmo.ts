@@ -13,6 +13,7 @@ import {
 	AbstractMesh,
 } from "babylonjs";
 
+import { isNodeLocked } from "../../../tools/node/metadata";
 import { registerUndoRedo } from "../../../tools/undoredo";
 import { isQuaternion, isVector3 } from "../../../tools/guards/math";
 import { updateIblShadowsRenderPipeline } from "../../../tools/light/ibl";
@@ -108,6 +109,10 @@ export class EditorPreviewGizmo {
 	 * @param node The node to attach to the gizmo.
 	 */
 	public setAttachedNode(node: Node | null): void {
+		if (node && isNodeLocked(node)) {
+			node = null;
+		}
+
 		this._attachedNode = node;
 
 		if (node && isCamera(node)) {

@@ -8,6 +8,7 @@ import { Mesh, Node, Scene, Vector2, Sound, Vector3 } from "babylonjs";
 import { Editor } from "../../main";
 
 import { isSound } from "../../../tools/guards/sound";
+import { isNodeLocked } from "../../../tools/node/metadata";
 import { projectVectorOnScreen } from "../../../tools/maths/projection";
 import { isCamera, isEditorCamera, isLight, isNode } from "../../../tools/guards/nodes";
 
@@ -65,7 +66,10 @@ export class EditorPreviewIcons extends Component<IEditorPreviewIconsProps, IEdi
 								this.props.editor.layout.preview.gizmo.setAttachedNode(button.node);
 							}
 						}}
-						className="absolute w-16 h-16 pointer-events-auto rounded-lg -translate-x-1/2 hover:bg-black/20 transition-colors duration-300"
+						className={`
+							absolute w-16 h-16 rounded-lg -translate-x-1/2 hover:bg-black/20 transition-colors duration-300
+							${isNode(button.node) && isNodeLocked(button.node) ? "pointer-events-none" : "pointer-events-auto"}	
+						`}
 					>
 						{this._getIcon(button.node)}
 					</div>

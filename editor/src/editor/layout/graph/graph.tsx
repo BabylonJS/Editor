@@ -30,6 +30,7 @@ import { registerUndoRedo } from "../../../tools/undoredo";
 import { isScene, isSceneLinkNode } from "../../../tools/guards/scene";
 import { UniqueNumber, waitNextAnimationFrame } from "../../../tools/tools";
 import { isAbstractMesh, isMesh, isNode } from "../../../tools/guards/nodes";
+import { isNodeLocked, isNodeSerializable, setNodeLocked, setNodeSerializable } from "../../../tools/node/metadata";
 
 import { addGPUParticleSystem, addParticleSystem } from "../../../project/add/particles";
 
@@ -113,12 +114,29 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
 									<ContextMenuSeparator />
 
 									<ContextMenuCheckboxItem
-										checked={this.props.object.metadata?.doNotSerialize ?? false}
+										checked={isNodeLocked(this.props.object)}
 										onClick={() => {
+											const locked = !isNodeLocked(this.props.object);
+
 											this.props.editor.layout.graph.getSelectedNodes().forEach((node) => {
 												if (isNode(node.nodeData)) {
-													node.nodeData.metadata ??= {};
-													node.nodeData.metadata.doNotSerialize = node.nodeData.metadata.doNotSerialize ? false : true;
+													setNodeLocked(node.nodeData, locked);
+												}
+											});
+											this.props.editor.layout.graph.refresh();
+										}}
+									>
+										Locked
+									</ContextMenuCheckboxItem>
+
+									<ContextMenuCheckboxItem
+										checked={!isNodeSerializable(this.props.object)}
+										onClick={() => {
+											const serializable = !isNodeSerializable(this.props.object);
+
+											this.props.editor.layout.graph.getSelectedNodes().forEach((node) => {
+												if (isNode(node.nodeData)) {
+													setNodeSerializable(node.nodeData, serializable);
 												}
 											});
 											this.props.editor.layout.graph.refresh();
