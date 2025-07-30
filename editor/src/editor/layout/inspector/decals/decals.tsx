@@ -14,7 +14,7 @@ import { Editor } from "../../../main";
 import { isDarwin } from "../../../../tools/os";
 import { registerUndoRedo } from "../../../../tools/undoredo";
 import { UniqueNumber, waitNextAnimationFrame } from "../../../../tools/tools";
-import { setMeshMetadataNotSerializable, setMeshMetadataNotVisibleInGraph } from "../../../../tools/mesh/metadata";
+import { setNodeSerializable, setNodeVisibleInGraph } from "../../../../tools/node/metadata";
 
 import { loadImportedMaterial } from "../../preview/import/import";
 
@@ -298,8 +298,8 @@ export class EditorDecalsInspector extends Component<IEditorDecalsInspectorProps
 		this._decalMesh.receiveShadows = true;
 		this._decalMesh.visibility = this.state.ctrlOrMetaKeyDown ? 1 : 0.35;
 
-		setMeshMetadataNotSerializable(this._decalMesh, true);
-		setMeshMetadataNotVisibleInGraph(this._decalMesh, true);
+		setNodeSerializable(this._decalMesh, false);
+		setNodeVisibleInGraph(this._decalMesh, false);
 
 		if (this.state.material.zOffset === 0) {
 			this.state.material.zOffset = -3;
@@ -345,8 +345,8 @@ export class EditorDecalsInspector extends Component<IEditorDecalsInspectorProps
 				},
 			};
 
-			setMeshMetadataNotSerializable(decalMesh, false);
-			setMeshMetadataNotVisibleInGraph(decalMesh, false);
+			setNodeSerializable(decalMesh, true);
+			setNodeVisibleInGraph(decalMesh, true);
 
 			registerUndoRedo({
 				executeRedo: false,

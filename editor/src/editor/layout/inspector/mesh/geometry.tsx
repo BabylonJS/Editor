@@ -2,6 +2,7 @@ import { Component, ReactNode } from "react";
 
 import { CreateBoxVertexData, CreateSphereVertexData, CreateGroundVertexData, Mesh } from "babylonjs";
 
+import { EditorInspectorListField } from "../fields/list";
 import { EditorInspectorNumberField } from "../fields/number";
 import { EditorInspectorSectionField } from "../fields/section";
 
@@ -33,6 +34,7 @@ export class MeshGeometryInspector extends Component<IMeshGeometryInspectorProps
 					width: this.props.object.metadata.width,
 					height: this.props.object.metadata.height,
 					depth: this.props.object.metadata.depth,
+					sideOrientation: this.props.object.metadata.sideOrientation,
 				}),
 				false
 			);
@@ -43,6 +45,15 @@ export class MeshGeometryInspector extends Component<IMeshGeometryInspectorProps
 				<EditorInspectorNumberField object={proxy} property="width" label="Width" step={0.1} />
 				<EditorInspectorNumberField object={proxy} property="height" label="Height" step={0.1} />
 				<EditorInspectorNumberField object={proxy} property="depth" label="Depth" step={0.1} />
+				<EditorInspectorListField
+					object={proxy}
+					property="sideOrientation"
+					label="Side Orientation"
+					items={[
+						{ text: "Front", value: Mesh.FRONTSIDE },
+						{ text: "Back", value: Mesh.BACKSIDE },
+					]}
+				/>
 			</EditorInspectorSectionField>
 		);
 	}
@@ -53,6 +64,7 @@ export class MeshGeometryInspector extends Component<IMeshGeometryInspectorProps
 				CreateSphereVertexData({
 					diameter: this.props.object.metadata.diameter,
 					segments: this.props.object.metadata.segments,
+					sideOrientation: this.props.object.metadata.sideOrientation,
 				}),
 				false
 			);
@@ -62,6 +74,15 @@ export class MeshGeometryInspector extends Component<IMeshGeometryInspectorProps
 			<EditorInspectorSectionField title="Sphere">
 				<EditorInspectorNumberField object={proxy} property="diameter" label="Diameter" step={0.1} min={0.01} />
 				<EditorInspectorNumberField object={proxy} property="segments" label="Segments" step={0.1} min={2} />
+				<EditorInspectorListField
+					object={proxy}
+					property="sideOrientation"
+					label="Side Orientation"
+					items={[
+						{ text: "Front", value: Mesh.FRONTSIDE },
+						{ text: "Back", value: Mesh.BACKSIDE },
+					]}
+				/>
 			</EditorInspectorSectionField>
 		);
 	}

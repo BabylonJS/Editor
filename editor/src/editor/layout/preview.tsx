@@ -40,6 +40,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Editor } from "../main";
 
 import { Tween } from "../../tools/animation/tween";
+import { isNodeLocked } from "../../tools/node/metadata";
 import { registerUndoRedo } from "../../tools/undoredo";
 import { initializeHavok } from "../../tools/physics/init";
 import { onTextureAddedObservable } from "../../tools/observables";
@@ -500,7 +501,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		const pickingInfo = this._getPickingInfo(x, y);
 		const mesh = pickingInfo.pickedMesh?._masterMesh ?? pickingInfo.pickedMesh;
 
-		if (mesh && this._meshUnderPointer !== mesh) {
+		if (mesh && this._meshUnderPointer !== mesh && !isNodeLocked(mesh)) {
 			this._restoreCurrentMeshUnderPointer();
 			this._highlightCurrentMeshUnderPointer(mesh);
 
@@ -552,7 +553,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		const pickingInfo = this._getPickingInfo(this.scene.pointerX, this.scene.pointerY);
 
 		let mesh = (pickingInfo.pickedMesh?._masterMesh ?? pickingInfo.pickedMesh) as Node;
-		if (mesh) {
+		if (mesh && !isNodeLocked(mesh)) {
 			const sceneLink = getRootSceneLink(mesh);
 			if (sceneLink) {
 				mesh = sceneLink;
@@ -1032,7 +1033,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 				case ".ms3d":
 				case ".blend":
 				case ".babylon":
-					this.importSceneFile(absolutePath, !ev.shiftKey).then((result) => {
+					this.importSceneFile(absolutePath, ev.shiftKey).then((result) => {
 						if (pick.pickedPoint) {
 							result?.meshes.forEach((m) => !m.parent && m.position.addInPlace(pick.pickedPoint!));
 							result?.transformNodes.forEach((t) => !t.parent && t.position.addInPlace(pick.pickedPoint!));

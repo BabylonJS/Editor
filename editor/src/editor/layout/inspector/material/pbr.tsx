@@ -57,6 +57,7 @@ export class EditorPBRMaterialInspector extends Component<IEditorPBRMaterialInsp
 						object={this.props.material}
 						property="transparencyMode"
 						items={[
+							{ text: "None", value: null },
 							{ text: "Opaque", value: PBRMaterial.MATERIAL_OPAQUE },
 							{ text: "Alpha Test", value: PBRMaterial.MATERIAL_ALPHATEST },
 							{ text: "Alpha Blend", value: PBRMaterial.MATERIAL_ALPHABLEND },
