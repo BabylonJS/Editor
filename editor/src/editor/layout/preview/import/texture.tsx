@@ -1,11 +1,15 @@
 import { extname } from "path/posix";
 
-import { CubeTexture, Texture, ColorGradingTexture } from "babylonjs";
+import { FaMagic } from "react-icons/fa";
+
+import { CubeTexture, Texture, ColorGradingTexture, PickingInfo } from "babylonjs";
 
 import { showDialog } from "../../../../ui/dialog";
 import { Button } from "../../../../ui/shadcn/ui/button";
+import { Separator } from "../../../../ui/shadcn/ui/separator";
 
 import { isScene } from "../../../../tools/guards/scene";
+import { aiGenerateMesh } from "../../../../tools/ai/generate";
 import { isAbstractMesh } from "../../../../tools/guards/nodes";
 import { isCubeTexture } from "../../../../tools/guards/texture";
 import { registerSimpleUndoRedo } from "../../../../tools/undoredo";
@@ -16,27 +20,45 @@ import { Editor } from "../../../main";
 
 import { configureImportedTexture } from "./import";
 
+export interface IApplyTextureToObjectOptions {
+	/**
+	 * Defines the reference to the editor.
+	 */
+	editor: Editor;
+	/**
+	 * Defines the reference to the object where to apply the texture. The type of the object is tested.
+	 */
+	object: any;
+	/**
+	 * Defines the absolute path to the texture asset file (.png, .env, .jpg, etc.).
+	 */
+	absolutePath: string;
+	/**
+	 * Defines the reference to the pick info where the texture was dropped in the scene.
+	 */
+	pickInfo?: PickingInfo;
+}
+
 /**
  * Applies the texture asset located at the given absolute path to the given object.
- * @param editor defines the reference to the editor.
- * @param object defines the reference to the object where to apply the texture. The type of the object is tested.
- * @param absolutePath defines the absolute path to the texture asset file (.png, .env, .jpg, etc.).
  */
-export function applyTextureAssetToObject(editor: Editor, object: any, absolutePath: string) {
-	if (!isScene(object) && !isAbstractMesh(object)) {
+export function applyTextureAssetToObject(options: IApplyTextureToObjectOptions) {
+	if (!isScene(options.object) && !isAbstractMesh(options.object)) {
 		return;
 	}
 
-	if (isAbstractMesh(object) && !object.material) {
+	if (isAbstractMesh(options.object) && !options.object.material) {
 		return;
 	}
 
-	const extension = extname(absolutePath).toLowerCase();
+	const extension = extname(options.absolutePath).toLowerCase();
 
 	switch (extension) {
 		case ".env":
-			const newCubeTexture = configureImportedTexture(CubeTexture.CreateFromPrefilteredData(absolutePath, isScene(object) ? object : object.getScene()));
-			applyTextureToObject(editor, object, newCubeTexture);
+			const newCubeTexture = configureImportedTexture(
+				CubeTexture.CreateFromPrefilteredData(options.absolutePath, isScene(options.object) ? options.object : options.object.getScene())
+			);
+			applyTextureToObject(newCubeTexture, options);
 			break;
 
 		case ".jpg":
@@ -44,9 +66,9 @@ export function applyTextureAssetToObject(editor: Editor, object: any, absoluteP
 		case ".webp":
 		case ".bmp":
 		case ".jpeg":
-			const newTexture = configureImportedTexture(new Texture(absolutePath, isScene(object) ? object : object.getScene()));
+			const newTexture = configureImportedTexture(new Texture(options.absolutePath, isScene(options.object) ? options.object : options.object.getScene()));
 
-			applyTextureToObject(editor, object, newTexture);
+			applyTextureToObject(newTexture, options);
 
 			onTextureAddedObservable.notifyObservers(newTexture);
 			break;
@@ -56,27 +78,25 @@ export function applyTextureAssetToObject(editor: Editor, object: any, absoluteP
 /**
  * Applies the given texture to the given object. Tries to determine the correct slot to apply the texture.
  * If fails, asks to choose the slot (albedo, bump, etc.).
- * @param editor defines the reference to the editor.
- * @param object defines the reference to the object where to apply the texture. The type of the object is tested.
  * @param texture defines the reference to the texture instance to apply on the object.
  */
-export function applyTextureToObject(editor: Editor, object: any, texture: Texture | CubeTexture | ColorGradingTexture) {
-	if (isCubeTexture(texture) && isScene(object)) {
+export function applyTextureToObject(texture: Texture | CubeTexture | ColorGradingTexture, options: IApplyTextureToObjectOptions): void {
+	if (isCubeTexture(texture) && isScene(options.object)) {
 		return registerSimpleUndoRedo({
-			object,
+			object: options.object,
 			newValue: texture,
 			executeRedo: true,
 			property: "environmentTexture",
-			oldValue: object.environmentTexture,
+			oldValue: options.object.environmentTexture,
 			onLost: () => texture.dispose(),
 		});
 	}
 
-	if (!isAbstractMesh(object)) {
+	if (!isAbstractMesh(options.object)) {
 		return;
 	}
 
-	const material = object.material;
+	const material = options.object.material;
 	if (!material) {
 		return;
 	}
@@ -98,10 +118,28 @@ export function applyTextureToObject(editor: Editor, object: any, texture: Textu
 
 					// eslint-disable-next-line no-use-before-define
 					dialog.close();
-					editor.layout.inspector.forceUpdate();
+					options.editor.layout.inspector.forceUpdate();
 				}}
 			>
 				{property}
+			</Button>
+		);
+	}
+
+	function AISlotComponent() {
+		return (
+			<Button
+				variant="secondary"
+				className="gap-2"
+				onClick={() => {
+					// eslint-disable-next-line no-use-before-define
+					dialog.close();
+					aiGenerateMesh(options.editor, options.pickInfo, {
+						imageAbsolutePath: options.absolutePath,
+					});
+				}}
+			>
+				<FaMagic className="w-4 h-4" /> Create 3D Model
 			</Button>
 		);
 	}
@@ -116,7 +154,7 @@ export function applyTextureToObject(editor: Editor, object: any, texture: Textu
 
 	const dialog = showDialog(
 		title,
-		<div className="flex flex-col gap-4 w-64 pt-4">
+		<div className="flex flex-col gap-1 w-64 pt-4">
 			{isPBRMaterial(material) && (
 				<>
 					<TextureSlotComponent property="albedoTexture" />
@@ -137,6 +175,9 @@ export function applyTextureToObject(editor: Editor, object: any, texture: Textu
 					<TextureSlotComponent property="reflectionTexture" />
 				</>
 			)}
+
+			<Separator className="my-3" />
+			<AISlotComponent />
 		</div>
 	);
 }
