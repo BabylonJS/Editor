@@ -26,7 +26,8 @@ export async function convertToGlbUsingAssimp(inputFilename: string) {
 				} else {
 					resolve(true);
 				}
-			});
+			}
+		);
 
 		p.stdout?.pipe(process.stdout);
 		p.stderr?.pipe(process.stderr);

@@ -55,7 +55,7 @@ export default function HomePage() {
 	});
 
 	function updateScrollRatio() {
-		setScrollRatio((window.scrollY) / (document.body.scrollHeight - screen.height));
+		setScrollRatio(window.scrollY / (document.body.scrollHeight - screen.height));
 	}
 
 	return (
@@ -67,10 +67,7 @@ export default function HomePage() {
 					}}
 					className="fixed top-0 left-0 w-screen h-screen z-0 transition-all duration-1000 ease-in-out"
 				>
-					<LandingRendererComponent
-						scrollRatio={scrollRatio}
-						postProcessVisible={!section3Visible}
-					/>
+					<LandingRendererComponent scrollRatio={scrollRatio} postProcessVisible={!section3Visible} />
 				</div>
 
 				<div className="absolute 2xl:fixed top-0 left-0 w-full px-5 z-50">
@@ -133,13 +130,20 @@ export default function HomePage() {
 							<div className="flex flex-col justify-center gap-2">
 								<div className="flex justify-between items-center text-3xl drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
 									Built-in Templates
-
 									<div className="lg:hidden flex gap-2">
 										<IoSpeedometer />
 									</div>
 								</div>
 								<div className="drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
-									Kickstart your development with built-in templates, including a Next.js template, allowing you to bypass the tedious setup process and dive straight into building your project.
+									Kickstart your development with built-in templates, including{" "}
+									<Link target="_blank" href="https://nextjs.org" className="underline underline-offset-4">
+										Next.js
+									</Link>
+									,{" "}
+									<Link target="_blank" href="https://www.solidjs.com" className="underline underline-offset-4">
+										SolidJS
+									</Link>{" "}
+									and Vanilla templates, allowing you to bypass the tedious setup process and dive straight into building your project.
 									<br />
 									Those templates come with example code, making it easier for you to understand and implement complex game mechanics quickly and efficiently.
 								</div>
@@ -147,21 +151,27 @@ export default function HomePage() {
 						</Fade>
 					</div>
 
-					<div className={`flex flex-col lg:flex-row w-full py-10 lg:py-24 ${featuresVisible ? "bg-neutral-950" : "transparent"} z-0 px-5 transition-all duration-3000 ease-in-out`}>
+					<div
+						className={`flex flex-col lg:flex-row w-full py-10 lg:py-24 ${featuresVisible ? "bg-neutral-950" : "transparent"} z-0 px-5 transition-all duration-3000 ease-in-out`}
+					>
 						<div className="flex justify-center items-center max-w-7xl mx-auto">
 							<Fade triggerOnce className="w-full">
 								<div className="flex flex-col justify-center gap-2">
 									<div className="flex justify-between items-center text-3xl drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
 										Open-Source
-
 										<div className="lg:hidden flex gap-2">
 											<IoLogoGithub />
 										</div>
 									</div>
 									<div className="drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
-										The Babylon.js Editor is an open-source project maintained by the community. The sources are available on <Link target="_blank" href="https://github.com/BabylonJS/Editor" className="underline underline-offset-4">Github</Link>.
+										The Babylon.js Editor is an open-source project maintained by the community. The sources are available on{" "}
+										<Link target="_blank" href="https://github.com/BabylonJS/Editor" className="underline underline-offset-4">
+											Github
+										</Link>
+										.
 										<br />
-										Enjoy features and improvements driven by community feedbacks and contributions, ensuring the Editor evolves to meet the real-world needs of its users.
+										Enjoy features and improvements driven by community feedbacks and contributions, ensuring the Editor evolves to meet the real-world needs of
+										its users.
 									</div>
 								</div>
 							</Fade>
@@ -188,7 +198,6 @@ export default function HomePage() {
 							<div className="flex flex-col justify-center gap-2">
 								<div className="flex justify-between items-center text-3xl drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
 									Cross-Platform
-
 									<div className="lg:hidden flex gap-2">
 										<WindowsIcon color="#fff" />
 										<AppleIcon color="#fff" />
@@ -197,21 +206,24 @@ export default function HomePage() {
 								<div className="drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
 									The Babylon.js Editor is available on both Windows and macOS.
 									<br />
-									Enjoy a unified development environment that supports all major platforms, allowing you to focus on creativity and innovation rather than compatibility issues.
+									Enjoy a unified development environment that supports all major platforms, allowing you to focus on creativity and innovation rather than
+									compatibility issues.
 									<br />
-									Leverage the power of modern Web technologies to create stunning 3D video games and applications, all within an user-friendly Editor application.
+									Leverage the power of modern Web technologies to create stunning 3D video games and applications, all within an user-friendly Editor
+									application.
 								</div>
 							</div>
 						</Fade>
 					</div>
 
-					<div className={`flex flex-col lg:flex-row w-full py-10 lg:py-24 ${featuresVisible ? "bg-neutral-950" : "transparent"} z-0 px-5 transition-all duration-3000 ease-in-out`}>
+					<div
+						className={`flex flex-col lg:flex-row w-full py-10 lg:py-24 ${featuresVisible ? "bg-neutral-950" : "transparent"} z-0 px-5 transition-all duration-3000 ease-in-out`}
+					>
 						<div className="flex justify-center items-center max-w-7xl mx-auto">
 							<Fade triggerOnce className="w-full">
 								<div className="flex flex-col justify-center gap-2">
 									<div className="flex justify-between items-center text-3xl drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
 										Integrated Tools
-
 										<div className="lg:hidden flex gap-2">
 											<FaToolbox />
 										</div>
@@ -219,7 +231,8 @@ export default function HomePage() {
 									<div className="drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
 										Enhance your development process, enabling you to bring your most ambitious projects to life with ease and efficiency.
 										<br />
-										Experience the power of high-resolution textures with support of advanced formats like automatic KTX compressed textures. This feature allows to incorporate stunning 4K textures into your projects, optimizing performance without sacrificing visual quality.
+										Experience the power of high-resolution textures with support of advanced formats like automatic KTX compressed textures. This feature
+										allows to incorporate stunning 4K textures into your projects, optimizing performance without sacrificing visual quality.
 									</div>
 								</div>
 							</Fade>
@@ -236,9 +249,7 @@ export default function HomePage() {
 								<GiBookmarklet color="white" className="w-52 h-52 lg:w-96 lg:h-96 mx-auto drop-shadow-[0_1px_1px_rgba(0,0,0,1)]" />
 
 								<div className="flex flex-col gap-2">
-									<div className="text-center text-3xl drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
-										Documentation
-									</div>
+									<div className="text-center text-3xl drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">Documentation</div>
 
 									<div className="text-center drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
 										Learn how to use the Babylon.js Editor and start building your own video game or app.
@@ -310,15 +321,11 @@ export default function HomePage() {
 				{/* Page 4 */}
 				<div className="flex flex-col justify-center items-center gap-5 w-screen min-h-screen max-w-3xl px-5 mx-auto">
 					<div className="text-4xl md:text-7xl font-semibold font-sans drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)] tracking-tighter text-center px-5">
-						<Fade>
-							Babylon.js Editor
-						</Fade>
+						<Fade>Babylon.js Editor</Fade>
 					</div>
 
 					<div className="text-xl text-center drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
-						<Fade>
-							Download for Windows and macOS
-						</Fade>
+						<Fade>Download for Windows and macOS</Fade>
 					</div>
 
 					<div className="flex flex-col lg:flex-row justify-center items-center gap-4 pt-4">

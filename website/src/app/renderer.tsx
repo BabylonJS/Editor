@@ -46,8 +46,8 @@ import { LandingPostProcess } from "@/post-process/landing";
 import { scriptsMap } from "@/scripts";
 
 export interface ILandingRendererComponent {
-    scrollRatio: number;
-    postProcessVisible: boolean;
+	scrollRatio: number;
+	postProcessVisible: boolean;
 }
 
 export function LandingRendererComponent(props: ILandingRendererComponent) {
@@ -134,11 +134,11 @@ export function LandingRendererComponent(props: ILandingRendererComponent) {
 		if (lightsPostProcess && circlePostProcess) {
 			Tween.create(lightsPostProcess, 1, {
 				killAllTweensOfTarget: true,
-				"alpha": props.postProcessVisible ? 1 : 0,
+				alpha: props.postProcessVisible ? 1 : 0,
 			});
 			Tween.create(circlePostProcess, 1, {
 				killAllTweensOfTarget: true,
-				"alpha": props.postProcessVisible ? 1 : 0,
+				alpha: props.postProcessVisible ? 1 : 0,
 			});
 		}
 	}, [scene, lightsPostProcess, circlePostProcess, props.postProcessVisible]);
@@ -150,9 +150,7 @@ export function LandingRendererComponent(props: ILandingRendererComponent) {
                 transition-all duration-1000 ease-in-out
             `}
 			style={{
-				filter: (props.postProcessVisible)
-					? `hue-rotate(${(180 * props.scrollRatio).toFixed(0)}deg)`
-					: "hue-rotate(0deg)",
+				filter: props.postProcessVisible ? `hue-rotate(${(180 * props.scrollRatio).toFixed(0)}deg)` : "hue-rotate(0deg)",
 			}}
 		>
 			<canvas
@@ -171,12 +169,7 @@ export function LandingRendererComponent(props: ILandingRendererComponent) {
                     ${ready ? "opacity-0" : "opacity-100"}
                 `}
 			>
-				<Grid
-					width={24}
-					height={24}
-					color="#ffffff"
-					wrapperClass="absolute right-5 bottom-5 pointer-events-none"
-				/>
+				<Grid width={24} height={24} color="#ffffff" wrapperClass="absolute right-5 bottom-5 pointer-events-none" />
 			</div>
 		</div>
 	);

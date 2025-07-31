@@ -4,10 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 export interface IDocumentationSidebarItemProps {
-    href: string;
-    title: string;
+	href: string;
+	title: string;
 
-    className?: string;
+	className?: string;
 }
 
 export function DocumentationSidebarItem(props: IDocumentationSidebarItemProps) {

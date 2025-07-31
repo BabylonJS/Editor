@@ -19,12 +19,8 @@ export function NextChapterComponent(props: INextChapterComponentProps) {
 					<GrNext />
 
 					<div className="flex flex-col">
-						<div className="text-xl font-semibold">
-							Next
-						</div>
-						<div>
-							{props.title}
-						</div>
+						<div className="text-xl font-semibold">Next</div>
+						<div>{props.title}</div>
 					</div>
 				</div>
 			</div>

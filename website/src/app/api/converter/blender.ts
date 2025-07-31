@@ -48,7 +48,8 @@ export async function executeBlender(pythonScript: string, inputFilename: string
 				} else {
 					resolve(true);
 				}
-			});
+			}
+		);
 
 		p.stdout?.pipe(process.stdout);
 		p.stderr?.pipe(process.stderr);
