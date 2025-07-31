@@ -26,7 +26,7 @@ export function EditorInspectorImageComponent(props: IEditorInspectorImageCompon
 
 			<Divider />
 
-			<div className="w-full aspect-square p-5 rounded-lg bg-black/50">
+			<div className="flex flex-col gap-2 w-full aspect-square p-5 rounded-lg bg-black/50">
 				<img
 					alt=""
 					draggable={false}
