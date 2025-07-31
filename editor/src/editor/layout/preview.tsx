@@ -1163,8 +1163,8 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
 		absolutePaths.forEach(async (absolutePath) => {
 			await waitNextAnimationFrame();
-			const pick = this.scene.pick(ev.nativeEvent.offsetX, ev.nativeEvent.offsetY, (m) => !m._masterMesh && !isCollisionMesh(m) && !isCollisionInstancedMesh(m), false);
-			const mesh = pick.pickedMesh?._masterMesh ?? pick.pickedMesh;
+			const pickInfo = this.scene.pick(ev.nativeEvent.offsetX, ev.nativeEvent.offsetY, (m) => !m._masterMesh && !isCollisionMesh(m) && !isCollisionInstancedMesh(m), false);
+			const mesh = pickInfo.pickedMesh?._masterMesh ?? pickInfo.pickedMesh;
 
 			const extension = extname(absolutePath).toLowerCase();
 			switch (extension) {
@@ -1183,9 +1183,9 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 				case ".blend":
 				case ".babylon":
 					this.importSceneFile(absolutePath, ev.shiftKey).then((result) => {
-						if (pick.pickedPoint) {
-							result?.meshes.forEach((m) => !m.parent && m.position.addInPlace(pick.pickedPoint!));
-							result?.transformNodes.forEach((t) => !t.parent && t.position.addInPlace(pick.pickedPoint!));
+						if (pickInfo.pickedPoint) {
+							result?.meshes.forEach((m) => !m.parent && m.position.addInPlace(pickInfo.pickedPoint!));
+							result?.transformNodes.forEach((t) => !t.parent && t.position.addInPlace(pickInfo.pickedPoint!));
 						}
 					});
 					break;
@@ -1196,7 +1196,12 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 				case ".webp":
 				case ".bmp":
 				case ".jpeg":
-					applyTextureAssetToObject(this.props.editor, mesh ?? this.scene, absolutePath);
+					applyTextureAssetToObject({
+						pickInfo,
+						absolutePath,
+						editor: this.props.editor,
+						object: mesh ?? this.scene,
+					});
 					break;
 
 				case ".material":
@@ -1207,8 +1212,8 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 					createSceneLink(this.props.editor, absolutePath).then((node) => {
 						this.setRenderScene(true);
 
-						if (pick.pickedPoint) {
-							node?.position.addInPlace(pick.pickedPoint);
+						if (pickInfo.pickedPoint) {
+							node?.position.addInPlace(pickInfo.pickedPoint);
 						}
 					});
 					break;

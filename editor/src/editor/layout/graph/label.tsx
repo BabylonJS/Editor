@@ -237,7 +237,11 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
 				case ".webp":
 				case ".bmp":
 				case ".jpeg":
-					applyTextureAssetToObject(props.editor, props.object, absolutePath);
+					applyTextureAssetToObject({
+						absolutePath,
+						editor: props.editor,
+						object: props.object,
+					});
 					break;
 
 				case ".mp3":

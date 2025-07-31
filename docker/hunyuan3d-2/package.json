@@ -1,0 +1,13 @@
+{
+	"name": "babylonjs-editor-hunyuan3d-2",
+	"version": "0.1.0",
+	"private": true,
+	"scripts": {
+		"build": "docker build -t hunyuan3d-2 .",
+		"start": "docker start -ai hunyuan3d-2-container",
+		"container": "docker run -it --gpus all -p 7866:7866 --name hunyuan3d-2-container hunyuan3d-2",
+		"connect": "docker exec -it hunyuan3d-2-container bash"
+	},
+	"dependencies": {},
+	"devDependencies": {}
+}
