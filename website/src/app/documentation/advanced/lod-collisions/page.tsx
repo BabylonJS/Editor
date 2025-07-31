@@ -10,17 +10,13 @@ export default function DocumentationLODCollisionsPage() {
 			<div className="flex flex-col gap-10 lg:max-w-3xl 2xl:max-w-6xl mx-auto pt-32">
 				<Fade cascade damping={0.1} triggerOnce className="w-full">
 					<Fade>
-						<div className="text-3xl md:text-5xl lg:text-6xl font-semibold font-sans tracking-tighter text-center">
-                            LOD collisions
-						</div>
+						<div className="text-3xl md:text-5xl lg:text-6xl font-semibold font-sans tracking-tighter text-center">LOD collisions</div>
 					</Fade>
 				</Fade>
 
 				<Fade triggerOnce>
 					<div className="flex flex-col gap-4">
-						<div className="text-3xl md:text-2xl lg:text-3xl my-3">
-                            Coming soon
-						</div>
+						<div className="text-3xl md:text-2xl lg:text-3xl my-3">Coming soon</div>
 
 						<NextChapterComponent href="/documentation/advanced/optimizing-shadows" title="Optimizing shadows" />
 					</div>

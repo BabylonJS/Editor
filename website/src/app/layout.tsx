@@ -9,16 +9,10 @@ export const metadata: Metadata = {
 	description: "Focus more on creating and less on coding.",
 };
 
-export default function RootLayout({
-	children,
-}: {
-	children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
 	return (
 		<html lang="en">
-			<body className={`${inter.className} w-screen h-screen overflow-x-hidden antialiased bg-black`}>
-				{children}
-			</body>
+			<body className={`${inter.className} w-screen h-screen overflow-x-hidden antialiased bg-black`}>{children}</body>
 		</html>
 	);
 }

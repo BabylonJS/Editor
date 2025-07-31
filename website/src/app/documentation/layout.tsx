@@ -27,9 +27,7 @@ export default function DocumentationLayout(props: PropsWithChildren) {
 				</Link>
 			</div>
 
-			<div className="pl-96 w-full">
-				{props.children}
-			</div>
+			<div className="pl-96 w-full">{props.children}</div>
 
 			<Toaster className="dark" />
 		</div>

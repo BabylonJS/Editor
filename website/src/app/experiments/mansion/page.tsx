@@ -50,8 +50,15 @@ import "@babylonjs/core/Audio";
 import "@babylonjs/materials/sky";
 
 import {
-	loadScene, configureEngineToUseCompressedTextures, generateCinematicAnimationGroup, parseCinematic,
-	disposeDefaultRenderingPipeline, disposeSSAO2RenderingPipeline, disposeMotionBlurPostProcess, disposeVLSPostProcess, disposeSSRRenderingPipeline,
+	loadScene,
+	configureEngineToUseCompressedTextures,
+	generateCinematicAnimationGroup,
+	parseCinematic,
+	disposeDefaultRenderingPipeline,
+	disposeSSAO2RenderingPipeline,
+	disposeMotionBlurPostProcess,
+	disposeVLSPostProcess,
+	disposeSSRRenderingPipeline,
 	getDefaultRenderingPipeline,
 } from "babylonjs-editor-tools";
 
@@ -115,23 +122,29 @@ class MansionExperimentComponent extends Component<unknown, IMansionExperimentCo
 	public render(): ReactNode {
 		return (
 			<>
-				<canvas ref={(r) => { this._canvas = r!; }} className="w-full h-full outline-none border-none select-none" />
+				<canvas
+					ref={(r) => {
+						this._canvas = r!;
+					}}
+					className="w-full h-full outline-none border-none select-none"
+				/>
 
 				<MainMenuComponent
 					step={this.state.step}
 					onStart={() => this._handleStart()}
-					ref={(r) => { this._mainMenuComponents = r!; }}
+					ref={(r) => {
+						this._mainMenuComponents = r!;
+					}}
 				/>
 
 				<CinematicComponent
-					ref={(r) => { this._cinematicComponents = r!; }}
+					ref={(r) => {
+						this._cinematicComponents = r!;
+					}}
 				/>
 
 				<BlackBarsComponent />
-				<LoaderComponent
-					loading={this.state.loading}
-					progress={this.state.loadingProgress}
-				/>
+				<LoaderComponent loading={this.state.loading} progress={this.state.loadingProgress} />
 			</>
 		);
 	}
@@ -160,9 +173,12 @@ class MansionExperimentComponent extends Component<unknown, IMansionExperimentCo
 			mode: CubicEase.EASINGMODE_EASEINOUT,
 		};
 
-		window.addEventListener("resize", this._resizeListener = () => {
-			this._engine.resize();
-		});
+		window.addEventListener(
+			"resize",
+			(this._resizeListener = () => {
+				this._engine.resize();
+			})
+		);
 
 		switch (this.state.step) {
 			case "menu":

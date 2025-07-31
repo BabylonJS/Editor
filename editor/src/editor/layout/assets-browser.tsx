@@ -438,6 +438,8 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 				}
 			});
 		});
+
+		// TODO: Scripts
 	}
 
 	/**
