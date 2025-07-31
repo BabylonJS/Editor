@@ -2,6 +2,7 @@ import { platform } from "os";
 
 import { Component, PropsWithChildren, ReactNode } from "react";
 
+import { FaMagic } from "react-icons/fa";
 import { IoMdCube } from "react-icons/io";
 import { AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
 
@@ -40,6 +41,7 @@ import { isAnyParticleSystem } from "../../../tools/guards/particles";
 import { isScene, isSceneLinkNode } from "../../../tools/guards/scene";
 import { cloneNode, ICloneNodeOptions } from "../../../tools/node/clone";
 import { isSprite, isSpriteMapNode } from "../../../tools/guards/sprites";
+import { aiGenerateMeshFromPrompt } from "../../../tools/ai/prompt-to-mesh";
 import { isAbstractMesh, isCamera, isClusteredLightContainer, isLight, isMesh, isNode } from "../../../tools/guards/nodes";
 import { isNodeLocked, isNodeSerializable, isNodeVisibleInGraph, setNodeLocked, setNodeSerializable } from "../../../tools/node/metadata";
 
@@ -72,7 +74,14 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
 						<>
 							{isNode(this.props.object) && (
 								<>
+									<ContextMenuItem className="gap-2" onClick={() => aiGenerateMeshFromPrompt(this.props.editor)}>
+										<FaMagic className="w-4 h-4" /> Generate 3D Model...
+									</ContextMenuItem>
+
+									<ContextMenuSeparator />
+
 									{this._getMeshItems()}
+
 									<ContextMenuSeparator />
 								</>
 							)}
