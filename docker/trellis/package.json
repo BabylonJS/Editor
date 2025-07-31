@@ -1,0 +1,13 @@
+{
+	"name": "babylonjs-editor-trellis",
+	"version": "0.1.0",
+	"private": true,
+	"scripts": {
+		"build": "docker build -t trellis .",
+		"start": "docker start -ai trellis-container",
+		"container": "docker run -it --gpus all -p 7867:7867 --name trellis-container trellis",
+		"connect": "docker exec -it trellis-container bash"
+	},
+	"dependencies": {},
+	"devDependencies": {}
+}
