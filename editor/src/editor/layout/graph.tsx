@@ -31,6 +31,7 @@ import {
 } from "../../ui/shadcn/ui/context-menu";
 
 import { isSound } from "../../tools/guards/sound";
+import { isDomTextInputFocused } from "../../tools/dom";
 import { isSceneLinkNode } from "../../tools/guards/scene";
 import { updateAllLights } from "../../tools/light/shadows";
 import { getCollisionMeshFor } from "../../tools/mesh/collision";
@@ -129,8 +130,8 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		onTextureModifiedObservable.add((texture) => this._handleNodeModified(texture));
 		onParticleSystemModifiedObservable.add((particleSystem) => this._handleNodeModified(particleSystem));
 
-		document.addEventListener("copy", () => this.state.isFocused && this.copySelectedNodes());
-		document.addEventListener("paste", () => this.state.isFocused && this.pasteSelectedNodes());
+		document.addEventListener("copy", () => !isDomTextInputFocused() && this.copySelectedNodes());
+		document.addEventListener("paste", () => !isDomTextInputFocused() && this.pasteSelectedNodes());
 	}
 
 	public render(): ReactNode {

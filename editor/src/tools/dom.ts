@@ -29,3 +29,15 @@ export function isDomElementDescendantOf(element: HTMLElement, parent: HTMLEleme
 
 	return false;
 }
+
+/**
+ * Returns wether or not the currently focused DOM element is any text input.
+ */
+export function isDomTextInputFocused() {
+	const element = document.activeElement as HTMLInputElement | HTMLTextAreaElement;
+	if (!element) {
+		return false;
+	}
+
+	return (element.tagName === "INPUT" || element.tagName === "TEXTAREA" || element.isContentEditable) && !element.readOnly && !element.disabled;
+}
