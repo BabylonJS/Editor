@@ -5,7 +5,7 @@ import { DragEvent, useEffect, useRef, useState } from "react";
 import { FaLock } from "react-icons/fa";
 import { useEventListener } from "usehooks-ts";
 
-import { Node, TransformNode, AbstractMesh } from "babylonjs";
+import { Node, TransformNode, AbstractMesh, Vector3 } from "babylonjs";
 
 import { Input } from "../../../ui/shadcn/ui/input";
 
@@ -152,6 +152,7 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
 
 							n.nodeData.detachFromMesh();
 							n.nodeData.spatialSound = false;
+							n.nodeData.setPosition(Vector3.Zero());
 							return (n.nodeData["_connectedTransformNode"] = null);
 						}
 
@@ -180,6 +181,7 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
 							if (isScene(newParent)) {
 								n.nodeData.detachFromMesh();
 								n.nodeData.spatialSound = false;
+								n.nodeData.setPosition(Vector3.Zero());
 								return (n.nodeData["_connectedTransformNode"] = null);
 							}
 						}
