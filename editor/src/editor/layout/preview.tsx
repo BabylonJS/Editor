@@ -42,6 +42,7 @@ import { Editor } from "../main";
 import { isSound } from "../../tools/guards/sound";
 import { Tween } from "../../tools/animation/tween";
 import { isVector3 } from "../../tools/guards/math";
+import { isDomTextInputFocused } from "../../tools/dom";
 import { isNodeLocked } from "../../tools/node/metadata";
 import { registerUndoRedo } from "../../tools/undoredo";
 import { initializeHavok } from "../../tools/physics/init";
@@ -189,10 +190,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		ipcRenderer.on("gizmo:rotation", () => this.setActiveGizmo("rotation"));
 		ipcRenderer.on("gizmo:scaling", () => this.setActiveGizmo("scaling"));
 
-		document.addEventListener("copy", () => this.state.isFocused && this.props.editor.layout.graph.copySelectedNodes());
-		document.addEventListener("paste", () => this.state.isFocused && this.props.editor.layout.graph.pasteSelectedNodes());
-
-		ipcRenderer.on("preview:focus", () => this.state.isFocused && this.focusObject());
+		ipcRenderer.on("preview:focus", () => !isDomTextInputFocused() && this.focusObject());
 		ipcRenderer.on("preview:edit-camera", () => this.props.editor.layout.inspector.setEditedObject(this.props.editor.layout.preview.scene.activeCamera));
 
 		onTextureAddedObservable.add(() => checkProjectCachedCompressedTextures(props.editor));
