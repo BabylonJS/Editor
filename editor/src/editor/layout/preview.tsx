@@ -40,7 +40,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Editor } from "../main";
 
 import { isSound } from "../../tools/guards/sound";
-import { Tween } from "../../tools/animation/tween";
 import { isVector3 } from "../../tools/guards/math";
 import { isDomTextInputFocused } from "../../tools/dom";
 import { isNodeLocked } from "../../tools/node/metadata";
@@ -49,6 +48,7 @@ import { initializeHavok } from "../../tools/physics/init";
 import { isAnyParticleSystem } from "../../tools/guards/particles";
 import { onTextureAddedObservable } from "../../tools/observables";
 import { waitNextAnimationFrame, waitUntil } from "../../tools/tools";
+import { ITweenConfiguration, Tween } from "../../tools/animation/tween";
 import { checkProjectCachedCompressedTextures } from "../../tools/ktx/check";
 import { createSceneLink, getRootSceneLink } from "../../tools/scene/scene-link";
 import { isAbstractMesh, isCamera, isCollisionInstancedMesh, isCollisionMesh, isInstancedMesh, isLight, isMesh, isTransformNode } from "../../tools/guards/nodes";
@@ -329,33 +329,69 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 			return;
 		}
 
+		const camera = this.scene.activeCamera;
+		if (!camera) {
+			return;
+		}
+
+		let target: Vector3 | undefined;
 		let position: Vector3 | undefined;
+
 		if (isCamera(selectedNode)) {
-			position = selectedNode.globalPosition;
-		} else if (isAbstractMesh(selectedNode) || isLight(selectedNode) || isTransformNode(selectedNode)) {
-			position = selectedNode.getAbsolutePosition();
+			target = selectedNode.globalPosition;
+		} else if (isAbstractMesh(selectedNode)) {
+			selectedNode.refreshBoundingInfo({
+				applyMorph: true,
+				applySkeleton: true,
+				updatePositionsArray: true,
+			});
+
+			const bb = selectedNode.getBoundingInfo();
+			const center = bb.boundingSphere.centerWorld;
+
+			const fov = camera.fov;
+			const aspect = camera.getEngine().getAspectRatio(camera);
+			const sizeVec = bb.boundingBox.maximumWorld.subtract(bb.boundingBox.minimumWorld);
+
+			const verticalSize = sizeVec.y;
+			const horizontalSize = sizeVec.x;
+
+			const verticalDistance = verticalSize / 2 / Math.tan(fov / 2);
+			const horizontalDistance = horizontalSize / 2 / Math.tan((fov * aspect) / 2);
+			const idealDistance = Math.max(verticalDistance, horizontalDistance);
+
+			const directionToMesh = camera.globalPosition.subtract(center).normalize();
+
+			position = center.add(directionToMesh.scale(idealDistance));
+			target = bb.boundingBox.centerWorld;
+		} else if (isLight(selectedNode) || isTransformNode(selectedNode)) {
+			target = selectedNode.getAbsolutePosition();
 		} else if (isAnyParticleSystem(selectedNode)) {
 			if (isAbstractMesh(selectedNode.emitter)) {
-				position = selectedNode.emitter.getAbsolutePosition();
+				target = selectedNode.emitter.getAbsolutePosition();
 			} else if (isVector3(selectedNode.emitter)) {
-				position = selectedNode.emitter;
+				target = selectedNode.emitter;
 			}
 		} else if (isSound(selectedNode)) {
 			const soundPosition = selectedNode["_position"] as Vector3;
 
 			if (selectedNode["_connectedTransformNode"]) {
-				position = selectedNode["_connectedTransformNode"].getAbsolutePosition();
+				target = selectedNode["_connectedTransformNode"].getAbsolutePosition();
 			} else if (!soundPosition.equalsToFloats(0, 0, 0)) {
-				position = selectedNode["_position"]();
+				target = selectedNode["_position"]();
 			}
 		}
 
-		const camera = this.scene.activeCamera;
+		if (target) {
+			const tweenConfiguration = {
+				target,
+			} as ITweenConfiguration;
 
-		if (position && camera) {
-			Tween.create(camera, 0.5, {
-				target: position,
-			});
+			if (position) {
+				tweenConfiguration.position = position;
+			}
+
+			Tween.create(camera, 0.5, tweenConfiguration);
 		}
 	}
 
