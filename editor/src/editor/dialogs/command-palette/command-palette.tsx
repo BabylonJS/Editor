@@ -134,7 +134,11 @@ export class CommandPalette extends Component<ICommandPaletteProps, ICommandPale
 	private _refreshEntities(): void {
 		const scene = this.props.editor.layout.preview.scene;
 
-		const objects = [...scene.meshes, ...scene.lights, ...scene.cameras, ...scene.particleSystems, ...(scene.sounds ?? [])] as (Node | IParticleSystem | Sound)[];
+		const objects = [...scene.meshes, ...scene.lights, ...scene.cameras, ...scene.particleSystems] as (Node | IParticleSystem | Sound)[];
+		scene.soundTracks?.forEach((soundTrack) => {
+			objects.push(...soundTrack.soundCollection);
+		});
+
 		const entities = objects.map(
 			(entity) =>
 				({

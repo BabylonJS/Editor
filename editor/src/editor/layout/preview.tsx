@@ -39,15 +39,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 
 import { Editor } from "../main";
 
+import { isSound } from "../../tools/guards/sound";
 import { Tween } from "../../tools/animation/tween";
+import { isVector3 } from "../../tools/guards/math";
 import { isNodeLocked } from "../../tools/node/metadata";
 import { registerUndoRedo } from "../../tools/undoredo";
 import { initializeHavok } from "../../tools/physics/init";
+import { isAnyParticleSystem } from "../../tools/guards/particles";
 import { onTextureAddedObservable } from "../../tools/observables";
 import { waitNextAnimationFrame, waitUntil } from "../../tools/tools";
 import { checkProjectCachedCompressedTextures } from "../../tools/ktx/check";
 import { createSceneLink, getRootSceneLink } from "../../tools/scene/scene-link";
-import { isAbstractMesh, isCamera, isCollisionInstancedMesh, isCollisionMesh, isInstancedMesh, isMesh, isTransformNode } from "../../tools/guards/nodes";
+import { isAbstractMesh, isCamera, isCollisionInstancedMesh, isCollisionMesh, isInstancedMesh, isLight, isMesh, isTransformNode } from "../../tools/guards/nodes";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../../ui/shadcn/ui/dropdown-menu";
 
 import { EditorCamera } from "../nodes/camera";
@@ -328,9 +331,29 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 			return;
 		}
 
-		const position = isCamera(selectedNode) ? selectedNode.globalPosition : selectedNode.getAbsolutePosition?.();
+		let position: Vector3 | undefined;
+		if (isCamera(selectedNode)) {
+			position = selectedNode.globalPosition;
+		} else if (isAbstractMesh(selectedNode) || isLight(selectedNode) || isTransformNode(selectedNode)) {
+			position = selectedNode.getAbsolutePosition();
+		} else if (isAnyParticleSystem(selectedNode)) {
+			if (isAbstractMesh(selectedNode.emitter)) {
+				position = selectedNode.emitter.getAbsolutePosition();
+			} else if (isVector3(selectedNode.emitter)) {
+				position = selectedNode.emitter;
+			}
+		} else if (isSound(selectedNode)) {
+			const soundPosition = selectedNode["_position"] as Vector3;
+
+			if (selectedNode["_connectedTransformNode"]) {
+				position = selectedNode["_connectedTransformNode"].getAbsolutePosition();
+			} else if (!soundPosition.equalsToFloats(0, 0, 0)) {
+				position = selectedNode["_position"]();
+			}
+		}
 
 		const camera = this.scene.activeCamera;
+
 		if (position && camera) {
 			Tween.create(camera, 0.5, {
 				target: position,
