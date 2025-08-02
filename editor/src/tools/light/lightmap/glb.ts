@@ -1,156 +1,183 @@
-import { join } from "path/posix";
-import { writeFile } from "fs-extra";
+import { createWriteStream } from "fs";
+import { join as nativeJoin } from "path";
+import { dirname, join } from "path/posix";
+import { copyFile, ensureDir, writeFile, writeJSON } from "fs-extra";
 
 import { GLTF2Export, GLTFData } from "babylonjs-serializers";
-import { Mesh, Light, VertexBuffer, Vector3, Quaternion, Node, PBRMaterial, StandardMaterial } from "babylonjs";
+import { VertexBuffer, Vector3, Quaternion, BaseTexture, Matrix, AbstractMesh } from "babylonjs";
 
 import { Editor } from "../../../editor/main";
 
+import { projectConfiguration } from "../../../project/configuration";
+
+import { convertPositionToRHS, convertRotationQuaternionToRHS } from "../../maths/rhs";
+
+import { isTexture } from "../../guards/texture";
 import { isPBRMaterial, isStandardMaterial } from "../../guards/material";
-import { isAbstractMesh, isCollisionInstancedMesh, isCollisionMesh, isLight, isMesh } from "../../guards/nodes";
+import { isCollisionInstancedMesh, isCollisionMesh, isLight } from "../../guards/nodes";
 
 export interface ILightmapSerializeGlbsOptions {
 	outputFolder: string;
 	onGetLog: (log: string) => void;
+	onProgress: (progress: number) => void;
 }
 
 export async function serializeGlbs(editor: Editor, options: ILightmapSerializeGlbsOptions) {
 	options.onGetLog("Preparing meshes and lights...\n");
 
+	const meshesToCompute: AbstractMesh[] = [];
+
 	const scene = editor.layout.preview.scene;
 
-	const entities = [...scene.lights, ...scene.materials] as (PBRMaterial | StandardMaterial | Light)[];
+	const copiedTextures: string[] = [];
+	const texturesAbsolutePath = join(options.outputFolder, "textures");
 
-	const modifiedLights: Light[] = [];
-	const modifiedMeshes: {
-		mesh: Mesh;
-		parent: Node | null;
-		position: Vector3;
-		rotation: Vector3;
-		rotationQuaternion: Quaternion | null;
-		scaling: Vector3;
-		name: string;
-	}[] = [];
+	await ensureDir(texturesAbsolutePath);
 
-	let meshesToComputeCount = 0;
-	const entitiesToInclude: Node[] = [];
+	const writeStream = (path: string, buffer: Buffer) => {
+		const stream = createWriteStream(path);
+		stream.write(buffer);
 
-	entities.forEach((entity) => {
-		if (isLight(entity) && entity.isEnabled(true)) {
-			modifiedLights.push(entity);
-			entitiesToInclude.push(entity);
-			entity.intensity *= 1000;
-		}
+		return new Promise<void>((resolve) => {
+			stream.once("close", () => resolve());
+			stream.end();
+			stream.close();
+		});
+	};
 
-		if (isPBRMaterial(entity) || isStandardMaterial(entity)) {
-			const bindedMeshes = entity.getBindedMeshes();
+	let progress = 0;
+	const step = 1 / scene.meshes.length;
 
-			bindedMeshes.forEach((mesh) => {
-				if (!mesh.isEnabled(true) || !mesh.geometry || mesh._masterMesh || mesh.skeleton) {
-					return;
+	await Promise.all(
+		scene.meshes.map(async (mesh) => {
+			if (!mesh.isEnabled() || !mesh.geometry || mesh._masterMesh || mesh.skeleton || !mesh.material) {
+				return;
+			}
+
+			if (isCollisionMesh(mesh) || isCollisionInstancedMesh(mesh)) {
+				return;
+			}
+
+			const material = mesh.material;
+			if (!isPBRMaterial(material) && !isStandardMaterial(material)) {
+				return;
+			}
+
+			const geometry = mesh.geometry;
+
+			const indices = geometry.getIndices()?.slice();
+			const positions = geometry.getVerticesData(VertexBuffer.PositionKind)?.slice();
+
+			if (!indices || !positions) {
+				return;
+			}
+
+			const meshFolder = join(options.outputFolder, mesh.id);
+			await ensureDir(meshFolder);
+
+			await writeStream(join(meshFolder, "indices.bin"), Buffer.from(new Uint32Array(indices).buffer));
+			await writeStream(join(meshFolder, "positions.bin"), Buffer.from(new Float32Array(positions).buffer));
+
+			const normals = geometry.getVerticesData(VertexBuffer.NormalKind)?.slice();
+			if (normals) {
+				await writeStream(join(meshFolder, "normals.bin"), Buffer.from(new Float32Array(normals).buffer));
+			}
+
+			const uvs = geometry.getVerticesData(VertexBuffer.UVKind)?.slice();
+			if (uvs) {
+				await writeStream(join(meshFolder, "uvs.bin"), Buffer.from(new Float32Array(uvs).buffer));
+			}
+
+			const uv2s = geometry.getVerticesData(VertexBuffer.UV2Kind)?.slice();
+			if (uv2s) {
+				await writeStream(join(meshFolder, "uv2s.bin"), Buffer.from(new Float32Array(uv2s).buffer));
+			}
+
+			const position = Vector3.Zero();
+			const rotation = Quaternion.Identity();
+			const scaling = Vector3.One();
+
+			const worldMatrix = mesh.computeWorldMatrix(true).multiply(Matrix.RotationAxis(Vector3.Right(), Math.PI * 0.5));
+
+			worldMatrix.decompose(scaling, rotation, position);
+			convertPositionToRHS(position);
+			convertRotationQuaternionToRHS(rotation).normalize();
+
+			const json = {
+				position: position.asArray(),
+				rotation: [rotation.w, rotation.x, rotation.y, rotation.z],
+				scaling: scaling.asArray(),
+				textureUScale: 1,
+				textureVScale: 1,
+				texture: undefined as string | undefined,
+			};
+
+			let texture: BaseTexture | null = null;
+			if (isPBRMaterial(material)) {
+				texture = material.albedoTexture;
+			} else if (isStandardMaterial(material)) {
+				texture = material.diffuseTexture;
+			}
+
+			material.lightmapTexture?.dispose();
+			material.lightmapTexture = null;
+
+			if (texture && isTexture(texture)) {
+				const textureAbsolutePath = join(dirname(projectConfiguration.path!), texture.name);
+				if (!copiedTextures.includes(textureAbsolutePath)) {
+					copiedTextures.push(textureAbsolutePath);
+					const textureAbsoluteDestination = join(texturesAbsolutePath, texture.name);
+
+					await ensureDir(dirname(textureAbsoluteDestination));
+					await copyFile(textureAbsolutePath, textureAbsoluteDestination);
+
+					json.texture = nativeJoin(texture.name);
+					json.textureUScale = texture.uScale;
+					json.textureVScale = texture.vScale;
 				}
+			}
 
-				if (isCollisionMesh(mesh) || isCollisionInstancedMesh(mesh)) {
-					return;
-				}
+			await writeJSON(join(meshFolder, "mesh.json"), json);
 
-				entity.lightmapTexture?.dispose();
-				entity.lightmapTexture = null;
+			options.onProgress?.((progress += step));
 
-				entitiesToInclude.push(mesh);
-				++meshesToComputeCount;
-
-				if (isMesh(mesh)) {
-					mesh.geometry.removeVerticesData(VertexBuffer.UV2Kind);
-					entitiesToInclude.push(...mesh.instances);
-					meshesToComputeCount += mesh.instances.length;
-				}
-
-				entitiesToInclude.forEach((node) => {
-					if (!isAbstractMesh(node)) {
-						return;
-					}
-
-					if (modifiedMeshes.find((m) => m.mesh === node) || !scene.meshes.includes(node)) {
-						return;
-					}
-
-					modifiedMeshes.push({
-						mesh: node,
-						name: node.name,
-						parent: node.parent,
-						position: node.position.clone(),
-						rotation: node.rotation.clone(),
-						rotationQuaternion: node.rotationQuaternion?.clone() ?? null,
-						scaling: node.scaling.clone(),
-					});
-
-					node.name = node.id;
-
-					const matrix = node.computeWorldMatrix(true).clone();
-
-					node.parent = null;
-					node.rotation.setAll(0);
-					node.rotationQuaternion ??= Quaternion.Identity();
-
-					matrix.decompose(node.scaling, node.rotationQuaternion, node.position, undefined, true);
-					node.computeWorldMatrix(true);
-				});
-			});
-		}
-	});
+			meshesToCompute.push(mesh);
+		})
+	);
 
 	let glb: GLTFData | null = null;
 
+	const savedLightsConfigurations = scene.lights.map((light) => {
+		const intensity = light.intensity;
+		light.intensity *= 1000;
+
+		return {
+			light,
+			intensity,
+		};
+	});
+
 	try {
-		glb = await GLTF2Export.GLTFAsync(scene, "lightmap.gltf", {
+		glb = await GLTF2Export.GLBAsync(scene, "lights.glb", {
 			exportUnusedUVs: true,
 			removeNoopRootNodes: false,
 			meshCompressionMethod: "None",
 			exportWithoutWaitingForScene: true,
 			shouldExportAnimation: () => false,
-			shouldExportNode: (n) => entitiesToInclude.includes(n),
+			shouldExportNode: (n) => isLight(n),
 		});
 	} catch (e) {
 		console.error(e);
 	}
 
-	const gltfFile = glb?.files["lightmap.gltf"] as string;
-	const gltfBinaryFile = glb?.files["lightmap.bin"] as Blob;
+	savedLightsConfigurations.forEach((configuration) => {
+		configuration.light.intensity = configuration.intensity;
+	});
 
-	const writePromises: Promise<void>[] = [];
-
-	if (gltfFile && gltfBinaryFile) {
-		writePromises.push(
-			writeFile(join(options.outputFolder, "lightmap.gltf"), gltfFile),
-			writeFile(join(options.outputFolder, "lightmap.bin"), Buffer.from(await gltfBinaryFile.arrayBuffer()))
-		);
-
-		for (const fileName in glb!.files) {
-			if (fileName === "lightmap.gltf" || fileName === "lightmap.bin") {
-				continue;
-			}
-
-			const blob = glb!.files[fileName] as Blob;
-			writePromises.push(writeFile(join(options.outputFolder, fileName), Buffer.from(await blob.arrayBuffer())));
-		}
+	const glbFile = glb?.files["lights.glb"] as Blob;
+	if (glbFile) {
+		await writeFile(join(options.outputFolder, "lights.glb"), Buffer.from(await glbFile.arrayBuffer()));
 	}
 
-	await Promise.all(writePromises);
-
-	modifiedLights.forEach((modifiedLight) => {
-		modifiedLight.intensity /= 1000;
-	});
-
-	modifiedMeshes.forEach((configuration) => {
-		configuration.mesh.name = configuration.name;
-		configuration.mesh.parent = configuration.parent;
-		configuration.mesh.position.copyFrom(configuration.position);
-		configuration.mesh.rotation.copyFrom(configuration.rotation);
-		configuration.mesh.rotationQuaternion = configuration.rotationQuaternion;
-		configuration.mesh.scaling.copyFrom(configuration.scaling);
-		configuration.mesh.computeWorldMatrix(true);
-	});
-
-	return meshesToComputeCount;
+	return meshesToCompute;
 }
