@@ -40,6 +40,10 @@ Module["_load"] = function (request: string, parent: typeof Module, isMain: bool
 		return originalLoad(resolveFilename("babylonjs-procedural-textures", module, false), parent, isMain);
 	}
 
+	if (request.startsWith("babylonjs-serializers")) {
+		return originalLoad(resolveFilename("babylonjs-serializers", module, false), parent, isMain);
+	}
+
 	if (request.startsWith("babylonjs-addons")) {
 		return originalLoad(resolveFilename("babylonjs-addons", module, false), parent, isMain);
 	}

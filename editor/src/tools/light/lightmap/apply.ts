@@ -1,7 +1,7 @@
 import { join } from "path/posix";
-import { copyFile, pathExists } from "fs-extra";
+import { copyFile, pathExists, readFile } from "fs-extra";
 
-import { Texture, VertexBuffer, Mesh, Tools, Geometry, SubMesh, LoadAssetContainerAsync, VertexData, Matrix, Vector3, Quaternion } from "babylonjs";
+import { Texture, VertexBuffer, Mesh, Tools, Geometry, SubMesh, AbstractMesh } from "babylonjs";
 
 import { Editor } from "../../../editor/main";
 import { configureImportedTexture } from "../../../editor/layout/preview/import/import";
@@ -12,6 +12,7 @@ import { isInstancedMesh, isMesh } from "../../guards/nodes";
 import { isPBRMaterial, isStandardMaterial } from "../../guards/material";
 
 export interface ILightmapApplyOptions {
+	meshesToCompute: AbstractMesh[];
 	assetsOutputFolder: string;
 	blenderOutputFolder: string;
 	onProgress: (progress: number) => void;
@@ -20,49 +21,62 @@ export interface ILightmapApplyOptions {
 export async function applyLightmaps(editor: Editor, options: ILightmapApplyOptions) {
 	const scene = editor.layout.preview.scene;
 
-	const container = await LoadAssetContainerAsync("baked_scene.glb", scene, {
-		rootUrl: join(options.blenderOutputFolder, "/"),
-		onProgress: (event) => options.onProgress(event.lengthComputable ? event.loaded / event.total : 0),
-	});
+	let progress = 0;
+	const step = 1 / options.meshesToCompute.length;
+
+	options.onProgress?.(0);
 
 	await Promise.all(
-		container.meshes.map(async (mesh) => {
-			let existingMesh = scene.getMeshById(mesh.name);
-			if (!existingMesh?.geometry) {
+		options.meshesToCompute.map(async (mesh) => {
+			const lightmapTexturePath = join(options.blenderOutputFolder, `${mesh.id}_lightmap.png`);
+			if (!(await pathExists(lightmapTexturePath))) {
 				return;
 			}
 
-			const lightmapTexture = join(options.blenderOutputFolder, `${mesh.name}_lightmap.png`);
-			if (!(await pathExists(lightmapTexture))) {
+			const lightmapTextureDestinationPath = join(options.assetsOutputFolder, `${mesh.id}_lightmap.png`);
+			await copyFile(lightmapTexturePath, lightmapTextureDestinationPath);
+
+			const indicesBinPath = join(options.blenderOutputFolder, `${mesh.id}_indices.bin`);
+			const positionsBinPath = join(options.blenderOutputFolder, `${mesh.id}_positions.bin`);
+			const normalsBinPath = join(options.blenderOutputFolder, `${mesh.id}_normals.bin`);
+			const uvsBinPath = join(options.blenderOutputFolder, `${mesh.id}_uvs.bin`);
+			const uv2sBinPath = join(options.blenderOutputFolder, `${mesh.id}_uv2s.bin`);
+
+			const allExist = await Promise.all([
+				pathExists(indicesBinPath),
+				pathExists(positionsBinPath),
+				pathExists(normalsBinPath),
+				pathExists(uvsBinPath),
+				pathExists(uv2sBinPath),
+			]);
+
+			if (!allExist.every((exists) => exists)) {
 				return;
 			}
 
-			const generatedLightmapPath = join(options.assetsOutputFolder, `${mesh.name}_lightmap.png`);
-			await copyFile(lightmapTexture, generatedLightmapPath);
+			const [indices, positions, normals, uvs, uv2s] = await Promise.all([
+				new Uint32Array((await readFile(indicesBinPath)).buffer),
+				new Float32Array((await readFile(positionsBinPath)).buffer),
+				new Float32Array((await readFile(normalsBinPath)).buffer),
+				new Float32Array((await readFile(uvsBinPath)).buffer),
+				new Float32Array((await readFile(uv2sBinPath)).buffer),
+			]);
 
-			const indices = mesh.getIndices()?.slice();
-			const positions = mesh.getVerticesData(VertexBuffer.PositionKind)?.slice();
-			const uv2 = mesh.getVerticesData(VertexBuffer.UV2Kind)?.slice();
-
-			if (!indices || !positions || !uv2) {
-				return;
-			}
-
-			if (isInstancedMesh(existingMesh) && existingMesh.material) {
-				const newMesh = new Mesh(existingMesh.name, scene);
+			if (isInstancedMesh(mesh) && mesh.material) {
+				const newMesh = new Mesh(mesh.name, scene);
 				newMesh.id = Tools.RandomId();
 				newMesh.uniqueId = UniqueNumber.Get();
 
 				newMesh.subMeshes ??= [];
 				newMesh.receiveShadows = true;
 
-				newMesh.parent = existingMesh.parent;
-				newMesh.position = existingMesh.position;
-				newMesh.rotation = existingMesh.rotation;
-				newMesh.rotationQuaternion = existingMesh.rotationQuaternion;
-				newMesh.scaling = existingMesh.scaling;
+				newMesh.parent = mesh.parent;
+				newMesh.position = mesh.position;
+				newMesh.rotation = mesh.rotation;
+				newMesh.rotationQuaternion = mesh.rotationQuaternion;
+				newMesh.scaling = mesh.scaling;
 
-				const material = existingMesh.material.clone(existingMesh.material.name);
+				const material = mesh.material.clone(mesh.material.name);
 				if (material) {
 					material.id = Tools.RandomId();
 					material.uniqueId = UniqueNumber.Get();
@@ -74,81 +88,53 @@ export async function applyLightmaps(editor: Editor, options: ILightmapApplyOpti
 
 				geometry.applyToMesh(newMesh);
 
-				const descendants = existingMesh.getDescendants(true);
+				const descendants = mesh.getDescendants(true);
 				descendants.forEach((descendant) => {
 					descendant.parent = newMesh;
 				});
 
-				existingMesh.dispose(true, false);
-				existingMesh = newMesh;
-			} else if (existingMesh.material) {
-				const existingMaterial = existingMesh.material;
+				mesh.dispose(true, false);
+				mesh = newMesh;
+			} else if (mesh.material) {
+				const existingMaterial = mesh.material;
 				const material = existingMaterial.clone(existingMaterial.name);
 				if (material) {
 					material.id = Tools.RandomId();
 					material.uniqueId = UniqueNumber.Get();
-					existingMesh.material = material;
+					mesh.material = material;
 				}
 			}
 
-			if (isMesh(existingMesh)) {
-				const lodList = existingMesh.getLODLevels().slice();
+			if (isMesh(mesh)) {
+				const lodList = mesh.getLODLevels().slice();
 				lodList.forEach((lod) => {
-					existingMesh.removeLODLevel(lod.mesh);
+					mesh.removeLODLevel(lod.mesh);
 					lod.mesh?.dispose(true, false);
 				});
 			}
 
-			const matrix = Matrix.Compose(new Vector3(1, 1, -1), new Quaternion(0, 1, 0, 0), Vector3.Zero());
+			const verticesCount = positions.length / 3;
 
-			VertexData["_TransformVector3Coordinates"](positions, matrix);
+			console.log(mesh.name, mesh.geometry!.getIndices()?.length, indices.length);
 
-			existingMesh.geometry!.setIndices(indices);
-			existingMesh.geometry!.setVerticesData(VertexBuffer.PositionKind, positions, true);
+			mesh.geometry!.setIndices(indices, verticesCount, false);
+			mesh.geometry!.setVerticesData(VertexBuffer.PositionKind, positions, false);
+			mesh.geometry!.setVerticesData(VertexBuffer.NormalKind, normals, false);
+			mesh.geometry!.setVerticesData(VertexBuffer.UVKind, uvs, false);
+			mesh.geometry!.setVerticesData(VertexBuffer.UV2Kind, uv2s, false);
 
-			const normals = mesh.getVerticesData(VertexBuffer.NormalKind)?.slice();
-			if (normals) {
-				VertexData["_TransformVector3Normals"](normals, matrix);
-				existingMesh.geometry!.setVerticesData(VertexBuffer.NormalKind, normals, true);
-			}
+			mesh.subMeshes = [];
+			new SubMesh(0, 0, verticesCount, 0, indices.length, mesh, mesh as Mesh, true, true);
 
-			const tangents = mesh.getVerticesData(VertexBuffer.TangentKind)?.slice();
-			if (tangents) {
-				VertexData["_TransformVector4Normals"](tangents, matrix);
-				existingMesh.geometry!.setVerticesData(VertexBuffer.TangentKind, tangents, true);
-			}
-
-			const uvs = mesh.getVerticesData(VertexBuffer.UVKind)?.slice();
-			if (uvs) {
-				existingMesh.geometry!.setVerticesData(VertexBuffer.UVKind, uvs, true);
-			}
-
-			existingMesh.geometry!.setVerticesData(VertexBuffer.UV2Kind, uv2, true);
-
-			existingMesh.subMeshes = [];
-			mesh.subMeshes.forEach((subMesh) => {
-				new SubMesh(
-					subMesh.materialIndex,
-					subMesh.verticesStart,
-					subMesh.verticesCount,
-					subMesh.indexStart,
-					subMesh.indexCount,
-					existingMesh,
-					existingMesh as Mesh,
-					true,
-					true
-				);
-			});
-
-			if (existingMesh.material && (isPBRMaterial(existingMesh.material) || isStandardMaterial(existingMesh.material))) {
-				const lightmap = configureImportedTexture(new Texture(generatedLightmapPath, scene, false, false, Texture.TRILINEAR_SAMPLINGMODE));
+			if (mesh.material && (isPBRMaterial(mesh.material) || isStandardMaterial(mesh.material))) {
+				const lightmap = configureImportedTexture(new Texture(lightmapTextureDestinationPath, scene, false, true, Texture.TRILINEAR_SAMPLINGMODE));
 				lightmap.coordinatesIndex = 1;
 
-				existingMesh.material.useLightmapAsShadowmap = true;
-				existingMesh.material.lightmapTexture = lightmap;
+				mesh.material.useLightmapAsShadowmap = true;
+				mesh.material.lightmapTexture = lightmap;
 			}
+
+			options.onProgress?.((progress += step));
 		})
 	);
-
-	container.dispose();
 }
