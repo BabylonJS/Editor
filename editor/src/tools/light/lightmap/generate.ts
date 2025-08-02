@@ -1,3 +1,4 @@
+import { join as nativeJoin } from "path";
 import { dirname, join } from "path/posix";
 import { ensureDir, remove } from "fs-extra";
 
@@ -46,9 +47,10 @@ export async function generateLightmaps(editor: Editor, options: IGenrateLightma
 	await ensureDir(lightmapTempDirectory);
 
 	// Generate temp GLBs
-	const meshesToComputeCount = await serializeGlbs(editor, {
+	const meshesToCompute = await serializeGlbs(editor, {
 		outputFolder: join(tempDirectory, "lightmap"),
 		onGetLog: (log) => options.onGetLog(log),
+		onProgress: (p) => options.onProgress("Preparing scene...", p),
 	});
 
 	if (options.cancellationToken?.isCancelled) {
@@ -56,15 +58,16 @@ export async function generateLightmaps(editor: Editor, options: IGenrateLightma
 	}
 
 	// Execute blender
-	const pythonPath = process.env.DEBUG
-		? join(editor.path, "assets/scripts/blender_generate_lightmaps.py")
-		: join(editor.path, "../../assets/scripts/blender_generate_lightmaps.py");
+	// const pythonPath = process.env.DEBUG
+	// 	? join(editor.path, "assets/scripts/blender_generate_lightmaps.py")
+	// 	: join(editor.path, "../../assets/scripts/blender_generate_lightmaps.py");
+	const pythonPath = process.env.DEBUG ? nativeJoin(editor.path, "assets/scripts/main.py") : nativeJoin(editor.path, "../../assets/scripts/main.py");
 
-	const command = `--background --python "${pythonPath}" -- "${tempDirectory}/lightmap/" "${blenderOutputFolder}" ${options.quality}`;
+	const command = `--background --python "${pythonPath}" -- "${nativeJoin(tempDirectory, "lightmap")}" "${nativeJoin(blenderOutputFolder)}" ${options.quality}`;
 
 	await executeBlender(editor, {
 		command,
-		meshesToComputeCount,
+		meshesToComputeCount: meshesToCompute.length,
 		cancellationToken: options.cancellationToken,
 		onGetLog: (log) => options.onGetLog(log),
 		onProgress: (p) => options.onProgress("Baking lightmaps...", p),
@@ -77,12 +80,11 @@ export async function generateLightmaps(editor: Editor, options: IGenrateLightma
 	// Apply lightmaps
 	try {
 		await applyLightmaps(editor, {
+			meshesToCompute,
 			assetsOutputFolder,
 			blenderOutputFolder,
 			onProgress: (p) => options.onProgress("Applying lightmaps...", p),
 		});
-
-		remove(lightmapTempDirectory);
 	} catch (e) {
 		console.error("Failed to apply lightmaps:", e);
 	}

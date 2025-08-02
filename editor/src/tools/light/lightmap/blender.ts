@@ -1,11 +1,11 @@
 import { platform } from "os";
 import { join } from "path/posix";
-import { spawn } from "child_process";
 import { pathExists, readdir } from "fs-extra";
 
 import { Editor } from "../../../editor/main";
 
 import { CancellationToken } from "../../tools";
+import { execNodePty } from "../../node-pty";
 
 let blenderExec = "";
 let blenderDir = "";
@@ -58,31 +58,26 @@ export async function executeBlender(editor: Editor, options: ILightmapBlenderEx
 	let progress = 0;
 	const step = 1 / options.meshesToComputeCount;
 
-	const result = await new Promise<void>((resolve) => {
-		const p = spawn(`"${blenderExec}"`, [options.command], {
-			shell: true,
-			windowsHide: true,
+	const result = await new Promise<void>(async (resolve) => {
+		const p = await execNodePty(`"${blenderExec}" ${options.command}`, {
 			cwd: blenderDir || process.cwd(),
 		});
 
-		p.on("close", () => {
-			resolve();
+		p.onGetDataObservable.add((data) => {
+			console.log(data);
+			options.onGetLog(`${data.replace("editor_log: ", "")}\n`);
+
+			const matches = data.match(/Baking mesh: /g);
+			if (matches) {
+				options.onProgress?.((progress += step * matches.length));
+			}
 		});
 
-		p.stdout.on("data", (data) => {
-			const logValues = data?.toString().trim().split("\n") as string[] | undefined;
-			logValues?.forEach((value) => {
-				const matches = value.match(/editor_log: /g);
-				if (matches) {
-					options.onGetLog(`${value.replace("editor_log: ", "")}\n`);
-					options.onProgress?.((progress += step * matches.length));
-				}
-			});
-		});
+		p.wait().then(() => resolve());
 
 		setInterval(() => {
 			if (options.cancellationToken?.isCancelled) {
-				p.kill(0);
+				p.kill();
 				resolve();
 			}
 		}, 500);

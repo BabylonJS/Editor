@@ -1,9 +1,13 @@
 import { Grid } from "react-loader-spinner";
 import { Component, ReactNode } from "react";
 
+import { Terminal } from "@xterm/xterm";
+import { FitAddon } from "@xterm/addon-fit";
+
 import { Button } from "../../../ui/shadcn/ui/button";
 import { Progress } from "../../../ui/shadcn/ui/progress";
 
+import { isDarwin } from "../../../tools/os";
 import { CancellationToken } from "../../../tools/tools";
 import { generateLightmaps, LightmapGenerationQuality } from "../../../tools/light/lightmap/generate";
 
@@ -23,7 +27,10 @@ export interface IEditorPreviewLightmapGeneratorState {
 }
 
 export class EditorPreviewLightmapGenerator extends Component<IEditorPreviewLightmapGeneratorProps, IEditorPreviewLightmapGeneratorState> {
-	private _logsDiv: HTMLDivElement | null = null;
+	private _terminal!: Terminal;
+	private _fitAddon!: FitAddon;
+
+	private _logsDiv!: HTMLDivElement;
 	private _cancellationToken: CancellationToken | null = null;
 
 	public constructor(props: IEditorPreviewLightmapGeneratorProps) {
@@ -59,11 +66,35 @@ export class EditorPreviewLightmapGenerator extends Component<IEditorPreviewLigh
 					Cancel
 				</Button>
 
-				<div ref={(div) => (this._logsDiv = div)} className="w-[50vw] h-[25vh] bg-background/85 rounded-lg p-5 whitespace-break-spaces backdrop-blur-xl overflow-y-auto">
-					{this.state.logs}
-				</div>
+				<div ref={(div) => (this._logsDiv = div!)} className="w-[50vw] h-[25vh] bg-background/85 rounded-lg p-5 whitespace-break-spaces backdrop-blur-xl overflow-hidden" />
 			</div>
 		);
+	}
+
+	public componentDidMount(): void {
+		this._terminal = new Terminal({
+			fontSize: 12,
+			lineHeight: 1,
+			fontWeight: "400",
+			fontWeightBold: "600",
+			allowTransparency: true,
+			letterSpacing: isDarwin() ? -6 : -3,
+			fontFamily: "'Inter var', sans-serif",
+			windowOptions: {
+				getWinSizePixels: true,
+				getCellSizePixels: true,
+				getWinSizeChars: true,
+			},
+		});
+
+		this._fitAddon = new FitAddon();
+		this._terminal.loadAddon(this._fitAddon);
+
+		this._terminal.open(this._logsDiv);
+
+		requestAnimationFrame(() => {
+			this._fitAddon?.fit();
+		});
 	}
 
 	public async generate(quality: LightmapGenerationQuality): Promise<void> {
@@ -86,14 +117,7 @@ export class EditorPreviewLightmapGenerator extends Component<IEditorPreviewLigh
 				});
 			},
 			onGetLog: (log) => {
-				const limit = this._logsDiv!.scrollHeight - this._logsDiv!.clientHeight - 10;
-				const isAtBottom = this._logsDiv!.scrollTop >= limit;
-
-				this.setState({ logs: this.state.logs + log }, () => {
-					if (isAtBottom) {
-						this._logsDiv!.scrollTo(0, this._logsDiv!.scrollHeight);
-					}
-				});
+				this._terminal.write(log);
 			},
 		});
 
@@ -107,6 +131,8 @@ export class EditorPreviewLightmapGenerator extends Component<IEditorPreviewLigh
 			progress: 0,
 			generating: false,
 		});
+
+		this._terminal.clear();
 	}
 
 	private _handleCancel(): void {
