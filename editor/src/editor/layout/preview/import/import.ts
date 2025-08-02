@@ -1,5 +1,5 @@
 import { isAbsolute } from "path";
-import { join, dirname, basename } from "path/posix";
+import { join, dirname, basename, extname } from "path/posix";
 import { readFile, readJSON, writeFile } from "fs-extra";
 
 import axios from "axios";
@@ -11,6 +11,7 @@ import { UniqueNumber } from "../../../../tools/tools";
 import { isMesh } from "../../../../tools/guards/nodes";
 import { isTexture } from "../../../../tools/guards/texture";
 import { isMultiMaterial } from "../../../../tools/guards/material";
+import { convertGltfMeshesToLeftHanded } from "../../../../tools/mesh/convert";
 import { configureSimultaneousLightsForMaterial } from "../../../../tools/mesh/material";
 import { onNodesAddedObservable, onTextureAddedObservable } from "../../../../tools/observables";
 
@@ -60,9 +61,11 @@ export async function loadImportedSceneFile(scene: Scene, absolutePath: string, 
 		return null;
 	}
 
-	if (fromCloudConverter) {
+	const extension = extname(absolutePath).toLowerCase();
+	if (extension === ".gltf" || extension === ".glb" || fromCloudConverter) {
 		const root = result.meshes.find((m) => m.name === "__root__");
-		root?.scaling.scaleInPlace(100);
+		convertGltfMeshesToLeftHanded(result.meshes);
+		root?.dispose(true, true);
 	}
 
 	result.meshes.forEach((mesh) => {
