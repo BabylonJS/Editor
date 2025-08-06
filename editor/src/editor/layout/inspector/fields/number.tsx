@@ -78,6 +78,22 @@ export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldPro
 		return ratio.toFixed(0);
 	}
 
+	function getFinalValueOf(v: number) {
+		if (props.asDegrees) {
+			return Tools.ToRadians(v);
+		}
+
+		return v;
+	}
+
+	function getMinMaxValueOf(v: number) {
+		if (props.asDegrees) {
+			return Tools.ToDegrees(v);
+		}
+
+		return v;
+	}
+
 	const hasMinMax = props.min !== undefined && props.max !== undefined;
 	const ratio = hasMinMax ? getRatio() : 0;
 
@@ -122,18 +138,16 @@ export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldPro
 					}
 
 					if (!isNaN(float)) {
-						if (props.asDegrees) {
-							float = Tools.ToRadians(float);
-						}
+						float = getFinalValueOf(float);
 
 						if (props.min !== undefined && float < props.min) {
 							float = props.min;
-							setValue(float.toFixed(digitCount));
+							setValue(getMinMaxValueOf(props.min).toFixed(digitCount));
 						}
 
 						if (props.max !== undefined && float > props.max) {
 							float = props.max;
-							setValue(float.toFixed(digitCount));
+							setValue(getMinMaxValueOf(props.max).toFixed(digitCount));
 						}
 
 						setInspectorEffectivePropertyValue(props.object, props.property, float);
@@ -217,11 +231,13 @@ export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldPro
 							}
 
 							if (props.min !== undefined && finalValue < props.min) {
-								v = props.min;
+								finalValue = props.min;
+								v = getMinMaxValueOf(props.min);
 							}
 
 							if (props.max !== undefined && finalValue > props.max) {
-								v = props.max;
+								finalValue = props.max;
+								v = getMinMaxValueOf(props.max);
 							}
 
 							setValue(v.toFixed(digitCount));
