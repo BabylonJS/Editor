@@ -27,6 +27,7 @@ import {
 	ParticleSystem,
 	GPUParticleSystem,
 	Vector3,
+	Geometry,
 } from "babylonjs";
 
 import { Editor } from "../../editor/main";
@@ -423,6 +424,36 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 			);
 		})
 	);
+
+	// Make geometries unique for those one that are shared
+	const mappedGeometries = new Map<string, Geometry[]>();
+	scene.geometries.forEach((geometry) => {
+		if (!mappedGeometries.has(geometry.id)) {
+			mappedGeometries.set(geometry.id, [geometry]);
+		} else {
+			mappedGeometries.get(geometry.id)!.push(geometry);
+		}
+	});
+
+	mappedGeometries.forEach((geometries) => {
+		if (geometries.length <= 1) {
+			return;
+		}
+
+		for (let i = 1, len = geometries.length; i < len; ++i) {
+			const geometry = geometries[i];
+			const meshes = scene.meshes.filter((mesh) => isMesh(mesh) && mesh.geometry === geometry) as Mesh[];
+
+			meshes.forEach((mesh) => {
+				geometry.releaseForMesh(mesh, true);
+				if (geometry.isDisposed()) {
+					scene.removeGeometry(geometry);
+				}
+
+				geometries[0].applyToMesh(mesh);
+			});
+		}
+	});
 
 	// Load morph target managers
 	await Promise.all(

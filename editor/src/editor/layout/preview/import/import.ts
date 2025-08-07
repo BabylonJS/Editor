@@ -70,6 +70,7 @@ export async function loadImportedSceneFile(scene: Scene, absolutePath: string, 
 
 		if (mesh.skeleton) {
 			mesh.skeleton.id = Tools.RandomId();
+			mesh.skeleton["_uniqueId"] = UniqueNumber.Get();
 			mesh.skeleton.bones.forEach((bone) => configureImportedNodeIds(bone));
 		}
 

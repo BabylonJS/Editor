@@ -31,6 +31,8 @@ import {
 } from "../../ui/shadcn/ui/context-menu";
 
 import { isSound } from "../../tools/guards/sound";
+import { cloneNode } from "../../tools/node/clone";
+import { registerUndoRedo } from "../../tools/undoredo";
 import { isDomTextInputFocused } from "../../tools/dom";
 import { isSceneLinkNode } from "../../tools/guards/scene";
 import { updateAllLights } from "../../tools/light/shadows";
@@ -356,92 +358,88 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		}
 
 		const newNodes: (Node | ParticleSystem)[] = [];
+		const nodesToCopy = this._objectsToCopy.map((n) => n.nodeData);
 
-		this._objectsToCopy.forEach((treeNode) => {
-			const object = treeNode.nodeData;
+		registerUndoRedo({
+			executeRedo: true,
+			action: () => {
+				this.refresh();
 
-			let node: Node | ParticleSystem | null = null;
+				waitNextAnimationFrame().then(() => {
+					const firstNode = newNodes[0] ?? null;
+					if (firstNode) {
+						this.props.editor.layout.graph.setSelectedNode(firstNode);
 
-			if (isAbstractMesh(object)) {
-				const suffix = "(Instanced Mesh)";
-				const name = isInstancedMesh(object) ? object.name : `${object.name.replace(` ${suffix}`, "")} ${suffix}`;
+						if (isNode(firstNode)) {
+							this.props.editor.layout.preview.gizmo.setAttachedNode(firstNode);
+						}
+					}
 
-				const instance = (node = object.createInstance(name));
-				instance.position.copyFrom(object.position);
-				instance.rotation.copyFrom(object.rotation);
-				instance.scaling.copyFrom(object.scaling);
-				instance.rotationQuaternion = object.rotationQuaternion?.clone() ?? null;
-				instance.parent = object.parent;
+					this.props.editor.layout.inspector.setEditedObject(firstNode);
+					this.props.editor.layout.animations.setEditedObject(firstNode);
+				});
+			},
+			undo: () => {
+				newNodes.forEach((node) => {
+					node.dispose(false, false);
+				});
+				newNodes.splice(0, newNodes.length);
+			},
+			redo: () => {
+				nodesToCopy.forEach((object) => {
+					let node: Node | ParticleSystem | null = null;
 
-				const collisionMesh = getCollisionMeshFor(instance.sourceMesh);
-				collisionMesh?.updateInstances(instance.sourceMesh);
-			}
+					defer: {
+						if (isAbstractMesh(object)) {
+							const suffix = "(Instanced Mesh)";
+							const name = isInstancedMesh(object) ? object.name : `${object.name.replace(` ${suffix}`, "")} ${suffix}`;
 
-			if (isLight(object)) {
-				const suffix = "(Clone)";
-				const name = `${object.name.replace(` ${suffix}`, "")} ${suffix}`;
+							const instance = (node = object.createInstance(name));
+							instance.position.copyFrom(object.position);
+							instance.rotation.copyFrom(object.rotation);
+							instance.scaling.copyFrom(object.scaling);
+							instance.rotationQuaternion = object.rotationQuaternion?.clone() ?? null;
+							instance.parent = object.parent;
 
-				node = object.clone(name);
-				if (node) {
-					node.parent = object.parent;
-				}
-			}
+							const collisionMesh = getCollisionMeshFor(instance.sourceMesh);
+							collisionMesh?.updateInstances(instance.sourceMesh);
 
-			if (isCamera(object)) {
-				const suffix = "(Clone)";
-				const name = `${object.name.replace(` ${suffix}`, "")} ${suffix}`;
+							break defer;
+						}
 
-				node = object.clone(name);
-				node.parent = object.parent;
-			}
+						if (isParticleSystem(object) && isAbstractMesh(parent)) {
+							const suffix = "(Clone)";
+							const name = `${object.name.replace(` ${suffix}`, "")} ${suffix}`;
 
-			if (isTransformNode(object)) {
-				const suffix = "(Clone)";
-				const name = `${object.name.replace(` ${suffix}`, "")} ${suffix}`;
+							node = object.clone(name, parent, false);
 
-				node = object.clone(name, null, true);
-				if (node) {
-					node.parent = object.parent;
-				}
-			}
+							break defer;
+						}
 
-			if (isParticleSystem(object) && isAbstractMesh(parent)) {
-				const suffix = "(Clone)";
-				const name = `${object.name.replace(` ${suffix}`, "")} ${suffix}`;
+						if (isNode(object)) {
+							node = cloneNode(this.props.editor, object);
+							break defer;
+						}
+					}
 
-				node = object.clone(name, parent, false);
-			}
+					if (node) {
+						node.id = Tools.RandomId();
+						node.uniqueId = UniqueNumber.Get();
 
-			if (node) {
-				node.id = Tools.RandomId();
-				node.uniqueId = UniqueNumber.Get();
+						if (parent && isNode(node)) {
+							node.parent = parent;
+						}
 
-				if (parent && isNode(node)) {
-					node.parent = parent;
-				}
+						if (isAbstractMesh(node)) {
+							this.props.editor.layout.preview.scene.lights
+								.map((light) => light.getShadowGenerator())
+								.forEach((generator) => generator?.getShadowMap()?.renderList?.push(node));
+						}
 
-				if (isAbstractMesh(node)) {
-					this.props.editor.layout.preview.scene.lights
-						.map((light) => light.getShadowGenerator())
-						.forEach((generator) => generator?.getShadowMap()?.renderList?.push(node));
-				}
-
-				newNodes.push(node);
-			}
-		});
-
-		this.refresh();
-
-		waitNextAnimationFrame().then(() => {
-			const firstNode = newNodes[0];
-
-			this.props.editor.layout.graph.setSelectedNode(firstNode);
-			this.props.editor.layout.inspector.setEditedObject(firstNode);
-
-			if (isNode(firstNode)) {
-				this.props.editor.layout.animations.setEditedObject(firstNode);
-				this.props.editor.layout.preview.gizmo.setAttachedNode(firstNode);
-			}
+						newNodes.push(node);
+					}
+				});
+			},
 		});
 	}
 

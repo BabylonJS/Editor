@@ -120,6 +120,10 @@ export class EditorAnimation extends Component<IEditorAnimationProps, IEditorAni
 	 * @param object defines the reference to the object that has been selected somewhere in the graph or the preview.
 	 */
 	public setEditedObject(object: unknown): void {
+		if (!object) {
+			return this.setState({ animatable: null });
+		}
+
 		if (isNode(object) || isScene(object) || isAnyParticleSystem(object)) {
 			if (!object.animations) {
 				object.animations = [];
