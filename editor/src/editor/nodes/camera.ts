@@ -1,5 +1,7 @@
 import { Node, FreeCamera, Scene, Vector3 } from "babylonjs";
 
+import { isDomTextInputFocused } from "../../tools/dom";
+
 export class EditorCamera extends FreeCamera {
 	private _savedSpeed: number | null = null;
 
@@ -21,7 +23,7 @@ export class EditorCamera extends FreeCamera {
 		window.addEventListener(
 			"keydown",
 			(this._keyboardDownListener = (ev) => {
-				if (ev.key !== "Shift") {
+				if (ev.key !== "Shift" || isDomTextInputFocused()) {
 					return;
 				}
 
