@@ -439,7 +439,32 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 			});
 		});
 
-		// TODO: Scripts
+		// Scripts
+		const nodes = [scene, ...scene.transformNodes, ...scene.meshes, ...scene.lights, ...scene.cameras];
+		const scripts = nodes.map((node) => node.metadata?.scripts ?? []).flat();
+
+		scripts.forEach((script) => {
+			for (const v in script.values) {
+				if (!script.values.hasOwnProperty(v)) {
+					continue;
+				}
+
+				const value = script.values[v];
+				if (!value.value) {
+					continue;
+				}
+
+				if (value.type === "texture") {
+					const serializationObject = value.value;
+					if (serializationObject?.name === oldRelativePath) {
+						serializationObject.name = newRelativePath;
+						if (serializationObject.url) {
+							serializationObject.url = newRelativePath;
+						}
+					}
+				}
+			}
+		});
 	}
 
 	/**
