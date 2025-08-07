@@ -56,6 +56,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 	const scene = editor.layout.preview.scene;
 
 	const savedFiles: string[] = [];
+	const savedGeometryIds: string[] = [];
 
 	// Write geometries and meshes
 	await Promise.all(
@@ -150,7 +151,18 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 								const geometryPath = join(scenePath, "geometries", geometryFileName);
 
 								try {
-									await writeBinaryGeometry(geometryPath, geometry, mesh);
+									let writeGeometry = false;
+									if (!savedGeometryIds.includes(geometry.id)) {
+										writeGeometry = true;
+										savedGeometryIds.push(geometry.id);
+									}
+
+									await writeBinaryGeometry({
+										mesh,
+										geometry,
+										path: geometryPath,
+										write: writeGeometry,
+									});
 
 									let geometryIndex = -1;
 									do {

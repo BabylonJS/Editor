@@ -358,7 +358,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
 			const verticalDistance = verticalSize / 2 / Math.tan(fov / 2);
 			const horizontalDistance = horizontalSize / 2 / Math.tan((fov * aspect) / 2);
-			const idealDistance = Math.max(verticalDistance, horizontalDistance);
+			const idealDistance = Math.max(verticalDistance, horizontalDistance) * 2;
 
 			const directionToMesh = camera.globalPosition.subtract(center).normalize();
 

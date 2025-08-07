@@ -1,7 +1,16 @@
 import { createWriteStream } from "fs";
 
-export async function writeBinaryGeometry(path: string, geometry: any, mesh: any): Promise<void> {
-	const stream = createWriteStream(path);
+export interface IWriteBinaryGeometryOptions {
+	path: string;
+	geometry: any;
+	mesh: any;
+	write: boolean;
+}
+
+export async function writeBinaryGeometry(options: IWriteBinaryGeometryOptions): Promise<void> {
+	const { geometry, mesh } = options;
+
+	const stream = options.write ? createWriteStream(options.path) : null;
 
 	let offset = 0;
 

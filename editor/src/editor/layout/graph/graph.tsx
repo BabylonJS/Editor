@@ -1,10 +1,10 @@
 import { platform } from "os";
 
-import { Mesh, Tools, SubMesh } from "babylonjs";
-
 import { Component, PropsWithChildren, ReactNode } from "react";
 
 import { AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
+
+import { Mesh, SubMesh, Node, InstancedMesh } from "babylonjs";
 
 import {
 	ContextMenu,
@@ -19,20 +19,26 @@ import {
 	ContextMenuCheckboxItem,
 } from "../../../ui/shadcn/ui/context-menu";
 
+import { showConfirm } from "../../../ui/dialog";
+import { Separator } from "../../../ui/shadcn/ui/separator";
 import { SceneAssetBrowserDialogMode, showAssetBrowserDialog } from "../../../ui/scene-asset-browser";
 
 import { getMeshCommands } from "../../dialogs/command-palette/mesh";
 import { getLightCommands } from "../../dialogs/command-palette/light";
 
 import { isSound } from "../../../tools/guards/sound";
+import { cloneNode, ICloneNodeOptions } from "../../../tools/node/clone";
 import { reloadSound } from "../../../tools/sound/tools";
 import { registerUndoRedo } from "../../../tools/undoredo";
+import { waitNextAnimationFrame } from "../../../tools/tools";
+import { createMeshInstance } from "../../../tools/mesh/instance";
 import { isScene, isSceneLinkNode } from "../../../tools/guards/scene";
-import { UniqueNumber, waitNextAnimationFrame } from "../../../tools/tools";
 import { isAbstractMesh, isMesh, isNode } from "../../../tools/guards/nodes";
 import { isNodeLocked, isNodeSerializable, setNodeLocked, setNodeSerializable } from "../../../tools/node/metadata";
 
 import { addGPUParticleSystem, addParticleSystem } from "../../../project/add/particles";
+
+import { EditorInspectorSwitchField } from "../inspector/fields/switch";
 
 import { Editor } from "../../main";
 
@@ -65,6 +71,10 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
 
 							{!isScene(this.props.object) && !isSound(this.props.object) && (
 								<>
+									<ContextMenuItem onClick={() => this._cloneNode(this.props.object)}>Clone</ContextMenuItem>
+
+									<ContextMenuSeparator />
+
 									<ContextMenuItem onClick={() => this.props.editor.layout.graph.copySelectedNodes()}>
 										Copy <ContextMenuShortcut>{platform() === "darwin" ? "⌘+C" : "CTRL+C"}</ContextMenuShortcut>
 									</ContextMenuItem>
@@ -179,8 +189,10 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
 				{isMesh(this.props.object) && (
 					<>
 						<ContextMenuSeparator />
+
 						<ContextMenuItem onClick={() => this._createMeshInstance(this.props.object)}>Create Instance</ContextMenuItem>
 
+						<ContextMenuSeparator />
 						<ContextMenuItem onClick={() => this._updateMeshGeometry(this.props.object)}>Update Geometry...</ContextMenuItem>
 					</>
 				)}
@@ -189,32 +201,92 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
 	}
 
 	private _createMeshInstance(mesh: Mesh): void {
-		const instance = mesh.createInstance(`${mesh.name} (Mesh Instance)`);
-		instance.id = Tools.RandomId();
-		instance.uniqueId = UniqueNumber.Get();
-		instance.parent = mesh.parent;
-		instance.position.copyFrom(mesh.position);
-		instance.rotation.copyFrom(mesh.rotation);
-		instance.scaling.copyFrom(mesh.scaling);
-		instance.rotationQuaternion = mesh.rotationQuaternion?.clone() ?? null;
-		instance.isVisible = mesh.isVisible;
-		instance.setEnabled(mesh.isEnabled());
+		let instance: InstancedMesh | null = null;
 
-		const lights = this.props.editor.layout.preview.scene.lights;
-		const shadowMaps = lights.map((light) => light.getShadowGenerator()?.getShadowMap()).filter((s) => s);
+		registerUndoRedo({
+			executeRedo: true,
+			action: () => {
+				this.props.editor.layout.graph.refresh();
 
-		shadowMaps.forEach((shadowMap) => {
-			if (shadowMap?.renderList?.includes(mesh)) {
-				shadowMap.renderList.push(instance);
-			}
+				waitNextAnimationFrame().then(() => {
+					if (instance) {
+						this.props.editor.layout.graph.setSelectedNode(instance);
+						this.props.editor.layout.animations.setEditedObject(instance);
+					}
+
+					this.props.editor.layout.inspector.setEditedObject(instance);
+					this.props.editor.layout.preview.gizmo.setAttachedNode(instance);
+				});
+			},
+			undo: () => {
+				instance?.dispose(false, false);
+				instance = null;
+			},
+			redo: () => {
+				instance = createMeshInstance(this.props.editor, mesh);
+			},
 		});
+	}
 
-		this.props.editor.layout.graph.refresh();
+	private async _cloneNode(node: any): Promise<void> {
+		let clone: Node | null = null;
 
-		waitNextAnimationFrame().then(() => {
-			this.props.editor.layout.graph.setSelectedNode(instance);
-			this.props.editor.layout.inspector.setEditedObject(instance);
-			this.props.editor.layout.preview.gizmo.setAttachedNode(instance);
+		const cloneOptions: ICloneNodeOptions = {
+			shareGeometry: true,
+			shareSkeleton: true,
+			cloneMaterial: true,
+			cloneThinInstances: true,
+		};
+
+		const allNodes = isNode(node) ? [node, ...node.getDescendants(false)] : [node];
+		if (allNodes.find((node) => isMesh(node))) {
+			const result = await showConfirm(
+				"Clone options",
+				<div className="flex flex-col gap-2">
+					<Separator />
+
+					<div className="text-muted font-semibold">Options for meshes</div>
+
+					<div className="flex flex-col">
+						<EditorInspectorSwitchField object={cloneOptions} property="shareGeometry" label="Share Geometry" />
+						<EditorInspectorSwitchField object={cloneOptions} property="shareSkeleton" label="Share Skeleton" />
+						<EditorInspectorSwitchField object={cloneOptions} property="cloneMaterial" label="Clone Material" />
+						<EditorInspectorSwitchField object={cloneOptions} property="cloneThinInstances" label="Clone Thin Instances" />
+					</div>
+				</div>,
+				{
+					asChild: true,
+					confirmText: "Clone",
+				}
+			);
+
+			if (!result) {
+				return;
+			}
+		}
+
+		registerUndoRedo({
+			executeRedo: true,
+			action: () => {
+				this.props.editor.layout.graph.refresh();
+
+				waitNextAnimationFrame().then(() => {
+					if (clone) {
+						this.props.editor.layout.graph.setSelectedNode(clone);
+						this.props.editor.layout.animations.setEditedObject(clone);
+					}
+
+					this.props.editor.layout.inspector.setEditedObject(clone);
+					this.props.editor.layout.preview.gizmo.setAttachedNode(clone);
+				});
+			},
+			undo: () => {
+				clone?.dispose(false, false);
+				clone = null;
+			},
+			redo: () => {
+				clone = cloneNode(this.props.editor, node, cloneOptions);
+			},
 		});
 	}
 

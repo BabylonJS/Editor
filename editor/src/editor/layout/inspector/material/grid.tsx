@@ -3,12 +3,12 @@ import { Component, ReactNode } from "react";
 import { AbstractMesh } from "babylonjs";
 import { GridMaterial } from "babylonjs-materials";
 
+import { EditorInspectorColorField } from "../fields/color";
 import { EditorInspectorStringField } from "../fields/string";
 import { EditorInspectorSwitchField } from "../fields/switch";
 import { EditorInspectorNumberField } from "../fields/number";
 import { EditorInspectorVectorField } from "../fields/vector";
 import { EditorInspectorSectionField } from "../fields/section";
-import { EditorInspectorColorField } from "../fields/color";
 
 import { EditorMaterialInspectorUtilsComponent } from "./utils";
 

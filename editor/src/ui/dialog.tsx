@@ -60,6 +60,7 @@ export function showConfirm(
 	title: string,
 	children: ReactNode,
 	options?: {
+		asChild?: boolean;
 		cancelText?: string;
 		confirmText?: string;
 	}
@@ -74,7 +75,7 @@ export function showConfirm(
 				<AlertDialogContent>
 					<AlertDialogHeader>
 						<AlertDialogTitle>{title}</AlertDialogTitle>
-						<AlertDialogDescription>{children}</AlertDialogDescription>
+						<AlertDialogDescription asChild={options?.asChild}>{children}</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>
 						<AlertDialogCancel

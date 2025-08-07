@@ -72,6 +72,7 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 	}
 
 	const savedGeometries: string[] = [];
+	const savedGeometryIds: string[] = [];
 
 	// Configure textures to store base size. This will be useful for the scene loader located
 	// in the `babylonjs-editor-tools` package.
@@ -192,7 +193,18 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 				const geometryPath = join(scenePath, sceneName, geometryFileName);
 
 				try {
-					await writeBinaryGeometry(geometryPath, geometry, mesh);
+					let writeGeometry = false;
+					if (!savedGeometryIds.includes(geometry.id)) {
+						writeGeometry = true;
+						savedGeometryIds.push(geometry.id);
+					}
+
+					await writeBinaryGeometry({
+						mesh,
+						geometry,
+						path: geometryPath,
+						write: writeGeometry,
+					});
 
 					let geometryIndex = -1;
 					do {
