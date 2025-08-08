@@ -1,9 +1,11 @@
 import { Node, FreeCamera, Scene, Vector3 } from "babylonjs";
+import { EditorFreeCameraPanInput } from "./camera-pan-input";
 
 import { isDomTextInputFocused } from "../../tools/dom";
 
 export class EditorCamera extends FreeCamera {
 	private _savedSpeed: number | null = null;
+	private _panInput: EditorFreeCameraPanInput | null = null;
 
 	private _keyboardUpListener: (ev: KeyboardEvent) => void;
 	private _keyboardDownListener: (ev: KeyboardEvent) => void;
@@ -19,6 +21,7 @@ export class EditorCamera extends FreeCamera {
 		super(name, position, scene, setActiveOnSceneIfNoneActive);
 
 		this.inputs.addMouseWheel();
+		this._panInput = new EditorFreeCameraPanInput();
 
 		window.addEventListener(
 			"keydown",
@@ -47,6 +50,19 @@ export class EditorCamera extends FreeCamera {
 				}
 			})
 		);
+	}
+
+	/**
+	 * Override attachControl to ensure pan input is attached
+	 */
+	public attachControl(noPreventDefault?: boolean): void {
+		super.attachControl(noPreventDefault);
+
+		// Add pan input after camera is attached
+		if (this._panInput && !this.inputs.attached.editorPan) {
+			this.inputs.add(this._panInput);
+			console.log("EditorCamera: Added pan input to camera", this._panInput);
+		}
 	}
 
 	/**
