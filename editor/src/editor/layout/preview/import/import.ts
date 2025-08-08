@@ -65,6 +65,28 @@ export async function loadImportedSceneFile(scene: Scene, absolutePath: string, 
 		root?.scaling.scaleInPlace(100);
 	}
 
+	// Rename imported roots named "__root__" to a friendly name derived from the filename
+	const baseFileName = basename(absolutePath).replace(/\.[^/.]+$/, "");
+	const getUniqueName = (proposed: string): string => {
+		let uniqueName = proposed;
+		let suffix = 1;
+		while (scene.getNodeByName(uniqueName)) {
+			uniqueName = `${proposed}_${suffix++}`;
+		}
+		return uniqueName;
+	};
+
+	result.meshes.forEach((mesh) => {
+		if (mesh.name === "__root__") {
+			mesh.name = getUniqueName(baseFileName);
+		}
+	});
+	result.transformNodes.forEach((tn) => {
+		if (tn.name === "__root__") {
+			tn.name = getUniqueName(baseFileName);
+		}
+	});
+
 	result.meshes.forEach((mesh) => {
 		configureImportedNodeIds(mesh);
 

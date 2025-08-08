@@ -87,4 +87,10 @@ export const meshCommandItems = {
 		key: "add-empty-mesh",
 		ipcRendererChannelKey: "empty-mesh",
 	} as CommandItem,
+	modelMesh: {
+		text: "Model Mesh",
+		label: "Import a 3D model",
+		key: "add-model-mesh",
+		ipcRendererChannelKey: "model-mesh",
+	} as CommandItem,
 };

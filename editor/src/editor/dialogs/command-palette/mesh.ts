@@ -2,7 +2,7 @@ import { Node } from "babylonjs";
 
 import { Editor } from "../../main";
 
-import { addTransformNode, addBoxMesh, addGroundMesh, addSphereMesh, addPlaneMesh, addSkyboxMesh, addEmptyMesh } from "../../../project/add/mesh";
+import { addTransformNode, addBoxMesh, addGroundMesh, addSphereMesh, addPlaneMesh, addSkyboxMesh, addEmptyMesh, addModelMesh } from "../../../project/add/mesh";
 
 import { meshCommandItems } from "./shared-commands";
 import { ICommandPaletteType } from "./command-palette";
@@ -36,6 +36,10 @@ export function getMeshCommands(editor?: Editor, parent?: Node): ICommandPalette
 		{
 			...meshCommandItems.emptyMesh,
 			action: () => editor && addEmptyMesh(editor, parent),
+		},
+		{
+			...meshCommandItems.modelMesh,
+			action: () => editor && addModelMesh(editor, parent),
 		},
 	];
 }

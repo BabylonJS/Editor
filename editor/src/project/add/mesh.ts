@@ -3,6 +3,7 @@ import { MeshBuilder, Mesh, Node, Tools, TransformNode } from "babylonjs";
 import { UniqueNumber } from "../../tools/tools";
 
 import { Editor } from "../../editor/main";
+import { openSingleFileDialog } from "../../tools/dialog";
 
 export function addTransformNode(editor: Editor, parent?: Node) {
 	const transformNode = new TransformNode("New Transform Node", editor.layout.preview.scene);
@@ -186,4 +187,50 @@ export function addEmptyMesh(editor: Editor, parent?: Node) {
 
 	editor.layout.inspector.setEditedObject(emptyMesh);
 	editor.layout.preview.gizmo.setAttachedNode(emptyMesh);
+}
+
+export function addModelMesh(editor: Editor, parent?: Node) {
+	const filename = openSingleFileDialog({
+		title: "Import 3D Model",
+		filters: [
+			{
+				name: "3D Model Files",
+				extensions: ["glb", "gltf", "obj", "stl"],
+			},
+			{ name: "All Files", extensions: ["*"] },
+		],
+	});
+
+	if (!filename) {
+		return;
+	}
+
+	editor.layout.preview.importSceneFile(filename, false).then((result) => {
+		if (!result) {
+			return;
+		}
+
+		result.meshes.forEach((m) => {
+			if (parent && !m.parent) {
+				m.parent = parent;
+			}
+			m.receiveShadows = true;
+		});
+
+		result.transformNodes.forEach((t) => {
+			if (parent && !t.parent) {
+				t.parent = parent;
+			}
+		});
+
+		editor.layout.graph.refresh().then(() => {
+			const nodeToSelect = result.meshes.find((m) => !m.parent) || result.transformNodes.find((t) => !t.parent) || result.meshes[0] || result.transformNodes[0];
+
+			if (nodeToSelect) {
+				editor.layout.graph.setSelectedNode(nodeToSelect as any);
+				editor.layout.inspector.setEditedObject(nodeToSelect as any);
+				editor.layout.preview.gizmo.setAttachedNode(nodeToSelect as any);
+			}
+		});
+	});
 }
