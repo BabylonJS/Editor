@@ -11,7 +11,9 @@ import { EditorInspectorSwitchField } from "../fields/switch";
 import { EditorInspectorTextureField } from "../fields/texture";
 import { EditorInspectorSectionField } from "../fields/section";
 
-import { EditorAlphaModeField, EditorTransparencyModeField, EditorMaterialInspectorUtilsComponent } from "./components";
+import { EditorAlphaModeField } from "./components/alpha";
+import { EditorTransparencyModeField } from "./components/transparency";
+import { EditorMaterialInspectorUtilsComponent } from "./components/utils";
 
 export interface IEditorPBRMaterialInspectorProps {
 	mesh?: AbstractMesh;

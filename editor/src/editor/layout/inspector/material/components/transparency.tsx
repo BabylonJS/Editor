@@ -1,4 +1,4 @@
-import { Component, ReactNode } from "react";
+import { ReactNode } from "react";
 import { StandardMaterial, PBRMaterial } from "babylonjs";
 import { EditorInspectorListField } from "../../fields/list";
 
@@ -7,14 +7,10 @@ export interface IEditorTransparencyModeFieldProps {
 	onChange?: () => void;
 }
 
-export class EditorTransparencyModeField extends Component<IEditorTransparencyModeFieldProps> {
-	public constructor(props: IEditorTransparencyModeFieldProps) {
-		super(props);
-	}
+export function EditorTransparencyModeField(props: IEditorTransparencyModeFieldProps): ReactNode {
+	const getTransparencyModeItems = () => {
+		const material = props.object;
 
-	private getTransparencyModeItems() {
-		const material = this.props.object;
-		
 		if (material instanceof PBRMaterial) {
 			return [
 				{ text: "None", value: null },
@@ -32,19 +28,9 @@ export class EditorTransparencyModeField extends Component<IEditorTransparencyMo
 				{ text: "Alpha Test and Blend", value: StandardMaterial.MATERIAL_ALPHATESTANDBLEND },
 			];
 		}
-		
-		return [];
-	}
 
-	public render(): ReactNode {
-		return (
-			<EditorInspectorListField
-				label="Transparency Mode"
-				object={this.props.object}
-				property="transparencyMode"
-				onChange={this.props.onChange}
-				items={this.getTransparencyModeItems()}
-			/>
-		);
-	}
+		return [];
+	};
+
+	return <EditorInspectorListField label="Transparency Mode" object={props.object} property="transparencyMode" onChange={props.onChange} items={getTransparencyModeItems()} />;
 }

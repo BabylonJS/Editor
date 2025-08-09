@@ -8,7 +8,7 @@ import { EditorInspectorSwitchField } from "../fields/switch";
 import { EditorInspectorNumberField } from "../fields/number";
 import { EditorInspectorSectionField } from "../fields/section";
 
-import { EditorMaterialInspectorUtilsComponent } from "./components";
+import { EditorMaterialInspectorUtilsComponent } from "./components/utils";
 
 export interface IEditorSkyMaterialInspectorProps {
 	mesh?: AbstractMesh;
