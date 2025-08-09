@@ -1,6 +1,6 @@
 import { Component, ReactNode } from "react";
 
-import { Constants, StandardMaterial, AbstractMesh } from "babylonjs";
+import { StandardMaterial, AbstractMesh } from "babylonjs";
 
 import { EditorInspectorColorField } from "../fields/color";
 import { EditorInspectorStringField } from "../fields/string";
@@ -8,9 +8,8 @@ import { EditorInspectorSwitchField } from "../fields/switch";
 import { EditorInspectorNumberField } from "../fields/number";
 import { EditorInspectorTextureField } from "../fields/texture";
 import { EditorInspectorSectionField } from "../fields/section";
-import { EditorInspectorListField } from "../fields/list";
 
-import { EditorMaterialInspectorUtilsComponent } from "./utils";
+import { EditorAlphaModeField, EditorTransparencyModeField, EditorMaterialInspectorUtilsComponent } from "./components";
 
 export interface IEditorStandardMaterialInspectorProps {
 	mesh?: AbstractMesh;
@@ -30,38 +29,9 @@ export class EditorStandardMaterialInspector extends Component<IEditorStandardMa
 					<EditorInspectorSwitchField label="Back Face Culling" object={this.props.material} property="backFaceCulling" />
 					<EditorInspectorNumberField label="Alpha" object={this.props.material} property="alpha" min={0} max={1} />
 
-					<EditorInspectorListField
-						label="Alpha Mode"
-						object={this.props.material}
-						property="alphaMode"
-						onChange={() => this.forceUpdate()}
-						items={[
-							{ text: "Disable", value: Constants.ALPHA_DISABLE },
-							{ text: "Add", value: Constants.ALPHA_ADD },
-							{ text: "Combine", value: Constants.ALPHA_COMBINE },
-							{ text: "Subtract", value: Constants.ALPHA_SUBTRACT },
-							{ text: "Multiply", value: Constants.ALPHA_MULTIPLY },
-							{ text: "Maximized", value: Constants.ALPHA_MAXIMIZED },
-							{ text: "One-one", value: Constants.ALPHA_ONEONE },
-							{ text: "Premultiplied", value: Constants.ALPHA_PREMULTIPLIED },
-							{ text: "Premultiplied Porterduff", value: Constants.ALPHA_PREMULTIPLIED_PORTERDUFF },
-							{ text: "Interpolate", value: Constants.ALPHA_INTERPOLATE },
-							{ text: "Screen Mode", value: Constants.ALPHA_SCREENMODE },
-						]}
-					/>
+					<EditorAlphaModeField object={this.props.material} onChange={() => this.forceUpdate()} />
 
-					<EditorInspectorListField
-						label="Transparency Mode"
-						object={this.props.material}
-						property="transparencyMode"
-						items={[
-							{ text: "None", value: null },
-							{ text: "Opaque", value: StandardMaterial.MATERIAL_OPAQUE },
-							{ text: "Alpha Test", value: StandardMaterial.MATERIAL_ALPHATEST },
-							{ text: "Alpha Blend", value: StandardMaterial.MATERIAL_ALPHABLEND },
-							{ text: "Alpha Test and Blend", value: StandardMaterial.MATERIAL_ALPHATESTANDBLEND },
-						]}
-					/>
+					<EditorTransparencyModeField object={this.props.material} />
 
 					<EditorMaterialInspectorUtilsComponent mesh={this.props.mesh} material={this.props.material} />
 				</EditorInspectorSectionField>
