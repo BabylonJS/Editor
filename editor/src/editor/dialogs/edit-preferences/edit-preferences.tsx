@@ -17,6 +17,7 @@ import {
 import { trySetExperimentalFeaturesEnabledInLocalStorage } from "../../../tools/local-storage";
 
 import { EditorInspectorKeyField } from "../../layout/inspector/fields/key";
+import { EditorInspectorNumberField } from "../../layout/inspector/fields/number";
 
 import { Editor } from "../../main";
 
@@ -162,6 +163,18 @@ export class EditorEditPreferencesComponent extends Component<IEditorEditPrefere
 								this._saveCameraControls();
 							}}
 						/>
+
+						<EditorInspectorNumberField
+							object={camera}
+							property="panSensitivityMultiplier"
+							label="Pan Sensitivity"
+							min={0.1}
+							max={50}
+							step={0.5}
+							onChange={() => {
+								this._saveCameraControls();
+							}}
+						/>
 					</div>
 				</div>
 			</div>
@@ -184,6 +197,7 @@ export class EditorEditPreferencesComponent extends Component<IEditorEditPrefere
 					keysRight: camera.keysRight,
 					keysUpward: camera.keysUpward,
 					keysDownward: camera.keysDownward,
+					panSensitivityMultiplier: camera.panSensitivityMultiplier,
 				})
 			);
 		} catch (e) {

@@ -1,9 +1,11 @@
 import { Node, FreeCamera, Scene, Vector3 } from "babylonjs";
+import { EditorFreeCameraPanInput } from "./camera-pan-input";
 
 import { isDomTextInputFocused } from "../../tools/dom";
 
 export class EditorCamera extends FreeCamera {
 	private _savedSpeed: number | null = null;
+	private _panInput: EditorFreeCameraPanInput;
 
 	private _keyboardUpListener: (ev: KeyboardEvent) => void;
 	private _keyboardDownListener: (ev: KeyboardEvent) => void;
@@ -19,6 +21,7 @@ export class EditorCamera extends FreeCamera {
 		super(name, position, scene, setActiveOnSceneIfNoneActive);
 
 		this.inputs.addMouseWheel();
+		this._panInput = new EditorFreeCameraPanInput();
 
 		window.addEventListener(
 			"keydown",
@@ -50,6 +53,18 @@ export class EditorCamera extends FreeCamera {
 	}
 
 	/**
+	 * Override attachControl to ensure pan input is attached
+	 */
+	public attachControl(noPreventDefault?: boolean): void {
+		super.attachControl(noPreventDefault);
+
+		// Add pan input after camera is attached
+		if (this._panInput && !this.inputs.attached.editorPan) {
+			this.inputs.add(this._panInput);
+		}
+	}
+
+	/**
 	 * Some preferences for the editor's camera are saved in the local storage in order
 	 * to be global for each project. This function tries to get the preferences from the local storage
 	 * and applies it to the camera.
@@ -63,6 +78,11 @@ export class EditorCamera extends FreeCamera {
 			this.keysRight = keys.keysRight;
 			this.keysUpward = keys.keysUpward;
 			this.keysDownward = keys.keysDownward;
+
+			// Load pan sensitivity multiplier if available
+			if (keys.panSensitivityMultiplier !== undefined) {
+				this.panSensitivityMultiplier = keys.panSensitivityMultiplier;
+			}
 		} catch (e) {
 			// Catch silently.
 		}
@@ -84,6 +104,22 @@ export class EditorCamera extends FreeCamera {
 	 */
 	public getClassName(): string {
 		return "EditorCamera";
+	}
+
+	/**
+	 * Gets the pan sensitivity multiplier for the camera pan input.
+	 * @returns the current pan sensitivity multiplier value.
+	 */
+	public get panSensitivityMultiplier(): number {
+		return this._panInput.panSensitivityMultiplier;
+	}
+
+	/**
+	 * Sets the pan sensitivity multiplier for the camera pan input.
+	 * @param value defines the new pan sensitivity multiplier value.
+	 */
+	public set panSensitivityMultiplier(value: number) {
+		this._panInput.panSensitivityMultiplier = value;
 	}
 }
 

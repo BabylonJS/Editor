@@ -37,6 +37,18 @@ export class EditorCameraInspector extends Component<IEditorInspectorImplementat
 					<FocalLengthInspector camera={this.props.object} />
 				</EditorInspectorSectionField>
 
+				<EditorInspectorSectionField title="Controls">
+					<EditorInspectorNumberField
+						object={this.props.object}
+						property="panSensitivityMultiplier"
+						label="Pan Sensitivity"
+						min={0.1}
+						max={50}
+						step={0.5}
+						tooltip="Controls how responsive the camera panning is. Higher values make panning more sensitive."
+					/>
+				</EditorInspectorSectionField>
+
 				<EditorInspectorSectionField title="Keys">
 					<Button variant="secondary" onClick={() => this.props.editor.setState({ editPreferences: true })}>
 						Configure in preferences...
