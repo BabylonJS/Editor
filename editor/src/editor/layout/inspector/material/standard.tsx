@@ -127,8 +127,6 @@ export class EditorStandardMaterialInspector extends Component<IEditorStandardMa
 					<EditorInspectorNumberField label="Z Offset" object={this.props.material} property="zOffset" />
 					<EditorInspectorNumberField label="Z Offset Units" object={this.props.material} property="zOffsetUnits" />
 					<EditorInspectorSwitchField label="Fog Enabled" object={this.props.material} property="fogEnabled" />
-					<EditorInspectorNumberField label="Point Size" object={this.props.material} property="pointSize" min={0} />
-					<EditorInspectorSwitchField label="Points Cloud" object={this.props.material} property="pointsCloud" />
 				</EditorInspectorSectionField>
 			</>
 		);
