@@ -601,9 +601,9 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 			return;
 		}
 
-       if (event.altKey || event.button === 1) {
-         return;
-       }
+		if (event.altKey || event.button === 1) {
+			return;
+		}
 
 		const distance = Vector2.Distance(this._mouseDownPosition, new Vector2(event.clientX, event.clientY));
 

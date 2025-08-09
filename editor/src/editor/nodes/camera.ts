@@ -78,6 +78,11 @@ export class EditorCamera extends FreeCamera {
 			this.keysRight = keys.keysRight;
 			this.keysUpward = keys.keysUpward;
 			this.keysDownward = keys.keysDownward;
+
+			// Load pan sensitivity multiplier if available
+			if (keys.panSensitivityMultiplier !== undefined) {
+				this.panSensitivityMultiplier = keys.panSensitivityMultiplier;
+			}
 		} catch (e) {
 			// Catch silently.
 		}
@@ -99,6 +104,22 @@ export class EditorCamera extends FreeCamera {
 	 */
 	public getClassName(): string {
 		return "EditorCamera";
+	}
+
+	/**
+	 * Gets the pan sensitivity multiplier for the camera pan input.
+	 * @returns the current pan sensitivity multiplier value.
+	 */
+	public get panSensitivityMultiplier(): number {
+		return this._panInput.panSensitivityMultiplier;
+	}
+
+	/**
+	 * Sets the pan sensitivity multiplier for the camera pan input.
+	 * @param value defines the new pan sensitivity multiplier value.
+	 */
+	public set panSensitivityMultiplier(value: number) {
+		this._panInput.panSensitivityMultiplier = value;
 	}
 }
 

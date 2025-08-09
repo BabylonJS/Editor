@@ -15,11 +15,11 @@ export class EditorFreeCameraPanInput implements ICameraInput<FreeCamera> {
 
 	private _detachedMouseInput: any | null = null;
 
-	private static readonly PAN_SENSITIVITY_MULTIPLIER: number = 10;
-	private static readonly PAN_MIN_DISTANCE: number = 2;
-	private static readonly PAN_MAX_DISTANCE: number = 200;
-	private static readonly PAN_MAX_PIXEL_DELTA: number = 40;
-	private static readonly DEFAULT_FOV: number = Math.PI / 4;
+	public panSensitivityMultiplier: number = 10;
+	private static readonly _panMinDistance: number = 2;
+	private static readonly _panMaxDistance: number = 200;
+	private static readonly _panMaxPixelDelta: number = 40;
+	private static readonly _defaultFov: number = Math.PI / 4;
 
 	private _pointerDownListener: ((ev: PointerEvent) => void) | null = null;
 	private _pointerMoveListener: ((ev: PointerEvent) => void) | null = null;
@@ -163,13 +163,21 @@ export class EditorFreeCameraPanInput implements ICameraInput<FreeCamera> {
 		}
 
 		// Clamp pixel deltas to avoid large single-step jumps on missed frames
-		const maxPix = EditorFreeCameraPanInput.PAN_MAX_PIXEL_DELTA;
-		if (deltaX > maxPix) deltaX = maxPix; else if (deltaX < -maxPix) deltaX = -maxPix;
-		if (deltaY > maxPix) deltaY = maxPix; else if (deltaY < -maxPix) deltaY = -maxPix;
+		const maxPix = EditorFreeCameraPanInput._panMaxPixelDelta;
+		if (deltaX > maxPix) {
+			deltaX = maxPix;
+		} else if (deltaX < -maxPix) {
+			deltaX = -maxPix;
+		}
+		if (deltaY > maxPix) {
+			deltaY = maxPix;
+		} else if (deltaY < -maxPix) {
+			deltaY = -maxPix;
+		}
 
 		const engine = this._scene.getEngine();
 		const renderHeight = engine.getRenderHeight(true);
-		const fov = cam.fov ?? EditorFreeCameraPanInput.DEFAULT_FOV;
+		const fov = cam.fov ?? EditorFreeCameraPanInput._defaultFov;
 
 		// Estimate distance to scene for scaling
 		let distance = 10;
@@ -181,12 +189,9 @@ export class EditorFreeCameraPanInput implements ICameraInput<FreeCamera> {
 			}
 		} catch {}
 
-		const clampedDistance = Math.min(
-			Math.max(distance, EditorFreeCameraPanInput.PAN_MIN_DISTANCE),
-			EditorFreeCameraPanInput.PAN_MAX_DISTANCE
-		);
+		const clampedDistance = Math.min(Math.max(distance, EditorFreeCameraPanInput._panMinDistance), EditorFreeCameraPanInput._panMaxDistance);
 		const worldPerPixelBase = (2 * Math.tan(fov / 2) * Math.max(clampedDistance, 0.0001)) / Math.max(renderHeight, 1);
-		const worldPerPixel = worldPerPixelBase * EditorFreeCameraPanInput.PAN_SENSITIVITY_MULTIPLIER;
+		const worldPerPixel = worldPerPixelBase * this.panSensitivityMultiplier;
 
 		const right = this.camera.getDirection(Vector3.Right());
 		const up = this.camera.getDirection(Vector3.Up());
