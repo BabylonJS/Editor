@@ -7,13 +7,13 @@ import { toast } from "sonner";
 
 import { Material, AbstractMesh } from "babylonjs";
 
-import { saveSingleFileDialog } from "../../../../tools/dialog";
-import { onRedoObservable, registerUndoRedo } from "../../../../tools/undoredo";
+import { saveSingleFileDialog } from "../../../../../tools/dialog";
+import { onRedoObservable, registerUndoRedo } from "../../../../../tools/undoredo";
 
-import { showConfirm } from "../../../../ui/dialog";
+import { showConfirm } from "../../../../../ui/dialog";
 
-import { Button } from "../../../../ui/shadcn/ui/button";
-import { projectConfiguration } from "../../../../project/configuration";
+import { Button } from "../../../../../ui/shadcn/ui/button";
+import { projectConfiguration } from "../../../../../project/configuration";
 
 export interface IEditorMaterialInspectorUtilsComponentProps {
 	mesh?: AbstractMesh;
