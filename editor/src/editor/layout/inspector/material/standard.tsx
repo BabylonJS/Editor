@@ -26,7 +26,7 @@ export function EditorStandardMaterialInspector(props: IEditorStandardMaterialIn
 				<EditorInspectorSwitchField label="Back Face Culling" object={props.material} property="backFaceCulling" />
 				<EditorInspectorNumberField label="Alpha" object={props.material} property="alpha" min={0} max={1} />
 
-				<EditorAlphaModeField object={props.material} onChange={() => {}} />
+				<EditorAlphaModeField object={props.material} />
 
 				<EditorTransparencyModeField object={props.material} />
 

@@ -33,7 +33,7 @@ export class EditorPBRMaterialInspector extends Component<IEditorPBRMaterialInsp
 					<EditorInspectorSwitchField label="Back Face Culling" object={this.props.material} property="backFaceCulling" />
 					<EditorInspectorNumberField label="Alpha" object={this.props.material} property="alpha" min={0} max={1} />
 
-					<EditorAlphaModeField object={this.props.material} onChange={() => this.forceUpdate()} />
+					<EditorAlphaModeField object={this.props.material} />
 
 					<EditorTransparencyModeField object={this.props.material} />
 
