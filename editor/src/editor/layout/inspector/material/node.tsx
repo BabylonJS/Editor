@@ -22,7 +22,7 @@ import { EditorInspectorVectorField } from "../fields/vector";
 import { EditorInspectorNumberField } from "../fields/number";
 import { EditorInspectorSectionField } from "../fields/section";
 
-import { EditorMaterialInspectorUtilsComponent } from "./utils";
+import { EditorMaterialInspectorUtilsComponent } from "./components/utils";
 
 export interface IEditorNodeMaterialInspectorProps {
 	mesh?: AbstractMesh;

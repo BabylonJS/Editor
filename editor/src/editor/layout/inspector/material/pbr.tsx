@@ -1,10 +1,9 @@
 import { Component, ReactNode } from "react";
 
-import { Constants, PBRMaterial, AbstractMesh } from "babylonjs";
+import { PBRMaterial, AbstractMesh } from "babylonjs";
 
 import { registerSimpleUndoRedo } from "../../../../tools/undoredo";
 
-import { EditorInspectorListField } from "../fields/list";
 import { EditorInspectorColorField } from "../fields/color";
 import { EditorInspectorStringField } from "../fields/string";
 import { EditorInspectorNumberField } from "../fields/number";
@@ -12,7 +11,9 @@ import { EditorInspectorSwitchField } from "../fields/switch";
 import { EditorInspectorTextureField } from "../fields/texture";
 import { EditorInspectorSectionField } from "../fields/section";
 
-import { EditorMaterialInspectorUtilsComponent } from "./utils";
+import { EditorAlphaModeField } from "./components/alpha";
+import { EditorTransparencyModeField } from "./components/transparency";
+import { EditorMaterialInspectorUtilsComponent } from "./components/utils";
 
 export interface IEditorPBRMaterialInspectorProps {
 	mesh?: AbstractMesh;
@@ -32,38 +33,9 @@ export class EditorPBRMaterialInspector extends Component<IEditorPBRMaterialInsp
 					<EditorInspectorSwitchField label="Back Face Culling" object={this.props.material} property="backFaceCulling" />
 					<EditorInspectorNumberField label="Alpha" object={this.props.material} property="alpha" min={0} max={1} />
 
-					<EditorInspectorListField
-						label="Alpha Mode"
-						object={this.props.material}
-						property="alphaMode"
-						onChange={() => this.forceUpdate()}
-						items={[
-							{ text: "Disable", value: Constants.ALPHA_DISABLE },
-							{ text: "Add", value: Constants.ALPHA_ADD },
-							{ text: "Combine", value: Constants.ALPHA_COMBINE },
-							{ text: "Subtract", value: Constants.ALPHA_SUBTRACT },
-							{ text: "Multiply", value: Constants.ALPHA_MULTIPLY },
-							{ text: "Maximized", value: Constants.ALPHA_MAXIMIZED },
-							{ text: "One-one", value: Constants.ALPHA_ONEONE },
-							{ text: "Premultiplied", value: Constants.ALPHA_PREMULTIPLIED },
-							{ text: "Premultiplied Porterduff", value: Constants.ALPHA_PREMULTIPLIED_PORTERDUFF },
-							{ text: "Interpolate", value: Constants.ALPHA_INTERPOLATE },
-							{ text: "Screen Mode", value: Constants.ALPHA_SCREENMODE },
-						]}
-					/>
+					<EditorAlphaModeField object={this.props.material} />
 
-					<EditorInspectorListField
-						label="Transparency Mode"
-						object={this.props.material}
-						property="transparencyMode"
-						items={[
-							{ text: "None", value: null },
-							{ text: "Opaque", value: PBRMaterial.MATERIAL_OPAQUE },
-							{ text: "Alpha Test", value: PBRMaterial.MATERIAL_ALPHATEST },
-							{ text: "Alpha Blend", value: PBRMaterial.MATERIAL_ALPHABLEND },
-							{ text: "Alpha Test and Blend", value: PBRMaterial.MATERIAL_ALPHATESTANDBLEND },
-						]}
-					/>
+					<EditorTransparencyModeField object={this.props.material} />
 
 					<EditorMaterialInspectorUtilsComponent mesh={this.props.mesh} material={this.props.material} />
 				</EditorInspectorSectionField>
