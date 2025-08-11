@@ -10,7 +10,7 @@ import { EditorInspectorNumberField } from "../fields/number";
 import { EditorInspectorVectorField } from "../fields/vector";
 import { EditorInspectorSectionField } from "../fields/section";
 
-import { EditorMaterialInspectorUtilsComponent } from "./utils";
+import { EditorMaterialInspectorUtilsComponent } from "./components/utils";
 
 export interface IEditorGridMaterialInspectorProps {
 	mesh?: AbstractMesh;
