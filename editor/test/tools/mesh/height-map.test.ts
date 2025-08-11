@@ -166,8 +166,8 @@ describe("tools/mesh/height-map", () => {
 			const result = HeightMapUtils.handleHeightMapTextureChanged(texture, metadata);
 			
 			expect(result.metadata.heightMapTexture).toBe(texture);
-			expect(result.metadata.useHeightMap).toBe(true);
-			expect(result.shouldApplyHeightMap).toBe(true);
+			expect(result.metadata.useHeightMap).toBe(false); // Should start disabled
+			expect(result.shouldApplyHeightMap).toBe(false); // Should not auto-apply
 		});
 
 		test("should handle texture removal", () => {
@@ -441,7 +441,8 @@ describe("tools/mesh/height-map", () => {
 			const result = HeightMapUtils.handleHeightMapTextureChange(texture, metadata);
 			
 			expect(result.metadata.heightMapTexture).toBe(texture);
-			expect(result.shouldApplyHeightMap).toBe(true);
+			expect(result.metadata.useHeightMap).toBe(false); // Should start disabled
+			expect(result.shouldApplyHeightMap).toBe(false); // Should not auto-apply
 			expect(result.validationErrors).toBeUndefined();
 		});
 
@@ -468,7 +469,8 @@ describe("tools/mesh/height-map", () => {
 			const result = HeightMapUtils.handleHeightMapTextureChange(texture, metadata);
 			
 			expect(result.metadata.subdivisions).toBe(1000); // Clamped
-			expect(result.shouldApplyHeightMap).toBe(true);
+			expect(result.metadata.useHeightMap).toBe(false); // Should start disabled
+			expect(result.shouldApplyHeightMap).toBe(false); // Should not auto-apply
 		});
 	});
 
