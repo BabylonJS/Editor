@@ -1,6 +1,6 @@
 import { clipboard, webUtils } from "electron";
 import { dirname, join, extname, basename } from "path/posix";
-import { copyFile, mkdir, move, pathExists, readdir, stat, writeFile, writeJSON } from "fs-extra";
+import { copyFile, copy, mkdir, move, pathExists, readdir, stat, writeFile, writeJSON } from "fs-extra";
 
 import filenamify from "filenamify";
 
@@ -820,11 +820,12 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 	private _handleDragOver(event: DragEvent<HTMLDivElement>): void {
 		event.preventDefault();
 		this.setState({
-			dragAndDroppingFiles: event.dataTransfer.types.includes("Files"),
+			dragAndDroppingFiles: event.dataTransfer.types.length === 1 && event.dataTransfer.types[0] === "Files",
 		});
 	}
 
 	private async _handleDrop(event: DragEvent<HTMLDivElement>): Promise<void> {
+		event.persist();
 		event.preventDefault();
 
 		this.setState({
@@ -843,7 +844,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 				continue;
 			}
 
-			const path = webUtils.getPathForFile(file);
+			const path = webUtils.getPathForFile(file).replace(/\\/g, "/");
 			const absolutePath = join(this.state.browsedPath, basename(path));
 
 			filesToCopy[path] = absolutePath;
@@ -851,7 +852,14 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 
 		await Promise.all(
 			Object.entries(filesToCopy).map(async ([source, destination]) => {
-				await copyFile(source, destination);
+				const fStat = await stat(source);
+				if (fStat.isDirectory()) {
+					await copy(source, destination, {
+						recursive: true,
+					});
+				} else {
+					await copyFile(source, destination);
+				}
 			})
 		);
 
