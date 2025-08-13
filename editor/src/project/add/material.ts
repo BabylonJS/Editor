@@ -1,4 +1,4 @@
-import { SkyMaterial, GridMaterial } from "babylonjs-materials";
+import { SkyMaterial, GridMaterial, NormalMaterial } from "babylonjs-materials";
 import { Scene, Tools, PBRMaterial, StandardMaterial, NodeMaterial } from "babylonjs";
 
 import { UniqueNumber } from "../../tools/tools";
@@ -38,6 +38,14 @@ export function addSkyMaterial(scene: Scene) {
 
 export function addGridMaterial(scene: Scene) {
 	const material = new GridMaterial("New Grid Material", scene);
+	material.id = Tools.RandomId();
+	material.uniqueId = UniqueNumber.Get();
+
+	return material;
+}
+
+export function addNormalMaterial(scene: Scene) {
+	const material = new NormalMaterial("New Normal Material", scene);
 	material.id = Tools.RandomId();
 	material.uniqueId = UniqueNumber.Get();
 

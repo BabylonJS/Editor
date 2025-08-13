@@ -2,7 +2,7 @@ import { extname } from "path/posix";
 
 import { Component, DragEvent, ReactNode } from "react";
 
-import { SkyMaterial, GridMaterial } from "babylonjs-materials";
+import { SkyMaterial, GridMaterial, NormalMaterial } from "babylonjs-materials";
 import { Material, MultiMaterial, PBRMaterial, StandardMaterial } from "babylonjs";
 
 import { Table, TableBody, TableCaption, TableCell, TableRow } from "../../../../ui/shadcn/ui/table";
@@ -15,6 +15,7 @@ import { EditorInspectorSectionField } from "../fields/section";
 
 import { EditorSkyMaterialInspector } from "./sky";
 import { EditorGridMaterialInspector } from "./grid";
+import { EditorNormalMaterialInspector } from "./normal";
 import { EditorPBRMaterialInspector } from "./pbr";
 import { EditorStandardMaterialInspector } from "./standard";
 
@@ -121,6 +122,8 @@ export class EditorMultiMaterialInspector extends Component<IEditorPBRMaterialIn
 				return <EditorSkyMaterialInspector key={this.state.material.id} material={this.state.material as SkyMaterial} />;
 			case "GridMaterial":
 				return <EditorGridMaterialInspector key={this.state.material.id} material={this.state.material as GridMaterial} />;
+			case "NormalMaterial":
+				return <EditorNormalMaterialInspector key={this.state.material.id} material={this.state.material as NormalMaterial} />;
 		}
 	}
 }
