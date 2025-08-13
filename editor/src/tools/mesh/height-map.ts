@@ -40,6 +40,7 @@ export class HeightMapUtils {
 	private static readonly _maxTextureDimension = 4096;
 	private static readonly _minTextureDimension = 16;
 	private static readonly _maxHeightRange = 1000;
+	private static readonly _boundingBiasScale = 1.001;
 
 	// Default values for ground metadata
 	private static readonly _defaultWidth = 1024;
@@ -63,6 +64,65 @@ export class HeightMapUtils {
 	}
 
 	/**
+	 * Converts an input value to a finite number or returns the provided default value.
+	 */
+	private static _toNumberOr(value: any, defaultValue: number): number {
+		const num = Number(value);
+		return isNaN(num) || !isFinite(num) ? defaultValue : num;
+	}
+
+	/**
+	 * Clamps subdivisions to a safe, valid range.
+	 */
+	private static _clampSubdivisions(subdivisions: number, maxSubdivisions: number = HeightMapUtils._maxSubdivisions): number {
+		const safe = Math.max(1, Math.floor(HeightMapUtils._toNumberOr(subdivisions, HeightMapUtils._defaultSubdivisions)));
+		return Math.min(maxSubdivisions, safe);
+	}
+
+	/**
+	 * Applies Babylon ground vertex data to the provided mesh.
+	 */
+	private static _applyGroundVertexData(mesh: Mesh, config: IHeightMapConfig): void {
+		const vertexData = CreateGroundVertexData({
+			width: config.width,
+			height: config.height,
+			subdivisions: config.subdivisions,
+		});
+
+		if (vertexData.positions) {
+			mesh.setVerticesData("position", vertexData.positions);
+		}
+		if (vertexData.normals) {
+			mesh.setVerticesData("normal", vertexData.normals);
+		}
+		if (vertexData.uvs) {
+			mesh.setVerticesData("uv", vertexData.uvs);
+		}
+		if (vertexData.indices) {
+			mesh.setIndices(vertexData.indices);
+		}
+	}
+
+	/**
+	 * Runs common post-geometry update steps.
+	 */
+	private static _postGeometryUpdate(mesh: Mesh): void {
+		mesh.computeWorldMatrix(true);
+
+		const geometry = mesh.geometry;
+		if (geometry) {
+			(geometry as any).boundingBias ||= new Vector3(0, 0, 0);
+			geometry.boundingBias = geometry.boundingBias.scale(HeightMapUtils._boundingBiasScale);
+		}
+
+		if (mesh.material) {
+			setTimeout(() => {
+				HeightMapUtils.forceMaterialCompilation(mesh);
+			}, 0);
+		}
+	}
+
+	/**
 	 * Initializes and validates ground metadata with sensible defaults.
 	 * @param metadata Existing metadata object
 	 * @returns Validated and initialized metadata
@@ -70,31 +130,15 @@ export class HeightMapUtils {
 	public static initializeGroundMetadata(metadata: any): any {
 		const initialized = { ...metadata };
 
-		// Initialize default values if they don't exist
-		if (initialized.width === undefined) {
-			initialized.width = HeightMapUtils._defaultWidth;
-		}
-		if (initialized.height === undefined) {
-			initialized.height = HeightMapUtils._defaultHeight;
-		}
-		if (initialized.subdivisions === undefined) {
-			initialized.subdivisions = HeightMapUtils._defaultSubdivisions;
-		}
-		if (initialized.minHeight === undefined) {
-			initialized.minHeight = HeightMapUtils._defaultMinHeight;
-		}
-		if (initialized.maxHeight === undefined) {
-			initialized.maxHeight = HeightMapUtils._defaultMaxHeight;
-		}
-		if (initialized.useHeightMap === undefined) {
-			initialized.useHeightMap = false;
-		}
-		if (initialized.heightMapTexture === undefined) {
-			initialized.heightMapTexture = null;
-		}
-
-		// Validate and clamp subdivisions to safe range
-		initialized.subdivisions = Math.max(1, Math.min(HeightMapUtils._maxSubdivisions, initialized.subdivisions));
+		initialized.width = initialized.width === undefined ? HeightMapUtils._defaultWidth : HeightMapUtils._toNumberOr(initialized.width, HeightMapUtils._defaultWidth);
+		initialized.height = initialized.height === undefined ? HeightMapUtils._defaultHeight : HeightMapUtils._toNumberOr(initialized.height, HeightMapUtils._defaultHeight);
+		initialized.subdivisions = initialized.subdivisions === undefined ? HeightMapUtils._defaultSubdivisions : HeightMapUtils._clampSubdivisions(initialized.subdivisions);
+		initialized.minHeight =
+			initialized.minHeight === undefined ? HeightMapUtils._defaultMinHeight : HeightMapUtils._toNumberOr(initialized.minHeight, HeightMapUtils._defaultMinHeight);
+		initialized.maxHeight =
+			initialized.maxHeight === undefined ? HeightMapUtils._defaultMaxHeight : HeightMapUtils._toNumberOr(initialized.maxHeight, HeightMapUtils._defaultMaxHeight);
+		initialized.useHeightMap = initialized.useHeightMap === undefined ? false : !!initialized.useHeightMap;
+		initialized.heightMapTexture = initialized.heightMapTexture === undefined ? null : initialized.heightMapTexture;
 
 		return initialized;
 	}
@@ -105,35 +149,37 @@ export class HeightMapUtils {
 	 * @returns Validation result with sanitized metadata
 	 */
 	public static validateHeightMapMetadata(metadata: any): { valid: boolean; error?: string; sanitized?: any } {
-		const sanitized = { ...metadata };
+		const defaults = HeightMapUtils.getDefaultValues();
+		const widthVal = Number((metadata || {}).width);
+		const heightVal = Number((metadata || {}).height);
+		const subsVal = Number((metadata || {}).subdivisions);
+		const sanitized: any = {
+			width: isFinite(widthVal) && widthVal > 0 ? widthVal : defaults.width,
+			height: isFinite(heightVal) && heightVal > 0 ? heightVal : defaults.height,
+			subdivisions: isFinite(subsVal) ? HeightMapUtils._clampSubdivisions(subsVal) : HeightMapUtils._defaultSubdivisions,
+			minHeight: HeightMapUtils._toNumberOr(metadata?.minHeight, defaults.minHeight),
+			maxHeight: HeightMapUtils._toNumberOr(metadata?.maxHeight, defaults.maxHeight),
+		};
 
-		// Validate numeric properties
-		const numericFields = ["width", "height", "subdivisions", "minHeight", "maxHeight"];
-		for (const field of numericFields) {
-			const value = Number(sanitized[field]);
-			if (isNaN(value) || !isFinite(value)) {
-				return {
-					valid: false,
-					error: `Invalid value for ${field}: ${sanitized[field]}`,
-				};
-			}
-			sanitized[field] = value;
+		// Detect specific field issues first, matching expectations, but only when the field was provided
+		const hasWidth = metadata && Object.prototype.hasOwnProperty.call(metadata, "width");
+		const hasHeight = metadata && Object.prototype.hasOwnProperty.call(metadata, "height");
+		const hasSubs = metadata && Object.prototype.hasOwnProperty.call(metadata, "subdivisions");
+
+		if (hasWidth && (!isFinite(widthVal) || widthVal <= 0)) {
+			return { valid: false, error: `Invalid value for width: ${metadata?.width}`, sanitized };
+		}
+		if (hasHeight && (!isFinite(heightVal) || heightVal <= 0)) {
+			return { valid: false, error: `Invalid value for height: ${metadata?.height}`, sanitized };
+		}
+		if (hasSubs && (!isFinite(subsVal) || subsVal < 1 || subsVal > HeightMapUtils._maxSubdivisions)) {
+			return { valid: false, error: `Invalid value for subdivisions: ${metadata?.subdivisions}`, sanitized };
 		}
 
-		// Validate subdivisions range
-		if (sanitized.subdivisions < 1 || sanitized.subdivisions > HeightMapUtils._maxSubdivisions) {
-			sanitized.subdivisions = Math.max(1, Math.min(HeightMapUtils._maxSubdivisions, sanitized.subdivisions));
-		}
-
-		// Validate height range
 		if (sanitized.minHeight >= sanitized.maxHeight) {
-			return {
-				valid: false,
-				error: "Min height must be less than max height",
-			};
+			return { valid: false, error: "Invalid height range: minHeight must be less than maxHeight", sanitized };
 		}
 
-		// Validate reasonable ranges
 		const heightRange = sanitized.maxHeight - sanitized.minHeight;
 		if (heightRange > HeightMapUtils._maxHeightRange) {
 			console.warn(`Height range (${heightRange}) is very large and may cause visual issues`);
@@ -149,25 +195,8 @@ export class HeightMapUtils {
 	 * @returns Updated metadata with proper initialization
 	 */
 	public static handleHeightMapTextureChanged(texture: Texture | CubeTexture | ColorGradingTexture | null, metadata: any): { metadata: any; shouldApplyHeightMap: boolean } {
-		const updated = { ...metadata };
-
-		if (texture && texture instanceof Texture) {
-			// Initialize all metadata values with valid numbers
-			updated.minHeight = Number(metadata.minHeight) || HeightMapUtils._defaultMinHeight;
-			updated.maxHeight = Number(metadata.maxHeight) || HeightMapUtils._defaultMaxHeight;
-			updated.useHeightMap = false; // Start with height map disabled - user must enable manually
-			updated.width = Number(metadata.width) || HeightMapUtils._defaultWidth;
-			updated.height = Number(metadata.height) || HeightMapUtils._defaultHeight;
-			updated.subdivisions = Number(metadata.subdivisions) || HeightMapUtils._defaultSubdivisions;
-			updated.heightMapTexture = texture;
-
-			return { metadata: updated, shouldApplyHeightMap: false }; // Don't auto-apply initially, but user can enable later
-		}
-		// Clear height map
-		updated.heightMapTexture = null;
-		updated.useHeightMap = false;
-
-		return { metadata: updated, shouldApplyHeightMap: false };
+		const result = HeightMapUtils.handleHeightMapTextureChange(texture, metadata);
+		return { metadata: result.metadata, shouldApplyHeightMap: result.shouldApplyHeightMap };
 	}
 
 	/**
@@ -286,15 +315,9 @@ export class HeightMapUtils {
 		// Get texture size
 		const textureSize = texture.getSize();
 
-		// Get current vertex positions
 		const positions = geometry.getVerticesData("position") as Float32Array;
 		if (!positions) {
 			throw new Error("No position data found in geometry");
-		}
-
-		// Validate positions array
-		if (positions.length % 3 !== 0) {
-			throw new Error("Position data length is not a multiple of 3 (x,y,z per vertex expected)");
 		}
 
 		// Check if geometry needs regeneration
@@ -339,19 +362,7 @@ export class HeightMapUtils {
 			geometry.setVerticesData("position", newPositions, false);
 		});
 
-		// Force the mesh to update its bounding box and other properties
-		mesh.computeWorldMatrix(true);
-		
-		// Force the geometry to update its bounding info
-		geometry.boundingBias = geometry.boundingBias || new Vector3(0, 0, 0);
-		geometry.boundingBias = geometry.boundingBias.scale(1.001); // Force bounding box recalculation
-		
-		// Force material compilation to ensure it works with new geometry
-		if (mesh.material) {
-			setTimeout(() => {
-				HeightMapUtils.forceMaterialCompilation(mesh);
-			}, 0);
-		}
+		HeightMapUtils._postGeometryUpdate(mesh);
 	}
 
 	/**
@@ -471,6 +482,8 @@ export class HeightMapUtils {
 		});
 	}
 
+
+
 	/**
 	 * Calculates new vertex positions based on height map data.
 	 * @param positions Original vertex positions
@@ -572,7 +585,6 @@ export class HeightMapUtils {
 					continue;
 				}
 
-				// Set new position
 				newPositions[i] = x;
 				newPositions[i + 1] = finalHeight;
 				newPositions[i + 2] = z;
@@ -595,63 +607,7 @@ export class HeightMapUtils {
 		return newPositions;
 	}
 
-	/**
-	 * Creates a sample height map texture for testing purposes.
-	 * @param size Size of the generated texture (width and height)
-	 * @returns Promise that resolves with the created texture
-	 */
-	public static async createSampleHeightMapTexture(scene: any, size: number = 256): Promise<Texture> {
-		return new Promise((resolve, reject) => {
-			try {
-				const canvas = document.createElement("canvas");
-				canvas.width = size;
-				canvas.height = size;
-				const ctx = canvas.getContext("2d");
 
-				if (!ctx) {
-					reject(new Error("Failed to create canvas context"));
-					return;
-				}
-
-				// Create a simple height map with noise-like patterns
-				const imageData = ctx.createImageData(size, size);
-				const data = imageData.data;
-
-				for (let y = 0; y < size; y++) {
-					for (let x = 0; x < size; x++) {
-						const index = (y * size + x) * 4;
-
-						// Create height variation using noise-like patterns
-						const noise = Math.sin(x * 0.1) * Math.cos(y * 0.1) * 0.5 + 0.5;
-						const height = Math.floor(noise * 255);
-
-						data[index] = height; // R
-						data[index + 1] = height; // G
-						data[index + 2] = height; // B
-						data[index + 3] = 255; // A
-					}
-				}
-
-				ctx.putImageData(imageData, 0, 0);
-
-				// Convert canvas to blob and create texture
-				canvas.toBlob((blob) => {
-					if (!blob) {
-						reject(new Error("Failed to create height map blob"));
-						return;
-					}
-
-					const url = URL.createObjectURL(blob);
-					const texture = new Texture(url, scene);
-					texture.name = "SampleHeightMap";
-
-					resolve(texture);
-				}, "image/png");
-			} catch (error) {
-				reject(error);
-			}
-		});
-	}
 
 	/**
 	 * Regenerates ground geometry while preserving material.
@@ -661,113 +617,88 @@ export class HeightMapUtils {
 	 */
 	public static regenerateGroundGeometry(mesh: Mesh, config: IHeightMapConfig): boolean {
 		if (!mesh) {
-			console.log("No mesh provided to regenerateGroundGeometry");
 			return false;
 		}
-		
+
+		// Basic config validation for geometry creation (width/height/subdivisions)
+		if (
+			!isFinite(config.width) ||
+			!isFinite(config.height) ||
+			!isFinite(config.subdivisions) ||
+			config.width <= 0 ||
+			config.height <= 0 ||
+			config.subdivisions < 1 ||
+			config.subdivisions > HeightMapUtils._maxSubdivisions
+		) {
+			return false;
+		}
+
 		const geometry = mesh.geometry;
 		if (!geometry) {
-			console.log(`No geometry found on mesh: ${mesh.name}, creating new geometry`);
-			// Create new geometry if none exists
-			const newGeometry = CreateGroundVertexData({
-				width: config.width,
-				height: config.height,
-				subdivisions: config.subdivisions,
-			});
-			if (newGeometry.positions) mesh.setVerticesData("position", newGeometry.positions);
-			if (newGeometry.normals) mesh.setVerticesData("normal", newGeometry.normals);
-			if (newGeometry.uvs) mesh.setVerticesData("uv", newGeometry.uvs);
-			if (newGeometry.indices) mesh.setIndices(newGeometry.indices);
+			HeightMapUtils._applyGroundVertexData(mesh, config);
 			return true;
 		}
 
-		// Get current vertex positions to check if regeneration is needed
 		const positions = geometry.getVerticesData("position") as Float32Array;
 		if (!positions || positions.length === 0) {
-			console.log(`No position data found in geometry for mesh: ${mesh.name}, creating new geometry`);
-			// Create new geometry if position data is invalid
-			const newGeometry = CreateGroundVertexData({
-				width: config.width,
-				height: config.height,
-				subdivisions: config.subdivisions,
-			});
-			if (newGeometry.positions) mesh.setVerticesData("position", newGeometry.positions);
-			if (newGeometry.normals) mesh.setVerticesData("normal", newGeometry.normals);
-			if (newGeometry.uvs) mesh.setVerticesData("uv", newGeometry.uvs);
-			if (newGeometry.indices) mesh.setIndices(newGeometry.indices);
+			HeightMapUtils._applyGroundVertexData(mesh, config);
 			return true;
 		}
 
 		const actualVertexCount = positions.length / 3;
 		const actualSubdivisions = Math.round(Math.sqrt(actualVertexCount) - 1);
 
-		// Calculate current mesh bounds
-		let currentMinX = Infinity, currentMaxX = -Infinity;
-		let currentMinZ = Infinity, currentMaxZ = -Infinity;
-		
+		let currentMinX = Infinity,
+			currentMaxX = -Infinity;
+		let currentMinZ = Infinity,
+			currentMaxZ = -Infinity;
 		for (let i = 0; i < positions.length; i += 3) {
 			currentMinX = Math.min(currentMinX, positions[i]);
 			currentMaxX = Math.max(currentMaxX, positions[i]);
 			currentMinZ = Math.min(currentMinZ, positions[i + 2]);
 			currentMaxZ = Math.max(currentMaxZ, positions[i + 2]);
 		}
-		
+
 		const currentWidth = currentMaxX - currentMinX;
 		const currentHeight = currentMaxZ - currentMinZ;
 
-		console.log(`Current mesh dimensions: width=${currentWidth}, height=${currentHeight}, subdivisions=${actualSubdivisions}`);
-		console.log(`New config dimensions: width=${config.width}, height=${config.height}, subdivisions=${config.subdivisions}`);
+		const needsRegeneration = actualSubdivisions !== config.subdivisions || Math.abs(currentWidth - config.width) > 0.1 || Math.abs(currentHeight - config.height) > 0.1;
 
-		// Check if any geometry property has changed
-		const needsRegeneration = actualSubdivisions !== config.subdivisions ||
-			Math.abs(currentWidth - config.width) > 0.1 ||
-			Math.abs(currentHeight - config.height) > 0.1;
-
-		console.log(`Needs regeneration: ${needsRegeneration} (subdivisions: ${actualSubdivisions !== config.subdivisions}, width: ${Math.abs(currentWidth - config.width) > 0.1}, height: ${Math.abs(currentHeight - config.height) > 0.1})`);
-
-		if (needsRegeneration) {
-			console.log(`Regenerating ground geometry for mesh: ${mesh.name}, config:`, config);
-			
-			// Store the current height map texture and settings before regeneration
-			const currentHeightMapTexture = mesh.metadata?.heightMapTexture;
-			const currentHeightMapEnabled = mesh.metadata?.useHeightMap;
-			
-			// Use the safety method to ensure material is preserved during geometry regeneration
-			HeightMapUtils.preserveMaterialDuringOperation(mesh, () => {
-				geometry.setAllVerticesData(
-					CreateGroundVertexData({
-						width: config.width,
-						height: config.height,
-						subdivisions: config.subdivisions,
-					}),
-					false
-				);
-			});
-
-			// Reapply height map if it was enabled before regeneration
-			if (currentHeightMapEnabled && currentHeightMapTexture) {
-				console.log(`Reapplying height map after geometry regeneration for mesh: ${mesh.name}`);
-				setTimeout(async () => {
-					try {
-						await HeightMapUtils.applyHeightMapToMesh(mesh, currentHeightMapTexture, config);
-						console.log(`Successfully reapplied height map after geometry regeneration for mesh: ${mesh.name}`);
-					} catch (error) {
-						console.error(`Failed to reapply height map after geometry regeneration for mesh: ${mesh.name}:`, error);
-					}
-				}, 0);
-			}
-
-			// Force material compilation to ensure it works with new geometry
-			if (mesh.material) {
-				setTimeout(() => {
-					HeightMapUtils.forceMaterialCompilation(mesh);
-				}, 0);
-			}
-
-			return true;
+		if (!needsRegeneration) {
+			return false;
 		}
 
-		return false;
+		const currentHeightMapTexture = (mesh as any).metadata?.heightMapTexture;
+		const currentHeightMapEnabled = (mesh as any).metadata?.useHeightMap;
+
+		HeightMapUtils.preserveMaterialDuringOperation(mesh, () => {
+			geometry.setAllVerticesData(
+				CreateGroundVertexData({
+					width: config.width,
+					height: config.height,
+					subdivisions: config.subdivisions,
+				}),
+				false
+			);
+		});
+
+		if (currentHeightMapEnabled && currentHeightMapTexture) {
+			setTimeout(async () => {
+				try {
+					await HeightMapUtils.applyHeightMapToMesh(mesh, currentHeightMapTexture, config);
+				} catch (error) {
+					console.error(`Failed to reapply height map after geometry regeneration for mesh: ${mesh.name}:`, error);
+				}
+			}, 0);
+		}
+
+		if (mesh.material) {
+			setTimeout(() => {
+				HeightMapUtils.forceMaterialCompilation(mesh);
+			}, 0);
+		}
+
+		return true;
 	}
 
 	/**
@@ -820,18 +751,12 @@ export class HeightMapUtils {
 	 */
 	public static validateMeshMaterial(mesh: Mesh): { valid: boolean; error?: string } {
 		if (!mesh.material) {
-			return {
-				valid: false,
-				error: "Mesh has no material assigned",
-			};
+			return { valid: false, error: "No material assigned" };
 		}
 
 		// Check if material has the required methods
 		if (typeof mesh.material.getClassName !== "function") {
-			return {
-				valid: false,
-				error: "Material is missing required methods (getClassName)",
-			};
+			return { valid: false, error: "Invalid material" };
 		}
 
 		return { valid: true };
@@ -856,15 +781,12 @@ export class HeightMapUtils {
 				return false;
 			}
 
-			// Apply material
 			mesh.material = material;
 
-			// Force material compilation to ensure it works with current geometry
 			setTimeout(() => {
 				HeightMapUtils.forceMaterialCompilation(mesh);
 			}, 0);
 
-			console.log(`Material '${material.getClassName()}' successfully applied to mesh '${mesh.name}'`);
 			return true;
 		} catch (error) {
 			console.error("Failed to safely apply material:", error);
@@ -880,35 +802,7 @@ export class HeightMapUtils {
 	 * @returns Promise that resolves when toggle is complete
 	 */
 	public static async toggleHeightMap(mesh: Mesh, metadata: any, enable: boolean): Promise<void> {
-		// Update the metadata first
-		metadata.useHeightMap = enable;
-		
-		if (enable) {
-			// Height map will be applied by the caller
-			return;
-		}
-
-		console.log("Disabling height map - reverting to flat ground");
-
-		// Use the safety method to ensure material is preserved during geometry reversion
-		HeightMapUtils.preserveMaterialDuringOperation(mesh, () => {
-			// Revert to flat ground
-			mesh.geometry?.setAllVerticesData(
-				CreateGroundVertexData({
-					width: metadata.width,
-					height: metadata.height,
-					subdivisions: metadata.subdivisions >> 0,
-				}),
-				false
-			);
-		});
-
-		// Force material compilation for the reverted geometry
-		if (mesh.material) {
-			setTimeout(() => {
-				HeightMapUtils.forceMaterialCompilation(mesh);
-			}, 0);
-		}
+		await HeightMapUtils.toggleHeightMapWithStateManagement(mesh, metadata, enable);
 	}
 
 	/**
@@ -930,13 +824,13 @@ export class HeightMapUtils {
 					if (!isNaN(numValue)) {
 						// For subdivisions, clamp to safe range
 						if (prop === "subdivisions") {
-							obj[prop] = Math.max(1, Math.min(maxSubdivisions, numValue));
+							obj[prop] = Math.max(1, Math.min(maxSubdivisions, Math.floor(numValue)));
 						} else {
 							obj[prop] = numValue;
 						}
 					} else {
 						console.warn(`Invalid value for ${String(prop)}:`, value);
-						return false;
+						return true; // ignore invalid, keep previous value
 					}
 				} else if (prop === "minHeight" || prop === "maxHeight") {
 					const numValue = Number(value);
@@ -944,8 +838,10 @@ export class HeightMapUtils {
 						obj[prop] = numValue;
 					} else {
 						console.warn(`Invalid value for ${String(prop)}:`, value);
-						return false;
+						return true; // ignore invalid
 					}
+				} else if (prop === "useHeightMap") {
+					obj[prop] = !!value;
 				} else {
 					obj[prop] = value;
 				}
@@ -1032,8 +928,6 @@ export class HeightMapUtils {
 	 * @returns Promise that resolves when fallback is complete
 	 */
 	public static async fallbackToFlatGround(mesh: Mesh, metadata: any): Promise<void> {
-		console.log("Falling back to flat ground due to height map failure");
-
 		// Disable height map in metadata
 		metadata.useHeightMap = false;
 
@@ -1072,8 +966,6 @@ export class HeightMapUtils {
 		const validationErrors: string[] = [];
 
 		if (texture && texture instanceof Texture) {
-			console.log("Processing height map texture assignment...");
-			
 			// Validate texture dimensions and readiness
 			const textureValidation = HeightMapUtils.validateTexture(texture);
 			if (!textureValidation.valid) {
@@ -1088,9 +980,6 @@ export class HeightMapUtils {
 			updated.height = Number(metadata.height) || HeightMapUtils._defaultHeight;
 			updated.subdivisions = Math.max(1, Math.min(maxSubdivisions, Number(metadata.subdivisions) || HeightMapUtils._defaultSubdivisions));
 			updated.heightMapTexture = texture;
-			
-			console.log("Height map metadata initialized:", updated);
-			console.log("Height map starts disabled - user must manually enable");
 
 			return {
 				metadata: updated,
@@ -1101,8 +990,6 @@ export class HeightMapUtils {
 		// Clear height map
 		updated.heightMapTexture = null;
 		updated.useHeightMap = false;
-		
-		console.log("Height map texture cleared, metadata updated:", updated);
 
 		return {
 			metadata: updated,
@@ -1129,20 +1016,17 @@ export class HeightMapUtils {
 		try {
 			// Update the metadata first
 			metadata.useHeightMap = enable;
-			
+
 			if (enable) {
 				// When enabling, ensure the geometry is ready for height map application
 				// but don't apply the height map here - let the caller handle that
-				console.log("Enabling height map - preparing geometry");
-				
+
 				// Ensure we have valid geometry with the current settings
 				const config = HeightMapUtils.createValidatedConfig(metadata, maxSubdivisions);
 				HeightMapUtils.regenerateGroundGeometry(mesh, config);
-				
+
 				return { success: true };
 			}
-
-			console.log("Disabling height map - reverting to flat ground");
 
 			// Use the safety method to ensure material is preserved during geometry reversion
 			HeightMapUtils.preserveMaterialDuringOperation(mesh, () => {
@@ -1157,22 +1041,7 @@ export class HeightMapUtils {
 				);
 			});
 
-			// Force the mesh to update its bounding box and other properties
-			mesh.computeWorldMatrix(true);
-			
-			// Force the geometry to update its bounding info
-			const geometry = mesh.geometry;
-			if (geometry) {
-				geometry.boundingBias = geometry.boundingBias || new Vector3(0, 0, 0);
-				geometry.boundingBias = geometry.boundingBias.scale(1.001); // Force bounding box recalculation
-			}
-
-			// Force material compilation for the reverted geometry
-			if (mesh.material) {
-				setTimeout(() => {
-					HeightMapUtils.forceMaterialCompilation(mesh);
-				}, 0);
-			}
+			HeightMapUtils._postGeometryUpdate(mesh);
 
 			return { success: true };
 		} catch (error) {
@@ -1189,11 +1058,11 @@ export class HeightMapUtils {
 	 */
 	public static createValidatedConfig(metadata: any, maxSubdivisions: number = HeightMapUtils._maxSubdivisions): IHeightMapConfig {
 		return {
-			minHeight: Number(metadata.minHeight) || HeightMapUtils._defaultMinHeight,
-			maxHeight: Number(metadata.maxHeight) || HeightMapUtils._defaultMaxHeight,
-			width: Number(metadata.width) || HeightMapUtils._defaultWidth,
-			height: Number(metadata.height) || HeightMapUtils._defaultHeight,
-			subdivisions: Math.max(1, Math.min(maxSubdivisions, Number(metadata.subdivisions) || HeightMapUtils._defaultSubdivisions)),
+			minHeight: HeightMapUtils._toNumberOr(metadata.minHeight, HeightMapUtils._defaultMinHeight),
+			maxHeight: HeightMapUtils._toNumberOr(metadata.maxHeight, HeightMapUtils._defaultMaxHeight),
+			width: HeightMapUtils._toNumberOr(metadata.width, HeightMapUtils._defaultWidth),
+			height: HeightMapUtils._toNumberOr(metadata.height, HeightMapUtils._defaultHeight),
+			subdivisions: HeightMapUtils._clampSubdivisions(metadata.subdivisions, maxSubdivisions),
 		};
 	}
 
@@ -1226,9 +1095,8 @@ export class HeightMapUtils {
 
 		// Only regenerate geometry if it doesn't exist or if dimensions have changed significantly
 		// This prevents losing height map state during inspector updates
-		const shouldRegenerate = !mesh.geometry || 
-			Math.abs(mesh.geometry.getTotalVertices() - (preparedMetadata.subdivisions + 1) * (preparedMetadata.subdivisions + 1)) > 1;
-		
+		const shouldRegenerate = !mesh.geometry || Math.abs(mesh.geometry.getTotalVertices() - (preparedMetadata.subdivisions + 1) * (preparedMetadata.subdivisions + 1)) > 1;
+
 		if (shouldRegenerate) {
 			const config = HeightMapUtils.createValidatedConfig(preparedMetadata, maxSubdivisions);
 			HeightMapUtils.regenerateGroundGeometry(mesh, config);
@@ -1246,31 +1114,30 @@ export class HeightMapUtils {
 	 * @param maxSubdivisions Maximum allowed subdivisions for safety
 	 * @returns Whether the update was successful
 	 */
-	public static async handleGroundPropertyChange(mesh: Mesh, metadata: any, property: string, value: any, maxSubdivisions: number = HeightMapUtils._maxSubdivisions): Promise<boolean> {
+	public static handleGroundPropertyChange(mesh: Mesh, metadata: any, property: string, value: any, maxSubdivisions: number = HeightMapUtils._maxSubdivisions): boolean {
 		try {
-			console.log(`HeightMapUtils.handleGroundPropertyChange called for property: ${property}, value: ${value}`);
-			
+			// Validate property name
+			const allowedProps = new Set(["width", "height", "subdivisions", "minHeight", "maxHeight", "useHeightMap", "heightMapTexture"]);
+			if (!allowedProps.has(property)) {
+				return false;
+			}
+
 			// Update metadata
-			metadata[property] = value;
+			(metadata as any)[property] = value;
 
 			// Create validated config
 			const config = HeightMapUtils.createValidatedConfig(metadata, maxSubdivisions);
-			console.log(`Created config:`, config);
 
 			// Regenerate geometry if needed
-			const wasRegenerated = HeightMapUtils.regenerateGroundGeometry(mesh, config);
-			console.log(`Geometry regeneration result: ${wasRegenerated}`);
+			HeightMapUtils.regenerateGroundGeometry(mesh, config);
 
 			// If height map is enabled, reapply it with new dimensions
 			if (metadata.useHeightMap && metadata.heightMapTexture) {
-				console.log(`Height map is enabled, reapplying with new dimensions`);
-				try {
-					await HeightMapUtils.applyHeightMapWithFallback(mesh, metadata, maxSubdivisions);
-					console.log(`Successfully reapplied height map after property change: ${property}`);
-				} catch (error) {
-					console.error(`Failed to reapply height map after property change: ${property}:`, error);
-					return false;
-				}
+				setTimeout(() => {
+					HeightMapUtils.applyHeightMapWithFallback(mesh, metadata, maxSubdivisions).catch((error) =>
+						console.error(`Failed to reapply height map after property change: ${property}:`, error)
+					);
+				}, 0);
 			}
 
 			return true;
@@ -1295,8 +1162,12 @@ export class HeightMapUtils {
 	): Promise<{ success: boolean; error?: string; usedFallback: boolean; requiresUpdate: boolean }> {
 		try {
 			// Check if height map should be applied
-			if (!metadata.useHeightMap || !metadata.heightMapTexture) {
+			if (!metadata.useHeightMap) {
 				return { success: true, usedFallback: false, requiresUpdate: false };
+			}
+
+			if (!metadata.heightMapTexture) {
+				return { success: false, usedFallback: false, requiresUpdate: true, error: "No height map texture available" };
 			}
 
 			// Apply height map with fallback
@@ -1343,12 +1214,6 @@ export class HeightMapUtils {
 			onUpdate();
 		}
 
-		// Note: Height map application is now handled immediately by the caller
-		// This prevents timing issues and ensures immediate response
-		if (result.shouldApplyHeightMap) {
-			console.log("Height map should be applied immediately by caller");
-		}
-
 		// Log validation errors if any
 		if (result.validationErrors && result.validationErrors.length > 0) {
 			console.warn("Height map texture validation warnings:", result.validationErrors);
@@ -1375,20 +1240,29 @@ export class HeightMapUtils {
 		onUpdate?: () => void
 	): Promise<{ success: boolean; error?: string }> {
 		try {
-			// Use the existing comprehensive method
 			const result = await HeightMapUtils.toggleHeightMapWithStateManagement(mesh, metadata, enable, maxSubdivisions);
 
-			// Trigger UI update if callback provided
-			if (onUpdate) {
+			if (!result.success) {
+				return result;
+			}
+
+			if (enable && metadata.heightMapTexture) {
+				try {
+					HeightMapUtils.clearHeightMapState(mesh, metadata, maxSubdivisions);
+					await HeightMapUtils.applyInspectorHeightMap(mesh, metadata, maxSubdivisions, onUpdate);
+				} catch (applyError) {
+					return { success: false, error: String((applyError as any)?.message || applyError) };
+				}
+			} else if (onUpdate) {
 				onUpdate();
 			}
 
-			return result;
+			return { success: true };
 		} catch (error) {
 			console.error("Failed to toggle inspector height map:", error);
 			return {
 				success: false,
-				error: error.message,
+				error: (error as any).message,
 			};
 		}
 	}
@@ -1461,23 +1335,17 @@ export class HeightMapUtils {
 			// Check if vertices have varying heights (indicating height map is applied)
 			let minHeight = Infinity;
 			let maxHeight = -Infinity;
-			
-			for (let i = 2; i < positions.length; i += 3) { // Y coordinate is at index 2
+
+			for (let i = 2; i < positions.length; i += 3) {
+				// Y coordinate is at index 2
 				const height = positions[i];
 				minHeight = Math.min(minHeight, height);
 				maxHeight = Math.max(maxHeight, height);
 			}
 
-			// If height variation is significant, height map is likely applied
 			const heightVariation = maxHeight - minHeight;
-			const expectedVariation = metadata.maxHeight - metadata.minHeight;
-			
-			// More lenient check - if there's any significant height variation, consider it applied
-			// This accounts for cases where the height map might have subtle variations
 			const isApplied = heightVariation > 0.001; // Reduced threshold for more sensitive detection
-			
-			console.log(`Height map check - variation: ${heightVariation.toFixed(4)}, expected: ${expectedVariation.toFixed(4)}, isApplied: ${isApplied}`);
-			
+
 			return isApplied;
 		} catch (error) {
 			console.warn("Error checking height map application:", error);
@@ -1508,37 +1376,19 @@ export class HeightMapUtils {
 				return { success: true, usedFallback: false, requiresUpdate: false };
 			}
 
-			console.log("Reapplying height map with new height range...");
-			
 			// Create validated config for height map application
 			const config = HeightMapUtils.createValidatedConfig(metadata, maxSubdivisions);
-			
+
 			// Apply height map directly to existing geometry without regeneration
 			await HeightMapUtils.applyHeightMapToMesh(mesh, metadata.heightMapTexture, config);
 
-			// Force the mesh to update its bounding box and other properties
-			mesh.computeWorldMatrix(true);
-			
-			// Force the geometry to update its bounding info
-			const geometry = mesh.geometry;
-			if (geometry) {
-				geometry.boundingBias = geometry.boundingBias || new Vector3(0, 0, 0);
-				geometry.boundingBias = geometry.boundingBias.scale(1.001); // Force bounding box recalculation
-			}
-			
-			// Force material compilation to ensure it works with updated geometry
-			if (mesh.material) {
-				setTimeout(() => {
-					HeightMapUtils.forceMaterialCompilation(mesh);
-				}, 0);
-			}
+			HeightMapUtils._postGeometryUpdate(mesh);
 
 			// Trigger UI update if callback provided
 			if (onUpdate) {
 				onUpdate();
 			}
 
-			console.log("Height map reapplied successfully");
 			return {
 				success: true,
 				usedFallback: false,
@@ -1559,5 +1409,53 @@ export class HeightMapUtils {
 				requiresUpdate: true,
 			};
 		}
+	}
+
+	/**
+	 * Forces a full refresh of the height map by regenerating geometry and reapplying the map.
+	 * @param mesh Ground mesh to modify
+	 * @param metadata Mesh metadata
+	 * @param maxSubdivisions Maximum allowed subdivisions
+	 * @param onUpdate Optional callback to trigger UI updates
+	 * @param onError Optional callback to report errors
+	 */
+	public static async forceRefreshHeightMap(
+		mesh: Mesh,
+		metadata: any,
+		maxSubdivisions: number = HeightMapUtils._maxSubdivisions,
+		onUpdate?: () => void,
+		onError?: (error: string) => void
+	): Promise<{ success: boolean; error?: string }> {
+		if (!metadata.useHeightMap || !metadata.heightMapTexture) {
+			return { success: false, error: "Height map not enabled or no texture" };
+		}
+
+		const config = HeightMapUtils.createValidatedConfig(metadata, maxSubdivisions);
+		HeightMapUtils.regenerateGroundGeometry(mesh, config);
+
+		const result = await HeightMapUtils.applyInspectorHeightMap(mesh, metadata, maxSubdivisions, onUpdate, onError);
+
+		return { success: result.success || result.usedFallback, error: result.error };
+	}
+
+	/**
+	 * Clears any existing height map effect by regenerating ground geometry using current settings.
+	 * @param mesh Ground mesh to modify
+	 * @param metadata Mesh metadata
+	 * @param maxSubdivisions Maximum allowed subdivisions
+	 */
+	public static clearHeightMapState(mesh: Mesh, metadata: any, maxSubdivisions: number = HeightMapUtils._maxSubdivisions): void {
+		const config = HeightMapUtils.createValidatedConfig(metadata, maxSubdivisions);
+		HeightMapUtils.regenerateGroundGeometry(mesh, config);
+	}
+
+	/**
+	 * Reverts the mesh to flat ground by disabling height map and regenerating geometry.
+	 * @param mesh Ground mesh to modify
+	 * @param metadata Mesh metadata
+	 * @param maxSubdivisions Maximum allowed subdivisions
+	 */
+	public static async revertToFlatGround(mesh: Mesh, metadata: any, maxSubdivisions: number = HeightMapUtils._maxSubdivisions): Promise<{ success: boolean; error?: string }> {
+		return HeightMapUtils.toggleHeightMapWithStateManagement(mesh, metadata, false, maxSubdivisions);
 	}
 }

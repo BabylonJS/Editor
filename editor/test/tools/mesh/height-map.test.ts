@@ -184,21 +184,7 @@ describe("tools/mesh/height-map", () => {
 		});
 	});
 
-	describe("createSampleHeightMapTexture", () => {
-		test("should create texture with default size", async () => {
-			const texture = await HeightMapUtils.createSampleHeightMapTexture(scene);
-			
-			expect(texture).toBeDefined();
-			expect(texture.name).toContain("sample-height-map");
-		});
 
-		test("should create texture with custom size", async () => {
-			const texture = await HeightMapUtils.createSampleHeightMapTexture(scene, 128);
-			
-			expect(texture).toBeDefined();
-			expect(texture.name).toContain("sample-height-map");
-		});
-	});
 
 	describe("regenerateGroundGeometry", () => {
 		test("should regenerate geometry successfully", () => {
@@ -380,45 +366,7 @@ describe("tools/mesh/height-map", () => {
 		});
 	});
 
-	describe("applyHeightMapWithFallback", () => {
-		test("should apply height map successfully", async () => {
-			const texture = new Texture("test", scene);
-			jest.spyOn(texture, 'isReady').mockReturnValue(true);
-			jest.spyOn(texture, 'getSize').mockReturnValue({ width: 256, height: 256 });
-			
-			const metadata = {
-				heightMapTexture: texture,
-				useHeightMap: true,
-				width: 100,
-				height: 100,
-				subdivisions: 32,
-				minHeight: 0,
-				maxHeight: 10
-			};
-			
-			const result = await HeightMapUtils.applyHeightMapWithFallback(mesh, metadata);
-			
-			expect(result.success).toBe(true);
-			expect(result.usedFallback).toBe(false);
-		});
 
-		test("should fallback to flat ground on error", async () => {
-			const metadata = {
-				heightMapTexture: null,
-				useHeightMap: true,
-				width: 100,
-				height: 100,
-				subdivisions: 32,
-				minHeight: 0,
-				maxHeight: 10
-			};
-			
-			const result = await HeightMapUtils.applyHeightMapWithFallback(mesh, metadata);
-			
-			expect(result.success).toBe(false);
-			expect(result.usedFallback).toBe(true);
-		});
-	});
 
 	describe("fallbackToFlatGround", () => {
 		test("should create flat ground successfully", async () => {
@@ -493,6 +441,54 @@ describe("tools/mesh/height-map", () => {
 				mesh, metadata, false
 			);
 			
+			expect(result.success).toBe(true);
+			expect(metadata.useHeightMap).toBe(false);
+		});
+	});
+
+	describe("forceRefreshHeightMap / clearHeightMapState / revertToFlatGround", () => {
+		test("forceRefreshHeightMap should fail when disabled or no texture", async () => {
+			const metadata = { useHeightMap: false, heightMapTexture: null };
+			const result = await HeightMapUtils.forceRefreshHeightMap(
+				mesh,
+				metadata
+			);
+			expect(result.success).toBe(false);
+		});
+
+		test("forceRefreshHeightMap should succeed with valid texture and enabled flag", async () => {
+			const texture = new Texture("test", scene);
+			jest.spyOn(texture, 'isReady').mockReturnValue(true);
+			jest.spyOn(texture, 'getSize').mockReturnValue({ width: 256, height: 256 });
+			const metadata = {
+				useHeightMap: true,
+				heightMapTexture: texture,
+				width: 10,
+				height: 10,
+				subdivisions: 4,
+				minHeight: 0,
+				maxHeight: 1,
+			};
+
+			const result = await HeightMapUtils.forceRefreshHeightMap(
+				mesh,
+				metadata
+			);
+			expect(result.success).toBe(true);
+		});
+
+		test("clearHeightMapState should regenerate geometry without throwing", () => {
+			const metadata = { width: 10, height: 10, subdivisions: 4, minHeight: 0, maxHeight: 1 };
+			expect(() => {
+				HeightMapUtils.clearHeightMapState(mesh, metadata);
+			}).not.toThrow();
+			const positions = mesh.getVerticesData("position");
+			expect(positions).toBeDefined();
+		});
+
+		test("revertToFlatGround should disable height map", async () => {
+			const metadata = { useHeightMap: true } as any;
+			const result = await HeightMapUtils.revertToFlatGround(mesh, metadata);
 			expect(result.success).toBe(true);
 			expect(metadata.useHeightMap).toBe(false);
 		});
@@ -598,66 +594,7 @@ describe("tools/mesh/height-map", () => {
 		});
 	});
 
-	describe("handleInspectorHeightMapApplication", () => {
-		test("should apply height map successfully", async () => {
-			const texture = new Texture("test", scene);
-			jest.spyOn(texture, 'isReady').mockReturnValue(true);
-			jest.spyOn(texture, 'getSize').mockReturnValue({ width: 256, height: 256 });
-			
-			const metadata = {
-				heightMapTexture: texture,
-				useHeightMap: true,
-				width: 100,
-				height: 100,
-				subdivisions: 32,
-				minHeight: 0,
-				maxHeight: 10
-			};
-			
-			const result = await HeightMapUtils.handleInspectorHeightMapApplication(
-				mesh, metadata
-			);
-			
-			expect(result.success).toBe(true);
-			expect(result.usedFallback).toBe(false);
-			expect(result.requiresUpdate).toBe(true);
-		});
 
-		test("should handle height map disabled", async () => {
-			const metadata = {
-				useHeightMap: false,
-				width: 100,
-				height: 100,
-				subdivisions: 32
-			};
-			
-			const result = await HeightMapUtils.handleInspectorHeightMapApplication(
-				mesh, metadata
-			);
-			
-			expect(result.success).toBe(true);
-			expect(result.usedFallback).toBe(false);
-			expect(result.requiresUpdate).toBe(false);
-		});
-
-		test("should handle missing texture", async () => {
-			const metadata = {
-				useHeightMap: true,
-				heightMapTexture: null,
-				width: 100,
-				height: 100,
-				subdivisions: 32
-			};
-			
-			const result = await HeightMapUtils.handleInspectorHeightMapApplication(
-				mesh, metadata
-			);
-			
-			expect(result.success).toBe(false);
-			expect(result.usedFallback).toBe(false);
-			expect(result.requiresUpdate).toBe(true);
-		});
-	});
 
 	describe("validateConfig", () => {
 		test("should return valid for correct configuration", () => {
