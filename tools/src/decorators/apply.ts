@@ -3,6 +3,8 @@ import { Scene } from "@babylonjs/core/scene";
 import { Color3, Color4 } from "@babylonjs/core/Maths/math.color";
 import { Texture } from "@babylonjs/core/Materials/Textures/texture";
 import { Vector2, Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { ParticleSystem } from "@babylonjs/core/Particles/particleSystem";
+import { GPUParticleSystem } from "@babylonjs/core/Particles/gpuParticleSystem";
 
 import { AdvancedDynamicTexture } from "@babylonjs/gui/2D/advancedDynamicTexture";
 
@@ -48,6 +50,7 @@ export interface ISceneDecoratorData {
 	// @fromParticleSystems
 	_ParticleSystemsFromScene: {
 		particleSystemName: string;
+		directDescendantsOnly: boolean;
 		propertyKey: string | Symbol;
 	}[];
 
@@ -108,8 +111,12 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 
 	// @fromParticleSystems
 	ctor._ParticleSystemsFromScene?.forEach((params) => {
-		const particleSystem = scene.particleSystems?.find((particleSystem) => {
-			return particleSystem.name === params.particleSystemName;
+		const particleSystem = scene.particleSystems?.find((particleSystem: ParticleSystem | GPUParticleSystem) => {
+			if (particleSystem.name !== params.particleSystemName) {
+				return false;
+			}
+
+			return params.directDescendantsOnly ? particleSystem.emitter === object : particleSystem;
 		});
 
 		instance[params.propertyKey.toString()] = particleSystem;
