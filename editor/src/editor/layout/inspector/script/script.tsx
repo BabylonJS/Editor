@@ -68,7 +68,7 @@ export class ScriptInspectorComponent extends Component<IScriptInspectorComponen
 				onDragOver={(ev) => this._handleDragOverEmptyComponent(ev)}
 				className={`flex flex-col justify-center items-center w-full h-[64px] rounded-lg border-[1px] border-secondary-foreground/35 border-dashed ${this.state.dragOver ? "bg-secondary-foreground/35" : ""} transition-all duration-300 ease-in-out`}
 			>
-				<div>Drag'n'drop a script here</div>
+				<div className="font-semibold text-muted-foreground">Drag'n'drop a script here</div>
 			</div>
 		);
 	}

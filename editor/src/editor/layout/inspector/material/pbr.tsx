@@ -131,7 +131,12 @@ export class EditorPBRMaterialInspector extends Component<IEditorPBRMaterialInsp
 						)}
 					</EditorInspectorTextureField>
 
-					<EditorInspectorTextureField object={this.props.material} title="Metallic Reflectance Texture" property="metallicReflectanceTexture" onChange={() => this.forceUpdate()}>
+					<EditorInspectorTextureField
+						object={this.props.material}
+						title="Metallic Reflectance Texture"
+						property="metallicReflectanceTexture"
+						onChange={() => this.forceUpdate()}
+					>
 						{this.props.material.metallicReflectanceTexture && (
 							<>
 								<EditorInspectorSwitchField
