@@ -131,6 +131,19 @@ export class EditorPBRMaterialInspector extends Component<IEditorPBRMaterialInsp
 						)}
 					</EditorInspectorTextureField>
 
+					<EditorInspectorTextureField object={this.props.material} title="Metallic Reflectance Texture" property="metallicReflectanceTexture" onChange={() => this.forceUpdate()}>
+						{this.props.material.metallicReflectanceTexture && (
+							<>
+								<EditorInspectorSwitchField
+									label="Use Only Metallic From Metallic Reflectance Texture"
+									object={this.props.material}
+									property="useOnlyMetallicFromMetallicReflectanceTexture"
+									onChange={() => this.forceUpdate()}
+								/>
+							</>
+						)}
+					</EditorInspectorTextureField>
+
 					<EditorInspectorTextureField object={this.props.material} title="Emissive Texture" property="emissiveTexture" />
 					<EditorInspectorTextureField object={this.props.material} title="Lightmap Texture" property="lightmapTexture">
 						{this.props.material.lightmapTexture && (
@@ -195,11 +208,6 @@ export class EditorPBRMaterialInspector extends Component<IEditorPBRMaterialInsp
 					/>
 
 					{this.props.material.roughness !== null && <EditorInspectorNumberField label=" " object={this.props.material} property="roughness" min={0} max={1} />}
-					<EditorInspectorSwitchField
-						label="Use Only Metallic From Metallic Reflectance Texture"
-						object={this.props.material}
-						property="useOnlyMetallicFromMetallicReflectanceTexture"
-					/>
 				</EditorInspectorSectionField>
 
 				{this.props.material.metallic === null && this.props.material.roughness === null && (
