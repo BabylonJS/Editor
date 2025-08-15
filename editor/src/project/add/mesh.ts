@@ -88,6 +88,12 @@ export function addGroundMesh(editor: Editor, parent?: Node) {
 		width: 1024,
 		height: 1024,
 		subdivisions: 32,
+		heightMapTexturePath: null,
+		minHeight: 0,
+		maxHeight: 150,
+		smoothFactor: 0,
+		alphaFilter: 0,
+		colorFilter: [0.3, 0.59, 0.11],
 	};
 
 	if (ground.geometry) {
