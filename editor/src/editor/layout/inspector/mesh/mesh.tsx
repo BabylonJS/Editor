@@ -147,7 +147,7 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 
 				{isMesh(this.props.object) && (
 					<>
-						<MeshGeometryInspector object={this.props.object} />
+						<MeshGeometryInspector object={this.props.object} editor={this.props.editor} />
 						<MeshDecalInspector object={this.props.object} />
 						{this._getLODsComponent()}
 					</>

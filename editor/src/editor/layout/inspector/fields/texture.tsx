@@ -157,7 +157,7 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 						}}
 						className="flex justify-center items-center w-24 h-full hover:bg-muted-foreground rounded-lg transition-all duration-300"
 					>
-						<XMarkIcon className="w-6 h-6" />
+						{texture && <XMarkIcon className="w-6 h-6" />}
 					</div>
 				</div>
 
