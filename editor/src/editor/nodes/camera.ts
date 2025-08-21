@@ -3,21 +3,21 @@ import { EditorFreeCameraPanInput } from "./camera-pan-input";
 
 import { isDomTextInputFocused } from "../../tools/dom";
 
+const DEFAULT_KEYS = {
+	keysUp: [87], // W - Forward
+	keysDown: [83], // S - Backward
+	keysLeft: [65], // A - Left
+	keysRight: [68], // D - Right
+	keysUpward: [69], // E - Up
+	keysDownward: [81], // Q - Down
+};
+
 export class EditorCamera extends FreeCamera {
 	private _savedSpeed: number | null = null;
 	private _panInput: EditorFreeCameraPanInput;
 
 	private _keyboardUpListener: (ev: KeyboardEvent) => void;
 	private _keyboardDownListener: (ev: KeyboardEvent) => void;
-
-	private static readonly DEFAULT_KEYS = {
-		keysUp: [87],        // W - Forward
-		keysDown: [83],      // S - Backward
-		keysLeft: [65],      // A - Left
-		keysRight: [68],     // D - Right
-		keysUpward: [69],    // E - Up
-		keysDownward: [81],  // Q - Down
-	};
 
 	/**
 	 * Constructor.
@@ -29,13 +29,7 @@ export class EditorCamera extends FreeCamera {
 	public constructor(name: string, position: Vector3, scene: Scene, setActiveOnSceneIfNoneActive?: boolean) {
 		super(name, position, scene, setActiveOnSceneIfNoneActive);
 
-		// Set default key mappings
-		this.keysUp = EditorCamera.DEFAULT_KEYS.keysUp;
-		this.keysDown = EditorCamera.DEFAULT_KEYS.keysDown;
-		this.keysLeft = EditorCamera.DEFAULT_KEYS.keysLeft;
-		this.keysRight = EditorCamera.DEFAULT_KEYS.keysRight;
-		this.keysUpward = EditorCamera.DEFAULT_KEYS.keysUpward;
-		this.keysDownward = EditorCamera.DEFAULT_KEYS.keysDownward;
+		this._setDefaultKeys();
 
 		this.inputs.addMouseWheel();
 		this._panInput = new EditorFreeCameraPanInput();
@@ -97,13 +91,7 @@ export class EditorCamera extends FreeCamera {
 				this.keysUpward = keys.keysUpward;
 				this.keysDownward = keys.keysDownward;
 			} else {
-				// If preferences are incomplete, fall back to defaults
-				this.keysUp = EditorCamera.DEFAULT_KEYS.keysUp;
-				this.keysDown = EditorCamera.DEFAULT_KEYS.keysDown;
-				this.keysLeft = EditorCamera.DEFAULT_KEYS.keysLeft;
-				this.keysRight = EditorCamera.DEFAULT_KEYS.keysRight;
-				this.keysUpward = EditorCamera.DEFAULT_KEYS.keysUpward;
-				this.keysDownward = EditorCamera.DEFAULT_KEYS.keysDownward;
+				this._setDefaultKeys();
 			}
 
 			// Load pan sensitivity multiplier if available
@@ -112,12 +100,7 @@ export class EditorCamera extends FreeCamera {
 			}
 		} catch (e) {
 			// If no preferences found or error occurred, use defaults
-			this.keysUp = EditorCamera.DEFAULT_KEYS.keysUp;
-			this.keysDown = EditorCamera.DEFAULT_KEYS.keysDown;
-			this.keysLeft = EditorCamera.DEFAULT_KEYS.keysLeft;
-			this.keysRight = EditorCamera.DEFAULT_KEYS.keysRight;
-			this.keysUpward = EditorCamera.DEFAULT_KEYS.keysUpward;
-			this.keysDownward = EditorCamera.DEFAULT_KEYS.keysDownward;
+			this._setDefaultKeys();
 		}
 	}
 
@@ -153,6 +136,15 @@ export class EditorCamera extends FreeCamera {
 	 */
 	public set panSensitivityMultiplier(value: number) {
 		this._panInput.panSensitivityMultiplier = value;
+	}
+
+	private _setDefaultKeys() {
+		this.keysUp = DEFAULT_KEYS.keysUp;
+		this.keysDown = DEFAULT_KEYS.keysDown;
+		this.keysLeft = DEFAULT_KEYS.keysLeft;
+		this.keysRight = DEFAULT_KEYS.keysRight;
+		this.keysUpward = DEFAULT_KEYS.keysUpward;
+		this.keysDownward = DEFAULT_KEYS.keysDownward;
 	}
 }
 
