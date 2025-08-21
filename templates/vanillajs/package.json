@@ -1,28 +1,28 @@
 {
-  "name": "babylonjs-editor-vanillajs-template",
-  "version": "0.0.0",
-  "description": "",
-  "type": "module",
-  "private": true,
-  "scripts": {
-    "start": "vite",
-    "dev": "vite",
-    "build": "vite build",
-    "serve": "vite preview"
-  },
-  "license": "MIT",
-  "devDependencies": {
-    "@tailwindcss/vite": "^4.0.7",
-    "tailwindcss": "^4.0.7",
-    "typescript": "^5.7.2",
-    "vite": "^6.0.0",
-    "@types/node": "^22"
-  },
-  "dependencies": {
-    "@babylonjs/core": "8.15.1",
-    "@babylonjs/gui": "8.15.1",
-    "@babylonjs/havok": "1.3.10",
-    "@babylonjs/materials": "8.15.1",
-    "babylonjs-editor-tools": "latest"
-  }
+	"name": "babylonjs-editor-vanillajs-template",
+	"version": "0.0.0",
+	"description": "",
+	"type": "module",
+	"private": true,
+	"scripts": {
+		"start": "vite",
+		"dev": "vite",
+		"build": "vite build",
+		"serve": "vite preview"
+	},
+	"license": "MIT",
+	"devDependencies": {
+		"@tailwindcss/vite": "^4.0.7",
+		"tailwindcss": "^4.0.7",
+		"typescript": "^5.7.2",
+		"vite": "^6.0.0",
+		"@types/node": "^22"
+	},
+	"dependencies": {
+		"@babylonjs/core": "8.24.0",
+		"@babylonjs/gui": "8.24.0",
+		"@babylonjs/havok": "1.3.10",
+		"@babylonjs/materials": "8.24.0",
+		"babylonjs-editor-tools": "latest"
+	}
 }
