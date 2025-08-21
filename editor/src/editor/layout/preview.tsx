@@ -9,6 +9,10 @@ import { Grid } from "react-loader-spinner";
 import { FaCheck } from "react-icons/fa6";
 import { GiWireframeGlobe } from "react-icons/gi";
 import { IoIosOptions, IoIosStats } from "react-icons/io";
+import { LuMove3D } from "react-icons/lu";
+import { LuRotate3D } from "react-icons/lu";
+import { LuScale3D } from "react-icons/lu";
+import { GiArrowCursor } from "react-icons/gi";
 
 import {
 	AbstractEngine,
@@ -32,10 +36,11 @@ import {
 	SceneLoaderFlags,
 } from "babylonjs";
 
-import { Toggle } from "../../ui/shadcn/ui/toggle";
 import { Button } from "../../ui/shadcn/ui/button";
 import { Progress } from "../../ui/shadcn/ui/progress";
+import { Toggle } from "../../ui/shadcn/ui/toggle";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/shadcn/ui/select";
+import { ToolbarRadioGroup, ToolbarRadioGroupItem } from "../../ui/shadcn/ui/toolbar-radio-group";
 
 import { Editor } from "../main";
 
@@ -55,10 +60,6 @@ import { isAbstractMesh, isCamera, isCollisionInstancedMesh, isCollisionMesh, is
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../../ui/shadcn/ui/dropdown-menu";
 
 import { EditorCamera } from "../nodes/camera";
-
-import { PositionIcon } from "../../ui/icons/position";
-import { RotationIcon } from "../../ui/icons/rotation";
-import { ScalingIcon } from "../../ui/icons/scaling";
 
 import { SpinnerUIComponent } from "../../ui/spinner";
 import { Separator } from "../../ui/shadcn/ui/separator";
@@ -761,32 +762,68 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 						</SelectContent>
 					</Select>
 
-					<Separator orientation="vertical" className="mx-2 h-[24px]" />
+					<Separator orientation="vertical" className="mx-1 h-[24px]" />
+
+					<ToolbarRadioGroup value={this.state.activeGizmo === "none" ? "select" : this.state.activeGizmo} onValueChange={(value) => {
+						if (value === "select") {
+							this.setActiveGizmo("none");
+						} else {
+							this.setActiveGizmo(value as "position" | "rotation" | "scaling");
+						}
+					}}>
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<ToolbarRadioGroupItem value="select" className={this.state.activeGizmo === "none" ? "bg-primary/20" : ""}>
+									<GiArrowCursor className="h-4 w-4" />
+								</ToolbarRadioGroupItem>
+							</TooltipTrigger>
+							<TooltipContent>Select mode</TooltipContent>
+						</Tooltip>
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<ToolbarRadioGroupItem value="position" className={this.state.activeGizmo === "position" ? "bg-primary/20" : ""}>
+									<LuMove3D height={16} />
+								</ToolbarRadioGroupItem>
+							</TooltipTrigger>
+							<TooltipContent>Toggle position gizmo</TooltipContent>
+						</Tooltip>
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<ToolbarRadioGroupItem value="rotation" className={this.state.activeGizmo === "rotation" ? "bg-primary/20" : ""}>
+									<LuRotate3D height={16} />
+								</ToolbarRadioGroupItem>
+							</TooltipTrigger>
+							<TooltipContent>Toggle rotation gizmo</TooltipContent>
+						</Tooltip>
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<ToolbarRadioGroupItem value="scaling" className={this.state.activeGizmo === "scaling" ? "bg-primary/20" : ""}>
+									<LuScale3D height={16} />
+								</ToolbarRadioGroupItem>
+							</TooltipTrigger>
+							<TooltipContent>Toggle scaling gizmo</TooltipContent>
+						</Tooltip>
+					</ToolbarRadioGroup>
+
+					<Separator orientation="vertical" className="mx-1 h-[24px]" />
 
 					<Tooltip>
 						<TooltipTrigger asChild>
-							<Toggle pressed={this.state.activeGizmo === "position"} onPressedChange={() => this.setActiveGizmo("position")}>
-								<PositionIcon height={16} />
+							<Toggle
+								className={this.scene?.forceWireframe ? "!px-2 !py-2 bg-primary/20" : "!px-2 !py-2"}
+								pressed={this.scene?.forceWireframe}
+								onPressedChange={() => {
+									this.scene.forceWireframe = !this.scene.forceWireframe;
+									this.forceUpdate();
+								}}
+							>
+								<GiWireframeGlobe className="w-6 h-6 scale-125" strokeWidth={1} color="white" />
 							</Toggle>
 						</TooltipTrigger>
-						<TooltipContent>Toggle position gizmo</TooltipContent>
+						<TooltipContent>Toggle wireframe</TooltipContent>
 					</Tooltip>
-					<Tooltip>
-						<TooltipTrigger asChild>
-							<Toggle pressed={this.state.activeGizmo === "rotation"} onPressedChange={() => this.setActiveGizmo("rotation")}>
-								<RotationIcon height={16} />
-							</Toggle>
-						</TooltipTrigger>
-						<TooltipContent>Toggle rotation gizmo</TooltipContent>
-					</Tooltip>
-					<Tooltip>
-						<TooltipTrigger asChild>
-							<Toggle pressed={this.state.activeGizmo === "scaling"} onPressedChange={() => this.setActiveGizmo("scaling")}>
-								<ScalingIcon height={16} />
-							</Toggle>
-						</TooltipTrigger>
-						<TooltipContent>Toggle scaling gizmo</TooltipContent>
-					</Tooltip>
+
+					<Separator orientation="vertical" className="mx-1 h-[24px]" />
 
 					<Select
 						value={this.gizmo?.getCoordinateMode().toString()}
@@ -804,25 +841,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 						</SelectContent>
 					</Select>
 
-					<Separator orientation="vertical" className="mx-2 h-[24px]" />
-
-					<Tooltip>
-						<TooltipTrigger asChild>
-							<Toggle
-								className="!px-2 !py-2"
-								pressed={this.scene?.forceWireframe}
-								onPressedChange={() => {
-									this.scene.forceWireframe = !this.scene.forceWireframe;
-									this.forceUpdate();
-								}}
-							>
-								<GiWireframeGlobe className="w-6 h-6 scale-125" strokeWidth={1} color="white" />
-							</Toggle>
-						</TooltipTrigger>
-						<TooltipContent>Toggle wireframe</TooltipContent>
-					</Tooltip>
-
-					<Separator orientation="vertical" className="mx-2 h-[24px]" />
+					<Separator orientation="vertical" className="mx-1 h-[24px]" />
 
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
