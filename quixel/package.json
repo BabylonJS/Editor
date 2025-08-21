@@ -15,7 +15,7 @@
 		"typescript": "5.8.3"
 	},
 	"dependencies": {
-		"babylonjs": "8.15.1",
+		"babylonjs": "8.24.0",
 		"babylonjs-editor": "link:../editor",
 		"fs-extra": "^11.2.0",
 		"sharp": "0.34.3"
