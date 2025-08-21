@@ -16,7 +16,9 @@ export function EditorInspectorSwitchField(props: IEditorInspectorSwitchFieldPro
 
 	return (
 		<div
-			onClick={() => {
+			onClick={(ev) => {
+				ev.stopPropagation();
+
 				setValue(!value);
 				setInspectorEffectivePropertyValue(props.object, props.property, !value);
 				props.onChange?.(!value);
@@ -36,7 +38,7 @@ export function EditorInspectorSwitchField(props: IEditorInspectorSwitchFieldPro
 			<div className="w-full text-ellipsis overflow-hidden whitespace-nowrap">{props.label}</div>
 
 			<div className="flex justify-end w-14 py-2">
-				<Switch checked={value} onChange={() => {}} onClick={(ev) => ev.stopPropagation()} />
+				<Switch checked={value} onChange={() => {}} />
 			</div>
 		</div>
 	);
