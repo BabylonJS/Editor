@@ -7,12 +7,9 @@ import { Component, MouseEvent, ReactNode } from "react";
 import { Grid } from "react-loader-spinner";
 
 import { FaCheck } from "react-icons/fa6";
-import { GiWireframeGlobe } from "react-icons/gi";
 import { IoIosOptions, IoIosStats } from "react-icons/io";
-import { LuMove3D } from "react-icons/lu";
-import { LuRotate3D } from "react-icons/lu";
-import { LuScale3D } from "react-icons/lu";
-import { GiArrowCursor } from "react-icons/gi";
+import { LuMove3D, LuRotate3D, LuScale3D } from "react-icons/lu";
+import { GiArrowCursor, GiWireframeGlobe } from "react-icons/gi";
 
 import {
 	AbstractEngine,
@@ -764,13 +761,16 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
 					<Separator orientation="vertical" className="mx-1 h-[24px]" />
 
-					<ToolbarRadioGroup value={this.state.activeGizmo === "none" ? "select" : this.state.activeGizmo} onValueChange={(value) => {
-						if (value === "select") {
-							this.setActiveGizmo("none");
-						} else {
-							this.setActiveGizmo(value as "position" | "rotation" | "scaling");
-						}
-					}}>
+					<ToolbarRadioGroup
+						value={this.state.activeGizmo === "none" ? "select" : this.state.activeGizmo}
+						onValueChange={(value) => {
+							if (value === "select") {
+								this.setActiveGizmo("none");
+							} else {
+								this.setActiveGizmo(value as "position" | "rotation" | "scaling");
+							}
+						}}
+					>
 						<Tooltip>
 							<TooltipTrigger asChild>
 								<ToolbarRadioGroupItem value="select" className={this.state.activeGizmo === "none" ? "bg-primary/20" : ""}>
