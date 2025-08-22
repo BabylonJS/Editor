@@ -33,9 +33,11 @@ import { EditorEditPreferencesComponent } from "./dialogs/edit-preferences/edit-
 import { Toaster } from "../ui/shadcn/ui/sonner";
 
 import { EditorLayout } from "./layout";
+import { removeNodes } from "./layout/graph/remove";
 
 import "./nodes/camera";
 import "./nodes/scene-link";
+import { isDomTextInputFocused } from "../tools/dom";
 
 export function createEditor(): void {
 	const theme = localStorage.getItem("editor-theme") ?? "dark";
@@ -153,6 +155,20 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 							preventDefault: true,
 							label: "Show Command Palette",
 							onKeyDown: () => this.commandPalette.setOpen(true),
+						},
+						{
+							global: true,
+							combo: "delete",
+							preventDefault: true,
+							label: "Delete Selected Objects",
+							onKeyDown: () => {
+								if (!isDomTextInputFocused()) {
+									const selectedNodes = this.layout.graph.getSelectedNodes();
+									if (selectedNodes.length > 0) {
+										removeNodes(this);
+									}
+								}
+							},
 						},
 					]}
 				>
