@@ -37,6 +37,7 @@ import { removeNodes } from "./layout/graph/remove";
 
 import "./nodes/camera";
 import "./nodes/scene-link";
+import { isDomTextInputFocused } from "../tools/dom";
 
 export function createEditor(): void {
 	const theme = localStorage.getItem("editor-theme") ?? "dark";
@@ -161,9 +162,11 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 							preventDefault: true,
 							label: "Delete Selected Objects",
 							onKeyDown: () => {
-								const selectedNodes = this.layout.graph.getSelectedNodes();
-								if (selectedNodes.length > 0) {
-									removeNodes(this);
+								if (!isDomTextInputFocused()) {
+									const selectedNodes = this.layout.graph.getSelectedNodes();
+									if (selectedNodes.length > 0) {
+										removeNodes(this);
+									}
 								}
 							},
 						},
