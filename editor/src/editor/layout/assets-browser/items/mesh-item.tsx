@@ -3,20 +3,29 @@ import { writeJSON } from "fs-extra";
 import { ReactNode } from "react";
 
 import { SiConvertio } from "react-icons/si";
-import { BiSolidCube } from "react-icons/bi";
 
 import { Scene, SceneSerializer } from "babylonjs";
+
+import { ModelThumbnailRenderer } from "../renderers/model-thumbnail";
 
 import { SpinnerUIComponent } from "../../../../ui/spinner";
 import { ContextMenuItem } from "../../../../ui/shadcn/ui/context-menu";
 
 import { loadImportedSceneFile } from "../../preview/import/import";
+import { openModelViewer } from "../viewers/model-viewer";
 
 import { AssetsBrowserItem } from "./item";
 
 const convertingFiles: string[] = [];
 
 export class AssetBrowserMeshItem extends AssetsBrowserItem {
+	/**
+	 * @override
+	 */
+	protected async onDoubleClick(): Promise<void> {
+		openModelViewer(this.props.editor, this.props.absolutePath);
+	}
+
 	/**
 	 * @override
 	 */
@@ -39,7 +48,11 @@ export class AssetBrowserMeshItem extends AssetsBrowserItem {
 			return <SpinnerUIComponent width="64px" />;
 		}
 
-		return <BiSolidCube size="64px" />;
+		return (
+			<div className="w-full h-full pointer-events-none">
+				<ModelThumbnailRenderer absolutePath={this.props.absolutePath} />
+			</div>
+		);
 	}
 
 	private async _handleConvertSceneFileToBabylon(): Promise<void> {
