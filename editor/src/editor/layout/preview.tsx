@@ -7,9 +7,9 @@ import { Component, MouseEvent, ReactNode } from "react";
 import { Grid } from "react-loader-spinner";
 
 import { FaCheck } from "react-icons/fa6";
-import { IoIosOptions, IoIosStats } from "react-icons/io";
+import { GiArrowCursor, GiTeapot, GiWireframeGlobe } from "react-icons/gi";
+import { IoIosStats } from "react-icons/io";
 import { LuMove3D, LuRotate3D, LuScale3D } from "react-icons/lu";
-import { GiArrowCursor, GiWireframeGlobe } from "react-icons/gi";
 
 import {
 	AbstractEngine,
@@ -846,7 +846,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
 							<Button variant="ghost" className="px-1 py-1 w-9 h-9">
-								<IoIosOptions className="w-6 h-6" strokeWidth={1} />
+								<GiTeapot className="w-6 h-6" strokeWidth={1} />
 							</Button>
 						</DropdownMenuTrigger>
 						<DropdownMenuContent onClick={() => this.forceUpdate()}>
