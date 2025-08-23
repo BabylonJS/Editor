@@ -61,7 +61,7 @@ export function parseMesh(runtime: AssimpJSRuntime, data: IAssimpJSNodeData): Me
 	}
 
 	// Bones
-	const hasBones = !meshes.find((m) => !m.bones);
+	const hasBones = meshes.some((m) => m.bones && m.bones.length > 0);
 
 	if (hasBones) {
 		const skeleton = new Skeleton(data.name, Tools.RandomId(), runtime.scene);
