@@ -5,7 +5,6 @@ import { pathExists, readJSON, writeJSON } from "fs-extra";
 import { ReactNode } from "react";
 
 import { FaRegClone } from "react-icons/fa6";
-import { GiMaterialsScience } from "react-icons/gi";
 
 import { Tools } from "babylonjs";
 
@@ -15,6 +14,7 @@ import { showAlert, showPrompt } from "../../../../ui/dialog";
 import { ContextMenuItem } from "../../../../ui/shadcn/ui/context-menu";
 
 import { openMaterialViewer } from "../viewers/material-viewer";
+import { MaterialThumbnailRenderer } from "../renderers/material-thumbnail";
 
 import { AssetsBrowserItem } from "./item";
 
@@ -23,7 +23,11 @@ export class AssetBrowserMaterialItem extends AssetsBrowserItem {
 	 * @override
 	 */
 	protected getIcon(): ReactNode {
-		return <GiMaterialsScience size="64px" />;
+		return (
+			<div className="w-full h-full pointer-events-none">
+				<MaterialThumbnailRenderer absolutePath={this.props.absolutePath} />
+			</div>
+		);
 	}
 
 	/**
