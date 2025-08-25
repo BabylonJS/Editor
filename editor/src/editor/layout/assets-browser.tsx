@@ -65,6 +65,7 @@ import { FileInspectorObject } from "./inspector/file";
 import { AssetBrowserGUIItem } from "./assets-browser/items/gui-item";
 import { AssetBrowserHDRItem } from "./assets-browser/items/hdr-item";
 import { AssetBrowserMeshItem } from "./assets-browser/items/mesh-item";
+import { AssetBrowserSkeletonItem } from "./assets-browser/items/skeleton-item";
 import { AssetBrowserSceneItem } from "./assets-browser/items/scene-item";
 import { AssetBrowserImageItem } from "./assets-browser/items/image-item";
 import { AssetBrowserMaterialItem } from "./assets-browser/items/material-item";
@@ -90,6 +91,7 @@ const ImageSelectable = createSelectable(AssetBrowserImageItem);
 const SceneSelectable = createSelectable(AssetBrowserSceneItem);
 const MaterialSelectable = createSelectable(AssetBrowserMaterialItem);
 const CinematicSelectable = createSelectable(AssetBrowserCinematicItem);
+const SkeletonSelectable = createSelectable(AssetBrowserSkeletonItem);
 
 export interface IEditorAssetsBrowserProps {
 	/**
@@ -790,6 +792,10 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 			case ".blend":
 			case ".babylon":
 				return <MeshSelectable {...props} />;
+
+			case ".bvh":
+			case ".BVH":
+				return <SkeletonSelectable {...props} />;
 
 			case ".material":
 				return <MaterialSelectable {...props} />;
