@@ -1,11 +1,11 @@
 import { isAbsolute } from "path";
-import { join, dirname, basename } from "path/posix";
+import { join, dirname, basename, extname } from "path/posix";
 import { pathExists, readFile, readJSON, writeFile } from "fs-extra";
 
 import axios from "axios";
 import { toast } from "sonner";
 
-import { CubeTexture, ISceneLoaderAsyncResult, Material, Node, Scene, SceneLoader, Texture, Tools, ColorGradingTexture } from "babylonjs";
+import { CubeTexture, ISceneLoaderAsyncResult, Material, Node, Scene, SceneLoader, Texture, Tools, ColorGradingTexture, Skeleton } from "babylonjs";
 
 import { UniqueNumber } from "../../../../tools/tools";
 import { isMesh } from "../../../../tools/guards/nodes";
@@ -71,9 +71,7 @@ export async function loadImportedSceneFile(scene: Scene, absolutePath: string):
 		configureImportedNodeIds(mesh);
 
 		if (mesh.skeleton) {
-			mesh.skeleton.id = Tools.RandomId();
-			mesh.skeleton["_uniqueId"] = UniqueNumber.Get();
-			mesh.skeleton.bones.forEach((bone) => configureImportedNodeIds(bone));
+			configureImportedSkeleton(mesh.skeleton);
 		}
 
 		if (mesh.morphTargetManager) {
@@ -90,6 +88,10 @@ export async function loadImportedSceneFile(scene: Scene, absolutePath: string):
 				target.name = `${mesh.name}_${target.name}`;
 			}
 		}
+	});
+
+	result.skeletons?.forEach((skeleton) => {
+		configureImportedSkeleton(skeleton, absolutePath);
 	});
 
 	result.lights.forEach((light) => configureImportedNodeIds(light));
@@ -170,6 +172,21 @@ export function configureImportedTexture<T extends Texture | CubeTexture | Color
 	}
 
 	return texture;
+}
+
+export function configureImportedSkeleton(skeleton: Skeleton, absolutePath?: string): void {
+	skeleton.id = Tools.RandomId();
+	skeleton["_uniqueId"] = UniqueNumber.Get();
+
+	if (absolutePath) {
+		const extension = extname(absolutePath).toLowerCase();
+		if (extension === ".bvh") {
+			const skeletonName = basename(absolutePath, extension);
+			skeleton.name = skeletonName;
+		}
+	}
+
+	skeleton.bones.forEach((bone) => configureImportedNodeIds(bone));
 }
 
 export async function configureEmbeddedTexture(texture: Texture, absolutePath: string): Promise<unknown> {

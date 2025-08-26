@@ -3,7 +3,7 @@ import { Button, Tree, TreeNodeInfo } from "@blueprintjs/core";
 
 import { FaLink } from "react-icons/fa6";
 import { IoMdCube } from "react-icons/io";
-import { GiSparkles } from "react-icons/gi";
+import { GiSparkles, GiSkeletonInside } from "react-icons/gi";
 import { BsSoundwave } from "react-icons/bs";
 import { AiOutlinePlus } from "react-icons/ai";
 import { HiSpeakerWave } from "react-icons/hi2";
@@ -12,9 +12,10 @@ import { MdOutlineQuestionMark } from "react-icons/md";
 import { HiOutlineCubeTransparent } from "react-icons/hi";
 import { IoCheckmark, IoSparklesSharp } from "react-icons/io5";
 import { SiAdobeindesign, SiBabylondotjs } from "react-icons/si";
+import { PiBoneLight } from "react-icons/pi";
 
 import { AdvancedDynamicTexture } from "babylonjs-gui";
-import { BaseTexture, Node, Scene, Sound, Tools, IParticleSystem, ParticleSystem } from "babylonjs";
+import { BaseTexture, Node, Scene, Sound, Tools, IParticleSystem, ParticleSystem, Skeleton } from "babylonjs";
 
 import { Editor } from "../main";
 
@@ -47,12 +48,13 @@ import {
 	isCamera,
 	isCollisionInstancedMesh,
 	isCollisionMesh,
-	isEditorCamera,
 	isInstancedMesh,
 	isLight,
 	isMesh,
 	isNode,
 	isTransformNode,
+	isSkeleton,
+	isBone,
 } from "../../tools/guards/nodes";
 import {
 	onNodeModifiedObservable,
@@ -69,6 +71,7 @@ import { EditorGraphContextMenu } from "./graph/graph";
 import { getMeshCommands } from "../dialogs/command-palette/mesh";
 import { getLightCommands } from "../dialogs/command-palette/light";
 import { getCameraCommands } from "../dialogs/command-palette/camera";
+import { SKELETON_CONTAINER_TYPE } from "./assets-browser/items/skeleton-item";
 
 export interface IEditorGraphProps {
 	/**
@@ -262,8 +265,19 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			if (this.state.showOnlyDecals) {
 				nodes.push(...scene.meshes.filter((mesh) => mesh.metadata?.decal).map((mesh) => this._parseSceneNode(mesh, true)));
 			}
-		} else {
-			nodes = scene.rootNodes.filter((n) => !isEditorCamera(n)).map((n) => this._parseSceneNode(n));
+		}
+
+		// Add skeleton containers (TransformNodes that contain skeletons) to avoid duplication
+		const skeletonContainers = scene.transformNodes.filter((transformNode) => {
+			return transformNode.metadata?.type === SKELETON_CONTAINER_TYPE;
+		});
+
+		// Add skeleton containers to the graph
+		if (skeletonContainers.length > 0) {
+			const containerNodes = skeletonContainers.map((container) => {
+				return this._parseSkeletonContainerNode(container);
+			});
+			nodes.push(...containerNodes);
 		}
 
 		const guiNode = this._parseGuiNode(scene);
@@ -295,8 +309,25 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 	 * become unselected to have only the given node selected. All parents are expanded.
 	 * @param node defines the reference tot the node to select in the graph.
 	 */
-	public setSelectedNode(node: Node | Sound | IParticleSystem): void {
-		let source = isSound(node) ? node["_connectedTransformNode"] : isAnyParticleSystem(node) ? node.emitter : node;
+	public setSelectedNode(node: Node | Sound | IParticleSystem | Skeleton): void {
+		let source: Node | null = null;
+
+		if (isSound(node)) {
+			source = node["_connectedTransformNode"];
+		} else if (isAnyParticleSystem(node)) {
+			if (isNode(node.emitter)) {
+				source = node.emitter;
+			}
+		} else if (isSkeleton(node)) {
+			// For skeletons, we don't have a parent to expand, just select the skeleton
+			this._forEachNode(this.state.nodes, (n) => {
+				n.isSelected = n.nodeData === node;
+			});
+			this.setState({ nodes: this.state.nodes });
+			return;
+		} else {
+			source = node;
+		}
 
 		if (!source) {
 			return;
@@ -586,6 +617,66 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		return rootSoundNode;
 	}
 
+	private _parseSkeletonNode(skeleton: Skeleton): TreeNodeInfo | null {
+		if (!skeleton.name.toLowerCase().includes(this.state.search.toLowerCase())) {
+			return null;
+		}
+
+		const info = {
+			id: skeleton.id,
+			nodeData: skeleton,
+			isSelected: false,
+			childNodes: [],
+			hasCaret: false,
+			icon: this._getSkeletonIconComponent(skeleton),
+			label: this._getNodeLabelComponent(skeleton, skeleton.name),
+		} as TreeNodeInfo;
+
+		if (skeleton.bones.length > 0) {
+			info.childNodes = skeleton.bones.map((bone) => this._parseBoneNode(bone)).filter((b) => b !== null) as TreeNodeInfo[];
+			info.hasCaret = true;
+		}
+
+		this._forEachNode(this.state.nodes, (n) => {
+			if (n.id === info.id) {
+				info.isSelected = n.isSelected;
+				info.isExpanded = n.isExpanded;
+			}
+		});
+
+		return info;
+	}
+
+	private _parseBoneNode(bone: any): TreeNodeInfo | null {
+		if (!bone.name.toLowerCase().includes(this.state.search.toLowerCase())) {
+			return null;
+		}
+
+		const info = {
+			id: bone.id,
+			nodeData: bone,
+			isSelected: false,
+			childNodes: [],
+			hasCaret: false,
+			icon: this._getBoneIconComponent(bone),
+			label: this._getNodeLabelComponent(bone, bone.name),
+		} as TreeNodeInfo;
+
+		if (bone.children && bone.children.length > 0) {
+			info.childNodes = bone.children.map((childBone: any) => this._parseBoneNode(childBone)).filter((b) => b !== null) as TreeNodeInfo[];
+			info.hasCaret = true;
+		}
+
+		this._forEachNode(this.state.nodes, (n) => {
+			if (n.id === info.id) {
+				info.isSelected = n.isSelected;
+				info.isExpanded = n.isExpanded;
+			}
+		});
+
+		return info;
+	}
+
 	private _getSoundNode(sound: Sound): TreeNodeInfo {
 		const info = {
 			nodeData: sound,
@@ -674,6 +765,38 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		return rootGuiNode;
 	}
 
+	private _parseSkeletonContainerNode(container: Node): TreeNodeInfo {
+		const info = {
+			id: container.id,
+			nodeData: container,
+			isSelected: false,
+			childNodes: [],
+			hasCaret: false,
+			icon: this._getIcon(container),
+			label: this._getNodeLabelComponent(container, container.name),
+		} as TreeNodeInfo;
+
+		if (container.metadata?.type === SKELETON_CONTAINER_TYPE && container.metadata?.skeleton) {
+			const skeletonNode = this._parseSkeletonNode(container.metadata.skeleton);
+			if (skeletonNode) {
+				info.childNodes!.push(skeletonNode);
+			}
+		}
+
+		if (info.childNodes && info.childNodes.length > 0) {
+			info.hasCaret = true;
+		}
+
+		this._forEachNode(this.state.nodes, (n) => {
+			if (n.id === info.id) {
+				info.isSelected = n.isSelected;
+				info.isExpanded = n.isExpanded;
+			}
+		});
+
+		return info;
+	}
+
 	private _parseSceneNode(node: Node, noChildren?: boolean): TreeNodeInfo | null {
 		if ((isMesh(node) && (node._masterMesh || !isNodeVisibleInGraph(node))) || isCollisionMesh(node) || isCollisionInstancedMesh(node)) {
 			return null;
@@ -745,6 +868,13 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 						info.childNodes?.push(this._getParticleSystemNode(particleSystem));
 					}
 				});
+
+				if (node.skeleton) {
+					const skeletonNode = this._parseSkeletonNode(node.skeleton);
+					if (skeletonNode) {
+						info.childNodes?.push(skeletonNode);
+					}
+				}
 			}
 
 			if (info.childNodes?.length) {
@@ -818,6 +948,14 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		);
 	}
 
+	private _getSkeletonIconComponent(skeleton: Skeleton): ReactNode {
+		return <div className="cursor-pointer opacity-100">{this._getIcon(skeleton)}</div>;
+	}
+
+	private _getBoneIconComponent(bone: any): ReactNode {
+		return <div className="cursor-pointer opacity-100">{this._getIcon(bone)}</div>;
+	}
+
 	private _getIcon(object: any): ReactNode {
 		if (isTransformNode(object)) {
 			return <HiOutlineCubeTransparent className="w-4 h-4" />;
@@ -853,6 +991,14 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 
 		if (isGPUParticleSystem(object)) {
 			return <GiSparkles className="w-4 h-4" />;
+		}
+
+		if (isSkeleton(object)) {
+			return <GiSkeletonInside className="w-4 h-4" />;
+		}
+
+		if (isBone(object)) {
+			return <PiBoneLight className="w-4 h-4" />;
 		}
 
 		return <MdOutlineQuestionMark className="w-4 h-4" />;
