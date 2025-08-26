@@ -1,15 +1,15 @@
-import { Node, Light, AbstractMesh, Scene } from "babylonjs";
-
+import { Scene, Node, AbstractMesh, Light, Debug } from "babylonjs";
+import { isAbstractMesh, isInstancedMesh, isCollisionInstancedMesh, isTransformNode, isLight, isCamera, isNode, isMesh } from "../../../tools/guards/nodes";
+import { isSceneLinkNode } from "../../../tools/guards/scene";
 import { isSound } from "../../../tools/guards/sound";
 import { registerUndoRedo } from "../../../tools/undoredo";
-import { isSceneLinkNode } from "../../../tools/guards/scene";
 import { updateAllLights } from "../../../tools/light/shadows";
 import { isParticleSystem } from "../../../tools/guards/particles";
 import { isAdvancedDynamicTexture } from "../../../tools/guards/texture";
 import { getLinkedAnimationGroupsFor } from "../../../tools/animation/group";
-import { isNode, isMesh, isAbstractMesh, isInstancedMesh, isCollisionInstancedMesh, isTransformNode, isLight, isCamera } from "../../../tools/guards/nodes";
 
 import { Editor } from "../../main";
+import { SKELETON_CONTAINER_TYPE } from "../assets-browser/items/skeleton-item";
 
 type _RemoveNodeData = {
 	node: Node;
@@ -147,6 +147,24 @@ export function removeNodes(editor: Editor) {
 function restoreNodeData(data: _RemoveNodeData, scene: Scene) {
 	const node = data.node;
 
+	if (isTransformNode(node) && node.metadata?.type === SKELETON_CONTAINER_TYPE) {
+		const skeleton = node.metadata.skeleton;
+		const viewer = node.metadata.viewer;
+
+		if (skeleton) {
+			scene.addSkeleton(skeleton);
+		}
+
+		if (viewer && skeleton) {
+			const newViewer = new Debug.SkeletonViewer(skeleton, null, scene, false, 1, {
+				displayMode: Debug.SkeletonViewer.DISPLAY_SPHERE_AND_SPURS,
+			});
+			newViewer.isEnabled = true;
+
+			node.metadata.viewer = newViewer;
+		}
+	}
+
 	if (isAbstractMesh(node)) {
 		if (isInstancedMesh(node) || isCollisionInstancedMesh(node)) {
 			node.sourceMesh.addInstance(node);
@@ -201,5 +219,18 @@ function removeNodeData(data: _RemoveNodeData, scene: Scene) {
 
 	if (isCamera(node)) {
 		scene.removeCamera(node);
+	}
+
+	if (isTransformNode(node) && node.metadata?.type === SKELETON_CONTAINER_TYPE) {
+		const skeleton = node.metadata.skeleton;
+		const viewer = node.metadata.viewer;
+
+		if (viewer) {
+			viewer.dispose();
+		}
+
+		if (skeleton) {
+			skeleton.dispose();
+		}
 	}
 }
