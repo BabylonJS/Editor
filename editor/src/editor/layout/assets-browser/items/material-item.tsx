@@ -14,7 +14,7 @@ import { showAlert, showPrompt } from "../../../../ui/dialog";
 import { ContextMenuItem } from "../../../../ui/shadcn/ui/context-menu";
 
 import { openMaterialViewer } from "../viewers/material-viewer";
-import { MaterialThumbnailRenderer } from "../renderers/material-thumbnail";
+import { MaterialThumbnailRenderer } from "../thumbnail/material-thumbnail";
 
 import { AssetsBrowserItem } from "./item";
 
