@@ -401,20 +401,50 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	 * @param camera the camera to activate the preview
 	 */
 	public setCameraPreviewActive(camera: Camera | null): void {
-		if (!camera) {
-			this.scene.activeCameras?.forEach((camera) => {
-				camera.viewport = new Viewport(0, 0, 1, 1);
-			});
-			this.scene.activeCameras = null;
-		} else {
-			this.scene.activeCameras = [this.camera, camera];
-
-			camera.viewport = new Viewport(0, 0, 0.5, 0.5);
-			this.camera.viewport = new Viewport(0, 0, 1, 1);
+		if (!this.scene) {
+			return;
 		}
 
+		// If no camera -> restore full viewport / clear multi-camera setup
+		if (!camera) {
+			if (this.scene.activeCameras) {
+				this.scene.activeCameras.forEach((c) => {
+					c.viewport = new Viewport(0, 0, 1, 1);
+				});
+				this.scene.activeCameras = null;
+			} else if (this.camera) {
+				this.camera.viewport = new Viewport(0, 0, 1, 1);
+			}
+
+			this.scene.activeCamera = this.camera;
+			this.scene.cameraToUseForPointers = this.camera;
+			this.camera.attachControl(true);
+
+			return;
+		}
+
+		// Activate multi-camera: editor/main camera + selected camera as PiP
+		try {
+			const border = 0.025;
+			const pipWidth = 0.25;
+			const pipHeight = 0.25;
+
+			const pipX = 1 - pipWidth - border;
+			const pipY = border;
+
+			this.scene.activeCameras = [this.camera, camera];
+
+			camera.viewport = new Viewport(pipX, pipY, pipWidth, pipHeight);
+			this.camera.viewport = new Viewport(0, 0, 1, 1);
+		} catch (e) {
+			console.error("Failed to activate camera preview", e);
+		}
+
+		// Keep interactions with the editor camera (main preview)
 		this.scene.activeCamera = this.camera;
 		this.scene.cameraToUseForPointers = this.camera;
+
+		this.camera.attachControl(true);
 	}
 
 	private _onGotIconsRef(ref: EditorPreviewIcons): void {
@@ -589,7 +619,11 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		this._meshUnderPointer = null;
 
 		if (event.button === 2) {
-			this.scene.activeCamera?.inputs.detachElement();
+			// Only detach inputs if we're not in camera preview mode
+			// In camera preview mode, we want to keep the main camera inputs active
+			if (!this.scene.activeCameras || this.scene.activeCameras.length <= 1) {
+				this.scene.activeCamera?.inputs.detachElement();
+			}
 			this._handleMouseUp(event);
 		}
 	}
@@ -618,7 +652,10 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 				mesh = sceneLink;
 			}
 
-			// this.setCameraPreviewActive(null);
+			// Deactivate camera preview when clicking on non-camera nodes
+			if (!isCamera(mesh)) {
+				this.setCameraPreviewActive(null);
+			}
 
 			this.gizmo.setAttachedNode(mesh);
 			this.props.editor.layout.graph.setSelectedNode(mesh);

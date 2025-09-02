@@ -14,7 +14,7 @@ import { IoCheckmark, IoSparklesSharp } from "react-icons/io5";
 import { SiAdobeindesign, SiBabylondotjs } from "react-icons/si";
 
 import { AdvancedDynamicTexture } from "babylonjs-gui";
-import { BaseTexture, Node, Scene, Sound, Tools, IParticleSystem, ParticleSystem } from "babylonjs";
+import { BaseTexture, Node, Scene, Sound, Tools, IParticleSystem, ParticleSystem, Camera } from "babylonjs";
 
 import { Editor } from "../main";
 
@@ -455,6 +455,13 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 
 		if (isNode(node.nodeData)) {
 			this.props.editor.layout.preview.gizmo.setAttachedNode(node.nodeData);
+		}
+
+		// Show PiP preview when selecting a camera, otherwise clear it
+		if (isCamera(node.nodeData)) {
+			this.props.editor.layout.preview.setCameraPreviewActive(node.nodeData as Camera);
+		} else {
+			this.props.editor.layout.preview.setCameraPreviewActive(null);
 		}
 
 		if (ev.ctrlKey || ev.metaKey) {

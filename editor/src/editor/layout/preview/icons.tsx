@@ -3,7 +3,7 @@ import { Component, ReactNode } from "react";
 import { HiSpeakerWave } from "react-icons/hi2";
 import { FaCamera, FaLightbulb } from "react-icons/fa";
 
-import { Mesh, Node, Scene, Vector2, Sound, Vector3 } from "babylonjs";
+import { Mesh, Node, Scene, Vector2, Sound, Vector3, Camera } from "babylonjs";
 
 import { Editor } from "../../main";
 
@@ -55,9 +55,11 @@ export class EditorPreviewIcons extends Component<IEditorPreviewIconsProps, IEdi
 							}
 						}}
 						onClick={() => {
-							// if (isCamera(button.node)) {
-							//     this.props.editor.layout.preview.setCameraPreviewActive(button.node);
-							// }
+							if (isCamera(button.node)) {
+								this.props.editor.layout.preview.setCameraPreviewActive(button.node as Camera);
+							} else {
+								this.props.editor.layout.preview.setCameraPreviewActive(null);
+							}
 
 							this.props.editor.layout.graph.setSelectedNode(button.node);
 							this.props.editor.layout.inspector.setEditedObject(button.node);
