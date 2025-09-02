@@ -54,7 +54,7 @@ import { isGPUParticleSystem } from "../../tools/guards/particles";
 import { isCubeTexture, isTexture } from "../../tools/guards/texture";
 import { updateIblShadowsRenderPipeline } from "../../tools/light/ibl";
 import { forceCompileAllSceneMaterials } from "../../tools/scene/materials";
-import { checkProjectCachedCompressedTextures } from "../../tools/ktx/check";
+import { checkProjectCachedCompressedTextures } from "../../tools/assets/ktx";
 import { configureSimultaneousLightsForMaterial } from "../../tools/mesh/material";
 import { parsePhysicsAggregate } from "../../tools/physics/serialization/aggregate";
 import { isAbstractMesh, isCollisionMesh, isEditorCamera, isMesh } from "../../tools/guards/nodes";

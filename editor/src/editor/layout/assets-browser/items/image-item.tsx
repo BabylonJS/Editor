@@ -58,16 +58,19 @@ export class AssetBrowserImageItem extends AssetsBrowserItem {
 		return <SpinnerUIComponent width="64px" />;
 	}
 
+	/**
+	 * @override
+	 */
 	public async componentDidMount(): Promise<void> {
-		super.componentDidMount();
-
+		await super.componentDidMount();
 		await this._updateThumbnail();
 		await this._updateAvailableSizes();
 	}
 
+	/**
+	 * @override
+	 */
 	public componentWillUnmount(): void {
-		super.componentWillUnmount?.();
-
 		if (this._thumbnailPath) {
 			URL.revokeObjectURL(this._thumbnailPath);
 		}

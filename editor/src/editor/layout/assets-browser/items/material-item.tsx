@@ -9,21 +9,43 @@ import { GiMaterialsScience } from "react-icons/gi";
 
 import { Tools } from "babylonjs";
 
-import { UniqueNumber } from "../../../../tools/tools";
-
+import { SpinnerUIComponent } from "../../../../ui/spinner";
 import { showAlert, showPrompt } from "../../../../ui/dialog";
 import { ContextMenuItem } from "../../../../ui/shadcn/ui/context-menu";
 
+import { UniqueNumber } from "../../../../tools/tools";
+
 import { openMaterialViewer } from "../viewers/material-viewer";
+
+import { computeOrGetThumbnail } from "../../../../tools/assets/thumbnail";
 
 import { AssetsBrowserItem } from "./item";
 
 export class AssetBrowserMaterialItem extends AssetsBrowserItem {
+	private _thumbnailError: boolean = false;
+	private _thumbnailBase64: string | null = null;
+
+	/**
+	 * @override
+	 */
+	public async componentDidMount(): Promise<void> {
+		await super.componentDidMount();
+		await this._computeThumbnail();
+	}
+
 	/**
 	 * @override
 	 */
 	protected getIcon(): ReactNode {
-		return <GiMaterialsScience size="64px" />;
+		if (this._thumbnailBase64) {
+			return <img alt="" src={this._thumbnailBase64} className="w-[120px] aspect-square object-contain ring-blue-500 ring-2 rounded-lg" />;
+		}
+
+		if (this._thumbnailError) {
+			return <GiMaterialsScience size="64px" />;
+		}
+
+		return <SpinnerUIComponent width="64px" />;
 	}
 
 	/**
@@ -43,6 +65,7 @@ export class AssetBrowserMaterialItem extends AssetsBrowserItem {
 	/**
 	 * Returns the context menu content for the current item.
 	 * To be overriden by the specialized items implementations.
+	 * @override
 	 */
 	protected getContextMenuContent(): ReactNode {
 		return (
@@ -52,6 +75,23 @@ export class AssetBrowserMaterialItem extends AssetsBrowserItem {
 				</ContextMenuItem>
 			</>
 		);
+	}
+
+	private async _computeThumbnail(): Promise<void> {
+		if (!(await pathExists(this.props.absolutePath))) {
+			return;
+		}
+
+		this._thumbnailBase64 = await computeOrGetThumbnail(this.props.editor, {
+			type: "material",
+			absolutePath: this.props.absolutePath,
+		});
+
+		if (!this._thumbnailBase64) {
+			this._thumbnailError = true;
+		}
+
+		this.forceUpdate();
 	}
 
 	private async _handleClone(): Promise<unknown> {

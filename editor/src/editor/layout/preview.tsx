@@ -49,9 +49,10 @@ import { registerUndoRedo } from "../../tools/undoredo";
 import { initializeHavok } from "../../tools/physics/init";
 import { isAnyParticleSystem } from "../../tools/guards/particles";
 import { onTextureAddedObservable } from "../../tools/observables";
+import { getCameraFocusPositionFor } from "../../tools/camera/focus";
 import { waitNextAnimationFrame, waitUntil } from "../../tools/tools";
 import { ITweenConfiguration, Tween } from "../../tools/animation/tween";
-import { checkProjectCachedCompressedTextures } from "../../tools/ktx/check";
+import { checkProjectCachedCompressedTextures } from "../../tools/assets/ktx";
 import { createSceneLink, getRootSceneLink } from "../../tools/scene/scene-link";
 import { isAbstractMesh, isCamera, isCollisionInstancedMesh, isCollisionMesh, isInstancedMesh, isLight, isMesh, isTransformNode } from "../../tools/guards/nodes";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../../ui/shadcn/ui/dropdown-menu";
@@ -279,13 +280,26 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
 		this.icons?.stop();
 
-		this.scene?.dispose();
-		this.engine?.dispose();
-
 		disposeSSRRenderingPipeline();
 		disposeMotionBlurPostProcess();
 		disposeSSAO2RenderingPipeline();
 		disposeDefaultRenderingPipeline();
+
+		this.scene?.dispose();
+
+		/**
+		 * engine.dispose() generates an error:
+		 * node_modules/babylonjs/babylon.js:1 Uncaught (in promise) InvalidAccessError: Failed to execute 'disconnect' on 'AudioNode': the given destination is not connected.
+		 * This error is located in _WebAudioMainBus class in the dispose method. It is not reproduced on the Babylon.js playground. This error
+		 * appeared after the migration to electron 35.7.5. A workaround consists on try/catching the dispose method.
+		 * It appears to work this way and the VRAM is successfully released during the second .dispose() call in the catch.
+		 * TODO: investigate in future bump of electron versions if the problem persists.
+		 */
+		try {
+			this.engine?.dispose();
+		} catch (e) {
+			this.engine?.dispose();
+		}
 
 		this.scene = null!;
 		this.engine = null!;
@@ -347,20 +361,11 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 			const bb = selectedNode.getBoundingInfo();
 			const center = bb.boundingSphere.centerWorld;
 
-			const fov = camera.fov;
-			const aspect = camera.getEngine().getAspectRatio(camera);
-			const sizeVec = bb.boundingBox.maximumWorld.subtract(bb.boundingBox.minimumWorld);
-
-			const verticalSize = sizeVec.y;
-			const horizontalSize = sizeVec.x;
-
-			const verticalDistance = verticalSize / 2 / Math.tan(fov / 2);
-			const horizontalDistance = horizontalSize / 2 / Math.tan((fov * aspect) / 2);
-			const idealDistance = Math.max(verticalDistance, horizontalDistance) * 2;
-
-			const directionToMesh = camera.globalPosition.subtract(center).normalize();
-
-			position = center.add(directionToMesh.scale(idealDistance));
+			position = getCameraFocusPositionFor(center, camera, {
+				distance: 2,
+				minimum: bb.boundingBox.minimumWorld,
+				maximum: bb.boundingBox.maximumWorld,
+			});
 			target = bb.boundingBox.centerWorld;
 		} else if (isLight(selectedNode) || isTransformNode(selectedNode)) {
 			target = selectedNode.getAbsolutePosition();

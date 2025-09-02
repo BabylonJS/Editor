@@ -1,4 +1,4 @@
-import { writeJSON } from "fs-extra";
+import { pathExists, writeJSON } from "fs-extra";
 
 import { ReactNode } from "react";
 
@@ -12,11 +12,24 @@ import { ContextMenuItem } from "../../../../ui/shadcn/ui/context-menu";
 
 import { loadImportedSceneFile } from "../../preview/import/import";
 
+import { computeOrGetThumbnail } from "../../../../tools/assets/thumbnail";
+
 import { AssetsBrowserItem } from "./item";
 
 const convertingFiles: string[] = [];
 
 export class AssetBrowserMeshItem extends AssetsBrowserItem {
+	private _thumbnailError: boolean = false;
+	private _thumbnailBase64: string | null = null;
+
+	/**
+	 * @override
+	 */
+	public async componentDidMount(): Promise<void> {
+		await super.componentDidMount();
+		await this._computeThumbnail();
+	}
+
 	/**
 	 * @override
 	 */
@@ -39,7 +52,32 @@ export class AssetBrowserMeshItem extends AssetsBrowserItem {
 			return <SpinnerUIComponent width="64px" />;
 		}
 
-		return <BiSolidCube size="64px" />;
+		if (this._thumbnailBase64) {
+			return <img alt="" src={this._thumbnailBase64} className="w-[120px] aspect-square object-contain ring-blue-500 ring-2 rounded-lg" />;
+		}
+
+		if (this._thumbnailError) {
+			return <BiSolidCube size="64px" />;
+		}
+
+		return <SpinnerUIComponent width="64px" />;
+	}
+
+	private async _computeThumbnail(): Promise<void> {
+		if (!(await pathExists(this.props.absolutePath))) {
+			return;
+		}
+
+		this._thumbnailBase64 = await computeOrGetThumbnail(this.props.editor, {
+			type: "mesh",
+			absolutePath: this.props.absolutePath,
+		});
+
+		if (!this._thumbnailBase64) {
+			this._thumbnailError = true;
+		}
+
+		this.forceUpdate();
 	}
 
 	private async _handleConvertSceneFileToBabylon(): Promise<void> {

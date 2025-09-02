@@ -1,3 +1,5 @@
+import { Tools } from "babylonjs";
+
 /**
  * Wait for a given amount of time expressed in milliseconds.
  * @param timeMs The time to wait in milliseconds.
@@ -92,4 +94,20 @@ export function sortAlphabetically(array: any[], property?: string): any[] {
  */
 export function getCurrentCallStack(): string {
 	return new Error().stack ?? "";
+}
+
+export function readBlobAsDataUrl(blob: Blob): Promise<string> {
+	return new Promise<string>((resolve, reject) => {
+		Tools.ReadFileAsDataURL(
+			blob,
+			(dataUrl) => {
+				if (dataUrl) {
+					resolve(dataUrl);
+				} else {
+					reject("Failed to read blob as data URL");
+				}
+			},
+			undefined!
+		);
+	});
 }

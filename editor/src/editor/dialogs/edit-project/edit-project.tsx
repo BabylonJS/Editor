@@ -14,7 +14,7 @@ import {
 
 import { Editor } from "../../main";
 
-import { checkProjectCachedCompressedTextures } from "../../../tools/ktx/check";
+import { checkProjectCachedCompressedTextures } from "../../../tools/assets/ktx";
 
 import { saveProject } from "../../../project/save/save";
 import { projectConfiguration } from "../../../project/configuration";
