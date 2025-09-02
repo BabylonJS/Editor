@@ -29,7 +29,7 @@ export * from "./tools/node-pty";
 export * from "./tools/undoredo";
 export * from "./tools/observables";
 
-export * from "./tools/ktx/check";
+export * from "./tools/assets/ktx";
 
 export * from "./tools/maths/scalar";
 export * from "./tools/maths/projection";

@@ -35,7 +35,8 @@ import { renameScene } from "../../tools/scene/rename";
 import { openMultipleFilesDialog } from "../../tools/dialog";
 import { onSelectedAssetChanged } from "../../tools/observables";
 import { findAvailableFilename, normalizedGlob } from "../../tools/fs";
-import { checkProjectCachedCompressedTextures, processingCompressedTextures } from "../../tools/ktx/check";
+import { loadSavedThumbnailsCache } from "../../tools/assets/thumbnail";
+import { checkProjectCachedCompressedTextures, processingCompressedTextures } from "../../tools/assets/ktx";
 
 import { getMaterialCommands } from "../dialogs/command-palette/material";
 import { ICommandPaletteType } from "../dialogs/command-palette/command-palette";
@@ -194,8 +195,12 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 	public componentDidMount(): void {
 		onProjectConfigurationChangedObservable.add((c) => {
 			if (c.path) {
+				const rootUrl = dirname(c.path);
+
 				this._refreshFilesTreeNodes(c.path);
-				this.setBrowsePath(dirname(c.path));
+				this.setBrowsePath(rootUrl);
+
+				loadSavedThumbnailsCache();
 			}
 		});
 
@@ -599,7 +604,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 								</DropdownMenuItem>
 								<DropdownMenuSeparator />
 								<DropdownMenuItem
-									disabled={processingCompressedTextures}
+									disabled={processingCompressedTextures || !this.props.editor.state.compressedTexturesEnabledInPreview}
 									className="flex gap-2 items-center"
 									onClick={() => checkProjectCachedCompressedTextures(this.props.editor)}
 								>

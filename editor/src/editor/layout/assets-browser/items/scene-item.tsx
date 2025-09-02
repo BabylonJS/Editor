@@ -38,7 +38,7 @@ export class AssetBrowserSceneItem extends AssetsBrowserItem {
 	 */
 	protected getIcon(): ReactNode {
 		return this._previewPath ? (
-			<img alt="" src={this._previewPath} className="w-[120px] aspect-square object-contain ring-purple-500 ring-2 rounded-lg" />
+			<img alt="" src={this._previewPath} className="w-[120px] aspect-square object-cover ring-purple-500 ring-2 rounded-lg" />
 		) : (
 			<SiBabylondotjs size="64px" />
 		);
