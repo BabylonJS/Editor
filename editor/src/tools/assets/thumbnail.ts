@@ -1,5 +1,5 @@
 import { dirname, join } from "path/posix";
-import { pathExists, readJSON, writeJSON } from "fs-extra";
+import { pathExists, readJSON, stat, writeJSON } from "fs-extra";
 
 import { Tools } from "babylonjs";
 
@@ -14,10 +14,15 @@ import { executeSimpleWorker, loadWorker } from "../worker";
 let previewCount = 0;
 let requestedPreviewCount = 0;
 
+export interface IThumbnailCache {
+	thumbnail: string;
+	lastModified: string;
+}
+
 /**
  * Defines the dictionary of thumbnail image encoded as base64 for the assets such as materials and meshes.
  */
-export const thumbnailCache: Record<string, string> = {};
+export const thumbnailCache: Record<string, IThumbnailCache> = {};
 
 export type ThumbnailType = "mesh" | "material";
 
@@ -47,21 +52,49 @@ export async function computeOrGetThumbnail(editor: Editor, options: IComputeThu
 
 	const cacheKey = options.absolutePath.replace(rootUrl, "");
 
-	const result =
-		thumbnailCache[cacheKey] ??
-		(await getAssetThumbnailBase64(options.absolutePath, {
-			rootUrl,
-			type: options.type,
-			serializedEnvironmentTexture: editor.layout.preview.scene.environmentTexture?.serialize(),
-		}));
+	const fileStat = await stat(options.absolutePath);
+	const lastModified = fileStat.mtimeMs.toString();
 
-	if (!result) {
-		return null;
+	if (thumbnailCache[cacheKey]?.lastModified === lastModified) {
+		return thumbnailCache[cacheKey].thumbnail;
 	}
 
-	thumbnailCache[cacheKey] = result;
+	++requestedPreviewCount;
 
-	return result;
+	if (previewCount > 0) {
+		await waitUntil(() => previewCount === 0);
+	}
+
+	++previewCount;
+
+	const thumbnail = await getAssetThumbnailBase64(options.absolutePath, {
+		rootUrl,
+		type: options.type,
+		serializedEnvironmentTexture: editor.layout.preview.scene.environmentTexture?.serialize(),
+	});
+
+	--requestedPreviewCount;
+
+	if (thumbnail) {
+		thumbnailCache[cacheKey] = {
+			thumbnail,
+			lastModified,
+		};
+	}
+
+	// Save cache?
+	if (requestedPreviewCount === 0) {
+		try {
+			await saveAssetsThumbnailCache();
+		} catch (e) {
+			editor.layout.console.error("Failed to save assets thumbnail cache");
+			editor.layout.console.error(e.message?.toString());
+		}
+	}
+
+	--previewCount;
+
+	return thumbnail;
 }
 
 let worker: Worker | null = null;
@@ -108,14 +141,6 @@ export interface IThumbnailOptions {
  * @returns the base64 encoded thumbnail image
  */
 export async function getAssetThumbnailBase64(absolutePath: string, options: IThumbnailOptions) {
-	++requestedPreviewCount;
-
-	if (previewCount > 0) {
-		await waitUntil(() => previewCount === 0);
-	}
-
-	++previewCount;
-
 	const result = await new Promise<{ preview: string }>(async (resolve) => {
 		const timeoutId = setTimeout(() => {
 			terminateWorker();
@@ -134,15 +159,6 @@ export async function getAssetThumbnailBase64(absolutePath: string, options: ITh
 			resolve(r);
 		}
 	});
-
-	--requestedPreviewCount;
-
-	// Save cache?
-	if (requestedPreviewCount === 0) {
-		await saveAssetsThumbnailCache();
-	}
-
-	--previewCount;
 
 	return result.preview;
 }
