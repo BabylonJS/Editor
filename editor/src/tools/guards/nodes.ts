@@ -13,6 +13,7 @@ import {
 	ArcRotateCamera,
 	SpotLight,
 	HemisphericLight,
+	Skeleton,
 } from "babylonjs";
 
 import { EditorCamera } from "../../editor/nodes/camera";
@@ -179,6 +180,14 @@ export function isHemisphericLight(object: any): object is HemisphericLight {
 }
 
 /**
+ * Returns wether or not the given object is a Skeleton.
+ * @param object defines the reference to the object to test its class name.
+ */
+export function isSkeleton(object: any): object is Skeleton {
+	return object.getClassName?.() === "Skeleton";
+}
+
+/**
  * Returns wether or not the given object is a Light.
  * @param object defines the reference to the object to test its class name.
  */
@@ -200,5 +209,5 @@ export function isLight(object: any): object is Light {
  * @param object defines the reference to the object to test its class name.
  */
 export function isNode(object: any): object is Node {
-	return isAbstractMesh(object) || isTransformNode(object) || isLight(object) || isCamera(object) || isSceneLinkNode(object);
+	return isAbstractMesh(object) || isTransformNode(object) || isLight(object) || isCamera(object) || isSceneLinkNode(object) || isSkeleton(object);
 }

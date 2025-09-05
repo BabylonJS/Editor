@@ -15,7 +15,7 @@ import { toast } from "sonner";
 import { VscJson } from "react-icons/vsc";
 import { ImFinder } from "react-icons/im";
 import { BiSolidFileCss } from "react-icons/bi";
-import { GiCeilingLight } from "react-icons/gi";
+import { GiCeilingLight, GiSkeletonInside } from "react-icons/gi";
 import { GrStatusUnknown } from "react-icons/gr";
 import { BsFiletypeMp3, BsFiletypeWav } from "react-icons/bs";
 import { AiFillFileMarkdown, AiOutlineClose } from "react-icons/ai";
@@ -454,6 +454,10 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 
 			case ".bjseditor":
 				return <SiBabylondotjs size="64px" />;
+
+			case ".bvh":
+			case ".BVH":
+				return <GiSkeletonInside size="64px" />;
 
 			case ".ies":
 				return <GiCeilingLight size="64px" />;

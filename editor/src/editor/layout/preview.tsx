@@ -1104,6 +1104,8 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
 			const extension = extname(absolutePath).toLowerCase();
 			switch (extension) {
+				case ".bvh":
+				case ".BVH":
 				case ".x":
 				case ".b3d":
 				case ".dae":
