@@ -61,6 +61,9 @@ export async function loadProject(editor: Editor, path: string): Promise<void> {
 		if (code !== 0) {
 			toast.warning(`Package manager "${packageManager}" is not available on your system. Dependencies will not be updated.`);
 		} else {
+			editor.layout.preview.setState({
+				playEnabled: true,
+			});
 			toast.success("Dependencies successfully updated");
 		}
 

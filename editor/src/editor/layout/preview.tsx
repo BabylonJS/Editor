@@ -100,35 +100,23 @@ export interface IEditorPreviewState {
 	 */
 	informationMessage: ReactNode;
 
-	/**
-	 * Defines wether or not picking is enabled in the preview.
-	 */
-	pickingEnabled: boolean;
-	/**
-	 * Defines the type of gizmo that is currently active.
-	 * If "none", no gizmo is active.
-	 */
-	activeGizmo: "position" | "rotation" | "scaling" | "none";
-	/**
-	 * Defines wether or not the preview is focused in the editor.
-	 */
 	isFocused: boolean;
-
-	/**
-	 * Defines the reference to the object that was right-clicked.
-	 */
 	rightClickedObject?: any;
+	pickingEnabled: boolean;
+
+	showStatsValues: boolean;
+	statsValues?: StatsValuesType;
+
+	playEnabled: boolean;
+	playSceneLoadingProgress: number;
+
+	activeGizmo: "position" | "rotation" | "scaling" | "none";
 
 	/**
 	 * Defines the fixed dimensions of the preview canvas.
 	 * "fit" means the canvas will fit the entire panel container.
 	 */
 	fixedDimensions: "720p" | "1080p" | "4k" | "fit";
-
-	showStatsValues: boolean;
-	statsValues?: StatsValuesType;
-
-	playSceneLoadingProgress: number;
 }
 
 export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreviewState> {
@@ -174,14 +162,15 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		super(props);
 
 		this.state = {
+			isFocused: false,
 			activeGizmo: "none",
 			pickingEnabled: true,
-			isFocused: false,
 			informationMessage: "",
 			fixedDimensions: "fit",
 
 			showStatsValues: false,
 
+			playEnabled: false,
 			playSceneLoadingProgress: 0,
 		};
 
@@ -740,7 +729,12 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 					{!this.play?.state.playing && this._getEditToolbar()}
 
 					<div className="flex gap-2 items-center h-10">
-						<EditorPreviewPlayComponent editor={this.props.editor} ref={(r) => (this.play = r!)} onRestart={() => this.play.restart()} />
+						<EditorPreviewPlayComponent
+							ref={(r) => (this.play = r!)}
+							editor={this.props.editor}
+							enabled={this.state.playEnabled}
+							onRestart={() => this.play.restart()}
+						/>
 					</div>
 				</div>
 			</div>
