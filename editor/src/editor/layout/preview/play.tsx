@@ -31,6 +31,10 @@ export interface IEditorPreviewPlayComponentProps {
 	 * The editor reference.
 	 */
 	editor: Editor;
+	/**
+	 * Defines wether or not the play button is enabled in the preview.
+	 */
+	enabled: boolean;
 
 	/**
 	 * Called on the user wants to restart the game / application (aka. refresh the page of the game / application).
@@ -96,7 +100,7 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 						<Button
 							minimal
 							active={this.state.playing}
-							disabled={this.state.preparingPlay}
+							disabled={this.state.preparingPlay || !this.props.enabled}
 							icon={
 								this.state.preparingPlay ? (
 									<Grid width={24} height={24} color="gray" />
@@ -109,12 +113,14 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 							onClick={() => this.playOrStopApplication()}
 							className={`
                                 w-10 h-10 bg-muted/50 !rounded-lg
-                                ${this.state.preparingPlay ? "bg-muted/50" : this.state.playing ? "!bg-red-500/35" : "hover:!bg-green-500/35"}
+                                ${this.state.preparingPlay || !this.props.enabled ? `bg-muted/50 ${!this.props.enabled && "opacity-35"}` : this.state.playing ? "!bg-red-500/35" : "hover:!bg-green-500/35"}
                                 transition-all duration-300 ease-in-out
                             `}
 						/>
 					</TooltipTrigger>
-					<TooltipContent className="flex gap-2 items-center">Play the game / application</TooltipContent>
+					<TooltipContent className="flex gap-2 items-center">
+						{this.props.enabled ? "Play the game / application" : "Can't play the game now. Dependencies are still installing..."}
+					</TooltipContent>
 				</Tooltip>
 			</TooltipProvider>
 		);
