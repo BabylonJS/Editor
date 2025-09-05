@@ -45,6 +45,10 @@ export class EditorMeshPhysicsInspector extends Component<IEditorMeshPhysicsInsp
 				if (aggregate) {
 					this.props.mesh.physicsBody = null;
 					this.props.mesh.physicsAggregate = null;
+
+					if (this.props.mesh.metadata.physicsAggregate) {
+						delete this.props.mesh.metadata.physicsAggregate;
+					}
 				} else {
 					const aggregate = new PhysicsAggregate(this.props.mesh, getPhysicsShapeForMesh(this.props.mesh), {
 						mass: 1,
