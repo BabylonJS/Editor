@@ -1,5 +1,5 @@
 import { platform } from "os";
-import { BrowserWindow, Menu } from "electron";
+import { BrowserWindow, Menu, shell } from "electron";
 
 import { cameraCommandItems, lightCommandItems, meshCommandItems } from "./dialogs/command-palette/shared-commands";
 
@@ -195,6 +195,33 @@ export function setupEditorMenu(): void {
 						label: "Close",
 						accelerator: "Command+W",
 						click: () => BrowserWindow.getFocusedWindow()?.webContents.send("editor:close-window"),
+					},
+				],
+			},
+			{
+				label: "Help",
+				submenu: [
+					{
+						label: "Editor Documentation...",
+						click: () => shell.openExternal("https://editor.babylonjs.com/documentation"),
+					},
+					{
+						label: "Babylon.js Documentation...",
+						click: () => shell.openExternal("https://doc.babylonjs.com"),
+					},
+					{
+						type: "separator",
+					},
+					{
+						label: "Babylon.js Forum...",
+						click: () => shell.openExternal("https://forum.babylonjs.com"),
+					},
+					{
+						type: "separator",
+					},
+					{
+						label: "Report an Issue...",
+						click: () => shell.openExternal("https://forum.babylonjs.com/c/bugs"),
 					},
 				],
 			},
