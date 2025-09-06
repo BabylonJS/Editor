@@ -1,5 +1,5 @@
-import { ipcRenderer } from "electron";
 import { dirname, join } from "path/posix";
+import { ipcRenderer, shell } from "electron";
 
 import { Component, ReactNode } from "react";
 
@@ -190,6 +190,19 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 							<MenubarItem onClick={() => this.props.editor.close()}>
 								Close <MenubarShortcut>CTRL+W</MenubarShortcut>
 							</MenubarItem>
+						</MenubarContent>
+					</MenubarMenu>
+
+					{/* Help */}
+					<MenubarMenu>
+						<MenubarTrigger>Help</MenubarTrigger>
+						<MenubarContent className="border-black/50">
+							<MenubarItem onClick={() => shell.openExternal("https://editor.babylonjs.com/documentation")}>Editor Documentation...</MenubarItem>
+							<MenubarItem onClick={() => shell.openExternal("https://doc.babylonjs.com")}>Babylon.js Documentation...</MenubarItem>
+							<MenubarSeparator />
+							<MenubarItem onClick={() => shell.openExternal("https://forum.babylonjs.com")}>Babylon.js Forum...</MenubarItem>
+							<MenubarSeparator />
+							<MenubarItem onClick={() => shell.openExternal("https://forum.babylonjs.com/c/bugs")}>Report an Issue...</MenubarItem>
 						</MenubarContent>
 					</MenubarMenu>
 				</Menubar>
