@@ -8,11 +8,13 @@ import { Grid } from "react-loader-spinner";
 import { FaQuestion } from "react-icons/fa";
 import { AiOutlineClose } from "react-icons/ai";
 import { IoPlay, IoStop } from "react-icons/io5";
+import { BiDotsHorizontalRounded } from "react-icons/bi";
 
 import { toast } from "sonner";
 
 import { Button } from "../ui/shadcn/ui/button";
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "../ui/shadcn/ui/context-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/shadcn/ui/dropdown-menu";
 
 import { isDarwin } from "../tools/os";
 import { ProjectType } from "../tools/project";
@@ -152,24 +154,55 @@ export function DashboardProjectItem(props: IDashboardProjectItemProps) {
 						<div className="flex justify-between items-center gap-2">
 							<div className="text-lg flex-1 font-semibold text-ellipsis overflow-hidden whitespace-nowrap">{basename(dirname(props.project.absolutePath))}</div>
 
-							<Button
-								variant="ghost"
-								onClick={() => (playingAddress ? handleStopProject() : handleLaunchProject())}
-								className={`
+							<div className="flex items-center gap-2">
+								<DropdownMenu>
+									<DropdownMenuTrigger>
+										<Button
+											variant="ghost"
+											className={`
+												w-10 h-10 aspect-square p-0
+												opacity-0 group-hover:opacity-100
+												transition-all duration-300 ease-in-out
+											`}
+										>
+											<BiDotsHorizontalRounded className="w-6 h-6" strokeWidth={1} />
+										</Button>
+									</DropdownMenuTrigger>
+									<DropdownMenuContent>
+										<DropdownMenuItem onClick={() => ipcRenderer.send("dashboard:open-project", props.project.absolutePath)}>Open</DropdownMenuItem>
+										<DropdownMenuItem className="flex items-center gap-2" onClick={() => ipcRenderer.send("editor:show-item", props.project.absolutePath)}>
+											{`Show in ${isDarwin() ? "Finder" : "Explorer"}`}
+										</DropdownMenuItem>
+										<DropdownMenuSeparator />
+										<DropdownMenuItem className="flex items-center gap-2" onClick={() => handleOpenInVisualStudioCode()}>
+											Open in Visual Studio Code
+										</DropdownMenuItem>
+										<DropdownMenuSeparator />
+										<DropdownMenuItem className="flex items-center gap-2 !text-red-400" onClick={() => props.onRemove()}>
+											<AiOutlineClose className="w-5 h-5" fill="rgb(248, 113, 113)" /> Remove
+										</DropdownMenuItem>
+									</DropdownMenuContent>
+								</DropdownMenu>
+
+								<Button
+									variant="ghost"
+									onClick={() => (playingAddress ? handleStopProject() : handleLaunchProject())}
+									className={`
                                     w-10 h-10 aspect-square p-0
                                     ${launching || playingAddress ? "" : "opacity-0 group-hover:opacity-100"}
                                     ${launching ? "bg-muted/50" : playingAddress ? "!bg-red-500/35" : "hover:!bg-green-500/35"}
                                     transition-all duration-300 ease-in-out
                                 `}
-							>
-								{launching ? (
-									<Grid width={24} height={24} color="#ffffff" />
-								) : playingAddress ? (
-									<IoStop className="w-6 h-6" strokeWidth={1} color="red" />
-								) : (
-									<IoPlay className="w-6 h-6" strokeWidth={1} color="green" />
-								)}
-							</Button>
+								>
+									{launching ? (
+										<Grid width={24} height={24} color="#ffffff" />
+									) : playingAddress ? (
+										<IoStop className="w-6 h-6" strokeWidth={1} color="red" />
+									) : (
+										<IoPlay className="w-6 h-6" strokeWidth={1} color="green" />
+									)}
+								</Button>
+							</div>
 						</div>
 						<div className="text-muted-foreground text-xs">
 							Created {new Date(props.project.createdAt).toLocaleString("en-US", { day: "2-digit", month: "long", year: "numeric" })}
