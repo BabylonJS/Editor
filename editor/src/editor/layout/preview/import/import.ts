@@ -1,6 +1,7 @@
+import md5 from "md5";
 import { isAbsolute } from "path";
 import { join, dirname, basename } from "path/posix";
-import { readFile, readJSON, writeFile } from "fs-extra";
+import { pathExists, readFile, readJSON, writeFile } from "fs-extra";
 
 import axios from "axios";
 import { toast } from "sonner";
@@ -212,8 +213,21 @@ export async function configureEmbeddedTexture(texture: Texture, absolutePath: s
 		buffer = Buffer.from(texture._buffer as Uint8Array);
 	}
 
-	const filename = join(dirname(absolutePath), `editor-generated_${texture.name}_${Tools.RandomId()}.${extension}`);
-	await writeFile(filename, buffer);
+	let filename = texture.url;
+	filename = filename?.split(":")[1] ?? filename; // in case prefiexed by data:
+
+	if (filename && !(await pathExists(filename))) {
+		const hash = md5(buffer);
+		filename = join(dirname(absolutePath), `editor-generated_${hash}.${extension}`);
+
+		if (!(await pathExists(filename))) {
+			await writeFile(filename, buffer);
+		}
+	}
+
+	if (!filename) {
+		return;
+	}
 
 	const relativePath = filename.replace(join(dirname(projectConfiguration.path!), "/"), "");
 	texture.name = relativePath;
