@@ -1,4 +1,3 @@
-import md5 from "md5";
 import { isAbsolute } from "path";
 import { join, dirname, basename } from "path/posix";
 import { pathExists, readFile, readJSON, writeFile } from "fs-extra";
@@ -11,6 +10,7 @@ import { CubeTexture, ISceneLoaderAsyncResult, Material, Node, Scene, SceneLoade
 import { UniqueNumber } from "../../../../tools/tools";
 import { isMesh } from "../../../../tools/guards/nodes";
 import { isTexture } from "../../../../tools/guards/texture";
+import { executeSimpleWorker } from "../../../../tools/worker";
 import { isMultiMaterial } from "../../../../tools/guards/material";
 import { configureSimultaneousLightsForMaterial } from "../../../../tools/mesh/material";
 import { onNodesAddedObservable, onTextureAddedObservable } from "../../../../tools/observables";
@@ -217,7 +217,7 @@ export async function configureEmbeddedTexture(texture: Texture, absolutePath: s
 	filename = filename?.split(":")[1] ?? filename; // in case prefiexed by data:
 
 	if (filename && !(await pathExists(filename))) {
-		const hash = md5(buffer);
+		const hash = await executeSimpleWorker("workers/md5.js", buffer);
 		filename = join(dirname(absolutePath), `editor-generated_${hash}.${extension}`);
 
 		if (!(await pathExists(filename))) {
