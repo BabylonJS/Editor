@@ -5,7 +5,7 @@ import { FaCopy, FaLink } from "react-icons/fa6";
 import { IoAddSharp, IoCloseOutline } from "react-icons/io5";
 import { AiOutlinePlus } from "react-icons/ai";
 
-import { SkyMaterial, GridMaterial, NormalMaterial } from "babylonjs-materials";
+import { SkyMaterial, GridMaterial, NormalMaterial, WaterMaterial } from "babylonjs-materials";
 import { AbstractMesh, InstancedMesh, Material, Mesh, MorphTarget, MultiMaterial, Node, Observer, PBRMaterial, StandardMaterial, NodeMaterial } from "babylonjs";
 
 import { CollisionMesh } from "../../../nodes/collision";
@@ -40,9 +40,10 @@ import { IEditorInspectorImplementationProps } from "../inspector";
 import { EditorPBRMaterialInspector } from "../material/pbr";
 import { EditorSkyMaterialInspector } from "../material/sky";
 import { EditorGridMaterialInspector } from "../material/grid";
-import { EditorNormalMaterialInspector } from "../material/normal";
 import { EditorNodeMaterialInspector } from "../material/node";
 import { EditorMultiMaterialInspector } from "../material/multi";
+import { EditorWaterMaterialInspector } from "../material/water";
+import { EditorNormalMaterialInspector } from "../material/normal";
 import { EditorStandardMaterialInspector } from "../material/standard";
 
 import { MeshDecalInspector } from "./decal";
@@ -310,6 +311,9 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 
 			case "NormalMaterial":
 				return <EditorNormalMaterialInspector mesh={this.props.object} material={this.props.object.material as NormalMaterial} />;
+
+			case "WaterMaterial":
+				return <EditorWaterMaterialInspector mesh={this.props.object} material={this.props.object.material as WaterMaterial} />;
 		}
 	}
 

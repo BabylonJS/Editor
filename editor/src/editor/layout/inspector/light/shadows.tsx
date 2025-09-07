@@ -221,6 +221,9 @@ export class EditorLightShadowsInspector extends Component<IEditorLightShadowsIn
 						]}
 					/>
 				)}
+
+				<EditorInspectorSwitchField object={generator} property="transparencyShadow" label="Enable Transparency Shadow" />
+				<EditorInspectorSwitchField object={generator} property="enableSoftTransparentShadow" label="Enable Soft Transparent Shadow" />
 			</>
 		);
 	}
@@ -282,9 +285,6 @@ export class EditorLightShadowsInspector extends Component<IEditorLightShadowsIn
 						onChange={() => updateLightShadowMapRefreshRate(this.props.light)}
 					/>
 				)}
-
-				<EditorInspectorSwitchField object={generator} property="transparencyShadow" label="Enable Transparency Shadow" />
-				<EditorInspectorSwitchField object={generator} property="enableSoftTransparentShadow" label="Enable Soft Transparent Shadow" />
 			</EditorInspectorSectionField>
 		);
 	}
@@ -350,9 +350,6 @@ export class EditorLightShadowsInspector extends Component<IEditorLightShadowsIn
 					label="Penumbra Darkness"
 					onChange={() => updateLightShadowMapRefreshRate(this.props.light)}
 				/>
-
-				<EditorInspectorSwitchField object={generator} property="transparencyShadow" label="Enable Transparency Shadow" />
-				<EditorInspectorSwitchField object={generator} property="enableSoftTransparentShadow" label="Enable Soft Transparent Shadow" />
 			</>
 		);
 	}

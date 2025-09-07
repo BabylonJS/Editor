@@ -2,8 +2,8 @@ import { extname } from "path/posix";
 
 import { Component, DragEvent, ReactNode } from "react";
 
-import { SkyMaterial, GridMaterial, NormalMaterial } from "babylonjs-materials";
 import { Material, MultiMaterial, PBRMaterial, StandardMaterial } from "babylonjs";
+import { SkyMaterial, GridMaterial, NormalMaterial, WaterMaterial } from "babylonjs-materials";
 
 import { Table, TableBody, TableCaption, TableCell, TableRow } from "../../../../ui/shadcn/ui/table";
 
@@ -14,9 +14,10 @@ import { registerUndoRedo } from "../../../../tools/undoredo";
 import { EditorInspectorSectionField } from "../fields/section";
 
 import { EditorSkyMaterialInspector } from "./sky";
-import { EditorGridMaterialInspector } from "./grid";
-import { EditorNormalMaterialInspector } from "./normal";
 import { EditorPBRMaterialInspector } from "./pbr";
+import { EditorGridMaterialInspector } from "./grid";
+import { EditorWaterMaterialInspector } from "./water";
+import { EditorNormalMaterialInspector } from "./normal";
 import { EditorStandardMaterialInspector } from "./standard";
 
 export interface IEditorPBRMaterialInspectorProps {
@@ -116,14 +117,21 @@ export class EditorMultiMaterialInspector extends Component<IEditorPBRMaterialIn
 		switch (this.state.material.getClassName()) {
 			case "PBRMaterial":
 				return <EditorPBRMaterialInspector key={this.state.material.id} material={this.state.material as PBRMaterial} />;
+
 			case "StandardMaterial":
 				return <EditorStandardMaterialInspector key={this.state.material.id} material={this.state.material as StandardMaterial} />;
+
 			case "SkyMaterial":
 				return <EditorSkyMaterialInspector key={this.state.material.id} material={this.state.material as SkyMaterial} />;
+
 			case "GridMaterial":
 				return <EditorGridMaterialInspector key={this.state.material.id} material={this.state.material as GridMaterial} />;
+
 			case "NormalMaterial":
 				return <EditorNormalMaterialInspector key={this.state.material.id} material={this.state.material as NormalMaterial} />;
+
+			case "WaterMaterial":
+				return <EditorWaterMaterialInspector key={this.state.material.id} material={this.state.material as WaterMaterial} />;
 		}
 	}
 }

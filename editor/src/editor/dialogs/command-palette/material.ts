@@ -1,6 +1,6 @@
 import { Editor } from "../../main";
 
-import { addPBRMaterial, addStandardMaterial, addNodeMaterial, addSkyMaterial, addGridMaterial, addNormalMaterial } from "../../../project/add/material";
+import { addPBRMaterial, addStandardMaterial, addNodeMaterial, addSkyMaterial, addGridMaterial, addNormalMaterial, addWaterMaterial } from "../../../project/add/material";
 
 import { ICommandPaletteType } from "./command-palette";
 
@@ -41,6 +41,12 @@ export function getMaterialCommands(editor?: Editor): ICommandPaletteType[] {
 			label: "Add a new normal material to the scene",
 			key: "add-normal-material",
 			action: () => editor && addNormalMaterial(editor.layout.preview.scene),
+		},
+		{
+			text: "Water Material",
+			label: "Add a new water material to the scene",
+			key: "add-water-material",
+			action: () => editor && addWaterMaterial(editor.layout.preview.scene),
 		},
 	];
 }
