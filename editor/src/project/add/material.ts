@@ -1,5 +1,5 @@
-import { SkyMaterial, GridMaterial, NormalMaterial } from "babylonjs-materials";
 import { Scene, Tools, PBRMaterial, StandardMaterial, NodeMaterial } from "babylonjs";
+import { SkyMaterial, GridMaterial, NormalMaterial, WaterMaterial } from "babylonjs-materials";
 
 import { UniqueNumber } from "../../tools/tools";
 
@@ -48,6 +48,16 @@ export function addNormalMaterial(scene: Scene) {
 	const material = new NormalMaterial("New Normal Material", scene);
 	material.id = Tools.RandomId();
 	material.uniqueId = UniqueNumber.Get();
+
+	return material;
+}
+
+export function addWaterMaterial(scene: Scene) {
+	const material = new WaterMaterial("New Water Material", scene);
+	material.id = Tools.RandomId();
+	material.uniqueId = UniqueNumber.Get();
+	material.waveCount = 1;
+	material.waveHeight = 0;
 
 	return material;
 }
