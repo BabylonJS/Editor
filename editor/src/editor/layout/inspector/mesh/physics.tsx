@@ -1,3 +1,5 @@
+import { shell } from "electron";
+
 import { Component, ReactNode } from "react";
 
 import { Divider } from "@blueprintjs/core";
@@ -24,7 +26,21 @@ export class EditorMeshPhysicsInspector extends Component<IEditorMeshPhysicsInsp
 		};
 
 		return (
-			<EditorInspectorSectionField title="Physics">
+			<EditorInspectorSectionField
+				title="Physics"
+				tooltip={
+					<div>
+						Configure physics using Havok. Can be used also for{" "}
+						<b
+							className="underline underline-offset-2"
+							onClick={() => shell.openExternal("https://doc.babylonjs.com/features/featuresDeepDive/physics/characterController")}
+						>
+							advanced collisions
+						</b>
+						.
+					</div>
+				}
+			>
 				<EditorInspectorSwitchField object={o} property="hasPhysicsBody" label="Enabled" noUndoRedo onChange={() => this._handleHasPhysicsAggregateChange()} />
 
 				{this.props.mesh.physicsAggregate && this._getPhysicsInspector(this.props.mesh.physicsAggregate)}
