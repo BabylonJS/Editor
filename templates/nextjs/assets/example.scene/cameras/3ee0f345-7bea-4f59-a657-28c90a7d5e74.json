@@ -12,7 +12,6 @@
     ],
     "checkCollisions": false,
     "applyGravity": false,
-    "ignoreParentScaling": false,
     "updateUpVectorFromRotation": false,
     "rotation": [
         0.13716683763979895,
@@ -43,7 +42,7 @@
     "id": "3ee0f345-7bea-4f59-a657-28c90a7d5e74",
     "state": "",
     "metadata": {},
-    "uniqueId": 18,
+    "uniqueId": 20,
     "type": "UniversalCamera",
     "inputsmgr": {
         "FreeCameraKeyboardMoveInput": {

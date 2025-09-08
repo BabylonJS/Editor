@@ -5,7 +5,7 @@
     "mapSize": 4096,
     "forceBackFacesOnly": false,
     "darkness": 0,
-    "transparencyShadow": false,
+    "transparencyShadow": true,
     "frustumEdgeFalloff": 0,
     "bias": 0.002680000000000003,
     "normalBias": 0,
