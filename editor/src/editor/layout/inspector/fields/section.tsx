@@ -1,7 +1,10 @@
 import { Grid } from "react-loader-spinner";
+import { MdOutlineInfo } from "react-icons/md";
 import { PropsWithChildren, ReactNode, useState } from "react";
 
 import { PlusIcon, MinusIcon } from "@heroicons/react/20/solid";
+
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../../../ui/shadcn/ui/tooltip";
 
 export interface IEditorInspectorSectionFieldProps extends PropsWithChildren {
 	/**
@@ -12,6 +15,10 @@ export interface IEditorInspectorSectionFieldProps extends PropsWithChildren {
 	 * Defines the label of the section drawn on the right side.
 	 */
 	label?: ReactNode;
+	/**
+	 * Defines the optional tooltip drawn on the right-side of the section's header.
+	 */
+	tooltip?: ReactNode;
 
 	/**
 	 * Defines wether or not the section is processing something. If true,
@@ -37,7 +44,20 @@ export function EditorInspectorSectionField(props: IEditorInspectorSectionFieldP
 				<div className="flex justify-between w-full">
 					<div className="mt-0.5">{props.title}</div>
 
-					<div className="mt-0.5 text-white/50 pr-5">{props.label}</div>
+					<div className="flex items-center gap-2 pr-2">
+						<div className="mt-0.5 text-white/50">{props.label}</div>
+
+						{props.tooltip && (
+							<TooltipProvider delayDuration={0}>
+								<Tooltip>
+									<TooltipTrigger>
+										<MdOutlineInfo size={24} />
+									</TooltipTrigger>
+									<TooltipContent className="bg-muted text-muted-foreground text-sm p-2">{props.tooltip}</TooltipContent>
+								</Tooltip>
+							</TooltipProvider>
+						)}
+					</div>
 				</div>
 			</div>
 

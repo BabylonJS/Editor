@@ -129,6 +129,7 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 				</EditorInspectorSectionField>
 
 				<EditorMeshCollisionInspector {...this.props} />
+				<EditorMeshPhysicsInspector mesh={this.props.object} />
 
 				{this.props.editor.layout.preview.scene.lights.length > 0 && (
 					<EditorInspectorSectionField title="Shadows">
@@ -152,8 +153,6 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 						{this._getLODsComponent()}
 					</>
 				)}
-
-				<EditorMeshPhysicsInspector mesh={this.props.object} />
 
 				{this._getMaterialComponent()}
 				{this._getSkeletonComponent()}
