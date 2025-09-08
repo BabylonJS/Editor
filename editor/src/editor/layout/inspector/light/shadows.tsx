@@ -107,6 +107,14 @@ export class EditorLightShadowsInspector extends Component<IEditorLightShadowsIn
 			generator.autoCalcDepthBoundsRefreshRate = 60;
 		}
 
+		if (!isPointLight(this.props.light)) {
+			generator.usePercentageCloserFiltering = true;
+			generator.filteringQuality = ShadowGenerator.QUALITY_HIGH;
+		}
+
+		generator.transparencyShadow = true;
+		generator.enableSoftTransparentShadow = true;
+
 		if (renderList) {
 			generator.getShadowMap()?.renderList?.push(...renderList);
 		} else {
@@ -274,6 +282,9 @@ export class EditorLightShadowsInspector extends Component<IEditorLightShadowsIn
 						onChange={() => updateLightShadowMapRefreshRate(this.props.light)}
 					/>
 				)}
+
+				<EditorInspectorSwitchField object={generator} property="transparencyShadow" label="Enable Transparency Shadow" />
+				<EditorInspectorSwitchField object={generator} property="enableSoftTransparentShadow" label="Enable Soft Transparent Shadow" />
 			</EditorInspectorSectionField>
 		);
 	}
@@ -339,6 +350,9 @@ export class EditorLightShadowsInspector extends Component<IEditorLightShadowsIn
 					label="Penumbra Darkness"
 					onChange={() => updateLightShadowMapRefreshRate(this.props.light)}
 				/>
+
+				<EditorInspectorSwitchField object={generator} property="transparencyShadow" label="Enable Transparency Shadow" />
+				<EditorInspectorSwitchField object={generator} property="enableSoftTransparentShadow" label="Enable Soft Transparent Shadow" />
 			</>
 		);
 	}

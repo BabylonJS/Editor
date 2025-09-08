@@ -115,6 +115,7 @@
             "cameraId": "3ee0f345-7bea-4f59-a657-28c90a7d5e74"
         }
     ],
+    "metadata": {},
     "editorCamera": {
         "tags": null,
         "ellipsoid": [
@@ -129,7 +130,6 @@
         ],
         "checkCollisions": false,
         "applyGravity": false,
-        "ignoreParentScaling": false,
         "updateUpVectorFromRotation": false,
         "rotation": [
             0.1371668477935948,
@@ -159,7 +159,7 @@
         "name": "Editor preview",
         "id": "3cc9ef80-8c60-43e0-bcc4-1b55ff36010d",
         "state": "",
-        "uniqueId": 3,
+        "uniqueId": 5,
         "type": "EditorCamera",
         "inputsmgr": {
             "FreeCameraKeyboardMoveInput": {
@@ -204,6 +204,9 @@
                 "wheelPrecisionX": 3,
                 "wheelPrecisionY": 3,
                 "wheelPrecisionZ": 3
+            },
+            "EditorFreeCameraPanInput": {
+                "tags": null
             }
         },
         "animations": [],
