@@ -86,6 +86,7 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
 											<ContextMenuItem onClick={() => this.props.editor.layout.graph.copySelectedNodes()}>
 												Copy <ContextMenuShortcut>{platform() === "darwin" ? "⌘+C" : "CTRL+C"}</ContextMenuShortcut>
 											</ContextMenuItem>
+
 											{isNode(this.props.object) && (
 												<ContextMenuItem onClick={() => this.props.editor.layout.graph.pasteSelectedNodes(this.props.object)}>
 													Paste <ContextMenuShortcut>{platform() === "darwin" ? "⌘+V" : "CTRL+V"}</ContextMenuShortcut>
@@ -98,14 +99,11 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
 
 									<ContextMenuSeparator />
 
-									<ContextMenuItem onClick={() => this._cloneNode(this.props.object)}>Clone</ContextMenuItem>
-
 									{isNode(this.props.object) && !isScene(this.props.object) && (
 										<ContextMenuItem onClick={() => exportNode(this.props.editor, this.props.object)}>Export Node (.babylon)</ContextMenuItem>
 									)}
 
 									<ContextMenuSeparator />
->>>>>>> 616af57c (Add menu item to export .babylon)
 								</>
 							)}
 
