@@ -15,7 +15,6 @@
     "editor.codeActionsOnSave": {
         "source.fixAll.eslint": "always"
     },
-    "files.eol": "\r\n",
     "files.insertFinalNewline": true,
     "javascript.format.semicolons": "insert",
     "typescript.format.semicolons": "insert",
