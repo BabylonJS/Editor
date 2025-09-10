@@ -5,6 +5,7 @@ import { writeJSON } from "fs-extra";
 import { toast } from "sonner";
 
 import { Editor } from "../../main";
+import filenamify from "filenamify/filenamify";
 
 const JSON_CONFIG = {
 	spaces: 4,
@@ -50,7 +51,7 @@ export async function exportNode(editor: Editor, node: Node): Promise<void> {
 	const filePath = saveSingleFileDialog({
 		title: "Export Node",
 		filters: [{ name: "Babylon Scene Files", extensions: ["babylon"] }],
-		defaultPath: `${node.name}.babylon`,
+		defaultPath: `${filenamify(node.name)}.babylon`,
 	});
 
 	if (!filePath) {
