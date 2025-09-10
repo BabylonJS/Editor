@@ -1132,15 +1132,15 @@
     "@babel/helper-validator-identifier" "^7.22.20"
     to-fast-properties "^2.0.0"
 
-"@babylonjs/core@8.26.0":
-  version "8.26.0"
-  resolved "https://registry.yarnpkg.com/@babylonjs/core/-/core-8.26.0.tgz#61300736af06f11eec8235cd6f0d8268d6695622"
-  integrity sha512-3FeiI4I280lre57yqwbBkTUWfussXz4MT89tOotMstRSDkjC8M/LmoJFjp9Vj0hdWK40E1FxZ56G8YR8vdqdVw==
+"@babylonjs/core@8.26.1":
+  version "8.26.1"
+  resolved "https://registry.yarnpkg.com/@babylonjs/core/-/core-8.26.1.tgz#ee22f277ac7020f5d56050e61f1d4f4523c9a617"
+  integrity sha512-8LkZHmcyjAy+xaVt9pkS3djt0EOymjmrORB8W4fuRPxK1urUfP9zC4QioOeS4Q5e+yD366hSDfc8aNllo/qy6g==
 
-"@babylonjs/gui@8.26.0":
-  version "8.26.0"
-  resolved "https://registry.yarnpkg.com/@babylonjs/gui/-/gui-8.26.0.tgz#0ef8db5b72122717c64896e4b7894595b1f7ced8"
-  integrity sha512-8ECTTlYLEDBkiCEiD//dwRlcRWCpRtGCeSGvY3lJiYrvLMyVyI6rlJhzsKC+uK3g5RQzoZZPB3m0qwiJYQFqGA==
+"@babylonjs/gui@8.26.1":
+  version "8.26.1"
+  resolved "https://registry.yarnpkg.com/@babylonjs/gui/-/gui-8.26.1.tgz#205c8bdcadae4b52c9bd705095ff05e783d9aa3b"
+  integrity sha512-08HalDohkWaDEz+VhpXR++8TyVqDXe25TSSHD/EM21wqZ2Njb07IU9kE5sku5ap4t5M1pyIWrlqtchMcnmj+ig==
 
 "@babylonjs/havok@1.3.10":
   version "1.3.10"
@@ -1149,10 +1149,10 @@
   dependencies:
     "@types/emscripten" "^1.39.6"
 
-"@babylonjs/materials@8.26.0":
-  version "8.26.0"
-  resolved "https://registry.yarnpkg.com/@babylonjs/materials/-/materials-8.26.0.tgz#2afbde9cbde4e50d5af2df16bf1a068341fddc80"
-  integrity sha512-WS5wlSl6HZ5Q/3rjY4r1X5v+DGCQX0KkHZK8dFkO3LxRgbP0MnXZ8H+kcFqz9IP5sWcRUfkHRdRql/NDTkzFJw==
+"@babylonjs/materials@8.26.1":
+  version "8.26.1"
+  resolved "https://registry.yarnpkg.com/@babylonjs/materials/-/materials-8.26.1.tgz#f1e62eda545418d2c96ea55de013ba13b153eb9b"
+  integrity sha512-Yumu6Wt6dgyOaWsl2tgH4RqLrvzvN0EfxjDQ5NBB+Q9yAQ0V34AX7nRx2lscjrYj/o/psV6/WgQ9QLpq1f7xWQ==
 
 "@bcoe/v8-coverage@^0.2.3":
   version "0.2.3"
@@ -4727,12 +4727,12 @@ babylonjs-editor-tools@latest:
   integrity sha512-AREjL0WjtjyOvud0EMG/II3zH73KlSif/u0HV965tPWmUZHrxr+g/4iX6eU0mIYlIjOuepfRAopaF04IYJOaHA==
 
 "babylonjs-editor-tools@link:tools":
-  version "5.1.2"
+  version "5.1.3"
 
 "babylonjs-editor@link:editor":
-  version "5.1.1"
+  version "5.1.2"
   dependencies:
-    "@babylonjs/core" "8.26.0"
+    "@babylonjs/core" "8.26.1"
     "@babylonjs/havok" "1.3.10"
     "@blueprintjs/core" "^5.10.0"
     "@blueprintjs/select" "^5.1.2"
@@ -4763,15 +4763,15 @@ babylonjs-editor-tools@latest:
     "@xterm/xterm" "^5.5.0"
     assimpjs "0.0.10"
     axios "^1.8.2"
-    babylonjs "8.26.0"
+    babylonjs "8.26.1"
     babylonjs-editor-tools "link:tools"
-    babylonjs-gui "8.26.0"
-    babylonjs-gui-editor "8.26.0"
-    babylonjs-loaders "8.26.0"
-    babylonjs-materials "8.26.0"
-    babylonjs-node-editor "8.26.0"
-    babylonjs-post-process "8.26.0"
-    babylonjs-procedural-textures "8.26.0"
+    babylonjs-gui "8.26.1"
+    babylonjs-gui-editor "8.26.1"
+    babylonjs-loaders "8.26.1"
+    babylonjs-materials "8.26.1"
+    babylonjs-node-editor "8.26.1"
+    babylonjs-post-process "8.26.1"
+    babylonjs-procedural-textures "8.26.1"
     cannon "0.6.2"
     chokidar "^4.0.3"
     class-variance-authority "^0.7.0"
@@ -4806,66 +4806,66 @@ babylonjs-editor-tools@latest:
     usehooks-ts "^3.1.0"
     webm-muxer "^5.0.2"
 
-babylonjs-gltf2interface@^8.26.0:
-  version "8.26.0"
-  resolved "https://registry.yarnpkg.com/babylonjs-gltf2interface/-/babylonjs-gltf2interface-8.26.0.tgz#b02950ec6f7f58eb7a32f8ab57d5cb1ec55c5407"
-  integrity sha512-D6Q80Ozg796eQfO4wlHUo2CADSKTt+Xvp3x+DcLVLM3miCMhEfg8rgIGEqRFvMz9So0vQyH4WX/+XmzuRASo4Q==
+babylonjs-gltf2interface@^8.26.1:
+  version "8.26.1"
+  resolved "https://registry.yarnpkg.com/babylonjs-gltf2interface/-/babylonjs-gltf2interface-8.26.1.tgz#dec9b2a40f6d81c94bae5f96bfac9bb0b00ffd7a"
+  integrity sha512-8dCMryeLTbJwgrNbQam7BT6xPMF8ZeqV12IzGNzfoqmRX0wSc4xzGzzOGPneiaRA1HfFEiiKgL3W0qimSP2Jig==
 
-babylonjs-gui-editor@8.26.0:
-  version "8.26.0"
-  resolved "https://registry.yarnpkg.com/babylonjs-gui-editor/-/babylonjs-gui-editor-8.26.0.tgz#9f91ac064883b32297060bd0516d560b7597716b"
-  integrity sha512-F+wUaBnUvCy54oBERKvWYpZ0t4XBGXTyYUT49410L5ZaTRS9a2PAc+6xgM8zn+prFX6HhevsZ62LIFlFH1CyxA==
+babylonjs-gui-editor@8.26.1:
+  version "8.26.1"
+  resolved "https://registry.yarnpkg.com/babylonjs-gui-editor/-/babylonjs-gui-editor-8.26.1.tgz#3fa77874beca4a9d10c0cd3bb5fb88fe6a23c475"
+  integrity sha512-y9gIMW8y0YRORjNtH1tzyl08hZoWia7COdYVl5dYs0BORNtDEh4Iz7XqlpYM6d/c/i/RDRYnEd9z+wS66my0qA==
   dependencies:
-    babylonjs "^8.26.0"
-    babylonjs-gui "^8.26.0"
+    babylonjs "^8.26.1"
+    babylonjs-gui "^8.26.1"
 
-babylonjs-gui@8.26.0, babylonjs-gui@^8.26.0:
-  version "8.26.0"
-  resolved "https://registry.yarnpkg.com/babylonjs-gui/-/babylonjs-gui-8.26.0.tgz#28d7ec64a50b12fc23cb6c44c888fb6b7464cde4"
-  integrity sha512-M+mWRcVJj6TczFwAxIZKzJHjzY1EZBmR/twaL+il7maEcpGUyrmIZBoE6A2+dfC1oIjNCldQbZJkN62HjcZVbA==
+babylonjs-gui@8.26.1, babylonjs-gui@^8.26.1:
+  version "8.26.1"
+  resolved "https://registry.yarnpkg.com/babylonjs-gui/-/babylonjs-gui-8.26.1.tgz#46abe6f378fdf5a17a624219124fc9d465e2c06a"
+  integrity sha512-0AdFxhcgkFMrktpPc61WGjqgh6NJfaVJmqzHo7jQcCTTN3czXzxYKhy4sBColn3KYWzBrbr63LZ2//BAPysLJg==
   dependencies:
-    babylonjs "^8.26.0"
+    babylonjs "^8.26.1"
 
-babylonjs-loaders@8.26.0:
-  version "8.26.0"
-  resolved "https://registry.yarnpkg.com/babylonjs-loaders/-/babylonjs-loaders-8.26.0.tgz#b768d91fa238d8e738d29c867f22d8081929fa77"
-  integrity sha512-FqlAjjff9Mh1Fpd0u6psk/URHB6odtgCNQhZ65QDyYsXpcxduzbnevOfeIvg/PhK8E89BbPjILy8pR00KjAkiw==
+babylonjs-loaders@8.26.1:
+  version "8.26.1"
+  resolved "https://registry.yarnpkg.com/babylonjs-loaders/-/babylonjs-loaders-8.26.1.tgz#8b9df26863e8a3bdafe45e65f204bd3e34137154"
+  integrity sha512-O5ynMKzzbw1l9iDbHuda2F60E8fuwYLOJV2GUhkZjvm/3ZxvuPXjJBURBi27PPnH2QBRnwQ6MdEx38XvLMQzUw==
   dependencies:
-    babylonjs "^8.26.0"
-    babylonjs-gltf2interface "^8.26.0"
+    babylonjs "^8.26.1"
+    babylonjs-gltf2interface "^8.26.1"
 
-babylonjs-materials@8.26.0:
-  version "8.26.0"
-  resolved "https://registry.yarnpkg.com/babylonjs-materials/-/babylonjs-materials-8.26.0.tgz#ab85c6629a77328badbc767c825f79cb4b464e88"
-  integrity sha512-U03H/hBejFo43dA78cUv+jEGDhiRUOFYMePdCUjOb+6ftjXa4MCg39ar5ob14l0Ccp8IPyK8ZgD1lx6TIRNUxA==
+babylonjs-materials@8.26.1:
+  version "8.26.1"
+  resolved "https://registry.yarnpkg.com/babylonjs-materials/-/babylonjs-materials-8.26.1.tgz#46f5ba6ba8a72051d484402e8071dee0a858e97b"
+  integrity sha512-bek/HUiz/ApEByU5UQSnptxpINuSKBtH3o77DuGqaQPUVrGyeV2HLn51KLHz/yWPyrugVnnObxRso4ReZoOuug==
   dependencies:
-    babylonjs "^8.26.0"
+    babylonjs "^8.26.1"
 
-babylonjs-node-editor@8.26.0:
-  version "8.26.0"
-  resolved "https://registry.yarnpkg.com/babylonjs-node-editor/-/babylonjs-node-editor-8.26.0.tgz#83c2b557d4a490b9d52a87acddae513232ae9169"
-  integrity sha512-2FvpnbJlTFrQFXkd3bvDBuZewy6vwPS8Vg807Z9pBHtmAqe4iK7+5UOMItFVKsFDAfBmYGd7v4fZpDWuMlCOsg==
+babylonjs-node-editor@8.26.1:
+  version "8.26.1"
+  resolved "https://registry.yarnpkg.com/babylonjs-node-editor/-/babylonjs-node-editor-8.26.1.tgz#594c90e8f7661f1ca9a20648ee26490d9d9f1e6b"
+  integrity sha512-m+x7oQrTWkniu9h/4Eql4Pn70br/OVuBMDgE+RBOqghHlaiqYEOlQLj1em1Y2/dK3eUbHdkSgHMBdfxb/bFHdA==
   dependencies:
-    babylonjs "^8.26.0"
+    babylonjs "^8.26.1"
 
-babylonjs-post-process@8.26.0:
-  version "8.26.0"
-  resolved "https://registry.yarnpkg.com/babylonjs-post-process/-/babylonjs-post-process-8.26.0.tgz#3ac67c3db8a355a8054ec41566e446fa6b5dedaa"
-  integrity sha512-fA+k3nv7XxM/IrnMAFnXsGswbfYN94JyY1ebQkmdICklkWItpuLQ+5BTtBdH6muM7Uf1D1Mi2dbOOhIH/Eubcw==
+babylonjs-post-process@8.26.1:
+  version "8.26.1"
+  resolved "https://registry.yarnpkg.com/babylonjs-post-process/-/babylonjs-post-process-8.26.1.tgz#a418f2c6f5a629288388ca8c69da4c90c9b594e7"
+  integrity sha512-sVVWeAWoLFbn5sXNR/xF/yoKVd91MvANEOJhqRDHZYsEwbxOq8TmZAhjmVRHBDsz040P+BwKdQA930/XzKxBvA==
   dependencies:
-    babylonjs "^8.26.0"
+    babylonjs "^8.26.1"
 
-babylonjs-procedural-textures@8.26.0:
-  version "8.26.0"
-  resolved "https://registry.yarnpkg.com/babylonjs-procedural-textures/-/babylonjs-procedural-textures-8.26.0.tgz#fd8cb67520bda5bb068de6b2e183a476b3071e8b"
-  integrity sha512-RWSkaZj2AgTJV7w2YerdyEAVTEhwHZ2lheTdhcnYEt6xMOIcIv7kcodFiBGi0WYvnVgQnNHABRY5t/rRu4Quaw==
+babylonjs-procedural-textures@8.26.1:
+  version "8.26.1"
+  resolved "https://registry.yarnpkg.com/babylonjs-procedural-textures/-/babylonjs-procedural-textures-8.26.1.tgz#7c2d9cb207d2542ef679bf5e8c52147626689c67"
+  integrity sha512-y0yLhxwtQlRx4iOeFxOn0H+IBgUwu73yanz8/Erfaz1EiWCzbfwJIDLQAVGffh0nYHrx6j6teUXe0luI2OWZMQ==
   dependencies:
-    babylonjs "^8.26.0"
+    babylonjs "^8.26.1"
 
-babylonjs@8.26.0, babylonjs@^8.26.0:
-  version "8.26.0"
-  resolved "https://registry.yarnpkg.com/babylonjs/-/babylonjs-8.26.0.tgz#20174b748460f56d73923a73cd7a3eea93c0c79c"
-  integrity sha512-p1S/pYtNmvGmfcpvDQpjyiJ36pPN/ifyD0C7BuX/6naJqNuLkbO1hWsbzMljuWmtOTJ4Pf8h4reE56KyPHtddw==
+babylonjs@8.26.1, babylonjs@^8.26.1:
+  version "8.26.1"
+  resolved "https://registry.yarnpkg.com/babylonjs/-/babylonjs-8.26.1.tgz#ae51a5766e05d8ee5929a8615a0521fab82cf3b6"
+  integrity sha512-h0ed1qMwa2cyyLVn2bHrtQvpaVcGXuLrJz8/XStL1NwXH8j17rp91tA1RBr84faOoTanGVRhaX/h7kYSy9E2og==
 
 balanced-match@^1.0.0:
   version "1.0.2"
@@ -11315,6 +11315,20 @@ vite@^6.0.0:
   version "6.3.5"
   resolved "https://registry.yarnpkg.com/vite/-/vite-6.3.5.tgz#fec73879013c9c0128c8d284504c6d19410d12a3"
   integrity sha512-cZn6NDFE7wdTpINgs++ZJ4N49W2vRp8LCKrn3Ob1kYNtOo21vfDoaV5GzBfLU4MovSAB8uNRm4jgzVQZ+mBzPQ==
+  dependencies:
+    esbuild "^0.25.0"
+    fdir "^6.4.4"
+    picomatch "^4.0.2"
+    postcss "^8.5.3"
+    rollup "^4.34.9"
+    tinyglobby "^0.2.13"
+  optionalDependencies:
+    fsevents "~2.3.3"
+
+vite@^6.3.6:
+  version "6.3.6"
+  resolved "https://registry.yarnpkg.com/vite/-/vite-6.3.6.tgz#69a976b64930750d40219fbc68c5200874d315c1"
+  integrity sha512-0msEVHJEScQbhkbVTb/4iHZdJ6SXp/AvxL2sjwYQFfBqleHtnCqv1J3sa9zbWz/6kW1m9Tfzn92vW+kZ1WV6QA==
   dependencies:
     esbuild "^0.25.0"
     fdir "^6.4.4"
