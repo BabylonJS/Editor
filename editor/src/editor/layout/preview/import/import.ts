@@ -46,7 +46,7 @@ export async function tryConvertSceneFile(absolutePath: string, progress?: (perc
 	}
 }
 
-export async function loadImportedSceneFile(scene: Scene, absolutePath: string, fromCloudConverter?: boolean): Promise<ISceneLoaderAsyncResult | null> {
+export async function loadImportedSceneFile(scene: Scene, absolutePath: string): Promise<ISceneLoaderAsyncResult | null> {
 	if (!projectConfiguration.path) {
 		return null;
 	}
@@ -61,9 +61,10 @@ export async function loadImportedSceneFile(scene: Scene, absolutePath: string, 
 		return null;
 	}
 
-	if (fromCloudConverter) {
-		const root = result.meshes.find((m) => m.name === "__root__");
-		root?.scaling.scaleInPlace(100);
+	const root = result.meshes.find((m) => m.name === "__root__");
+	if (root) {
+		root.scaling.scaleInPlace(100);
+		root.name = basename(absolutePath);
 	}
 
 	result.meshes.forEach((mesh) => {
