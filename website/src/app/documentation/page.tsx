@@ -23,7 +23,7 @@ export default function DocumentationPage() {
 						<div>
 							Babylon.js Editor is a visual editor for Babylon.js. It allows you to create and edit scenes, materials, attach scripts and more.
 							<br />
-							The Babylon.js Editor is available on both <b>Windows</b> and <b>macOS</b> platforms.
+							The Babylon.js Editor is available on <b>Window</b>, <b>macOS</b>, and <b>Linux</b> platforms.
 						</div>
 
 						<div>
