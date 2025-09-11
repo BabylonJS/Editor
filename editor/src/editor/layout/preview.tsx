@@ -1030,7 +1030,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		}
 
 		this.setState({ informationMessage: `Importing scene "${basename(absolutePath)}"...` });
-		const result = await loadImportedSceneFile(this.scene, absolutePath, useCloudConverter);
+		const result = await loadImportedSceneFile(this.scene, absolutePath);
 		this.setState({ informationMessage: "" });
 
 		return result;
