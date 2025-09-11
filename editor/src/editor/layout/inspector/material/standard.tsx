@@ -24,10 +24,9 @@ export function EditorStandardMaterialInspector(props: IEditorStandardMaterialIn
 			<EditorInspectorSectionField title="Material" label={props.material.getClassName()}>
 				<EditorInspectorStringField label="Name" object={props.material} property="name" />
 				<EditorInspectorSwitchField label="Back Face Culling" object={props.material} property="backFaceCulling" />
+
 				<EditorInspectorNumberField label="Alpha" object={props.material} property="alpha" min={0} max={1} />
-
 				<EditorAlphaModeField object={props.material} />
-
 				<EditorTransparencyModeField object={props.material} />
 
 				<EditorMaterialInspectorUtilsComponent mesh={props.mesh} material={props.material} />

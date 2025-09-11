@@ -3,6 +3,7 @@ import { Mesh } from "babylonjs";
 import { Editor } from "../../../main";
 
 import { BoxMeshGeometryInspector } from "./geometry/box";
+import { PlaneMeshGeometryInspector } from "./geometry/plane";
 import { GroundMeshGeometryInspector } from "./geometry/ground";
 import { SphereMeshGeometryInspector } from "./geometry/sphere";
 
@@ -22,6 +23,10 @@ export function MeshGeometryInspector(props: IMeshGeometryInspectorProps) {
 
 	if (props.object.metadata?.type === "Ground") {
 		return <GroundMeshGeometryInspector {...props} />;
+	}
+
+	if (props.object.metadata?.type === "Plane") {
+		return <PlaneMeshGeometryInspector {...props} />;
 	}
 
 	return null;

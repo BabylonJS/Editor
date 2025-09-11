@@ -1,9 +1,11 @@
 import { ReactNode } from "react";
+
+import { Material } from "babylonjs";
+
 import { EditorInspectorListField } from "../../fields/list";
-import { Material, StandardMaterial, PBRMaterial } from "babylonjs";
 
 export interface IEditorTransparencyModeFieldProps {
-	object: StandardMaterial | PBRMaterial;
+	object: Material;
 	onChange?: () => void;
 }
 

@@ -3,16 +3,17 @@ import { Component, ReactNode } from "react";
 import { AbstractMesh } from "babylonjs";
 import { WaterMaterial } from "babylonjs-materials";
 
+import { Switch } from "../../../../ui/shadcn/ui/switch";
+
 import { EditorInspectorColorField } from "../fields/color";
 import { EditorInspectorStringField } from "../fields/string";
 import { EditorInspectorSwitchField } from "../fields/switch";
 import { EditorInspectorNumberField } from "../fields/number";
+import { EditorInspectorVectorField } from "../fields/vector";
 import { EditorInspectorSectionField } from "../fields/section";
 import { EditorInspectorTextureField } from "../fields/texture";
 
 import { EditorMaterialInspectorUtilsComponent } from "./components/utils";
-import { Switch } from "../../../../ui/shadcn/ui/switch";
-import { EditorInspectorVectorField } from "../fields/vector";
 
 export interface IEditorWaterMaterialInspectorProps {
 	mesh?: AbstractMesh;
