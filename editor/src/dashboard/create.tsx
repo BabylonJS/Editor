@@ -32,7 +32,7 @@ type PackageManagerCheckState = "processing" | "available" | "not-available";
 
 export function DashboardCreateProjectDialog(props: IDashboardCreateProjectDialogProps) {
 	const [destination, setDestination] = useState("");
-	const [packageManager, setPackageManager] = useState<EditorProjectPackageManager>("yarn");
+	const [packageManager, setPackageManager] = useState<EditorProjectPackageManager>("npm");
 	const [template, setTemplate] = useState<EditorProjectTemplate>("nextjs");
 	const [creating, setCreating] = useState(false);
 
