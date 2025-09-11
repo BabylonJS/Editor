@@ -1,6 +1,18 @@
 import { Editor } from "../../main";
 
-import { addPBRMaterial, addStandardMaterial, addNodeMaterial, addSkyMaterial, addGridMaterial, addNormalMaterial, addWaterMaterial } from "../../../project/add/material";
+import {
+	addPBRMaterial,
+	addStandardMaterial,
+	addNodeMaterial,
+	addSkyMaterial,
+	addGridMaterial,
+	addNormalMaterial,
+	addWaterMaterial,
+	addLavaMaterial,
+	addTriPlanarMaterial,
+	addCellMaterial,
+	addFireMaterial,
+} from "../../../project/add/material";
 
 import { ICommandPaletteType } from "./command-palette";
 
@@ -24,6 +36,11 @@ export function getMaterialCommands(editor?: Editor): ICommandPaletteType[] {
 			key: "add-node-material",
 			action: () => editor && addNodeMaterial(editor.layout.preview.scene),
 		},
+	];
+}
+
+export function getMaterialsLibraryCommands(editor?: Editor): ICommandPaletteType[] {
+	return [
 		{
 			text: "Sky Material",
 			label: "Add a new sky material to the scene",
@@ -47,6 +64,30 @@ export function getMaterialCommands(editor?: Editor): ICommandPaletteType[] {
 			label: "Add a new water material to the scene",
 			key: "add-water-material",
 			action: () => editor && addWaterMaterial(editor.layout.preview.scene),
+		},
+		{
+			text: "Lava Material",
+			label: "Add a new lava material to the scene",
+			key: "add-lava-material",
+			action: () => editor && addLavaMaterial(editor.layout.preview.scene),
+		},
+		{
+			text: "Tri-Planar Material",
+			label: "Add a new Tri-Planar material to the scene",
+			key: "add-tri-planar-material",
+			action: () => editor && addTriPlanarMaterial(editor.layout.preview.scene),
+		},
+		{
+			text: "Cell Material",
+			label: "Add a new Cell material to the scene",
+			key: "add-cell-material",
+			action: () => editor && addCellMaterial(editor.layout.preview.scene),
+		},
+		{
+			text: "Fire Material",
+			label: "Add a new Fire material to the scene",
+			key: "add-fire-material",
+			action: () => editor && addFireMaterial(editor.layout.preview.scene),
 		},
 	];
 }

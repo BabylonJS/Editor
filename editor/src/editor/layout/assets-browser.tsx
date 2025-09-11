@@ -38,8 +38,8 @@ import { findAvailableFilename, normalizedGlob } from "../../tools/fs";
 import { loadSavedThumbnailsCache } from "../../tools/assets/thumbnail";
 import { checkProjectCachedCompressedTextures, processingCompressedTextures } from "../../tools/assets/ktx";
 
-import { getMaterialCommands } from "../dialogs/command-palette/material";
 import { ICommandPaletteType } from "../dialogs/command-palette/command-palette";
+import { getMaterialCommands, getMaterialsLibraryCommands } from "../dialogs/command-palette/material";
 
 import { loadScene } from "../../project/load/scene";
 import { saveProject } from "../../project/save/save";
@@ -727,6 +727,18 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 
 								<ContextMenuSeparator />
 								<ContextMenuItem onClick={() => this._handleAddNodeMaterialFromSnippet()}>Node Material From Snippet...</ContextMenuItem>
+								<ContextMenuSeparator />
+
+								<ContextMenuSub>
+									<ContextMenuSubTrigger className="flex items-center gap-2">Materials Library</ContextMenuSubTrigger>
+									<ContextMenuSubContent>
+										{getMaterialsLibraryCommands(this.props.editor).map((command) => (
+											<ContextMenuItem key={command.key} onClick={() => this._handleAddMaterial(command)}>
+												{command.text}
+											</ContextMenuItem>
+										))}
+									</ContextMenuSubContent>
+								</ContextMenuSub>
 
 								{this.props.editor.state.enableExperimentalFeatures && (
 									<>
