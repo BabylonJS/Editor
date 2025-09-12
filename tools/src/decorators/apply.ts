@@ -68,6 +68,12 @@ export interface ISceneDecoratorData {
 		onlyWhenMeshPicked: boolean;
 		propertyKey: string | Symbol;
 	}[];
+
+	// @onKeyboardEvent
+	_KeyboardEvents: {
+		eventTypes: number[];
+		propertyKey: string | Symbol;
+	}[];
 }
 
 export function applyDecorators(scene: Scene, object: any, script: any, instance: any, rootUrl: string) {
@@ -211,6 +217,19 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 				if (pickInfo?.pickedMesh === object) {
 					return instance[propertyKey]?.(pointerInfo);
 				}
+			});
+		});
+	}
+
+	// @onKeyboardEvent
+	if (ctor._KeyboardEvents?.length) {
+		scene.onKeyboardObservable.add((keyboardInfo) => {
+			ctor._KeyboardEvents.forEach((params) => {
+				if (!params.eventTypes.includes(keyboardInfo.type)) {
+					return;
+				}
+
+				instance[params.propertyKey.toString()]?.(keyboardInfo);
 			});
 		});
 	}

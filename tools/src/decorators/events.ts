@@ -20,3 +20,22 @@ export function onPointerEvent(eventType: number | number[], onlyWhenMeshPicked:
 		} as any);
 	};
 }
+
+/**
+ * Makes the decorated method called on the given keyboard event is trigerred on the scene.
+ * Once the script is instantiated, the reference to the sound is retrieved from the scene
+ * and assigned to the property. Node link cant' be used in constructor.
+ * This can be used only by scripts using Classes.
+ * @param eventType defines the type of event or list of event to listen.
+ */
+export function onKeyboardEvent(eventType: number | number[]) {
+	return function (target: any, propertyKey: string | Symbol) {
+		const ctor = target.constructor as ISceneDecoratorData;
+
+		ctor._KeyboardEvents ??= [];
+		ctor._KeyboardEvents.push({
+			propertyKey,
+			eventTypes: Array.isArray(eventType) ? eventType : [eventType],
+		} as any);
+	};
+}
