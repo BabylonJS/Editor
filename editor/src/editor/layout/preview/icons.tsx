@@ -139,7 +139,9 @@ export class EditorPreviewIcons extends Component<IEditorPreviewIconsProps, IEdi
 
 				scene.soundTracks?.forEach((soundtrack) => {
 					soundtrack.soundCollection.forEach((sound) => {
-						if (!sound.spatialSound) {
+						const attachedNode = sound["_connectedTransformNode"];
+
+						if (!sound.spatialSound || !attachedNode) {
 							return;
 						}
 
