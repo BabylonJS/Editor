@@ -3,11 +3,18 @@ import { workerData, parentPort } from "worker_threads";
 
 const assimpjs = require("assimpjs")();
 
+const AssimpPostProcessFlags = {
+	aiProcess_LimitBoneWeights: 0x200000,
+} as const;
+
 assimpjs.then((ajs) => {
 	const fileList = new ajs.FileList();
 	fileList.AddFile(basename(workerData.absolutePath), new Uint8Array(workerData.content));
 
-	const result = ajs.ConvertFileList(fileList, "assjson");
+	const postProcessFlags =
+		AssimpPostProcessFlags.aiProcess_LimitBoneWeights;
+	const result = ajs.ConvertFileList(fileList, "assjson", postProcessFlags);
+
 	if (!result.IsSuccess() || result.FileCount() === 0) {
 		console.log(result.GetErrorCode());
 		return parentPort?.postMessage(null);
