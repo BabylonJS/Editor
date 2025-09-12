@@ -5,8 +5,8 @@ import { FaCopy, FaLink } from "react-icons/fa6";
 import { IoAddSharp, IoCloseOutline } from "react-icons/io5";
 import { AiOutlinePlus } from "react-icons/ai";
 
-import { SkyMaterial, GridMaterial, NormalMaterial, WaterMaterial, LavaMaterial, TriPlanarMaterial, CellMaterial, FireMaterial } from "babylonjs-materials";
 import { AbstractMesh, InstancedMesh, Material, Mesh, MorphTarget, MultiMaterial, Node, Observer, PBRMaterial, StandardMaterial, NodeMaterial } from "babylonjs";
+import { SkyMaterial, GridMaterial, NormalMaterial, WaterMaterial, LavaMaterial, TriPlanarMaterial, CellMaterial, FireMaterial, GradientMaterial } from "babylonjs-materials";
 
 import { CollisionMesh } from "../../../nodes/collision";
 
@@ -56,6 +56,7 @@ import { EditorFireMaterialInspector } from "../material/fire";
 import { EditorMultiMaterialInspector } from "../material/multi";
 import { EditorWaterMaterialInspector } from "../material/water";
 import { EditorNormalMaterialInspector } from "../material/normal";
+import { EditorGradientMaterialInspector } from "../material/gradient";
 import { EditorStandardMaterialInspector } from "../material/standard";
 import { EditorTriPlanarMaterialInspector } from "../material/tri-planar";
 
@@ -352,6 +353,9 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 
 			case "FireMaterial":
 				return <EditorFireMaterialInspector mesh={this.props.object} material={this.props.object.material as FireMaterial} />;
+
+			case "GradientMaterial":
+				return <EditorGradientMaterialInspector mesh={this.props.object} material={this.props.object.material as GradientMaterial} />;
 		}
 	}
 
