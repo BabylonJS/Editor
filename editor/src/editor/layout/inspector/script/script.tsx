@@ -37,6 +37,7 @@ export class ScriptInspectorComponent extends Component<IScriptInspectorComponen
 				{this.props.object.metadata?.scripts?.map((script: any, index: number) => (
 					<InspectorScriptField
 						script={script}
+						scriptIndex={index}
 						key={`${script}_${index}`}
 						editor={this.props.editor}
 						object={this.props.object}
