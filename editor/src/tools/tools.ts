@@ -96,6 +96,10 @@ export function getCurrentCallStack(): string {
 	return new Error().stack ?? "";
 }
 
+/**
+ * Reads a blob and returns its data as a data URL.
+ * @param blob defines the reference to the blob to read as data URL.
+ */
 export function readBlobAsDataUrl(blob: Blob): Promise<string> {
 	return new Promise<string>((resolve, reject) => {
 		Tools.ReadFileAsDataURL(
@@ -110,4 +114,12 @@ export function readBlobAsDataUrl(blob: Blob): Promise<string> {
 			undefined!
 		);
 	});
+}
+
+/**
+ * Clones the given JavaScript object. This function does not handle cyclic references.
+ * @param source defines the reference to the JavaScript object to clone.
+ */
+export function cloneJSObject<T>(source: T): T {
+	return JSON.parse(JSON.stringify(source));
 }

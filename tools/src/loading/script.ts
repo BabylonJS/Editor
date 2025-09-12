@@ -66,7 +66,7 @@ export interface IRegisteredScript {
 	instance: IScript;
 }
 
-const scriptsDictionary = new Map<Node | IParticleSystem | Scene, IRegisteredScript[]>();
+export const scriptsDictionary = new Map<Node | IParticleSystem | Scene, IRegisteredScript[]>();
 
 /**
  * When a scene is being loaded, scripts that were attached to objects in the scene using the Editor are processed.
@@ -86,6 +86,9 @@ export function registerScriptInstance(object: any, scriptInstance: IScript, key
 	} else {
 		scriptsDictionary.get(object)!.push(registeredScript);
 	}
+
+	object.__editorRunningScripts ??= [];
+	object.__editorRunningScripts.push(registeredScript);
 
 	if (isNode(object) || isAnyParticleSystem(object) || isScene(object)) {
 		object.onDisposeObservable.addOnce((() => {
