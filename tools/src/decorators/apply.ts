@@ -1,6 +1,7 @@
 import { Node } from "@babylonjs/core/node";
 import { Scene } from "@babylonjs/core/scene";
 import { Color3, Color4 } from "@babylonjs/core/Maths/math.color";
+import { PickingInfo } from "@babylonjs/core/Collisions/pickingInfo";
 import { Texture } from "@babylonjs/core/Materials/Textures/texture";
 import { Vector2, Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { ParticleSystem } from "@babylonjs/core/Particles/particleSystem";
@@ -59,6 +60,13 @@ export interface ISceneDecoratorData {
 		label?: string;
 		propertyKey: string | Symbol;
 		configuration: VisibleInInspectorDecoratorConfiguration;
+	}[];
+
+	// @onPointerEvent
+	_PointerEvents: {
+		eventTypes: number[];
+		onlyWhenMeshPicked: boolean;
+		propertyKey: string | Symbol;
 	}[];
 }
 
@@ -178,4 +186,32 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 			}
 		}
 	});
+
+	// @onPointerEvent
+	if (ctor._PointerEvents?.length) {
+		scene.onPointerObservable.add((pointerInfo) => {
+			let pickInfo: PickingInfo | null = null;
+
+			ctor._PointerEvents.forEach((params) => {
+				if (!params.eventTypes.includes(pointerInfo.type)) {
+					return;
+				}
+
+				const propertyKey = params.propertyKey.toString();
+
+				if (!params.onlyWhenMeshPicked) {
+					return instance[propertyKey]?.(pointerInfo);
+				}
+
+				pickInfo = pointerInfo.pickInfo;
+				if (!pickInfo) {
+					pickInfo = scene.pick(scene.pointerX, scene.pointerY, (m) => m.isVisible && m.isPickable && m.isEnabled(true), false);
+				}
+
+				if (pickInfo?.pickedMesh === object) {
+					return instance[propertyKey]?.(pointerInfo);
+				}
+			});
+		});
+	}
 }

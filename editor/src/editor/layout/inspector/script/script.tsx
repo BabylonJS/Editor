@@ -1,5 +1,6 @@
 import { extname, join, dirname } from "path/posix";
 
+import { toast } from "sonner";
 import { Component, DragEvent, ReactNode } from "react";
 
 import { Editor } from "../../../main";
@@ -116,7 +117,7 @@ export class ScriptInspectorComponent extends Component<IScriptInspectorComponen
 			}
 
 			if (this.props.object.metadata.scripts.find((script) => script.key === relativePath)) {
-				return;
+				return toast.warning(`Script '${relativePath}' is already attached to the object.`);
 			}
 
 			registerUndoRedo({
