@@ -3,7 +3,7 @@ import { extname } from "path/posix";
 import { Component, DragEvent, ReactNode } from "react";
 
 import { Material, MultiMaterial, PBRMaterial, StandardMaterial } from "babylonjs";
-import { SkyMaterial, GridMaterial, NormalMaterial, WaterMaterial, TriPlanarMaterial, LavaMaterial, CellMaterial, FireMaterial } from "babylonjs-materials";
+import { SkyMaterial, GridMaterial, NormalMaterial, WaterMaterial, TriPlanarMaterial, LavaMaterial, CellMaterial, FireMaterial, GradientMaterial } from "babylonjs-materials";
 
 import { Table, TableBody, TableCaption, TableCell, TableRow } from "../../../../ui/shadcn/ui/table";
 
@@ -21,6 +21,7 @@ import { EditorFireMaterialInspector } from "./fire";
 import { EditorLavaMaterialInspector } from "./lava";
 import { EditorWaterMaterialInspector } from "./water";
 import { EditorNormalMaterialInspector } from "./normal";
+import { EditorGradientMaterialInspector } from "./gradient";
 import { EditorStandardMaterialInspector } from "./standard";
 import { EditorTriPlanarMaterialInspector } from "./tri-planar";
 
@@ -148,6 +149,9 @@ export class EditorMultiMaterialInspector extends Component<IEditorPBRMaterialIn
 
 			case "FireMaterial":
 				return <EditorFireMaterialInspector key={this.state.material.id} material={this.state.material as FireMaterial} />;
+
+			case "GradientMaterial":
+				return <EditorGradientMaterialInspector key={this.state.material.id} material={this.state.material as GradientMaterial} />;
 		}
 	}
 }

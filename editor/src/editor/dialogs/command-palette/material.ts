@@ -12,6 +12,7 @@ import {
 	addTriPlanarMaterial,
 	addCellMaterial,
 	addFireMaterial,
+	addGradientMaterial,
 } from "../../../project/add/material";
 
 import { ICommandPaletteType } from "./command-palette";
@@ -88,6 +89,12 @@ export function getMaterialsLibraryCommands(editor?: Editor): ICommandPaletteTyp
 			label: "Add a new Fire material to the scene",
 			key: "add-fire-material",
 			action: () => editor && addFireMaterial(editor.layout.preview.scene),
+		},
+		{
+			text: "Gradient Material",
+			label: "Add a new Gradient material to the scene",
+			key: "add-gradient-material",
+			action: () => editor && addGradientMaterial(editor.layout.preview.scene),
 		},
 	];
 }

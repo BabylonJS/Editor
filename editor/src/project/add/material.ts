@@ -1,5 +1,5 @@
 import { Scene, Tools, PBRMaterial, StandardMaterial, NodeMaterial } from "babylonjs";
-import { SkyMaterial, GridMaterial, NormalMaterial, WaterMaterial, LavaMaterial, TriPlanarMaterial, CellMaterial, FireMaterial } from "babylonjs-materials";
+import { SkyMaterial, GridMaterial, NormalMaterial, WaterMaterial, LavaMaterial, TriPlanarMaterial, CellMaterial, FireMaterial, GradientMaterial } from "babylonjs-materials";
 
 import { UniqueNumber } from "../../tools/tools";
 
@@ -90,6 +90,14 @@ export function addCellMaterial(scene: Scene) {
 
 export function addFireMaterial(scene: Scene) {
 	const material = new FireMaterial("New Fire Material", scene);
+	material.id = Tools.RandomId();
+	material.uniqueId = UniqueNumber.Get();
+
+	return material;
+}
+
+export function addGradientMaterial(scene: Scene) {
+	const material = new GradientMaterial("New Gradient Material", scene);
 	material.id = Tools.RandomId();
 	material.uniqueId = UniqueNumber.Get();
 
