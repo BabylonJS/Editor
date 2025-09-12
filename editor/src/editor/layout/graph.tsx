@@ -14,7 +14,7 @@ import { IoCheckmark, IoSparklesSharp } from "react-icons/io5";
 import { SiAdobeindesign, SiBabylondotjs } from "react-icons/si";
 
 import { AdvancedDynamicTexture } from "babylonjs-gui";
-import { BaseTexture, Node, Scene, Sound, Tools, IParticleSystem, ParticleSystem } from "babylonjs";
+import { BaseTexture, Node, Scene, Sound, Tools, TransformNode, IParticleSystem, ParticleSystem } from "babylonjs";
 
 import { Editor } from "../main";
 
@@ -399,7 +399,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 							instance.rotation.copyFrom(object.rotation);
 							instance.scaling.copyFrom(object.scaling);
 							instance.rotationQuaternion = object.rotationQuaternion?.clone() ?? null;
-							instance.parent = object.parent;
+							this._setParentPreservingWorldTransform(instance, object.parent);
 
 							const collisionMesh = getCollisionMeshFor(instance.sourceMesh);
 							collisionMesh?.updateInstances(instance.sourceMesh);
@@ -427,7 +427,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 						node.uniqueId = UniqueNumber.Get();
 
 						if (parent && isNode(node)) {
-							node.parent = parent;
+							this._setParentPreservingWorldTransform(node, parent);
 						}
 
 						if (isAbstractMesh(node)) {
@@ -898,5 +898,33 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		});
 
 		this.refresh();
+	}
+
+	private _setParentPreservingWorldTransform(node: Node, newParent: Node | null): void {
+		if (!(node instanceof TransformNode)) {
+			// For non-transform nodes, just set the parent directly
+			node.parent = newParent;
+			return;
+		}
+
+		// Store the current world transform
+		const worldPosition = node.getAbsolutePosition();
+		const worldRotation = node.rotationQuaternion || node.rotation.toQuaternion();
+		const worldScaling = node.absoluteScaling;
+
+		// Set the new parent
+		node.parent = newParent;
+
+		// Restore the world transform
+		node.setAbsolutePosition(worldPosition);
+
+		if (node.rotationQuaternion) {
+			node.absoluteRotationQuaternion.copyFrom(worldRotation);
+		} else {
+			const rotationVector = worldRotation.toEulerAngles();
+			node.rotation.copyFrom(rotationVector);
+		}
+
+		node.scaling.copyFrom(worldScaling);
 	}
 }
