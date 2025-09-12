@@ -5,7 +5,7 @@ import { pathExists, readFile, readJSON, writeFile } from "fs-extra";
 import axios from "axios";
 import { toast } from "sonner";
 
-import { CubeTexture, ISceneLoaderAsyncResult, Material, Node, Scene, SceneLoader, Texture, Tools, ColorGradingTexture } from "babylonjs";
+import { CubeTexture, ISceneLoaderAsyncResult, Material, Node, Scene, SceneLoader, Texture, Tools, ColorGradingTexture, Vector3, Quaternion } from "babylonjs";
 
 import { UniqueNumber } from "../../../../tools/tools";
 import { isMesh } from "../../../../tools/guards/nodes";
@@ -65,6 +65,9 @@ export async function loadImportedSceneFile(scene: Scene, absolutePath: string):
 	if (root) {
 		root.scaling.scaleInPlace(100);
 		root.name = basename(absolutePath);
+
+		// TODO: try cleaning the gltf to remove useless transform nodes. Also, does it make sens to clean the gltf for the user?
+		// cleanImportedGltf(result);
 	}
 
 	result.meshes.forEach((mesh) => {
@@ -260,4 +263,25 @@ export async function loadImportedMaterial(scene: Scene, absolutePath: string): 
 	material.uniqueId = uniqueId;
 
 	return material;
+}
+
+export function cleanImportedGltf(result: ISceneLoaderAsyncResult): void {
+	const identityQuaternion = Quaternion.Identity();
+	const allBones = result?.skeletons.map((s) => s.bones).flat();
+
+	result.transformNodes.slice().forEach((transformNode) => {
+		if (
+			transformNode.position.equalsWithEpsilon(Vector3.ZeroReadOnly) &&
+			(transformNode.rotation.equalsWithEpsilon(Vector3.ZeroReadOnly) || transformNode.rotationQuaternion?.equalsWithEpsilon(identityQuaternion)) &&
+			transformNode.scaling.equalsWithEpsilon(Vector3.OneReadOnly) &&
+			!allBones.find((b) => b._linkedTransformNode === transformNode)
+		) {
+			const descendants = transformNode.getDescendants(true);
+			descendants.forEach((node) => {
+				node.parent = transformNode.parent;
+			});
+
+			transformNode.dispose(true, false);
+		}
+	});
 }
