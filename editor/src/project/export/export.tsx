@@ -6,6 +6,7 @@ import { RenderTargetTexture, SceneSerializer } from "babylonjs";
 import { toast } from "sonner";
 
 import { isTexture } from "../../tools/guards/texture";
+import { isNodeMaterial } from "../../tools/guards/material";
 import { getCollisionMeshFor } from "../../tools/mesh/collision";
 import { createDirectoryIfNotExist, normalizedGlob } from "../../tools/fs";
 import { isCollisionMesh, isEditorCamera, isMesh } from "../../tools/guards/nodes";
@@ -25,6 +26,7 @@ import { processAssetFile } from "./assets";
 import { configureMeshesLODs } from "./lod";
 import { handleExportScripts } from "./scripts";
 import { configureMeshesPhysics } from "./physics";
+import { extractNodeMaterialTextures } from "./material";
 import { EditorExportProjectProgressComponent } from "./progress";
 
 export type IExportProjectOptions = {
@@ -242,6 +244,26 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 			sound.uniqueId = instantiatedSound.uniqueId;
 		}
 	});
+
+	// Extract textures from node materials.
+	const nodeMaterials = data.materials?.filter((materialData) => {
+		const existingMaterial = scene.getMaterialById(materialData.id);
+		return existingMaterial && isNodeMaterial(existingMaterial);
+	});
+
+	if (nodeMaterials.length) {
+		const outputPath = join(projectDir, "assets", "editor-generated_extracted-textures");
+
+		await createDirectoryIfNotExist(outputPath);
+		await Promise.all(
+			nodeMaterials.map(async (materialData) =>
+				extractNodeMaterialTextures(editor, {
+					materialData,
+					assetsDirectory: outputPath,
+				})
+			)
+		);
+	}
 
 	// Write final scene file.
 	await writeJSON(join(scenePath, `${sceneName}.babylon`), data);
