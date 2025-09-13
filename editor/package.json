@@ -81,6 +81,7 @@
 		"babylonjs-loaders": "8.26.1",
 		"babylonjs-materials": "8.26.1",
 		"babylonjs-node-editor": "8.26.1",
+		"babylonjs-node-particle-editor": "8.26.1",
 		"babylonjs-post-process": "8.26.1",
 		"babylonjs-procedural-textures": "8.26.1",
 		"cannon": "0.6.2",
