@@ -1,16 +1,14 @@
 import { glob } from "glob";
 import { join } from "path/posix";
 import { watch, FSWatcher } from "chokidar";
-import { mkdir, pathExists } from "fs-extra";
+import { ensureDir, pathExists } from "fs-extra";
 
 /**
  * Creates a directory if it doesn't exist.
  * @param absolutePath the absolute path of the directory to create.
  */
 export async function createDirectoryIfNotExist(absolutePath: string) {
-	if (!(await pathExists(absolutePath))) {
-		await mkdir(absolutePath);
-	}
+	await ensureDir(absolutePath);
 }
 
 /**

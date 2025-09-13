@@ -4730,7 +4730,7 @@ babylonjs-editor-tools@latest:
   version "5.1.3"
 
 "babylonjs-editor@link:editor":
-  version "5.1.2"
+  version "5.1.3"
   dependencies:
     "@babylonjs/core" "8.26.1"
     "@babylonjs/havok" "1.3.10"
@@ -4770,6 +4770,7 @@ babylonjs-editor-tools@latest:
     babylonjs-loaders "8.26.1"
     babylonjs-materials "8.26.1"
     babylonjs-node-editor "8.26.1"
+    babylonjs-node-particle-editor "8.26.1"
     babylonjs-post-process "8.26.1"
     babylonjs-procedural-textures "8.26.1"
     cannon "0.6.2"
@@ -4845,6 +4846,13 @@ babylonjs-node-editor@8.26.1:
   version "8.26.1"
   resolved "https://registry.yarnpkg.com/babylonjs-node-editor/-/babylonjs-node-editor-8.26.1.tgz#594c90e8f7661f1ca9a20648ee26490d9d9f1e6b"
   integrity sha512-m+x7oQrTWkniu9h/4Eql4Pn70br/OVuBMDgE+RBOqghHlaiqYEOlQLj1em1Y2/dK3eUbHdkSgHMBdfxb/bFHdA==
+  dependencies:
+    babylonjs "^8.26.1"
+
+babylonjs-node-particle-editor@8.26.1:
+  version "8.26.1"
+  resolved "https://registry.yarnpkg.com/babylonjs-node-particle-editor/-/babylonjs-node-particle-editor-8.26.1.tgz#fe663bbc4e15db77d870ebccc1b0a5761eaaff46"
+  integrity sha512-IOkwUd8R93yLCETObJOa4EYqnc4FhJV1IPustI5PY8LqAqyH05BE/tVvZf2Os4/aQX3X6dfUWIotNINkpe5rhA==
   dependencies:
     babylonjs "^8.26.1"
 

@@ -254,7 +254,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 								draggable
 								className={`
                                     ml-2 p-1 w-full h-full pointer-events-auto
-                                    ${relativePath.startsWith("public") || relativePath.startsWith("node_modules") ? "opacity-35" : ""}
+                                    ${relativePath.startsWith("public") || relativePath.startsWith("node_modules") || relativePath.startsWith("assets/editor-generated_") ? "opacity-35" : ""}
                                 `}
 								onDragOver={(ev) => ev.preventDefault()}
 								onDrop={relativePath.startsWith("assets") ? (ev) => this._handleDropInTree(ev, relativePath) : undefined}
@@ -289,7 +289,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 
 				const hitsSearch = search && split[i].toLocaleLowerCase().includes(search);
 
-				if (hitsSearch && !relativePath.startsWith("public") && !relativePath.startsWith("node_modules")) {
+				if (hitsSearch && !relativePath.startsWith("public") && !relativePath.startsWith("node_modules") && !relativePath.startsWith("editor-generated_")) {
 					let tempNode = node;
 					let parent: TreeNodeInfo | undefined = undefined;
 

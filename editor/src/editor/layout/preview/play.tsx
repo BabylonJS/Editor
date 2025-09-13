@@ -171,10 +171,10 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 			return;
 		}
 
-		restorePlayOverrides(this.props.editor);
-
 		this.scene?.dispose();
 		this.scene = null;
+
+		restorePlayOverrides(this.props.editor);
 
 		this.props.editor.layout.preview.engine.wipeCaches(true);
 

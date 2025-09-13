@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import { Component, ReactNode } from "react";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../ui/shadcn/ui/tabs";
@@ -16,7 +17,7 @@ import { Editor } from "../../main";
 
 import { checkProjectCachedCompressedTextures } from "../../../tools/assets/ktx";
 
-import { saveProject } from "../../../project/save/save";
+import { saveProjectConfiguration } from "../../../project/save/save";
 import { projectConfiguration } from "../../../project/configuration";
 
 import { EditorEditProjectPluginComponent } from "./plugins/component";
@@ -77,8 +78,10 @@ export class EditorEditProjectComponent extends Component<IEditorEditProjectComp
 	private _handleSave(): void {
 		projectConfiguration.compressedTexturesEnabled = this.props.editor.state.compressedTexturesEnabled;
 
-		saveProject(this.props.editor);
+		saveProjectConfiguration(this.props.editor);
 		checkProjectCachedCompressedTextures(this.props.editor);
+
+		toast.success("Project preferences saved");
 
 		this.props.onClose();
 	}

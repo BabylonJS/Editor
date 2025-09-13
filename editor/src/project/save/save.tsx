@@ -41,7 +41,29 @@ export async function saveProject(editor: Editor): Promise<void> {
 	}
 }
 
-async function _saveProject(editor: Editor): Promise<void> {
+export async function saveProjectConfiguration(editor: Editor) {
+	const project: Partial<IEditorProject> = {
+		plugins: editor.state.plugins.map((plugin) => ({
+			nameOrPath: plugin,
+		})),
+		version: packageJson.version,
+		packageManager: editor.state.packageManager,
+		lastOpenedScene: editor.state.lastOpenedScenePath?.replace(dirname(editor.state.projectPath!), ""),
+
+		compressedTexturesEnabled: editor.state.compressedTexturesEnabled,
+		compressedTexturesEnabledInPreview: editor.state.compressedTexturesEnabledInPreview,
+	};
+
+	if (!editor.props.editedScenePath) {
+		await writeJSON(editor.state.projectPath!, project, {
+			spaces: 4,
+		});
+	}
+
+	return project;
+}
+
+async function _saveProject(editor: Editor) {
 	if (!editor.state.projectPath) {
 		return;
 	}
@@ -52,24 +74,7 @@ async function _saveProject(editor: Editor): Promise<void> {
 	});
 
 	const directory = dirname(editor.state.projectPath);
-
-	const project: Partial<IEditorProject> = {
-		plugins: editor.state.plugins.map((plugin) => ({
-			nameOrPath: plugin,
-		})),
-		version: packageJson.version,
-		packageManager: editor.state.packageManager,
-		lastOpenedScene: editor.state.lastOpenedScenePath?.replace(dirname(editor.state.projectPath), ""),
-
-		compressedTexturesEnabled: editor.state.compressedTexturesEnabled,
-		compressedTexturesEnabledInPreview: editor.state.compressedTexturesEnabledInPreview,
-	};
-
-	if (!editor.props.editedScenePath) {
-		await writeJSON(editor.state.projectPath, project, {
-			spaces: 4,
-		});
-	}
+	const project = await saveProjectConfiguration(editor);
 
 	if (editor.state.lastOpenedScenePath) {
 		editor.layout.console.log(`Saving project "${project.lastOpenedScene}"`);
