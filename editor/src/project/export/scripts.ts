@@ -1,4 +1,4 @@
-import { join, dirname, extname } from "path/posix";
+import { join, dirname, extname, basename } from "path/posix";
 import { pathExists, readJSON, readdir, writeFile } from "fs-extra";
 
 import { normalizedGlob } from "../../tools/fs";
@@ -28,6 +28,11 @@ const createUniqueIdentifier = (filepath: string): string => {
 		.replace(/\//g, "_");
 };
 
+interface ICollectedMetadata {
+	entityName: string;
+	metadata: any;
+}
+
 export async function handleExportScripts(editor: Editor): Promise<void> {
 	if (!editor.state.projectPath) {
 		return;
@@ -41,7 +46,7 @@ export async function handleExportScripts(editor: Editor): Promise<void> {
 
 	const scriptsMap: Record<string, string> = {};
 
-	const availableMetadata: any[] = [];
+	const availableMetadata: ICollectedMetadata[] = [];
 
 	// Check on all scenes in assets
 	await Promise.all(
@@ -49,7 +54,10 @@ export async function handleExportScripts(editor: Editor): Promise<void> {
 			try {
 				const config = await readJSON(join(file, "config.json"));
 				if (config.metadata) {
-					availableMetadata.push(config.metadata);
+					availableMetadata.push({
+						entityName: basename(file),
+						metadata: config.metadata,
+					});
 				}
 			} catch (e) {
 				// Catch silently.
@@ -71,7 +79,10 @@ export async function handleExportScripts(editor: Editor): Promise<void> {
 				].map(async (f) => {
 					const data = await readJSON(join(file, f), "utf-8");
 					if (data.metadata) {
-						availableMetadata.push(data.metadata);
+						availableMetadata.push({
+							metadata: data.metadata,
+							entityName: data.name ?? data.meshes?.[0]?.name,
+						});
 					}
 				})
 			);
@@ -85,21 +96,28 @@ export async function handleExportScripts(editor: Editor): Promise<void> {
 		...editor.layout.preview.scene.cameras,
 		...editor.layout.preview.scene.transformNodes,
 		...editor.layout.preview.scene.particleSystems,
-	] as { metadata?: any }[];
+	] as { name: string; metadata?: any }[];
 
 	entities.forEach((entity) => {
 		if (entity.metadata) {
-			availableMetadata.push(entity.metadata);
+			availableMetadata.push({
+				entityName: entity.name,
+				metadata: entity.metadata,
+			});
 		}
 	});
 
 	const promises: Promise<void>[] = [];
-	availableMetadata.forEach((metadata) => {
-		metadata.scripts?.forEach((script) => {
+	availableMetadata.forEach((configuration) => {
+		configuration.metadata.scripts?.forEach((script) => {
 			promises.push(
 				new Promise<void>(async (resolve) => {
 					const path = join(projectPath, "src", script.key);
 					if (!(await pathExists(path))) {
+						editor.layout.selectTab("console");
+						editor.layout.console.error(
+							`Processing "${configuration.entityName}". Script '${script.key}' doesn't exist or was moved in the project. Please fix the issue before generating scene.`
+						);
 						return resolve();
 					}
 

@@ -269,13 +269,13 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 				<div className="flex flex-col gap-1 w-full py-2.5">
 					<div className="flex items-center">
 						<div
-							onClick={() => srcAbsolutePath && execNodePty(`code "${srcAbsolutePath}"`)}
+							onClick={() => srcAbsolutePath && exists && execNodePty(`code "${srcAbsolutePath}"`)}
 							className={`font-bold px-2 hover:underline transition-all duration-300 ease-in-out cursor-pointer ${exists !== false ? "" : "text-red-400"}`}
 						>
 							{props.script.key} {exists !== false ? "" : "(Not found)"}
 						</div>
 
-						<Button variant="ghost" className="w-6 h-6 p-1" onClick={() => handleCopyName()}>
+						<Button disabled={!exists} variant="ghost" className="w-6 h-6 p-1" onClick={() => handleCopyName()}>
 							<FaCopy className="w-4 h-4" />
 						</Button>
 					</div>
