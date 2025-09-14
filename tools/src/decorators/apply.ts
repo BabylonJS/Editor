@@ -11,8 +11,8 @@ import { AdvancedDynamicTexture } from "@babylonjs/gui/2D/advancedDynamicTexture
 
 import type { AudioSceneComponent as _AudioSceneComponent } from "@babylonjs/core/Audio/audioSceneComponent";
 
-import { isNode } from "../tools/guards";
 import { getSoundById } from "../tools/sound";
+import { isAbstractMesh, isNode } from "../tools/guards";
 
 import { IPointerEventDecoratorOptions } from "./events";
 import { VisibleInInspectorDecoratorConfiguration, VisibleInInspectorDecoratorEntityConfiguration } from "./inspector";
@@ -197,8 +197,14 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 
 	// @onPointerEvent
 	if (ctor._PointerEvents?.length) {
-		if (!isNode(object)) {
-			throw new Error(`@onPointerEvent can be used only on scripts attached to a Node: Light, Mesh, Camera, TransformNode.`);
+		const wrongMeshListener = ctor._PointerEvents.find((params) => params.options.mode === "attachedMeshOnly");
+		if (wrongMeshListener && !isAbstractMesh(object)) {
+			throw new Error(`@onPointerEvent with mode "attachedMeshOnly" can only be used on scripts attached to meshes (extends AbstractMesh).`);
+		}
+
+		const wrongSceneListener = ctor._PointerEvents.find((params) => params.options.mode !== "global");
+		if (wrongSceneListener && !isNode(object)) {
+			throw new Error(`@onPointerEvent with mode different from "global" can be used only on scripts attached to Node: Mesh, Light, Camera, TransformNode.`);
 		}
 
 		scene.onPointerObservable.add((pointerInfo) => {

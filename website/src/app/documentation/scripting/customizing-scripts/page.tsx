@@ -3,7 +3,7 @@
 import { Fade } from "react-awesome-reveal";
 import { IoIosWarning } from "react-icons/io";
 
-import { CodeBlock } from "../code";
+import { CodeBlock } from "../../code";
 
 import {
 	visibleAsBooleanDecoratorsExample,
@@ -16,7 +16,7 @@ import {
 	visibleAsVector3DecoratorsExample,
 } from "./visible-as";
 
-import { NextChapterComponent } from "../components/next-chapter";
+import { NextChapterComponent } from "../../components/next-chapter";
 
 export default function DocumentationRunningProjectPage() {
 	return (
@@ -197,7 +197,7 @@ export default function DocumentationRunningProjectPage() {
 							</video>
 						</div>
 
-						<NextChapterComponent href="/documentation/advanced/compressing-textures" title="Compressing textures" />
+						<NextChapterComponent href="/documentation/scripting/listening-events" title="Listening events" />
 					</div>
 				</Fade>
 			</div>
