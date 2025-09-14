@@ -13,7 +13,7 @@ import { Button } from "../../../../ui/shadcn/ui/button";
 import { normalizedGlob } from "../../../../tools/fs";
 import { sortAlphabetically } from "../../../../tools/tools";
 
-import { projectConfiguration } from "../../../../project/configuration";
+import { getProjectAssetsRootUrl, projectConfiguration } from "../../../../project/configuration";
 
 import { EditorInspectorColorField } from "../fields/color";
 import { EditorInspectorStringField } from "../fields/string";
@@ -100,6 +100,7 @@ export class EditorNodeMaterialInspector extends Component<IEditorNodeMaterialIn
 					if (data.customType === "BABYLON.NodeMaterial" && data.uniqueId === this.props.material.uniqueId) {
 						ipcRenderer.send("window:open", "build/src/editor/windows/nme", {
 							filePath,
+							rootUrl: getProjectAssetsRootUrl() ?? undefined,
 						});
 					}
 				} catch (e) {

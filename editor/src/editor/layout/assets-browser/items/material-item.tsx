@@ -14,10 +14,11 @@ import { showAlert, showPrompt } from "../../../../ui/dialog";
 import { ContextMenuItem } from "../../../../ui/shadcn/ui/context-menu";
 
 import { UniqueNumber } from "../../../../tools/tools";
+import { computeOrGetThumbnail } from "../../../../tools/assets/thumbnail";
 
 import { openMaterialViewer } from "../viewers/material-viewer";
 
-import { computeOrGetThumbnail } from "../../../../tools/assets/thumbnail";
+import { getProjectAssetsRootUrl } from "../../../../project/configuration";
 
 import { AssetsBrowserItem } from "./item";
 
@@ -56,6 +57,7 @@ export class AssetBrowserMaterialItem extends AssetsBrowserItem {
 		if (data.customType === "BABYLON.NodeMaterial") {
 			ipcRenderer.send("window:open", "build/src/editor/windows/nme", {
 				filePath: this.props.absolutePath,
+				rootUrl: getProjectAssetsRootUrl() ?? undefined,
 			});
 		} else {
 			openMaterialViewer(this.props.editor, this.props.absolutePath);

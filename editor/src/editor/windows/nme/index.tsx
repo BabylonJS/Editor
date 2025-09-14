@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Component, ReactNode } from "react";
 
 import { NodeEditor } from "babylonjs-node-editor";
-import { NodeMaterial, NullEngine, Scene } from "babylonjs";
+import { NodeMaterial, NullEngine, Scene, ShaderLanguage } from "babylonjs";
 
 import { ToolbarComponent } from "../../../ui/toolbar";
 
@@ -16,6 +16,7 @@ import "babylonjs-loaders";
 
 export interface INodeMaterialEditorWindowProps {
 	filePath: string;
+	rootUrl?: string;
 }
 
 export default class NodeMaterialEditorWindow extends Component<INodeMaterialEditorWindowProps> {
@@ -63,7 +64,20 @@ export default class NodeMaterialEditorWindow extends Component<INodeMaterialEdi
 		const engine = new NullEngine();
 		const scene = new Scene(engine);
 
-		this._nodeMaterial = NodeMaterial.Parse(data, scene);
+		// Override the parse method in order to inject the root url
+		// The rootUrl must be injected as textures are extracted from the node material when saved.
+		// So the next launch will have paths instead of base64 data.
+		// TODO: add the rootUrl option in NodeEditor?
+		const parse = NodeMaterial.Parse;
+		NodeMaterial.Parse = (source: any, scene: Scene, rootUrl?: string, shaderLanguage?: ShaderLanguage) => {
+			if (!rootUrl) {
+				rootUrl = this.props.rootUrl;
+			}
+
+			return parse.call(NodeMaterial, source, scene, rootUrl, shaderLanguage);
+		};
+
+		this._nodeMaterial = NodeMaterial.Parse(data, scene, this.props.rootUrl);
 		this._nodeMaterial.uniqueId = data.uniqueId;
 
 		NodeEditor.Show({
