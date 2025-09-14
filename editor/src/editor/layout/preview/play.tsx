@@ -331,13 +331,21 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 
 		const sceneName = basename(this.props.editor.state.lastOpenedScenePath!).split(".").shift()!;
 
-		await exports.loadScene(rootUrl, `${sceneName}.babylon`, scene, exports.scriptsMap, {
-			quality: "high",
-			onProgress: (progress) =>
-				this.props.editor.layout.preview.setState({
-					playSceneLoadingProgress: progress,
-				}),
-		});
+		try {
+			await exports.loadScene(rootUrl, `${sceneName}.babylon`, scene, exports.scriptsMap, {
+				quality: "high",
+				onProgress: (progress) =>
+					this.props.editor.layout.preview.setState({
+						playSceneLoadingProgress: progress,
+					}),
+			});
+		} catch (e) {
+			if (!scene.isDisposed) {
+				this.props.editor.layout.selectTab("console");
+				this.props.editor.layout.console.error(`Failed to load scene: ${(e as Error).message}`);
+				return this.stop();
+			}
+		}
 
 		if (scene.isDisposed) {
 			return; // scene may be disposed if the user stopped the play while loading it

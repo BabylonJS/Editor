@@ -117,7 +117,7 @@ export default function DocumentationRunningProjectPage() {
 							<img src="/documentation/running-project/running-as-is.png" className="rounded-lg" />
 						</div>
 
-						<NextChapterComponent href="/documentation/customizing-scripts" title="Customizing scripts" />
+						<NextChapterComponent href="/documentation/scripting/customizing-scripts" title="Customizing scripts" />
 					</div>
 				</Fade>
 			</div>
