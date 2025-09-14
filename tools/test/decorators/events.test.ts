@@ -20,7 +20,18 @@ describe("decorators/inspector", () => {
 			expect(target.constructor._PointerEvents).toBeDefined();
 			expect(target.constructor._PointerEvents.length).toBe(1);
 			expect(target.constructor._PointerEvents[0].propertyKey).toBe("testProperty");
-			expect(target.constructor._PointerEvents[0].onlyWhenMeshPicked).toBe(true);
+			expect(target.constructor._PointerEvents[0].options.mode).toBe("global");
+			expect(target.constructor._PointerEvents[0].eventTypes).toStrictEqual([2]);
+		});
+
+		test("should add configuration to the target with specific mode", () => {
+			const fn = onPointerEvent(2, { mode: "attachedMeshOnly" });
+			fn(target, "testProperty");
+
+			expect(target.constructor._PointerEvents).toBeDefined();
+			expect(target.constructor._PointerEvents.length).toBe(1);
+			expect(target.constructor._PointerEvents[0].propertyKey).toBe("testProperty");
+			expect(target.constructor._PointerEvents[0].options.mode).toBe("attachedMeshOnly");
 			expect(target.constructor._PointerEvents[0].eventTypes).toStrictEqual([2]);
 		});
 	});

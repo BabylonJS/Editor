@@ -96,10 +96,19 @@ jest.mock("@babylonjs/core/Materials/Textures/texture", () => ({
 	},
 }));
 
+jest.mock("@babylonjs/core/Meshes/transformNode", () => ({
+	TransformNode: class {
+		getClassName() {
+			return "TransformNode";
+		}
+	},
+}));
+
 import { Node } from "@babylonjs/core/node";
 import { Scene } from "@babylonjs/core/scene";
 import { Sound } from "@babylonjs/core/Audio/sound";
 import { Color3, Color4 } from "@babylonjs/core/Maths/math.color";
+import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { Texture } from "@babylonjs/core/Materials/Textures/texture";
 import { Vector2, Vector3 } from "@babylonjs/core/Maths/math.vector";
 
@@ -127,7 +136,7 @@ import { onKeyboardEvent, onPointerEvent } from "../../src/decorators/events";
 describe("decorators/apply", () => {
 	class EmptyTarget {}
 
-	class Target {
+	class Target extends TransformNode {
 		@soundFromScene("test")
 		public soundProperty: Sound = null!;
 
@@ -246,6 +255,7 @@ describe("decorators/apply", () => {
 		} as unknown as Scene;
 
 		object = {
+			getClassName: jest.fn().mockImplementation(() => "TransformNode"),
 			getDescendants: jest.fn().mockImplementation(() => [nodeDescendantsObject]),
 			metadata: {
 				scripts: [
@@ -310,7 +320,7 @@ describe("decorators/apply", () => {
 		});
 
 		test("should retrieve all necessary decorators", () => {
-			const target = new Target();
+			const target = new Target(null!);
 
 			expect(target.booleanProperty).toBe(false);
 			expect(target.numberProperty).toBe(0);
@@ -366,14 +376,14 @@ describe("decorators/apply", () => {
 		});
 
 		test("should bind pointer events", () => {
-			const target = new Target();
+			const target = new Target(null!);
 			applyDecorators(scene, object, object.metadata.scripts[0], target, "");
 
 			expect(scene.onPointerObservable.add).toHaveBeenCalledTimes(1);
 		});
 
 		test("should bind keyboard events", () => {
-			const target = new Target();
+			const target = new Target(null!);
 			applyDecorators(scene, object, object.metadata.scripts[0], target, "");
 
 			expect(scene.onPointerObservable.add).toHaveBeenCalledTimes(1);

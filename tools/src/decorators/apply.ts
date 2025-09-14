@@ -11,8 +11,10 @@ import { AdvancedDynamicTexture } from "@babylonjs/gui/2D/advancedDynamicTexture
 
 import type { AudioSceneComponent as _AudioSceneComponent } from "@babylonjs/core/Audio/audioSceneComponent";
 
+import { isNode } from "../tools/guards";
 import { getSoundById } from "../tools/sound";
 
+import { IPointerEventDecoratorOptions } from "./events";
 import { VisibleInInspectorDecoratorConfiguration, VisibleInInspectorDecoratorEntityConfiguration } from "./inspector";
 
 export interface ISceneDecoratorData {
@@ -65,7 +67,7 @@ export interface ISceneDecoratorData {
 	// @onPointerEvent
 	_PointerEvents: {
 		eventTypes: number[];
-		onlyWhenMeshPicked: boolean;
+		options: IPointerEventDecoratorOptions;
 		propertyKey: string | Symbol;
 	}[];
 
@@ -195,6 +197,10 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 
 	// @onPointerEvent
 	if (ctor._PointerEvents?.length) {
+		if (!isNode(object)) {
+			throw new Error(`@onPointerEvent can be used only on scripts attached to a Node: Light, Mesh, Camera, TransformNode.`);
+		}
+
 		scene.onPointerObservable.add((pointerInfo) => {
 			let pickInfo: PickingInfo | null = null;
 
@@ -205,17 +211,35 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 
 				const propertyKey = params.propertyKey.toString();
 
-				if (!params.onlyWhenMeshPicked) {
+				if (params.options.mode === "global") {
 					return instance[propertyKey]?.(pointerInfo);
 				}
 
 				pickInfo = pointerInfo.pickInfo;
 				if (!pickInfo) {
-					pickInfo = scene.pick(scene.pointerX, scene.pointerY, (m) => m.isVisible && m.isPickable && m.isEnabled(true), false);
+					pickInfo = scene.pick(
+						scene.pointerX,
+						scene.pointerY,
+						(m) => {
+							return m.isVisible && m.isPickable && m.isEnabled(true) && !m._masterMesh;
+						},
+						false
+					);
 				}
 
-				if (pickInfo?.pickedMesh === object) {
-					return instance[propertyKey]?.(pointerInfo);
+				const pickedMesh = pickInfo.pickedMesh;
+				if (pickedMesh) {
+					if (params.options.mode === "attachedMeshOnly" && pickedMesh === object) {
+						return instance[propertyKey]?.(pointerInfo);
+					}
+
+					if (params.options.mode === "includeDescendants" && isNode(object)) {
+						const descendants = [object, ...object.getDescendants(false)];
+						const pickedDescendant = descendants.find((d) => d === pickedMesh);
+						if (pickedDescendant) {
+							return instance[propertyKey]?.(pointerInfo);
+						}
+					}
 				}
 			});
 		});

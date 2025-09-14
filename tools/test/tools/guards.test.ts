@@ -1,203 +1,184 @@
 import {
-    isAbstractMesh, isMesh, isGroundMesh, isInstancedMesh,
-    isBone, isTransformNode,
-    isCamera, isFreeCamera, isArcRotateCamera,
-    isPointLight, isDirectionalLight, isSpotLight, isHemisphericLight,
-    isTexture,
+	isAbstractMesh,
+	isMesh,
+	isGroundMesh,
+	isInstancedMesh,
+	isBone,
+	isTransformNode,
+	isCamera,
+	isFreeCamera,
+	isArcRotateCamera,
+	isPointLight,
+	isDirectionalLight,
+	isSpotLight,
+	isHemisphericLight,
+	isTexture,
+	isLight,
+	isScene,
+	isParticleSystem,
+	isGPUParticleSystem,
+	isAnyParticleSystem,
 } from "../../src/tools/guards";
 
 describe("tools/guards", () => {
-    describe("isAbstractMesh", () => {
-        test("should return a boolean indicated if the passed object is a mesh or not", () => {
-            expect(
-                isAbstractMesh({ getClassName: () => "Mesh" })
-            ).toBeTruthy();
+	describe("isAbstractMesh", () => {
+		test("should return a boolean indicated if the passed object is a mesh or not", () => {
+			expect(isAbstractMesh({ getClassName: () => "Mesh" })).toBeTruthy();
 
-            expect(
-                isAbstractMesh({ getClassName: () => "LineMesh" })
-            ).toBeTruthy();
+			expect(isAbstractMesh({ getClassName: () => "LineMesh" })).toBeTruthy();
 
-            expect(
-                isAbstractMesh({ getClassName: () => "GroundMesh" })
-            ).toBeTruthy();
+			expect(isAbstractMesh({ getClassName: () => "GroundMesh" })).toBeTruthy();
 
-            expect(
-                isAbstractMesh({ getClassName: () => "InstancedMesh" })
-            ).toBeTruthy();
+			expect(isAbstractMesh({ getClassName: () => "InstancedMesh" })).toBeTruthy();
 
-            expect(
-                isAbstractMesh({ getClassName: () => "UnknownClass" })
-            ).toBeFalsy();
-        });
-    });
+			expect(isAbstractMesh({ getClassName: () => "UnknownClass" })).toBeFalsy();
+		});
+	});
 
-    describe("isMesh", () => {
-        test("should return a boolean indicated if the passed object is a mesh or not", () => {
-            expect(
-                isMesh({ getClassName: () => "Mesh" })
-            ).toBeTruthy();
+	describe("isMesh", () => {
+		test("should return a boolean indicated if the passed object is a mesh or not", () => {
+			expect(isMesh({ getClassName: () => "Mesh" })).toBeTruthy();
 
-            expect(
-                isMesh({ getClassName: () => "GroundMesh" })
-            ).toBeTruthy();
+			expect(isMesh({ getClassName: () => "GroundMesh" })).toBeTruthy();
 
-            expect(
-                isMesh({ getClassName: () => "AbstractMesh" })
-            ).toBeFalsy();
+			expect(isMesh({ getClassName: () => "AbstractMesh" })).toBeFalsy();
 
-            expect(
-                isMesh({ getClassName: () => "InstancedMesh" })
-            ).toBeFalsy();
-        });
-    });
+			expect(isMesh({ getClassName: () => "InstancedMesh" })).toBeFalsy();
+		});
+	});
 
-    describe("isGroundMesh", () => {
-        test("should return a boolean indicated if the passed object is a ground mesh or not", () => {
-            expect(
-                isGroundMesh({ getClassName: () => "Mesh" })
-            ).toBeFalsy();
+	describe("isGroundMesh", () => {
+		test("should return a boolean indicated if the passed object is a ground mesh or not", () => {
+			expect(isGroundMesh({ getClassName: () => "Mesh" })).toBeFalsy();
 
-            expect(
-                isGroundMesh({ getClassName: () => "GroundMesh" })
-            ).toBeTruthy();
+			expect(isGroundMesh({ getClassName: () => "GroundMesh" })).toBeTruthy();
 
-            expect(
-                isGroundMesh({ getClassName: () => "AbstractMesh" })
-            ).toBeFalsy();
+			expect(isGroundMesh({ getClassName: () => "AbstractMesh" })).toBeFalsy();
 
-            expect(
-                isGroundMesh({ getClassName: () => "InstancedMesh" })
-            ).toBeFalsy();
-        });
-    });
+			expect(isGroundMesh({ getClassName: () => "InstancedMesh" })).toBeFalsy();
+		});
+	});
 
-    describe("isInstancedMesh", () => {
-        test("should return a boolean indicated if the passed object is a instanced mesh or not", () => {
-            expect(
-                isInstancedMesh({ getClassName: () => "InstancedMesh" })
-            ).toBeTruthy();
-        });
-    });
+	describe("isInstancedMesh", () => {
+		test("should return a boolean indicated if the passed object is a instanced mesh or not", () => {
+			expect(isInstancedMesh({ getClassName: () => "InstancedMesh" })).toBeTruthy();
+		});
+	});
 
-    describe("isBone", () => {
-        test("should return a boolean indicated if the passed object is a instanced mesh or not", () => {
-            expect(
-                isBone({ getClassName: () => "Bone" })
-            ).toBeTruthy();
-        });
-    });
+	describe("isBone", () => {
+		test("should return a boolean indicated if the passed object is a instanced mesh or not", () => {
+			expect(isBone({ getClassName: () => "Bone" })).toBeTruthy();
+		});
+	});
 
-    describe("isTransformNode", () => {
-        test("should return a boolean indicated if the passed object is a transform node or not", () => {
-            expect(
-                isTransformNode({ getClassName: () => "TransformNode" })
-            ).toBeTruthy();
+	describe("isTransformNode", () => {
+		test("should return a boolean indicated if the passed object is a transform node or not", () => {
+			expect(isTransformNode({ getClassName: () => "TransformNode" })).toBeTruthy();
 
-            expect(
-                isTransformNode({ getClassName: () => "AbstractMesh" })
-            ).toBeFalsy();
-        });
-    });
+			expect(isTransformNode({ getClassName: () => "AbstractMesh" })).toBeFalsy();
+		});
+	});
 
-    describe("isCamera", () => {
-        test("should return a boolean indicated if the passed object is a camera or not", () => {
-            expect(
-                isCamera({ getClassName: () => "Camera" })
-            ).toBeTruthy();
-            expect(
-                isCamera({ getClassName: () => "FreeCamera" })
-            ).toBeTruthy();
-            expect(
-                isCamera({ getClassName: () => "TargetCamera" })
-            ).toBeTruthy();
-            expect(
-                isCamera({ getClassName: () => "EditorCamera" })
-            ).toBeTruthy();
-            expect(
-                isCamera({ getClassName: () => "ArcRotateCamera" })
-            ).toBeTruthy();
-            expect(
-                isCamera({ getClassName: () => "UniversalCamera" })
-            ).toBeTruthy();
+	describe("isCamera", () => {
+		test("should return a boolean indicated if the passed object is a camera or not", () => {
+			expect(isCamera({ getClassName: () => "Camera" })).toBeTruthy();
+			expect(isCamera({ getClassName: () => "FreeCamera" })).toBeTruthy();
+			expect(isCamera({ getClassName: () => "TargetCamera" })).toBeTruthy();
+			expect(isCamera({ getClassName: () => "EditorCamera" })).toBeTruthy();
+			expect(isCamera({ getClassName: () => "ArcRotateCamera" })).toBeTruthy();
+			expect(isCamera({ getClassName: () => "UniversalCamera" })).toBeTruthy();
 
-            expect(
-                isCamera({ getClassName: () => "Mesh" })
-            ).toBeFalsy();
-        });
-    });
+			expect(isCamera({ getClassName: () => "Mesh" })).toBeFalsy();
+		});
+	});
 
-    describe("isFreeCamera", () => {
-        test("should return a boolean indicated if the passed object is a free camera or not", () => {
-            expect(
-                isFreeCamera({ getClassName: () => "FreeCamera" })
-            ).toBeTruthy();
-            expect(
-                isFreeCamera({ getClassName: () => "UniversalCamera" })
-            ).toBeTruthy();
+	describe("isFreeCamera", () => {
+		test("should return a boolean indicated if the passed object is a free camera or not", () => {
+			expect(isFreeCamera({ getClassName: () => "FreeCamera" })).toBeTruthy();
+			expect(isFreeCamera({ getClassName: () => "UniversalCamera" })).toBeTruthy();
 
-            expect(
-                isFreeCamera({ getClassName: () => "TargetCamera" })
-            ).toBeFalsy();
-        });
-    });
+			expect(isFreeCamera({ getClassName: () => "TargetCamera" })).toBeFalsy();
+		});
+	});
 
-    describe("isArcRotateCamera", () => {
-        test("should return a boolean indicated if the passed object is a arc rotate camera or not", () => {
-            expect(
-                isArcRotateCamera({ getClassName: () => "ArcRotateCamera" })
-            ).toBeTruthy();
-        });
-    });
+	describe("isArcRotateCamera", () => {
+		test("should return a boolean indicated if the passed object is a arc rotate camera or not", () => {
+			expect(isArcRotateCamera({ getClassName: () => "ArcRotateCamera" })).toBeTruthy();
+		});
+	});
 
-    describe("isPointLight", () => {
-        test("should return a boolean indicated if the passed object is a point light or not", () => {
-            expect(
-                isPointLight({ getClassName: () => "PointLight" })
-            ).toBeTruthy();
-        });
-    });
+	describe("isPointLight", () => {
+		test("should return a boolean indicated if the passed object is a point light or not", () => {
+			expect(isPointLight({ getClassName: () => "PointLight" })).toBeTruthy();
+		});
+	});
 
-    describe("isDirectionalLight", () => {
-        test("should return a boolean indicated if the passed object is a directional light or not", () => {
-            expect(
-                isDirectionalLight({ getClassName: () => "DirectionalLight" })
-            ).toBeTruthy();
-        });
-    });
+	describe("isDirectionalLight", () => {
+		test("should return a boolean indicated if the passed object is a directional light or not", () => {
+			expect(isDirectionalLight({ getClassName: () => "DirectionalLight" })).toBeTruthy();
+		});
+	});
 
-    describe("isSpotLight", () => {
-        test("should return a boolean indicated if the passed object is a spot light or not", () => {
-            expect(
-                isSpotLight({ getClassName: () => "SpotLight" })
-            ).toBeTruthy();
-        });
-    });
+	describe("isSpotLight", () => {
+		test("should return a boolean indicated if the passed object is a spot light or not", () => {
+			expect(isSpotLight({ getClassName: () => "SpotLight" })).toBeTruthy();
+		});
+	});
 
-    describe("isHemisphericLight", () => {
-        test("should return a boolean indicated if the passed object is a hemispheric light or not", () => {
-            expect(
-                isHemisphericLight({ getClassName: () => "HemisphericLight" })
-            ).toBeTruthy();
-        });
-    });
+	describe("isHemisphericLight", () => {
+		test("should return a boolean indicated if the passed object is a hemispheric light or not", () => {
+			expect(isHemisphericLight({ getClassName: () => "HemisphericLight" })).toBeTruthy();
+		});
+	});
 
-    describe("isTexture", () => {
-        test("should return a boolean indicated if the passed object is a texture or not", () => {
-            expect(
-                isTexture({ getClassName: () => "BaseTexture" })
-            ).toBeFalsy();
+	describe("isLight", () => {
+		test("should return a boolean indicated if the passed object is a light or not", () => {
+			expect(isLight({ getClassName: () => "Light" })).toBeTruthy();
+			expect(isLight({ getClassName: () => "PointLight" })).toBeTruthy();
+			expect(isLight({ getClassName: () => "SpotLight" })).toBeTruthy();
+			expect(isLight({ getClassName: () => "DirectionalLight" })).toBeTruthy();
+			expect(isLight({ getClassName: () => "HemisphericLight" })).toBeTruthy();
 
-            expect(
-                isTexture({ getClassName: () => "Texture" })
-            ).toBeTruthy();
+			expect(isLight({ getClassName: () => "ShadowGenerator" })).toBeFalsy();
+		});
+	});
 
-            expect(
-                isTexture({ getClassName: () => "CubeTexture" })
-            ).toBeFalsy();
+	describe("isTexture", () => {
+		test("should return a boolean indicated if the passed object is a texture or not", () => {
+			expect(isTexture({ getClassName: () => "BaseTexture" })).toBeFalsy();
 
-            expect(
-                isTexture({ getClassName: () => "HDRCubeTexture" })
-            ).toBeFalsy();
-        });
-    });
+			expect(isTexture({ getClassName: () => "Texture" })).toBeTruthy();
+
+			expect(isTexture({ getClassName: () => "CubeTexture" })).toBeFalsy();
+
+			expect(isTexture({ getClassName: () => "HDRCubeTexture" })).toBeFalsy();
+		});
+	});
+
+	describe("isScene", () => {
+		test("should return a boolean indicated if the passed object is a scene or not", () => {
+			expect(isScene({ getClassName: () => "Scene" })).toBeTruthy();
+		});
+	});
+
+	describe("isParticleSystem", () => {
+		test("should return a boolean indicated if the passed object is a particle system or not", () => {
+			expect(isParticleSystem({ getClassName: () => "ParticleSystem" })).toBeTruthy();
+		});
+	});
+
+	describe("isGPUParticleSystem", () => {
+		test("should return a boolean indicated if the passed object is a GPU particle system or not", () => {
+			expect(isGPUParticleSystem({ getClassName: () => "GPUParticleSystem" })).toBeTruthy();
+		});
+	});
+
+	describe("isAnyParticleSystem", () => {
+		test("should return a boolean indicated if the passed object is a any particle system or not", () => {
+			expect(isAnyParticleSystem({ getClassName: () => "ParticleSystem" })).toBeTruthy();
+			expect(isAnyParticleSystem({ getClassName: () => "GPUParticleSystem" })).toBeTruthy();
+
+			expect(isAnyParticleSystem({ getClassName: () => "SolidPS" })).toBeFalsy();
+		});
+	});
 });
