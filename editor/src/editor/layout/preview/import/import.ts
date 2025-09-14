@@ -12,7 +12,7 @@ import { isMesh } from "../../../../tools/guards/nodes";
 import { isTexture } from "../../../../tools/guards/texture";
 import { executeSimpleWorker } from "../../../../tools/worker";
 import { isMultiMaterial } from "../../../../tools/guards/material";
-import { configureSimultaneousLightsForMaterial } from "../../../../tools/mesh/material";
+import { configureSimultaneousLightsForMaterial } from "../../../../tools/material/material";
 import { onNodesAddedObservable, onTextureAddedObservable } from "../../../../tools/observables";
 
 import { projectConfiguration } from "../../../../project/configuration";

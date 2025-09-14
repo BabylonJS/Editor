@@ -7,12 +7,12 @@ import { Editor } from "../../editor/main";
 
 import { executeSimpleWorker } from "../../tools/worker";
 
-export interface IExtraMaterialTexturesOptions {
+export interface IExtractNodeMaterialTexturesOptions {
 	materialData: any;
 	assetsDirectory: string;
 }
 
-export async function extractNodeMaterialTextures(editor: Editor, options: IExtraMaterialTexturesOptions) {
+export async function extractNodeMaterialTextures(editor: Editor, options: IExtractNodeMaterialTexturesOptions) {
 	const blocks = options.materialData.blocks.filter((block) => block.customType === "BABYLON.TextureBlock" && block.texture?.name);
 
 	await Promise.all(
@@ -55,7 +55,7 @@ export async function extractNodeMaterialTextures(editor: Editor, options: IExtr
 					await writeFile(outputFilename, buffer);
 				}
 
-				block.texture.name = block.texture.url = join("assets", "editor_generated_extracted_textures", filename).replace(/\\/g, "/");
+				block.texture.name = block.texture.url = join("assets", "editor-generated_extracted-textures", filename).replace(/\\/g, "/");
 			}
 		})
 	);

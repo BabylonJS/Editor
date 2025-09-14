@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { isTexture } from "../../tools/guards/texture";
 import { isNodeMaterial } from "../../tools/guards/material";
 import { getCollisionMeshFor } from "../../tools/mesh/collision";
+import { extractNodeMaterialTextures } from "../../tools/material/extract";
 import { createDirectoryIfNotExist, normalizedGlob } from "../../tools/fs";
 import { isCollisionMesh, isEditorCamera, isMesh } from "../../tools/guards/nodes";
 
@@ -26,7 +27,6 @@ import { processAssetFile } from "./assets";
 import { configureMeshesLODs } from "./lod";
 import { handleExportScripts } from "./scripts";
 import { configureMeshesPhysics } from "./physics";
-import { extractNodeMaterialTextures } from "./material";
 import { EditorExportProjectProgressComponent } from "./progress";
 
 export type IExportProjectOptions = {
