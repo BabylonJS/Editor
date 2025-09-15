@@ -81,6 +81,8 @@ import { listenParticleAssetsEvents } from "./assets-browser/events/particles";
 import { openEnvViewer } from "./assets-browser/viewers/env-viewer";
 import { openModelViewer } from "./assets-browser/viewers/model-viewer";
 
+import { EditorAssetsTreeLabel } from "./assets-browser/label";
+
 import "babylonjs-loaders";
 
 import "../../loader/assimpjs";
@@ -253,19 +255,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 				let node = allNodes.find((n) => n.id === relativePath);
 				if (!node) {
 					node = {
-						label: (
-							<div
-								draggable
-								className={`
-                                    ml-2 p-1 w-full h-full pointer-events-auto
-                                    ${relativePath.startsWith("public") || relativePath.startsWith("node_modules") || relativePath.startsWith("assets/editor-generated_") ? "opacity-35" : ""}
-                                `}
-								onDragOver={(ev) => ev.preventDefault()}
-								onDrop={relativePath.startsWith("assets") ? (ev) => this._handleDropInTree(ev, relativePath) : undefined}
-							>
-								{split[i]}
-							</div>
-						),
+						label: <EditorAssetsTreeLabel name={split[i]} relativePath={relativePath} onDrop={(ev) => this._handleDropInTree(ev, relativePath)} />,
 						id: relativePath,
 						nodeData: relativePath,
 						icon: <FaFolder className="w-4 h-4" />,
