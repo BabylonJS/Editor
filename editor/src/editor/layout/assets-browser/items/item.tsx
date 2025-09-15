@@ -86,6 +86,11 @@ export interface IAssetsBrowserItemState {
 	isRenaming: boolean;
 
 	/**
+	 * Defines wether or not a file is being dragged over the current item (if directory).
+	 */
+	isDragOver: boolean;
+
+	/**
 	 * Defines the optional preview image.
 	 */
 	previewImage: string | null;
@@ -102,6 +107,8 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 			isRenaming: false,
 			isDirectory: false,
 
+			isDragOver: false,
+
 			previewImage: null,
 		};
 	}
@@ -117,7 +124,20 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 							draggable={!this.state.isRenaming}
 							onDrop={(ev) => this._handleDrop(ev)}
 							onDragStart={(ev) => this._handleDragStart(ev)}
-							onDragOver={(ev) => ev.preventDefault()}
+							onDragOver={(ev) => {
+								ev.preventDefault();
+
+								if (this.state.isDirectory && ev.dataTransfer.types.includes("assets")) {
+									this.setState({
+										isDragOver: true,
+									});
+								}
+							}}
+							onDragLeave={() => {
+								this.setState({
+									isDragOver: false,
+								});
+							}}
 							onClick={(ev) => {
 								ev.stopPropagation();
 
@@ -131,6 +151,7 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
                                 flex flex-col gap-2 w-[120px] h-[120px] py-2 cursor-pointer rounded-lg
                                 ${this.state.isRenaming ? "px-1 scale-150 relative z-[9999] backdrop-blur-sm" : "px-5 scale-100"}
                                 ${this.props.selected ? "bg-muted-foreground/35" : "hover:bg-secondary"}
+								${this.state.isDragOver ? "bg-black/50" : ""}
                                 transition-all duration-300
                             `}
 						>
@@ -244,6 +265,10 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 	private async _handleDrop(ev: DragEvent<HTMLDivElement>): Promise<void> {
 		ev.preventDefault();
 		ev.stopPropagation();
+
+		this.setState({
+			isDragOver: false,
+		});
 
 		if (!this.state.isDirectory) {
 			return;
