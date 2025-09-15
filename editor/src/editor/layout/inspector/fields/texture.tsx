@@ -1,3 +1,4 @@
+import { pathExists } from "fs-extra";
 import { extname, join, dirname } from "path/posix";
 
 import sharp from "sharp";
@@ -22,6 +23,7 @@ import { projectConfiguration } from "../../../../project/configuration";
 import { configureImportedTexture } from "../../preview/import/import";
 
 import { EXRIcon } from "../../../../ui/icons/exr";
+import { Button } from "../../../../ui/shadcn/ui/button";
 import { SpinnerUIComponent } from "../../../../ui/spinner";
 import { Popover, PopoverContent, PopoverTrigger } from "../../../../ui/shadcn/ui/popover";
 
@@ -48,6 +50,8 @@ export interface IEditorInspectorTextureFieldProps extends PropsWithChildren {
 
 export interface IEditorInspectorTextureFieldState {
 	dragOver: boolean;
+
+	previewError: boolean;
 	previewTemporaryUrl: string | null;
 }
 
@@ -57,6 +61,7 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 
 		this.state = {
 			dragOver: false,
+			previewError: false,
 			previewTemporaryUrl: null,
 		};
 
@@ -75,14 +80,12 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 				className={`flex flex-col w-full p-5 rounded-lg ${this.state.dragOver ? "bg-muted-foreground/75 dark:bg-muted-foreground/20" : "bg-muted-foreground/10 dark:bg-muted-foreground/5"} transition-all duration-300 ease-in-out`}
 			>
 				<div className="flex gap-4 w-full">
-					{texture && this._getPreviewComponent(textureUrl)}
-
-					{!texture && this._getPreviewComponent(textureUrl)}
+					{this._getPreviewComponent(textureUrl)}
 
 					<div className="flex flex-col w-full">
 						<div className="px-2">{this.props.title}</div>
 
-						{textureUrl && (
+						{textureUrl && !texture.loadingError && (
 							<div className="flex flex-col gap-1 mt-1 w-full">
 								{!this.props.hideLevel && (
 									<EditorInspectorNumberField
@@ -132,6 +135,20 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 								)}
 							</div>
 						)}
+
+						{(texture?.loadingError ?? false) && (
+							<div className="flex flex-col gap-2">
+								<div className="px-2 text-red-300">
+									Failed to load texture
+									<br />
+									Please ensure the file exists at the specified path: <b className="text-red-500">{textureUrl}</b>
+								</div>
+
+								<Button variant="secondary" onClick={() => (isTexture(texture) || isCubeTexture(texture)) && this._handleReloadTexture(texture)}>
+									Reload
+								</Button>
+							</div>
+						)}
 					</div>
 					<div
 						onClick={() => {
@@ -177,10 +194,18 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 			return;
 		}
 
+		const wasLoadingError = texture.loadingError;
+
 		const projectDir = join(dirname(projectConfiguration.path));
 		const texturePath = texture.url.startsWith(projectDir) ? texture.url : join(projectDir, texture.url);
 
-		texture.updateURL(texturePath);
+		texture.updateURL(texturePath, undefined, () => {
+			texture["_loadingError"] = false;
+
+			if (wasLoadingError) {
+				this._computeTemporaryPreview();
+			}
+		});
 		texture.url = texturePath.replace(join(projectDir, "/"), "");
 	}
 
@@ -199,6 +224,8 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 									<EXRIcon size="96px" />
 								) : this.state.previewTemporaryUrl ? (
 									<img className="w-24 h-24 object-contain" src={this.state.previewTemporaryUrl} />
+								) : this.state.previewError ? (
+									<XMarkIcon className="w-24 h-24 bg-red-500/35 rounded-lg" />
 								) : (
 									<SpinnerUIComponent width="64px" />
 								)}
@@ -486,12 +513,24 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 	}
 
 	private async _computeTemporaryPreview(): Promise<void> {
-		const texture = this.props.object[this.props.property] as Texture;
-		if (!isTexture(texture) || !texture.url || extname(texture.url).toLowerCase() === ".exr") {
+		const texture = this.props.object[this.props.property] as Texture | CubeTexture;
+		if (!texture.url || extname(texture.url).toLowerCase() === ".exr") {
 			return;
 		}
 
 		const path = join(dirname(projectConfiguration.path!), texture.url);
+
+		if (!(await pathExists(path))) {
+			return this.setState({
+				previewError: true,
+			});
+		}
+
+		if (!isTexture(texture)) {
+			return this.setState({
+				previewError: false,
+			});
+		}
 
 		const buffer = await sharp(path).resize(128, 128).toBuffer();
 
@@ -500,6 +539,7 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 		}
 
 		this.setState({
+			previewError: false,
 			previewTemporaryUrl: URL.createObjectURL(new Blob([buffer])),
 		});
 	}
