@@ -13,7 +13,9 @@ export interface IExtractNodeMaterialTexturesOptions {
 }
 
 export async function extractNodeMaterialTextures(editor: Editor, options: IExtractNodeMaterialTexturesOptions) {
-	const blocks = options.materialData.blocks.filter((block) => block.customType === "BABYLON.TextureBlock" && block.texture?.name);
+	const blocks = options.materialData.blocks.filter(
+		(block: any) => (block.customType === "BABYLON.TextureBlock" || block.customType === "BABYLON.ImageSourceBlock") && block.texture?.name
+	);
 
 	await Promise.all(
 		blocks.map(async (block: any) => {
