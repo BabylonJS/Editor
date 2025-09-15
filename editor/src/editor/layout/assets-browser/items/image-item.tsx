@@ -1,8 +1,10 @@
 import sharp from "sharp";
-import { writeFile } from "fs-extra";
+import { pathExists, writeFile } from "fs-extra";
 
 import { toast } from "sonner";
 import { ReactNode } from "react";
+
+import { AiFillPicture } from "react-icons/ai";
 
 import { ISize } from "babylonjs";
 
@@ -19,6 +21,7 @@ export class AssetBrowserImageItem extends AssetsBrowserItem {
 	private _availableResizes: ISize[] = [];
 	private _size = { width: 0, height: 0 } as ISize;
 
+	private _thumbnailError: boolean = false;
 	private _thumbnailPath: string | null = null;
 
 	/**
@@ -55,6 +58,10 @@ export class AssetBrowserImageItem extends AssetsBrowserItem {
 			return <img alt="" src={this._thumbnailPath} className="w-[120px] aspect-square object-contain" />;
 		}
 
+		if (this._thumbnailError) {
+			return <AiFillPicture size="64px" />;
+		}
+
 		return <SpinnerUIComponent width="64px" />;
 	}
 
@@ -77,13 +84,21 @@ export class AssetBrowserImageItem extends AssetsBrowserItem {
 	}
 
 	private async _updateThumbnail(): Promise<void> {
-		const buffer = await sharp(this.props.absolutePath).resize(256, 256).toBuffer();
-		this._thumbnailPath = URL.createObjectURL(new Blob([buffer]));
+		if (await pathExists(this.props.absolutePath)) {
+			const buffer = await sharp(this.props.absolutePath).resize(256, 256).toBuffer();
+			this._thumbnailPath = URL.createObjectURL(new Blob([buffer]));
+		} else {
+			this._thumbnailError = true;
+		}
 
 		this.forceUpdate();
 	}
 
 	private async _updateAvailableSizes(): Promise<void> {
+		if (this._thumbnailError) {
+			return;
+		}
+
 		const metadata = await sharp(this.props.absolutePath).metadata();
 		if (metadata.width && metadata.height) {
 			this._size.width = metadata.width;
