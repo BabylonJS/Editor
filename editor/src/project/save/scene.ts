@@ -501,6 +501,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 				}
 
 				data.className = particleSystem.getClassName();
+				data.sourceParticleSystemSetId = particleSystem.sourceParticleSystemSetId;
 
 				await writeJSON(particleSystemPath, data, {
 					spaces: 4,

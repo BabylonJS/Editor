@@ -10,6 +10,7 @@ import { isNodeMaterial } from "../../tools/guards/material";
 import { getCollisionMeshFor } from "../../tools/mesh/collision";
 import { extractNodeMaterialTextures } from "../../tools/material/extract";
 import { createDirectoryIfNotExist, normalizedGlob } from "../../tools/fs";
+import { extractParticleSystemTextures } from "../../tools/particles/extract";
 import { isCollisionMesh, isEditorCamera, isMesh } from "../../tools/guards/nodes";
 
 import { saveRenderingConfigurationForCamera } from "../../editor/rendering/tools";
@@ -73,8 +74,21 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 		saveRenderingConfigurationForCamera(scene.activeCamera);
 	}
 
+	const projectDir = dirname(editor.state.projectPath);
+	const publicPath = join(projectDir, "public");
+
 	const savedGeometries: string[] = [];
 	const savedGeometryIds: string[] = [];
+
+	const extractedTexturesOutputPath = join(projectDir, "assets", "editor-generated_extracted-textures");
+
+	// Extract textures from particle systems.
+	if (scene.particleSystems.length) {
+		await createDirectoryIfNotExist(extractedTexturesOutputPath);
+		await extractParticleSystemTextures(editor, {
+			assetsDirectory: extractedTexturesOutputPath,
+		});
+	}
 
 	// Configure textures to store base size. This will be useful for the scene loader located
 	// in the `babylonjs-editor-tools` package.
@@ -131,9 +145,6 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 
 	configureMeshesLODs(data, scene);
 	configureMeshesPhysics(data, scene);
-
-	const projectDir = dirname(editor.state.projectPath);
-	const publicPath = join(projectDir, "public");
 
 	const sceneName = basename(editor.state.lastOpenedScenePath).split(".").shift()!;
 
@@ -252,14 +263,12 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 	});
 
 	if (nodeMaterials.length) {
-		const outputPath = join(projectDir, "assets", "editor-generated_extracted-textures");
-
-		await createDirectoryIfNotExist(outputPath);
+		await createDirectoryIfNotExist(extractedTexturesOutputPath);
 		await Promise.all(
 			nodeMaterials.map(async (materialData) =>
 				extractNodeMaterialTextures(editor, {
 					materialData,
-					assetsDirectory: outputPath,
+					assetsDirectory: extractedTexturesOutputPath,
 				})
 			)
 		);

@@ -5,7 +5,7 @@ import { copyFile, copy, mkdir, move, pathExists, readdir, stat, writeFile, writ
 import filenamify from "filenamify";
 
 import { AdvancedDynamicTexture } from "babylonjs-gui";
-import { Camera, Material, NodeMaterial, Tools } from "babylonjs";
+import { Camera, Material, NodeMaterial, Tools, NodeParticleSystemSet } from "babylonjs";
 
 import { ICinematic } from "babylonjs-editor-tools";
 
@@ -71,10 +71,12 @@ import { AssetBrowserImageItem } from "./assets-browser/items/image-item";
 import { AssetBrowserMaterialItem } from "./assets-browser/items/material-item";
 import { AssetBrowserCinematicItem } from "./assets-browser/items/cinematic-item";
 import { AssetsBrowserItem, IAssetsBrowserItemProps } from "./assets-browser/items/item";
+import { AssetBrowserParticleSystemItem } from "./assets-browser/items/particle-system-item";
 
 import { listenGuiAssetsEvents } from "./assets-browser/events/gui";
 import { listenSceneAssetsEvents } from "./assets-browser/events/scene";
 import { listenMaterialAssetsEvents } from "./assets-browser/events/material";
+import { listenParticleAssetsEvents } from "./assets-browser/events/particles";
 
 import { openEnvViewer } from "./assets-browser/viewers/env-viewer";
 import { openModelViewer } from "./assets-browser/viewers/model-viewer";
@@ -91,6 +93,7 @@ const ImageSelectable = createSelectable(AssetBrowserImageItem);
 const SceneSelectable = createSelectable(AssetBrowserSceneItem);
 const MaterialSelectable = createSelectable(AssetBrowserMaterialItem);
 const CinematicSelectable = createSelectable(AssetBrowserCinematicItem);
+const ParticleSystemSelectable = createSelectable(AssetBrowserParticleSystemItem);
 
 export interface IEditorAssetsBrowserProps {
 	/**
@@ -218,8 +221,9 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 		});
 
 		listenGuiAssetsEvents(this.props.editor);
-		listenMaterialAssetsEvents(this.props.editor);
 		listenSceneAssetsEvents(this.props.editor);
+		listenMaterialAssetsEvents(this.props.editor);
+		listenParticleAssetsEvents(this.props.editor);
 	}
 
 	private async _refreshFilesTreeNodes(path: string): Promise<void> {
@@ -743,12 +747,18 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 								{this.props.editor.state.enableExperimentalFeatures && (
 									<>
 										<ContextMenuSeparator />
+										<ContextMenuItem onClick={() => this._handleAddNodeParticleSystem()}>Node Particle System</ContextMenuItem>
+										<ContextMenuSeparator />
 										<ContextMenuItem onClick={() => this._handleAddCinematic()}>Cinematic</ContextMenuItem>
 									</>
 								)}
 
-								<ContextMenuSeparator />
-								<ContextMenuItem onClick={() => this._handleAddFullScreenGUI()}>Full Screen GUI</ContextMenuItem>
+								{this.props.editor.state.enableExperimentalFeatures && (
+									<>
+										<ContextMenuSeparator />
+										<ContextMenuItem onClick={() => this._handleAddFullScreenGUI()}>Full Screen GUI</ContextMenuItem>
+									</>
+								)}
 
 								{this.state.browsedPath?.startsWith(join(dirname(projectConfiguration.path!), "/src")) && (
 									<>
@@ -828,6 +838,9 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 
 			case ".cinematic":
 				return <CinematicSelectable {...props} />;
+
+			case ".npss":
+				return <ParticleSystemSelectable {...props} />;
 
 			default:
 				return <DefaultSelectable {...props} />;
@@ -989,6 +1002,38 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 		return this._refreshItems(this.state.browsedPath);
 	}
 
+	private async _handleAddNodeParticleSystem(): Promise<void> {
+		if (!this.state.browsedPath) {
+			return;
+		}
+
+		const npe = new NodeParticleSystemSet("New Node Particle System Set");
+		npe.setToDefault();
+		npe.id = Tools.RandomId();
+		npe.uniqueId = UniqueNumber.Get();
+
+		const pss = await npe.buildAsync(this.props.editor.layout.preview.scene, false);
+
+		const name = await findAvailableFilename(this.state.browsedPath, npe.name, ".npss");
+		await writeJSON(
+			join(this.state.browsedPath, name),
+			{
+				id: npe.id,
+				uniqueId: npe.uniqueId,
+				...npe.serialize(),
+			},
+			{
+				spaces: "\t",
+				encoding: "utf-8",
+			}
+		);
+
+		npe.dispose();
+		pss.dispose();
+
+		return this._refreshItems(this.state.browsedPath);
+	}
+
 	private async _handleAddCinematic(): Promise<void> {
 		if (!this.state.browsedPath) {
 			return;
@@ -1006,8 +1051,6 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 			spaces: "\t",
 			encoding: "utf-8",
 		});
-
-		this.props.editor.layout.preview.scene;
 
 		return this._refreshItems(this.state.browsedPath);
 	}

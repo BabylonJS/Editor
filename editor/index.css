@@ -8,6 +8,7 @@
 
 @import "src/editor/windows/nme/index.css";
 @import "src/editor/windows/ge/index.css";
+@import "src/editor/windows/npe/index.css";
 
 @layer base {
     :root {

@@ -85,6 +85,7 @@ import { applyImportedGuiFile } from "./preview/import/gui";
 import { applyTextureAssetToObject } from "./preview/import/texture";
 import { applyMaterialAssetToObject } from "./preview/import/material";
 import { EditorPreviewConvertProgress } from "./preview/import/progress";
+import { loadImportedParticleSystemFile } from "./preview/import/particles";
 import { loadImportedSceneFile, tryConvertSceneFile } from "./preview/import/import";
 
 export interface IEditorPreviewProps {
@@ -1153,8 +1154,14 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 				case ".ogg":
 				case ".wav":
 				case ".wave":
-					if (this.props.editor.state.enableExperimentalFeatures) {
-						applySoundAsset(this.props.editor, mesh ?? this.scene, absolutePath).then(() => {
+					applySoundAsset(this.props.editor, mesh ?? this.scene, absolutePath).then(() => {
+						this.props.editor.layout.graph.refresh();
+					});
+					break;
+
+				case ".npss":
+					if (mesh) {
+						loadImportedParticleSystemFile(this.props.editor.layout.preview.scene, mesh, absolutePath).then(() => {
 							this.props.editor.layout.graph.refresh();
 						});
 					}
