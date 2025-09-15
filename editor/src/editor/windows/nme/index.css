@@ -26,3 +26,8 @@
 .nme-right-panel #propertyTab .checkBoxLine .checkBox {
     padding: 2px 5px;
 }
+
+.numeric > input {
+    color: black !important;
+    padding: 2px 5px;
+}

@@ -669,6 +669,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 			}
 
 			particleSystem!.uniqueId = data.uniqueId;
+			particleSystem!.sourceParticleSystemSetId = data.sourceParticleSystemSetId;
 
 			progress.step(progressStep);
 
