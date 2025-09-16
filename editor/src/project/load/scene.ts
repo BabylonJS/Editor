@@ -50,6 +50,7 @@ import { createDirectoryIfNotExist } from "../../tools/fs";
 
 import { isMultiMaterial } from "../../tools/guards/material";
 import { createSceneLink } from "../../tools/scene/scene-link";
+import { loadSavedAssetsCache } from "../../tools/assets/cache";
 import { isGPUParticleSystem } from "../../tools/guards/particles";
 import { isCubeTexture, isTexture } from "../../tools/guards/texture";
 import { updateIblShadowsRenderPipeline } from "../../tools/light/ibl";
@@ -174,6 +175,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 
 	SceneLoaderFlags.ForceFullSceneLoadingForIncremental = true;
 
+	const assetsCache = loadSavedAssetsCache();
 	const config = await readJSON(join(scenePath, "config.json"), "utf-8");
 
 	if (!options?.asLink) {
@@ -194,8 +196,17 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 		// Load environment
 		scene.environmentIntensity = config.environment.environmentIntensity;
 
-		if (config.environment.environmentTexture) {
-			scene.environmentTexture = Texture.Parse(config.environment.environmentTexture, scene, join(projectPath, "/"));
+		const environmentTexture = config.environment.environmentTexture;
+		if (environmentTexture) {
+			if (environmentTexture.name && assetsCache[environmentTexture.name]) {
+				environmentTexture.name = assetsCache[environmentTexture.name].newRelativePath;
+			}
+
+			if (environmentTexture.url && assetsCache[environmentTexture.url]) {
+				environmentTexture.url = assetsCache[environmentTexture.url].newRelativePath;
+			}
+
+			scene.environmentTexture = Texture.Parse(environmentTexture, scene, join(projectPath, "/"));
 
 			if (isCubeTexture(scene.environmentTexture)) {
 				scene.environmentTexture.url = join(projectPath, scene.environmentTexture.name);
