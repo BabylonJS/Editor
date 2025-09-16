@@ -80,7 +80,7 @@ export async function applyAssetsCache() {
 
 	if (entries.length > 0) {
 		await applyDirectoryAssetsCache(join(rootUrl, "assets"), entries);
-		await applyDirectoryAssetsCache(join(rootUrl, "public/scene/assets"), entries);
+		await applyDirectoryAssetsCache(join(rootUrl, "public/scene"), entries);
 
 		for (const [originalRelativePath, _] of entries) {
 			delete assetsCache[originalRelativePath];

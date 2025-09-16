@@ -43,7 +43,7 @@ import { ICommandPaletteType } from "../dialogs/command-palette/command-palette"
 import { getMaterialCommands, getMaterialsLibraryCommands } from "../dialogs/command-palette/material";
 
 import { loadScene } from "../../project/load/scene";
-import { saveProject } from "../../project/save/save";
+import { saveProject, saveProjectConfiguration } from "../../project/save/save";
 import { onProjectConfigurationChangedObservable, projectConfiguration } from "../../project/configuration";
 
 import { showConfirm, showPrompt } from "../../ui/dialog";
@@ -383,7 +383,10 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 		// Scene
 		if (oldAbsolutePath === this.props.editor.state.lastOpenedScenePath) {
 			renameScene(oldAbsolutePath, newAbsolutePath);
-			return this.props.editor.setState({ lastOpenedScenePath: newAbsolutePath });
+
+			return this.props.editor.setState({ lastOpenedScenePath: newAbsolutePath }, () => {
+				saveProjectConfiguration(this.props.editor);
+			});
 		}
 
 		const oldRelativePath = oldAbsolutePath.replace(join(dirname(this.props.editor.state.projectPath), "/"), "");
@@ -398,7 +401,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 
 			const files = await normalizedGlob(join(newAbsolutePath, "**"), {
 				ignore: {
-					ignored: (p) => p.isDirectory(),
+					ignored: (p) => p.isDirectory() && extname(p.name).toLowerCase() !== ".scene",
 				},
 			});
 
@@ -406,7 +409,19 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 				const newFileRelativePath = file.replace(join(dirname(this.props.editor.state.projectPath!), "/"), "");
 				const oldFileRelativePath = newFileRelativePath.replace(newRelativePath, oldRelativePath);
 
-				this._handleFileRenamed(oldFileRelativePath, newFileRelativePath);
+				const extension = extname(oldFileRelativePath).toLowerCase();
+				if (extension === ".scene") {
+					const oldSceneRelativePath = join(oldAbsolutePath, basename(oldFileRelativePath));
+					renameScene(oldSceneRelativePath, file);
+
+					if (oldSceneRelativePath === this.props.editor.state.lastOpenedScenePath) {
+						this.props.editor.setState({ lastOpenedScenePath: file }, () => {
+							saveProjectConfiguration(this.props.editor);
+						});
+					}
+				} else {
+					this._handleFileRenamed(oldFileRelativePath, newFileRelativePath);
+				}
 			});
 		} else {
 			this._handleFileRenamed(oldRelativePath, newRelativePath);
