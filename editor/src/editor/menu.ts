@@ -154,9 +154,9 @@ export function setupEditorMenu(): void {
 						type: "separator",
 					},
 					{
-						label: "Run Project",
+						label: "Play Scene",
 						accelerator: "CommandOrControl+B",
-						click: () => BrowserWindow.getFocusedWindow()?.webContents.send("preview:run-project"),
+						click: () => BrowserWindow.getFocusedWindow()?.webContents.send("preview:play-scene"),
 					},
 				],
 			},

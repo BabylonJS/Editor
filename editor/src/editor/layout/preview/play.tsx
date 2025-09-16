@@ -127,18 +127,23 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 	}
 
 	public componentDidMount(): void {
-		ipcRenderer.on("preview:run-project", () => {
-			if (this.state.playing) {
-				this.props.onRestart();
-			} else if (!this.state.preparingPlay) {
-				this.playOrStopApplication();
-			}
+		ipcRenderer.on("preview:play-scene", () => {
+			this.triggerPlayScene();
 		});
+	}
+
+	public triggerPlayScene(): void {
+		if (this.state.playing) {
+			this.props.onRestart();
+		} else if (!this.state.preparingPlay) {
+			this.playOrStopApplication();
+		}
 	}
 
 	public componentDidUpdate(_: Readonly<IEditorPreviewPlayComponentProps>, prevState: Readonly<IEditorPreviewPlayComponentState>): void {
 		if (prevState !== this.state) {
 			this.props.editor.layout.preview.forceUpdate();
+			this.props.editor.layout.preview.gizmo._gizmosLayer.pickingEnabled = this.scene ? false : true;
 		}
 	}
 
