@@ -153,6 +153,10 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 							<MenubarItem onClick={() => this.props.editor.layout.inspector.setEditedObject(this.props.editor.layout.preview.scene.activeCamera)}>
 								Edit Camera
 							</MenubarItem>
+
+							<MenubarSeparator />
+
+							<MenubarItem onClick={() => this.props.editor.layout.preview.play.triggerPlayScene()}>Play Scene</MenubarItem>
 						</MenubarContent>
 					</MenubarMenu>
 
