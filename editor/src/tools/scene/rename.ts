@@ -1,7 +1,7 @@
 import { join, basename, dirname } from "path/posix";
 import { readJSON, writeJson, readdir, pathExists, remove } from "fs-extra";
 
-import { projectConfiguration } from "../../project/configuration";
+import { getProjectAssetsRootUrl, projectConfiguration } from "../../project/configuration";
 
 /**
  * Called on a scene has been renamed. This function will update all the references to the old scene
@@ -10,8 +10,15 @@ import { projectConfiguration } from "../../project/configuration";
  * @param newAbsolutePath defines the new absolute path of the scene folder.
  */
 export async function renameScene(oldAbsolutePath: string, newAbsolutePath: string) {
+	const rootUrl = getProjectAssetsRootUrl();
+	if (!rootUrl) {
+		return;
+	}
+
+	const oldRelativePath = oldAbsolutePath.replace(rootUrl, "");
+	const newRelativePath = newAbsolutePath.replace(rootUrl, "");
+
 	const name = basename(oldAbsolutePath, ".scene");
-	const newName = basename(newAbsolutePath);
 
 	const [meshesFiles, lodsFiles] = await Promise.all([readdir(join(newAbsolutePath, "meshes")), readdir(join(newAbsolutePath, "lods"))]);
 
@@ -22,7 +29,7 @@ export async function renameScene(oldAbsolutePath: string, newAbsolutePath: stri
 
 				try {
 					data.meshes.forEach((mesh) => {
-						mesh.delayLoadingFile = mesh.delayLoadingFile.replace(`assets/${name}.scene/`, `assets/${newName}/`);
+						mesh.delayLoadingFile = mesh.delayLoadingFile.replace(oldRelativePath, newRelativePath);
 					});
 
 					await writeJson(join(newAbsolutePath, "meshes", file), data, {
@@ -39,7 +46,7 @@ export async function renameScene(oldAbsolutePath: string, newAbsolutePath: stri
 
 				try {
 					data.meshes.forEach((mesh) => {
-						mesh.delayLoadingFile = mesh.delayLoadingFile.replace(`assets/${name}.scene/`, `assets/${newName}/`);
+						mesh.delayLoadingFile = mesh.delayLoadingFile.replace(oldRelativePath, newRelativePath);
 					});
 
 					await writeJson(join(newAbsolutePath, "lods", file), data, {
