@@ -1,11 +1,13 @@
 import { Node } from "@babylonjs/core/node";
 import { Scene } from "@babylonjs/core/scene";
+import { Material } from "@babylonjs/core/Materials/material";
 import { Color3, Color4 } from "@babylonjs/core/Maths/math.color";
 import { PickingInfo } from "@babylonjs/core/Collisions/pickingInfo";
 import { Texture } from "@babylonjs/core/Materials/Textures/texture";
 import { Vector2, Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { ParticleSystem } from "@babylonjs/core/Particles/particleSystem";
 import { GPUParticleSystem } from "@babylonjs/core/Particles/gpuParticleSystem";
+import { NodeParticleSystemSet } from "@babylonjs/core/Particles/Node/nodeParticleSystemSet";
 
 import { AdvancedDynamicTexture } from "@babylonjs/gui/2D/advancedDynamicTexture";
 
@@ -15,7 +17,7 @@ import { getSoundById } from "../tools/sound";
 import { isAbstractMesh, isNode } from "../tools/guards";
 
 import { IPointerEventDecoratorOptions } from "./events";
-import { VisibleInInspectorDecoratorConfiguration, VisibleInInspectorDecoratorEntityConfiguration } from "./inspector";
+import { VisibleInInspectorDecoratorConfiguration, VisibleInInspectorDecoratorEntityConfiguration, VisibleInspectorDecoratorAssetConfiguration } from "./inspector";
 
 export interface ISceneDecoratorData {
 	// @nodeFromScene
@@ -78,7 +80,7 @@ export interface ISceneDecoratorData {
 	}[];
 }
 
-export function applyDecorators(scene: Scene, object: any, script: any, instance: any, rootUrl: string) {
+export async function applyDecorators(scene: Scene, object: any, script: any, instance: any, rootUrl: string) {
 	const ctor = instance.constructor as ISceneDecoratorData;
 	if (!ctor) {
 		return;
@@ -107,23 +109,25 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 	});
 
 	// @guiFromAsset
-	ctor._GuiFromAsset?.forEach(async (params) => {
-		const guiUrl = `${rootUrl}assets/${params.pathInAssets}`;
+	await Promise.all(
+		(ctor._GuiFromAsset ?? []).map(async (params) => {
+			const guiUrl = `${rootUrl}assets/${params.pathInAssets}`;
 
-		try {
-			const response = await fetch(guiUrl);
-			const data = await response.json();
+			try {
+				const response = await fetch(guiUrl);
+				const data = await response.json();
 
-			const gui = AdvancedDynamicTexture.CreateFullscreenUI(data.name, true, scene);
-			gui.parseSerializedObject(data.content, false);
+				const gui = AdvancedDynamicTexture.CreateFullscreenUI(data.name, true, scene);
+				gui.parseSerializedObject(data.content, false);
 
-			instance[params.propertyKey.toString()] = gui;
-			params.onGuiCreated?.(instance, gui);
-		} catch (e) {
-			console.error(`Failed to load GUI from asset: ${guiUrl}`);
-			throw e;
-		}
-	});
+				instance[params.propertyKey.toString()] = gui;
+				params.onGuiCreated?.(instance, gui);
+			} catch (e) {
+				console.error(`Failed to load GUI from asset: ${guiUrl}`);
+				throw e;
+			}
+		})
+	);
 
 	// @fromParticleSystems
 	ctor._ParticleSystemsFromScene?.forEach((params) => {
@@ -139,61 +143,81 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 	});
 
 	// @visibleAsNumber, @visibleAsBoolean etc.
-	ctor._VisibleInInspector?.forEach((params) => {
-		const propertyKey = params.propertyKey.toString();
-		const attachedScripts = script.values;
+	await Promise.all(
+		(ctor._VisibleInInspector ?? []).map(async (params) => {
+			const propertyKey = params.propertyKey.toString();
+			const attachedScripts = script.values;
 
-		if (attachedScripts.hasOwnProperty(propertyKey) && attachedScripts[propertyKey].hasOwnProperty("value")) {
-			const value = attachedScripts[propertyKey].value;
+			if (attachedScripts.hasOwnProperty(propertyKey) && attachedScripts[propertyKey].hasOwnProperty("value")) {
+				const value = attachedScripts[propertyKey].value;
 
-			switch (params.configuration.type) {
-				case "number":
-				case "boolean":
-				case "keymap":
-				case "string":
-					instance[propertyKey] = value;
-					break;
+				switch (params.configuration.type) {
+					case "number":
+					case "boolean":
+					case "keymap":
+					case "string":
+						instance[propertyKey] = value;
+						break;
 
-				case "vector2":
-					instance[propertyKey] = Vector2.FromArray(value);
-					break;
-				case "vector3":
-					instance[propertyKey] = Vector3.FromArray(value);
-					break;
+					case "vector2":
+						instance[propertyKey] = Vector2.FromArray(value);
+						break;
+					case "vector3":
+						instance[propertyKey] = Vector3.FromArray(value);
+						break;
 
-				case "color3":
-					instance[propertyKey] = Color3.FromArray(value);
-					break;
-				case "color4":
-					instance[propertyKey] = Color4.FromArray(value);
-					break;
+					case "color3":
+						instance[propertyKey] = Color3.FromArray(value);
+						break;
+					case "color4":
+						instance[propertyKey] = Color4.FromArray(value);
+						break;
 
-				case "entity":
-					const entityType = (params.configuration as VisibleInInspectorDecoratorEntityConfiguration).entityType;
-					switch (entityType) {
-						case "node":
-							instance[propertyKey] = scene.getNodeById(value) ?? null;
-							break;
-						case "animationGroup":
-							instance[propertyKey] = scene.getAnimationGroupByName(value) ?? null;
-							break;
-						case "sound":
-							instance[propertyKey] = getSoundById(value, scene);
-							break;
-						case "particleSystem":
-							instance[propertyKey] = scene.particleSystems?.find((ps) => ps.id === value) ?? null;
-							break;
-					}
-					break;
+					case "entity":
+						const entityType = (params.configuration as VisibleInInspectorDecoratorEntityConfiguration).entityType;
+						switch (entityType) {
+							case "node":
+								instance[propertyKey] = scene.getNodeById(value) ?? null;
+								break;
+							case "animationGroup":
+								instance[propertyKey] = scene.getAnimationGroupByName(value) ?? null;
+								break;
+							case "sound":
+								instance[propertyKey] = getSoundById(value, scene);
+								break;
+							case "particleSystem":
+								instance[propertyKey] = scene.particleSystems?.find((ps) => ps.id === value) ?? null;
+								break;
+						}
+						break;
 
-				case "texture":
-					if (value) {
-						instance[propertyKey] = Texture.Parse(value, scene, rootUrl);
-					}
-					break;
+					case "texture":
+						if (value) {
+							instance[propertyKey] = Texture.Parse(value, scene, rootUrl);
+						}
+						break;
+
+					case "asset":
+						if (value) {
+							const assetType = (params.configuration as VisibleInspectorDecoratorAssetConfiguration).assetType;
+
+							const response = await fetch(`${rootUrl}${value}`);
+							const data = await response.json();
+							switch (assetType) {
+								case "nodeParticleSystemSet":
+									const npss = NodeParticleSystemSet.Parse(data);
+									instance[propertyKey] = npss;
+									break;
+
+								case "material":
+									instance[propertyKey] = Material.Parse(data, scene, rootUrl);
+									break;
+							}
+						}
+				}
 			}
-		}
-	});
+		})
+	);
 
 	// @onPointerEvent
 	if (ctor._PointerEvents?.length) {

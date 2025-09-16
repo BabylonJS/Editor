@@ -138,6 +138,14 @@ export function computeDefaultValuesForObject(script: any, output: VisibleInInsp
 					value: attachedScripts[value.propertyKey]?.value ?? null,
 				};
 				break;
+
+			case "asset":
+				attachedScripts[value.propertyKey] = {
+					type: value.configuration.type,
+					description: value.configuration.description,
+					value: attachedScripts[value.propertyKey]?.value ?? null,
+				};
+				break;
 		}
 	});
 }

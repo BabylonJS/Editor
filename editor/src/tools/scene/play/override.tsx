@@ -134,7 +134,10 @@ export function applyOverrides(editor: Editor) {
 
 	// Fetch
 	window.fetch = async (input: string | URL | Request, init?: RequestInit) => {
-		input = join(publicDir, input.toString());
+		if (!isAbsolute(input.toString())) {
+			input = join(publicDir, input.toString());
+		}
+
 		return savedWindowMethods.fetch.call(window, input, init);
 	};
 
