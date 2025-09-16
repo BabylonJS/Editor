@@ -8,6 +8,7 @@ import { RenderTargetTexture, SceneSerializer } from "babylonjs";
 import { Editor } from "../../editor/main";
 
 import { isSceneLinkNode } from "../../tools/guards/scene";
+import { applyAssetsCache } from "../../tools/assets/cache";
 import { isFromSceneLink } from "../../tools/scene/scene-link";
 import { isNodeVisibleInGraph } from "../../tools/node/metadata";
 import { getBufferSceneScreenshot } from "../../tools/scene/screenshot";
@@ -603,6 +604,11 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 		})
 	);
 
+	// Update screenshot
+	getBufferSceneScreenshot(scene).then((screenshotBuffer) => {
+		writeFile(join(scenePath, "preview.png"), screenshotBuffer);
+	});
+
 	// Update material files
 	const materialFiles = await normalizedGlob(join(projectPath, "/**/*.material"), {
 		nodir: true,
@@ -629,9 +635,6 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 		})
 	);
 
-	// Update screenshot
-	const screenshotBuffer = await getBufferSceneScreenshot(scene);
-	if (screenshotBuffer) {
-		await writeFile(join(scenePath, "preview.png"), screenshotBuffer);
-	}
+	// Update assets cache in all scenes and assets files.
+	await applyAssetsCache();
 }

@@ -5,6 +5,7 @@ import { Engine, Scene, SerializationHelper, BaseTexture } from "babylonjs";
 
 import { isTexture } from "../../tools/guards/texture";
 import { temporaryDirectoryName } from "../../tools/project";
+import { loadSavedAssetsCache } from "../../tools/assets/cache";
 
 import { getCompressedTextureFilename, ktxSupportedextensions, KTXToolsType } from "../export/ktx";
 
@@ -17,6 +18,15 @@ export function textureParser(source: any, scene: Scene, rootUrl: string): BaseT
 
 	const name = source.name;
 	const extension = extname(name).toLowerCase();
+
+	const assetsCache = loadSavedAssetsCache();
+	if (source.name && assetsCache[source.name]) {
+		source.name = assetsCache[source.name].newRelativePath;
+	}
+
+	if (source.url && assetsCache[source.url]) {
+		source.url = assetsCache[source.url].newRelativePath;
+	}
 
 	if (
 		!source.name ||

@@ -14,9 +14,9 @@ const supportedCubeTexturesExtensions: string[] = [".env", ".dds"];
 
 const supportedAudioExtensions: string[] = [".mp3", ".wav", ".wave", ".ogg"];
 
-const supportedJsonExtensions: string[] = [".gui", ".cinematic"];
+const supportedJsonExtensions: string[] = [".material", ".gui", ".cinematic", ".npss"];
 
-const supportedMiscExtensions: string[] = [".3dl", ".exr", ".hdr", ".material"];
+const supportedMiscExtensions: string[] = [".3dl", ".exr", ".hdr"];
 
 const supportedExtensions: string[] = [
 	...supportedImagesExtensions,

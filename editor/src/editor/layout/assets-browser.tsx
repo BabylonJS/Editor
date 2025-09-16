@@ -36,6 +36,7 @@ import { openMultipleFilesDialog } from "../../tools/dialog";
 import { onSelectedAssetChanged } from "../../tools/observables";
 import { findAvailableFilename, normalizedGlob } from "../../tools/fs";
 import { loadSavedThumbnailsCache } from "../../tools/assets/thumbnail";
+import { assetsCache, saveAssetsCache } from "../../tools/assets/cache";
 import { checkProjectCachedCompressedTextures, processingCompressedTextures } from "../../tools/assets/ktx";
 
 import { ICommandPaletteType } from "../dialogs/command-palette/command-palette";
@@ -413,6 +414,8 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 
 		this.props.editor.layout.graph.refresh();
 		this.props.editor.layout.inspector.forceUpdate();
+
+		await saveAssetsCache();
 	}
 
 	private _handleFileRenamed(oldRelativePath: string, newRelativePath: string): void {
@@ -464,6 +467,10 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 				}
 			}
 		});
+
+		assetsCache[oldRelativePath] = {
+			newRelativePath,
+		};
 	}
 
 	/**
