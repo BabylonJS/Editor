@@ -104,13 +104,31 @@ jest.mock("@babylonjs/core/Meshes/transformNode", () => ({
 	},
 }));
 
+jest.mock("@babylonjs/core/Materials/material", () => ({
+	Material: class {
+		static Parse() {
+			return new this();
+		}
+	},
+}));
+
+jest.mock("@babylonjs/core/Particles/Node/nodeParticleSystemSet", () => ({
+	NodeParticleSystemSet: class {
+		static Parse() {
+			return new this();
+		}
+	},
+}));
+
 import { Node } from "@babylonjs/core/node";
 import { Scene } from "@babylonjs/core/scene";
 import { Sound } from "@babylonjs/core/Audio/sound";
+import { Material } from "@babylonjs/core/Materials/material";
 import { Color3, Color4 } from "@babylonjs/core/Maths/math.color";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { Texture } from "@babylonjs/core/Materials/Textures/texture";
 import { Vector2, Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { NodeParticleSystemSet } from "@babylonjs/core/Particles/Node/nodeParticleSystemSet";
 
 import { AdvancedDynamicTexture } from "@babylonjs/gui/2D/advancedDynamicTexture";
 
@@ -130,6 +148,7 @@ import {
 	visibleAsTexture,
 	visibleAsVector2,
 	visibleAsVector3,
+	visibleAsAsset,
 } from "../../src/decorators/inspector";
 import { onKeyboardEvent, onPointerEvent } from "../../src/decorators/events";
 
@@ -197,6 +216,12 @@ describe("decorators/apply", () => {
 
 		@onKeyboardEvent(1)
 		public keyboardEventFn2(): void {}
+
+		@visibleAsAsset("material", "test")
+		public material: Material = null!;
+
+		@visibleAsAsset("nodeParticleSystemSet", "test")
+		public npss: NodeParticleSystemSet = null!;
 	}
 
 	const soundObject = {};
@@ -304,6 +329,15 @@ describe("decorators/apply", () => {
 							keymapProperty: {
 								value: 42,
 							},
+
+							material: {
+								assetType: "material",
+								value: "path/to/material.material",
+							},
+							npss: {
+								assetType: "nodeParticleSystemSet",
+								value: "path/to/npss.npss",
+							},
 						},
 					},
 				],
@@ -312,20 +346,20 @@ describe("decorators/apply", () => {
 	});
 
 	describe("applyDecorators", () => {
-		test("should do nothing when no decorated properties in target", () => {
+		test("should do nothing when no decorated properties in target", async () => {
 			const target = new EmptyTarget();
-			applyDecorators(scene, object, {}, target, "");
+			await applyDecorators(scene, object, {}, target, "");
 
 			expect(scene.getSoundByName).not.toHaveBeenCalled();
 		});
 
-		test("should retrieve all necessary decorators", () => {
+		test("should retrieve all necessary decorators", async () => {
 			const target = new Target(null!);
 
 			expect(target.booleanProperty).toBe(false);
 			expect(target.numberProperty).toBe(0);
 
-			applyDecorators(scene, object, object.metadata.scripts[0], target, "");
+			await applyDecorators(scene, object, object.metadata.scripts[0], target, "");
 
 			expect(scene.getSoundByName).toHaveBeenCalledWith("test");
 			expect(target.soundProperty).toBe(soundObject);
@@ -370,23 +404,26 @@ describe("decorators/apply", () => {
 
 			expect(target.keymapProperty).toBe(42);
 
+			expect(target.material).toBeInstanceOf(Material);
+			expect(target.npss).toBeInstanceOf(NodeParticleSystemSet);
+
 			setTimeout(() => {
 				expect(target.gui.name).toBe(mockedGuiResult.name);
 			}, 0);
 		});
 
-		test("should bind pointer events", () => {
+		test("should bind pointer events", async () => {
 			const target = new Target(null!);
-			applyDecorators(scene, object, object.metadata.scripts[0], target, "");
+			await applyDecorators(scene, object, object.metadata.scripts[0], target, "");
 
 			expect(scene.onPointerObservable.add).toHaveBeenCalledTimes(1);
 		});
 
-		test("should bind keyboard events", () => {
+		test("should bind keyboard events", async () => {
 			const target = new Target(null!);
-			applyDecorators(scene, object, object.metadata.scripts[0], target, "");
+			await applyDecorators(scene, object, object.metadata.scripts[0], target, "");
 
-			expect(scene.onPointerObservable.add).toHaveBeenCalledTimes(1);
+			expect(scene.onKeyboardObservable.add).toHaveBeenCalledTimes(1);
 		});
 	});
 });

@@ -13,44 +13,46 @@ import { ScriptMap } from "./loader";
 /**
  * @internal
  */
-export function _applyScriptsForObject(scene: Scene, object: any, scriptsMap: ScriptMap, rootUrl: string) {
-	if (!object.metadata) {
+export async function _applyScriptsForObject(scene: Scene, object: any, scriptsMap: ScriptMap, rootUrl: string) {
+	if (!object.metadata?.scripts) {
 		return;
 	}
 
-	object.metadata.scripts?.forEach((script) => {
-		if (!script.enabled) {
-			return;
-		}
-
-		const exports = scriptsMap[script.key];
-		if (!exports) {
-			return;
-		}
-
-		if (exports.default) {
-			const instance = new exports.default(object);
-
-			registerScriptInstance(object, instance, script.key);
-			applyDecorators(scene, object, script, instance, rootUrl);
-
-			if (instance.onStart) {
-				scene.onBeforeRenderObservable.addOnce(() => instance.onStart!());
+	await Promise.all(
+		object.metadata.scripts?.map(async (script) => {
+			if (!script.enabled) {
+				return;
 			}
 
-			if (instance.onUpdate) {
-				scene.onBeforeRenderObservable.add(() => instance.onUpdate!());
-			}
-		} else {
-			if (exports.onStart) {
-				scene.onBeforeRenderObservable.addOnce(() => exports.onStart!(object));
+			const exports = scriptsMap[script.key];
+			if (!exports) {
+				return;
 			}
 
-			if (exports.onUpdate) {
-				scene.onBeforeRenderObservable.add(() => exports.onUpdate!(object));
+			if (exports.default) {
+				const instance = new exports.default(object);
+
+				registerScriptInstance(object, instance, script.key);
+				await applyDecorators(scene, object, script, instance, rootUrl);
+
+				if (instance.onStart) {
+					scene.onBeforeRenderObservable.addOnce(() => instance.onStart!());
+				}
+
+				if (instance.onUpdate) {
+					scene.onBeforeRenderObservable.add(() => instance.onUpdate!());
+				}
+			} else {
+				if (exports.onStart) {
+					scene.onBeforeRenderObservable.addOnce(() => exports.onStart!(object));
+				}
+
+				if (exports.onUpdate) {
+					scene.onBeforeRenderObservable.add(() => exports.onUpdate!(object));
+				}
 			}
-		}
-	});
+		})
+	);
 
 	object.metadata.scripts = undefined;
 }

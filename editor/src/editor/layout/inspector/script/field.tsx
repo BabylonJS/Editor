@@ -13,7 +13,7 @@ import { XMarkIcon } from "@heroicons/react/20/solid";
 import { toast } from "sonner";
 
 import { Vector2, Vector3, Color3, Color4, Texture, CubeTexture } from "babylonjs";
-import { VisibleInInspectorDecoratorEntityConfiguration } from "babylonjs-editor-tools";
+import { VisibleInInspectorDecoratorEntityConfiguration, VisibleInspectorDecoratorAssetConfiguration } from "babylonjs-editor-tools";
 
 import { Editor } from "../../../main";
 
@@ -33,6 +33,7 @@ import { projectConfiguration } from "../../../../project/configuration";
 import { EditorInspectorKeyField } from "../fields/key";
 import { EditorInspectorListField } from "../fields/list";
 import { EditorInspectorColorField } from "../fields/color";
+import { EditorInspectorAssetField } from "../fields/asset";
 import { EditorInspectorSwitchField } from "../fields/switch";
 import { EditorInspectorNumberField } from "../fields/number";
 import { EditorInspectorVectorField } from "../fields/vector";
@@ -459,6 +460,19 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 
 							case "texture":
 								return getTextureInspector(value);
+
+							case "asset":
+								return (
+									<EditorInspectorAssetField
+										key={value.propertyKey}
+										object={props.script[scriptValues][value.propertyKey]}
+										property="value"
+										assetType={(value.configuration as VisibleInspectorDecoratorAssetConfiguration).assetType}
+										label={value.label ?? value.propertyKey}
+										tooltip={value.configuration.description}
+										typeRestriction={(value.configuration as VisibleInspectorDecoratorAssetConfiguration).typeRestriction}
+									/>
+								);
 
 							default:
 								return null;

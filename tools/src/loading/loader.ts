@@ -116,22 +116,20 @@ export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scen
 		scene.getPhysicsEngine()?.setGravity(Vector3.FromArray(scene.metadata?.physicsGravity));
 	}
 
-	_applyScriptsForObject(scene, scene, scriptsMap, rootUrl);
-
-	scene.transformNodes.forEach((transformNode) => {
-		_applyScriptsForObject(scene, transformNode, scriptsMap, rootUrl);
-	});
-
-	scene.meshes.forEach((mesh) => {
-		configurePhysicsAggregate(mesh);
-		_applyScriptsForObject(scene, mesh, scriptsMap, rootUrl);
-	});
-
-	scene.lights.forEach((light) => {
-		_applyScriptsForObject(scene, light, scriptsMap, rootUrl);
-	});
-
-	scene.cameras.forEach((camera) => {
-		_applyScriptsForObject(scene, camera, scriptsMap, rootUrl);
-	});
+	await Promise.all([
+		_applyScriptsForObject(scene, scene, scriptsMap, rootUrl),
+		...scene.transformNodes.map((transformNode) => {
+			return _applyScriptsForObject(scene, transformNode, scriptsMap, rootUrl);
+		}),
+		...scene.meshes.map((mesh) => {
+			configurePhysicsAggregate(mesh);
+			return _applyScriptsForObject(scene, mesh, scriptsMap, rootUrl);
+		}),
+		...scene.lights.map((light) => {
+			return _applyScriptsForObject(scene, light, scriptsMap, rootUrl);
+		}),
+		...scene.cameras.map((camera) => {
+			return _applyScriptsForObject(scene, camera, scriptsMap, rootUrl);
+		}),
+	]);
 }

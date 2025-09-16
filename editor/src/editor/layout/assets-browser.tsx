@@ -480,6 +480,12 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 						}
 					}
 				}
+
+				if (value.type === "asset") {
+					if (value.value === oldRelativePath) {
+						value.value = newRelativePath;
+					}
+				}
 			}
 		});
 

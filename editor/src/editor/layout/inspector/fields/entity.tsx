@@ -60,12 +60,12 @@ export function EditorInspectorSceneEntityField<T extends Node | IParticleSystem
 	}
 
 	function handleDrop(ev: DragEvent<HTMLDivElement>) {
+		setDragOver(false);
+
 		const data = JSON.parse(ev.dataTransfer.getData("graph/node")) as string[];
 		if (!data) {
 			return;
 		}
-
-		setDragOver(false);
 
 		const entity = getObjectById(data[0]);
 
@@ -129,7 +129,7 @@ export function EditorInspectorSceneEntityField<T extends Node | IParticleSystem
 				className={`
                     flex items-center px-5 py-1.5 rounded-lg
 					${props.label ? "w-2/3" : "w-full"}
-                    ${dragOver ? "bg-background" : " bg-secondary"}
+                    ${dragOver ? "bg-background scale-110" : " bg-secondary"}
                     transition-all duration-300 ease-in-out
                 `}
 			>

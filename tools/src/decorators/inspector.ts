@@ -1,6 +1,6 @@
 import { ISceneDecoratorData } from "./apply";
 
-export type VisibleInInspectorDecoratorType = "number" | "boolean" | "string" | "vector2" | "vector3" | "color3" | "color4" | "entity" | "texture" | "keymap";
+export type VisibleInInspectorDecoratorType = "number" | "boolean" | "string" | "vector2" | "vector3" | "color3" | "color4" | "entity" | "texture" | "keymap" | "asset";
 
 export type VisibleInInspectorDecoratorConfiguration = {
 	type: VisibleInInspectorDecoratorType;
@@ -286,6 +286,34 @@ export function visibleAsKeyMap(label?: string, configuration?: Omit<VisibleInIn
 				...configuration,
 				type: "keymap",
 			},
+		});
+	};
+}
+
+export type VisibleInspectorDecoratorAssetPossibleTypes = "material" | "nodeParticleSystemSet";
+
+export type VisibleInspectorDecoratorAssetConfiguration<T = VisibleInspectorDecoratorAssetPossibleTypes> = VisibleInInspectorDecoratorConfiguration & {
+	assetType: T;
+	typeRestriction?: T extends "material" ? "PBRMaterial" | "StandardMaterial" | "AnyMaterial" : never;
+};
+
+export function visibleAsAsset(
+	assetType: VisibleInspectorDecoratorAssetPossibleTypes,
+	label?: string,
+	configuration?: Omit<VisibleInspectorDecoratorAssetConfiguration, "type" | "assetType">
+) {
+	return function (target: any, propertyKey: string | Symbol) {
+		const ctor = target.constructor as ISceneDecoratorData;
+
+		ctor._VisibleInInspector ??= [];
+		ctor._VisibleInInspector.push({
+			label,
+			propertyKey,
+			configuration: {
+				...configuration,
+				assetType,
+				type: "asset",
+			} as VisibleInspectorDecoratorAssetConfiguration,
 		});
 	};
 }
