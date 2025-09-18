@@ -118,13 +118,17 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 						property="name"
 						onChange={() => onNodeModifiedObservable.notifyObservers(this.props.object)}
 					/>
-					<EditorInspectorSwitchField label="Pickable" object={this.props.object} property="isPickable" />
-					<EditorInspectorSwitchField
-						label="Visible"
-						object={this.props.object}
-						property="isVisible"
-						onChange={() => updateAllLights(this.props.editor.layout.preview.scene)}
-					/>
+					{this.props.object.geometry && (
+						<>
+							<EditorInspectorSwitchField label="Pickable" object={this.props.object} property="isPickable" />
+							<EditorInspectorSwitchField
+								label="Visible"
+								object={this.props.object}
+								property="isVisible"
+								onChange={() => updateAllLights(this.props.editor.layout.preview.scene)}
+							/>
+						</>
+					)}
 				</EditorInspectorSectionField>
 
 				<EditorInspectorSectionField title="Transforms">
@@ -143,10 +147,14 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 					/>
 				</EditorInspectorSectionField>
 
-				<EditorMeshCollisionInspector {...this.props} />
-				<EditorMeshPhysicsInspector mesh={this.props.object} />
+				{this.props.object.geometry && (
+					<>
+						<EditorMeshCollisionInspector {...this.props} />
+						<EditorMeshPhysicsInspector mesh={this.props.object} />
+					</>
+				)}
 
-				{this.props.editor.layout.preview.scene.lights.length > 0 && (
+				{this.props.editor.layout.preview.scene.lights.length > 0 && this.props.object.geometry && (
 					<EditorInspectorSectionField title="Shadows">
 						<EditorInspectorSwitchField
 							label="Cast Shadows"
@@ -173,9 +181,11 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 				{this._getSkeletonComponent()}
 				{this._getMorphTargetManagerComponent()}
 
-				<EditorInspectorSectionField title="Misc">
-					<EditorInspectorSwitchField label="Infinite Distance" object={this.props.object} property="infiniteDistance" />
-				</EditorInspectorSectionField>
+				{this.props.object.geometry && (
+					<EditorInspectorSectionField title="Misc">
+						<EditorInspectorSwitchField label="Infinite Distance" object={this.props.object} property="infiniteDistance" />
+					</EditorInspectorSectionField>
+				)}
 			</>
 		);
 	}
@@ -250,6 +260,10 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 	}
 
 	private _getMaterialComponent(): ReactNode {
+		if (!this.props.object.geometry) {
+			return;
+		}
+
 		if (!this.props.object.material) {
 			return (
 				<EditorInspectorSectionField title="Material">
