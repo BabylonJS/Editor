@@ -81,6 +81,7 @@ import { StatRow } from "./preview/stats/row";
 import { StatsValuesType } from "./preview/stats/types";
 
 import { applySoundAsset } from "./preview/import/sound";
+import { EditorPreviewAxisHelper } from "./preview/axis";
 import { applyImportedGuiFile } from "./preview/import/gui";
 import { applyTextureAssetToObject } from "./preview/import/texture";
 import { applyMaterialAssetToObject } from "./preview/import/material";
@@ -139,9 +140,13 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	 */
 	public gizmo: EditorPreviewGizmo;
 	/**
-	 * The icons manager of the preview.
+	 * The helper drawn over the scene to help visualizing and selecting nodes like lights, cameras, particle systems, etc.
 	 */
 	public icons: EditorPreviewIcons;
+	/**
+	 * The helper drawn over the scene to help visualizing the axis according to the current camera view.
+	 */
+	public axis: EditorPreviewAxisHelper;
 
 	/**
 	 * The play component of the preview.
@@ -228,6 +233,8 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 					<EditorPreviewIcons ref={(r) => this._onGotIconsRef(r!)} editor={this.props.editor} />
 				</EditorGraphContextMenu>
 
+				<EditorPreviewAxisHelper ref={(r) => (this.axis = r!)} editor={this.props.editor} />
+
 				<div
 					style={{
 						opacity: this.state.informationMessage ? "1" : "0",
@@ -268,6 +275,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 			return;
 		}
 
+		this.axis?.stop();
 		this.icons?.stop();
 
 		disposeSSRRenderingPipeline();
@@ -459,6 +467,9 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
 		this.scene = new Scene(this.engine);
 		this.scene.autoClear = true;
+		this.scene.skipPointerUpPicking = true;
+		this.scene.skipPointerDownPicking = true;
+		this.scene.skipPointerMovePicking = true;
 
 		if (!this.scene.soundTracks && this.scene.mainSoundTrack) {
 			this.scene.soundTracks = [this.scene.mainSoundTrack];
@@ -473,7 +484,9 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
 		this.engine.runRenderLoop(() => {
 			if (this._renderScene && !this.play.state.playing) {
-				return this.scene.render();
+				this.scene.render();
+				this.axis.scene?.render();
+				return;
 			}
 
 			if (this.play.canPlayScene) {
@@ -506,7 +519,9 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 			}
 		});
 
+		this.axis?.start();
 		this.icons?.start();
+
 		this.forceUpdate();
 	}
 
@@ -852,8 +867,11 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 						<DropdownMenuContent onClick={() => this.forceUpdate()}>
 							<DropdownMenuLabel>Render options</DropdownMenuLabel>
 							<DropdownMenuSeparator />
+							<DropdownMenuItem className="flex gap-2 items-center" onClick={() => (this.axis.enabled ? this.axis.stop() : this.axis.start())}>
+								{this.axis?.enabled && <FaCheck className="w-4 h-4" />} Axis Helper
+							</DropdownMenuItem>
 							<DropdownMenuItem className="flex gap-2 items-center" onClick={() => (this.icons.enabled ? this.icons.stop() : this.icons.start())}>
-								{this.icons?.enabled && <FaCheck className="w-4 h-4" />} Helper Icons
+								{this.icons?.enabled && <FaCheck className="w-4 h-4" />} Icons Helper
 							</DropdownMenuItem>
 							<DropdownMenuSeparator />
 							<DropdownMenuItem className="flex gap-2 items-center" onClick={() => (this.scene.postProcessesEnabled = !this.scene.postProcessesEnabled)}>
