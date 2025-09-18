@@ -119,8 +119,13 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
 		const oldHierarchyMap = new Map<unknown, unknown>();
 
 		nodesToMove.forEach((n) => {
-			if (n.nodeData) {
-				if (isNode(n.nodeData)) {
+			if (n.nodeData && n.nodeData !== newParent) {
+				if (isNode(n.nodeData) && n.nodeData.parent !== newParent) {
+					const descendants = n.nodeData.getDescendants(false);
+					if (descendants.includes(newParent)) {
+						return;
+					}
+
 					return oldHierarchyMap.set(n.nodeData, n.nodeData.parent);
 				}
 
@@ -133,6 +138,10 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
 				}
 			}
 		});
+
+		if (!oldHierarchyMap.size) {
+			return;
+		}
 
 		registerUndoRedo({
 			executeRedo: true,
