@@ -635,6 +635,14 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 			const data = await readJSON(join(scenePath, "sounds", file), "utf-8");
 
 			try {
+				if (data.name && assetsCache[data.name]) {
+					data.name = assetsCache[data.name].newRelativePath;
+				}
+
+				if (data.url && assetsCache[data.url]) {
+					data.url = assetsCache[data.url].newRelativePath;
+				}
+
 				const sound = Sound.Parse(data, scene, join(projectPath, "/"));
 				sound["_url"] = data.url;
 				sound.id = data.id;
