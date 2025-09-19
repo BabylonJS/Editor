@@ -20,9 +20,19 @@ export interface ICinematicEditorTracksProps {
 	cinematicEditor: CinematicEditor;
 }
 
-export interface ICinematicEditorTracksState {}
+export interface ICinematicEditorTracksState {
+	selectedTrack: ICinematicTrack | null;
+}
 
 export class CinematicEditorTracks extends Component<ICinematicEditorTracksProps, ICinematicEditorTracksState> {
+	public constructor(props: ICinematicEditorTracksProps) {
+		super(props);
+
+		this.state = {
+			selectedTrack: null,
+		};
+	}
+
 	public render(): ReactNode {
 		const cinematic = this.props.cinematicEditor.cinematic;
 
@@ -45,8 +55,19 @@ export class CinematicEditorTracks extends Component<ICinematicEditorTracksProps
 		);
 	}
 
+	public componentDidMount(): void {
+		const selectedTrack = this.props.cinematicEditor.cinematic?.tracks?.[0] || null;
+
+		if (selectedTrack) {
+			this.setState({ selectedTrack });
+		}
+	}
+
 	private _getTrack(track: ICinematicTrack, borderTop: boolean): ReactNode {
 		track._id ??= Tools.RandomId();
+
+		const isSelectable = this.props.cinematicEditor.state.editType === "curves";
+		const isSelectedTrack = this.state.selectedTrack === track;
 
 		return (
 			<div
@@ -55,11 +76,35 @@ export class CinematicEditorTracks extends Component<ICinematicEditorTracksProps
                     flex items-center w-full h-10 px-2 py-2
                     ${borderTop ? "border-t border-t-border/50" : ""}
                     border-b border-b-border/50
-                    ${this.props.cinematicEditor.state.hoverTrack === track ? "bg-primary-foreground" : ""}
+                    ${this.props.cinematicEditor.state.hoverTrack === track || (isSelectable && isSelectedTrack) ? "bg-primary-foreground" : ""}
+					${isSelectable && this.state.selectedTrack !== track ? "opacity-35" : ""}
                     transition-all duration-300 ease-in-out
                 `}
-				onMouseEnter={() => this.props.cinematicEditor.setState({ hoverTrack: track })}
-				onMouseLeave={() => this.props.cinematicEditor.setState({ hoverTrack: null })}
+				onClickCapture={(ev) => {
+					if (isSelectable) {
+						ev.stopPropagation();
+					}
+
+					this.setState({
+						selectedTrack: track,
+					});
+				}}
+				onMouseEnter={() => {
+					if (!isSelectable) {
+						this.setState({
+							selectedTrack: track,
+						});
+					}
+
+					this.props.cinematicEditor.setState({
+						hoverTrack: track,
+					});
+				}}
+				onMouseLeave={() =>
+					this.props.cinematicEditor.setState({
+						hoverTrack: null,
+					})
+				}
 			>
 				{track.keyFrameAnimations && <CinematicEditorPropertyTrack cinematicEditor={this.props.cinematicEditor} track={track} />}
 

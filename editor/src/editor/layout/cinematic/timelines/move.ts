@@ -1,4 +1,4 @@
-import { CinematicKeyType, isCinematicKeyCut } from "babylonjs-editor-tools";
+import { CinematicKeyType, isCinematicKey, isCinematicKeyCut } from "babylonjs-editor-tools";
 
 import { registerUndoRedo } from "../../../../tools/undoredo";
 import { waitNextAnimationFrame } from "../../../../tools/tools";
@@ -6,17 +6,17 @@ import { waitNextAnimationFrame } from "../../../../tools/tools";
 import { CinematicEditor } from "../editor";
 
 import { getKeyFrame } from "./tools";
-import { ICinematicTrackerKey } from "./tracker";
 
 export interface ICinematicKeyConfigurationToMove {
 	startPosition: number;
-	key: CinematicKeyType | ICinematicTrackerKey;
+	startValue?: number;
+	key: CinematicKeyType;
 }
 
 export interface IConfigureDivEventsOptions {
 	div: HTMLDivElement;
 	cinematicEditor: CinematicEditor;
-	cinematicKey: CinematicKeyType | ICinematicTrackerKey;
+	cinematicKey: CinematicKeyType;
 
 	onMoveStart?: () => void;
 	onMove?: () => void;
@@ -35,7 +35,7 @@ export function configureDivEvents(options: IConfigureDivEventsOptions) {
 		let mouseUpListener: (event: globalThis.MouseEvent) => void;
 		let mouseMoveListener: (event: globalThis.MouseEvent) => void;
 
-		if (options.cinematicKey.type !== "group" && options.cinematicKey.type !== "sound" && options.cinematicKey.type !== "tracker" && getKeyFrame(options.cinematicKey) === 0) {
+		if (options.cinematicKey.type !== "group" && options.cinematicKey.type !== "sound" && getKeyFrame(options.cinematicKey) === 0) {
 			return document.body.addEventListener(
 				"mouseup",
 				(mouseUpListener = (ev) => {
@@ -119,7 +119,7 @@ export function configureDivEvents(options: IConfigureDivEventsOptions) {
 
 				animationsKeyConfigurationsToMove.forEach((trackConfiguration) => {
 					trackConfiguration.forEach((keyConfiguration) => {
-						const frame = Math.round(Math.max(0, keyConfiguration.startPosition - delta / options.cinematicEditor.timelines.state.scale));
+						const frame = Math.round(Math.max(0, keyConfiguration.startPosition - delta / options.cinematicEditor.state.scale));
 
 						if (isCinematicKeyCut(keyConfiguration.key)) {
 							keyConfiguration.key.key1.frame = frame;
@@ -162,10 +162,16 @@ export function registerKeysMovedUndoRedo(cinematicEditor: CinematicEditor, anim
 	const newKeyFrames = animationsKeyConfigurationsToMove.map((configuration) => {
 		return configuration.map((key) => {
 			if (isCinematicKeyCut(key.key)) {
-				return key.key.key1.frame;
+				return {
+					frame: key.key.key1.frame,
+					value: key.key.key1.value,
+				};
 			}
 
-			return key.key.frame;
+			return {
+				frame: key.key.frame,
+				value: isCinematicKey(key.key) ? key.key.value : undefined,
+			};
 		});
 	});
 
@@ -179,6 +185,10 @@ export function registerKeysMovedUndoRedo(cinematicEditor: CinematicEditor, anim
 						keyConfiguration.key.key2.frame = keyConfiguration.startPosition;
 					} else {
 						keyConfiguration.key.frame = keyConfiguration.startPosition;
+
+						if (isCinematicKey(keyConfiguration.key) && keyConfiguration.startValue !== undefined) {
+							keyConfiguration.key.value = keyConfiguration.startValue;
+						}
 					}
 				});
 			});
@@ -187,10 +197,14 @@ export function registerKeysMovedUndoRedo(cinematicEditor: CinematicEditor, anim
 			animationsKeyConfigurationsToMove.forEach((trackConfigurations, configurationIndex) => {
 				trackConfigurations.forEach((keyConfiguration, keyIndex) => {
 					if (isCinematicKeyCut(keyConfiguration.key)) {
-						keyConfiguration.key.key1.frame = newKeyFrames[configurationIndex][keyIndex];
-						keyConfiguration.key.key2.frame = newKeyFrames[configurationIndex][keyIndex];
+						keyConfiguration.key.key1.frame = newKeyFrames[configurationIndex][keyIndex].frame;
+						keyConfiguration.key.key2.frame = newKeyFrames[configurationIndex][keyIndex].frame;
 					} else {
-						keyConfiguration.key.frame = newKeyFrames[configurationIndex][keyIndex];
+						keyConfiguration.key.frame = newKeyFrames[configurationIndex][keyIndex].frame;
+
+						if (isCinematicKey(keyConfiguration.key) && keyConfiguration.startValue !== undefined) {
+							keyConfiguration.key.value = newKeyFrames[configurationIndex][keyIndex].value;
+						}
 					}
 				});
 			});

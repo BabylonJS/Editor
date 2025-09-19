@@ -41,6 +41,7 @@ import { CinematicEditorRenderer } from "./render/renderer";
 import { CinematicEditorRenderDialog } from "./render/dialog";
 
 import { CinematicEditorTracks } from "./tracks";
+import { CinematicEditorCurves } from "./curves";
 import { CinematicEditorToolbar } from "./toolbar";
 import { CinematicEditorTimelines } from "./timelines";
 import { CinematicEditorInspector } from "./inspector";
@@ -52,9 +53,13 @@ export interface ICinematicEditorProps {
 }
 
 export interface ICinematicEditorState {
-	playing: boolean;
+	scale: number;
+	currentTime: number;
+
+	editType: "keyframes" | "curves";
 	hoverTrack: ICinematicTrack | null;
 
+	playing: boolean;
 	renderType: RenderType;
 }
 
@@ -67,6 +72,10 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 	 * Defines the reference to the timelines panel used to display and edit the cinematic timelines.
 	 */
 	public timelines: CinematicEditorTimelines;
+	/**
+	 * Defines the reference to the curves panel used to edit animation curves in selected track.
+	 */
+	public curves: CinematicEditorCurves;
 	/**
 	 * Defines the reference to the inspector used to display and edit the cinematic properties.
 	 */
@@ -104,9 +113,13 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 		this.cinematic = props.cinematic;
 
 		this.state = {
-			playing: false,
-			hoverTrack: null,
+			scale: 1,
+			currentTime: 0,
 
+			hoverTrack: null,
+			editType: "keyframes",
+
+			playing: false,
 			renderType: "1080p",
 		};
 	}
@@ -133,7 +146,13 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 							<TooltipProvider>
 								<CinematicEditorTracks cinematicEditor={this} ref={(ref) => (this.tracks = ref!)} />
 
-								<CinematicEditorTimelines cinematicEditor={this} ref={(ref) => (this.timelines = ref!)} />
+								<CinematicEditorTimelines
+									cinematicEditor={this}
+									ref={(ref) => (this.timelines = ref!)}
+									scale={this.state.scale}
+									currentTime={this.state.currentTime}
+								/>
+								<CinematicEditorCurves cinematicEditor={this} ref={(ref) => (this.curves = ref!)} scale={this.state.scale} currentTime={this.state.currentTime} />
 							</TooltipProvider>
 						</div>
 					</div>
@@ -188,6 +207,28 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 		super.forceUpdate();
 		this.tracks.forceUpdate();
 		this.timelines.forceUpdate();
+		this.curves.forceUpdate();
+	}
+
+	public setCurrentTime(time: number): void {
+		this.stop();
+
+		const group = this.createTemporaryAnimationGroup();
+		group.start(false);
+		group.goToFrame(time);
+		group.pause();
+
+		this.editor.layout.preview.scene.lights.forEach((light) => {
+			updateLightShadowMapRefreshRate(light);
+		});
+
+		this.setState({
+			currentTime: time,
+		});
+	}
+
+	public updateTracksAtCurrentTime(): void {
+		this.setCurrentTime(this.state.currentTime);
 	}
 
 	public prepareTemporaryAnimationGroup(): void {
@@ -225,9 +266,9 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 			playing: true,
 		});
 
-		this._currentTimeBeforePlay = this.timelines.state.currentTime;
+		this._currentTimeBeforePlay = this.state.currentTime;
 
-		const currentTime = this.timelines.state.currentTime;
+		const currentTime = this.state.currentTime;
 		const maxFrame = this.timelines.getMaxWidthForTimelines();
 
 		this._playAnimation ??= new Animation("editor-currentTime", "_animatedCurrentTime", 60, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CYCLE);
@@ -266,7 +307,7 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 
 		engine.runRenderLoop(
 			(this._playRenderLoop = () => {
-				this.timelines.setState({
+				this.setState({
 					currentTime: this._animatedCurrentTime,
 				});
 
@@ -304,7 +345,7 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 			const time = this._currentTimeBeforePlay;
 
 			this._currentTimeBeforePlay = null;
-			this.timelines.setCurrentTime(time);
+			this.setCurrentTime(time);
 		}
 
 		this.disposeTemporaryAnimationGroup();

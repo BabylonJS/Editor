@@ -40,7 +40,7 @@ export function CinematicEditorKeyInspector(props: ICinematicEditorKeyInspectorP
 		registerUndoRedo({
 			executeRedo: false,
 			action: () => {
-				props.cinematicEditor.timelines.updateTracksAtCurrentTime();
+				props.cinematicEditor.updateTracksAtCurrentTime();
 			},
 			undo: () => {
 				props.cinematicKey.value = oldValue;
@@ -64,7 +64,7 @@ export function CinematicEditorKeyInspector(props: ICinematicEditorKeyInspectorP
 				step={1}
 				onChange={() => {
 					props.cinematicEditor.timelines.sortAnimationsKeys();
-					props.cinematicEditor.timelines.updateTracksAtCurrentTime();
+					props.cinematicEditor.updateTracksAtCurrentTime();
 				}}
 			/>
 
@@ -74,7 +74,7 @@ export function CinematicEditorKeyInspector(props: ICinematicEditorKeyInspectorP
 				property: "value",
 				label: "Value",
 				step: props.track.propertyPath === "depthOfField.focusDistance" ? (props.cinematicEditor.editor.layout.preview.scene.activeCamera?.maxZ ?? 0) / 1000 : 0.01,
-				onChange: () => props.cinematicEditor.timelines.updateTracksAtCurrentTime(),
+				onChange: () => props.cinematicEditor.updateTracksAtCurrentTime(),
 			})}
 
 			<Button variant="secondary" onClick={() => copyCurrentValue()}>

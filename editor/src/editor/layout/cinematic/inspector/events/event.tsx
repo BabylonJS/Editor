@@ -68,7 +68,7 @@ export function CinematicEditorEventKeyInspector(props: ICinematicEditorEventKey
 				step={1}
 				onChange={() => {
 					props.cinematicEditor.timelines.sortAnimationsKeys();
-					props.cinematicEditor.timelines.updateTracksAtCurrentTime();
+					props.cinematicEditor.updateTracksAtCurrentTime();
 				}}
 			/>
 

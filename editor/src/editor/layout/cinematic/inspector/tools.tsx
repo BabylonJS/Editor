@@ -63,13 +63,13 @@ export function getTangentInspector(key: IAnimationKey, property: "inTangent" | 
 
 	switch (animationType) {
 		case Animation.ANIMATIONTYPE_FLOAT:
-			return <EditorInspectorNumberField object={key} property={property} onChange={() => cinematicEditor.timelines.updateTracksAtCurrentTime()} />;
+			return <EditorInspectorNumberField object={key} property={property} onChange={() => cinematicEditor.updateTracksAtCurrentTime()} />;
 		case Animation.ANIMATIONTYPE_VECTOR3:
-			return <EditorInspectorVectorField object={key} property={property} onChange={() => cinematicEditor.timelines.updateTracksAtCurrentTime()} />;
+			return <EditorInspectorVectorField object={key} property={property} onChange={() => cinematicEditor.updateTracksAtCurrentTime()} />;
 
 		case Animation.ANIMATIONTYPE_COLOR3:
 		case Animation.ANIMATIONTYPE_COLOR4:
-			return <EditorInspectorColorField object={key} property={property} noColorPicker noClamp onChange={() => cinematicEditor.timelines.updateTracksAtCurrentTime()} />;
+			return <EditorInspectorColorField object={key} property={property} noColorPicker noClamp onChange={() => cinematicEditor.updateTracksAtCurrentTime()} />;
 		default:
 			return null;
 	}
