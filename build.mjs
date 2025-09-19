@@ -34,16 +34,18 @@ function build({ x64, arm64 } = options) {
 			win: {
 				target: "nsis",
 				forceCodeSigning: args.noSign ? false : true,
-				signtoolOptions: {
-					sign: (configuration) => {
-						if (configuration.path) {
-							execSync(`smctl.exe sign --keypair-alias=${process.env.KEYPAIR_ALIAS} --input "${String(configuration.path)}"`);
-						}
-					},
-					publisherName: "cesharpe",
-					signingHashAlgorithms: ["sha256"],
-					rfc3161TimeStampServer: "http://timestamp.digicert.com",
-				},
+				signtoolOptions: args.noSign
+					? undefined
+					: {
+							sign: (configuration) => {
+								if (configuration.path) {
+									execSync(`smctl.exe sign --keypair-alias=${process.env.KEYPAIR_ALIAS} --input "${String(configuration.path)}"`);
+								}
+							},
+							publisherName: "cesharpe",
+							signingHashAlgorithms: ["sha256"],
+							rfc3161TimeStampServer: "http://timestamp.digicert.com",
+						},
 			},
 			fileAssociations: [
 				{

@@ -147,7 +147,7 @@ export class CinematicEditorKeyBase extends Component<ICinematicEditorKeyBasePro
 
 	private _handleDoubleClick(): void {
 		const frame = getKeyFrame(this.props.cinematicKey);
-		this.props.cinematicEditor.timelines.setCurrentTime(frame);
+		this.props.cinematicEditor.setCurrentTime(frame);
 		this.props.cinematicEditor.disposeTemporaryAnimationGroup();
 	}
 

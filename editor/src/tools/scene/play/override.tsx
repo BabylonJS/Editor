@@ -1,7 +1,7 @@
 import { isAbsolute } from "path";
 import { join, dirname } from "path/posix";
 
-import { Engine, WebRequest, Observable, Observer, ExitPointerlock, ExitFullscreen } from "babylonjs";
+import { Engine, WebRequest, Observable, Observer, ExitPointerlock, ExitFullscreen, SerializationHelper } from "babylonjs";
 
 import { getCurrentCallStack } from "../../tools";
 
@@ -24,6 +24,10 @@ const savedWebRequestMethods: Record<string, any> = {
 
 const savedEngineMethods: Record<string, any> = {
 	createTexture: Engine.prototype.createTexture,
+};
+
+const savedTextureMethods: Record<string, any> = {
+	textureParser: SerializationHelper._TextureParser,
 };
 
 const savedObservableMethods: Record<string, any> = {
@@ -76,6 +80,8 @@ export function restorePlayOverrides(editor: Editor) {
 
 	WebRequest.prototype.open = savedWebRequestMethods.open;
 	Engine.prototype.createTexture = savedEngineMethods.createTexture;
+
+	SerializationHelper._TextureParser = savedTextureMethods.textureParser;
 
 	Observable.prototype.add = savedObservableMethods.add;
 	Observable.prototype.addOnce = savedObservableMethods.addOnce;

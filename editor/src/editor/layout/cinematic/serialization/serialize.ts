@@ -26,11 +26,13 @@ export function serializeCinematic(cinematic: ICinematic): ICinematic {
 
 				animationGroups: track.animationGroups,
 				animationGroup: track.animationGroup?.name,
+				animationGroupWeight: serializeKeyFrameAnimations(track.animationGroupWeight ?? [], Animation.ANIMATIONTYPE_FLOAT),
 
 				defaultRenderingPipeline: track.defaultRenderingPipeline,
 
 				sound: track.sound?.id,
 				sounds: track.sounds,
+				soundVolume: serializeKeyFrameAnimations(track.soundVolume ?? [], Animation.ANIMATIONTYPE_FLOAT),
 
 				keyFrameEvents: track.keyFrameEvents?.map((event) => {
 					const result = {
@@ -60,42 +62,13 @@ export function serializeCinematic(cinematic: ICinematic): ICinematic {
 					return result;
 				}),
 
-				keyFrameAnimations:
-					animationType === null
-						? undefined
-						: track.keyFrameAnimations?.map((keyFrame) => {
-								if (isCinematicKey(keyFrame)) {
-									return {
-										type: "key",
-										frame: keyFrame.frame,
-										value: serializeCinematicKeyValue(keyFrame.value, animationType),
-										inTangent: serializeCinematicKeyValue(keyFrame.inTangent, animationType),
-										outTangent: serializeCinematicKeyValue(keyFrame.outTangent, animationType),
-									} as ICinematicKey;
-								}
-
-								return {
-									type: "cut",
-									key1: {
-										frame: keyFrame.key1.frame,
-										value: serializeCinematicKeyValue(keyFrame.key1.value, animationType),
-										inTangent: serializeCinematicKeyValue(keyFrame.key1.inTangent, animationType),
-										outTangent: serializeCinematicKeyValue(keyFrame.key1.outTangent, animationType),
-									},
-									key2: {
-										frame: keyFrame.key2.frame,
-										value: serializeCinematicKeyValue(keyFrame.key2.value, animationType),
-										inTangent: serializeCinematicKeyValue(keyFrame.key2.inTangent, animationType),
-										outTangent: serializeCinematicKeyValue(keyFrame.key2.outTangent, animationType),
-									},
-								} as ICinematicKeyCut;
-							}),
+				keyFrameAnimations: animationType === null ? undefined : serializeKeyFrameAnimations(track.keyFrameAnimations ?? [], animationType),
 			};
 		}),
 	};
 }
 
-export function serializeCinematicKeyValue(value: any, type: number): any {
+export function serializeCinematicKeyValue(value: any, type: number) {
 	if (value === null) {
 		return null;
 	}
@@ -120,4 +93,34 @@ export function serializeCinematicKeyValue(value: any, type: number): any {
 		case Animation.ANIMATIONTYPE_MATRIX:
 			return (value as Matrix).asArray();
 	}
+}
+
+export function serializeKeyFrameAnimations(keyFrameAnimations: (ICinematicKey | ICinematicKeyCut)[], animationType: number) {
+	return keyFrameAnimations?.map((keyFrame) => {
+		if (isCinematicKey(keyFrame)) {
+			return {
+				type: "key",
+				frame: keyFrame.frame,
+				value: serializeCinematicKeyValue(keyFrame.value, animationType),
+				inTangent: serializeCinematicKeyValue(keyFrame.inTangent, animationType),
+				outTangent: serializeCinematicKeyValue(keyFrame.outTangent, animationType),
+			} as ICinematicKey;
+		}
+
+		return {
+			type: "cut",
+			key1: {
+				frame: keyFrame.key1.frame,
+				value: serializeCinematicKeyValue(keyFrame.key1.value, animationType),
+				inTangent: serializeCinematicKeyValue(keyFrame.key1.inTangent, animationType),
+				outTangent: serializeCinematicKeyValue(keyFrame.key1.outTangent, animationType),
+			},
+			key2: {
+				frame: keyFrame.key2.frame,
+				value: serializeCinematicKeyValue(keyFrame.key2.value, animationType),
+				inTangent: serializeCinematicKeyValue(keyFrame.key2.inTangent, animationType),
+				outTangent: serializeCinematicKeyValue(keyFrame.key2.outTangent, animationType),
+			},
+		} as ICinematicKeyCut;
+	});
 }

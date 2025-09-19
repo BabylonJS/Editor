@@ -15,11 +15,12 @@ import { configurePhysicsAggregate } from "./physics";
 import { applyRenderingConfigurations } from "./rendering";
 import { _applyScriptsForObject, _preloadScriptsAssets } from "./script";
 
-import "./sound";
-import "./texture";
-import "./shadows";
-import "./sprite-map";
-import "./sprite-manager";
+import { registerAudioParser } from "./sound";
+import { registerTextureParser } from "./texture";
+import { registerShadowGeneratorParser } from "./shadows";
+
+import { registerSpriteMapParser } from "./sprite-map";
+import { registerSpriteManagerParser } from "./sprite-manager";
 
 /**
  * Defines the possible output type of a script.
@@ -82,6 +83,13 @@ export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scen
 
 	scene.loadingTexturesQuality = options?.texturesQuality ?? scene.loadingQuality;
 	scene.loadingShadowsQuality = options?.shadowsQuality ?? scene.loadingQuality;
+
+	registerAudioParser();
+	registerTextureParser();
+	registerShadowGeneratorParser();
+
+	registerSpriteMapParser();
+	registerSpriteManagerParser();
 
 	await AppendSceneAsync(`${rootUrl}${sceneFilename}`, scene, {
 		pluginExtension: ".babylon",

@@ -11,66 +11,80 @@ import { AddParser } from "@babylonjs/core/Loading/Plugins/babylonFileParser.fun
 
 import { normalizeAtlasJson, SpriteMapNode } from "../tools/sprite";
 
-AddParser("SpriteMapNode", (parsedData: any, scene: Scene, container: AssetContainer, rootUrl: string) => {
-	parsedData.transformNodes?.forEach((transformNode: any) => {
-		if (!transformNode.isSpriteMap) {
-			return;
-		}
+let registered = false;
 
-		const instance = container.transformNodes?.find((t) => t.id === transformNode.id) as SpriteMapNode;
-		if (!instance) {
-			return;
-		}
+export function registerSpriteMapParser() {
+	if (registered) {
+		return;
+	}
 
-		instance.isSpriteMap = transformNode.isSpriteMap;
+	registered = true;
 
-		const atlasJsonAbsolutePath = `${rootUrl}${transformNode.atlasJsonRelativePath}`;
+	AddParser("SpriteMapNode", (parsedData: any, scene: Scene, container: AssetContainer, rootUrl: string) => {
+		parsedData.transformNodes?.forEach((transformNode: any) => {
+			if (!transformNode.isSpriteMap) {
+				return;
+			}
 
-		scene.addPendingData(atlasJsonAbsolutePath);
+			const instance = container.transformNodes?.find((t) => t.id === transformNode.id) as SpriteMapNode;
+			if (!instance) {
+				return;
+			}
 
-		const atlasRequest = new WebRequest();
-		atlasRequest.open("GET", atlasJsonAbsolutePath);
-		atlasRequest.send();
+			instance.isSpriteMap = transformNode.isSpriteMap;
 
-		atlasRequest.addEventListener("load", () => {
-			scene.removePendingData(atlasJsonAbsolutePath);
+			const atlasJsonAbsolutePath = `${rootUrl}${transformNode.atlasJsonRelativePath}`;
 
-			const atlasJson = JSON.parse(atlasRequest.responseText);
-			normalizeAtlasJson(atlasJson);
+			scene.addPendingData(atlasJsonAbsolutePath);
 
-			const imagePath = `${Tools.GetFolderPath(atlasJsonAbsolutePath)}${atlasJson.meta.image}`;
+			const atlasRequest = new WebRequest();
+			atlasRequest.open("GET", atlasJsonAbsolutePath);
+			atlasRequest.send();
 
-			const spritesheet = new Texture(imagePath, scene, false, false, Texture.NEAREST_NEAREST, null, null, null, false, Engine.TEXTUREFORMAT_RGBA);
+			atlasRequest.addEventListener("load", () => {
+				scene.removePendingData(atlasJsonAbsolutePath);
 
-			const spriteMap = new SpriteMap(
-				instance.name,
-				atlasJson,
-				spritesheet,
-				{
-					layerCount: transformNode.options.layerCount,
-					stageSize: Vector2.FromArray(transformNode.options.stageSize ?? [10, 1]),
-					outputSize: Vector2.FromArray(transformNode.options.outputSize ?? [100, 100]),
-					colorMultiply: Vector3.FromArray(transformNode.options.colorMultiply ?? [1, 1, 1]),
-					flipU: true,
-				},
-				scene
-			);
+				const atlasJson = JSON.parse(atlasRequest.responseText);
+				normalizeAtlasJson(atlasJson);
 
-			transformNode.tiles.forEach((tile: any) => {
-				for (let x = 0, lenX = tile.repeatCount.x + 1; x < lenX; ++x) {
-					for (let y = 0, lenY = tile.repeatCount.y + 1; y < lenY; ++y) {
-						const offsetX = x * (tile.repeatOffset.x + 1);
-						const offsetY = y * (tile.repeatOffset.y + 1);
+				const imagePath = `${Tools.GetFolderPath(atlasJsonAbsolutePath)}${atlasJson.meta.image}`;
 
-						spriteMap.changeTiles(tile.layer, new Vector2(tile.position.x + offsetX, (spriteMap.options.stageSize?.y ?? 0) - 1 - tile.position.y - offsetY), tile.tile);
+				const spritesheet = new Texture(imagePath, scene, false, false, Texture.NEAREST_NEAREST, null, null, null, false, Engine.TEXTUREFORMAT_RGBA);
+
+				const spriteMap = new SpriteMap(
+					instance.name,
+					atlasJson,
+					spritesheet,
+					{
+						layerCount: transformNode.options.layerCount,
+						stageSize: Vector2.FromArray(transformNode.options.stageSize ?? [10, 1]),
+						outputSize: Vector2.FromArray(transformNode.options.outputSize ?? [100, 100]),
+						colorMultiply: Vector3.FromArray(transformNode.options.colorMultiply ?? [1, 1, 1]),
+						flipU: true,
+					},
+					scene
+				);
+
+				transformNode.tiles.forEach((tile: any) => {
+					for (let x = 0, lenX = tile.repeatCount.x + 1; x < lenX; ++x) {
+						for (let y = 0, lenY = tile.repeatCount.y + 1; y < lenY; ++y) {
+							const offsetX = x * (tile.repeatOffset.x + 1);
+							const offsetY = y * (tile.repeatOffset.y + 1);
+
+							spriteMap.changeTiles(
+								tile.layer,
+								new Vector2(tile.position.x + offsetX, (spriteMap.options.stageSize?.y ?? 0) - 1 - tile.position.y - offsetY),
+								tile.tile
+							);
+						}
 					}
-				}
+				});
+
+				const outputPlane = spriteMap["_output"] as Mesh;
+				outputPlane.parent = instance;
+
+				instance.spriteMap = spriteMap;
 			});
-
-			const outputPlane = spriteMap["_output"] as Mesh;
-			outputPlane.parent = instance;
-
-			instance.spriteMap = spriteMap;
 		});
 	});
-});
+}

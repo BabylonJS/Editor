@@ -23,11 +23,19 @@ export interface ICinematicEditorTracksProps {
 export interface ICinematicEditorTracksState {}
 
 export class CinematicEditorTracks extends Component<ICinematicEditorTracksProps, ICinematicEditorTracksState> {
+	public constructor(props: ICinematicEditorTracksProps) {
+		super(props);
+
+		this.state = {};
+	}
+
 	public render(): ReactNode {
 		const cinematic = this.props.cinematicEditor.cinematic;
 
 		return (
-			<div className="relative flex flex-col w-96 min-h-fit h-full border-r-2 border-r-border">
+			<div
+				className={`relative flex flex-col w-96 h-full border-r-2 border-r-border ${this.props.cinematicEditor.state.editType === "keyframes" ? "min-h-fit" : "overflow-y-auto"}`}
+			>
 				<div className="flex w-full h-10 py-5" />
 
 				{cinematic.tracks.map((track, index) => {
@@ -45,8 +53,18 @@ export class CinematicEditorTracks extends Component<ICinematicEditorTracksProps
 		);
 	}
 
+	public componentDidMount(): void {
+		const selectedTrack = this.props.cinematicEditor.cinematic?.tracks?.[0] || null;
+
+		if (selectedTrack) {
+			this.setState({ selectedTrack });
+		}
+	}
+
 	private _getTrack(track: ICinematicTrack, borderTop: boolean): ReactNode {
 		track._id ??= Tools.RandomId();
+
+		const isSelectedTrack = this.props.cinematicEditor.state.selectedTrack === track;
 
 		return (
 			<div
@@ -55,11 +73,17 @@ export class CinematicEditorTracks extends Component<ICinematicEditorTracksProps
                     flex items-center w-full h-10 px-2 py-2
                     ${borderTop ? "border-t border-t-border/50" : ""}
                     border-b border-b-border/50
-                    ${this.props.cinematicEditor.state.hoverTrack === track ? "bg-primary-foreground" : ""}
+                    ${this.props.cinematicEditor.state.hoverTrack === track || isSelectedTrack ? "bg-primary-foreground" : ""}
+					${this.props.cinematicEditor.state.selectedTrack !== track ? "opacity-35" : ""}
                     transition-all duration-300 ease-in-out
                 `}
-				onMouseEnter={() => this.props.cinematicEditor.setState({ hoverTrack: track })}
 				onMouseLeave={() => this.props.cinematicEditor.setState({ hoverTrack: null })}
+				onClickCapture={() => {
+					this.props.cinematicEditor.setState({ selectedTrack: track });
+				}}
+				onMouseEnter={() => {
+					this.props.cinematicEditor.setState({ hoverTrack: track });
+				}}
 			>
 				{track.keyFrameAnimations && <CinematicEditorPropertyTrack cinematicEditor={this.props.cinematicEditor} track={track} />}
 
@@ -67,7 +91,9 @@ export class CinematicEditorTracks extends Component<ICinematicEditorTracksProps
 
 				{track.sounds && <CinematicEditorSoundTrack cinematicEditor={this.props.cinematicEditor} track={track} />}
 
-				{track.keyFrameEvents && <CinematicEditorEventTrack cinematicEditor={this.props.cinematicEditor} track={track} />}
+				{track.keyFrameEvents && this.props.cinematicEditor.state.editType === "keyframes" && (
+					<CinematicEditorEventTrack cinematicEditor={this.props.cinematicEditor} track={track} />
+				)}
 			</div>
 		);
 	}
