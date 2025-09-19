@@ -70,7 +70,7 @@ export class CinematicEditorRenderer extends Component<ICinematicEditorRendererP
 			return;
 		}
 
-		const currentTimeBeforeRender = this.props.cinematicEditor.timelines.state.currentTime;
+		const currentTimeBeforeRender = this.props.cinematicEditor.state.currentTime;
 
 		const animationGroup = generateCinematicAnimationGroup(this.props.cinematicEditor.cinematic, this.props.cinematicEditor.editor.layout.preview.scene as any, {
 			ignoreSounds: true, // Ignore sounds during rendering
@@ -120,7 +120,7 @@ export class CinematicEditorRenderer extends Component<ICinematicEditorRendererP
 			remove(result.destinationFolder);
 		}
 
-		this.props.cinematicEditor.timelines.setCurrentTime(currentTimeBeforeRender);
+		this.props.cinematicEditor.setCurrentTime(currentTimeBeforeRender);
 		this.props.cinematicEditor.disposeTemporaryAnimationGroup();
 
 		this.setState({

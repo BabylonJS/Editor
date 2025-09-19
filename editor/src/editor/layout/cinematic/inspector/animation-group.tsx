@@ -28,7 +28,7 @@ export function CinematicEditorAnimationGroupKeyInspector(props: ICinematicEdito
 				step={1}
 				onChange={() => {
 					props.cinematicEditor.timelines.sortAnimationsKeys();
-					props.cinematicEditor.timelines.updateTracksAtCurrentTime();
+					props.cinematicEditor.updateTracksAtCurrentTime();
 				}}
 			/>
 
@@ -40,7 +40,7 @@ export function CinematicEditorAnimationGroupKeyInspector(props: ICinematicEdito
 				min={0.1}
 				onChange={() => {
 					props.cinematicEditor.timelines.sortAnimationsKeys();
-					props.cinematicEditor.timelines.updateTracksAtCurrentTime();
+					props.cinematicEditor.updateTracksAtCurrentTime();
 				}}
 			/>
 
@@ -53,7 +53,7 @@ export function CinematicEditorAnimationGroupKeyInspector(props: ICinematicEdito
 				max={props.cinematicKey.endFrame}
 				onChange={() => {
 					props.cinematicEditor.inspector.forceUpdate();
-					props.cinematicEditor.timelines.updateTracksAtCurrentTime();
+					props.cinematicEditor.updateTracksAtCurrentTime();
 				}}
 			/>
 
@@ -66,7 +66,7 @@ export function CinematicEditorAnimationGroupKeyInspector(props: ICinematicEdito
 				max={animationGroup.to}
 				onChange={() => {
 					props.cinematicEditor.inspector.forceUpdate();
-					props.cinematicEditor.timelines.updateTracksAtCurrentTime();
+					props.cinematicEditor.updateTracksAtCurrentTime();
 				}}
 			/>
 		</EditorInspectorSectionField>
