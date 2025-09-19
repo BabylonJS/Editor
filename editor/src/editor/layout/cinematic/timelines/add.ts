@@ -10,8 +10,14 @@ import { getDefaultRenderingPipeline } from "../../../rendering/default-pipeline
 
 import { CinematicEditor } from "../editor";
 
-export function addAnimationKey(cinematicEditor: CinematicEditor, type: "key" | "cut", track: ICinematicTrack, positionX?: number | null) {
-	positionX ??= cinematicEditor.timelines.state.rightClickPositionX;
+export function addAnimationKey(
+	cinematicEditor: CinematicEditor,
+	type: "key" | "cut",
+	track: ICinematicTrack,
+	positionX: number | null,
+	keyFrameAnimations?: (ICinematicKey | ICinematicKeyCut)[]
+) {
+	keyFrameAnimations ??= track.keyFrameAnimations!;
 
 	const node = track.defaultRenderingPipeline ? getDefaultRenderingPipeline() : track.node;
 
@@ -19,10 +25,10 @@ export function addAnimationKey(cinematicEditor: CinematicEditor, type: "key" | 
 		return;
 	}
 
-	const frame = Math.round(positionX / cinematicEditor.timelines.state.scale);
+	const frame = Math.round(positionX / cinematicEditor.state.scale);
 	const value = getInspectorPropertyValue(node, track.propertyPath);
 
-	const existingKey = track.keyFrameAnimations!.find((k) => {
+	const existingKey = keyFrameAnimations.find((k) => {
 		if (isCinematicKeyCut(k)) {
 			return k.key1.frame === frame;
 		}
@@ -56,12 +62,12 @@ export function addAnimationKey(cinematicEditor: CinematicEditor, type: "key" | 
 	registerUndoRedo({
 		executeRedo: true,
 		undo: () => {
-			const index = track.keyFrameAnimations!.indexOf(key);
+			const index = keyFrameAnimations.indexOf(key);
 			if (index !== -1) {
-				track.keyFrameAnimations!.splice(index, 1);
+				keyFrameAnimations.splice(index, 1);
 			}
 		},
-		redo: () => track.keyFrameAnimations!.push(key),
+		redo: () => keyFrameAnimations.push(key),
 		action: () => cinematicEditor.timelines.sortAnimationsKeys(),
 	});
 
@@ -79,7 +85,7 @@ export function addSoundKey(cinematicEditor: CinematicEditor, track: ICinematicT
 		return;
 	}
 
-	const frame = Math.round(positionX / cinematicEditor.timelines.state.scale);
+	const frame = Math.round(positionX / cinematicEditor.state.scale);
 	const existingKey = track.sounds!.find((k) => k.frame === frame);
 
 	if (existingKey) {
@@ -132,7 +138,7 @@ export function addEventKey(cinematicEditor: CinematicEditor, track: ICinematicT
 		return;
 	}
 
-	const frame = Math.round(positionX / cinematicEditor.timelines.state.scale);
+	const frame = Math.round(positionX / cinematicEditor.state.scale);
 
 	const existingKey = track.keyFrameEvents!.find((k) => {
 		return k.frame === frame;
@@ -172,7 +178,7 @@ export function addAnimationGroupKey(cinematicEditor: CinematicEditor, track: IC
 		return;
 	}
 
-	const frame = Math.round(positionX / cinematicEditor.timelines.state.scale);
+	const frame = Math.round(positionX / cinematicEditor.state.scale);
 	const existingKey = track.animationGroups!.find((k) => k.frame === frame);
 
 	if (existingKey) {

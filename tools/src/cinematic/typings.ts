@@ -13,12 +13,14 @@ export interface ICinematicTrack {
 
 	animationGroup?: any;
 	animationGroups?: ICinematicAnimationGroup[];
+	animationGroupWeight?: (ICinematicKey | ICinematicKeyCut)[];
 
 	node?: any;
 	defaultRenderingPipeline?: boolean;
 
 	sound?: any;
 	sounds?: ICinematicSound[];
+	soundVolume?: (ICinematicKey | ICinematicKeyCut)[];
 
 	propertyPath?: string;
 	keyFrameAnimations?: (ICinematicKey | ICinematicKeyCut)[];

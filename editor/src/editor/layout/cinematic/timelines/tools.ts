@@ -4,9 +4,7 @@ import { registerUndoRedo } from "../../../../tools/undoredo";
 
 import { CinematicEditor } from "../editor";
 
-import { ICinematicTrackerKey } from "./tracker";
-
-export function getKeyFrame(key: CinematicKeyType | ICinematicTrackerKey) {
+export function getKeyFrame(key: CinematicKeyType) {
 	if (isCinematicKeyCut(key)) {
 		return key.key1.frame;
 	}

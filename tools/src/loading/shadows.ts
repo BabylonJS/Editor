@@ -5,28 +5,38 @@ import { GetParser, AddParser } from "@babylonjs/core/Loading/Plugins/babylonFil
 
 import { getPowerOfTwoUntil } from "../tools/scalar";
 
-const shadowsGeneratorParser = GetParser(SceneComponentConstants.NAME_SHADOWGENERATOR);
+let registered = false;
 
-AddParser(SceneComponentConstants.NAME_SHADOWGENERATOR, (parsedData: any, scene: Scene, container: AssetContainer, rootUrl: string) => {
-	if (scene.loadingShadowsQuality !== "high") {
-		parsedData.shadowGenerators?.forEach((shadowGenerator: any) => {
-			switch (scene.loadingShadowsQuality) {
-				case "medium":
-					shadowGenerator.mapSize = shadowGenerator.mapSize * 0.5;
-					break;
-
-				case "low":
-					shadowGenerator.mapSize = shadowGenerator.mapSize * 0.25;
-					break;
-
-				case "very-low":
-					shadowGenerator.mapSize = shadowGenerator.mapSize * 0.125;
-					break;
-			}
-
-			shadowGenerator.mapSize = Math.max(128, getPowerOfTwoUntil(shadowGenerator.mapSize));
-		});
+export function registerShadowGeneratorParser() {
+	if (registered) {
+		return;
 	}
 
-	shadowsGeneratorParser?.(parsedData, scene, container, rootUrl);
-});
+	registered = true;
+
+	const shadowsGeneratorParser = GetParser(SceneComponentConstants.NAME_SHADOWGENERATOR);
+
+	AddParser("ShadowGeneratorEditorPlugin", (parsedData: any, scene: Scene, container: AssetContainer, rootUrl: string) => {
+		if (scene.loadingShadowsQuality !== "high") {
+			parsedData.shadowGenerators?.forEach((shadowGenerator: any) => {
+				switch (scene.loadingShadowsQuality) {
+					case "medium":
+						shadowGenerator.mapSize = shadowGenerator.mapSize * 0.5;
+						break;
+
+					case "low":
+						shadowGenerator.mapSize = shadowGenerator.mapSize * 0.25;
+						break;
+
+					case "very-low":
+						shadowGenerator.mapSize = shadowGenerator.mapSize * 0.125;
+						break;
+				}
+
+				shadowGenerator.mapSize = Math.max(128, getPowerOfTwoUntil(shadowGenerator.mapSize));
+			});
+		}
+
+		shadowsGeneratorParser?.(parsedData, scene, container, rootUrl);
+	});
+}
