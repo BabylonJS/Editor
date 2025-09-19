@@ -8,8 +8,8 @@ import { CinematicEditor } from "./editor";
 import { CinematicEditorKeyInspector } from "./inspector/key";
 import { CinematicEditorKeyCutInspector } from "./inspector/key-cut";
 import { CinematicEditorSoundKeyInspector } from "./inspector/sound";
+import { CinematicEditorBaseEventKeyInspector } from "./inspector/events/base";
 import { CinematicEditorAnimationGroupKeyInspector } from "./inspector/animation-group";
-import { CinematicEditorEventKeyInspector } from "./inspector/events/event";
 
 export interface ICinematicEditorInspectorProps {
 	cinematicEditor: CinematicEditor;
@@ -102,7 +102,7 @@ export class CinematicEditorInspector extends Component<ICinematicEditorInspecto
 
 		if (isCinematicKeyEvent(this.state.editedObject)) {
 			return (
-				<CinematicEditorEventKeyInspector
+				<CinematicEditorBaseEventKeyInspector
 					key={Tools.RandomId()}
 					track={this.state.editedTrack}
 					cinematicKey={this.state.editedObject}
