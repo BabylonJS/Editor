@@ -1,5 +1,7 @@
 import { ReactNode } from "react";
 
+import { SlGraph } from "react-icons/sl";
+import { FaDiamond } from "react-icons/fa6";
 import { IoPlay, IoStop } from "react-icons/io5";
 
 import { Slider } from "../../../ui/shadcn/ui/slider";
@@ -43,14 +45,35 @@ export function CinematicEditorToolbar(props: ICinematicEditorToolbarProps): Rea
 
 			{/* Buttons */}
 			<div className="flex gap-2 items-center pr-2">
+				<div className="flex items-center gap-2 px-5">
+					<Button
+						className="w-8 h-8 p-0.5"
+						onClick={() => props.cinematicEditor.setState({ editType: "keyframes" })}
+						variant={props.cinematicEditor.state.editType === "keyframes" ? "secondary" : "ghost"}
+					>
+						<FaDiamond className="w-4 h-4" />
+					</Button>
+					<Button
+						className="w-8 h-8 p-0.5"
+						variant={props.cinematicEditor.state.editType === "curves" ? "secondary" : "ghost"}
+						onClick={() => {
+							props.cinematicEditor.setState({ editType: "curves" }, () => {
+								props.cinematicEditor.forceUpdate();
+							});
+						}}
+					>
+						<SlGraph className="w-6 h-6" />
+					</Button>
+				</div>
+
 				<Slider
 					min={0.1}
 					max={5}
 					step={0.01}
 					className="w-32"
-					value={[props.cinematicEditor.timelines?.state.scale]}
+					value={[props.cinematicEditor.state.scale]}
 					onValueChange={(v) => {
-						props.cinematicEditor.timelines?.setState(
+						props.cinematicEditor.setState(
 							{
 								scale: v[0],
 							},

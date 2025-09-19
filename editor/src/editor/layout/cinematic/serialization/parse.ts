@@ -1,4 +1,4 @@
-import { Scene, Sound, Vector3 } from "babylonjs";
+import { Scene, Sound, Vector3, Animation } from "babylonjs";
 import { ICinematic, ICinematicKey, ICinematicKeyCut, ICinematicTrack, parseCinematicKeyValue, getAnimationTypeForObject } from "babylonjs-editor-tools";
 
 import { getSoundById } from "../../../../tools/sound/tools";
@@ -51,9 +51,13 @@ export function parseCinematicTrack(track: ICinematicTrack, scene: Scene) {
 		sound,
 		propertyPath: track.propertyPath,
 		defaultRenderingPipeline: track.defaultRenderingPipeline,
+
 		animationGroup: track.animationGroup ? scene.getAnimationGroupByName(track.animationGroup) : null,
 		animationGroups: track.animationGroups,
+		animationGroupWeight: parseKeyFrameAnimations(track.animationGroupWeight ?? [], Animation.ANIMATIONTYPE_FLOAT),
+
 		sounds: track.sounds,
+		soundVolume: parseKeyFrameAnimations(track.soundVolume ?? [], Animation.ANIMATIONTYPE_FLOAT),
 
 		keyFrameEvents: track.keyFrameEvents?.map((event) => {
 			const result = {
@@ -83,40 +87,41 @@ export function parseCinematicTrack(track: ICinematicTrack, scene: Scene) {
 			return result;
 		}),
 
-		keyFrameAnimations:
-			node &&
-			animationType !== null &&
-			track.keyFrameAnimations?.map((keyFrame) => {
-				const animationKey = keyFrame.type === "key" ? (keyFrame as ICinematicKey) : null;
-				if (animationKey) {
-					return {
-						...animationKey,
-						value: parseCinematicKeyValue(animationKey.value, animationType),
-						inTangent: parseCinematicKeyValue(animationKey.inTangent, animationType),
-						outTangent: parseCinematicKeyValue(animationKey.outTangent, animationType),
-					} as ICinematicKey;
-				}
-
-				const animationKeyCut = keyFrame.type === "cut" ? (keyFrame as ICinematicKeyCut) : null;
-				if (animationKeyCut) {
-					return {
-						...animationKeyCut,
-						key1: {
-							...animationKeyCut.key1,
-							value: parseCinematicKeyValue(animationKeyCut.key1.value, animationType),
-							inTangent: parseCinematicKeyValue(animationKeyCut.key1.inTangent, animationType),
-							outTangent: parseCinematicKeyValue(animationKeyCut.key1.outTangent, animationType),
-						} as ICinematicKey,
-						key2: {
-							...animationKeyCut.key2,
-							value: parseCinematicKeyValue(animationKeyCut.key2.value, animationType),
-							inTangent: parseCinematicKeyValue(animationKeyCut.key2.inTangent, animationType),
-							outTangent: parseCinematicKeyValue(animationKeyCut.key2.outTangent, animationType),
-						},
-					} as ICinematicKeyCut;
-				}
-
-				throw new Error(`Unknown key frame type: ${keyFrame.type}`);
-			}),
+		keyFrameAnimations: node && animationType !== null && parseKeyFrameAnimations(track.keyFrameAnimations ?? [], animationType),
 	};
+}
+
+export function parseKeyFrameAnimations(keyFrameAnimations: (ICinematicKey | ICinematicKeyCut)[], animationType: number) {
+	return keyFrameAnimations?.map((keyFrame) => {
+		const animationKey = keyFrame.type === "key" ? (keyFrame as ICinematicKey) : null;
+		if (animationKey) {
+			return {
+				...animationKey,
+				value: parseCinematicKeyValue(animationKey.value, animationType),
+				inTangent: parseCinematicKeyValue(animationKey.inTangent, animationType),
+				outTangent: parseCinematicKeyValue(animationKey.outTangent, animationType),
+			} as ICinematicKey;
+		}
+
+		const animationKeyCut = keyFrame.type === "cut" ? (keyFrame as ICinematicKeyCut) : null;
+		if (animationKeyCut) {
+			return {
+				...animationKeyCut,
+				key1: {
+					...animationKeyCut.key1,
+					value: parseCinematicKeyValue(animationKeyCut.key1.value, animationType),
+					inTangent: parseCinematicKeyValue(animationKeyCut.key1.inTangent, animationType),
+					outTangent: parseCinematicKeyValue(animationKeyCut.key1.outTangent, animationType),
+				} as ICinematicKey,
+				key2: {
+					...animationKeyCut.key2,
+					value: parseCinematicKeyValue(animationKeyCut.key2.value, animationType),
+					inTangent: parseCinematicKeyValue(animationKeyCut.key2.inTangent, animationType),
+					outTangent: parseCinematicKeyValue(animationKeyCut.key2.outTangent, animationType),
+				},
+			} as ICinematicKeyCut;
+		}
+
+		throw new Error(`Unknown key frame type: ${keyFrame.type}`);
+	});
 }
