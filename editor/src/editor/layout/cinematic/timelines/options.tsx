@@ -19,12 +19,12 @@ export function CinematicEditorTimelineOptions(props: ICinematicEditorTimelineOp
 
 	return (
 		<Popover>
-			<PopoverTrigger>
+			<PopoverTrigger asChild>
 				<Button variant="ghost" className="rounded-full px-2">
 					<FaGear className="w-4 h-4" />
 				</Button>
 			</PopoverTrigger>
-			<PopoverContent className="w-96">
+			<PopoverContent className="w-96" asChild>
 				<div className="grid gap-4">
 					<div className="space-y-2">
 						<h4 className="font-medium leading-none">Timeline options</h4>

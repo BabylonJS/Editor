@@ -31,7 +31,8 @@ export function CinematicEditorKeyCutInspector(props: ICinematicEditorKeyCutInsp
 					props.cinematicKey.key2.frame = v;
 
 					props.cinematicEditor.timelines.sortAnimationsKeys();
-					props.cinematicEditor.timelines.updateTracksAtCurrentTime();
+					props.cinematicEditor.curves.forceUpdate();
+					props.cinematicEditor.updateTracksAtCurrentTime();
 				}}
 			/>
 
@@ -41,7 +42,10 @@ export function CinematicEditorKeyCutInspector(props: ICinematicEditorKeyCutInsp
 				property: "value",
 				label: "End",
 				step: props.track.propertyPath === "depthOfField.focusDistance" ? (props.cinematicEditor.editor.layout.preview.scene.activeCamera?.maxZ ?? 0) / 1000 : 0.01,
-				onChange: () => props.cinematicEditor.timelines.updateTracksAtCurrentTime(),
+				onChange: () => {
+					props.cinematicEditor.curves.forceUpdate();
+					props.cinematicEditor.updateTracksAtCurrentTime();
+				},
 			})}
 
 			{getPropertyInspector({
@@ -50,7 +54,10 @@ export function CinematicEditorKeyCutInspector(props: ICinematicEditorKeyCutInsp
 				property: "value",
 				label: "New",
 				step: props.track.propertyPath === "depthOfField.focusDistance" ? (props.cinematicEditor.editor.layout.preview.scene.activeCamera?.maxZ ?? 0) / 1000 : 0.01,
-				onChange: () => props.cinematicEditor.timelines.updateTracksAtCurrentTime(),
+				onChange: () => {
+					props.cinematicEditor.curves.forceUpdate();
+					props.cinematicEditor.updateTracksAtCurrentTime();
+				},
 			})}
 
 			<EditorInspectorSwitchField
@@ -67,7 +74,7 @@ export function CinematicEditorKeyCutInspector(props: ICinematicEditorKeyCutInsp
 						executeRedo: true,
 					});
 
-					props.cinematicEditor.inspector.forceUpdate();
+					props.cinematicEditor.forceUpdate();
 				}}
 			/>
 
@@ -87,7 +94,7 @@ export function CinematicEditorKeyCutInspector(props: ICinematicEditorKeyCutInsp
 						executeRedo: true,
 					});
 
-					props.cinematicEditor.inspector.forceUpdate();
+					props.cinematicEditor.forceUpdate();
 				}}
 			/>
 
