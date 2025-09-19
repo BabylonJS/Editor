@@ -208,6 +208,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 							onFocus={() => this.setState({ isFocused: true })}
 							onPointerUp={(ev) => this._handleMouseUp(ev)}
 							onPointerDown={(ev) => this._handleMouseDown(ev)}
+							onDoubleClick={(ev) => this._handleDoubleClick(ev)}
 							onMouseLeave={() => this._handleMouseLeave()}
 							onMouseMove={() => this._handleMouseMove(this.scene.pointerX, this.scene.pointerY)}
 							className={`
@@ -601,6 +602,17 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		if (event.button === 2) {
 			this.scene.activeCamera?.inputs.detachElement();
 			this._handleMouseUp(event);
+		}
+	}
+
+	private _handleDoubleClick(_event: MouseEvent<HTMLCanvasElement, globalThis.MouseEvent>): void {
+		if (!this.state.pickingEnabled) {
+			return;
+		}
+
+		const pickingInfo = this._getPickingInfo(this.scene.pointerX, this.scene.pointerY);
+		if (pickingInfo.pickedMesh) {
+			this.focusObject(pickingInfo.pickedMesh);
 		}
 	}
 
