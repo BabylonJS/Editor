@@ -14,6 +14,7 @@ import { EditorInspectorSectionField } from "../fields/section";
 
 import { ScriptInspectorComponent } from "../script/script";
 
+import { CameraModeInspector } from "./utils/mode";
 import { FocalLengthInspector } from "./utils/focal";
 
 export class EditorArcRotateCameraInspector extends Component<IEditorInspectorImplementationProps<ArcRotateCamera>> {
@@ -46,6 +47,8 @@ export class EditorArcRotateCameraInspector extends Component<IEditorInspectorIm
 					<EditorInspectorNumberField asDegrees object={this.props.object} property="beta" label="Beta" step={0.1} />
 					<EditorInspectorNumberField object={this.props.object} property="radius" label="Radius" min={0} />
 				</EditorInspectorSectionField>
+
+				<CameraModeInspector camera={this.props.object} onUpdate={() => this.forceUpdate()} />
 
 				<EditorInspectorSectionField title="Fov">
 					<EditorInspectorNumberField object={this.props.object} property="minZ" label="Min Z" min={0.01} />
