@@ -2,10 +2,12 @@ import { Component, ReactNode } from "react";
 
 import { Divider } from "@blueprintjs/core";
 
-import { FreeCamera } from "babylonjs";
+import { FreeCamera, Node, Observer } from "babylonjs";
 
 import { isFreeCamera } from "../../../../tools/guards/nodes";
 import { onNodeModifiedObservable } from "../../../../tools/observables";
+
+import { onGizmoNodeChangedObservable } from "../../preview/gizmo";
 
 import { IEditorInspectorImplementationProps } from "../inspector";
 
@@ -17,6 +19,7 @@ import { EditorInspectorSectionField } from "../fields/section";
 
 import { ScriptInspectorComponent } from "../script/script";
 
+import { CameraModeInspector } from "./utils/mode";
 import { FocalLengthInspector } from "./utils/focal";
 
 export class EditorFreeCameraInspector extends Component<IEditorInspectorImplementationProps<FreeCamera>> {
@@ -55,6 +58,8 @@ export class EditorFreeCameraInspector extends Component<IEditorInspectorImpleme
 					<FocalLengthInspector camera={this.props.object} />
 				</EditorInspectorSectionField>
 
+				<CameraModeInspector camera={this.props.object} onUpdate={() => this.forceUpdate()} />
+
 				<EditorInspectorSectionField title="Camera">
 					<EditorInspectorNumberField object={this.props.object} property="speed" label="Speed" min={0} />
 					<EditorInspectorNumberField object={this.props.object} property="inertia" label="Inertia" min={0} max={0.99} />
@@ -77,5 +82,21 @@ export class EditorFreeCameraInspector extends Component<IEditorInspectorImpleme
 				</EditorInspectorSectionField>
 			</>
 		);
+	}
+
+	private _gizmoObserver: Observer<Node> | null = null;
+
+	public componentDidMount(): void {
+		this._gizmoObserver = onGizmoNodeChangedObservable.add((node) => {
+			if (node === this.props.object) {
+				this.props.editor.layout.inspector.forceUpdate();
+			}
+		});
+	}
+
+	public componentWillUnmount(): void {
+		if (this._gizmoObserver) {
+			onGizmoNodeChangedObservable.remove(this._gizmoObserver);
+		}
 	}
 }

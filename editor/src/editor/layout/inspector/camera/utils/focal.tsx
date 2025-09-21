@@ -25,6 +25,10 @@ export function FocalLengthInspector(props: IFocalLengthInspectorProps) {
 		return sensorSize / 2 / Math.tan(fov / 2);
 	}
 
+	if (props.camera.mode === Camera.ORTHOGRAPHIC_CAMERA) {
+		return null;
+	}
+
 	return (
 		ready && (
 			<>
