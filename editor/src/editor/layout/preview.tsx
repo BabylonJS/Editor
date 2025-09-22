@@ -12,8 +12,24 @@ import { IoIosStats } from "react-icons/io";
 import { LuMove3D, LuRotate3D, LuScale3D } from "react-icons/lu";
 
 import {
-	AbstractEngine, AbstractMesh, Animation, Camera, Color3, CubicEase, EasingFunction, Engine, GizmoCoordinatesMode,
-	ISceneLoaderAsyncResult, Node, Scene, Vector2, Vector3, WebGPUEngine, HavokPlugin, PickingInfo,
+	AbstractEngine,
+	AbstractMesh,
+	Animation,
+	Camera,
+	Color3,
+	CubicEase,
+	EasingFunction,
+	Engine,
+	GizmoCoordinatesMode,
+	ISceneLoaderAsyncResult,
+	Node,
+	Scene,
+	Vector2,
+	Vector3,
+	WebGPUEngine,
+	HavokPlugin,
+	PickingInfo,
+	SceneLoaderFlags,
 } from "babylonjs";
 
 import { Button } from "../../ui/shadcn/ui/button";
@@ -72,7 +88,6 @@ import { EditorPreviewConvertProgress } from "./preview/import/progress";
 import { loadImportedParticleSystemFile } from "./preview/import/particles";
 import { loadImportedSceneFile, tryConvertSceneFile } from "./preview/import/import";
 import { EditorPreviewCamera } from "./preview/camera";
-import { SceneLoaderFlags } from "babylonjs";
 
 export interface IEditorPreviewProps {
 	/**
@@ -224,14 +239,9 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 					<EditorPreviewIcons ref={(r) => this._onGotIconsRef(r!)} editor={this.props.editor} />
 				</EditorGraphContextMenu>
 
-				{this._previewCamera &&
-					<EditorPreviewCamera
-						hidden={this.play?.state.playing}
-						key={this._previewCamera.id}
-						editor={this.props.editor}
-						camera={this._previewCamera}
-					/>
-				}
+				{this._previewCamera && (
+					<EditorPreviewCamera hidden={this.play?.state.playing} key={this._previewCamera.id} editor={this.props.editor} camera={this._previewCamera} />
+				)}
 
 				<EditorPreviewAxisHelper ref={(r) => (this.axis = r!)} editor={this.props.editor} />
 
@@ -407,8 +417,10 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	 * @param camera the camera to activate the preview
 	 */
 	public setCameraPreviewActive(camera: Camera | null): void {
-		if(!this.props.editor.state.enableExperimentalFeatures) return;
-		
+		if (!this.props.editor.state.enableExperimentalFeatures) {
+			return;
+		}
+
 		if (this._previewCamera === camera) {
 			return;
 		}

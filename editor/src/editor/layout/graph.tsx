@@ -457,7 +457,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			this.props.editor.layout.preview.gizmo.setAttachedNode(node.nodeData);
 		}
 
-		if(isCamera(node.nodeData)) {
+		if (isCamera(node.nodeData)) {
 			this.props.editor.layout.preview.setCameraPreviewActive(node.nodeData);
 		}
 
