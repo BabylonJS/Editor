@@ -407,6 +407,8 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	 * @param camera the camera to activate the preview
 	 */
 	public setCameraPreviewActive(camera: Camera | null): void {
+		if(!this.props.editor.state.enableExperimentalFeatures) return;
+		
 		if (this._previewCamera === camera) {
 			return;
 		}
