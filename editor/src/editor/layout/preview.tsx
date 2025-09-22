@@ -72,6 +72,7 @@ import { EditorPreviewConvertProgress } from "./preview/import/progress";
 import { loadImportedParticleSystemFile } from "./preview/import/particles";
 import { loadImportedSceneFile, tryConvertSceneFile } from "./preview/import/import";
 import { EditorPreviewCamera } from "./preview/camera";
+import { SceneLoaderFlags } from "babylonjs";
 
 export interface IEditorPreviewProps {
 	/**
