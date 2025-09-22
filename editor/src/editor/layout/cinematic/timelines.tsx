@@ -17,14 +17,14 @@ import { addAnimationGroupKey, addAnimationKey, addEventKey, addSoundKey } from 
 import { removeAnimationGroupKey, removeAnimationKey, removeEventKey, removeSoundKey } from "./timelines/remove";
 
 export interface ICinematicEditorTimelinesProps {
-    cinematicEditor: CinematicEditor;
+	cinematicEditor: CinematicEditor;
 }
 
 export interface ICinematicEditorTimelinesState {
-    scale: number;
-    currentTime: number;
+	scale: number;
+	currentTime: number;
 
-    rightClickPositionX: number | null;
+	rightClickPositionX: number | null;
 }
 
 export class CinematicEditorTimelines extends Component<ICinematicEditorTimelinesProps, ICinematicEditorTimelinesState> {
@@ -46,7 +46,7 @@ export class CinematicEditorTimelines extends Component<ICinematicEditorTimeline
 
 		return (
 			<div
-				ref={(r) => this._divRef = r}
+				ref={(r) => (this._divRef = r)}
 				onMouseDown={(ev) => this._handlePointerDown(ev)}
 				className="relative flex flex-col flex-1 w-full min-h-fit h-full overflow-x-auto overflow-y-hidden"
 			>
@@ -91,10 +91,7 @@ export class CinematicEditorTimelines extends Component<ICinematicEditorTimeline
 		track._id ??= Tools.RandomId();
 
 		return (
-			<ContextMenu
-				key={track._id}
-				onOpenChange={(o) => !o && this.setState({ rightClickPositionX: null })}
-			>
+			<ContextMenu key={track._id} onOpenChange={(o) => !o && this.setState({ rightClickPositionX: null })}>
 				<ContextMenuTrigger>
 					<div
 						className={`
@@ -160,60 +157,75 @@ export class CinematicEditorTimelines extends Component<ICinematicEditorTimeline
 				</ContextMenuTrigger>
 
 				<ContextMenuContent>
-					{track.keyFrameAnimations &&
-                        <>
-                        	<ContextMenuItem className="flex items-center gap-2" onClick={() => addAnimationKey(this.props.cinematicEditor, "key", track)}>
-                        		<div className="w-4 h-4 rotate-45 border-[2px] bg-muted-foreground" />
-                                Add Key Here
-                        	</ContextMenuItem>
-                        	<ContextMenuItem className="flex items-center gap-2" onClick={() => addAnimationKey(this.props.cinematicEditor, "cut", track)}>
-                        		<div className="w-4 h-4 rotate-45 border-[2px] border-orange-500 bg-muted" />
-                                Add Key Cut Here
-                        	</ContextMenuItem>
-                        	<ContextMenuSeparator />
-                        	<ContextMenuItem className="flex items-center gap-2" onClick={() => addAnimationKey(this.props.cinematicEditor, "key", track, this.state.currentTime * this.state.scale)}>
-                        		<div className="w-4 h-4 rotate-45 border-[2px] bg-muted-foreground" />
-                                Add Key at Tracker Position
-                        	</ContextMenuItem>
-                        	<ContextMenuItem className="flex items-center gap-2" onClick={() => addAnimationKey(this.props.cinematicEditor, "cut", track, this.state.currentTime * this.state.scale)}>
-                        		<div className="w-4 h-4 rotate-45 border-[2px] border-orange-500 bg-muted" />
-                                Add Key Cut at Tracker Position
-                        	</ContextMenuItem>
-                        </>
-					}
+					{track.keyFrameAnimations && (
+						<>
+							<ContextMenuItem className="flex items-center gap-2" onClick={() => addAnimationKey(this.props.cinematicEditor, "key", track)}>
+								<div className="w-4 h-4 rotate-45 border-[2px] bg-muted-foreground" />
+								Add Key Here
+							</ContextMenuItem>
+							<ContextMenuItem className="flex items-center gap-2" onClick={() => addAnimationKey(this.props.cinematicEditor, "cut", track)}>
+								<div className="w-4 h-4 rotate-45 border-[2px] border-orange-500 bg-muted" />
+								Add Key Cut Here
+							</ContextMenuItem>
+							<ContextMenuSeparator />
+							<ContextMenuItem
+								className="flex items-center gap-2"
+								onClick={() => addAnimationKey(this.props.cinematicEditor, "key", track, this.state.currentTime * this.state.scale)}
+							>
+								<div className="w-4 h-4 rotate-45 border-[2px] bg-muted-foreground" />
+								Add Key at Tracker Position
+							</ContextMenuItem>
+							<ContextMenuItem
+								className="flex items-center gap-2"
+								onClick={() => addAnimationKey(this.props.cinematicEditor, "cut", track, this.state.currentTime * this.state.scale)}
+							>
+								<div className="w-4 h-4 rotate-45 border-[2px] border-orange-500 bg-muted" />
+								Add Key Cut at Tracker Position
+							</ContextMenuItem>
+						</>
+					)}
 
-					{track.sounds &&
-                        <>
-                        	<ContextMenuItem className="flex items-center gap-2" onClick={() => addSoundKey(this.props.cinematicEditor, track)}>
-                        		<AiOutlinePlus className="w-5 h-5" /> Add Sound Here
-                        	</ContextMenuItem>
-                        	<ContextMenuItem className="flex items-center gap-2" onClick={() => addSoundKey(this.props.cinematicEditor, track, this.state.currentTime * this.state.scale)}>
-                        		<AiOutlinePlus className="w-5 h-5" /> Add Sound at Tracker Position
-                        	</ContextMenuItem>
-                        </>
-					}
+					{track.sounds && (
+						<>
+							<ContextMenuItem className="flex items-center gap-2" onClick={() => addSoundKey(this.props.cinematicEditor, track)}>
+								<AiOutlinePlus className="w-5 h-5" /> Add Sound Here
+							</ContextMenuItem>
+							<ContextMenuItem
+								className="flex items-center gap-2"
+								onClick={() => addSoundKey(this.props.cinematicEditor, track, this.state.currentTime * this.state.scale)}
+							>
+								<AiOutlinePlus className="w-5 h-5" /> Add Sound at Tracker Position
+							</ContextMenuItem>
+						</>
+					)}
 
-					{track.keyFrameEvents &&
-                        <>
-                        	<ContextMenuItem className="flex items-center gap-2" onClick={() => addEventKey(this.props.cinematicEditor, track)}>
-                        		<AiOutlinePlus className="w-5 h-5" /> Add Event Here
-                        	</ContextMenuItem>
-                        	<ContextMenuItem className="flex items-center gap-2" onClick={() => addEventKey(this.props.cinematicEditor, track, this.state.currentTime * this.state.scale)}>
-                        		<AiOutlinePlus className="w-5 h-5" /> Add Event At Tracker Position
-                        	</ContextMenuItem>
-                        </>
-					}
+					{track.keyFrameEvents && (
+						<>
+							<ContextMenuItem className="flex items-center gap-2" onClick={() => addEventKey(this.props.cinematicEditor, track)}>
+								<AiOutlinePlus className="w-5 h-5" /> Add Event Here
+							</ContextMenuItem>
+							<ContextMenuItem
+								className="flex items-center gap-2"
+								onClick={() => addEventKey(this.props.cinematicEditor, track, this.state.currentTime * this.state.scale)}
+							>
+								<AiOutlinePlus className="w-5 h-5" /> Add Event At Tracker Position
+							</ContextMenuItem>
+						</>
+					)}
 
-					{track.animationGroups &&
-                        <>
-                        	<ContextMenuItem className="flex items-center gap-2" onClick={() => addAnimationGroupKey(this.props.cinematicEditor, track)}>
-                        		<AiOutlinePlus className="w-5 h-5" /> Add Group Here
-                        	</ContextMenuItem>
-                        	<ContextMenuItem className="flex items-center gap-2" onClick={() => addAnimationGroupKey(this.props.cinematicEditor, track, this.state.currentTime * this.state.scale)}>
-                        		<AiOutlinePlus className="w-5 h-5" /> Add Group at Tracker Position
-                        	</ContextMenuItem>
-                        </>
-					}
+					{track.animationGroups && (
+						<>
+							<ContextMenuItem className="flex items-center gap-2" onClick={() => addAnimationGroupKey(this.props.cinematicEditor, track)}>
+								<AiOutlinePlus className="w-5 h-5" /> Add Group Here
+							</ContextMenuItem>
+							<ContextMenuItem
+								className="flex items-center gap-2"
+								onClick={() => addAnimationGroupKey(this.props.cinematicEditor, track, this.state.currentTime * this.state.scale)}
+							>
+								<AiOutlinePlus className="w-5 h-5" /> Add Group at Tracker Position
+							</ContextMenuItem>
+						</>
+					)}
 				</ContextMenuContent>
 			</ContextMenu>
 		);
@@ -272,8 +284,8 @@ export class CinematicEditorTimelines extends Component<ICinematicEditorTimeline
 	}
 
 	/**
-     * Sorts all the keys in the track based on their frame value.
-     */
+	 * Sorts all the keys in the track based on their frame value.
+	 */
 	public sortAnimationsKeys(): void {
 		this.props.cinematicEditor.cinematic.tracks.forEach((track) => {
 			track.keyFrameAnimations?.sort((a, b) => {
@@ -317,34 +329,38 @@ export class CinematicEditorTimelines extends Component<ICinematicEditorTimeline
 		this.props.cinematicEditor.createTemporaryAnimationGroup();
 		this.setCurrentTime(startPosition);
 
-		document.body.addEventListener("mousemove", mouseMoveListener = (ev) => {
-			if (clientX === null) {
-				clientX = ev.clientX;
-			}
+		document.body.addEventListener(
+			"mousemove",
+			(mouseMoveListener = (ev) => {
+				if (clientX === null) {
+					clientX = ev.clientX;
+				}
 
-			const delta = clientX - ev.clientX;
-			if (moving || Math.abs(delta) > 5 * devicePixelRatio) {
-				moving = true;
-			} else {
-				return;
-			}
+				const delta = clientX - ev.clientX;
+				if (moving || Math.abs(delta) > 5 * devicePixelRatio) {
+					moving = true;
+				} else {
+					return;
+				}
 
-			const currentTime = Math.round(
-				Math.max(0, startPosition - delta / this.state.scale),
-			);
+				const currentTime = Math.round(Math.max(0, startPosition - delta / this.state.scale));
 
-			this.setCurrentTime(currentTime);
-		});
+				this.setCurrentTime(currentTime);
+			})
+		);
 
-		document.body.addEventListener("mouseup", mouseUpListener = (ev) => {
-			ev.stopPropagation();
+		document.body.addEventListener(
+			"mouseup",
+			(mouseUpListener = (ev) => {
+				ev.stopPropagation();
 
-			document.body.style.cursor = "auto";
+				document.body.style.cursor = "auto";
 
-			document.body.removeEventListener("mouseup", mouseUpListener);
-			document.body.removeEventListener("mousemove", mouseMoveListener);
+				document.body.removeEventListener("mouseup", mouseUpListener);
+				document.body.removeEventListener("mousemove", mouseMoveListener);
 
-			this.props.cinematicEditor.disposeTemporaryAnimationGroup();
-		});
+				this.props.cinematicEditor.disposeTemporaryAnimationGroup();
+			})
+		);
 	}
 }

@@ -1,107 +1,134 @@
 jest.mock("@babylonjs/gui/2D/advancedDynamicTexture", () => ({
-    AdvancedDynamicTexture: class {
-        static CreateFullscreenUI = jest.fn().mockImplementation((name) => ({
-            name,
-            parseSerializedObject: jest.fn(),
-        }));
-    }
+	AdvancedDynamicTexture: class {
+		static CreateFullscreenUI = jest.fn().mockImplementation((name) => ({
+			name,
+			parseSerializedObject: jest.fn(),
+		}));
+	},
 }));
 
 jest.mock("@babylonjs/core/Maths/math.vector", () => ({
-    Vector2: class {
-        x: number;
-        y: number;
+	Vector2: class {
+		x: number;
+		y: number;
 
-        constructor(x?: number, y?: number) {
-            this.x = x ?? 0;
-            this.y = y ?? 0;
-        }
+		constructor(x?: number, y?: number) {
+			this.x = x ?? 0;
+			this.y = y ?? 0;
+		}
 
-        static Zero() {
-            return new this();
-        }
+		static Zero() {
+			return new this();
+		}
 
-        static FromArray(array: number[]) {
-            return new this(array[0]!, array[1]!);
-        }
-    },
+		static FromArray(array: number[]) {
+			return new this(array[0]!, array[1]!);
+		}
+	},
 
-    Vector3: class {
-        x: number;
-        y: number;
-        z: number;
+	Vector3: class {
+		x: number;
+		y: number;
+		z: number;
 
-        constructor(x?: number, y?: number, z?: number) {
-            this.x = x ?? 0;
-            this.y = y ?? 0;
-            this.z = z ?? 0;
-        }
+		constructor(x?: number, y?: number, z?: number) {
+			this.x = x ?? 0;
+			this.y = y ?? 0;
+			this.z = z ?? 0;
+		}
 
-        static Zero() {
-            return new this();
-        }
+		static Zero() {
+			return new this();
+		}
 
-        static FromArray(array: number[]) {
-            return new this(array[0]!, array[1]!, array[2]!);
-        }
-    },
+		static FromArray(array: number[]) {
+			return new this(array[0]!, array[1]!, array[2]!);
+		}
+	},
 }));
 
 jest.mock("@babylonjs/core/Maths/math.color", () => ({
-    Color3: class {
-        r: number;
-        g: number;
-        b: number;
+	Color3: class {
+		r: number;
+		g: number;
+		b: number;
 
-        constructor(r?: number, g?: number, b?: number) {
-            this.r = r ?? 0;
-            this.g = g ?? 0;
-            this.b = b ?? 0;
-        }
+		constructor(r?: number, g?: number, b?: number) {
+			this.r = r ?? 0;
+			this.g = g ?? 0;
+			this.b = b ?? 0;
+		}
 
-        static FromArray(array: number[]) {
-            return new this(array[0]!, array[1]!, array[2]!);
-        }
-    },
-    Color4: class {
-        r: number;
-        g: number;
-        b: number;
-        a: number;
+		static FromArray(array: number[]) {
+			return new this(array[0]!, array[1]!, array[2]!);
+		}
+	},
+	Color4: class {
+		r: number;
+		g: number;
+		b: number;
+		a: number;
 
-        constructor(r?: number, g?: number, b?: number, a?: number) {
-            this.r = r ?? 0;
-            this.g = g ?? 0;
-            this.b = b ?? 0;
-            this.a = a ?? 1;
-        }
+		constructor(r?: number, g?: number, b?: number, a?: number) {
+			this.r = r ?? 0;
+			this.g = g ?? 0;
+			this.b = b ?? 0;
+			this.a = a ?? 1;
+		}
 
-        static FromArray(array: number[]) {
-            return new this(array[0]!, array[1]!, array[2]!, array[3]!);
-        }
-    },
+		static FromArray(array: number[]) {
+			return new this(array[0]!, array[1]!, array[2]!, array[3]!);
+		}
+	},
 }));
 
 jest.mock("@babylonjs/core/Materials/Textures/texture", () => ({
-    Texture: class {
-        name: string;
+	Texture: class {
+		name: string;
 
-        constructor(name: string) {
-            this.name = name;
-        }
+		constructor(name: string) {
+			this.name = name;
+		}
 
-        static Parse(data: any) {
-            return new this(data.name);
-        }
-    },
+		static Parse(data: any) {
+			return new this(data.name);
+		}
+	},
+}));
+
+jest.mock("@babylonjs/core/Meshes/transformNode", () => ({
+	TransformNode: class {
+		getClassName() {
+			return "TransformNode";
+		}
+	},
+}));
+
+jest.mock("@babylonjs/core/Materials/material", () => ({
+	Material: class {
+		static Parse() {
+			return new this();
+		}
+	},
+}));
+
+jest.mock("@babylonjs/core/Particles/Node/nodeParticleSystemSet", () => ({
+	NodeParticleSystemSet: class {
+		static Parse() {
+			return new this();
+		}
+	},
 }));
 
 import { Node } from "@babylonjs/core/node";
 import { Scene } from "@babylonjs/core/scene";
 import { Sound } from "@babylonjs/core/Audio/sound";
+import { Material } from "@babylonjs/core/Materials/material";
 import { Color3, Color4 } from "@babylonjs/core/Maths/math.color";
+import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { Texture } from "@babylonjs/core/Materials/Textures/texture";
 import { Vector2, Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { NodeParticleSystemSet } from "@babylonjs/core/Particles/Node/nodeParticleSystemSet";
 
 import { AdvancedDynamicTexture } from "@babylonjs/gui/2D/advancedDynamicTexture";
 
@@ -110,206 +137,293 @@ import { soundFromScene } from "../../src/decorators/sound";
 import { applyDecorators } from "../../src/decorators/apply";
 import { particleSystemFromScene } from "../../src/decorators/particle-systems";
 import { animationGroupFromScene, nodeFromDescendants, nodeFromScene } from "../../src/decorators/scene";
-import { visibleAsBoolean, visibleAsColor3, visibleAsColor4, visibleAsEntity, visibleAsKeyMap, visibleAsNumber, visibleAsTexture, visibleAsVector2, visibleAsVector3 } from "../../src/decorators/inspector";
+import {
+	visibleAsBoolean,
+	visibleAsColor3,
+	visibleAsColor4,
+	visibleAsEntity,
+	visibleAsKeyMap,
+	visibleAsNumber,
+	visibleAsString,
+	visibleAsTexture,
+	visibleAsVector2,
+	visibleAsVector3,
+	visibleAsAsset,
+} from "../../src/decorators/inspector";
+import { onKeyboardEvent, onPointerEvent } from "../../src/decorators/events";
 
 describe("decorators/apply", () => {
-    class EmptyTarget { }
+	class EmptyTarget {}
 
-    class Target {
-        @soundFromScene("test")
-        public soundProperty: Sound = null!;
+	class Target extends TransformNode {
+		@soundFromScene("test")
+		public soundProperty: Sound = null!;
 
-        @nodeFromScene("test")
-        public nodeProperty: any = null!;
+		@nodeFromScene("test")
+		public nodeProperty: any = null!;
 
-        @nodeFromDescendants("test")
-        public nodeDescendantsProperty: any = null!;
+		@nodeFromDescendants("test")
+		public nodeDescendantsProperty: any = null!;
 
-        @animationGroupFromScene("test")
-        public animationGroupProperty: any = null!;
+		@animationGroupFromScene("test")
+		public animationGroupProperty: any = null!;
 
-        @particleSystemFromScene("test")
-        public particleSystemProperty: any = null!;
+		@particleSystemFromScene("test")
+		public particleSystemProperty: any = null!;
 
-        @visibleAsBoolean("test")
-        public booleanProperty: boolean = false;
-        @visibleAsNumber("test")
-        public numberProperty: number = 0;
-        @visibleAsVector2("test")
-        public vector2Property: Vector2 = Vector2.Zero();
-        @visibleAsVector3("test")
-        public vector3Property: Vector3 = Vector3.Zero();
+		@visibleAsBoolean("test")
+		public booleanProperty: boolean = false;
+		@visibleAsNumber("test")
+		public numberProperty: number = 0;
+		@visibleAsString("test")
+		public stringProperty: string = "";
+		@visibleAsVector2("test")
+		public vector2Property: Vector2 = Vector2.Zero();
+		@visibleAsVector3("test")
+		public vector3Property: Vector3 = Vector3.Zero();
 
-        @visibleAsColor3("test")
-        public color3Property: Color3 = new Color3();
-        @visibleAsColor4("test")
-        public color4Property: Color4 = new Color4();
+		@visibleAsColor3("test")
+		public color3Property: Color3 = new Color3();
+		@visibleAsColor4("test")
+		public color4Property: Color4 = new Color4();
 
-        @visibleAsEntity("node", "test")
-        public nodeEntityProperty: Node = null!;
-        @visibleAsEntity("sound", "test")
-        public soundEntityProperty: Sound = null!;
-        @visibleAsEntity("animationGroup", "test")
-        public animationGroupEntityProperty: any = null!;
-        @visibleAsEntity("particleSystem", "test")
-        public particleSystemEntityProperty: any = null!;
+		@visibleAsEntity("node", "test")
+		public nodeEntityProperty: Node = null!;
+		@visibleAsEntity("sound", "test")
+		public soundEntityProperty: Sound = null!;
+		@visibleAsEntity("animationGroup", "test")
+		public animationGroupEntityProperty: any = null!;
+		@visibleAsEntity("particleSystem", "test")
+		public particleSystemEntityProperty: any = null!;
 
-        @visibleAsTexture("test")
-        public textureProperty: Texture = null!;
+		@visibleAsTexture("test")
+		public textureProperty: Texture = null!;
 
-        @guiFromAsset("path/file.gui")
-        public gui: AdvancedDynamicTexture = null!;
+		@guiFromAsset("path/file.gui")
+		public gui: AdvancedDynamicTexture = null!;
 
-        @visibleAsKeyMap("test")
-        public keymapProperty: number = 0;
-    }
+		@visibleAsKeyMap("test")
+		public keymapProperty: number = 0;
 
-    const soundObject = {};
-    const nodeObject = {};
-    const nodeDescendantsObject = {};
-    const animationGroupObject = {};
-    const particleSystemObject = {
-        name: "test",
-        id: "particleSystemId",
-    };
+		@onPointerEvent(2)
+		public pointerEventFn1(): void {}
 
-    const nodeEntityObject = {};
-    const soundEntityObject = {
-        id: "soundId",
-    };
+		@onPointerEvent(1)
+		public pointerEventFn2(): void {}
 
-    const scene = {
-        getSoundByName: jest.fn().mockImplementation(() => soundObject),
-        getNodeByName: jest.fn().mockImplementation(() => nodeObject),
-        getAnimationGroupByName: jest.fn().mockImplementation(() => animationGroupObject),
-        particleSystems: [particleSystemObject],
-        getNodeById: jest.fn().mockImplementation(() => nodeEntityObject),
-        soundTracks: [],
-        mainSoundTrack: {
-            soundCollection: [soundEntityObject],
-        },
-    } as unknown as Scene;
+		@onKeyboardEvent(2)
+		public keyboardEventFn1(): void {}
 
-    const object = {
-        getDescendants: jest.fn().mockImplementation(() => [nodeDescendantsObject]),
-        metadata: {
-            scripts: [
-                {
-                    key: "test",
-                    enabled: true,
-                    values: {
-                        "booleanProperty": {
-                            value: true,
-                        },
-                        "numberProperty": {
-                            value: 1,
-                        },
-                        "vector2Property": {
-                            value: [10, 20],
-                        },
-                        "vector3Property": {
-                            value: [10, 20, 30],
-                        },
-                        "color3Property": {
-                            value: [0.1, 0.2, 0.3],
-                        },
-                        "color4Property": {
-                            value: [0.1, 0.2, 0.3, 0.4],
-                        },
-                        "nodeEntityProperty": {
-                            value: "nodeId",
-                        },
-                        "soundEntityProperty": {
-                            value: "soundId",
-                        },
-                        "animationGroupEntityProperty": {
-                            value: "animationGroupName",
-                        },
-                        "particleSystemEntityProperty": {
-                            value: "particleSystemId",
-                        },
-                        "textureProperty": {
-                            value: {
-                                name: "testTexture",
-                            },
-                        },
-                        "keymapProperty": {
-                            value: 42,
-                        },
-                    }
-                }
-            ],
-        }
-    } as unknown as Node;
+		@onKeyboardEvent(1)
+		public keyboardEventFn2(): void {}
 
-    const mockedGuiResult = {
-        name: "testGui",
-    };
-    globalThis.fetch = jest.fn().mockImplementation(() => Promise.resolve({
-        json: () => Promise.resolve(mockedGuiResult),
-    }));
+		@visibleAsAsset("material", "test")
+		public material: Material = null!;
 
-    describe("applyDecorators", () => {
-        test("should do nothing when no decorated properties in target", () => {
-            const target = new EmptyTarget();
-            applyDecorators(scene, object, {}, target, "");
+		@visibleAsAsset("nodeParticleSystemSet", "test")
+		public npss: NodeParticleSystemSet = null!;
+	}
 
-            expect(scene.getSoundByName).not.toHaveBeenCalled();
-        });
+	const soundObject = {};
+	const nodeObject = {};
+	const nodeDescendantsObject = {};
+	const animationGroupObject = {};
+	const particleSystemObject = {
+		name: "test",
+		id: "particleSystemId",
+	};
 
-        test("should retrieve all necessary decorators", () => {
-            const target = new Target();
+	const nodeEntityObject = {};
+	const soundEntityObject = {
+		id: "soundId",
+	};
 
-            expect(target.booleanProperty).toBe(false);
-            expect(target.numberProperty).toBe(0);
+	let scene: any = null;
+	let object: any = null;
 
-            applyDecorators(scene, object, object.metadata.scripts[0], target, "");
+	const mockedGuiResult = {
+		name: "testGui",
+	};
 
-            expect(scene.getSoundByName).toHaveBeenCalledWith("test");
-            expect(target.soundProperty).toBe(soundObject);
+	globalThis.fetch = jest.fn().mockImplementation(() =>
+		Promise.resolve({
+			json: () => Promise.resolve(mockedGuiResult),
+		})
+	);
 
-            expect(scene.getNodeByName).toHaveBeenCalledWith("test");
-            expect(target.nodeProperty).toBe(nodeObject);
+	beforeEach(() => {
+		scene = {
+			getSoundByName: jest.fn().mockImplementation(() => soundObject),
+			getNodeByName: jest.fn().mockImplementation(() => nodeObject),
+			getAnimationGroupByName: jest.fn().mockImplementation(() => animationGroupObject),
+			particleSystems: [particleSystemObject],
+			getNodeById: jest.fn().mockImplementation(() => nodeEntityObject),
+			soundTracks: [],
+			mainSoundTrack: {
+				soundCollection: [soundEntityObject],
+			},
+			onPointerObservable: {
+				add: jest.fn().mockImplementation((callback) => {
+					callback({
+						type: 2,
+					});
+				}),
+			},
+			onKeyboardObservable: {
+				add: jest.fn().mockImplementation((callback) => {
+					callback({
+						type: 2,
+					});
+				}),
+			},
+			pick: jest.fn(),
+		} as unknown as Scene;
 
-            expect(object.getDescendants).toHaveBeenCalled();
-            expect(target.nodeDescendantsProperty).toBe(nodeDescendantsObject);
+		object = {
+			getClassName: jest.fn().mockImplementation(() => "TransformNode"),
+			getDescendants: jest.fn().mockImplementation(() => [nodeDescendantsObject]),
+			metadata: {
+				scripts: [
+					{
+						key: "test",
+						enabled: true,
+						values: {
+							booleanProperty: {
+								value: true,
+							},
+							stringProperty: {
+								value: "hello",
+							},
+							numberProperty: {
+								value: 1,
+							},
+							vector2Property: {
+								value: [10, 20],
+							},
+							vector3Property: {
+								value: [10, 20, 30],
+							},
+							color3Property: {
+								value: [0.1, 0.2, 0.3],
+							},
+							color4Property: {
+								value: [0.1, 0.2, 0.3, 0.4],
+							},
+							nodeEntityProperty: {
+								value: "nodeId",
+							},
+							soundEntityProperty: {
+								value: "soundId",
+							},
+							animationGroupEntityProperty: {
+								value: "animationGroupName",
+							},
+							particleSystemEntityProperty: {
+								value: "particleSystemId",
+							},
+							textureProperty: {
+								value: {
+									name: "testTexture",
+								},
+							},
+							keymapProperty: {
+								value: 42,
+							},
 
-            expect(scene.getAnimationGroupByName).toHaveBeenCalledWith("test");
-            expect(target.animationGroupProperty).toBe(animationGroupObject);
+							material: {
+								assetType: "material",
+								value: "path/to/material.material",
+							},
+							npss: {
+								assetType: "nodeParticleSystemSet",
+								value: "path/to/npss.npss",
+							},
+						},
+					},
+				],
+			},
+		} as unknown as Node;
+	});
 
-            expect(target.particleSystemProperty).toBe(particleSystemObject);
+	describe("applyDecorators", () => {
+		test("should do nothing when no decorated properties in target", async () => {
+			const target = new EmptyTarget();
+			await applyDecorators(scene, object, {}, target, "");
 
-            expect(target.booleanProperty).toBe(true);
-            expect(target.numberProperty).toBe(1);
+			expect(scene.getSoundByName).not.toHaveBeenCalled();
+		});
 
-            expect(target.vector2Property.x).toBe(10);
-            expect(target.vector2Property.y).toBe(20);
+		test("should retrieve all necessary decorators", async () => {
+			const target = new Target(null!);
 
-            expect(target.vector3Property.x).toBe(10);
-            expect(target.vector3Property.y).toBe(20);
-            expect(target.vector3Property.z).toBe(30);
+			expect(target.booleanProperty).toBe(false);
+			expect(target.numberProperty).toBe(0);
 
-            expect(target.color3Property.r).toBe(0.1);
-            expect(target.color3Property.g).toBe(0.2);
-            expect(target.color3Property.b).toBe(0.3);
+			await applyDecorators(scene, object, object.metadata.scripts[0], target, "");
 
-            expect(target.color4Property.r).toBe(0.1);
-            expect(target.color4Property.g).toBe(0.2);
-            expect(target.color4Property.b).toBe(0.3);
-            expect(target.color4Property.a).toBe(0.4);
+			expect(scene.getSoundByName).toHaveBeenCalledWith("test");
+			expect(target.soundProperty).toBe(soundObject);
 
-            expect(target.nodeEntityProperty).toBe(nodeEntityObject);
-            expect(target.soundEntityProperty).toBe(soundEntityObject);
-            expect(target.animationGroupEntityProperty).toBe(animationGroupObject);
-            expect(target.particleSystemEntityProperty).toBe(particleSystemObject);
+			expect(scene.getNodeByName).toHaveBeenCalledWith("test");
+			expect(target.nodeProperty).toBe(nodeObject);
 
-            expect(target.textureProperty?.name).toBe("testTexture");
+			expect(object.getDescendants).toHaveBeenCalled();
+			expect(target.nodeDescendantsProperty).toBe(nodeDescendantsObject);
 
-            expect(target.keymapProperty).toBe(42);
+			expect(scene.getAnimationGroupByName).toHaveBeenCalledWith("test");
+			expect(target.animationGroupProperty).toBe(animationGroupObject);
 
-            setTimeout(() => {
-                expect(target.gui.name).toBe(mockedGuiResult.name);
-            }, 0);
-        });
-    });
+			expect(target.particleSystemProperty).toBe(particleSystemObject);
+
+			expect(target.booleanProperty).toBe(true);
+			expect(target.numberProperty).toBe(1);
+			expect(target.stringProperty).toBe("hello");
+
+			expect(target.vector2Property.x).toBe(10);
+			expect(target.vector2Property.y).toBe(20);
+
+			expect(target.vector3Property.x).toBe(10);
+			expect(target.vector3Property.y).toBe(20);
+			expect(target.vector3Property.z).toBe(30);
+
+			expect(target.color3Property.r).toBe(0.1);
+			expect(target.color3Property.g).toBe(0.2);
+			expect(target.color3Property.b).toBe(0.3);
+
+			expect(target.color4Property.r).toBe(0.1);
+			expect(target.color4Property.g).toBe(0.2);
+			expect(target.color4Property.b).toBe(0.3);
+			expect(target.color4Property.a).toBe(0.4);
+
+			expect(target.nodeEntityProperty).toBe(nodeEntityObject);
+			expect(target.soundEntityProperty).toBe(soundEntityObject);
+			expect(target.animationGroupEntityProperty).toBe(animationGroupObject);
+			expect(target.particleSystemEntityProperty).toBe(particleSystemObject);
+
+			expect(target.textureProperty?.name).toBe("testTexture");
+
+			expect(target.keymapProperty).toBe(42);
+
+			expect(target.material).toBeInstanceOf(Material);
+			expect(target.npss).toBeInstanceOf(NodeParticleSystemSet);
+
+			setTimeout(() => {
+				expect(target.gui.name).toBe(mockedGuiResult.name);
+			}, 0);
+		});
+
+		test("should bind pointer events", async () => {
+			const target = new Target(null!);
+			await applyDecorators(scene, object, object.metadata.scripts[0], target, "");
+
+			expect(scene.onPointerObservable.add).toHaveBeenCalledTimes(1);
+		});
+
+		test("should bind keyboard events", async () => {
+			const target = new Target(null!);
+			await applyDecorators(scene, object, object.metadata.scripts[0], target, "");
+
+			expect(scene.onKeyboardObservable.add).toHaveBeenCalledTimes(1);
+		});
+	});
 });

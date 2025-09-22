@@ -40,11 +40,7 @@ export function reloadSound(editor: Editor, sound: Sound) {
 
 	const serializationObject = sound.serialize();
 
-	const newSound = Sound.Parse(
-		serializationObject,
-		editor.layout.preview.scene,
-		join(dirname(projectConfiguration.path), "/"),
-	);
+	const newSound = Sound.Parse(serializationObject, editor.layout.preview.scene, join(dirname(projectConfiguration.path), "/"));
 
 	newSound["_url"] = serializationObject.url;
 	newSound.id = sound.id;

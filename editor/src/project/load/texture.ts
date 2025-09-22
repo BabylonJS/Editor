@@ -1,31 +1,41 @@
 import { pathExistsSync } from "fs-extra";
 import { join, dirname, extname } from "path/posix";
 
-import { Engine, SerializationHelper } from "babylonjs";
+import { Engine, Scene, SerializationHelper, BaseTexture } from "babylonjs";
 
 import { isTexture } from "../../tools/guards/texture";
 import { temporaryDirectoryName } from "../../tools/project";
+import { loadSavedAssetsCache } from "../../tools/assets/cache";
 
 import { getCompressedTextureFilename, ktxSupportedextensions, KTXToolsType } from "../export/ktx";
 
 import { projectConfiguration } from "../configuration";
 
-const textureParser = SerializationHelper._TextureParser;
+export const originalTextureParser = SerializationHelper._TextureParser;
 
-SerializationHelper._TextureParser = (source, scene, rootUrl) => {
+export function textureParser(source: any, scene: Scene, rootUrl: string): BaseTexture | null {
 	const engine = scene.getEngine();
 
 	const name = source.name;
 	const extension = extname(name).toLowerCase();
 
+	const assetsCache = loadSavedAssetsCache();
+	if (source.name && assetsCache[source.name]) {
+		source.name = assetsCache[source.name].newRelativePath;
+	}
+
+	if (source.url && assetsCache[source.url]) {
+		source.url = assetsCache[source.url].newRelativePath;
+	}
+
 	if (
 		!source.name ||
-        !projectConfiguration.path ||
-        !projectConfiguration.compressedTexturesEnabled ||
-        !ktxSupportedextensions.includes(extension) ||
-        !(engine instanceof Engine)
+		!projectConfiguration.path ||
+		!projectConfiguration.compressedTexturesEnabled ||
+		!ktxSupportedextensions.includes(extension) ||
+		!(engine instanceof Engine)
 	) {
-		return textureParser(source, scene, rootUrl);
+		return originalTextureParser(source, scene, rootUrl);
 	}
 
 	const supportedType = engine.texturesSupported[0] as KTXToolsType;
@@ -38,7 +48,7 @@ SerializationHelper._TextureParser = (source, scene, rootUrl) => {
 	if (pathExistsSync(compressedTextureAbsolutePath)) {
 		source.name = join(temporaryDirectoryName, "textures", compressedTextureFilename);
 
-		const texture = textureParser(source, scene, rootUrl);
+		const texture = originalTextureParser(source, scene, rootUrl);
 		if (texture && isTexture(texture)) {
 			texture.name = name;
 			texture.url = source.url;
@@ -47,5 +57,7 @@ SerializationHelper._TextureParser = (source, scene, rootUrl) => {
 		}
 	}
 
-	return textureParser(source, scene, rootUrl);
-};
+	return originalTextureParser(source, scene, rootUrl);
+}
+
+SerializationHelper._TextureParser = textureParser;

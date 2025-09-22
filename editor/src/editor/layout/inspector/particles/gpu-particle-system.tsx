@@ -3,9 +3,19 @@ import { Component, ReactNode } from "react";
 import { IoPlay, IoStop, IoRefresh } from "react-icons/io5";
 
 import {
-	GPUParticleSystem, ParticleSystem, IParticleEmitterType, BoxParticleEmitter, ConeParticleEmitter, ConeDirectedParticleEmitter,
-	CylinderParticleEmitter, CylinderDirectedParticleEmitter, SphereParticleEmitter, SphereDirectedParticleEmitter,
-	PointParticleEmitter, HemisphericParticleEmitter, MeshParticleEmitter,
+	GPUParticleSystem,
+	ParticleSystem,
+	IParticleEmitterType,
+	BoxParticleEmitter,
+	ConeParticleEmitter,
+	ConeDirectedParticleEmitter,
+	CylinderParticleEmitter,
+	CylinderDirectedParticleEmitter,
+	SphereParticleEmitter,
+	SphereDirectedParticleEmitter,
+	PointParticleEmitter,
+	HemisphericParticleEmitter,
+	MeshParticleEmitter,
 } from "babylonjs";
 
 import { Button } from "../../../../ui/shadcn/ui/button";
@@ -43,10 +53,13 @@ export class EditorGPUParticleSystemInspector extends Component<IEditorInspector
 	}
 
 	protected _randomTextureSize: number = 1024;
-	protected _sizes: IEditorInspectorListFieldItem[] = getPowerOfTwoSizesUntil(this.props.editor.layout.preview.engine.getCaps().maxTextureSize, 256).map((s) => ({
-		value: s,
-		text: `${s}px`,
-	} as IEditorInspectorListFieldItem));
+	protected _sizes: IEditorInspectorListFieldItem[] = getPowerOfTwoSizesUntil(this.props.editor.layout.preview.engine.getCaps().maxTextureSize, 256).map(
+		(s) =>
+			({
+				value: s,
+				text: `${s}px`,
+			}) as IEditorInspectorListFieldItem
+	);
 
 	public constructor(props: IEditorInspectorImplementationProps<GPUParticleSystem>) {
 		super(props);
@@ -61,16 +74,17 @@ export class EditorGPUParticleSystemInspector extends Component<IEditorInspector
 			<>
 				<EditorInspectorSectionField title="Common">
 					<div className="flex justify-between items-center px-2 py-2">
-						<div className="w-1/2">
-							Type
-						</div>
+						<div className="w-1/2">Type</div>
 
-						<div className="text-white/50">
-							{this.props.object.getClassName()}
-						</div>
+						<div className="text-white/50">{this.props.object.getClassName()}</div>
 					</div>
 
-					<EditorInspectorStringField label="Name" object={this.props.object} property="name" onChange={() => onParticleSystemModifiedObservable.notifyObservers(this.props.object)} />
+					<EditorInspectorStringField
+						label="Name"
+						object={this.props.object}
+						property="name"
+						onChange={() => onParticleSystemModifiedObservable.notifyObservers(this.props.object)}
+					/>
 					<EditorInspectorSwitchField object={this.props.object} property="preventAutoStart" label="Prevent Auto Start" />
 				</EditorInspectorSectionField>
 
@@ -84,16 +98,10 @@ export class EditorGPUParticleSystemInspector extends Component<IEditorInspector
                                 transition-all duration-300 ease-in-out
                             `}
 						>
-							{this.state.started
-								? <IoStop className="w-6 h-6" strokeWidth={1} color="red" />
-								: <IoPlay className="w-6 h-6" strokeWidth={1} color="green" />
-							}
+							{this.state.started ? <IoStop className="w-6 h-6" strokeWidth={1} color="red" /> : <IoPlay className="w-6 h-6" strokeWidth={1} color="green" />}
 						</Button>
 
-						<Button
-							onClick={() => this.props.object.reset()}
-							className="w-10 h-10 bg-muted/50 !rounded-lg p-0.5"
-						>
+						<Button onClick={() => this.props.object.reset()} className="w-10 h-10 bg-muted/50 !rounded-lg p-0.5">
 							<IoRefresh className="w-6 h-6" strokeWidth={1} color="red" />
 						</Button>
 					</div>
@@ -107,13 +115,18 @@ export class EditorGPUParticleSystemInspector extends Component<IEditorInspector
 				<EditorInspectorSectionField title="Textures">
 					<EditorInspectorTextureField hideLevel hideSize object={this.props.object} property="particleTexture" title="Base Texture" />
 
-					<EditorInspectorListField object={this.props.object} property="blendMode" label="Blend Mode" items={[
-						{ text: "Add", value: ParticleSystem.BLENDMODE_ADD },
-						{ text: "Multiply", value: ParticleSystem.BLENDMODE_MULTIPLY },
-						{ text: "Multiply Add", value: ParticleSystem.BLENDMODE_MULTIPLYADD },
-						{ text: "One-one", value: ParticleSystem.BLENDMODE_ONEONE },
-						{ text: "Standard", value: ParticleSystem.BLENDMODE_STANDARD },
-					]} />
+					<EditorInspectorListField
+						object={this.props.object}
+						property="blendMode"
+						label="Blend Mode"
+						items={[
+							{ text: "Add", value: ParticleSystem.BLENDMODE_ADD },
+							{ text: "Multiply", value: ParticleSystem.BLENDMODE_MULTIPLY },
+							{ text: "Multiply Add", value: ParticleSystem.BLENDMODE_MULTIPLYADD },
+							{ text: "One-one", value: ParticleSystem.BLENDMODE_ONEONE },
+							{ text: "Standard", value: ParticleSystem.BLENDMODE_STANDARD },
+						]}
+					/>
 				</EditorInspectorSectionField>
 
 				<EditorInspectorSectionField title="Emission">
@@ -123,9 +136,7 @@ export class EditorGPUParticleSystemInspector extends Component<IEditorInspector
 					<EditorInspectorNumberField object={this.props.object} property="emitRate" label="Rate" />
 
 					<EditorInspectorBlockField>
-						<div className="px-2">
-							Emit Power
-						</div>
+						<div className="px-2">Emit Power</div>
 						<div className="flex items-center">
 							<EditorInspectorNumberField grayLabel object={this.props.object} property="minEmitPower" label="Min" min={0} />
 							<EditorInspectorNumberField grayLabel object={this.props.object} property="maxEmitPower" label="Max" min={0} />
@@ -133,9 +144,7 @@ export class EditorGPUParticleSystemInspector extends Component<IEditorInspector
 					</EditorInspectorBlockField>
 
 					<EditorInspectorBlockField>
-						<div className="px-2">
-							Lifetime
-						</div>
+						<div className="px-2">Lifetime</div>
 						<div className="flex items-center">
 							<EditorInspectorNumberField grayLabel object={this.props.object} property="minLifeTime" label="Min" min={0} />
 							<EditorInspectorNumberField grayLabel object={this.props.object} property="maxLifeTime" label="Max" min={0} />
@@ -143,9 +152,7 @@ export class EditorGPUParticleSystemInspector extends Component<IEditorInspector
 					</EditorInspectorBlockField>
 
 					<EditorInspectorBlockField>
-						<div className="px-2">
-							Angular Speed
-						</div>
+						<div className="px-2">Angular Speed</div>
 						<div className="flex items-center">
 							<EditorInspectorNumberField grayLabel asDegrees object={this.props.object} property="minAngularSpeed" label="Min" step={0.1} />
 							<EditorInspectorNumberField grayLabel asDegrees object={this.props.object} property="maxAngularSpeed" label="Max" step={0.1} />
@@ -153,9 +160,7 @@ export class EditorGPUParticleSystemInspector extends Component<IEditorInspector
 					</EditorInspectorBlockField>
 
 					<EditorInspectorBlockField>
-						<div className="px-2">
-							Size
-						</div>
+						<div className="px-2">Size</div>
 						<div className="flex items-center">
 							<EditorInspectorNumberField grayLabel object={this.props.object} property="minSize" label="Min" min={0} />
 							<EditorInspectorNumberField grayLabel object={this.props.object} property="maxSize" label="Max" min={0} />
@@ -172,9 +177,14 @@ export class EditorGPUParticleSystemInspector extends Component<IEditorInspector
 				{this._getEmitterTypeInspector()}
 
 				<EditorInspectorSectionField title="Animation Sheet">
-					<EditorInspectorSwitchField object={this.props.object} property="isAnimationSheetEnabled" label="Is Animation Sheet Enabled" onChange={() => this.forceUpdate()} />
+					<EditorInspectorSwitchField
+						object={this.props.object}
+						property="isAnimationSheetEnabled"
+						label="Is Animation Sheet Enabled"
+						onChange={() => this.forceUpdate()}
+					/>
 
-					{this.props.object.isAnimationSheetEnabled &&
+					{this.props.object.isAnimationSheetEnabled && (
 						<>
 							<EditorInspectorNumberField object={this.props.object} property="startSpriteCellID" label="Start Cell Id" min={0} />
 							<EditorInspectorNumberField object={this.props.object} property="endSpriteCellID" label="End Cell Id" min={0} />
@@ -183,7 +193,7 @@ export class EditorGPUParticleSystemInspector extends Component<IEditorInspector
 							<EditorInspectorNumberField object={this.props.object} property="spriteCellHeight" label="Cell Height" min={0} />
 							<EditorInspectorSwitchField object={this.props.object} property="spriteRandomStartCell" label="Random Start Cell" />
 						</>
-					}
+					)}
 				</EditorInspectorSectionField>
 			</>
 		);
@@ -259,12 +269,7 @@ export class EditorGPUParticleSystemInspector extends Component<IEditorInspector
 		};
 
 		return (
-			<EditorInspectorListField
-				object={this}
-				property="_randomTextureSize"
-				label="Random Texture Size"
-				onChange={(v) => onRandomTextureSizeChanged(v)} items={this._sizes}
-			/>
+			<EditorInspectorListField object={this} property="_randomTextureSize" label="Random Texture Size" onChange={(v) => onRandomTextureSizeChanged(v)} items={this._sizes} />
 		);
 	}
 
@@ -297,24 +302,44 @@ export class EditorGPUParticleSystemInspector extends Component<IEditorInspector
 						let emitterType: IParticleEmitterType | null = null;
 
 						switch (value) {
-							case "BoxParticleEmitter": emitterType = new BoxParticleEmitter(); break;
-							case "ConeParticleEmitter": emitterType = new ConeParticleEmitter(); break;
-							case "ConeDirectedParticleEmitter": emitterType = new ConeDirectedParticleEmitter(); break;
-							case "CylinderParticleEmitter": emitterType = new CylinderParticleEmitter(); break;
-							case "CylinderDirectedParticleEmitter": emitterType = new CylinderDirectedParticleEmitter(); break;
-							case "SphereParticleEmitter": emitterType = new SphereParticleEmitter(); break;
-							case "SphereDirectedParticleEmitter": emitterType = new SphereDirectedParticleEmitter(); break;
-							case "PointParticleEmitter": emitterType = new PointParticleEmitter(); break;
-							case "HemisphericParticleEmitter": emitterType = new HemisphericParticleEmitter(); break;
-							case "MeshParticleEmitter": emitterType = new MeshParticleEmitter(); break;
+							case "BoxParticleEmitter":
+								emitterType = new BoxParticleEmitter();
+								break;
+							case "ConeParticleEmitter":
+								emitterType = new ConeParticleEmitter();
+								break;
+							case "ConeDirectedParticleEmitter":
+								emitterType = new ConeDirectedParticleEmitter();
+								break;
+							case "CylinderParticleEmitter":
+								emitterType = new CylinderParticleEmitter();
+								break;
+							case "CylinderDirectedParticleEmitter":
+								emitterType = new CylinderDirectedParticleEmitter();
+								break;
+							case "SphereParticleEmitter":
+								emitterType = new SphereParticleEmitter();
+								break;
+							case "SphereDirectedParticleEmitter":
+								emitterType = new SphereDirectedParticleEmitter();
+								break;
+							case "PointParticleEmitter":
+								emitterType = new PointParticleEmitter();
+								break;
+							case "HemisphericParticleEmitter":
+								emitterType = new HemisphericParticleEmitter();
+								break;
+							case "MeshParticleEmitter":
+								emitterType = new MeshParticleEmitter();
+								break;
 						}
 
 						if (emitterType) {
 							const currentEmitter = this.props.object.particleEmitterType;
 							registerUndoRedo({
 								executeRedo: true,
-								undo: () => this.props.object.particleEmitterType = currentEmitter,
-								redo: () => this.props.object.particleEmitterType = emitterType,
+								undo: () => (this.props.object.particleEmitterType = currentEmitter),
+								redo: () => (this.props.object.particleEmitterType = emitterType),
 							});
 
 							this.forceUpdate();
@@ -322,27 +347,23 @@ export class EditorGPUParticleSystemInspector extends Component<IEditorInspector
 					}}
 				/>
 
-				{emitter.getClassName() === "BoxParticleEmitter" &&
+				{emitter.getClassName() === "BoxParticleEmitter" && (
 					<>
 						<EditorInspectorBlockField>
-							<div className="px-2">
-								Direction
-							</div>
+							<div className="px-2">Direction</div>
 							<EditorInspectorVectorField grayLabel object={emitter} property="direction1" label="Min" />
 							<EditorInspectorVectorField grayLabel object={emitter} property="direction2" label="Max" />
 						</EditorInspectorBlockField>
 
 						<EditorInspectorBlockField>
-							<div className="px-2">
-								Emit Box
-							</div>
+							<div className="px-2">Emit Box</div>
 							<EditorInspectorVectorField grayLabel object={emitter} property="minEmitBox" label="Min" />
 							<EditorInspectorVectorField grayLabel object={emitter} property="maxEmitBox" label="Max" />
 						</EditorInspectorBlockField>
 					</>
-				}
+				)}
 
-				{(emitter.getClassName() === "ConeParticleEmitter" || emitter.getClassName() === "ConeDirectedParticleEmitter") &&
+				{(emitter.getClassName() === "ConeParticleEmitter" || emitter.getClassName() === "ConeDirectedParticleEmitter") && (
 					<>
 						<EditorInspectorNumberField object={emitter} property="radius" label="Radius" />
 						<EditorInspectorNumberField object={emitter} property="angle" label="Angle" />
@@ -352,21 +373,19 @@ export class EditorGPUParticleSystemInspector extends Component<IEditorInspector
 
 						<EditorInspectorSwitchField object={emitter} property="emitFromSpawnPointOnly" label="Emit From Spawn Point Only" />
 
-						{emitter.getClassName() === "ConeDirectedParticleEmitter" &&
+						{emitter.getClassName() === "ConeDirectedParticleEmitter" && (
 							<>
 								<EditorInspectorBlockField>
-									<div className="px-2">
-										Direction
-									</div>
+									<div className="px-2">Direction</div>
 									<EditorInspectorVectorField grayLabel object={emitter} property="direction1" label="Min" />
 									<EditorInspectorVectorField grayLabel object={emitter} property="direction2" label="Max" />
 								</EditorInspectorBlockField>
 							</>
-						}
+						)}
 					</>
-				}
+				)}
 
-				{(emitter.getClassName() === "CylinderParticleEmitter" || emitter.getClassName() === "CylinderDirectedParticleEmitter") &&
+				{(emitter.getClassName() === "CylinderParticleEmitter" || emitter.getClassName() === "CylinderDirectedParticleEmitter") && (
 					<>
 						<EditorInspectorNumberField object={emitter} property="radius" label="Radius" />
 						<EditorInspectorNumberField object={emitter} property="height" label="Height" />
@@ -374,60 +393,53 @@ export class EditorGPUParticleSystemInspector extends Component<IEditorInspector
 						<EditorInspectorNumberField object={emitter} property="radiusRange" label="Radius Range" />
 						<EditorInspectorNumberField object={emitter} property="directionRandomizer" label="Direction Randomizer" />
 
-						{emitter.getClassName() === "CylinderDirectedParticleEmitter" &&
+						{emitter.getClassName() === "CylinderDirectedParticleEmitter" && (
 							<>
 								<EditorInspectorBlockField>
-									<div className="px-2">
-										Direction
-									</div>
+									<div className="px-2">Direction</div>
 									<EditorInspectorVectorField grayLabel object={emitter} property="direction1" label="Min" />
 									<EditorInspectorVectorField grayLabel object={emitter} property="direction2" label="Max" />
 								</EditorInspectorBlockField>
 							</>
-						}
+						)}
 					</>
-				}
+				)}
 
-				{(emitter.getClassName() === "SphereParticleEmitter" || emitter.getClassName() === "SphereDirectedParticleEmitter") &&
+				{(emitter.getClassName() === "SphereParticleEmitter" || emitter.getClassName() === "SphereDirectedParticleEmitter") && (
 					<>
 						<EditorInspectorNumberField object={emitter} property="radius" label="Radius" />
 						<EditorInspectorNumberField object={emitter} property="radiusRange" label="Radius Range" />
 						<EditorInspectorNumberField object={emitter} property="directionRandomizer" label="Direction Randomizer" />
 
-						{emitter.getClassName() === "SphereDirectedParticleEmitter" &&
+						{emitter.getClassName() === "SphereDirectedParticleEmitter" && (
 							<>
 								<EditorInspectorBlockField>
-									<div className="px-2">
-										Direction
-									</div>
+									<div className="px-2">Direction</div>
 									<EditorInspectorVectorField grayLabel object={emitter} property="direction1" label="Min" />
 									<EditorInspectorVectorField grayLabel object={emitter} property="direction2" label="Max" />
 								</EditorInspectorBlockField>
 							</>
-						}
+						)}
 					</>
-				}
+				)}
 
-				{emitter.getClassName() === "PointParticleEmitter" &&
+				{emitter.getClassName() === "PointParticleEmitter" && (
 					<>
 						<EditorInspectorBlockField>
-							<div className="px-2">
-								Direction
-							</div>
+							<div className="px-2">Direction</div>
 							<EditorInspectorVectorField grayLabel object={emitter} property="direction1" label="Min" />
 							<EditorInspectorVectorField grayLabel object={emitter} property="direction2" label="Max" />
 						</EditorInspectorBlockField>
 					</>
-				}
+				)}
 
-				{emitter.getClassName() === "HemisphericParticleEmitter" &&
+				{emitter.getClassName() === "HemisphericParticleEmitter" && (
 					<>
 						<EditorInspectorNumberField object={emitter} property="radius" label="Radius" />
 						<EditorInspectorNumberField object={emitter} property="radiusRange" label="Radius Range" />
 						<EditorInspectorNumberField object={emitter} property="directionRandomizer" label="Direction Randomizer" />
-
 					</>
-				}
+				)}
 			</EditorInspectorSectionField>
 		);
 	}

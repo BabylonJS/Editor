@@ -7,11 +7,7 @@ import { Engine, Scene, CreateSphere, ArcRotateCamera, Vector3, PBRMaterial, Cub
 import { showAlert } from "../../../../ui/dialog";
 
 export function openEnvViewer(absolutePath: string) {
-	showAlert(
-		basename(absolutePath),
-		<AssetBrowserEnvViewer absolutePath={absolutePath} />,
-		true,
-	);
+	showAlert(basename(absolutePath), <AssetBrowserEnvViewer absolutePath={absolutePath} />, true);
 }
 
 interface IAssetBrowserEnvViewerProps {

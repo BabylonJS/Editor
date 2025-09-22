@@ -19,19 +19,48 @@ import { BaseTexture, Node, Scene, Sound, Tools, IParticleSystem, ParticleSystem
 import { Editor } from "../main";
 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "../../ui/shadcn/ui/dropdown-menu";
-import { ContextMenu, ContextMenuItem, ContextMenuContent, ContextMenuTrigger, ContextMenuSeparator, ContextMenuSub, ContextMenuSubContent, ContextMenuSubTrigger } from "../../ui/shadcn/ui/context-menu";
+import {
+	ContextMenu,
+	ContextMenuItem,
+	ContextMenuContent,
+	ContextMenuTrigger,
+	ContextMenuSeparator,
+	ContextMenuSub,
+	ContextMenuSubContent,
+	ContextMenuSubTrigger,
+} from "../../ui/shadcn/ui/context-menu";
 
 import { isSound } from "../../tools/guards/sound";
+import { cloneNode } from "../../tools/node/clone";
+import { registerUndoRedo } from "../../tools/undoredo";
+import { isDomTextInputFocused } from "../../tools/dom";
 import { isSceneLinkNode } from "../../tools/guards/scene";
 import { updateAllLights } from "../../tools/light/shadows";
 import { getCollisionMeshFor } from "../../tools/mesh/collision";
+import { isNodeVisibleInGraph } from "../../tools/node/metadata";
 import { isAdvancedDynamicTexture } from "../../tools/guards/texture";
 import { updateIblShadowsRenderPipeline } from "../../tools/light/ibl";
 import { UniqueNumber, waitNextAnimationFrame } from "../../tools/tools";
-import { isMeshMetadataNotVisibleInGraph } from "../../tools/mesh/metadata";
 import { isAnyParticleSystem, isGPUParticleSystem, isParticleSystem } from "../../tools/guards/particles";
-import { isAbstractMesh, isCamera, isCollisionInstancedMesh, isCollisionMesh, isEditorCamera, isInstancedMesh, isLight, isMesh, isNode, isTransformNode } from "../../tools/guards/nodes";
-import { onNodeModifiedObservable, onNodesAddedObservable, onParticleSystemAddedObservable, onParticleSystemModifiedObservable, onTextureModifiedObservable } from "../../tools/observables";
+import {
+	isAbstractMesh,
+	isCamera,
+	isCollisionInstancedMesh,
+	isCollisionMesh,
+	isEditorCamera,
+	isInstancedMesh,
+	isLight,
+	isMesh,
+	isNode,
+	isTransformNode,
+} from "../../tools/guards/nodes";
+import {
+	onNodeModifiedObservable,
+	onNodesAddedObservable,
+	onParticleSystemAddedObservable,
+	onParticleSystemModifiedObservable,
+	onTextureModifiedObservable,
+} from "../../tools/observables";
 
 import { onProjectConfigurationChangedObservable } from "../../project/configuration";
 
@@ -103,8 +132,8 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		onTextureModifiedObservable.add((texture) => this._handleNodeModified(texture));
 		onParticleSystemModifiedObservable.add((particleSystem) => this._handleNodeModified(particleSystem));
 
-		document.addEventListener("copy", () => this.state.isFocused && this.copySelectedNodes());
-		document.addEventListener("paste", () => this.state.isFocused && this.pasteSelectedNodes());
+		document.addEventListener("copy", () => !isDomTextInputFocused() && this.copySelectedNodes());
+		document.addEventListener("paste", () => !isDomTextInputFocused() && this.pasteSelectedNodes());
 	}
 
 	public render(): ReactNode {
@@ -128,20 +157,29 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 							<Button minimal icon="settings" className="transition-all duration-300" />
 						</DropdownMenuTrigger>
 						<DropdownMenuContent>
-							<DropdownMenuItem className="flex gap-1 items-center" onClick={() => {
-								this.setState({ hideInstancedMeshes: !this.state.hideInstancedMeshes }, () => this.refresh());
-							}}>
+							<DropdownMenuItem
+								className="flex gap-1 items-center"
+								onClick={() => {
+									this.setState({ hideInstancedMeshes: !this.state.hideInstancedMeshes }, () => this.refresh());
+								}}
+							>
 								{this.state.hideInstancedMeshes ? <IoCheckmark /> : ""} Hide Instanced Meshes
 							</DropdownMenuItem>
 							<DropdownMenuSeparator />
-							<DropdownMenuItem className="flex gap-1 items-center" onClick={() => {
-								this.setState({ showOnlyLights: !this.state.showOnlyLights }, () => this.refresh());
-							}}>
+							<DropdownMenuItem
+								className="flex gap-1 items-center"
+								onClick={() => {
+									this.setState({ showOnlyLights: !this.state.showOnlyLights }, () => this.refresh());
+								}}
+							>
 								{this.state.showOnlyLights ? <IoCheckmark /> : ""} Show Only Lights
 							</DropdownMenuItem>
-							<DropdownMenuItem className="flex gap-1 items-center" onClick={() => {
-								this.setState({ showOnlyDecals: !this.state.showOnlyDecals }, () => this.refresh());
-							}}>
+							<DropdownMenuItem
+								className="flex gap-1 items-center"
+								onClick={() => {
+									this.setState({ showOnlyDecals: !this.state.showOnlyDecals }, () => this.refresh());
+								}}
+							>
 								{this.state.showOnlyDecals ? <IoCheckmark /> : ""} Show Only Decals
 							</DropdownMenuItem>
 						</DropdownMenuContent>
@@ -157,11 +195,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 					onNodeDoubleClick={(n, _, ev) => this._handleNodeDoubleClicked(n, ev)}
 				/>
 
-				<div
-					className="w-full h-full min-h-20"
-					onDragOver={(ev) => ev.preventDefault()}
-					onDrop={(ev) => this._handleDropEmpty(ev)}
-				>
+				<div className="w-full h-full min-h-20" onDragOver={(ev) => ev.preventDefault()} onDrop={(ev) => this._handleDropEmpty(ev)}>
 					<ContextMenu>
 						<ContextMenuTrigger className="w-full h-full">
 							<div className="w-full h-full"></div>
@@ -226,15 +260,10 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			}
 
 			if (this.state.showOnlyDecals) {
-				nodes.push(...scene.meshes
-					.filter((mesh) => mesh.metadata?.decal)
-					.map((mesh) => this._parseSceneNode(mesh, true))
-				);
+				nodes.push(...scene.meshes.filter((mesh) => mesh.metadata?.decal).map((mesh) => this._parseSceneNode(mesh, true)));
 			}
 		} else {
-			nodes = scene.rootNodes
-				.filter((n) => !isEditorCamera(n))
-				.map((n) => this._parseSceneNode(n));
+			nodes = scene.rootNodes.filter((n) => !isEditorCamera(n)).map((n) => this._parseSceneNode(n));
 		}
 
 		const guiNode = this._parseGuiNode(scene);
@@ -267,12 +296,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 	 * @param node defines the reference tot the node to select in the graph.
 	 */
 	public setSelectedNode(node: Node | Sound | IParticleSystem): void {
-		let source =
-			isSound(node)
-				? node["_connectedTransformNode"]
-				: isAnyParticleSystem(node)
-					? node.emitter
-					: node;
+		let source = isSound(node) ? node["_connectedTransformNode"] : isAnyParticleSystem(node) ? node.emitter : node;
 
 		if (!source) {
 			return;
@@ -285,7 +309,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		}
 
 		this._forEachNode(this.state.nodes, (n) => {
-			if (typeof (n.id) === "string" && idsToExpand.includes(n.id)) {
+			if (typeof n.id === "string" && idsToExpand.includes(n.id)) {
 				n.isExpanded = true;
 			}
 
@@ -334,97 +358,88 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		}
 
 		const newNodes: (Node | ParticleSystem)[] = [];
+		const nodesToCopy = this._objectsToCopy.map((n) => n.nodeData);
 
-		this._objectsToCopy.forEach((treeNode) => {
-			const object = treeNode.nodeData;
+		registerUndoRedo({
+			executeRedo: true,
+			action: () => {
+				this.refresh();
 
-			let node: Node | ParticleSystem | null = null;
+				waitNextAnimationFrame().then(() => {
+					const firstNode = newNodes[0] ?? null;
+					if (firstNode) {
+						this.props.editor.layout.graph.setSelectedNode(firstNode);
 
-			if (isAbstractMesh(object)) {
-				const suffix = "(Instanced Mesh)";
-				const name = isInstancedMesh(object)
-					? object.name
-					: `${object.name.replace(` ${suffix}`, "")} ${suffix}`;
+						if (isNode(firstNode)) {
+							this.props.editor.layout.preview.gizmo.setAttachedNode(firstNode);
+						}
+					}
 
-				const instance = node = object.createInstance(name);
-				instance.position.copyFrom(object.position);
-				instance.rotation.copyFrom(object.rotation);
-				instance.scaling.copyFrom(object.scaling);
-				instance.rotationQuaternion = object.rotationQuaternion?.clone() ?? null;
-				instance.parent = object.parent;
+					this.props.editor.layout.inspector.setEditedObject(firstNode);
+					this.props.editor.layout.animations.setEditedObject(firstNode);
+				});
+			},
+			undo: () => {
+				newNodes.forEach((node) => {
+					node.dispose(false, false);
+				});
+				newNodes.splice(0, newNodes.length);
+			},
+			redo: () => {
+				nodesToCopy.forEach((object) => {
+					let node: Node | ParticleSystem | null = null;
 
-				const collisionMesh = getCollisionMeshFor(instance.sourceMesh);
-				collisionMesh?.updateInstances(instance.sourceMesh);
-			}
+					defer: {
+						if (isAbstractMesh(object)) {
+							const suffix = "(Instanced Mesh)";
+							const name = isInstancedMesh(object) ? object.name : `${object.name.replace(` ${suffix}`, "")} ${suffix}`;
 
-			if (isLight(object)) {
-				const suffix = "(Clone)";
-				const name = `${object.name.replace(` ${suffix}`, "")} ${suffix}`;
+							const instance = (node = object.createInstance(name));
+							instance.position.copyFrom(object.position);
+							instance.rotation.copyFrom(object.rotation);
+							instance.scaling.copyFrom(object.scaling);
+							instance.rotationQuaternion = object.rotationQuaternion?.clone() ?? null;
+							instance.parent = object.parent;
 
-				node = object.clone(name);
-				if (node) {
-					node.parent = object.parent;
-				}
-			}
+							const collisionMesh = getCollisionMeshFor(instance.sourceMesh);
+							collisionMesh?.updateInstances(instance.sourceMesh);
 
-			if (isCamera(object)) {
-				const suffix = "(Clone)";
-				const name = `${object.name.replace(` ${suffix}`, "")} ${suffix}`;
+							break defer;
+						}
 
-				node = object.clone(name);
-				node.parent = object.parent;
-			}
+						if (isParticleSystem(object) && isAbstractMesh(parent)) {
+							const suffix = "(Clone)";
+							const name = `${object.name.replace(` ${suffix}`, "")} ${suffix}`;
 
-			if (isTransformNode(object)) {
-				const suffix = "(Clone)";
-				const name = `${object.name.replace(` ${suffix}`, "")} ${suffix}`;
+							node = object.clone(name, parent, false);
 
-				node = object.clone(name, null, true);
-				if (node) {
-					node.parent = object.parent;
-				}
-			}
+							break defer;
+						}
 
-			if (isParticleSystem(object) && isAbstractMesh(parent)) {
-				const suffix = "(Clone)";
-				const name = `${object.name.replace(` ${suffix}`, "")} ${suffix}`;
+						if (isNode(object)) {
+							node = cloneNode(this.props.editor, object);
+							break defer;
+						}
+					}
 
-				node = object.clone(name, parent, false);
-			}
+					if (node) {
+						node.id = Tools.RandomId();
+						node.uniqueId = UniqueNumber.Get();
 
-			if (node) {
-				node.id = Tools.RandomId();
-				node.uniqueId = UniqueNumber.Get();
+						if (parent && isNode(node)) {
+							node.parent = parent;
+						}
 
-				if (parent && isNode(node)) {
-					node.parent = parent;
-				}
+						if (isAbstractMesh(node)) {
+							this.props.editor.layout.preview.scene.lights
+								.map((light) => light.getShadowGenerator())
+								.forEach((generator) => generator?.getShadowMap()?.renderList?.push(node));
+						}
 
-				if (isAbstractMesh(node)) {
-					this.props.editor.layout.preview.scene.lights
-						.map((light) => light.getShadowGenerator())
-						.forEach((generator) => generator?.getShadowMap()?.renderList?.push(node));
-				}
-
-				newNodes.push(node);
-			}
-		});
-
-		this.refresh();
-
-		waitNextAnimationFrame().then(() => {
-			const firstNode = newNodes[0];
-
-			this.props.editor.layout.graph.setSelectedNode(firstNode);
-			this.props.editor.layout.inspector.setEditedObject(firstNode);
-
-			if (isNode(firstNode)) {
-				this.props.editor.layout.animations.setEditedObject(firstNode);
-				this.props.editor.layout.preview.gizmo.setAttachedNode(firstNode);
-			}
-			if(isCamera(firstNode)) {
-				this.props.editor.layout.preview.setCameraPreviewActive(firstNode);
-			}
+						newNodes.push(node);
+					}
+				});
+			},
 		});
 	}
 
@@ -451,7 +466,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		} else if (ev.shiftKey) {
 			this._handleShiftSelect(node);
 		} else {
-			this._forEachNode(this.state.nodes, (n) => n.isSelected = n.id === node.id);
+			this._forEachNode(this.state.nodes, (n) => (n.isSelected = n.id === node.id));
 		}
 
 		this.setState({ nodes: this.state.nodes });
@@ -664,11 +679,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 	}
 
 	private _parseSceneNode(node: Node, noChildren?: boolean): TreeNodeInfo | null {
-		if (
-			isMesh(node) && (node._masterMesh || isMeshMetadataNotVisibleInGraph(node)) ||
-			isCollisionMesh(node) ||
-			isCollisionInstancedMesh(node)
-		) {
+		if ((isMesh(node) && (node._masterMesh || !isNodeVisibleInGraph(node))) || isCollisionMesh(node) || isCollisionInstancedMesh(node)) {
 			return null;
 		}
 
@@ -765,7 +776,19 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		return (
 			<div
 				onClick={(ev) => {
-					node.setEnabled(!node.isEnabled());
+					const enabled = !node.isEnabled();
+
+					let selectedNodeData = this.getSelectedNodes().map((n) => n.nodeData);
+					if (!selectedNodeData.includes(node)) {
+						selectedNodeData = [node];
+					}
+
+					selectedNodeData.forEach((node) => {
+						if (isNode(node)) {
+							node.setEnabled(enabled);
+						}
+					});
+
 					this.refresh();
 					ev.stopPropagation();
 
@@ -840,13 +863,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 	}
 
 	private _getNodeLabelComponent(object: any, name?: string | null, noContextMenu?: boolean): JSX.Element {
-		const label = (
-			<EditorGraphLabel
-				object={object}
-				editor={this.props.editor}
-				name={name ?? "Unnamed Node"}
-			/>
-		);
+		const label = <EditorGraphLabel object={object} editor={this.props.editor} name={name ?? "Unnamed Node"} />;
 
 		if (noContextMenu) {
 			return label;

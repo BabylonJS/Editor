@@ -129,9 +129,7 @@ export function CinematicEditorPropertyTrack(props: ICinematicEditorPropertyTrac
 	}
 
 	async function selectPropertyToAnimate() {
-		const node = props.track.defaultRenderingPipeline
-			? getDefaultRenderingPipeline()
-			: props.track.node;
+		const node = props.track.defaultRenderingPipeline ? getDefaultRenderingPipeline() : props.track.node;
 
 		if (!node) {
 			return;
@@ -192,9 +190,7 @@ export function CinematicEditorPropertyTrack(props: ICinematicEditorPropertyTrac
 
 			<div className="flex-1">
 				<Button variant="ghost" className="w-full h-8 bg-accent/35" onClick={() => selectPropertyToAnimate()}>
-					<span className="w-full text-xs whitespace-nowrap overflow-hidden overflow-ellipsis">
-						{props.track.propertyPath?.split(".").pop() ?? "No property"}
-					</span>
+					<span className="w-full text-xs whitespace-nowrap overflow-hidden overflow-ellipsis">{props.track.propertyPath?.split(".").pop() ?? "No property"}</span>
 				</Button>
 			</div>
 

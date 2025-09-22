@@ -29,7 +29,6 @@ import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger, C
 
 import { Editor } from "../../../main";
 
-
 export interface IAssetsBrowserItemProps {
 	/**
 	 * The editor reference.
@@ -87,6 +86,11 @@ export interface IAssetsBrowserItemState {
 	isRenaming: boolean;
 
 	/**
+	 * Defines wether or not a file is being dragged over the current item (if directory).
+	 */
+	isDragOver: boolean;
+
+	/**
 	 * Defines the optional preview image.
 	 */
 	previewImage: string | null;
@@ -103,6 +107,8 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 			isRenaming: false,
 			isDirectory: false,
 
+			isDragOver: false,
+
 			previewImage: null,
 		};
 	}
@@ -118,7 +124,20 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 							draggable={!this.state.isRenaming}
 							onDrop={(ev) => this._handleDrop(ev)}
 							onDragStart={(ev) => this._handleDragStart(ev)}
-							onDragOver={(ev) => ev.preventDefault()}
+							onDragOver={(ev) => {
+								ev.preventDefault();
+
+								if (this.state.isDirectory && ev.dataTransfer.types.includes("assets")) {
+									this.setState({
+										isDragOver: true,
+									});
+								}
+							}}
+							onDragLeave={() => {
+								this.setState({
+									isDragOver: false,
+								});
+							}}
 							onClick={(ev) => {
 								ev.stopPropagation();
 
@@ -132,6 +151,7 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
                                 flex flex-col gap-2 w-[120px] h-[120px] py-2 cursor-pointer rounded-lg
                                 ${this.state.isRenaming ? "px-1 scale-150 relative z-[9999] backdrop-blur-sm" : "px-5 scale-100"}
                                 ${this.props.selected ? "bg-muted-foreground/35" : "hover:bg-secondary"}
+								${this.state.isDragOver ? "bg-black/50" : ""}
                                 transition-all duration-300
                             `}
 						>
@@ -160,7 +180,7 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 								onDoubleClick={(ev) => this._handleNameDoubleClicked(ev)}
 								className={`select-none text-center w-full ${this.state.isRenaming ? "" : "text-ellipsis overflow-hidden whitespace-nowrap"}`}
 							>
-								{this.state.isRenaming &&
+								{this.state.isRenaming && (
 									<Input
 										className="h-5 py-0 text-center scale-75 bg-primary-foreground"
 										ref={(r) => {
@@ -170,13 +190,13 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 											}, 0);
 										}}
 										onClick={(ev) => ev.stopPropagation()}
-										onChange={(ev) => this._renameValue = ev.currentTarget.value}
+										onChange={(ev) => (this._renameValue = ev.currentTarget.value)}
 										defaultValue={basename(this.props.absolutePath)}
-										onFocus={(ev) => this._renameValue = ev.currentTarget.value}
+										onFocus={(ev) => (this._renameValue = ev.currentTarget.value)}
 										onBlur={(ev) => this._handleRenameFileOrFolder(ev.currentTarget.value)}
 										onKeyDown={(ev) => ev.key === "Enter" && this._handleRenameFileOrFolder(ev.currentTarget.value)}
 									/>
-								}
+								)}
 
 								{!this.state.isRenaming && basename(this.props.absolutePath)}
 							</div>
@@ -184,7 +204,6 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 					</ContextMenuTrigger>
 					{this._getContextMenuContent()}
 				</ContextMenu>
-
 			</Tooltip>
 		);
 	}
@@ -247,6 +266,10 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 		ev.preventDefault();
 		ev.stopPropagation();
 
+		this.setState({
+			isDragOver: false,
+		});
+
 		if (!this.state.isDirectory) {
 			return;
 		}
@@ -271,20 +294,26 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 				isRenaming: true,
 			});
 
-			window.addEventListener("keyup", this._renameKeyboardListener = (ev) => {
-				if (ev.key === "Escape") {
-					this.setState({
-						isRenaming: false,
-					});
-					this._removeRenameEventListeners();
+			window.addEventListener(
+				"keyup",
+				(this._renameKeyboardListener = (ev) => {
+					if (ev.key === "Escape") {
+						this.setState({
+							isRenaming: false,
+						});
+						this._removeRenameEventListeners();
 
-					this.props.setSelectionEnabled(true);
-				}
-			});
+						this.props.setSelectionEnabled(true);
+					}
+				})
+			);
 
-			window.addEventListener("click", this._renameMouseListener = () => {
-				this._handleRenameFileOrFolder(this._renameValue);
-			});
+			window.addEventListener(
+				"click",
+				(this._renameMouseListener = () => {
+					this._handleRenameFileOrFolder(this._renameValue);
+				})
+			);
 		}
 	}
 
@@ -309,9 +338,7 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 			}
 		} catch (e) {
 			console.error(e);
-			toast("Failed to rename the file or folder.", {
-				important: true,
-			});
+			toast("Failed to rename the file or folder.");
 		}
 
 		this.setState({
@@ -355,22 +382,20 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 				<ContextMenuSeparator />
 
 				{items.map((item, index) => (
-					<Fragment key={`context-menu-item-${index}`}>
-						{item}
-					</Fragment>
+					<Fragment key={`context-menu-item-${index}`}>{item}</Fragment>
 				))}
-				{items.filter((item) => item).length > 0 &&
-					<ContextMenuSeparator />
-				}
+				{items.filter((item) => item).length > 0 && <ContextMenuSeparator />}
 
 				<ContextMenuItem onClick={() => this.props.editor.layout.assets.copySelectedFiles()}>Copy</ContextMenuItem>
 
 				<ContextMenuSeparator />
 
-				<ContextMenuItem onClick={() => {
-					this.setState({ isRenaming: true });
-					this.props.setSelectionEnabled(false);
-				}}>
+				<ContextMenuItem
+					onClick={() => {
+						this.setState({ isRenaming: true });
+						this.props.setSelectionEnabled(false);
+					}}
+				>
 					Rename...
 				</ContextMenuItem>
 				<ContextMenuSeparator />
@@ -384,15 +409,10 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 
 	private async _handleTrashItem(): Promise<void> {
 		try {
-			const result = ipcRenderer.sendSync(
-				"editor:trash-items",
-				this.props.editor.layout.assets.state.selectedKeys,
-			);
+			const result = ipcRenderer.sendSync("editor:trash-items", this.props.editor.layout.assets.state.selectedKeys);
 
 			if (!result) {
-				toast("Failed to trash some assets", {
-					important: true,
-				});
+				toast("Failed to trash some assets");
 			}
 
 			this.props.onRefresh();
@@ -466,7 +486,8 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 			case ".exr":
 				return <EXRIcon size="64px" />;
 
-			default: return null;
+			default:
+				return null;
 		}
 	}
 }

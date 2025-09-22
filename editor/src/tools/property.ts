@@ -5,7 +5,7 @@
  * @param newValue defines the new value to set to the property.
  */
 export function setInspectorEffectivePropertyValue(object: any, property: string, newValue: any): void {
-	const parts = property.split('.');
+	const parts = property.split(".");
 
 	let value = object;
 
@@ -24,7 +24,7 @@ export function setInspectorEffectivePropertyValue(object: any, property: string
  * @example getInspectorPropertyValue(scene, "ambientColor.r");
  */
 export function getInspectorPropertyValue(object: any, property: string) {
-	const parts = property.split('.');
+	const parts = property.split(".");
 
 	let value = object;
 

@@ -7,35 +7,40 @@ import { Component, MouseEvent, ReactNode } from "react";
 import { Grid } from "react-loader-spinner";
 
 import { FaCheck } from "react-icons/fa6";
-import { GiWireframeGlobe } from "react-icons/gi";
-import { IoIosOptions, IoIosStats } from "react-icons/io";
+import { GiArrowCursor, GiTeapot, GiWireframeGlobe } from "react-icons/gi";
+import { IoIosStats } from "react-icons/io";
+import { LuMove3D, LuRotate3D, LuScale3D } from "react-icons/lu";
 
 import {
 	AbstractEngine, AbstractMesh, Animation, Camera, Color3, CubicEase, EasingFunction, Engine, GizmoCoordinatesMode,
 	ISceneLoaderAsyncResult, Node, Scene, Vector2, Vector3, WebGPUEngine, HavokPlugin, PickingInfo,
 } from "babylonjs";
 
-import { Toggle } from "../../ui/shadcn/ui/toggle";
 import { Button } from "../../ui/shadcn/ui/button";
+import { Progress } from "../../ui/shadcn/ui/progress";
+import { Toggle } from "../../ui/shadcn/ui/toggle";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/shadcn/ui/select";
+import { ToolbarRadioGroup, ToolbarRadioGroupItem } from "../../ui/shadcn/ui/toolbar-radio-group";
 
 import { Editor } from "../main";
 
-import { Tween } from "../../tools/animation/tween";
+import { isSound } from "../../tools/guards/sound";
+import { isVector3 } from "../../tools/guards/math";
+import { isDomTextInputFocused } from "../../tools/dom";
+import { isNodeLocked } from "../../tools/node/metadata";
 import { registerUndoRedo } from "../../tools/undoredo";
 import { initializeHavok } from "../../tools/physics/init";
+import { isAnyParticleSystem } from "../../tools/guards/particles";
 import { onTextureAddedObservable } from "../../tools/observables";
+import { getCameraFocusPositionFor } from "../../tools/camera/focus";
 import { waitNextAnimationFrame, waitUntil } from "../../tools/tools";
-import { checkProjectCachedCompressedTextures } from "../../tools/ktx/check";
+import { ITweenConfiguration, Tween } from "../../tools/animation/tween";
+import { checkProjectCachedCompressedTextures } from "../../tools/assets/ktx";
 import { createSceneLink, getRootSceneLink } from "../../tools/scene/scene-link";
-import { isAbstractMesh, isCamera, isCollisionInstancedMesh, isCollisionMesh, isInstancedMesh, isMesh, isTransformNode } from "../../tools/guards/nodes";
+import { isAbstractMesh, isCamera, isCollisionInstancedMesh, isCollisionMesh, isInstancedMesh, isLight, isMesh, isTransformNode } from "../../tools/guards/nodes";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../../ui/shadcn/ui/dropdown-menu";
 
 import { EditorCamera } from "../nodes/camera";
-
-import { PositionIcon } from "../../ui/icons/position";
-import { RotationIcon } from "../../ui/icons/rotation";
-import { ScalingIcon } from "../../ui/icons/scaling";
 
 import { SpinnerUIComponent } from "../../ui/spinner";
 import { Separator } from "../../ui/shadcn/ui/separator";
@@ -59,10 +64,12 @@ import { StatRow } from "./preview/stats/row";
 import { StatsValuesType } from "./preview/stats/types";
 
 import { applySoundAsset } from "./preview/import/sound";
+import { EditorPreviewAxisHelper } from "./preview/axis";
 import { applyImportedGuiFile } from "./preview/import/gui";
 import { applyTextureAssetToObject } from "./preview/import/texture";
 import { applyMaterialAssetToObject } from "./preview/import/material";
 import { EditorPreviewConvertProgress } from "./preview/import/progress";
+import { loadImportedParticleSystemFile } from "./preview/import/particles";
 import { loadImportedSceneFile, tryConvertSceneFile } from "./preview/import/import";
 import { EditorPreviewCamera } from "./preview/camera";
 
@@ -79,24 +86,23 @@ export interface IEditorPreviewState {
 	 */
 	informationMessage: ReactNode;
 
-	pickingEnabled: boolean;
-	activeGizmo: "position" | "rotation" | "scaling" | "none";
-
 	isFocused: boolean;
-
-	/**
-	 * Defines the reference to the object that was right-clicked.
-	 */
 	rightClickedObject?: any;
+	pickingEnabled: boolean;
+
+	showStatsValues: boolean;
+	statsValues?: StatsValuesType;
+
+	playEnabled: boolean;
+	playSceneLoadingProgress: number;
+
+	activeGizmo: "position" | "rotation" | "scaling" | "none";
 
 	/**
 	 * Defines the fixed dimensions of the preview canvas.
 	 * "fit" means the canvas will fit the entire panel container.
 	 */
 	fixedDimensions: "720p" | "1080p" | "4k" | "fit";
-
-	showStatsValues: boolean;
-	statsValues?: StatsValuesType;
 }
 
 export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreviewState> {
@@ -118,9 +124,13 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	 */
 	public gizmo: EditorPreviewGizmo;
 	/**
-	 * The icons manager of the preview.
+	 * The helper drawn over the scene to help visualizing and selecting nodes like lights, cameras, particle systems, etc.
 	 */
 	public icons: EditorPreviewIcons;
+	/**
+	 * The helper drawn over the scene to help visualizing the axis according to the current camera view.
+	 */
+	public axis: EditorPreviewAxisHelper;
 
 	/**
 	 * The play component of the preview.
@@ -138,9 +148,6 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
 	private _meshUnderPointer: AbstractMesh | null;
 
-	private _playIframeRef: HTMLIFrameElement | null = null;
-	private _playMessageListener: ((event: MessageEvent) => void) | null = null;
-
 	private _workingCanvas: HTMLCanvasElement | null = null;
 	private _mainCanvas: HTMLCanvasElement | null = null;
 
@@ -150,25 +157,23 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		super(props);
 
 		this.state = {
+			isFocused: false,
 			activeGizmo: "none",
 			pickingEnabled: true,
-
-			isFocused: false,
 			informationMessage: "",
-
 			fixedDimensions: "fit",
 
 			showStatsValues: false,
+
+			playEnabled: false,
+			playSceneLoadingProgress: 0,
 		};
 
 		ipcRenderer.on("gizmo:position", () => this.setActiveGizmo("position"));
 		ipcRenderer.on("gizmo:rotation", () => this.setActiveGizmo("rotation"));
 		ipcRenderer.on("gizmo:scaling", () => this.setActiveGizmo("scaling"));
 
-		document.addEventListener("copy", () => this.state.isFocused && this.props.editor.layout.graph.copySelectedNodes());
-		document.addEventListener("paste", () => this.state.isFocused && this.props.editor.layout.graph.pasteSelectedNodes());
-
-		ipcRenderer.on("preview:focus", () => this.state.isFocused && this.focusObject());
+		ipcRenderer.on("preview:focus", () => !isDomTextInputFocused() && this.focusObject());
 		ipcRenderer.on("preview:edit-camera", () => this.props.editor.layout.inspector.setEditedObject(this.props.editor.layout.preview.scene.activeCamera));
 
 		onTextureAddedObservable.add(() => checkProjectCachedCompressedTextures(props.editor));
@@ -180,13 +185,8 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 				<div className="flex flex-col w-full h-full">
 					{this._getToolbar()}
 
-					<EditorGraphContextMenu
-						editor={this.props.editor}
-						object={this.state.rightClickedObject}
-						onOpenChange={(o) => !o && this._resetPointerContextInfo()}
-					>
+					<EditorGraphContextMenu editor={this.props.editor} object={this.state.rightClickedObject} onOpenChange={(o) => !o && this._resetPointerContextInfo()}>
 						<canvas
-							hidden={this.play?.state.playing}
 							ref={(r) => this._onGotCanvasRef(r!)}
 							onDrop={(ev) => this._handleDrop(ev)}
 							onDragOver={(ev) => {
@@ -197,6 +197,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 							onFocus={() => this.setState({ isFocused: true })}
 							onPointerUp={(ev) => this._handleMouseUp(ev)}
 							onPointerDown={(ev) => this._handleMouseDown(ev)}
+							onDoubleClick={(ev) => this._handleDoubleClick(ev)}
 							onMouseLeave={() => this._handleMouseLeave()}
 							onMouseMove={() => this._handleMouseMove(this.scene.pointerX, this.scene.pointerY)}
 							className={`
@@ -206,31 +207,19 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
                             `}
 						/>
 
-						{this.play?.state.playing &&
-							<>
-								{this.play.state.playingAddress &&
-									<iframe
-										ref={(r) => this._onGotIframeRef(r)}
-										src={`${this.play.state.playingAddress}/editor_debug${this.play.getSearchParams()}`}
-										className="w-full h-full select-none outline-none bg-black"
-									/>
-								}
+						{(this.play?.state.preparingPlay || this.play?.state.loading) && (
+							<div className="absolute top-0 left-0 w-full h-full bg-black">
+								<div className="flex flex-col justify-center items-center gap-10 w-full h-full bg-black">
+									<Grid width={24} height={24} color="gray" />
 
-								{!this.play.state.playingAddress &&
-									<div className="flex justify-center items-center w-full h-full bg-black">
-										<Grid width={24} height={24} color="gray" />
-									</div>
-								}
-							</>
-						}
+									{this.play?.state.loading && <Progress className="w-1/2" value={this.state.playSceneLoadingProgress * 100} />}
+								</div>
+							</div>
+						)}
 					</EditorGraphContextMenu>
 				</div>
 
-				<EditorGraphContextMenu
-					editor={this.props.editor}
-					object={this.state.rightClickedObject}
-					onOpenChange={(o) => !o && this._resetPointerContextInfo()}
-				>
+				<EditorGraphContextMenu editor={this.props.editor} object={this.state.rightClickedObject} onOpenChange={(o) => !o && this._resetPointerContextInfo()}>
 					<EditorPreviewIcons ref={(r) => this._onGotIconsRef(r!)} editor={this.props.editor} />
 				</EditorGraphContextMenu>
 
@@ -243,6 +232,8 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 					/>
 				}
 
+				<EditorPreviewAxisHelper ref={(r) => (this.axis = r!)} editor={this.props.editor} />
+
 				<div
 					style={{
 						opacity: this.state.informationMessage ? "1" : "0",
@@ -251,9 +242,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 					className="absolute left-0 flex gap-2 items-center px-2 h-10 bg-black/50 transition-all duration-300 pointer-events-none"
 				>
 					<SpinnerUIComponent width="16" />
-					<div>
-						{this.state.informationMessage}
-					</div>
+					<div>{this.state.informationMessage}</div>
 				</div>
 			</div>
 		);
@@ -284,6 +273,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 			return;
 		}
 
+		this.axis?.stop();
 		this.icons?.stop();
 		this.scene?.dispose();
 		this.engine?.dispose();
@@ -292,6 +282,22 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		disposeMotionBlurPostProcess();
 		disposeSSAO2RenderingPipeline();
 		disposeDefaultRenderingPipeline();
+
+		this.scene?.dispose();
+
+		/**
+		 * engine.dispose() generates an error:
+		 * node_modules/babylonjs/babylon.js:1 Uncaught (in promise) InvalidAccessError: Failed to execute 'disconnect' on 'AudioNode': the given destination is not connected.
+		 * This error is located in _WebAudioMainBus class in the dispose method. It is not reproduced on the Babylon.js playground. This error
+		 * appeared after the migration to electron 35.7.5. A workaround consists on try/catching the dispose method.
+		 * It appears to work this way and the VRAM is successfully released during the second .dispose() call in the catch.
+		 * TODO: investigate in future bump of electron versions if the problem persists.
+		 */
+		try {
+			this.engine?.dispose();
+		} catch (e) {
+			this.engine?.dispose();
+		}
 
 		this.scene = null!;
 		this.engine = null!;
@@ -335,15 +341,60 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 			return;
 		}
 
-		const position = isCamera(selectedNode)
-			? selectedNode.globalPosition
-			: selectedNode.getAbsolutePosition?.();
-
 		const camera = this.scene.activeCamera;
-		if (position && camera) {
-			Tween.create(camera, 0.5, {
-				"target": position,
+		if (!camera) {
+			return;
+		}
+
+		let target: Vector3 | undefined;
+		let position: Vector3 | undefined;
+
+		if (isCamera(selectedNode)) {
+			target = selectedNode.globalPosition;
+		} else if (isAbstractMesh(selectedNode)) {
+			selectedNode.refreshBoundingInfo({
+				applyMorph: true,
+				applySkeleton: true,
+				updatePositionsArray: true,
 			});
+
+			const bb = selectedNode.getBoundingInfo();
+			const center = bb.boundingSphere.centerWorld;
+
+			position = getCameraFocusPositionFor(center, camera, {
+				distance: 2,
+				minimum: bb.boundingBox.minimumWorld,
+				maximum: bb.boundingBox.maximumWorld,
+			});
+			target = bb.boundingBox.centerWorld;
+		} else if (isLight(selectedNode) || isTransformNode(selectedNode)) {
+			target = selectedNode.getAbsolutePosition();
+		} else if (isAnyParticleSystem(selectedNode)) {
+			if (isAbstractMesh(selectedNode.emitter)) {
+				target = selectedNode.emitter.getAbsolutePosition();
+			} else if (isVector3(selectedNode.emitter)) {
+				target = selectedNode.emitter;
+			}
+		} else if (isSound(selectedNode)) {
+			const soundPosition = selectedNode["_position"] as Vector3;
+
+			if (selectedNode["_connectedTransformNode"]) {
+				target = selectedNode["_connectedTransformNode"].getAbsolutePosition();
+			} else if (!soundPosition.equalsToFloats(0, 0, 0)) {
+				target = selectedNode["_position"]();
+			}
+		}
+
+		if (target) {
+			const tweenConfiguration = {
+				target,
+			} as ITweenConfiguration;
+
+			if (position) {
+				tweenConfiguration.position = position;
+			}
+
+			Tween.create(camera, 0.5, tweenConfiguration);
 		}
 	}
 
@@ -385,6 +436,8 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		await waitUntil(() => this.props.editor.path);
 		await initializeHavok(this.props.editor.path!);
 
+		SceneLoaderFlags.ShowLoadingScreen = false;
+
 		Animation.AllowMatricesInterpolation = true;
 		Animation.AllowMatrixDecomposeForInterpolation = true;
 
@@ -412,6 +465,9 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
 		this.scene = new Scene(this.engine);
 		this.scene.autoClear = true;
+		this.scene.skipPointerUpPicking = true;
+		this.scene.skipPointerDownPicking = true;
+		this.scene.skipPointerMovePicking = true;
 
 		if (!this.scene.soundTracks && this.scene.mainSoundTrack) {
 			this.scene.soundTracks = [this.scene.mainSoundTrack];
@@ -429,6 +485,20 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		this.engine.runRenderLoop(() => {
 			if (this._renderScene && !this.play.state.playing) {
 				this.scene.render();
+				this.axis.scene?.render();
+				return;
+			}
+
+			if (this.play.canPlayScene) {
+				try {
+					return this.play.scene?.render();
+				} catch (e) {
+					if (e instanceof Error) {
+						this.props.editor.layout.console.error(`Error while playing the scene:\n${e.message}`);
+					}
+					console.error(e);
+					this.play.stop();
+				}
 			}
 		});
 
@@ -449,7 +519,9 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 			}
 		});
 
+		this.axis?.start();
 		this.icons?.start();
+
 		this.forceUpdate();
 	}
 
@@ -494,7 +566,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		const pickingInfo = this._getPickingInfo(x, y);
 		const mesh = pickingInfo.pickedMesh?._masterMesh ?? pickingInfo.pickedMesh;
 
-		if (mesh && this._meshUnderPointer !== mesh) {
+		if (mesh && this._meshUnderPointer !== mesh && !isNodeLocked(mesh)) {
 			this._restoreCurrentMeshUnderPointer();
 			this._highlightCurrentMeshUnderPointer(mesh);
 
@@ -532,15 +604,27 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		}
 	}
 
+	private _handleDoubleClick(_event: MouseEvent<HTMLCanvasElement, globalThis.MouseEvent>): void {
+		if (!this.state.pickingEnabled) {
+			return;
+		}
+
+		const pickingInfo = this._getPickingInfo(this.scene.pointerX, this.scene.pointerY);
+		if (pickingInfo.pickedMesh) {
+			this.focusObject(pickingInfo.pickedMesh);
+		}
+	}
+
 	private _handleMouseUp(event: MouseEvent<HTMLCanvasElement, globalThis.MouseEvent>): void {
 		if (!this.state.pickingEnabled) {
 			return;
 		}
 
-		const distance = Vector2.Distance(
-			this._mouseDownPosition,
-			new Vector2(event.clientX, event.clientY),
-		);
+		if (event.altKey || event.button === 1) {
+			return;
+		}
+
+		const distance = Vector2.Distance(this._mouseDownPosition, new Vector2(event.clientX, event.clientY));
 
 		if (distance > 2) {
 			return;
@@ -549,7 +633,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		const pickingInfo = this._getPickingInfo(this.scene.pointerX, this.scene.pointerY);
 
 		let mesh = (pickingInfo.pickedMesh?._masterMesh ?? pickingInfo.pickedMesh) as Node;
-		if (mesh) {
+		if (mesh && !isNodeLocked(mesh)) {
 			const sceneLink = getRootSceneLink(mesh);
 			if (sceneLink) {
 				mesh = sceneLink;
@@ -563,13 +647,23 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	}
 
 	private _getPickingInfo(x: number, y: number): PickingInfo {
-		const decalPick = this.scene.pick(x, y, (m) => {
-			return m.metadata?.decal && m.isVisible && m.isEnabled();
-		}, false, this.camera);
+		const decalPick = this.scene.pick(
+			x,
+			y,
+			(m) => {
+				return m.metadata?.decal && m.isVisible && m.isEnabled();
+			},
+			false
+		);
 
-		const meshPick = this.scene.pick(x, y, (m) => {
-			return !m._masterMesh && !isCollisionMesh(m) && !isCollisionInstancedMesh(m) && m.isVisible && m.isEnabled();
-		}, false, this.camera);
+		const meshPick = this.scene.pick(
+			x,
+			y,
+			(m) => {
+				return !m._masterMesh && !isCollisionMesh(m) && !isCollisionInstancedMesh(m) && m.isVisible && m.isEnabled();
+			},
+			false
+		);
 
 		let pickingInfo = meshPick;
 		if (decalPick?.pickedPoint && meshPick?.pickedPoint) {
@@ -587,7 +681,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	private _resetPointerContextInfo(): void {
 		if (this.state.rightClickedObject) {
 			this.setState({
-				rightClickedObject: null
+				rightClickedObject: null,
 			});
 
 			this.scene.activeCamera?.inputs.attachElement();
@@ -597,9 +691,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	private _highlightCurrentMeshUnderPointer(pickedMesh: AbstractMesh): void {
 		Tween.killTweensOf(pickedMesh);
 
-		const effectiveMesh = isInstancedMesh(pickedMesh)
-			? pickedMesh.sourceMesh
-			: pickedMesh;
+		const effectiveMesh = isInstancedMesh(pickedMesh) ? pickedMesh.sourceMesh : pickedMesh;
 
 		const meshes = [effectiveMesh];
 
@@ -613,9 +705,9 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
 		meshes.forEach((mesh) => {
 			Tween.create(mesh, 0.1, {
-				"overlayAlpha": 0.5,
-				"overlayColor": Color3.Black(),
-				onStart: () => mesh!.renderOverlay = true,
+				overlayAlpha: 0.5,
+				overlayColor: Color3.Black(),
+				onStart: () => (mesh!.renderOverlay = true),
 			});
 		});
 	}
@@ -624,9 +716,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		const mesh = this._meshUnderPointer;
 
 		if (mesh) {
-			const effectiveMesh = isInstancedMesh(mesh)
-				? mesh.sourceMesh
-				: mesh;
+			const effectiveMesh = isInstancedMesh(mesh) ? mesh.sourceMesh : mesh;
 
 			const meshes = [effectiveMesh];
 
@@ -645,9 +735,9 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 				mesh.overlayColor ??= Color3.Black();
 
 				Tween.create(mesh, 0.1, {
-					"overlayAlpha": 0,
-					"overlayColor": Color3.Black(),
-					onStart: () => mesh.renderOverlay = true,
+					overlayAlpha: 0,
+					overlayColor: Color3.Black(),
+					onStart: () => (mesh.renderOverlay = true),
 				});
 			});
 		}
@@ -657,32 +747,20 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		return (
 			<div className="absolute top-0 left-0 w-full h-12 z-10">
 				<div className="flex justify-between items-center gap-4 h-full bg-background/95 w-full px-2 py-1">
-					{this.play?.state.playing
-						? this._getPlayToolbar()
-						: this._getEditToolbar()
+					{
+						this.play?.state.playing && <div /> // For justify between
 					}
+
+					{!this.play?.state.playing && this._getEditToolbar()}
 
 					<div className="flex gap-2 items-center h-10">
 						<EditorPreviewPlayComponent
+							ref={(r) => (this.play = r!)}
 							editor={this.props.editor}
-							ref={(r) => this.play = r!}
-							onRestart={() => {
-								if (this._playIframeRef) {
-									this._playIframeRef.src = this._playIframeRef.src;
-								}
-							}}
+							enabled={this.state.playEnabled}
+							onRestart={() => this.play.restart()}
 						/>
 					</div>
-				</div>
-			</div>
-		);
-	}
-
-	private _getPlayToolbar(): ReactNode {
-		return (
-			<div className="flex gap-2 items-center h-10 flex-1">
-				<div className="w-full font-semibold">
-					{this.play?.state.playingAddress}
 				</div>
 			</div>
 		);
@@ -692,53 +770,84 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		return (
 			<div className="flex gap-2 items-center h-10">
 				<TooltipProvider>
-					<Select
-						value={this.scene?.activeCamera?.id}
-						onOpenChange={(o) => o && this.forceUpdate()}
-						onValueChange={(v) => this._switchToCamera(v)}
-					>
+					<Select value={this.scene?.activeCamera?.id} onOpenChange={(o) => o && this.forceUpdate()} onValueChange={(v) => this._switchToCamera(v)}>
 						<SelectTrigger className="w-36 border-none bg-muted/50">
 							<SelectValue placeholder="Select Value..." />
 						</SelectTrigger>
 						<SelectContent>
 							{this.scene?.cameras.map((c) => (
-								<SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+								<SelectItem key={c.id} value={c.id}>
+									{c.name}
+								</SelectItem>
 							))}
 						</SelectContent>
 					</Select>
 
-					<Separator orientation="vertical" className="mx-2 h-[24px]" />
+					<Separator orientation="vertical" className="mx-1 h-[24px]" />
+
+					<ToolbarRadioGroup
+						value={this.state.activeGizmo === "none" ? "select" : this.state.activeGizmo}
+						onValueChange={(value) => {
+							if (value === "select") {
+								this.setActiveGizmo("none");
+							} else {
+								this.setActiveGizmo(value as "position" | "rotation" | "scaling");
+							}
+						}}
+					>
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<ToolbarRadioGroupItem value="select" className={this.state.activeGizmo === "none" ? "bg-primary/20" : ""}>
+									<GiArrowCursor className="h-4 w-4" />
+								</ToolbarRadioGroupItem>
+							</TooltipTrigger>
+							<TooltipContent>Select mode</TooltipContent>
+						</Tooltip>
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<ToolbarRadioGroupItem value="position" className={this.state.activeGizmo === "position" ? "bg-primary/20" : ""}>
+									<LuMove3D height={16} />
+								</ToolbarRadioGroupItem>
+							</TooltipTrigger>
+							<TooltipContent>Toggle position gizmo</TooltipContent>
+						</Tooltip>
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<ToolbarRadioGroupItem value="rotation" className={this.state.activeGizmo === "rotation" ? "bg-primary/20" : ""}>
+									<LuRotate3D height={16} />
+								</ToolbarRadioGroupItem>
+							</TooltipTrigger>
+							<TooltipContent>Toggle rotation gizmo</TooltipContent>
+						</Tooltip>
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<ToolbarRadioGroupItem value="scaling" className={this.state.activeGizmo === "scaling" ? "bg-primary/20" : ""}>
+									<LuScale3D height={16} />
+								</ToolbarRadioGroupItem>
+							</TooltipTrigger>
+							<TooltipContent>Toggle scaling gizmo</TooltipContent>
+						</Tooltip>
+					</ToolbarRadioGroup>
+
+					<Separator orientation="vertical" className="mx-1 h-[24px]" />
 
 					<Tooltip>
 						<TooltipTrigger asChild>
-							<Toggle pressed={this.state.activeGizmo === "position"} onPressedChange={() => this.setActiveGizmo("position")}>
-								<PositionIcon height={16} />
+							<Toggle
+								className={this.scene?.forceWireframe ? "!px-2 !py-2 bg-primary/20" : "!px-2 !py-2"}
+								pressed={this.scene?.forceWireframe}
+								onPressedChange={() => {
+									this.scene.forceWireframe = !this.scene.forceWireframe;
+									this.forceUpdate();
+								}}
+							>
+								<GiWireframeGlobe className="w-6 h-6 scale-125" strokeWidth={1} color="white" />
 							</Toggle>
 						</TooltipTrigger>
-						<TooltipContent>
-							Toggle position gizmo
-						</TooltipContent>
+						<TooltipContent>Toggle wireframe</TooltipContent>
 					</Tooltip>
-					<Tooltip>
-						<TooltipTrigger asChild>
-							<Toggle pressed={this.state.activeGizmo === "rotation"} onPressedChange={() => this.setActiveGizmo("rotation")}>
-								<RotationIcon height={16} />
-							</Toggle>
-						</TooltipTrigger>
-						<TooltipContent>
-							Toggle rotation gizmo
-						</TooltipContent>
-					</Tooltip>
-					<Tooltip>
-						<TooltipTrigger asChild>
-							<Toggle pressed={this.state.activeGizmo === "scaling"} onPressedChange={() => this.setActiveGizmo("scaling")}>
-								<ScalingIcon height={16} />
-							</Toggle>
-						</TooltipTrigger>
-						<TooltipContent>
-							Toggle scaling gizmo
-						</TooltipContent>
-					</Tooltip>
+
+					<Separator orientation="vertical" className="mx-1 h-[24px]" />
 
 					<Select
 						value={this.gizmo?.getCoordinateMode().toString()}
@@ -756,57 +865,43 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 						</SelectContent>
 					</Select>
 
-					<Separator orientation="vertical" className="mx-2 h-[24px]" />
-
-					<Tooltip>
-						<TooltipTrigger asChild>
-							<Toggle
-								className="!px-2 !py-2"
-								pressed={this.scene?.forceWireframe}
-								onPressedChange={() => {
-									this.scene.forceWireframe = !this.scene.forceWireframe;
-									this.forceUpdate();
-								}}
-							>
-								<GiWireframeGlobe className="w-6 h-6 scale-125" strokeWidth={1} color="white" />
-							</Toggle>
-						</TooltipTrigger>
-						<TooltipContent>
-							Toggle wireframe
-						</TooltipContent>
-					</Tooltip>
-
-					<Separator orientation="vertical" className="mx-2 h-[24px]" />
+					<Separator orientation="vertical" className="mx-1 h-[24px]" />
 
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
 							<Button variant="ghost" className="px-1 py-1 w-9 h-9">
-								<IoIosOptions className="w-6 h-6" strokeWidth={1} />
+								<GiTeapot className="w-6 h-6" strokeWidth={1} />
 							</Button>
 						</DropdownMenuTrigger>
 						<DropdownMenuContent onClick={() => this.forceUpdate()}>
 							<DropdownMenuLabel>Render options</DropdownMenuLabel>
 							<DropdownMenuSeparator />
-							<DropdownMenuItem className="flex gap-2 items-center" onClick={() => this.icons.enabled ? this.icons.stop() : this.icons.start()}>
-								{this.icons?.enabled && <FaCheck className="w-4 h-4" />} Helper Icons
+							<DropdownMenuItem className="flex gap-2 items-center" onClick={() => (this.axis.enabled ? this.axis.stop() : this.axis.start())}>
+								{this.axis?.enabled && <FaCheck className="w-4 h-4" />} Axis Helper
+							</DropdownMenuItem>
+							<DropdownMenuItem className="flex gap-2 items-center" onClick={() => (this.icons.enabled ? this.icons.stop() : this.icons.start())}>
+								{this.icons?.enabled && <FaCheck className="w-4 h-4" />} Icons Helper
 							</DropdownMenuItem>
 							<DropdownMenuSeparator />
-							<DropdownMenuItem className="flex gap-2 items-center" onClick={() => this.scene.postProcessesEnabled = !this.scene.postProcessesEnabled}>
+							<DropdownMenuItem className="flex gap-2 items-center" onClick={() => (this.scene.postProcessesEnabled = !this.scene.postProcessesEnabled)}>
 								{this.scene?.postProcessesEnabled && <FaCheck className="w-4 h-4" />} Post-processes enabled
 							</DropdownMenuItem>
-							<DropdownMenuItem className="flex gap-2 items-center" onClick={() => this.scene.texturesEnabled = !this.scene.texturesEnabled}>
+							<DropdownMenuItem className="flex gap-2 items-center" onClick={() => (this.scene.texturesEnabled = !this.scene.texturesEnabled)}>
 								{this.scene?.texturesEnabled && <FaCheck className="w-4 h-4" />} Textures enabled
 							</DropdownMenuItem>
-							<DropdownMenuItem className="flex gap-2 items-center" onClick={() => this.scene.lightsEnabled = !this.scene.lightsEnabled}>
+							<DropdownMenuItem className="flex gap-2 items-center" onClick={() => (this.scene.lightsEnabled = !this.scene.lightsEnabled)}>
 								{this.scene?.lightsEnabled && <FaCheck className="w-4 h-4" />} Lights enabled
 							</DropdownMenuItem>
-							<DropdownMenuItem className="flex gap-2 items-center" onClick={() => {
-								this.scene.shadowsEnabled = !this.scene.shadowsEnabled;
-								this.scene.renderTargetsEnabled = this.scene.shadowsEnabled;
-							}}>
+							<DropdownMenuItem
+								className="flex gap-2 items-center"
+								onClick={() => {
+									this.scene.shadowsEnabled = !this.scene.shadowsEnabled;
+									this.scene.renderTargetsEnabled = this.scene.shadowsEnabled;
+								}}
+							>
 								{this.scene?.shadowsEnabled && <FaCheck className="w-4 h-4" />} Shadows enabled
 							</DropdownMenuItem>
-							<DropdownMenuItem className="flex gap-2 items-center" onClick={() => this.scene.particlesEnabled = !this.scene.particlesEnabled}>
+							<DropdownMenuItem className="flex gap-2 items-center" onClick={() => (this.scene.particlesEnabled = !this.scene.particlesEnabled)}>
 								{this.scene?.particlesEnabled && <FaCheck className="w-4 h-4" />} Particles enabled
 							</DropdownMenuItem>
 							<DropdownMenuSeparator />
@@ -943,9 +1038,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 				case ".blend":
 					let progressRef: EditorPreviewConvertProgress;
 					this.setState({
-						informationMessage: (
-							<EditorPreviewConvertProgress absolutePath={absolutePath} ref={(r) => progressRef = r!} />
-						),
+						informationMessage: <EditorPreviewConvertProgress absolutePath={absolutePath} ref={(r) => (progressRef = r!)} />,
 					});
 
 					const newAbsolutePath = await tryConvertSceneFile(absolutePath, (value) => progressRef?.setState({ value }));
@@ -965,7 +1058,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		}
 
 		this.setState({ informationMessage: `Importing scene "${basename(absolutePath)}"...` });
-		const result = await loadImportedSceneFile(this.scene, absolutePath, useCloudConverter);
+		const result = await loadImportedSceneFile(this.scene, absolutePath);
 		this.setState({ informationMessage: "" });
 
 		return result;
@@ -1047,7 +1140,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 				case ".ms3d":
 				case ".blend":
 				case ".babylon":
-					this.importSceneFile(absolutePath, !ev.shiftKey).then((result) => {
+					this.importSceneFile(absolutePath, ev.shiftKey).then((result) => {
 						if (pick.pickedPoint) {
 							result?.meshes.forEach((m) => !m.parent && m.position.addInPlace(pick.pickedPoint!));
 							result?.transformNodes.forEach((t) => !t.parent && t.position.addInPlace(pick.pickedPoint!));
@@ -1088,46 +1181,18 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 				case ".ogg":
 				case ".wav":
 				case ".wave":
-					if (this.props.editor.state.enableExperimentalFeatures) {
-						applySoundAsset(this.props.editor, mesh ?? this.scene, absolutePath).then(() => {
+					applySoundAsset(this.props.editor, mesh ?? this.scene, absolutePath).then(() => {
+						this.props.editor.layout.graph.refresh();
+					});
+					break;
+
+				case ".npss":
+					if (mesh) {
+						loadImportedParticleSystemFile(this.props.editor.layout.preview.scene, mesh, absolutePath).then(() => {
 							this.props.editor.layout.graph.refresh();
 						});
 					}
 					break;
-			}
-		});
-	}
-
-	private _onGotIframeRef(ref: HTMLIFrameElement | null): void {
-		this._playIframeRef = ref;
-
-		if (!ref || this._playMessageListener) {
-			return;
-		}
-
-		window.addEventListener("message", this._playMessageListener = (event) => {
-			if (event.data.id === "console") {
-				const node = (
-					<div>
-						<b className="font-bold text-[#2d72d2]">[DEBUG] </b>
-						{event.data.args.join("\n")}
-					</div>
-				);
-
-				switch (event.data.method) {
-					case "log":
-						this.props.editor.layout.console.log(node);
-						break;
-					case "warn":
-						this.props.editor.layout.console.warn(node);
-						break;
-					case "error":
-						this.props.editor.layout.console.error(node);
-						break;
-					case "info":
-						this.props.editor.layout.console.log(node);
-						break;
-				}
 			}
 		});
 	}

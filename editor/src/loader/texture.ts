@@ -10,7 +10,7 @@ export function writeTexture(runtime: AssimpJSRuntime, data: IAssimpJSTextureDat
 		return;
 	}
 
-	if (typeof (data.data) === "string") {
+	if (typeof data.data === "string") {
 		const byteString = atob(data.data);
 		const ab = new ArrayBuffer(byteString.length);
 

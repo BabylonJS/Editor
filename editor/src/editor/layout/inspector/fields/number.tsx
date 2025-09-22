@@ -78,16 +78,28 @@ export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldPro
 		return ratio.toFixed(0);
 	}
 
+	function getFinalValueOf(v: number) {
+		if (props.asDegrees) {
+			return Tools.ToRadians(v);
+		}
+
+		return v;
+	}
+
+	function getMinMaxValueOf(v: number) {
+		if (props.asDegrees) {
+			return Tools.ToDegrees(v);
+		}
+
+		return v;
+	}
+
 	const hasMinMax = props.min !== undefined && props.max !== undefined;
 	const ratio = hasMinMax ? getRatio() : 0;
 
 	return (
-		<div
-			className="flex gap-2 items-center px-2"
-			onMouseOver={() => setPointerOver(true)}
-			onMouseLeave={() => setPointerOver(false)}
-		>
-			{props.label &&
+		<div className="flex gap-2 items-center px-2" onMouseOver={() => setPointerOver(true)} onMouseLeave={() => setPointerOver(false)}>
+			{props.label && (
 				<div className="flex items-center gap-2 w-1/3 text-ellipsis overflow-hidden whitespace-nowrap">
 					<div
 						className={`
@@ -98,20 +110,18 @@ export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldPro
 						{props.label}
 					</div>
 
-					{props.tooltip &&
+					{props.tooltip && (
 						<TooltipProvider delayDuration={0}>
 							<Tooltip>
 								<TooltipTrigger>
 									<MdOutlineInfo size={24} />
 								</TooltipTrigger>
-								<TooltipContent className="bg-muted text-muted-foreground text-sm p-2">
-									{props.tooltip}
-								</TooltipContent>
+								<TooltipContent className="bg-muted text-muted-foreground text-sm p-2">{props.tooltip}</TooltipContent>
 							</Tooltip>
 						</TooltipProvider>
-					}
+					)}
 				</div>
-			}
+			)}
 
 			<input
 				type="text"
@@ -128,18 +138,16 @@ export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldPro
 					}
 
 					if (!isNaN(float)) {
-						if (props.asDegrees) {
-							float = Tools.ToRadians(float);
-						}
+						float = getFinalValueOf(float);
 
 						if (props.min !== undefined && float < props.min) {
 							float = props.min;
-							setValue(float.toFixed(digitCount));
+							setValue(getMinMaxValueOf(props.min).toFixed(digitCount));
 						}
 
 						if (props.max !== undefined && float > props.max) {
 							float = props.max;
-							setValue(float.toFixed(digitCount));
+							setValue(getMinMaxValueOf(props.max).toFixed(digitCount));
 						}
 
 						setInspectorEffectivePropertyValue(props.object, props.property, float);
@@ -148,7 +156,9 @@ export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldPro
 				}}
 				style={{
 					cursor: "ew-resize",
-					background: hasMinMax ? `linear-gradient(to right, hsl(var(--muted-foreground) / 0.5) ${ratio}%, hsl(var(--muted-foreground) / 0.1) ${ratio}%, hsl(var(--muted-foreground) / 0.1) 100%)` : undefined,
+					background: hasMinMax
+						? `linear-gradient(to right, hsl(var(--muted-foreground) / 0.5) ${ratio}%, hsl(var(--muted-foreground) / 0.1) ${ratio}%, hsl(var(--muted-foreground) / 0.1) 100%)`
+						: undefined,
 				}}
 				className={`
 					px-5 py-2 rounded-lg bg-muted-foreground/10 outline-none
@@ -210,61 +220,69 @@ export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldPro
 					let mouseUpListener: () => void;
 					let mouseMoveListener: (ev: MouseEvent) => void;
 
-					document.body.addEventListener("mousemove", mouseMoveListener = (ev) => {
-						v += ev.movementX * step * (shiftDown ? 10 : 1);
-
-						let finalValue = v;
-						if (props.asDegrees) {
-							finalValue = Tools.ToRadians(finalValue);
-						}
-
-						if (props.min !== undefined && finalValue < props.min) {
-							v = props.min;
-						}
-
-						if (props.max !== undefined && finalValue > props.max) {
-							v = props.max;
-						}
-
-						setValue(v.toFixed(digitCount));
-
-						setInspectorEffectivePropertyValue(props.object, props.property, finalValue);
-						props.onChange?.(finalValue);
-					});
-
-					document.body.addEventListener("mouseup", mouseUpListener = () => {
-						document.exitPointerLock();
-
-						if (v !== oldV && !props.noUndoRedo) {
-							setValue(v.toFixed(digitCount));
+					document.body.addEventListener(
+						"mousemove",
+						(mouseMoveListener = (ev) => {
+							v += ev.movementX * step * (shiftDown ? 10 : 1);
 
 							let finalValue = v;
 							if (props.asDegrees) {
 								finalValue = Tools.ToRadians(finalValue);
 							}
 
-							if (!isNaN(v) && !isNaN(oldV)) {
-								const oldValue = props.asDegrees ? Tools.ToRadians(oldV) : oldV;
-
-								registerSimpleUndoRedo({
-									object: props.object,
-									property: props.property,
-
-									newValue: finalValue,
-									oldValue,
-								});
-
-								setOldValue(v.toFixed(digitCount));
-
-								props.onFinishChange?.(finalValue, oldValue);
+							if (props.min !== undefined && finalValue < props.min) {
+								finalValue = props.min;
+								v = getMinMaxValueOf(props.min);
 							}
-						}
 
-						document.body.style.cursor = "auto";
+							if (props.max !== undefined && finalValue > props.max) {
+								finalValue = props.max;
+								v = getMinMaxValueOf(props.max);
+							}
 
-						document.body.removeEventListener("mouseup", mouseUpListener);
-						document.body.removeEventListener("mousemove", mouseMoveListener);
-					});
+							setValue(v.toFixed(digitCount));
+
+							setInspectorEffectivePropertyValue(props.object, props.property, finalValue);
+							props.onChange?.(finalValue);
+						})
+					);
+
+					document.body.addEventListener(
+						"mouseup",
+						(mouseUpListener = () => {
+							document.exitPointerLock();
+
+							if (v !== oldV && !props.noUndoRedo) {
+								setValue(v.toFixed(digitCount));
+
+								let finalValue = v;
+								if (props.asDegrees) {
+									finalValue = Tools.ToRadians(finalValue);
+								}
+
+								if (!isNaN(v) && !isNaN(oldV)) {
+									const oldValue = props.asDegrees ? Tools.ToRadians(oldV) : oldV;
+
+									registerSimpleUndoRedo({
+										object: props.object,
+										property: props.property,
+
+										newValue: finalValue,
+										oldValue,
+									});
+
+									setOldValue(v.toFixed(digitCount));
+
+									props.onFinishChange?.(finalValue, oldValue);
+								}
+							}
+
+							document.body.style.cursor = "auto";
+
+							document.body.removeEventListener("mouseup", mouseUpListener);
+							document.body.removeEventListener("mousemove", mouseMoveListener);
+						})
+					);
 				}}
 			/>
 		</div>

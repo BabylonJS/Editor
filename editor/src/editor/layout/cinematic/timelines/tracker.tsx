@@ -6,15 +6,15 @@ import { configureDivEvents } from "./move";
 import { waitNextAnimationFrame } from "../../../../tools/tools";
 
 export interface ICinematicTrackerKey {
-    type: "tracker";
-    frame: number;
+	type: "tracker";
+	frame: number;
 }
 
 export interface ICinematicEditorTrackerProps {
-    cinematicEditor: CinematicEditor;
-    width: number;
-    scale: number;
-    currentTime: number;
+	cinematicEditor: CinematicEditor;
+	width: number;
+	scale: number;
+	currentTime: number;
 }
 
 export function CinematicEditorTracker(props: ICinematicEditorTrackerProps) {
@@ -51,9 +51,7 @@ export function CinematicEditorTracker(props: ICinematicEditorTrackerProps) {
 
 	function handleMainDivClick(ev: MouseEvent<HTMLDivElement>) {
 		if (!move) {
-			const currentTime = Math.round(
-				Math.max(0, ev.nativeEvent.offsetX / props.scale),
-			);
+			const currentTime = Math.round(Math.max(0, ev.nativeEvent.offsetX / props.scale));
 
 			cinematicKey.current.frame = currentTime;
 			props.cinematicEditor.timelines.setCurrentTime(currentTime);

@@ -15,10 +15,7 @@ import { MetallicRoughnessPacker } from "./packers/metallic-roughness";
 import { NormalDisplacementPacker } from "./packers/normal-displacement";
 import { ReflectivityGlossinessPacker } from "./packers/reflectivity-glossiness";
 
-const supportedTexturesTypes: string[] = [
-	"albedo", "normal", "specular", "ao", "metalness", "opacity", "roughness", "specular",
-	"gloss", "translucency", "mask", "displacement",
-];
+const supportedTexturesTypes: string[] = ["albedo", "normal", "specular", "ao", "metalness", "opacity", "roughness", "specular", "gloss", "translucency", "mask", "displacement"];
 
 export async function setupTextures(editor: Editor, json: QuixelJsonType, material: PBRMaterial, assetsFolder: string) {
 	if (!editor.state.projectPath) {
@@ -43,9 +40,7 @@ export async function setupTextures(editor: Editor, json: QuixelJsonType, materi
 
 	let maskTexture: Texture | null = null;
 
-	const components = json.components
-		.concat(json.packedTextures ?? [])
-		.filter((c) => supportedTexturesTypes.indexOf(c.type) !== -1);
+	const components = json.components.concat(json.packedTextures ?? []).filter((c) => supportedTexturesTypes.indexOf(c.type) !== -1);
 
 	const metallicRoughnessComponent = components.find((c) => c.type === "metalness" || c.type === "roughness");
 
@@ -59,27 +54,45 @@ export async function setupTextures(editor: Editor, json: QuixelJsonType, materi
 
 		try {
 			texture = await new Promise<Texture>((resolve, reject) => {
-				const texture = new Texture(path, editor.layout.preview.scene, false, true, undefined, () => {
-					texture.uniqueId = UniqueNumber.Get();
-					texture.name = path.replace(projectFolder, "");
-					texture.url = texture.name;
-					resolve(texture);
-				}, (_, e) => {
-					texture.dispose();
-					reject(e);
-				});
+				const texture = new Texture(
+					path,
+					editor.layout.preview.scene,
+					false,
+					true,
+					undefined,
+					() => {
+						texture.uniqueId = UniqueNumber.Get();
+						texture.name = path.replace(projectFolder, "");
+						texture.url = texture.name;
+						resolve(texture);
+					},
+					(_, e) => {
+						texture.dispose();
+						reject(e);
+					}
+				);
 			});
 		} catch (e) {
 			return;
 		}
 
 		switch (c.type) {
-			case "albedo": albedoTexture = texture; break;
-			case "opacity": opacityTexture = texture; break;
-			case "mask": maskTexture = texture; break;
+			case "albedo":
+				albedoTexture = texture;
+				break;
+			case "opacity":
+				opacityTexture = texture;
+				break;
+			case "mask":
+				maskTexture = texture;
+				break;
 
-			case "normal": bumpTexture = texture; break;
-			case "displacement": displacementTexture = texture; break;
+			case "normal":
+				bumpTexture = texture;
+				break;
+			case "displacement":
+				displacementTexture = texture;
+				break;
 
 			case "specular":
 				if (!metallicRoughnessComponent) {
@@ -93,9 +106,15 @@ export async function setupTextures(editor: Editor, json: QuixelJsonType, materi
 				}
 				break;
 
-			case "metalness": metallicTexture = texture; break;
-			case "roughness": roughnessTexture = texture; break;
-			case "ao": aoTexture = texture; break;
+			case "metalness":
+				metallicTexture = texture;
+				break;
+			case "roughness":
+				roughnessTexture = texture;
+				break;
+			case "ao":
+				aoTexture = texture;
+				break;
 
 			case "translucency":
 				material.subSurface.isTranslucencyEnabled = true;
@@ -123,9 +142,7 @@ export async function setupTextures(editor: Editor, json: QuixelJsonType, materi
 }
 
 export async function copyTextures(editor: Editor, json: QuixelJsonType, assetsFolder: string) {
-	const components = json.components
-		.concat(json.packedTextures ?? [])
-		.filter((c) => supportedTexturesTypes.indexOf(c.type) !== -1);
+	const components = json.components.concat(json.packedTextures ?? []).filter((c) => supportedTexturesTypes.indexOf(c.type) !== -1);
 
 	const promises = components.map(async (c) => {
 		// Get mode

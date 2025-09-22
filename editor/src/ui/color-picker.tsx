@@ -3,10 +3,10 @@ import { Component, ReactNode } from "react";
 import { Color, ColorXplrApp, createColorXplr, ColorXplrParams } from "@jniac/color-xplr";
 
 export interface IColorPickerProps extends Pick<ColorXplrParams, "alpha" | "color"> {
-    className?: string;
+	className?: string;
 
-    onChange: (color: Color) => void;
-    onFinish: (color: Color) => void;
+	onChange: (color: Color) => void;
+	onFinish: (color: Color) => void;
 }
 
 export class ColorPicker extends Component<IColorPickerProps> {
@@ -14,9 +14,7 @@ export class ColorPicker extends Component<IColorPickerProps> {
 	private _colorXplr: ColorXplrApp | null = null;
 
 	public render(): ReactNode {
-		return (
-			<div className={this.props.className} ref={(r) => this._divRef = r} />
-		);
+		return <div className={this.props.className} ref={(r) => (this._divRef = r)} />;
 	}
 
 	public componentDidMount(): void {

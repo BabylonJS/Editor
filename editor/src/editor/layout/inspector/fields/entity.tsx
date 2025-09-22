@@ -32,9 +32,7 @@ export function EditorInspectorSceneEntityField<T extends Node | IParticleSystem
 		const nodeOrId = getInspectorPropertyValue(props.object, props.property) ?? null;
 		if (nodeOrId) {
 			if (typeof nodeOrId === "string") {
-				setValue(
-					getObjectById(nodeOrId),
-				);
+				setValue(getObjectById(nodeOrId));
 			} else {
 				setValue(nodeOrId as T);
 			}
@@ -44,9 +42,7 @@ export function EditorInspectorSceneEntityField<T extends Node | IParticleSystem
 	}, [props.object, props.property]);
 
 	function getObjectById(id: string): T | null {
-		return props.scene.getNodeById(id) as T
-			?? props.scene.particleSystems?.find((ps) => ps.id === id) as T
-			?? getSoundById(id, props.scene) as T;
+		return (props.scene.getNodeById(id) as T) ?? (props.scene.particleSystems?.find((ps) => ps.id === id) as T) ?? (getSoundById(id, props.scene) as T);
 	}
 
 	function handleDragOver(ev: DragEvent<HTMLDivElement>) {
@@ -64,12 +60,12 @@ export function EditorInspectorSceneEntityField<T extends Node | IParticleSystem
 	}
 
 	function handleDrop(ev: DragEvent<HTMLDivElement>) {
+		setDragOver(false);
+
 		const data = JSON.parse(ev.dataTransfer.getData("graph/node")) as string[];
 		if (!data) {
 			return;
 		}
-
-		setDragOver(false);
 
 		const entity = getObjectById(data[0]);
 
@@ -85,9 +81,7 @@ export function EditorInspectorSceneEntityField<T extends Node | IParticleSystem
 			return;
 		}
 
-		handleSetNode(
-			getObjectById(data[0]),
-		);
+		handleSetNode(getObjectById(data[0]));
 	}
 
 	function handleSetNode(node: T | null) {
@@ -111,26 +105,22 @@ export function EditorInspectorSceneEntityField<T extends Node | IParticleSystem
 
 	return (
 		<div className="flex gap-2 items-center px-2">
-			{props.label &&
+			{props.label && (
 				<div className="flex items-center gap-2 w-1/3 text-ellipsis overflow-hidden whitespace-nowrap">
-					<div>
-						{props.label}
-					</div>
+					<div>{props.label}</div>
 
-					{props.tooltip &&
+					{props.tooltip && (
 						<TooltipProvider delayDuration={0}>
 							<Tooltip>
 								<TooltipTrigger>
 									<MdOutlineInfo size={24} />
 								</TooltipTrigger>
-								<TooltipContent className="bg-muted text-muted-foreground text-sm p-2">
-									{props.tooltip}
-								</TooltipContent>
+								<TooltipContent className="bg-muted text-muted-foreground text-sm p-2">{props.tooltip}</TooltipContent>
 							</Tooltip>
 						</TooltipProvider>
-					}
+					)}
 				</div>
-			}
+			)}
 
 			<div
 				onDragOver={(ev) => handleDragOver(ev)}
@@ -139,19 +129,13 @@ export function EditorInspectorSceneEntityField<T extends Node | IParticleSystem
 				className={`
                     flex items-center px-5 py-1.5 rounded-lg
 					${props.label ? "w-2/3" : "w-full"}
-                    ${dragOver ? "bg-background" : " bg-secondary"}
+                    ${dragOver ? "bg-background scale-110" : " bg-secondary"}
                     transition-all duration-300 ease-in-out
                 `}
 			>
-				<div className="flex-1 text-center text-ellipsis overflow-hidden whitespace-nowrap">
-					{value?.name ?? "None"}
-				</div>
+				<div className="flex-1 text-center text-ellipsis overflow-hidden whitespace-nowrap">{value?.name ?? "None"}</div>
 
-				<Button
-					variant="ghost"
-					className="w-6 h-6 p-1"
-					onClick={() => handleSetNode(null)}
-				>
+				<Button variant="ghost" className="w-6 h-6 p-1" onClick={() => handleSetNode(null)}>
 					<HiOutlineTrash className="w-5 h-5" />
 				</Button>
 			</div>

@@ -1,23 +1,30 @@
 import { Grid } from "react-loader-spinner";
+import { MdOutlineInfo } from "react-icons/md";
 import { PropsWithChildren, ReactNode, useState } from "react";
 
 import { PlusIcon, MinusIcon } from "@heroicons/react/20/solid";
 
-export interface IEditorInspectorSectionFieldProps extends PropsWithChildren {
-    /**
-     * Defines the title of the section.
-     */
-    title: ReactNode;
-    /**
-     * Defines the label of the section drawn on the right side.
-     */
-    label?: ReactNode;
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../../../ui/shadcn/ui/tooltip";
 
-    /**
-     * Defines wether or not the section is processing something. If true,
-     * the section becomes unusable and a loader is drawn at its center.
-     */
-    isProcessing?: boolean;
+export interface IEditorInspectorSectionFieldProps extends PropsWithChildren {
+	/**
+	 * Defines the title of the section.
+	 */
+	title: ReactNode;
+	/**
+	 * Defines the label of the section drawn on the right side.
+	 */
+	label?: ReactNode;
+	/**
+	 * Defines the optional tooltip drawn on the right-side of the section's header.
+	 */
+	tooltip?: ReactNode;
+
+	/**
+	 * Defines wether or not the section is processing something. If true,
+	 * the section becomes unusable and a loader is drawn at its center.
+	 */
+	isProcessing?: boolean;
 }
 
 export function EditorInspectorSectionField(props: IEditorInspectorSectionFieldProps) {
@@ -35,27 +42,36 @@ export function EditorInspectorSectionField(props: IEditorInspectorSectionFieldP
 				</div>
 
 				<div className="flex justify-between w-full">
-					<div className="mt-0.5">
-						{props.title}
-					</div>
+					<div className="mt-0.5">{props.title}</div>
 
-					<div className="mt-0.5 text-white/50 pr-5">
-						{props.label}
+					<div className="flex items-center gap-2 pr-2">
+						<div className="mt-0.5 text-white/50">{props.label}</div>
+
+						{props.tooltip && (
+							<TooltipProvider delayDuration={0}>
+								<Tooltip>
+									<TooltipTrigger>
+										<MdOutlineInfo size={24} />
+									</TooltipTrigger>
+									<TooltipContent className="bg-muted text-muted-foreground text-sm p-2">{props.tooltip}</TooltipContent>
+								</Tooltip>
+							</TooltipProvider>
+						)}
 					</div>
 				</div>
 			</div>
 
-			{opened &&
-                <>
-                	{props.isProcessing &&
-                        <div className="absolute top-0 left-0 w-full h-full bg-background/65 flex justify-center items-center">
-                        	<Grid width={24} height={24} color="gray" />
-                        </div>
-                	}
+			{opened && (
+				<>
+					{props.isProcessing && (
+						<div className="absolute top-0 left-0 w-full h-full bg-background/65 flex justify-center items-center">
+							<Grid width={24} height={24} color="gray" />
+						</div>
+					)}
 
-                	{props.children}
-                </>
-			}
+					{props.children}
+				</>
+			)}
 		</div>
 	);
 }

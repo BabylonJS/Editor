@@ -11,8 +11,8 @@ import { CinematicEditor } from "../editor";
 import { CinematicEditorRemoveTrackButton } from "./remove";
 
 export interface ICinematicEditorAnimationGroupTrackProps {
-    track: ICinematicTrack;
-    cinematicEditor: CinematicEditor;
+	track: ICinematicTrack;
+	cinematicEditor: CinematicEditor;
 }
 
 export function CinematicEditorAnimationGroupTrack(props: ICinematicEditorAnimationGroupTrackProps) {
@@ -26,8 +26,8 @@ export function CinematicEditorAnimationGroupTrack(props: ICinematicEditorAnimat
 
 		registerUndoRedo({
 			executeRedo: true,
-			undo: () => props.track.animationGroup = oldAnimationGroup,
-			redo: () => props.track.animationGroup = animationGroup,
+			undo: () => (props.track.animationGroup = oldAnimationGroup),
+			redo: () => (props.track.animationGroup = animationGroup),
 		});
 
 		props.cinematicEditor.forceUpdate();
@@ -40,10 +40,7 @@ export function CinematicEditorAnimationGroupTrack(props: ICinematicEditorAnimat
 			</div>
 
 			<div className="flex-1">
-				<Select
-					value={props.track.animationGroup?.name}
-					onValueChange={(v) => handleAnimationGroupChanged(v)}
-				>
+				<Select value={props.track.animationGroup?.name} onValueChange={(v) => handleAnimationGroupChanged(v)}>
 					<SelectTrigger
 						className={`
                             border-none w-full h-8

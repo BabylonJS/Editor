@@ -95,7 +95,11 @@ export function ParticleSystemGradientInspector(props: IParticleSystemGradientIn
 
 	function handleAddGradient() {
 		let createdGradient: IValueGradient | null = null;
-		const lastGradient = props.getGradients()?.sort((a, b) => a.gradient - b.gradient).slice().pop();
+		const lastGradient = props
+			.getGradients()
+			?.sort((a, b) => a.gradient - b.gradient)
+			.slice()
+			.pop();
 
 		registerUndoRedo({
 			executeRedo: true,
@@ -122,17 +126,13 @@ export function ParticleSystemGradientInspector(props: IParticleSystemGradientIn
 
 	return (
 		<EditorInspectorBlockField>
-			{props.title &&
-				<div className="px-2">
-					{props.title}
-				</div>
-			}
+			{props.title && <div className="px-2">{props.title}</div>}
 
 			<EditorInspectorSwitchField noUndoRedo object={o} property="value" label={props.label} onChange={(value) => handleUseChange(value)} />
 
 			{!o.value && props.children}
 
-			{o.value &&
+			{o.value && (
 				<div className="flex flex-col gap-2">
 					{props.getGradients()?.map((gradient, index) => (
 						<GradientField key={index} gradient={gradient} onRemove={() => handleRemoveGradient(gradient)} />
@@ -142,7 +142,7 @@ export function ParticleSystemGradientInspector(props: IParticleSystemGradientIn
 						<AiOutlinePlus />
 					</Button>
 				</div>
-			}
+			)}
 		</EditorInspectorBlockField>
 	);
 }

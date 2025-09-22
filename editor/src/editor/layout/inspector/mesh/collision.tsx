@@ -19,10 +19,11 @@ import { EditorInspectorSwitchField } from "../fields/switch";
 import { EditorInspectorSectionField } from "../fields/section";
 
 export interface IEditorMeshInspectorState {
-    computingCollisionMesh: boolean;
+	computingCollisionMesh: boolean;
 }
 
 export class EditorMeshCollisionInspector extends Component<IEditorInspectorImplementationProps<AbstractMesh>, IEditorMeshInspectorState> {
+	private _mesh: AbstractMesh;
 	private _collisionMesh: CollisionMesh | null = null;
 
 	public constructor(props: IEditorInspectorImplementationProps<AbstractMesh>) {
@@ -31,75 +32,67 @@ export class EditorMeshCollisionInspector extends Component<IEditorInspectorImpl
 		this.state = {
 			computingCollisionMesh: false,
 		};
+
+		this._mesh = this.props.object._masterMesh ?? this.props.object;
+		if (isInstancedMesh(this._mesh)) {
+			this._mesh = this._mesh.sourceMesh;
+		}
+
+		const collisionMesh = getCollisionMeshFor(this._mesh as Mesh);
+		this._collisionMesh = collisionMesh;
 	}
 
 	public render(): ReactNode {
-		let mesh = this.props.object._masterMesh ?? this.props.object;
-		if (isInstancedMesh(mesh)) {
-			mesh = mesh.sourceMesh;
-		}
-
-		const collisionMesh = getCollisionMeshFor(mesh as Mesh);
-		this._collisionMesh = collisionMesh;
-
 		// if (collisionMesh && isInstancedMesh(this.props.object)) {
 		//     return false;
 		// }
 
 		return (
-			<EditorInspectorSectionField title="Collisions" isProcessing={this.state.computingCollisionMesh}>
-				<EditorInspectorSwitchField label="Check Collisions" object={mesh} property="checkCollisions" onChange={(v) => {
-					if (!v && isMesh(mesh) && collisionMesh) {
-						collisionMesh.dispose();
-					}
+			<EditorInspectorSectionField
+				title="Collisions"
+				isProcessing={this.state.computingCollisionMesh}
+				tooltip="Configure collisions using the collisions system of Babylon.js."
+			>
+				<EditorInspectorSwitchField
+					label="Check Collisions"
+					object={this._mesh}
+					property="checkCollisions"
+					onChange={(v) => {
+						if (!v && isMesh(this._mesh) && this._collisionMesh) {
+							this._disposeCollisionMesh();
+						}
 
-					this.forceUpdate();
-					this.props.editor.layout.graph.refresh();
-				}} />
+						this.forceUpdate();
+						this.props.editor.layout.graph.refresh();
+					}}
+				/>
 
-				{mesh.checkCollisions &&
-                    <div
-                    	className="flex gap-2 items-center"
-                    	onMouseLeave={() => {
-                    		mesh.visibility = 1;
-                    		if (this._collisionMesh) {
-                    			this._collisionMesh.isVisible = false;
-                    			this._collisionMesh.instances?.forEach((i) => i.isVisible = false);
-                    		}
-                    	}}
-                    	onMouseMove={() => {
-                    		mesh.visibility = 0.35;
-                    		if (this._collisionMesh) {
-                    			this._collisionMesh.isVisible = true;
-                    			this._collisionMesh.instances?.forEach((i) => i.isVisible = true);
-                    		}
-                    	}}
-                    >
-                    	{this._getCollisionType(mesh, collisionMesh, "cube", (
-                    		<RxCube size={42} />
-                    	))}
-
-                    	{this._getCollisionType(mesh, collisionMesh, "sphere", (
-                    		<ImSphere size={42} />
-                    	))}
-
-                    	{this._getCollisionType(mesh, collisionMesh, "capsule", (
-                    		<RiCapsuleFill size={42} />
-                    	))}
-
-                    	{this._getCollisionType(mesh, collisionMesh, "lod", (
-                    		<GiMeshNetwork size={42} />
-                    	))}
-                    </div>
-				}
+				{this._mesh.checkCollisions && (
+					<div
+						className="flex gap-2 items-center"
+						onMouseMove={() => this._setTemporaryCollisionMeshVisible(true)}
+						onMouseLeave={() => this._setTemporaryCollisionMeshVisible(false)}
+					>
+						{this._getCollisionType(this._collisionMesh, "cube", <RxCube size={42} />)}
+						{this._getCollisionType(this._collisionMesh, "sphere", <ImSphere size={42} />)}
+						{this._getCollisionType(this._collisionMesh, "capsule", <RiCapsuleFill size={42} />)}
+						{this._getCollisionType(this._collisionMesh, "lod", <GiMeshNetwork size={42} />)}
+					</div>
+				)}
 			</EditorInspectorSectionField>
 		);
 	}
 
-	private _getCollisionType(mesh: AbstractMesh, collisionMesh: CollisionMesh | null, type: CollisionMeshType, children: ReactNode): ReactNode {
+	public componentWillUnmount(): void {
+		if (this._collisionMesh?.isVisible) {
+			this._setTemporaryCollisionMeshVisible(false);
+		}
+	}
+
+	private _getCollisionType(collisionMesh: CollisionMesh | null, type: CollisionMeshType, children: ReactNode): ReactNode {
 		return (
 			<div
-				onClick={() => this._configureCollisionMesh(collisionMesh, mesh, type)}
+				onClick={() => this._configureCollisionMesh(collisionMesh, this._mesh, type)}
 				className={`
                     flex flex-col gap-2 justify-center items-center w-full aspect-square rounded-lg hover:bg-secondary cursor-pointer
                     ${collisionMesh?.type === type ? "bg-secondary" : "bg-accent"}
@@ -108,16 +101,15 @@ export class EditorMeshCollisionInspector extends Component<IEditorInspectorImpl
 			>
 				{children}
 
-				<div className="capitalize">
-					{type}
-				</div>
+				<div className="capitalize">{type}</div>
 			</div>
 		);
 	}
 
 	private async _configureCollisionMesh(collisionMesh: CollisionMesh | null, mesh: AbstractMesh, type: CollisionMeshType): Promise<void> {
 		if (collisionMesh?.type === type) {
-			return;
+			this._disposeCollisionMesh();
+			return this.forceUpdate();
 		}
 
 		this.setState({
@@ -138,5 +130,23 @@ export class EditorMeshCollisionInspector extends Component<IEditorInspectorImpl
 		this.setState({
 			computingCollisionMesh: false,
 		});
+
+		this._setTemporaryCollisionMeshVisible(this._collisionMesh.isVisible);
+	}
+
+	private _setTemporaryCollisionMeshVisible(visible: boolean): void {
+		this._mesh.visibility = visible ? 0.35 : 1;
+
+		if (this._collisionMesh) {
+			this._collisionMesh.isVisible = visible;
+			this._collisionMesh.instances?.forEach((i) => (i.isVisible = visible));
+		}
+	}
+
+	private _disposeCollisionMesh(): void {
+		this._collisionMesh?.dispose();
+		this._collisionMesh = null;
+
+		this._setTemporaryCollisionMeshVisible(false);
 	}
 }

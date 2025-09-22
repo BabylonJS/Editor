@@ -25,17 +25,15 @@ export class AssetBrowserGUIItem extends AssetsBrowserItem {
 	}
 
 	/**
-     * @override
-     */
+	 * @override
+	 */
 	protected getIcon(): ReactNode {
-		return this._base64Value
-			? <img src={this._base64Value} className="w-[120px] aspect-square object-contain" />
-			: <CgIfDesign size="64px" />;
+		return this._base64Value ? <img src={this._base64Value} className="w-[120px] aspect-square object-contain" /> : <CgIfDesign size="64px" />;
 	}
 
 	/**
-     * @override
-     */
+	 * @override
+	 */
 	protected async onDoubleClick(): Promise<void> {
 		ipcRenderer.send("window:open", "build/src/editor/windows/ge", {
 			filePath: this.props.absolutePath,

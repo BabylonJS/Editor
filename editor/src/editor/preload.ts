@@ -3,11 +3,9 @@ import "babylonjs-materials";
 window["CANNON"] = require("cannon");
 
 window.addEventListener("DOMContentLoaded", () => {
-	const { createEditor } = process.env.DEBUG
-		? require("./main")
-		: require("../../editor");
+	const { createEditor } = require("./main");
 
-	require("./module");
+	require("./overrides");
 
 	createEditor();
 });

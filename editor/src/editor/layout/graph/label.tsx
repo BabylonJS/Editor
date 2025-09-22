@@ -2,9 +2,10 @@ import { extname } from "path/posix";
 
 import { DragEvent, useEffect, useRef, useState } from "react";
 
+import { FaLock } from "react-icons/fa";
 import { useEventListener } from "usehooks-ts";
 
-import { Node, TransformNode, AbstractMesh } from "babylonjs";
+import { Node, TransformNode, AbstractMesh, Vector3 } from "babylonjs";
 
 import { Input } from "../../../ui/shadcn/ui/input";
 
@@ -12,6 +13,7 @@ import { isScene } from "../../../tools/guards/scene";
 import { isSound } from "../../../tools/guards/sound";
 import { registerUndoRedo } from "../../../tools/undoredo";
 import { isAnyParticleSystem } from "../../../tools/guards/particles";
+import { isNodeSerializable, isNodeLocked } from "../../../tools/node/metadata";
 import { isAbstractMesh, isInstancedMesh, isMesh, isNode, isTransformNode } from "../../../tools/guards/nodes";
 
 import { applySoundAsset } from "../preview/import/sound";
@@ -117,8 +119,13 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
 		const oldHierarchyMap = new Map<unknown, unknown>();
 
 		nodesToMove.forEach((n) => {
-			if (n.nodeData) {
-				if (isNode(n.nodeData)) {
+			if (n.nodeData && n.nodeData !== newParent) {
+				if (isNode(n.nodeData) && n.nodeData.parent !== newParent) {
+					const descendants = n.nodeData.getDescendants(false);
+					if (descendants.includes(newParent)) {
+						return;
+					}
+
 					return oldHierarchyMap.set(n.nodeData, n.nodeData.parent);
 				}
 
@@ -132,13 +139,17 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
 			}
 		});
 
+		if (!oldHierarchyMap.size) {
+			return;
+		}
+
 		registerUndoRedo({
 			executeRedo: true,
 			undo: () => {
 				nodesToMove.forEach((n) => {
 					if (n.nodeData && oldHierarchyMap.has(n.nodeData)) {
 						if (isNode(n.nodeData)) {
-							return n.nodeData.parent = oldHierarchyMap.get(n.nodeData) as Node;
+							return (n.nodeData.parent = oldHierarchyMap.get(n.nodeData) as Node);
 						}
 
 						if (isSound(n.nodeData)) {
@@ -150,11 +161,12 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
 
 							n.nodeData.detachFromMesh();
 							n.nodeData.spatialSound = false;
-							return n.nodeData["_connectedTransformNode"] = null;
+							n.nodeData.setPosition(Vector3.Zero());
+							return (n.nodeData["_connectedTransformNode"] = null);
 						}
 
 						if (isAnyParticleSystem(n.nodeData)) {
-							return n.nodeData.emitter = oldHierarchyMap.get(n.nodeData) as AbstractMesh;
+							return (n.nodeData.emitter = oldHierarchyMap.get(n.nodeData) as AbstractMesh);
 						}
 					}
 				});
@@ -167,7 +179,7 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
 
 					if (n.nodeData && oldHierarchyMap.has(n.nodeData)) {
 						if (isNode(n.nodeData)) {
-							return n.nodeData.parent = isScene(props.object) ? null : newParent;
+							return (n.nodeData.parent = isScene(props.object) ? null : newParent);
 						}
 
 						if (isSound(n.nodeData)) {
@@ -178,13 +190,14 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
 							if (isScene(newParent)) {
 								n.nodeData.detachFromMesh();
 								n.nodeData.spatialSound = false;
-								return n.nodeData["_connectedTransformNode"] = null;
+								n.nodeData.setPosition(Vector3.Zero());
+								return (n.nodeData["_connectedTransformNode"] = null);
 							}
 						}
 
 						if (isAnyParticleSystem(n.nodeData)) {
 							if (isAbstractMesh(newParent)) {
-								return n.nodeData.emitter = newParent;
+								return (n.nodeData.emitter = newParent);
 							}
 						}
 					}
@@ -238,12 +251,50 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
 	function handleInputNameBlurred() {
 		registerUndoRedo({
 			executeRedo: true,
-			undo: () => props.object.name = props.name,
-			redo: () => props.object.name = name,
+			undo: () => (props.object.name = props.name),
+			redo: () => (props.object.name = name),
 		});
 
 		setDoubleClicked(false);
 		props.editor.layout.graph.refresh();
+	}
+
+	function getLabel() {
+		if (doubleClicked) {
+			return (
+				<Input
+					value={name}
+					ref={inputRef}
+					className="w-fit h-7"
+					onCopy={(ev) => ev.stopPropagation()}
+					onPaste={(ev) => ev.stopPropagation()}
+					onChange={(ev) => setName(ev.currentTarget.value)}
+				/>
+			);
+		}
+
+		const label = (
+			<div
+				className={`
+					${!isNodeSerializable(props.object) ? "line-through" : ""}
+					${!isNodeSerializable(props.object) || isNodeLocked(props.object) ? "text-foreground/35" : ""}
+					transition-all duration-300 ease-in-out
+				`}
+			>
+				{props.name}
+			</div>
+		);
+
+		if (isNodeLocked(props.object)) {
+			return (
+				<div className="flex gap-2 items-center justify-between">
+					{label}
+					<FaLock className="w-4 h-4 opacity-50 mr-2" />
+				</div>
+			);
+		}
+
+		return label;
 	}
 
 	return (
@@ -251,9 +302,8 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
 			draggable
 			className={`
                 ml-2 p-1 w-full
-                ${over ? "bg-muted" : ""}
-                ${props.object.metadata?.doNotSerialize ? "text-foreground/35 line-through" : ""}
-                transition-all duration-300 ease-in-out
+                ${over ? "bg-muted px-2 py-2 rounded-lg" : ""}
+				transition-all duration-300 ease-in-out
             `}
 			onDragStart={(ev) => handleDragStart(ev)}
 			onDragOver={(ev) => handleDragOver(ev)}
@@ -262,19 +312,7 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
 			onDoubleClick={() => handleDoubleClick()}
 			onBlur={() => handleInputNameBlurred()}
 		>
-			{doubleClicked
-				? (
-					<Input
-						value={name}
-						ref={inputRef}
-						className="w-fit h-7"
-						onCopy={(ev) => ev.stopPropagation()}
-						onPaste={(ev) => ev.stopPropagation()}
-						onChange={(ev) => setName(ev.currentTarget.value)}
-					/>
-				)
-				: props.name
-			}
+			{getLabel()}
 		</div>
 	);
 }

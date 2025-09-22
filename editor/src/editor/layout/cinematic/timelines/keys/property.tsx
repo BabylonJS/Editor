@@ -3,10 +3,10 @@ import { ICinematicKey, ICinematicKeyCut, isCinematicKeyCut } from "babylonjs-ed
 import { CinematicEditor } from "../../editor";
 
 export interface ICinematicEditorPropertyKeyProps {
-    cinematicEditor: CinematicEditor;
-    scale: number;
-    move: boolean;
-    cinematicKey: ICinematicKey | ICinematicKeyCut;
+	cinematicEditor: CinematicEditor;
+	scale: number;
+	move: boolean;
+	cinematicKey: ICinematicKey | ICinematicKeyCut;
 }
 
 export function CinematicEditorPropertyKey(props: ICinematicEditorPropertyKeyProps) {

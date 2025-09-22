@@ -1,3 +1,4 @@
+import { pathExists } from "fs-extra";
 import { extname, join, dirname } from "path/posix";
 
 import sharp from "sharp";
@@ -22,6 +23,7 @@ import { projectConfiguration } from "../../../../project/configuration";
 import { configureImportedTexture } from "../../preview/import/import";
 
 import { EXRIcon } from "../../../../ui/icons/exr";
+import { Button } from "../../../../ui/shadcn/ui/button";
 import { SpinnerUIComponent } from "../../../../ui/spinner";
 import { Popover, PopoverContent, PopoverTrigger } from "../../../../ui/shadcn/ui/popover";
 
@@ -48,6 +50,8 @@ export interface IEditorInspectorTextureFieldProps extends PropsWithChildren {
 
 export interface IEditorInspectorTextureFieldState {
 	dragOver: boolean;
+
+	previewError: boolean;
 	previewTemporaryUrl: string | null;
 }
 
@@ -57,6 +61,7 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 
 		this.state = {
 			dragOver: false,
+			previewError: false,
 			previewTemporaryUrl: null,
 		};
 
@@ -75,20 +80,14 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 				className={`flex flex-col w-full p-5 rounded-lg ${this.state.dragOver ? "bg-muted-foreground/75 dark:bg-muted-foreground/20" : "bg-muted-foreground/10 dark:bg-muted-foreground/5"} transition-all duration-300 ease-in-out`}
 			>
 				<div className="flex gap-4 w-full">
-					{texture &&
-						this._getPreviewComponent(textureUrl)
-					}
-
-					{!texture && this._getPreviewComponent(textureUrl)}
+					{this._getPreviewComponent(textureUrl)}
 
 					<div className="flex flex-col w-full">
-						<div className="px-2">
-							{this.props.title}
-						</div>
+						<div className="px-2">{this.props.title}</div>
 
-						{textureUrl &&
+						{textureUrl && !texture.loadingError && (
 							<div className="flex flex-col gap-1 mt-1 w-full">
-								{!this.props.hideLevel &&
+								{!this.props.hideLevel && (
 									<EditorInspectorNumberField
 										noUndoRedo={this.props.noUndoRedo}
 										label="Level"
@@ -97,35 +96,59 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 										onChange={() => this.props.onChange?.(texture)}
 										onFinishChange={() => this.props.onChange?.(texture)}
 									/>
-								}
+								)}
 
-								{isTexture(texture) &&
+								{isTexture(texture) && (
 									<>
-										{!this.props.hideSize &&
+										{!this.props.hideSize && (
 											<EditorInspectorNumberField
 												noUndoRedo={this.props.noUndoRedo}
 												label="Size"
 												object={texture}
 												property="uScale"
-												onChange={(v) => texture.vScale = v}
+												onChange={(v) => (texture.vScale = v)}
 												onFinishChange={() => this.props.onChange?.(texture)}
 											/>
-										}
-										<EditorInspectorSwitchField noUndoRedo={this.props.noUndoRedo} label="Invert Y" object={texture} property="_invertY" onChange={() => {
-											this._handleReloadTexture(texture);
-											this.props.onChange?.(texture);
-										}}
+										)}
+										<EditorInspectorSwitchField
+											noUndoRedo={this.props.noUndoRedo}
+											label="Invert Y"
+											object={texture}
+											property="_invertY"
+											onChange={() => {
+												this._handleReloadTexture(texture);
+												this.props.onChange?.(texture);
+											}}
 										/>
 									</>
-								}
+								)}
 
-								{isCubeTexture(texture) &&
+								{isCubeTexture(texture) && (
 									<>
-										<EditorInspectorNumberField label="Rotation Y" object={texture} property="rotationY" onFinishChange={() => this.props.onChange?.(texture)} />
+										<EditorInspectorNumberField
+											label="Rotation Y"
+											object={texture}
+											property="rotationY"
+											onFinishChange={() => this.props.onChange?.(texture)}
+										/>
 									</>
-								}
+								)}
 							</div>
-						}
+						)}
+
+						{(texture?.loadingError ?? false) && (
+							<div className="flex flex-col gap-2">
+								<div className="px-2 text-red-300">
+									Failed to load texture
+									<br />
+									Please ensure the file exists at the specified path: <b className="text-red-500">{textureUrl}</b>
+								</div>
+
+								<Button variant="secondary" onClick={() => (isTexture(texture) || isCubeTexture(texture)) && this._handleReloadTexture(texture)}>
+									Reload
+								</Button>
+							</div>
+						)}
 					</div>
 					<div
 						onClick={() => {
@@ -151,7 +174,7 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 						}}
 						className="flex justify-center items-center w-24 h-full hover:bg-muted-foreground rounded-lg transition-all duration-300"
 					>
-						<XMarkIcon className="w-6 h-6" />
+						{texture && <XMarkIcon className="w-6 h-6" />}
 					</div>
 				</div>
 
@@ -171,32 +194,41 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 			return;
 		}
 
-		const projectDir = join(dirname(projectConfiguration.path));
-		const texturePath = texture.url.startsWith(projectDir)
-			? texture.url
-			: join(projectDir, texture.url);
+		const wasLoadingError = texture.loadingError;
 
-		texture.updateURL(texturePath);
+		const projectDir = join(dirname(projectConfiguration.path));
+		const texturePath = texture.url.startsWith(projectDir) ? texture.url : join(projectDir, texture.url);
+
+		texture.updateURL(texturePath, undefined, () => {
+			texture["_loadingError"] = false;
+
+			if (wasLoadingError) {
+				this._computeTemporaryPreview();
+			}
+		});
 		texture.url = texturePath.replace(join(projectDir, "/"), "");
 	}
 
 	private _getPreviewComponent(textureUrl: false | string | null): ReactNode {
 		return (
 			<div className={`flex justify-center items-center ${textureUrl ? "w-24 h-24" : "w-8 h-8"} aspect-square`}>
-				{textureUrl &&
+				{textureUrl && (
 					<Popover>
 						<PopoverTrigger>
 							<>
-								{isCubeTexture(this.props.object[this.props.property])
-									? <SiDotenv className="w-24 h-24" />
-									: isColorGradingTexture(this.props.object[this.props.property])
-										? <IoIosColorPalette className="w-24 h-24" />
-										: extname(textureUrl).toLowerCase() === ".exr"
-											? <EXRIcon size="96px" />
-											: this.state.previewTemporaryUrl
-												? <img className="w-24 h-24 object-contain" src={this.state.previewTemporaryUrl} />
-												: <SpinnerUIComponent width="64px" />
-								}
+								{isCubeTexture(this.props.object[this.props.property]) ? (
+									<SiDotenv className="w-24 h-24" />
+								) : isColorGradingTexture(this.props.object[this.props.property]) ? (
+									<IoIosColorPalette className="w-24 h-24" />
+								) : extname(textureUrl).toLowerCase() === ".exr" ? (
+									<EXRIcon size="96px" />
+								) : this.state.previewTemporaryUrl ? (
+									<img className="w-24 h-24 object-contain" src={this.state.previewTemporaryUrl} />
+								) : this.state.previewError ? (
+									<XMarkIcon className="w-24 h-24 bg-red-500/35 rounded-lg" />
+								) : (
+									<SpinnerUIComponent width="64px" />
+								)}
 							</>
 						</PopoverTrigger>
 						<PopoverContent side="left">
@@ -205,16 +237,13 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 									? this._getCubeTextureInspector()
 									: isColorGradingTexture(this.props.object[this.props.property])
 										? this._getColorGradingTextureInspector()
-										: this._getTextureInspector()
-								}
+										: this._getTextureInspector()}
 							</>
 						</PopoverContent>
 					</Popover>
-				}
-
-				{!textureUrl && (
-					<MdOutlineQuestionMark className="w-8 h-8" />
 				)}
+
+				{!textureUrl && <MdOutlineQuestionMark className="w-8 h-8" />}
 			</div>
 		);
 	}
@@ -229,9 +258,7 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 			<div className="flex flex-col gap-2 h-full">
 				<EditorInspectorSectionField title="Common">
 					<div className="flex justify-between items-center px-2 py-2">
-						<div className="w-1/2">
-							Path
-						</div>
+						<div className="w-1/2">Path</div>
 
 						<div
 							onClick={() => onSelectedAssetChanged.notifyObservers(join(dirname(projectConfiguration.path!), texture.name))}
@@ -250,8 +277,9 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 						label="Index"
 						object={texture}
 						property="coordinatesIndex"
-						step={1} min={0}
-						onChange={(v) => texture.coordinatesIndex = Math.round(v)}
+						step={1}
+						min={0}
+						onChange={(v) => (texture.coordinatesIndex = Math.round(v))}
 						onFinishChange={() => this.props.onChange?.(texture)}
 					/>
 
@@ -292,9 +320,7 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 			<div className="flex flex-col gap-2 h-full">
 				<EditorInspectorSectionField title="Common">
 					<div className="flex justify-between items-center px-2 py-2">
-						<div className="w-1/2">
-							Path
-						</div>
+						<div className="w-1/2">Path</div>
 
 						<div
 							onClick={() => onSelectedAssetChanged.notifyObservers(join(dirname(projectConfiguration.path!), texture.name))}
@@ -322,18 +348,14 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 			<div className="flex flex-col gap-2 h-full">
 				<EditorInspectorSectionField title="Common">
 					<div className="flex justify-between items-center px-2 py-2">
-						<div className="w-1/2">
-							Dimensions
-						</div>
+						<div className="w-1/2">Dimensions</div>
 
 						<div className="text-white/50 w-full text-end">
 							{texture.getSize().width}x{texture.getSize().height}
 						</div>
 					</div>
 					<div className="flex justify-between items-center px-2 py-2">
-						<div className="w-1/2">
-							Path
-						</div>
+						<div className="w-1/2">Path</div>
 
 						<div
 							onClick={() => onSelectedAssetChanged.notifyObservers(join(dirname(projectConfiguration.path!), texture.name))}
@@ -342,18 +364,56 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 							{texture.name}
 						</div>
 					</div>
-					<EditorInspectorSwitchField noUndoRedo={this.props.noUndoRedo} label="Gamma Space" object={texture} property="gammaSpace" onChange={() => this.props.onChange?.(texture)} />
-					<EditorInspectorSwitchField noUndoRedo={this.props.noUndoRedo} label="Get Alpha From RGB" object={texture} property="getAlphaFromRGB" onChange={() => this.props.onChange?.(texture)} />
+					<EditorInspectorSwitchField
+						noUndoRedo={this.props.noUndoRedo}
+						label="Gamma Space"
+						object={texture}
+						property="gammaSpace"
+						onChange={() => this.props.onChange?.(texture)}
+					/>
+					<EditorInspectorSwitchField
+						noUndoRedo={this.props.noUndoRedo}
+						label="Get Alpha From RGB"
+						object={texture}
+						property="getAlphaFromRGB"
+						onChange={() => this.props.onChange?.(texture)}
+					/>
 				</EditorInspectorSectionField>
 
 				<EditorInspectorSectionField title="Scale">
-					<EditorInspectorNumberField noUndoRedo={this.props.noUndoRedo} label="U Scale" object={texture} property="uScale" onChange={() => this.forceUpdate()} onFinishChange={() => this.props.onChange?.(texture)} />
-					<EditorInspectorNumberField noUndoRedo={this.props.noUndoRedo} label="V Scale" object={texture} property="vScale" onChange={() => this.forceUpdate()} onFinishChange={() => this.props.onChange?.(texture)} />
+					<EditorInspectorNumberField
+						noUndoRedo={this.props.noUndoRedo}
+						label="U Scale"
+						object={texture}
+						property="uScale"
+						onChange={() => this.forceUpdate()}
+						onFinishChange={() => this.props.onChange?.(texture)}
+					/>
+					<EditorInspectorNumberField
+						noUndoRedo={this.props.noUndoRedo}
+						label="V Scale"
+						object={texture}
+						property="vScale"
+						onChange={() => this.forceUpdate()}
+						onFinishChange={() => this.props.onChange?.(texture)}
+					/>
 				</EditorInspectorSectionField>
 
 				<EditorInspectorSectionField title="Offset">
-					<EditorInspectorNumberField noUndoRedo={this.props.noUndoRedo} label="U Offset" object={texture} property="uOffset" onFinishChange={() => this.props.onChange?.(texture)} />
-					<EditorInspectorNumberField noUndoRedo={this.props.noUndoRedo} label="V Offset" object={texture} property="vOffset" onFinishChange={() => this.props.onChange?.(texture)} />
+					<EditorInspectorNumberField
+						noUndoRedo={this.props.noUndoRedo}
+						label="U Offset"
+						object={texture}
+						property="uOffset"
+						onFinishChange={() => this.props.onChange?.(texture)}
+					/>
+					<EditorInspectorNumberField
+						noUndoRedo={this.props.noUndoRedo}
+						label="V Offset"
+						object={texture}
+						property="vOffset"
+						onFinishChange={() => this.props.onChange?.(texture)}
+					/>
 				</EditorInspectorSectionField>
 
 				<EditorInspectorSectionField title="Coordinates">
@@ -364,7 +424,7 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 						property="coordinatesIndex"
 						step={1}
 						min={0}
-						onChange={(v) => texture.coordinatesIndex = Math.round(v)}
+						onChange={(v) => (texture.coordinatesIndex = Math.round(v))}
 						onFinishChange={() => this.props.onChange?.(texture)}
 					/>
 					<EditorInspectorListField
@@ -411,33 +471,66 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 				</EditorInspectorSectionField>
 
 				<EditorInspectorSectionField title="Wrap">
-					<EditorInspectorListField noUndoRedo={this.props.noUndoRedo} label="Wrap U" object={texture} property="wrapU" onChange={() => this.props.onChange?.(texture)} items={[
-						{ text: "Wrap", value: Texture.WRAP_ADDRESSMODE },
-						{ text: "Clamp", value: Texture.CLAMP_ADDRESSMODE },
-						{ text: "Mirror", value: Texture.MIRROR_ADDRESSMODE },
-					]} />
-					<EditorInspectorListField noUndoRedo={this.props.noUndoRedo} label="Wrap V" object={texture} property="wrapV" onChange={() => this.props.onChange?.(texture)} items={[
-						{ text: "Wrap", value: Texture.WRAP_ADDRESSMODE },
-						{ text: "Clamp", value: Texture.CLAMP_ADDRESSMODE },
-						{ text: "Mirror", value: Texture.MIRROR_ADDRESSMODE },
-					]} />
-					<EditorInspectorListField noUndoRedo={this.props.noUndoRedo} label="Wrap R" object={texture} property="wrapR" onChange={() => this.props.onChange?.(texture)} items={[
-						{ text: "Wrap", value: Texture.WRAP_ADDRESSMODE },
-						{ text: "Clamp", value: Texture.CLAMP_ADDRESSMODE },
-						{ text: "Mirror", value: Texture.MIRROR_ADDRESSMODE },
-					]} />
+					<EditorInspectorListField
+						noUndoRedo={this.props.noUndoRedo}
+						label="Wrap U"
+						object={texture}
+						property="wrapU"
+						onChange={() => this.props.onChange?.(texture)}
+						items={[
+							{ text: "Wrap", value: Texture.WRAP_ADDRESSMODE },
+							{ text: "Clamp", value: Texture.CLAMP_ADDRESSMODE },
+							{ text: "Mirror", value: Texture.MIRROR_ADDRESSMODE },
+						]}
+					/>
+					<EditorInspectorListField
+						noUndoRedo={this.props.noUndoRedo}
+						label="Wrap V"
+						object={texture}
+						property="wrapV"
+						onChange={() => this.props.onChange?.(texture)}
+						items={[
+							{ text: "Wrap", value: Texture.WRAP_ADDRESSMODE },
+							{ text: "Clamp", value: Texture.CLAMP_ADDRESSMODE },
+							{ text: "Mirror", value: Texture.MIRROR_ADDRESSMODE },
+						]}
+					/>
+					<EditorInspectorListField
+						noUndoRedo={this.props.noUndoRedo}
+						label="Wrap R"
+						object={texture}
+						property="wrapR"
+						onChange={() => this.props.onChange?.(texture)}
+						items={[
+							{ text: "Wrap", value: Texture.WRAP_ADDRESSMODE },
+							{ text: "Clamp", value: Texture.CLAMP_ADDRESSMODE },
+							{ text: "Mirror", value: Texture.MIRROR_ADDRESSMODE },
+						]}
+					/>
 				</EditorInspectorSectionField>
 			</div>
 		);
 	}
 
 	private async _computeTemporaryPreview(): Promise<void> {
-		const texture = this.props.object[this.props.property] as Texture;
-		if (!isTexture(texture) || !texture.url || extname(texture.url).toLowerCase() === ".exr") {
+		const texture = this.props.object[this.props.property] as Texture | CubeTexture;
+		if (!texture.url || extname(texture.url).toLowerCase() === ".exr") {
 			return;
 		}
 
 		const path = join(dirname(projectConfiguration.path!), texture.url);
+
+		if (!(await pathExists(path))) {
+			return this.setState({
+				previewError: true,
+			});
+		}
+
+		if (!isTexture(texture)) {
+			return this.setState({
+				previewError: false,
+			});
+		}
 
 		const buffer = await sharp(path).resize(128, 128).toBuffer();
 
@@ -446,6 +539,7 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 		}
 
 		this.setState({
+			previewError: false,
 			previewTemporaryUrl: URL.createObjectURL(new Blob([buffer])),
 		});
 	}
@@ -476,7 +570,7 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 			case ".exr":
 				const oldTexture = this.props.object[this.props.property];
 				const newTexture = configureImportedTexture(
-					new Texture(absolutePath, this.props.scene ?? (isScene(this.props.object) ? this.props.object : this.props.object.getScene())),
+					new Texture(absolutePath, this.props.scene ?? (isScene(this.props.object) ? this.props.object : this.props.object.getScene()))
 				);
 
 				if (oldTexture !== newTexture) {
@@ -486,8 +580,8 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 					if (!this.props.noUndoRedo) {
 						registerUndoRedo({
 							executeRedo: true,
-							undo: () => this.props.object[this.props.property] = oldTexture,
-							redo: () => this.props.object[this.props.property] = newTexture,
+							undo: () => (this.props.object[this.props.property] = oldTexture),
+							redo: () => (this.props.object[this.props.property] = newTexture),
 							onLost: () => newTexture?.dispose(),
 						});
 					}
@@ -502,7 +596,7 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 				if (this.props.accept3dlTexture) {
 					const oldTexture = this.props.object[this.props.property];
 					const newTexture = configureImportedTexture(
-						new ColorGradingTexture(absolutePath, this.props.scene ?? (isScene(this.props.object) ? this.props.object : this.props.object.getScene())),
+						new ColorGradingTexture(absolutePath, this.props.scene ?? (isScene(this.props.object) ? this.props.object : this.props.object.getScene()))
 					);
 
 					if (oldTexture !== newTexture) {
@@ -512,8 +606,8 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 						if (!this.props.noUndoRedo) {
 							registerUndoRedo({
 								executeRedo: true,
-								undo: () => this.props.object[this.props.property] = oldTexture,
-								redo: () => this.props.object[this.props.property] = newTexture,
+								undo: () => (this.props.object[this.props.property] = oldTexture),
+								redo: () => (this.props.object[this.props.property] = newTexture),
 								onLost: () => newTexture?.dispose(),
 							});
 						}
@@ -527,7 +621,7 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 				if (this.props.acceptCubeTexture) {
 					const oldTexture = this.props.object[this.props.property];
 					const newTexture = configureImportedTexture(
-						CubeTexture.CreateFromPrefilteredData(absolutePath, this.props.scene ?? (isScene(this.props.object) ? this.props.object : this.props.object.getScene())),
+						CubeTexture.CreateFromPrefilteredData(absolutePath, this.props.scene ?? (isScene(this.props.object) ? this.props.object : this.props.object.getScene()))
 					);
 
 					const scene = newTexture.getScene();

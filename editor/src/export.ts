@@ -29,14 +29,15 @@ export * from "./tools/node-pty";
 export * from "./tools/undoredo";
 export * from "./tools/observables";
 
-export * from "./tools/ktx/check";
+export * from "./tools/assets/ktx";
 
 export * from "./tools/maths/scalar";
 export * from "./tools/maths/projection";
 
 export * from "./tools/light/shadows";
-export * from "./tools/mesh/metadata";
-export * from "./tools/mesh/material";
+export * from "./tools/node/metadata";
+export * from "./tools/material/material";
+export * from "./tools/material/extract";
 export * from "./tools/mesh/collision";
 export * from "./tools/scene/materials";
 export * from "./tools/sound/tools";

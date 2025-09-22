@@ -15,7 +15,7 @@ import { LoadScenePrepareComponent } from "./prepare";
 
 export async function loadProject(editor: Editor, path: string): Promise<void> {
 	const directory = dirname(path);
-	const project = await readJSON(path, "utf-8") as IEditorProject;
+	const project = (await readJSON(path, "utf-8")) as IEditorProject;
 	const packageManager = project.packageManager ?? "yarn";
 
 	editor.setState({
@@ -40,31 +40,41 @@ export async function loadProject(editor: Editor, path: string): Promise<void> {
 
 	let command = "";
 	switch (packageManager) {
-		case "npm": command = "npm i"; break;
-		case "pnpm": command = "pnpm i"; break;
-		case "bun": command = "bun i"; break;
-		default: command = "yarn"; break;
+		case "npm":
+			command = "npm i";
+			break;
+		case "pnpm":
+			command = "pnpm i";
+			break;
+		case "bun":
+			command = "bun i";
+			break;
+		default:
+			command = "yarn";
+			break;
 	}
 
 	const p = await execNodePty(command, { cwd: directory });
-	p.wait()
-		.then(async (code) => {
-			toast.dismiss(toastId);
+	p.wait().then(async (code) => {
+		toast.dismiss(toastId);
 
-			if (code !== 0) {
-				toast.warning(`Package manager "${packageManager}" is not available on your system. Dependencies will not be updated.`);
-			} else {
-				toast.success("Dependencies successfully updated");
-			}
+		if (code !== 0) {
+			toast.warning(`Package manager "${packageManager}" is not available on your system. Dependencies will not be updated.`);
+		} else {
+			editor.layout.preview.setState({
+				playEnabled: true,
+			});
+			toast.success("Dependencies successfully updated");
+		}
 
-			loadProjectPlugins(editor, path, project);
-		});
+		loadProjectPlugins(editor, path, project);
+	});
 
 	// Load scene?
 	if (project.lastOpenedScene) {
 		const absolutePath = join(directory, project.lastOpenedScene);
 
-		if (!await pathExists(absolutePath)) {
+		if (!(await pathExists(absolutePath))) {
 			toast(`Scene "${project.lastOpenedScene}" does not exist.`);
 
 			return editor.layout.console.error(`Scene "${project.lastOpenedScene}" does not exist.`);

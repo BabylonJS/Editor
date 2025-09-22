@@ -71,15 +71,11 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
 
 					<Fade delay={0}>
 						<div className="flex justify-between items-end w-full mt-1">
-							<div className="text-5xl font-semibold">
-								Dashboard
-							</div>
+							<div className="text-5xl font-semibold">Dashboard</div>
 
 							<div className="flex flex-col items-end gap-2">
 								<img alt="" src="assets/babylonjs_icon.png" className="w-[48px] object-contain" />
-								<div className="text-xs">
-									Babylon.js Editor v{packageJson.version}
-								</div>
+								<div className="text-xs">Babylon.js Editor v{packageJson.version}</div>
 							</div>
 						</div>
 					</Fade>
@@ -90,9 +86,7 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
 
 					<Fade delay={500}>
 						<div className="flex justify-between items-center">
-							<div className="text-3xl font-semibold">
-								Projects
-							</div>
+							<div className="text-3xl font-semibold">Projects</div>
 
 							<div className="flex gap-2">
 								<Button variant="secondary" className="font-semibold" onClick={() => this._handleImportProject()}>
@@ -106,13 +100,9 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
 					</Fade>
 
 					<Fade delay={750}>
-						{!this.state.projects.length && (
-							<div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-								No project found.
-							</div>
-						)}
+						{!this.state.projects.length && <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">No project found.</div>}
 
-						{this.state.projects.length &&
+						{this.state.projects.length && (
 							<div className="grid sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-4">
 								{this.state.projects.map((project) => (
 									<DashboardProjectItem
@@ -123,7 +113,7 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
 									/>
 								))}
 							</div>
-						}
+						)}
 					</Fade>
 				</div>
 
@@ -156,22 +146,24 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
 		// Update list of projects to remove those that were deleted from the hard drive
 		const projects = this.state.projects.slice();
 
-		await Promise.all(projects.map(async (project) => {
-			const exists = await pathExists(project.absolutePath);
-			if (exists) {
-				return;
-			}
+		await Promise.all(
+			projects.map(async (project) => {
+				const exists = await pathExists(project.absolutePath);
+				if (exists) {
+					return;
+				}
 
-			const index = projects.indexOf(project);
-			if (index !== -1) {
-				projects.splice(index, 1);
-				localStorage.setItem(projectsKey, JSON.stringify(projects));
+				const index = projects.indexOf(project);
+				if (index !== -1) {
+					projects.splice(index, 1);
+					localStorage.setItem(projectsKey, JSON.stringify(projects));
 
-				this.setState({
-					projects,
-				});
-			}
-		}));
+					this.setState({
+						projects,
+					});
+				}
+			})
+		);
 	}
 
 	private async _checkSystemAvailabilities(): Promise<void> {
@@ -181,11 +173,13 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
 			await showAlert(
 				"Node.js not found",
 				<div className="flex flex-col">
+					<div>Node.js was not found on your system.</div>
 					<div>
-						Node.js was not found on your system.
-					</div>
-					<div>
-						Node.js is required to build and run projects. You can install Node.js following <a className="underline transition-all duration-300 ease-in-out" onClick={() => shell.openExternal("https://nodejs.org/en/download")}>this link</a>.
+						Node.js is required to build and run projects. You can install Node.js following{" "}
+						<a className="underline transition-all duration-300 ease-in-out" onClick={() => shell.openExternal("https://nodejs.org/en/download")}>
+							this link
+						</a>
+						.
 					</div>
 				</div>
 			).wait();
@@ -195,9 +189,7 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
 	private _handleImportProject(): unknown {
 		const file = openSingleFileDialog({
 			title: "Open Project",
-			filters: [
-				{ name: "Babylon.js Editor Project File", extensions: ["bjseditor"] }
-			],
+			filters: [{ name: "Babylon.js Editor Project File", extensions: ["bjseditor"] }],
 		});
 
 		if (!file) {

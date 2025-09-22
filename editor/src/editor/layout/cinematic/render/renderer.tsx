@@ -17,12 +17,12 @@ import { convertCinematicVideoToMp4 } from "./convert";
 import { renderCinematic, RenderCinematicBaseOptionsType, RenderCinematicOptionsType } from "./render";
 
 export interface ICinematicEditorRendererProps {
-    cinematicEditor: CinematicEditor;
+	cinematicEditor: CinematicEditor;
 }
 
 export interface ICinematicEditorRendererState {
-    progress: number;
-    rendering: boolean;
+	progress: number;
+	rendering: boolean;
 }
 
 export class CinematicEditorRenderer extends Component<ICinematicEditorRendererProps, ICinematicEditorRendererState> {
@@ -43,26 +43,19 @@ export class CinematicEditorRenderer extends Component<ICinematicEditorRendererP
 				className={`
                     flex flex-col justify-center items-center gap-5
                     fixed top-0 left-0 w-full h-full z-50
-                    ${this.state.rendering
-				? "opacity-100 bg-black/50 backdrop-blur-sm"
-				: "opacity-0 bg-transparent backdrop-blur-none pointer-events-none"
-			}
+                    ${this.state.rendering ? "opacity-100 bg-black/50 backdrop-blur-sm" : "opacity-0 bg-transparent backdrop-blur-none pointer-events-none"}
                     transition-all duration-300 ease-in-out
                 `}
 			>
 				<Grid width={64} height={64} color="gray" />
 
-				<div>
-					{this.state.rendering && "Rendering cinematic..."}
-				</div>
+				<div>{this.state.rendering && "Rendering cinematic..."}</div>
 
 				<div className="w-64">
 					<Progress value={this.state.progress} />
 				</div>
 
-				<Button onClick={() => this._renderConfiguration!.cancelled = true}>
-                    Cancel
-				</Button>
+				<Button onClick={() => (this._renderConfiguration!.cancelled = true)}>Cancel</Button>
 			</div>
 		);
 	}
@@ -70,9 +63,7 @@ export class CinematicEditorRenderer extends Component<ICinematicEditorRendererP
 	public async renderCinematic(options: RenderCinematicBaseOptionsType): Promise<void> {
 		const destination = saveSingleFileDialog({
 			title: "Save cinematic video as...",
-			filters: [
-				{ name: "Mpeg-4 Video", extensions: ["mp4"] },
-			],
+			filters: [{ name: "Mpeg-4 Video", extensions: ["mp4"] }],
 		});
 
 		if (!destination) {
@@ -81,13 +72,9 @@ export class CinematicEditorRenderer extends Component<ICinematicEditorRendererP
 
 		const currentTimeBeforeRender = this.props.cinematicEditor.timelines.state.currentTime;
 
-		const animationGroup = generateCinematicAnimationGroup(
-			this.props.cinematicEditor.cinematic,
-            this.props.cinematicEditor.editor.layout.preview.scene as any,
-            {
-            	ignoreSounds: true, // Ignore sounds during rendering
-            }
-		) as any;
+		const animationGroup = generateCinematicAnimationGroup(this.props.cinematicEditor.cinematic, this.props.cinematicEditor.editor.layout.preview.scene as any, {
+			ignoreSounds: true, // Ignore sounds during rendering
+		}) as any;
 
 		if (options.from >= options.to || options.to <= options.from) {
 			options.from = animationGroup.from;
@@ -122,11 +109,13 @@ export class CinematicEditorRenderer extends Component<ICinematicEditorRendererP
 				folderAbsolutePath: result.destinationFolder,
 				editor: this.props.cinematicEditor.editor,
 				framesPerSecond: this.props.cinematicEditor.cinematic.outputFramesPerSecond,
-			}).catch(() => {
-				this.props.cinematicEditor.editor.layout.console.error(`Failed to convert cinematic video at: ${destination.replace(".webm", ".mp4")}`);
-			}).finally(() => {
-				remove(result.destinationFolder);
-			});
+			})
+				.catch(() => {
+					this.props.cinematicEditor.editor.layout.console.error(`Failed to convert cinematic video at: ${destination.replace(".webm", ".mp4")}`);
+				})
+				.finally(() => {
+					remove(result.destinationFolder);
+				});
 		} else {
 			remove(result.destinationFolder);
 		}

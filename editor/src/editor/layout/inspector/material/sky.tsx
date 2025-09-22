@@ -8,11 +8,11 @@ import { EditorInspectorSwitchField } from "../fields/switch";
 import { EditorInspectorNumberField } from "../fields/number";
 import { EditorInspectorSectionField } from "../fields/section";
 
-import { EditorMaterialInspectorUtilsComponent } from "./utils";
+import { EditorMaterialInspectorUtilsComponent } from "./components/utils";
 
 export interface IEditorSkyMaterialInspectorProps {
-    mesh?: AbstractMesh;
-    material: SkyMaterial;
+	mesh?: AbstractMesh;
+	material: SkyMaterial;
 }
 
 export class EditorSkyMaterialInspector extends Component<IEditorSkyMaterialInspectorProps> {
@@ -27,10 +27,7 @@ export class EditorSkyMaterialInspector extends Component<IEditorSkyMaterialInsp
 					<EditorInspectorStringField label="Name" object={this.props.material} property="name" />
 					<EditorInspectorSwitchField label="Back Face Culling" object={this.props.material} property="backFaceCulling" />
 
-					<EditorMaterialInspectorUtilsComponent
-						mesh={this.props.mesh}
-						material={this.props.material}
-					/>
+					<EditorMaterialInspectorUtilsComponent mesh={this.props.mesh} material={this.props.material} />
 				</EditorInspectorSectionField>
 
 				<EditorInspectorSectionField title="Sky">
@@ -39,7 +36,7 @@ export class EditorSkyMaterialInspector extends Component<IEditorSkyMaterialInsp
 					<EditorInspectorNumberField object={this.props.material} property="luminance" label="Luminance" min={0.01} />
 					<EditorInspectorNumberField object={this.props.material} property="turbidity" label="Turbidity" min={0} />
 					<EditorInspectorNumberField object={this.props.material} property="rayleigh" label="Rayleigh" min={-0.22} />
-					<EditorInspectorNumberField object={this.props.material} property="mieCoefficient" label="Mie Coefficient" min={-0.10} max={1} />
+					<EditorInspectorNumberField object={this.props.material} property="mieCoefficient" label="Mie Coefficient" min={-0.1} max={1} />
 					<EditorInspectorNumberField object={this.props.material} property="mieDirectionalG" label="Mie Directional G" min={0} max={1} />
 					<EditorInspectorSwitchField object={this.props.material} property="dithering" label="Dithering" />
 				</EditorInspectorSectionField>

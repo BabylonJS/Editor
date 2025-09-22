@@ -60,31 +60,19 @@ export class EditorAnimation extends Component<IEditorAnimationProps, IEditorAni
 
 	public render(): ReactNode {
 		if (!this.props.editor.state.enableExperimentalFeatures) {
-			return (
-				<div className="flex justify-center items-center w-full h-full font-semibold text-3xl">
-					Coming Soon
-				</div>
-			);
+			return <div className="flex justify-center items-center w-full h-full font-semibold text-3xl">Coming Soon</div>;
 		}
 
 		return (
 			<div className="flex flex-col min-w-full h-full">
-				<EditorAnimationToolbar
-					animationEditor={this}
-					playing={this.state.playing}
-					animatable={this.state.animatable}
-				/>
+				<EditorAnimationToolbar animationEditor={this} playing={this.state.playing} animatable={this.state.animatable} />
 
 				<div className="flex w-full h-10">
-					<div className="flex justify-center items-center font-semibold w-96 h-full bg-secondary">
-						Tracks
-					</div>
+					<div className="flex justify-center items-center font-semibold w-96 h-full bg-secondary">Tracks</div>
 
 					<div className="w-1 h-full bg-primary-foreground" />
 
-					<div className="flex justify-center items-center font-semibold w-full h-full bg-secondary">
-						Timeline
-					</div>
+					<div className="flex justify-center items-center font-semibold w-full h-full bg-secondary">Timeline</div>
 				</div>
 
 				<div
@@ -92,44 +80,35 @@ export class EditorAnimation extends Component<IEditorAnimationProps, IEditorAni
 					onMouseLeave={() => this.setState({ focused: false })}
 					className="relative flex w-full h-full overflow-x-hidden overflow-y-auto"
 				>
-					<EditorAnimationTracksPanel
-						animationEditor={this}
-						ref={(r) => this.tracks = r!}
-						animatable={this.state.animatable}
-					/>
+					<EditorAnimationTracksPanel animationEditor={this} ref={(r) => (this.tracks = r!)} animatable={this.state.animatable} />
 
 					<div className="w-1 h-full bg-primary-foreground" />
 
-					<EditorAnimationTimelinePanel
-						animationEditor={this}
-						editor={this.props.editor}
-						ref={(r) => this.timelines = r!}
-						animatable={this.state.animatable}
-					/>
+					<EditorAnimationTimelinePanel animationEditor={this} editor={this.props.editor} ref={(r) => (this.timelines = r!)} animatable={this.state.animatable} />
 
-					<EditorAnimationInspector
-						animationEditor={this}
-						ref={(r) => this.inspector = r!}
-					/>
+					<EditorAnimationInspector animationEditor={this} ref={(r) => (this.inspector = r!)} />
 				</div>
 			</div>
 		);
 	}
 
 	public componentDidMount(): void {
-		window.addEventListener("keyup", this._onKeyUpListener = (ev) => {
-			if (ev.key !== " " || !this.state.focused) {
-				return;
-			}
-
-			if (!isDomElementFocusable(document.activeElement)) {
-				if (this.state.playing) {
-					this.stop();
-				} else {
-					this.play();
+		window.addEventListener(
+			"keyup",
+			(this._onKeyUpListener = (ev) => {
+				if (ev.key !== " " || !this.state.focused) {
+					return;
 				}
-			}
-		});
+
+				if (!isDomElementFocusable(document.activeElement)) {
+					if (this.state.playing) {
+						this.stop();
+					} else {
+						this.play();
+					}
+				}
+			})
+		);
 	}
 
 	public componentWillUnmount(): void {
@@ -141,6 +120,10 @@ export class EditorAnimation extends Component<IEditorAnimationProps, IEditorAni
 	 * @param object defines the reference to the object that has been selected somewhere in the graph or the preview.
 	 */
 	public setEditedObject(object: unknown): void {
+		if (!object) {
+			return this.setState({ animatable: null });
+		}
+
 		if (isNode(object) || isScene(object) || isAnyParticleSystem(object)) {
 			if (!object.animations) {
 				object.animations = [];

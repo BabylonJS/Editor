@@ -32,12 +32,15 @@ export class EditorFreeCameraInspector extends Component<IEditorInspectorImpleme
 	public render(): ReactNode {
 		return (
 			<>
-				<div className="text-center text-3xl">
-					Free Camera
-				</div>
+				<div className="text-center text-3xl">Free Camera</div>
 
 				<EditorInspectorSectionField title="Common">
-					<EditorInspectorStringField label="Name" object={this.props.object} property="name" onChange={() => onNodeModifiedObservable.notifyObservers(this.props.object)} />
+					<EditorInspectorStringField
+						label="Name"
+						object={this.props.object}
+						property="name"
+						onChange={() => onNodeModifiedObservable.notifyObservers(this.props.object)}
+					/>
 					<EditorInspectorNumberField object={this.props.object} property="speed" label="Speed" />
 				</EditorInspectorSectionField>
 
@@ -61,16 +64,16 @@ export class EditorFreeCameraInspector extends Component<IEditorInspectorImpleme
 				<ScriptInspectorComponent editor={this.props.editor} object={this.props.object} />
 
 				<EditorInspectorSectionField title="Keys">
-					<EditorInspectorKeyField value={this.props.object.keysUp[0]?.toString() ?? ""} onChange={(v) => this.props.object.keysUp = [v]} label="Forward" />
-					<EditorInspectorKeyField value={this.props.object.keysDown[0]?.toString() ?? ""} onChange={(v) => this.props.object.keysDown = [v]} label="Backward" />
+					<EditorInspectorKeyField value={this.props.object.keysUp[0]?.toString() ?? ""} onChange={(v) => (this.props.object.keysUp = [v])} label="Forward" />
+					<EditorInspectorKeyField value={this.props.object.keysDown[0]?.toString() ?? ""} onChange={(v) => (this.props.object.keysDown = [v])} label="Backward" />
 
-					<EditorInspectorKeyField value={this.props.object.keysLeft[0]?.toString() ?? ""} onChange={(v) => this.props.object.keysLeft = [v]} label="Left" />
-					<EditorInspectorKeyField value={this.props.object.keysRight[0]?.toString() ?? ""} onChange={(v) => this.props.object.keysRight = [v]} label="Right" />
+					<EditorInspectorKeyField value={this.props.object.keysLeft[0]?.toString() ?? ""} onChange={(v) => (this.props.object.keysLeft = [v])} label="Left" />
+					<EditorInspectorKeyField value={this.props.object.keysRight[0]?.toString() ?? ""} onChange={(v) => (this.props.object.keysRight = [v])} label="Right" />
 
 					<Divider />
 
-					<EditorInspectorKeyField value={this.props.object.keysUpward[0]?.toString() ?? ""} onChange={(v) => this.props.object.keysUpward = [v]} label="Up" />
-					<EditorInspectorKeyField value={this.props.object.keysDownward[0]?.toString() ?? ""} onChange={(v) => this.props.object.keysDownward = [v]} label="Down" />
+					<EditorInspectorKeyField value={this.props.object.keysUpward[0]?.toString() ?? ""} onChange={(v) => (this.props.object.keysUpward = [v])} label="Up" />
+					<EditorInspectorKeyField value={this.props.object.keysDownward[0]?.toString() ?? ""} onChange={(v) => (this.props.object.keysDownward = [v])} label="Down" />
 				</EditorInspectorSectionField>
 			</>
 		);

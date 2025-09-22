@@ -1,4 +1,4 @@
-import { writeJSON } from "fs-extra";
+import { pathExists, writeJSON } from "fs-extra";
 
 import { ReactNode } from "react";
 
@@ -12,14 +12,27 @@ import { ContextMenuItem } from "../../../../ui/shadcn/ui/context-menu";
 
 import { loadImportedSceneFile } from "../../preview/import/import";
 
+import { computeOrGetThumbnail } from "../../../../tools/assets/thumbnail";
+
 import { AssetsBrowserItem } from "./item";
 
 const convertingFiles: string[] = [];
 
 export class AssetBrowserMeshItem extends AssetsBrowserItem {
+	private _thumbnailError: boolean = false;
+	private _thumbnailBase64: string | null = null;
+
 	/**
-     * @override
-     */
+	 * @override
+	 */
+	public async componentDidMount(): Promise<void> {
+		await super.componentDidMount();
+		await this._computeThumbnail();
+	}
+
+	/**
+	 * @override
+	 */
 	protected getContextMenuContent(): ReactNode {
 		return (
 			<>
@@ -31,40 +44,67 @@ export class AssetBrowserMeshItem extends AssetsBrowserItem {
 	}
 
 	/**
-     * @override
-     */
+	 * @override
+	 */
 	protected getIcon(): ReactNode {
 		const index = convertingFiles.indexOf(this.props.absolutePath);
 		if (index !== -1) {
 			return <SpinnerUIComponent width="64px" />;
 		}
 
-		return <BiSolidCube size="64px" />;
+		if (this._thumbnailBase64) {
+			return <img alt="" src={this._thumbnailBase64} className="w-[120px] aspect-square object-contain ring-blue-500 ring-2 rounded-lg" />;
+		}
+
+		if (this._thumbnailError) {
+			return <BiSolidCube size="64px" />;
+		}
+
+		return <SpinnerUIComponent width="64px" />;
+	}
+
+	private async _computeThumbnail(): Promise<void> {
+		if (!(await pathExists(this.props.absolutePath))) {
+			return;
+		}
+
+		this._thumbnailBase64 = await computeOrGetThumbnail(this.props.editor, {
+			type: "mesh",
+			absolutePath: this.props.absolutePath,
+		});
+
+		if (!this._thumbnailBase64) {
+			this._thumbnailError = true;
+		}
+
+		this.forceUpdate();
 	}
 
 	private async _handleConvertSceneFileToBabylon(): Promise<void> {
 		const selectedFiles = this.props.editor.layout.assets.state.selectedKeys;
 
-		await Promise.all(selectedFiles.map(async (file) => {
-			if (convertingFiles.includes(file)) {
-				return;
-			}
+		await Promise.all(
+			selectedFiles.map(async (file) => {
+				if (convertingFiles.includes(file)) {
+					return;
+				}
 
-			convertingFiles.push(file);
-			this.props.onRefresh();
+				convertingFiles.push(file);
+				this.props.onRefresh();
 
-			const scene = new Scene(this.props.editor.layout.preview.engine);
-			await loadImportedSceneFile(scene, file);
+				const scene = new Scene(this.props.editor.layout.preview.engine);
+				await loadImportedSceneFile(scene, file);
 
-			const data = await SceneSerializer.SerializeAsync(scene);
-			await writeJSON(`${file}.babylon`, data, "utf-8");
+				const data = await SceneSerializer.SerializeAsync(scene);
+				await writeJSON(`${file}.babylon`, data, "utf-8");
 
-			const index = convertingFiles.indexOf(file);
-			if (index !== -1) {
-				convertingFiles.splice(index, 1);
-			}
+				const index = convertingFiles.indexOf(file);
+				if (index !== -1) {
+					convertingFiles.splice(index, 1);
+				}
 
-			this.props.onRefresh();
-		}));
+				this.props.onRefresh();
+			})
+		);
 	}
 }

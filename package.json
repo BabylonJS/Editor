@@ -1,65 +1,73 @@
 {
-    "name": "babylonjs-editor-main",
-    "version": "5.0.0",
-    "private": true,
-    "description": "Babylon.js Editor is a Web Application helping artists to work with Babylon.js",
-    "productName": "Babylon.js Editor",
-    "repository": {
-        "url": "https://github.com/BabylonJS/Editor/"
-    },
-    "author": {
-        "name": "Julien Moreau-Mathis",
-        "url": "https://twitter.com/luaacro"
-    },
-    "workspaces": [
-        "editor",
-        "tools",
-        "template",
-        "quixel",
-        "website"
-    ],
-    "scripts": {
-        "postinstall": "electron-rebuild -f -w node-pty -m ./node_modules/node-pty && electron-builder install-app-deps && rm -rf template/node_modules/babylonjs-editor-tools && node ./postinstall.mjs",
-        "watch-editor": "yarn workspace babylonjs-editor watch",
-        "watch-editor-css": "yarn workspace babylonjs-editor watch-css",
-        "watch-editor-all": "yarn workspace babylonjs-editor watch-all",
-        "watch-tools": "yarn workspace babylonjs-editor-tools watch",
-        "watch-quixel": "yarn workspace babylonjs-editor-quixel-plugin watch",
-        "build-editor": "yarn workspace babylonjs-editor build",
-        "build-tools": "yarn workspace babylonjs-editor-tools build",
-        "build-quixel": "yarn workspace babylonjs-editor-quixel-plugin build",
-        "build-template": "yarn workspace babylonjs-editor-template build",
-        "build-website": "yarn workspace babylonjs-editor-website build",
-        "build": "yarn build-tools && yarn build-editor && yarn build-quixel",
-        "build-all": "yarn build && yarn build-template && yarn build-website",
-        "start": "yarn workspace babylonjs-editor start",
-        "package": "yarn clean && yarn clean:node_modules && yarn && yarn lint && yarn build-all && yarn test && node build.mjs",
-        "clean": "rm -rf editor/build editor/declaration editor/electron-packages editor/coverage quixel/build quixel/declaration tools/build tools/declaration tools/coverage template/.next website/.next",
-        "clean:node_modules": "rm -rf ./node_modules ./editor/node_modules ./quixel/node_modules ./tools/node_modules ./template/node_modules ./website/node_modules",
-        "test": "yarn workspace babylonjs-editor-tools test && yarn workspace babylonjs-editor test",
-        "coverage": "yarn workspace babylonjs-editor-tools coverage && yarn workspace babylonjs-editor coverage",
-        "lint-editor": "cross-env NODE_OPTIONS='--max-old-space-size=8192' eslint --cache --no-warn-ignored ./editor/src/**",
-        "lint-tools": "cross-env NODE_OPTIONS='--max-old-space-size=8192' eslint --cache --no-warn-ignored ./tools/src/**",
-        "lint-quixel": "cross-env NODE_OPTIONS='--max-old-space-size=8192' eslint --cache --no-warn-ignored ./quixel/src/**",
-        "lint-template": "cross-env NODE_OPTIONS='--max-old-space-size=8192' eslint --cache --no-warn-ignored ./template/src/**",
-        "lint-website": "cross-env NODE_OPTIONS='--max-old-space-size=8192' eslint --cache --no-warn-ignored ./website/src/**",
-        "lint": "concurrently \"yarn lint-editor\" \"yarn lint-tools\" \"yarn lint-quixel\" \"yarn lint-template\" \"yarn lint-website\" --names editor,tools,quixel,template,website",
-        "lint-fix": "concurrently \"yarn lint-editor --fix\" \"yarn lint-tools --fix\" \"yarn lint-quixel --fix\" \"yarn lint-template --fix\" \"yarn lint-website --fix\" --names editor,tools,quixel,template,website"
-    },
-    "readme": "https://github.com/BabylonJS/Editor/blob/master/README.md",
-    "license": "(Apache-2.0)",
-    "devDependencies": {
-        "@typescript-eslint/eslint-plugin": "8.35.1",
-        "@typescript-eslint/parser": "8.35.1",
-        "concurrently": "9.2.0",
-        "cross-env": "7.0.3",
-        "dotenv": "16.4.5",
-        "eslint": "9.29.0",
-        "minimist": "1.2.8"
-    },
-    "dependencies": {},
-    "resolutions": {
-        "node-abi": "4.2.0",
-        "wrap-ansi": "7.0.0"
-    }
+	"name": "babylonjs-editor-main",
+	"version": "5.0.0",
+	"private": true,
+	"description": "Babylon.js Editor is a Web Application helping artists to work with Babylon.js",
+	"productName": "Babylon.js Editor",
+	"repository": {
+		"url": "https://github.com/BabylonJS/Editor/"
+	},
+	"author": {
+		"name": "Julien Moreau-Mathis",
+		"url": "https://twitter.com/luaacro"
+	},
+	"workspaces": [
+		"editor",
+		"tools",
+		"templates",
+		"templates/nextjs",
+		"templates/solidjs",
+		"templates/vanillajs",
+		"quixel",
+		"website"
+	],
+	"scripts": {
+		"postinstall": "electron-rebuild -f -w node-pty -m ./node_modules/node-pty && electron-builder install-app-deps && rimraf --glob templates/**/node_modules/babylonjs-editor-tools && node ./postinstall.mjs",
+		"watch-editor": "yarn workspace babylonjs-editor watch",
+		"watch-editor-css": "yarn workspace babylonjs-editor watch-css",
+		"watch-editor-all": "yarn workspace babylonjs-editor watch-all",
+		"watch-tools": "yarn workspace babylonjs-editor-tools watch",
+		"watch-quixel": "yarn workspace babylonjs-editor-quixel-plugin watch",
+		"build-editor": "yarn workspace babylonjs-editor build",
+		"build-tools": "yarn workspace babylonjs-editor-tools build",
+		"build-quixel": "yarn workspace babylonjs-editor-quixel-plugin build",
+		"build-templates": "yarn workspace babylonjs-editor-templates build",
+		"build-website": "yarn workspace babylonjs-editor-website build",
+		"build": "yarn build-tools && yarn build-editor && yarn build-quixel",
+		"build-all": "yarn build && yarn build-templates && yarn build-website",
+		"start": "yarn workspace babylonjs-editor start",
+		"package": "yarn clean && yarn clean:node_modules && yarn && yarn lint && yarn build-all && yarn test && node build.mjs",
+		"clean": "rimraf editor/build editor/declaration editor/electron-packages editor/coverage quixel/build quixel/declaration tools/build tools/declaration tools/coverage templates/nextjs/.next templates/solidjs/dist templates/vanillajs/dist website/.next",
+		"clean:node_modules": "rimraf --glob **/node_modules",
+		"test": "yarn workspace babylonjs-editor-tools test && yarn workspace babylonjs-editor test",
+		"coverage": "yarn workspace babylonjs-editor-tools coverage && yarn workspace babylonjs-editor coverage",
+		"format": "prettier --write \"editor/src/**/*.{ts,tsx,js,json}\" \"tools/src/**/*.{ts,tsx,js,json}\" \"quixel/src/**/*.{ts,tsx,js,json}\" \"website/src/**/*.{ts,tsx,js,json}\"",
+		"format-check": "prettier --check \"editor/src/**/*.{ts,tsx,js,json}\" \"tools/src/**/*.{ts,tsx,js,json}\" \"quixel/src/**/*.{ts,tsx,js,json}\" \"website/src/**/*.{ts,tsx,js,json}\"",
+		"lint-editor": "cross-env NODE_OPTIONS='--max-old-space-size=8192' eslint --cache --no-warn-ignored ./editor/src/**",
+		"lint-tools": "cross-env NODE_OPTIONS='--max-old-space-size=8192' eslint --cache --no-warn-ignored ./tools/src/**",
+		"lint-quixel": "cross-env NODE_OPTIONS='--max-old-space-size=8192' eslint --cache --no-warn-ignored ./quixel/src/**",
+		"lint-templates": "cross-env NODE_OPTIONS='--max-old-space-size=8192' eslint --cache --no-warn-ignored ./templates/**/src/**",
+		"lint-website": "cross-env NODE_OPTIONS='--max-old-space-size=8192' eslint --cache --no-warn-ignored ./website/src/**",
+		"lint": "yarn format-check && concurrently \"yarn lint-editor\" \"yarn lint-tools\" \"yarn lint-quixel\" \"yarn lint-templates\" \"yarn lint-website\" --names editor,tools,quixel,templates,website",
+		"lint-fix": "yarn format && concurrently \"yarn lint-editor --fix\" \"yarn lint-tools --fix\" \"yarn lint-quixel --fix\" \"yarn lint-templates --fix\" \"yarn lint-website --fix\" --names editor,tools,quixel,templates,website"
+	},
+	"readme": "https://github.com/BabylonJS/Editor/blob/master/README.md",
+	"license": "(Apache-2.0)",
+	"devDependencies": {
+		"@typescript-eslint/eslint-plugin": "8.35.1",
+		"@typescript-eslint/parser": "8.35.1",
+		"concurrently": "9.2.0",
+		"cross-env": "7.0.3",
+		"dotenv": "16.4.5",
+		"eslint": "9.29.0",
+		"minimist": "1.2.8",
+		"rimraf": "6.0.1",
+		"prettier": "3.6.2"
+	},
+	"dependencies": {},
+	"resolutions": {
+		"braces": "3.0.3",
+		"node-abi": "4.2.0",
+		"wrap-ansi": "7.0.0"
+	}
 }

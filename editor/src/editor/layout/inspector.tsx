@@ -1,13 +1,19 @@
 import { Component, ReactNode } from "react";
 import { Icon, NonIdealState } from "@blueprintjs/core";
 
+import { FaInfoCircle } from "react-icons/fa";
 import { FaCube, FaSprayCanSparkles } from "react-icons/fa6";
 
 import { Tools } from "babylonjs";
 
 import { Editor } from "../main";
 
+import { Badge } from "../../ui/shadcn/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../ui/shadcn/ui/tabs";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "../../ui/shadcn/ui/hover-card";
+
+import { isNode } from "../../tools/guards/nodes";
+import { isNodeLocked } from "../../tools/node/metadata";
 
 import { setInspectorSearch } from "./inspector/fields/field";
 import { IEditorInspectorImplementationProps } from "./inspector/inspector";
@@ -50,7 +56,9 @@ export interface IEditorInspectorState {
 }
 
 export class EditorInspector extends Component<IEditorInspectorProps, IEditorInspectorState> {
-	private static _inspectors: ((new (props: IEditorInspectorImplementationProps<any>) => Component<IEditorInspectorImplementationProps<any>>) & { IsSupported(object: any): boolean; })[] = [
+	private static _inspectors: ((new (props: IEditorInspectorImplementationProps<any>) => Component<IEditorInspectorImplementationProps<any>>) & {
+		IsSupported(object: any): boolean;
+	})[] = [
 		EditorTransformNodeInspector,
 		EditorMeshInspector,
 
@@ -84,6 +92,8 @@ export class EditorInspector extends Component<IEditorInspectorProps, IEditorIns
 	}
 
 	public render(): ReactNode {
+		const disabled = (this.state.editedObject && isNode(this.state.editedObject) && isNodeLocked(this.state.editedObject)) ?? false;
+
 		return (
 			<div className="flex flex-col gap-2 w-full h-full p-2 text-foreground overflow-hidden">
 				<Tabs defaultValue="entity" className="flex flex-col gap-2 w-full h-full">
@@ -97,6 +107,18 @@ export class EditorInspector extends Component<IEditorInspectorProps, IEditorIns
 						</TabsTrigger>
 					</TabsList>
 
+					{disabled && (
+						<HoverCard openDelay={150} closeDelay={150}>
+							<HoverCardTrigger className="w-full">
+								<Badge variant="secondary" className="flex items-center gap-2 w-full">
+									<FaInfoCircle className="w-6 h-6" />
+									Object is locked and cannot be edited.
+								</Badge>
+							</HoverCardTrigger>
+							<HoverCardContent>The object is locked, meaning it cannot be modified in the inspector. You can unlock it in the scene graph.</HoverCardContent>
+						</HoverCard>
+					)}
+
 					<input
 						type="text"
 						placeholder="Search..."
@@ -106,9 +128,7 @@ export class EditorInspector extends Component<IEditorInspectorProps, IEditorIns
 					/>
 
 					<TabsContent value="entity" className="w-full h-full overflow-auto">
-						<div className="flex flex-col gap-2 h-full">
-							{this._getContent()}
-						</div>
+						<div className={`flex flex-col gap-2 h-full ${disabled ? "pointer-events-none opacity-50 cursor-not-allowed" : ""}`}>{this._getContent()}</div>
 					</TabsContent>
 
 					<TabsContent value="decals" className="w-full h-full overflow-auto">
@@ -129,27 +149,12 @@ export class EditorInspector extends Component<IEditorInspectorProps, IEditorIns
 
 	private _getContent(): ReactNode {
 		if (!this.state.editedObject) {
-			return <NonIdealState
-				icon={<Icon icon="search" size={96} />}
-				title={
-					<div className="text-white">
-						No object selected
-					</div>
-				}
-			/>;
+			return <NonIdealState icon={<Icon icon="search" size={96} />} title={<div className="text-white">No object selected</div>} />;
 		}
 
-		const inspectors = EditorInspector._inspectors
-			.filter((i) => i.IsSupported(this.state.editedObject))
-			.map((i) => ({ inspector: i }));
+		const inspectors = EditorInspector._inspectors.filter((i) => i.IsSupported(this.state.editedObject)).map((i) => ({ inspector: i }));
 
-		return inspectors.map((i) => (
-			<i.inspector
-				key={Tools.RandomId()}
-				editor={this.props.editor}
-				object={this.state.editedObject}
-			/>
-		));
+		return inspectors.map((i) => <i.inspector key={Tools.RandomId()} editor={this.props.editor} object={this.state.editedObject} />);
 	}
 
 	private _handleSearchChanged(search: string): void {

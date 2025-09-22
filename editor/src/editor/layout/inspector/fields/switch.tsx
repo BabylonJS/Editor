@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Switch } from "@blueprintjs/core";
+
+import { Switch } from "../../../../ui/shadcn/ui/switch";
 
 import { registerSimpleUndoRedo } from "../../../../tools/undoredo";
 import { getInspectorPropertyValue, setInspectorEffectivePropertyValue } from "../../../../tools/property";
@@ -15,7 +16,9 @@ export function EditorInspectorSwitchField(props: IEditorInspectorSwitchFieldPro
 
 	return (
 		<div
-			onClick={() => {
+			onClick={(ev) => {
+				ev.stopPropagation();
+
 				setValue(!value);
 				setInspectorEffectivePropertyValue(props.object, props.property, !value);
 				props.onChange?.(!value);
@@ -32,17 +35,10 @@ export function EditorInspectorSwitchField(props: IEditorInspectorSwitchFieldPro
 			}}
 			className="flex gap-2 justify-center items-center px-2 cursor-pointer hover:bg-white/10 hover:px-2 rounded-lg transition-all duration-300"
 		>
-			<div className="w-full text-ellipsis overflow-hidden whitespace-nowrap">
-				{props.label}
-			</div>
+			<div className="w-full text-ellipsis overflow-hidden whitespace-nowrap">{props.label}</div>
 
-			<div className="flex justify-end w-14 my-auto">
-				<Switch
-					className="mt-2"
-					checked={value}
-					onChange={() => { }}
-					onClick={(ev) => ev.stopPropagation()}
-				/>
+			<div className="flex justify-end w-14 py-2">
+				<Switch checked={value} onChange={() => {}} />
 			</div>
 		</div>
 	);

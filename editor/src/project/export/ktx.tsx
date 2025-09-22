@@ -9,13 +9,9 @@ import { executeAsync } from "../../tools/process";
 
 export type KTXToolsType = "-astc.ktx" | "-dxt.ktx" | "-pvrtc.ktx" | "-etc1.ktx" | "-etc2.ktx";
 
-export const allKtxFormats: KTXToolsType[] = [
-	"-astc.ktx", "-dxt.ktx", "-pvrtc.ktx", "-etc1.ktx", "-etc2.ktx",
-];
+export const allKtxFormats: KTXToolsType[] = ["-astc.ktx", "-dxt.ktx", "-pvrtc.ktx", "-etc1.ktx", "-etc2.ktx"];
 
-export const ktxSupportedextensions: string[] = [
-	".png", ".jpg", ".jpeg", ".bmp"
-];
+export const ktxSupportedextensions: string[] = [".png", ".jpg", ".jpeg", ".bmp"];
 
 /**
  * Returns the absolute path to the compressed textures CLI path (PVRTexTool).
@@ -56,20 +52,24 @@ export function getCompressedTextureFilename(path: string, format: KTXToolsType)
 }
 
 export type CompressFileToKtxOptions = {
-    format: KTXToolsType;
-    force?: boolean;
-    exportedAssets?: string[];
-    destinationFolder?: string;
+	format: KTXToolsType;
+	force?: boolean;
+	exportedAssets?: string[];
+	destinationFolder?: string;
 };
 
 export async function compressFileToKtx(editor: Editor, absolutePath: string, options: Partial<CompressFileToKtxOptions>): Promise<void> {
 	if (options.format) {
 		await compressFileToKtxFormat(editor, absolutePath, options as CompressFileToKtxOptions);
 	} else {
-		await Promise.all(allKtxFormats.map((f) => compressFileToKtxFormat(editor, absolutePath, {
-			...options,
-			format: f,
-		})));
+		await Promise.all(
+			allKtxFormats.map((f) =>
+				compressFileToKtxFormat(editor, absolutePath, {
+					...options,
+					format: f,
+				})
+			)
+		);
 	}
 }
 
@@ -91,7 +91,7 @@ export async function compressFileToKtxFormat(editor: Editor, absolutePath: stri
 		return null;
 	}
 
-	if (await pathExists(options.destinationFolder) && !options.force) {
+	if ((await pathExists(options.destinationFolder)) && !options.force) {
 		options.exportedAssets?.push(options.destinationFolder);
 		return options.destinationFolder;
 	}

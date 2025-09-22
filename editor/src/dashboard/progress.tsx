@@ -13,11 +13,11 @@ import { NodePtyInstance } from "../tools/node-pty";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/shadcn/ui/tooltip";
 
 export interface IDashboardProgressComponentProps {
-    name: string;
+	name: string;
 }
 
 export interface IDashboardProgressComponentState {
-    message: ReactNode;
+	message: ReactNode;
 }
 
 export class DashboardProgressComponent extends Component<IDashboardProgressComponentProps, IDashboardProgressComponentState> {
@@ -39,12 +39,8 @@ export class DashboardProgressComponent extends Component<IDashboardProgressComp
 				<Grid width={24} height={24} color="gray" />
 
 				<div className="flex flex-col flex-1">
-					<div className="text-xl w-56 font-[400] text-ellipsis overflow-hidden whitespace-nowrap">
-						{this.props.name}
-					</div>
-					<div className="font-[400] text-muted-foreground">
-						{this.state.message}
-					</div>
+					<div className="text-xl w-56 font-[400] text-ellipsis overflow-hidden whitespace-nowrap">{this.props.name}</div>
+					<div className="font-[400] text-muted-foreground">{this.state.message}</div>
 				</div>
 
 				<TooltipProvider delayDuration={0}>
@@ -58,10 +54,7 @@ export class DashboardProgressComponent extends Component<IDashboardProgressComp
 							collisionPadding={8}
 							className="bg-secondary text-muted-foreground text-sm rounded-lg p-2 mb-10 ring-2 ring-muted-foreground overflow-hidden"
 						>
-							<div
-								ref={(r) => this._onTerminalDivChanged(r)}
-								className="w-[720px] h-[320px] overflow-hidden"
-							/>
+							<div ref={(r) => this._onTerminalDivChanged(r)} className="w-[720px] h-[320px] overflow-hidden" />
 						</TooltipContent>
 					</Tooltip>
 				</TooltipProvider>
@@ -101,7 +94,7 @@ export class DashboardProgressComponent extends Component<IDashboardProgressComp
 				this._fitAddon?.fit();
 			});
 
-            this._terminal!.write(this._terminalData);
+			this._terminal!.write(this._terminalData);
 		}
 	}
 

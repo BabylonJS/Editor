@@ -22,14 +22,14 @@ import { Editor } from "../../../main";
 import { EditorEditProjectPluginItemComponent } from "./item";
 
 export interface IEditorEditProjectPluginComponentProps {
-    /**
-     * Defines the editor reference.
-     */
-    editor: Editor;
+	/**
+	 * Defines the editor reference.
+	 */
+	editor: Editor;
 }
 
 export interface IEditorEditProjectPluginComponentState {
-    installing: boolean;
+	installing: boolean;
 }
 
 export class EditorEditProjectPluginComponent extends Component<IEditorEditProjectPluginComponentProps, IEditorEditProjectPluginComponentState> {
@@ -84,9 +84,7 @@ export class EditorEditProjectPluginComponent extends Component<IEditorEditProje
 								</div>
 							</AlertDialogDescription>
 						</AlertDialogHeader>
-						<AlertDialogFooter>
-
-						</AlertDialogFooter>
+						<AlertDialogFooter></AlertDialogFooter>
 					</AlertDialogContent>
 				</AlertDialog>
 			</>
@@ -110,10 +108,18 @@ export class EditorEditProjectPluginComponent extends Component<IEditorEditProje
 		try {
 			let command = "";
 			switch (this.props.editor.state.packageManager) {
-				case "npm": command = `npm i ${name} --save-dev`; break;
-				case "pnpm": command = `pnpm add -D ${name}`; break;
-				case "bun": command = `bun add -d ${name}`; break;
-				default: command = `yarn add -D ${name}`; break;
+				case "npm":
+					command = `npm i ${name} --save-dev`;
+					break;
+				case "pnpm":
+					command = `pnpm add -D ${name}`;
+					break;
+				case "bun":
+					command = `bun add -d ${name}`;
+					break;
+				default:
+					command = `yarn add -D ${name}`;
+					break;
 			}
 
 			const p = await execNodePty(command, {

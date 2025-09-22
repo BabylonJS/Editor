@@ -1,3 +1,5 @@
+import { Tools } from "babylonjs";
+
 /**
  * Wait for a given amount of time expressed in milliseconds.
  * @param timeMs The time to wait in milliseconds.
@@ -64,10 +66,10 @@ export function unique<T>(array: T[]): T[] {
 }
 
 /**
-* Sorts the given array alphabetically.
-* @param array defines the array containing the elements to sort alphabetically.
-* @param property in case of an array of objects, this property will be used to get the right value to sort.
-*/
+ * Sorts the given array alphabetically.
+ * @param array defines the array containing the elements to sort alphabetically.
+ * @param property in case of an array of objects, this property will be used to get the right value to sort.
+ */
 export function sortAlphabetically(array: any[], property?: string): any[] {
 	array.sort((a, b) => {
 		a = property ? a[property] : a;
@@ -76,8 +78,48 @@ export function sortAlphabetically(array: any[], property?: string): any[] {
 		a = a.toUpperCase();
 		b = b.toUpperCase();
 
-		return (a < b) ? -1 : (a > b) ? 1 : 0;
+		return a < b ? -1 : a > b ? 1 : 0;
 	});
 
 	return array;
+}
+
+/**
+ * Returns the current call stack as a string.
+ * This is mainly used to check if the current call is from outside of the editor.
+ * @example
+ * if (getCurrentCallStack().includes(projectDir)) {
+ * 	// We know that it comes from the project directory and not from the editor.
+ * }
+ */
+export function getCurrentCallStack(): string {
+	return new Error().stack ?? "";
+}
+
+/**
+ * Reads a blob and returns its data as a data URL.
+ * @param blob defines the reference to the blob to read as data URL.
+ */
+export function readBlobAsDataUrl(blob: Blob): Promise<string> {
+	return new Promise<string>((resolve, reject) => {
+		Tools.ReadFileAsDataURL(
+			blob,
+			(dataUrl) => {
+				if (dataUrl) {
+					resolve(dataUrl);
+				} else {
+					reject("Failed to read blob as data URL");
+				}
+			},
+			undefined!
+		);
+	});
+}
+
+/**
+ * Clones the given JavaScript object. This function does not handle cyclic references.
+ * @param source defines the reference to the JavaScript object to clone.
+ */
+export function cloneJSObject<T>(source: T): T {
+	return JSON.parse(JSON.stringify(source));
 }

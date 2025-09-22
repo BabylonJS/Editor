@@ -16,6 +16,7 @@ import { saveProject } from "../project/save/save";
 import { onProjectConfigurationChangedObservable, projectConfiguration } from "../project/configuration";
 
 import { loadProject } from "../project/load/load";
+import { startProjectDevProcess } from "../project/run";
 import { exportProject } from "../project/export/export";
 import { EditorProjectPackageManager } from "../project/typings";
 
@@ -32,9 +33,11 @@ import { EditorEditPreferencesComponent } from "./dialogs/edit-preferences/edit-
 import { Toaster } from "../ui/shadcn/ui/sonner";
 
 import { EditorLayout } from "./layout";
+import { removeNodes } from "./layout/graph/remove";
 
 import "./nodes/camera";
 import "./nodes/scene-link";
+import { isDomTextInputFocused } from "../tools/dom";
 
 export function createEditor(): void {
 	const theme = localStorage.getItem("editor-theme") ?? "dark";
@@ -144,36 +147,39 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 	public render(): ReactNode {
 		return (
 			<>
-				<HotkeysTarget2 hotkeys={[
-					{
-						global: true,
-						combo: platform() === "darwin"
-							? "cmd + p"
-							: "ctrl + p",
-						preventDefault: true,
-						label: "Show Command Palette",
-						onKeyDown: () => this.commandPalette.setOpen(true),
-					},
-				]}>
-					<EditorLayout
-						editor={this}
-						ref={ref => this.layout = ref!}
-					/>
+				<HotkeysTarget2
+					hotkeys={[
+						{
+							global: true,
+							combo: platform() === "darwin" ? "cmd + p" : "ctrl + p",
+							preventDefault: true,
+							label: "Show Command Palette",
+							onKeyDown: () => this.commandPalette.setOpen(true),
+						},
+						{
+							global: true,
+							combo: "delete",
+							preventDefault: true,
+							label: "Delete Selected Objects",
+							onKeyDown: () => {
+								if (!isDomTextInputFocused()) {
+									const selectedNodes = this.layout.graph.getSelectedNodes();
+									if (selectedNodes.length > 0) {
+										removeNodes(this);
+									}
+								}
+							},
+						},
+					]}
+				>
+					<EditorLayout editor={this} ref={(ref) => (this.layout = ref!)} />
 				</HotkeysTarget2>
 
-				<EditorEditProjectComponent
-					editor={this}
-					open={this.state.editProject}
-					onClose={() => this.setState({ editProject: false })}
-				/>
+				<EditorEditProjectComponent editor={this} open={this.state.editProject} onClose={() => this.setState({ editProject: false })} />
 
-				<EditorEditPreferencesComponent
-					editor={this}
-					open={this.state.editPreferences}
-					onClose={() => this.setState({ editPreferences: false })}
-				/>
+				<EditorEditPreferencesComponent editor={this} open={this.state.editPreferences} onClose={() => this.setState({ editPreferences: false })} />
 
-				<CommandPalette ref={(r) => this.commandPalette = r!} editor={this} />
+				<CommandPalette ref={(r) => (this.commandPalette = r!)} editor={this} />
 				<Toaster />
 			</>
 		);
@@ -181,7 +187,7 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 
 	public async componentDidMount(): Promise<void> {
 		ipcRenderer.on("save", () => saveProject(this));
-		ipcRenderer.on("export", () => exportProject(this, { optimize: true }));
+		ipcRenderer.on("generate", () => exportProject(this, { optimize: true }));
 
 		ipcRenderer.on("editor:edit-project", () => this.setState({ editProject: true }));
 		ipcRenderer.on("editor:edit-preferences", () => this.setState({ editPreferences: true }));
@@ -191,7 +197,9 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 		ipcRenderer.on("editor:quit-app", () => this.quitApp());
 		ipcRenderer.on("editor:close-window", () => this.close());
 
-		ipcRenderer.on("editor:path", (_, path) => this.path = path.replace(/\\/g, sep));
+		ipcRenderer.on("editor:path", (_, path) => (this.path = path.replace(/\\/g, sep)));
+
+		ipcRenderer.on("editor:run-project", () => startProjectDevProcess(this));
 
 		// Undo-redo
 		ipcRenderer.on("undo", () => undo());
@@ -209,10 +217,7 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 			this.layout.animations.forceUpdate();
 		});
 
-		await Promise.all([
-			await checkNodeJSAvailable(),
-			await checkVisualStudioCodeAvailable(),
-		]);
+		await Promise.all([await checkNodeJSAvailable(), await checkVisualStudioCodeAvailable()]);
 
 		// Ready
 		ipcRenderer.send("editor:ready");

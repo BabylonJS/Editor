@@ -4,8 +4,12 @@ import { IAnimationKey } from "@babylonjs/core/Animations/animationKey";
 export function cloneKey(dataType: number, key: IAnimationKey): IAnimationKey {
 	let value: any;
 	switch (dataType) {
-		case Animation.ANIMATIONTYPE_FLOAT: value = key.value; break;
-		default: value = key.value.clone(); break;
+		case Animation.ANIMATIONTYPE_FLOAT:
+			value = key.value;
+			break;
+		default:
+			value = key.value.clone();
+			break;
 	}
 
 	return {
@@ -25,7 +29,7 @@ export function cloneKey(dataType: number, key: IAnimationKey): IAnimationKey {
  * @example getPropertyValue(scene, "ambientColor.r");
  */
 export function getPropertyValue(object: any, property: string) {
-	const parts = property.split('.');
+	const parts = property.split(".");
 
 	let value = object;
 

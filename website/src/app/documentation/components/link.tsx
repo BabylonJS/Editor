@@ -4,7 +4,7 @@ import Link from "next/link";
 import { PropsWithChildren } from "react";
 
 export interface ICustomLink extends PropsWithChildren {
-    href: string;
+	href: string;
 }
 
 export function CustomLink(props: ICustomLink) {

@@ -34,7 +34,7 @@ ipcMain.on("editor:save-single-file-dialog", async (ev, title, filters, defaultP
 		title,
 		filters,
 		defaultPath,
-		properties: ["createDirectory", "showOverwriteConfirmation"]
+		properties: ["createDirectory", "showOverwriteConfirmation"],
 	});
 
 	ev.returnValue = result.filePath?.replace(/\\/g, "/") ?? "";

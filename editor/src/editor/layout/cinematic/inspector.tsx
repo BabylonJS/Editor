@@ -12,12 +12,12 @@ import { CinematicEditorAnimationGroupKeyInspector } from "./inspector/animation
 import { CinematicEditorEventKeyInspector } from "./inspector/events/event";
 
 export interface ICinematicEditorInspectorProps {
-    cinematicEditor: CinematicEditor;
+	cinematicEditor: CinematicEditor;
 }
 
 export interface ICinematicEditorInspectorState {
-    editedObject: any;
-    editedTrack: ICinematicTrack | null;
+	editedObject: any;
+	editedTrack: ICinematicTrack | null;
 }
 
 export class CinematicEditorInspector extends Component<ICinematicEditorInspectorProps, ICinematicEditorInspectorState> {
@@ -41,11 +41,7 @@ export class CinematicEditorInspector extends Component<ICinematicEditorInspecto
 			);
 		}
 
-		return (
-			<div className="flex flex-col gap-2 w-96 h-full p-2 text-foreground overflow-y-auto">
-				{component}
-			</div>
-		);
+		return <div className="flex flex-col gap-2 w-96 h-full p-2 text-foreground overflow-y-auto">{component}</div>;
 	}
 
 	public setEditedObject(editedObject: any, editedTrack: ICinematicTrack): void {
@@ -61,48 +57,58 @@ export class CinematicEditorInspector extends Component<ICinematicEditorInspecto
 		}
 
 		if (isCinematicKey(this.state.editedObject)) {
-			return <CinematicEditorKeyInspector
-				key={Tools.RandomId()}
-				track={this.state.editedTrack}
-				cinematicKey={this.state.editedObject}
-				cinematicEditor={this.props.cinematicEditor}
-			/>;
+			return (
+				<CinematicEditorKeyInspector
+					key={Tools.RandomId()}
+					track={this.state.editedTrack}
+					cinematicKey={this.state.editedObject}
+					cinematicEditor={this.props.cinematicEditor}
+				/>
+			);
 		}
 
 		if (isCinematicKeyCut(this.state.editedObject)) {
-			return <CinematicEditorKeyCutInspector
-				key={Tools.RandomId()}
-				track={this.state.editedTrack}
-				cinematicKey={this.state.editedObject}
-				cinematicEditor={this.props.cinematicEditor}
-			/>;
+			return (
+				<CinematicEditorKeyCutInspector
+					key={Tools.RandomId()}
+					track={this.state.editedTrack}
+					cinematicKey={this.state.editedObject}
+					cinematicEditor={this.props.cinematicEditor}
+				/>
+			);
 		}
 
 		if (isCinematicSound(this.state.editedObject)) {
-			return <CinematicEditorSoundKeyInspector
-				key={Tools.RandomId()}
-				track={this.state.editedTrack}
-				cinematicKey={this.state.editedObject}
-				cinematicEditor={this.props.cinematicEditor}
-			/>;
+			return (
+				<CinematicEditorSoundKeyInspector
+					key={Tools.RandomId()}
+					track={this.state.editedTrack}
+					cinematicKey={this.state.editedObject}
+					cinematicEditor={this.props.cinematicEditor}
+				/>
+			);
 		}
 
 		if (isCinematicGroup(this.state.editedObject)) {
-			return <CinematicEditorAnimationGroupKeyInspector
-				key={Tools.RandomId()}
-				track={this.state.editedTrack}
-				cinematicKey={this.state.editedObject}
-				cinematicEditor={this.props.cinematicEditor}
-			/>;
+			return (
+				<CinematicEditorAnimationGroupKeyInspector
+					key={Tools.RandomId()}
+					track={this.state.editedTrack}
+					cinematicKey={this.state.editedObject}
+					cinematicEditor={this.props.cinematicEditor}
+				/>
+			);
 		}
 
 		if (isCinematicKeyEvent(this.state.editedObject)) {
-			return <CinematicEditorEventKeyInspector
-				key={Tools.RandomId()}
-				track={this.state.editedTrack}
-				cinematicKey={this.state.editedObject}
-				cinematicEditor={this.props.cinematicEditor}
-			/>;
+			return (
+				<CinematicEditorEventKeyInspector
+					key={Tools.RandomId()}
+					track={this.state.editedTrack}
+					cinematicKey={this.state.editedObject}
+					cinematicEditor={this.props.cinematicEditor}
+				/>
+			);
 		}
 	}
 }

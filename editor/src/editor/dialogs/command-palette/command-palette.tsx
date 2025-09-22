@@ -2,12 +2,16 @@ import { dirname, join, extname, basename } from "path/posix";
 
 import { Component, ReactNode } from "react";
 
+import { IoMdCube } from "react-icons/io";
 import { FaFileAlt } from "react-icons/fa";
 import { FaCirclePlus } from "react-icons/fa6";
 import { IoSparklesSharp } from "react-icons/io5";
 import { HiMiniCommandLine } from "react-icons/hi2";
 
+import { Node, IParticleSystem, Sound } from "babylonjs";
+
 import { normalizedGlob } from "../../../tools/fs";
+import { isNode } from "../../../tools/guards/nodes";
 import { onSelectedAssetChanged } from "../../../tools/observables";
 
 import { Editor } from "../../main";
@@ -29,6 +33,7 @@ export interface ICommandPaletteState {
 	query: string;
 
 	files: ICommandPaletteType[];
+	entities: ICommandPaletteType[];
 }
 
 export interface ICommandPaletteType {
@@ -47,6 +52,7 @@ export class CommandPalette extends Component<ICommandPaletteProps, ICommandPale
 			query: "",
 			open: false,
 			files: [],
+			entities: [],
 		};
 	}
 
@@ -91,6 +97,14 @@ export class CommandPalette extends Component<ICommandPaletteProps, ICommandPale
 						))}
 					</CommandGroup>
 
+					<CommandGroup heading="Hierarchy">
+						{this.state.entities.map((entity) => (
+							<CommandItem key={entity.key} onSelect={() => this._executeCommand(entity)} className="flex items-center gap-2">
+								<IoMdCube className="w-10 h-10" /> {entity.text}
+							</CommandItem>
+						))}
+					</CommandGroup>
+
 					<CommandGroup heading="Files">
 						{this.state.files.map((file) => (
 							<CommandItem key={file.key} onSelect={() => this._executeCommand(file)} className="flex items-center gap-2">
@@ -107,6 +121,7 @@ export class CommandPalette extends Component<ICommandPaletteProps, ICommandPale
 		this.setState({ open });
 
 		if (open) {
+			this._refreshEntities();
 			this._refreshAssetFiles();
 		}
 	}
@@ -114,6 +129,36 @@ export class CommandPalette extends Component<ICommandPaletteProps, ICommandPale
 	private _executeCommand(command: ICommandPaletteType): void {
 		command.action();
 		this.setOpen(false);
+	}
+
+	private _refreshEntities(): void {
+		const scene = this.props.editor.layout.preview.scene;
+
+		const objects = [...scene.meshes, ...scene.lights, ...scene.cameras, ...scene.particleSystems] as (Node | IParticleSystem | Sound)[];
+		scene.soundTracks?.forEach((soundTrack) => {
+			objects.push(...soundTrack.soundCollection);
+		});
+
+		const entities = objects.map(
+			(entity) =>
+				({
+					key: entity.id,
+					text: entity.name,
+					label: entity.name,
+					action: () => {
+						this.props.editor.layout.graph.setSelectedNode(entity);
+						this.props.editor.layout.inspector.setEditedObject(entity);
+						this.props.editor.layout.animations.setEditedObject(entity);
+						if (isNode(entity)) {
+							this.props.editor.layout.preview.gizmo.setAttachedNode(entity);
+						}
+
+						this.props.editor.layout.preview.focusObject(entity);
+					},
+				}) as ICommandPaletteType
+		);
+
+		this.setState({ entities });
 	}
 
 	private async _refreshAssetFiles(): Promise<void> {
@@ -129,12 +174,15 @@ export class CommandPalette extends Component<ICommandPaletteProps, ICommandPale
 			},
 		});
 
-		const files = glob.map((file) => ({
-			key: basename(file),
-			text: basename(file),
-			label: file.path,
-			action: () => onSelectedAssetChanged.notifyObservers(file),
-		}));
+		const files = glob.map(
+			(file) =>
+				({
+					key: basename(file),
+					text: basename(file),
+					label: file.path,
+					action: () => onSelectedAssetChanged.notifyObservers(file),
+				}) as ICommandPaletteType
+		);
 
 		this.setState({ files });
 	}

@@ -6,8 +6,8 @@ import { StatsValuesType } from "./types";
 
 export class Stats {
 	/**
-     * Defines the observable called when the stats values have been updated.
-     */
+	 * Defines the observable called when the stats values have been updated.
+	 */
 	public onValuesChangedObservable: Observable<StatsValuesType> = new Observable();
 
 	private _editor: Editor;

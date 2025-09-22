@@ -9,8 +9,8 @@ import { CinematicEditor } from "../editor";
 import { CinematicEditorRemoveTrackButton } from "./remove";
 
 export interface ICinematicEditorEventTrackProps {
-    track: ICinematicTrack;
-    cinematicEditor: CinematicEditor;
+	track: ICinematicTrack;
+	cinematicEditor: CinematicEditor;
 }
 
 export function CinematicEditorEventTrack(props: ICinematicEditorEventTrackProps) {
@@ -22,9 +22,7 @@ export function CinematicEditorEventTrack(props: ICinematicEditorEventTrackProps
 
 			<div className="flex-1">
 				<Button variant="ghost" className="w-full h-8 bg-accent/35">
-					<span className="w-full text-xs whitespace-nowrap overflow-hidden overflow-ellipsis">
-                        Events
-					</span>
+					<span className="w-full text-xs whitespace-nowrap overflow-hidden overflow-ellipsis">Events</span>
 				</Button>
 			</div>
 

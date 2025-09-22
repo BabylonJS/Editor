@@ -1,11 +1,11 @@
 import { clipboard, webUtils } from "electron";
 import { dirname, join, extname, basename } from "path/posix";
-import { copyFile, mkdir, move, pathExists, readdir, stat, writeFile, writeJSON } from "fs-extra";
+import { copyFile, copy, mkdir, move, pathExists, readdir, stat, writeFile, writeJSON } from "fs-extra";
 
 import filenamify from "filenamify";
 
 import { AdvancedDynamicTexture } from "babylonjs-gui";
-import { Camera, Material, NodeMaterial, Tools } from "babylonjs";
+import { Camera, Material, NodeMaterial, Tools, NodeParticleSystemSet } from "babylonjs";
 
 import { ICinematic } from "babylonjs-editor-tools";
 
@@ -35,13 +35,15 @@ import { renameScene } from "../../tools/scene/rename";
 import { openMultipleFilesDialog } from "../../tools/dialog";
 import { onSelectedAssetChanged } from "../../tools/observables";
 import { findAvailableFilename, normalizedGlob } from "../../tools/fs";
-import { checkProjectCachedCompressedTextures, processingCompressedTextures } from "../../tools/ktx/check";
+import { loadSavedThumbnailsCache } from "../../tools/assets/thumbnail";
+import { assetsCache, saveAssetsCache } from "../../tools/assets/cache";
+import { checkProjectCachedCompressedTextures, processingCompressedTextures } from "../../tools/assets/ktx";
 
-import { getMaterialCommands } from "../dialogs/command-palette/material";
 import { ICommandPaletteType } from "../dialogs/command-palette/command-palette";
+import { getMaterialCommands, getMaterialsLibraryCommands } from "../dialogs/command-palette/material";
 
 import { loadScene } from "../../project/load/scene";
-import { saveProject } from "../../project/save/save";
+import { saveProject, saveProjectConfiguration } from "../../project/save/save";
 import { onProjectConfigurationChangedObservable, projectConfiguration } from "../../project/configuration";
 
 import { showConfirm, showPrompt } from "../../ui/dialog";
@@ -49,7 +51,16 @@ import { showConfirm, showPrompt } from "../../ui/dialog";
 import { Input } from "../../ui/shadcn/ui/input";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator } from "../../ui/shadcn/ui/breadcrumb";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "../../ui/shadcn/ui/dropdown-menu";
-import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger, ContextMenuSeparator, ContextMenuSubTrigger, ContextMenuSub, ContextMenuSubContent } from "../../ui/shadcn/ui/context-menu";
+import {
+	ContextMenu,
+	ContextMenuContent,
+	ContextMenuItem,
+	ContextMenuTrigger,
+	ContextMenuSeparator,
+	ContextMenuSubTrigger,
+	ContextMenuSub,
+	ContextMenuSubContent,
+} from "../../ui/shadcn/ui/context-menu";
 
 import { FileInspectorObject } from "./inspector/file";
 
@@ -61,18 +72,21 @@ import { AssetBrowserImageItem } from "./assets-browser/items/image-item";
 import { AssetBrowserMaterialItem } from "./assets-browser/items/material-item";
 import { AssetBrowserCinematicItem } from "./assets-browser/items/cinematic-item";
 import { AssetsBrowserItem, IAssetsBrowserItemProps } from "./assets-browser/items/item";
+import { AssetBrowserParticleSystemItem } from "./assets-browser/items/particle-system-item";
 
 import { listenGuiAssetsEvents } from "./assets-browser/events/gui";
 import { listenSceneAssetsEvents } from "./assets-browser/events/scene";
 import { listenMaterialAssetsEvents } from "./assets-browser/events/material";
+import { listenParticleAssetsEvents } from "./assets-browser/events/particles";
 
 import { openEnvViewer } from "./assets-browser/viewers/env-viewer";
 import { openModelViewer } from "./assets-browser/viewers/model-viewer";
 
+import { EditorAssetsTreeLabel } from "./assets-browser/label";
+
 import "babylonjs-loaders";
 
 import "../../loader/assimpjs";
-
 
 const HDRSelectable = createSelectable(AssetBrowserHDRItem);
 const GuiSelectable = createSelectable(AssetBrowserGUIItem);
@@ -82,6 +96,7 @@ const ImageSelectable = createSelectable(AssetBrowserImageItem);
 const SceneSelectable = createSelectable(AssetBrowserSceneItem);
 const MaterialSelectable = createSelectable(AssetBrowserMaterialItem);
 const CinematicSelectable = createSelectable(AssetBrowserCinematicItem);
+const ParticleSystemSelectable = createSelectable(AssetBrowserParticleSystemItem);
 
 export interface IEditorAssetsBrowserProps {
 	/**
@@ -139,12 +154,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 	public render(): ReactNode {
 		return (
 			<PanelGroup direction="horizontal" className="w-full h-full text-foreground">
-				<Panel
-					order={1}
-					minSize={20}
-					className="w-full h-full"
-					defaultSize={this.state.sizes[0]}
-				>
+				<Panel order={1} minSize={20} className="w-full h-full" defaultSize={this.state.sizes[0]}>
 					<div className="flex flex-col w-full h-full">
 						<div className="relative flex items-center px-1 w-full h-10 min-h-10 bg-primary-foreground">
 							<Input
@@ -181,11 +191,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 
 				<PanelResizeHandle className="w-2 bg-border/10 h-full cursor-pointer hover:bg-black/30 transition-all duration-300" />
 
-				<Panel
-					order={2}
-					className="w-full h-full"
-					defaultSize={this.state.sizes[1]}
-				>
+				<Panel order={2} className="w-full h-full" defaultSize={this.state.sizes[1]}>
 					{this._getFilesGridComponent()}
 				</Panel>
 			</PanelGroup>
@@ -195,8 +201,12 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 	public componentDidMount(): void {
 		onProjectConfigurationChangedObservable.add((c) => {
 			if (c.path) {
+				const rootUrl = dirname(c.path);
+
 				this._refreshFilesTreeNodes(c.path);
-				this.setBrowsePath(dirname(c.path));
+				this.setBrowsePath(rootUrl);
+
+				loadSavedThumbnailsCache();
 			}
 		});
 
@@ -214,8 +224,9 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 		});
 
 		listenGuiAssetsEvents(this.props.editor);
-		listenMaterialAssetsEvents(this.props.editor);
 		listenSceneAssetsEvents(this.props.editor);
+		listenMaterialAssetsEvents(this.props.editor);
+		listenParticleAssetsEvents(this.props.editor);
 	}
 
 	private async _refreshFilesTreeNodes(path: string): Promise<void> {
@@ -245,23 +256,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 				let node = allNodes.find((n) => n.id === relativePath);
 				if (!node) {
 					node = {
-						label: (
-							<div
-								draggable
-								className={`
-                                    ml-2 p-1 w-full h-full pointer-events-auto
-                                    ${relativePath.startsWith("public") || relativePath.startsWith("node_modules") ? "opacity-35" : ""}
-                                `}
-								onDragOver={(ev) => ev.preventDefault()}
-								onDrop={
-									relativePath.startsWith("assets")
-										? (ev) => this._handleDropInTree(ev, relativePath)
-										: undefined
-								}
-							>
-								{split[i]}
-							</div>
-						),
+						label: <EditorAssetsTreeLabel name={split[i]} relativePath={relativePath} onDrop={(ev) => this._handleDropInTree(ev, relativePath)} />,
 						id: relativePath,
 						nodeData: relativePath,
 						icon: <FaFolder className="w-4 h-4" />,
@@ -289,7 +284,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 
 				const hitsSearch = search && split[i].toLocaleLowerCase().includes(search);
 
-				if (hitsSearch && !relativePath.startsWith("public") && !relativePath.startsWith("node_modules")) {
+				if (hitsSearch && !relativePath.startsWith("public") && !relativePath.startsWith("node_modules") && !relativePath.startsWith("editor-generated_")) {
 					let tempNode = node;
 					let parent: TreeNodeInfo | undefined = undefined;
 
@@ -308,18 +303,16 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 		});
 
 		this.setState({
-			filesTreeNodes: [{
-				label: (
-					<div className="ml-2 p-1">
-						Project
-					</div>
-				),
-				id: "/",
-				nodeData: "/",
-				isExpanded: true,
-				childNodes: filesTreeNodes,
-				icon: <FaFolderOpen className="w-4 h-4" />,
-			}],
+			filesTreeNodes: [
+				{
+					label: <div className="ml-2 p-1">Project</div>,
+					id: "/",
+					nodeData: "/",
+					isExpanded: true,
+					childNodes: filesTreeNodes,
+					icon: <FaFolderOpen className="w-4 h-4" />,
+				},
+			],
 		});
 	}
 
@@ -363,16 +356,18 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 			return;
 		}
 
-		await Promise.all(this._selectedFiles.map(async (f) => {
-			const fStat = await stat(f);
-			const targetPath = join(this.state.browsedPath!, basename(f));
+		await Promise.all(
+			this._selectedFiles.map(async (f) => {
+				const fStat = await stat(f);
+				const targetPath = join(this.state.browsedPath!, basename(f));
 
-			if (fStat.isDirectory() || await pathExists(targetPath)) {
-				return;
-			}
+				if (fStat.isDirectory() || (await pathExists(targetPath))) {
+					return;
+				}
 
-			await copyFile(f, join(this.state.browsedPath!, basename(f)));
-		}));
+				await copyFile(f, join(this.state.browsedPath!, basename(f)));
+			})
+		);
 
 		this.refresh();
 	}
@@ -388,7 +383,10 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 		// Scene
 		if (oldAbsolutePath === this.props.editor.state.lastOpenedScenePath) {
 			renameScene(oldAbsolutePath, newAbsolutePath);
-			return this.props.editor.setState({ lastOpenedScenePath: newAbsolutePath });
+
+			return this.props.editor.setState({ lastOpenedScenePath: newAbsolutePath }, () => {
+				saveProjectConfiguration(this.props.editor);
+			});
 		}
 
 		const oldRelativePath = oldAbsolutePath.replace(join(dirname(this.props.editor.state.projectPath), "/"), "");
@@ -403,7 +401,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 
 			const files = await normalizedGlob(join(newAbsolutePath, "**"), {
 				ignore: {
-					ignored: (p) => p.isDirectory(),
+					ignored: (p) => p.isDirectory() && extname(p.name).toLowerCase() !== ".scene",
 				},
 			});
 
@@ -411,7 +409,19 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 				const newFileRelativePath = file.replace(join(dirname(this.props.editor.state.projectPath!), "/"), "");
 				const oldFileRelativePath = newFileRelativePath.replace(newRelativePath, oldRelativePath);
 
-				this._handleFileRenamed(oldFileRelativePath, newFileRelativePath);
+				const extension = extname(oldFileRelativePath).toLowerCase();
+				if (extension === ".scene") {
+					const oldSceneRelativePath = join(oldAbsolutePath, basename(oldFileRelativePath));
+					renameScene(oldSceneRelativePath, file);
+
+					if (oldSceneRelativePath === this.props.editor.state.lastOpenedScenePath) {
+						this.props.editor.setState({ lastOpenedScenePath: file }, () => {
+							saveProjectConfiguration(this.props.editor);
+						});
+					}
+				} else {
+					this._handleFileRenamed(oldFileRelativePath, newFileRelativePath);
+				}
 			});
 		} else {
 			this._handleFileRenamed(oldRelativePath, newRelativePath);
@@ -419,6 +429,8 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 
 		this.props.editor.layout.graph.refresh();
 		this.props.editor.layout.inspector.forceUpdate();
+
+		await saveAssetsCache();
 	}
 
 	private _handleFileRenamed(oldRelativePath: string, newRelativePath: string): void {
@@ -443,6 +455,43 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 				}
 			});
 		});
+
+		// Scripts
+		const nodes = [scene, ...scene.transformNodes, ...scene.meshes, ...scene.lights, ...scene.cameras];
+		const scripts = nodes.map((node) => node.metadata?.scripts ?? []).flat();
+
+		scripts.forEach((script) => {
+			for (const v in script.values) {
+				if (!script.values.hasOwnProperty(v)) {
+					continue;
+				}
+
+				const value = script.values[v];
+				if (!value.value) {
+					continue;
+				}
+
+				if (value.type === "texture") {
+					const serializationObject = value.value;
+					if (serializationObject?.name === oldRelativePath) {
+						serializationObject.name = newRelativePath;
+						if (serializationObject.url) {
+							serializationObject.url = newRelativePath;
+						}
+					}
+				}
+
+				if (value.type === "asset") {
+					if (value.value === oldRelativePath) {
+						value.value = newRelativePath;
+					}
+				}
+			}
+		});
+
+		assetsCache[oldRelativePath] = {
+			newRelativePath,
+		};
 	}
 
 	/**
@@ -488,11 +537,13 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 	public async handleMoveSelectedFilesTo(absolutePath: string): Promise<void> {
 		const files = this.state.selectedKeys;
 
-		await Promise.all(files.map(async (file) => {
-			const newAbsolutePath = join(absolutePath, basename(file));
-			await move(file, newAbsolutePath);
-			await this.handleFileRenamed(file, newAbsolutePath);
-		}));
+		await Promise.all(
+			files.map(async (file) => {
+				const newAbsolutePath = join(absolutePath, basename(file));
+				await move(file, newAbsolutePath);
+				await this.handleFileRenamed(file, newAbsolutePath);
+			})
+		);
 
 		this.refresh();
 	}
@@ -519,9 +570,21 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 			<div className="flex flex-col w-full h-full">
 				<div className="flex gap-2 justify-between w-full h-10 min-h-10 bg-primary-foreground">
 					<div className="flex gap-2 h-full">
-						<Button disabled={this._isBrowsingProjectRootPath()} minimal icon="arrow-left" className="transition-all duration-300" onClick={() => this.setBrowsePath(dirname(this.state.browsedPath!))} />
+						<Button
+							disabled={this._isBrowsingProjectRootPath()}
+							minimal
+							icon="arrow-left"
+							className="transition-all duration-300"
+							onClick={() => this.setBrowsePath(dirname(this.state.browsedPath!))}
+						/>
 						<Button minimal icon="arrow-right" className="transition-all duration-300" />
-						<Button minimal icon="refresh" className="transition-all duration-300" disabled={!this.state.browsedPath} onClick={() => this._refreshItems(this.state.browsedPath!)} />
+						<Button
+							minimal
+							icon="refresh"
+							className="transition-all duration-300"
+							disabled={!this.state.browsedPath}
+							onClick={() => this._refreshItems(this.state.browsedPath!)}
+						/>
 
 						<Button minimal icon="import" text="Import" onClick={() => this._handleImportFiles()} />
 					</div>
@@ -544,19 +607,30 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 
 						<DropdownMenu onOpenChange={(o) => o && this.forceUpdate()}>
 							<DropdownMenuTrigger asChild>
-								<Button minimal icon={<IoIosOptions className="w-6 h-6" strokeWidth={1} />} className="transition-all duration-300" disabled={!this.state.browsedPath} onClick={() => this._refreshItems(this.state.browsedPath!)} />
+								<Button
+									minimal
+									icon={<IoIosOptions className="w-6 h-6" strokeWidth={1} />}
+									className="transition-all duration-300"
+									disabled={!this.state.browsedPath}
+									onClick={() => this._refreshItems(this.state.browsedPath!)}
+								/>
 							</DropdownMenuTrigger>
 							<DropdownMenuContent>
-								<DropdownMenuItem className="flex gap-1 items-center" onClick={() => {
-									this.setState({ showGeneratedFiles: !this.state.showGeneratedFiles }, () => this.refresh());
-								}}>
+								<DropdownMenuItem
+									className="flex gap-1 items-center"
+									onClick={() => {
+										this.setState({ showGeneratedFiles: !this.state.showGeneratedFiles }, () => this.refresh());
+									}}
+								>
 									{this.state.showGeneratedFiles ? <IoCheckmark /> : ""} Show Generated Files
 								</DropdownMenuItem>
 								<DropdownMenuSeparator />
-								<DropdownMenuItem disabled={processingCompressedTextures} className="flex gap-2 items-center" onClick={() => checkProjectCachedCompressedTextures(this.props.editor)}>
-									{processingCompressedTextures &&
-										<Grid width={14} height={14} color="#ffffff" />
-									}
+								<DropdownMenuItem
+									disabled={processingCompressedTextures || !this.props.editor.state.compressedTexturesEnabledInPreview}
+									className="flex gap-2 items-center"
+									onClick={() => checkProjectCachedCompressedTextures(this.props.editor)}
+								>
+									{processingCompressedTextures && <Grid width={14} height={14} color="#ffffff" />}
 									Check Compressed Textures
 								</DropdownMenuItem>
 							</DropdownMenuContent>
@@ -587,26 +661,24 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 			<div className="flex items-center px-2.5 h-10 min-h-10 bg-primary-foreground/50">
 				<Breadcrumb>
 					<BreadcrumbList>
-						{split.filter((s) => s !== "").map((s, i) => (
-							<Fade key={i} delay={0} duration={300}>
-								<BreadcrumbItem className="flex gap-[5px] items-center">
-									{(i === 0 || i < split.length - 1) &&
-										<FaRegFolderOpen className="text-foreground w-[20px] h-[20px]" />
-									}
+						{split
+							.filter((s) => s !== "")
+							.map((s, i) => (
+								<Fade key={i} delay={0} duration={300}>
+									<BreadcrumbItem className="flex gap-[5px] items-center">
+										{(i === 0 || i < split.length - 1) && <FaRegFolderOpen className="text-foreground w-[20px] h-[20px]" />}
 
-									<BreadcrumbLink
-										className="text-foreground font-[400] hover:text-foreground/50"
-										onClick={() => this.setBrowsePath(join(rootPath, split.slice(1, i + 1).join("/")))}
-									>
-										{s}
-									</BreadcrumbLink>
-								</BreadcrumbItem>
+										<BreadcrumbLink
+											className="text-foreground font-[400] hover:text-foreground/50"
+											onClick={() => this.setBrowsePath(join(rootPath, split.slice(1, i + 1).join("/")))}
+										>
+											{s}
+										</BreadcrumbLink>
+									</BreadcrumbItem>
 
-								{i < split.length - 1 &&
-									<BreadcrumbSeparator />
-								}
-							</Fade>
-						))}
+									{i < split.length - 1 && <BreadcrumbSeparator />}
+								</Fade>
+							))}
 					</BreadcrumbList>
 				</Breadcrumb>
 			</div>
@@ -628,8 +700,8 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 								gridTemplateRows: `repeat(auto-fill, ${120 * 1}px)`,
 								gridTemplateColumns: `repeat(auto-fill, ${120 * 1}px)`,
 							}}
-							onMouseMove={() => this._isMouseOver = true}
-							onMouseLeave={() => this._isMouseOver = false}
+							onMouseMove={() => (this._isMouseOver = true)}
+							onMouseLeave={() => (this._isMouseOver = false)}
 							onDragOver={(ev) => this._handleDragOver(ev)}
 							onDragLeave={() => this.setState({ dragAndDroppingFiles: false })}
 							onDrop={(ev) => this._handleDrop(ev)}
@@ -639,16 +711,14 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
                                 transition-colors duration-300 ease-in-out    
                             `}
 						>
-							{
-								this.state.files
-									.filter((f) => f.toLowerCase().includes(this.state.gridSearch.toLowerCase()))
-									.map((f) => {
-										const key = join(this.state.browsedPath!, f);
-										const selected = this.state.selectedKeys.indexOf(key) > -1;
+							{this.state.files
+								.filter((f) => f.toLowerCase().includes(this.state.gridSearch.toLowerCase()))
+								.map((f) => {
+									const key = join(this.state.browsedPath!, f);
+									const selected = this.state.selectedKeys.indexOf(key) > -1;
 
-										return this._getAssetBrowserItem(f, key, selected);
-									})
-							}
+									return this._getAssetBrowserItem(f, key, selected);
+								})}
 						</div>
 					</ContextMenuTrigger>
 					<ContextMenuContent>
@@ -658,7 +728,9 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 
 						<ContextMenuSeparator />
 
-						<ContextMenuItem disabled={this._selectedFiles.length === 0} onClick={() => this._pasteSelectedFiles()}>Paste</ContextMenuItem>
+						<ContextMenuItem disabled={this._selectedFiles.length === 0} onClick={() => this._pasteSelectedFiles()}>
+							Paste
+						</ContextMenuItem>
 
 						<ContextMenuSeparator />
 
@@ -677,31 +749,47 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 
 								<ContextMenuSeparator />
 								<ContextMenuItem onClick={() => this._handleAddNodeMaterialFromSnippet()}>Node Material From Snippet...</ContextMenuItem>
+								<ContextMenuSeparator />
 
-								{this.props.editor.state.enableExperimentalFeatures &&
+								<ContextMenuSub>
+									<ContextMenuSubTrigger className="flex items-center gap-2">Materials Library</ContextMenuSubTrigger>
+									<ContextMenuSubContent>
+										{getMaterialsLibraryCommands(this.props.editor).map((command) => (
+											<ContextMenuItem key={command.key} onClick={() => this._handleAddMaterial(command)}>
+												{command.text}
+											</ContextMenuItem>
+										))}
+									</ContextMenuSubContent>
+								</ContextMenuSub>
+
+								{this.props.editor.state.enableExperimentalFeatures && (
 									<>
+										<ContextMenuSeparator />
+										<ContextMenuItem onClick={() => this._handleAddNodeParticleSystem()}>Node Particle System</ContextMenuItem>
 										<ContextMenuSeparator />
 										<ContextMenuItem onClick={() => this._handleAddCinematic()}>Cinematic</ContextMenuItem>
 									</>
-								}
+								)}
 
-								<ContextMenuSeparator />
-								<ContextMenuItem onClick={() => this._handleAddFullScreenGUI()}>Full Screen GUI</ContextMenuItem>
+								{this.props.editor.state.enableExperimentalFeatures && (
+									<>
+										<ContextMenuSeparator />
+										<ContextMenuItem onClick={() => this._handleAddFullScreenGUI()}>Full Screen GUI</ContextMenuItem>
+									</>
+								)}
 
-								{this.state.browsedPath?.startsWith(join(dirname(projectConfiguration.path!), "/src")) &&
+								{this.state.browsedPath?.startsWith(join(dirname(projectConfiguration.path!), "/src")) && (
 									<>
 										<ContextMenuSeparator />
 										<ContextMenuSub>
-											<ContextMenuSubTrigger className="flex items-center gap-2">
-												Script
-											</ContextMenuSubTrigger>
+											<ContextMenuSubTrigger className="flex items-center gap-2">Script</ContextMenuSubTrigger>
 											<ContextMenuSubContent>
 												<ContextMenuItem onClick={() => this._handleAddScript("class")}>Class-based</ContextMenuItem>
 												<ContextMenuItem onClick={() => this._handleAddScript("function")}>Function-based</ContextMenuItem>
 											</ContextMenuSubContent>
 										</ContextMenuSub>
 									</>
-								}
+								)}
 							</ContextMenuSubContent>
 						</ContextMenuSub>
 
@@ -719,7 +807,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 	private _getAssetBrowserItem(filename: string, key: string, selected: boolean): ReactNode {
 		const extension = extname(filename).toLowerCase();
 
-		const props: IAssetsBrowserItemProps & { key: string; } = {
+		const props: IAssetsBrowserItemProps & { key: string } = {
 			key,
 			selected,
 			absolutePath: key,
@@ -769,6 +857,9 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 			case ".cinematic":
 				return <CinematicSelectable {...props} />;
 
+			case ".npss":
+				return <ParticleSystemSelectable {...props} />;
+
 			default:
 				return <DefaultSelectable {...props} />;
 		}
@@ -777,11 +868,12 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 	private _handleDragOver(event: DragEvent<HTMLDivElement>): void {
 		event.preventDefault();
 		this.setState({
-			dragAndDroppingFiles: event.dataTransfer.types.includes("Files")
+			dragAndDroppingFiles: event.dataTransfer.types.length === 1 && event.dataTransfer.types[0] === "Files",
 		});
 	}
 
 	private async _handleDrop(event: DragEvent<HTMLDivElement>): Promise<void> {
+		event.persist();
 		event.preventDefault();
 
 		this.setState({
@@ -800,15 +892,24 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 				continue;
 			}
 
-			const path = webUtils.getPathForFile(file);
+			const path = webUtils.getPathForFile(file).replace(/\\/g, "/");
 			const absolutePath = join(this.state.browsedPath, basename(path));
 
 			filesToCopy[path] = absolutePath;
 		}
 
-		await Promise.all(Object.entries(filesToCopy).map(async ([source, destination]) => {
-			await copyFile(source, destination);
-		}));
+		await Promise.all(
+			Object.entries(filesToCopy).map(async ([source, destination]) => {
+				const fStat = await stat(source);
+				if (fStat.isDirectory()) {
+					await copy(source, destination, {
+						recursive: true,
+					});
+				} else {
+					await copyFile(source, destination);
+				}
+			})
+		);
 
 		this.refresh();
 	}
@@ -823,9 +924,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 		await this._refreshItems(this.state.browsedPath);
 
 		this.setState({
-			selectedKeys: [
-				join(this.state.browsedPath, name),
-			],
+			selectedKeys: [join(this.state.browsedPath, name)],
 		});
 	}
 
@@ -921,6 +1020,38 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 		return this._refreshItems(this.state.browsedPath);
 	}
 
+	private async _handleAddNodeParticleSystem(): Promise<void> {
+		if (!this.state.browsedPath) {
+			return;
+		}
+
+		const npe = new NodeParticleSystemSet("New Node Particle System Set");
+		npe.setToDefault();
+		npe.id = Tools.RandomId();
+		npe.uniqueId = UniqueNumber.Get();
+
+		const pss = await npe.buildAsync(this.props.editor.layout.preview.scene, false);
+
+		const name = await findAvailableFilename(this.state.browsedPath, npe.name, ".npss");
+		await writeJSON(
+			join(this.state.browsedPath, name),
+			{
+				id: npe.id,
+				uniqueId: npe.uniqueId,
+				...npe.serialize(),
+			},
+			{
+				spaces: "\t",
+				encoding: "utf-8",
+			}
+		);
+
+		npe.dispose();
+		pss.dispose();
+
+		return this._refreshItems(this.state.browsedPath);
+	}
+
 	private async _handleAddCinematic(): Promise<void> {
 		if (!this.state.browsedPath) {
 			return;
@@ -938,8 +1069,6 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 			spaces: "\t",
 			encoding: "utf-8",
 		});
-
-		this.props.editor.layout.preview.scene;
 
 		return this._refreshItems(this.state.browsedPath);
 	}
@@ -973,11 +1102,9 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 			return;
 		}
 
-		const url = type === "class"
-			? "assets/class-based-script.ts"
-			: "assets/function-based-script.ts";
+		const url = type === "class" ? "assets/class-based-script.ts" : "assets/function-based-script.ts";
 
-		const content = await fetch(url).then(r => r.text());
+		const content = await fetch(url).then((r) => r.text());
 
 		const name = await findAvailableFilename(this.state.browsedPath, "new-script", ".ts");
 		const scriptPath = join(this.state.browsedPath, name);
@@ -1119,7 +1246,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 			return;
 		}
 
-		if (!await pathExists(join(item.props.absolutePath, "config.json"))) {
+		if (!(await pathExists(join(item.props.absolutePath, "config.json")))) {
 			return;
 		}
 
@@ -1145,7 +1272,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 	private _handleNodeClicked(node: TreeNodeInfo): void {
 		this.setBrowsePath(join(dirname(projectConfiguration.path!), node.id as string));
 
-		this._forEachNode(this.state.filesTreeNodes, (n) => n.isSelected = n.id === node.id);
+		this._forEachNode(this.state.filesTreeNodes, (n) => (n.isSelected = n.id === node.id));
 		this.setState({ filesTreeNodes: this.state.filesTreeNodes });
 	}
 

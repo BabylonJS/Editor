@@ -1,8 +1,8 @@
 export interface IIconProps {
-    width?: number;
-    height?: number;
-    size?: string | number;
+	width?: number;
+	height?: number;
+	size?: string | number;
 
-    color?: string;
-    strokeColor?: string;
+	color?: string;
+	strokeColor?: string;
 }

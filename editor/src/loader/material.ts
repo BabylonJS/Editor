@@ -13,14 +13,16 @@ export function parseMaterial(runtime: AssimpJSRuntime, data: IAssimpJSMaterialD
 
 	data.properties.forEach(async (p) => {
 		switch (p.key) {
-			case "?mat.name": material.name = p.value as string; break;
+			case "?mat.name":
+				material.name = p.value as string;
+				break;
 
 			// Textures
 			case "$raw.Bump|file":
 			case "$raw.DiffuseColor|file":
 			case "$raw.AmbientColor|file":
 			case "$raw.SpecularColor|file":
-				if (typeof (p.value) === "string") {
+				if (typeof p.value === "string") {
 					const map = materialPropertyMap[p.key];
 					const texturePath = join(runtime.rootUrl, p.value.replace(/\\/g, "/"));
 
@@ -60,19 +62,19 @@ export function parseMaterial(runtime: AssimpJSRuntime, data: IAssimpJSMaterialD
 
 			// Factors
 			case "$mat.shininess":
-				if (typeof (p.value) === "number") {
+				if (typeof p.value === "number") {
 					material.microSurface = p.value;
 				}
 				break;
 
 			case "$mat.bumpscaling":
-				if (typeof (p.value) === "number" && material.bumpTexture) {
+				if (typeof p.value === "number" && material.bumpTexture) {
 					material.bumpTexture.level = p.value;
 				}
 				break;
 
 			case "$mat.opacity":
-				if (typeof (p.value) === "number") {
+				if (typeof p.value === "number") {
 					material.alpha = p.value;
 					material.alphaMode = PBRMaterial.MATERIAL_ALPHABLEND;
 				}

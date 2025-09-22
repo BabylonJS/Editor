@@ -21,16 +21,16 @@ import { CinematicEditorPropertyKey } from "./property";
 import { CinematicEditorAnimationGroupKey } from "./animation-group";
 
 export interface ICinematicEditorKeyBaseProps {
-    cinematicEditor: CinematicEditor;
-    scale: number;
-    track: ICinematicTrack;
-    cinematicKey: CinematicKeyType;
+	cinematicEditor: CinematicEditor;
+	scale: number;
+	track: ICinematicTrack;
+	cinematicKey: CinematicKeyType;
 
-    onRemoved: () => void;
+	onRemoved: () => void;
 }
 
 export interface ICinematicEditorKeyBaseState {
-    move: boolean;
+	move: boolean;
 }
 
 export class CinematicEditorKeyBase extends Component<ICinematicEditorKeyBaseProps, ICinematicEditorKeyBaseState> {
@@ -61,11 +61,9 @@ export class CinematicEditorKeyBase extends Component<ICinematicEditorKeyBasePro
                     `}
 				>
 					<ContextMenu>
-						<ContextMenuTrigger
-							onContextMenu={(ev) => ev.stopPropagation()}
-						>
+						<ContextMenuTrigger onContextMenu={(ev) => ev.stopPropagation()}>
 							<div
-								ref={(div) => this._divRef = div}
+								ref={(div) => (this._divRef = div)}
 								onDoubleClick={() => this._handleDoubleClick()}
 								onClick={() => !this.state.move && this.props.cinematicEditor.inspector.setEditedObject(this.props.cinematicKey, this.props.track)}
 							>
@@ -73,27 +71,22 @@ export class CinematicEditorKeyBase extends Component<ICinematicEditorKeyBasePro
 							</div>
 						</ContextMenuTrigger>
 						<ContextMenuContent>
-							{(isCinematicKey(this.props.cinematicKey) || isCinematicKeyCut(this.props.cinematicKey)) &&
-                                <>
-                                	<ContextMenuItem className="flex items-center gap-2" onClick={() => transformKeyAs(this.props.cinematicEditor, this.props.cinematicKey as any)} >
-                                		<FaExchangeAlt className="w-5 h-5" />
-                                        Transform as {this.props.cinematicKey.type === "key" ? "Cut Key" : "Simple Key"}
-                                	</ContextMenuItem>
-                                	<ContextMenuSeparator />
-                                </>
-							}
-							<ContextMenuItem
-								className="flex items-center gap-2 !text-red-400"
-								onClick={() => this.props.onRemoved()}
-							>
+							{(isCinematicKey(this.props.cinematicKey) || isCinematicKeyCut(this.props.cinematicKey)) && (
+								<>
+									<ContextMenuItem className="flex items-center gap-2" onClick={() => transformKeyAs(this.props.cinematicEditor, this.props.cinematicKey as any)}>
+										<FaExchangeAlt className="w-5 h-5" />
+										Transform as {this.props.cinematicKey.type === "key" ? "Cut Key" : "Simple Key"}
+									</ContextMenuItem>
+									<ContextMenuSeparator />
+								</>
+							)}
+							<ContextMenuItem className="flex items-center gap-2 !text-red-400" onClick={() => this.props.onRemoved()}>
 								<AiOutlineClose className="w-5 h-5" fill="rgb(248, 113, 113)" /> Remove
 							</ContextMenuItem>
 						</ContextMenuContent>
 					</ContextMenu>
 				</TooltipTrigger>
-				<TooltipContent>
-					{this._getTooltipContent()}
-				</TooltipContent>
+				<TooltipContent>{this._getTooltipContent()}</TooltipContent>
 			</Tooltip>
 		);
 	}
@@ -125,39 +118,28 @@ export class CinematicEditorKeyBase extends Component<ICinematicEditorKeyBasePro
 
 	private _getComponent(): ReactNode {
 		if (isCinematicKeyCut(this.props.cinematicKey) || isCinematicKey(this.props.cinematicKey)) {
-			return <CinematicEditorPropertyKey
-				cinematicEditor={this.props.cinematicEditor}
-				scale={this.props.scale}
-				move={this.state.move}
-				cinematicKey={this.props.cinematicKey}
-			/>;
+			return (
+				<CinematicEditorPropertyKey cinematicEditor={this.props.cinematicEditor} scale={this.props.scale} move={this.state.move} cinematicKey={this.props.cinematicKey} />
+			);
 		}
 
 		if (isCinematicSound(this.props.cinematicKey)) {
-			return <CinematicEditorSoundKey
-				cinematicEditor={this.props.cinematicEditor}
-				scale={this.props.scale}
-				move={this.state.move}
-				cinematicKey={this.props.cinematicKey}
-			/>;
+			return <CinematicEditorSoundKey cinematicEditor={this.props.cinematicEditor} scale={this.props.scale} move={this.state.move} cinematicKey={this.props.cinematicKey} />;
 		}
 
 		if (isCinematicKeyEvent(this.props.cinematicKey)) {
-			return <CinematicEditorEventKey
-				cinematicEditor={this.props.cinematicEditor}
-				scale={this.props.scale}
-				move={this.state.move}
-				cinematicKey={this.props.cinematicKey}
-			/>;
+			return <CinematicEditorEventKey cinematicEditor={this.props.cinematicEditor} scale={this.props.scale} move={this.state.move} cinematicKey={this.props.cinematicKey} />;
 		}
 
 		if (isCinematicGroup(this.props.cinematicKey)) {
-			return <CinematicEditorAnimationGroupKey
-				cinematicEditor={this.props.cinematicEditor}
-				scale={this.props.scale}
-				move={this.state.move}
-				cinematicKey={this.props.cinematicKey}
-			/>;
+			return (
+				<CinematicEditorAnimationGroupKey
+					cinematicEditor={this.props.cinematicEditor}
+					scale={this.props.scale}
+					move={this.state.move}
+					cinematicKey={this.props.cinematicKey}
+				/>
+			);
 		}
 
 		return null;
@@ -175,15 +157,9 @@ export class CinematicEditorKeyBase extends Component<ICinematicEditorKeyBasePro
 
 		return (
 			<div className="flex flex-col gap-2 justify-center items-center p-2">
-				<div className="font-semibold text-primary-foreground">
-					{getKeyFrame(this.props.cinematicKey)}
-				</div>
+				<div className="font-semibold text-primary-foreground">{getKeyFrame(this.props.cinematicKey)}</div>
 				<div className="flex gap-1 items-center text-primary-foreground">
-					{minutes >= 1 &&
-                        <>
-                        	{minutes >> 0}min
-                        </>
-					}
+					{minutes >= 1 && <>{minutes >> 0}min</>}
 					{(seconds - minutes * 60).toFixed(2)}s
 				</div>
 			</div>

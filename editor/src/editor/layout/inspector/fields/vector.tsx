@@ -9,13 +9,13 @@ import { IEditorInspectorFieldProps } from "./field";
 import { EditorInspectorNumberField } from "./number";
 
 export interface IEditorInspectorVectorFieldProps extends IEditorInspectorFieldProps {
-    step?: number;
-    asDegrees?: boolean;
+	step?: number;
+	asDegrees?: boolean;
 
-    grayLabel?: boolean;
+	grayLabel?: boolean;
 
-    onChange?: () => void;
-    onFinishChange?: () => void;
+	onChange?: () => void;
+	onFinishChange?: () => void;
 }
 
 export function EditorInspectorVectorField(props: IEditorInspectorVectorFieldProps) {
@@ -24,11 +24,7 @@ export function EditorInspectorVectorField(props: IEditorInspectorVectorFieldPro
 	const [pointerOver, setPointerOver] = useState(false);
 
 	return (
-		<div
-			className="flex gap-2 items-center px-2"
-			onMouseOver={() => setPointerOver(true)}
-			onMouseLeave={() => setPointerOver(false)}
-		>
+		<div className="flex gap-2 items-center px-2" onMouseOver={() => setPointerOver(true)} onMouseLeave={() => setPointerOver(false)}>
 			<div
 				className={`
                     w-32
@@ -39,18 +35,16 @@ export function EditorInspectorVectorField(props: IEditorInspectorVectorFieldPro
 				<div className="flex gap-2 items-center">
 					{props.label}
 
-					{props.tooltip &&
-                        <TooltipProvider delayDuration={0}>
-                        	<Tooltip>
-                        		<TooltipTrigger>
-                        			<MdOutlineInfo size={24} />
-                        		</TooltipTrigger>
-                        		<TooltipContent className="bg-muted text-muted-foreground text-sm p-2">
-                        			{props.tooltip}
-                        		</TooltipContent>
-                        	</Tooltip>
-                        </TooltipProvider>
-					}
+					{props.tooltip && (
+						<TooltipProvider delayDuration={0}>
+							<Tooltip>
+								<TooltipTrigger>
+									<MdOutlineInfo size={24} />
+								</TooltipTrigger>
+								<TooltipContent className="bg-muted text-muted-foreground text-sm p-2">{props.tooltip}</TooltipContent>
+							</Tooltip>
+						</TooltipProvider>
+					)}
 				</div>
 			</div>
 
@@ -75,29 +69,29 @@ export function EditorInspectorVectorField(props: IEditorInspectorVectorFieldPro
 					onFinishChange={() => props.onFinishChange?.()}
 				/>
 
-				{(value.getClassName() === "Vector3" || value.getClassName() === "Vector4") &&
-                    <EditorInspectorNumberField
-                    	object={props.object}
-                    	property={`${props.property}.z`}
-                    	noUndoRedo={props.noUndoRedo}
-                    	asDegrees={props.asDegrees}
-                    	step={props.step}
-                    	onChange={() => props.onChange?.()}
-                    	onFinishChange={() => props.onFinishChange?.()}
-                    />
-				}
+				{(value.getClassName() === "Vector3" || value.getClassName() === "Vector4") && (
+					<EditorInspectorNumberField
+						object={props.object}
+						property={`${props.property}.z`}
+						noUndoRedo={props.noUndoRedo}
+						asDegrees={props.asDegrees}
+						step={props.step}
+						onChange={() => props.onChange?.()}
+						onFinishChange={() => props.onFinishChange?.()}
+					/>
+				)}
 
-				{value.getClassName() === "Vector4" &&
-                    <EditorInspectorNumberField
-                    	object={props.object}
-                    	property={`${props.property}.w`}
-                    	noUndoRedo={props.noUndoRedo}
-                    	asDegrees={props.asDegrees}
-                    	step={props.step}
-                    	onChange={() => props.onChange?.()}
-                    	onFinishChange={() => props.onFinishChange?.()}
-                    />
-				}
+				{value.getClassName() === "Vector4" && (
+					<EditorInspectorNumberField
+						object={props.object}
+						property={`${props.property}.w`}
+						noUndoRedo={props.noUndoRedo}
+						asDegrees={props.asDegrees}
+						step={props.step}
+						onChange={() => props.onChange?.()}
+						onFinishChange={() => props.onFinishChange?.()}
+					/>
+				)}
 			</div>
 		</div>
 	);

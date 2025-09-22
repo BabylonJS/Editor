@@ -17,11 +17,11 @@ import { IEditorInspectorFieldProps } from "./field";
 import { EditorInspectorNumberField } from "./number";
 
 export interface IEditorInspectorColorFieldProps extends IEditorInspectorFieldProps {
-    noClamp?: boolean;
-    noColorPicker?: boolean;
+	noClamp?: boolean;
+	noColorPicker?: boolean;
 
-    onChange?: (value: Color3 | Color4) => void;
-    onFinishChange?: (value: Color3 | Color4) => void;
+	onChange?: (value: Color3 | Color4) => void;
+	onFinishChange?: (value: Color3 | Color4, oldValue: Color3 | Color4) => void;
 }
 
 export function EditorInspectorColorField(props: IEditorInspectorColorFieldProps) {
@@ -59,7 +59,7 @@ export function EditorInspectorColorField(props: IEditorInspectorColorFieldProps
 			setOldValue(color.clone());
 		}
 
-		props.onFinishChange?.(color);
+		props.onFinishChange?.(color, oldValue);
 	}
 
 	function handleChanelChange(value: number, channel: "r" | "g" | "b" | "a") {
@@ -74,39 +74,61 @@ export function EditorInspectorColorField(props: IEditorInspectorColorFieldProps
 			<div className="flex gap-2 items-center w-32">
 				{props.label}
 
-				{props.tooltip &&
-                    <TooltipProvider delayDuration={0}>
-                    	<Tooltip>
-                    		<TooltipTrigger>
-                    			<MdOutlineInfo size={24} />
-                    		</TooltipTrigger>
-                    		<TooltipContent className="bg-muted text-muted-foreground text-sm p-2">
-                    			{props.tooltip}
-                    		</TooltipContent>
-                    	</Tooltip>
-                    </TooltipProvider>
-				}
+				{props.tooltip && (
+					<TooltipProvider delayDuration={0}>
+						<Tooltip>
+							<TooltipTrigger>
+								<MdOutlineInfo size={24} />
+							</TooltipTrigger>
+							<TooltipContent className="bg-muted text-muted-foreground text-sm p-2">{props.tooltip}</TooltipContent>
+						</Tooltip>
+					</TooltipProvider>
+				)}
 			</div>
 
 			<div className="flex">
-				<EditorInspectorNumberField object={props.object} property={`${props.property}.r`} min={props.noClamp ? undefined : 0} max={props.noClamp ? undefined : 1} onChange={(v) => handleChanelChange(v, "r")} />
-				<EditorInspectorNumberField object={props.object} property={`${props.property}.g`} min={props.noClamp ? undefined : 0} max={props.noClamp ? undefined : 1} onChange={(v) => handleChanelChange(v, "g")} />
-				<EditorInspectorNumberField object={props.object} property={`${props.property}.b`} min={props.noClamp ? undefined : 0} max={props.noClamp ? undefined : 1} onChange={(v) => handleChanelChange(v, "b")} />
+				<EditorInspectorNumberField
+					object={props.object}
+					property={`${props.property}.r`}
+					min={props.noClamp ? undefined : 0}
+					max={props.noClamp ? undefined : 1}
+					onChange={(v) => handleChanelChange(v, "r")}
+				/>
+				<EditorInspectorNumberField
+					object={props.object}
+					property={`${props.property}.g`}
+					min={props.noClamp ? undefined : 0}
+					max={props.noClamp ? undefined : 1}
+					onChange={(v) => handleChanelChange(v, "g")}
+				/>
+				<EditorInspectorNumberField
+					object={props.object}
+					property={`${props.property}.b`}
+					min={props.noClamp ? undefined : 0}
+					max={props.noClamp ? undefined : 1}
+					onChange={(v) => handleChanelChange(v, "b")}
+				/>
 
-				{(props.noColorPicker && color.getClassName() === "Color4") &&
-                    <EditorInspectorNumberField object={props.object} property={`${props.property}.a`} min={props.noClamp ? undefined : 0} max={props.noClamp ? undefined : 1} onChange={(v) => handleChanelChange(v, "a")} />
-				}
+				{props.noColorPicker && color.getClassName() === "Color4" && (
+					<EditorInspectorNumberField
+						object={props.object}
+						property={`${props.property}.a`}
+						min={props.noClamp ? undefined : 0}
+						max={props.noClamp ? undefined : 1}
+						onChange={(v) => handleChanelChange(v, "a")}
+					/>
+				)}
 
-				{!props.noColorPicker &&
-                    <Popover minimal usePortal fill hasBackdrop interactionKind="click" position="left" content={getPopoverContent()}>
-                    	<Button
-                    		style={{
-                    			backgroundColor: `rgba(${value.r * 255}, ${value.g * 255}, ${value.b * 255}, ${(value as Color4).a ?? 1})`,
-                    		}}
-                    		className="h-full aspect-square rounded-lg p-1"
-                    	/>
-                    </Popover>
-				}
+				{!props.noColorPicker && (
+					<Popover minimal usePortal fill hasBackdrop interactionKind="click" position="left" content={getPopoverContent()}>
+						<Button
+							style={{
+								backgroundColor: `rgba(${value.r * 255}, ${value.g * 255}, ${value.b * 255}, ${(value as Color4).a ?? 1})`,
+							}}
+							className="h-full aspect-square rounded-lg p-1"
+						/>
+					</Popover>
+				)}
 			</div>
 		</div>
 	);

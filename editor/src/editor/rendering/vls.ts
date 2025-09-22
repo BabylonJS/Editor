@@ -28,7 +28,16 @@ export function createVLSPostProcess(editor: Editor, mesh?: Mesh | null): Volume
 	const scene = editor.layout.preview.scene;
 	mesh ??= scene.meshes.find((mesh) => isMesh(mesh)) as Mesh;
 
-	vlsPostProcess = new VolumetricLightScatteringPostProcess("VolumetricLightScatteringPostProcess", 1.0, scene.activeCamera, mesh, 100, Texture.BILINEAR_SAMPLINGMODE, scene.getEngine(), false);
+	vlsPostProcess = new VolumetricLightScatteringPostProcess(
+		"VolumetricLightScatteringPostProcess",
+		1.0,
+		scene.activeCamera,
+		mesh,
+		100,
+		Texture.BILINEAR_SAMPLINGMODE,
+		scene.getEngine(),
+		false
+	);
 
 	return vlsPostProcess;
 }

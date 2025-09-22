@@ -23,7 +23,6 @@ export function CodeBlock(props: ICodeBlock) {
 		const html = await codeToHtml(props.code, {
 			lang: "typescript",
 			theme: "vitesse-dark",
-
 		});
 
 		if (divRef.current) {

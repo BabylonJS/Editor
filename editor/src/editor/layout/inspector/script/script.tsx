@@ -1,5 +1,6 @@
 import { extname, join, dirname } from "path/posix";
 
+import { toast } from "sonner";
 import { Component, DragEvent, ReactNode } from "react";
 
 import { Editor } from "../../../main";
@@ -11,13 +12,13 @@ import { EditorInspectorSectionField } from "../fields/section";
 import { InspectorScriptField } from "./field";
 
 export interface IScriptInspectorComponent {
-    object: any;
-    editor: Editor;
+	object: any;
+	editor: Editor;
 }
 
 export interface IScriptInspectorComponentState {
-    dragOver: boolean;
-    scriptFound: boolean;
+	dragOver: boolean;
+	scriptFound: boolean;
 }
 
 export class ScriptInspectorComponent extends Component<IScriptInspectorComponent, IScriptInspectorComponentState> {
@@ -36,6 +37,7 @@ export class ScriptInspectorComponent extends Component<IScriptInspectorComponen
 				{this.props.object.metadata?.scripts?.map((script: any, index: number) => (
 					<InspectorScriptField
 						script={script}
+						scriptIndex={index}
 						key={`${script}_${index}`}
 						editor={this.props.editor}
 						object={this.props.object}
@@ -63,14 +65,12 @@ export class ScriptInspectorComponent extends Component<IScriptInspectorComponen
 	private _getEmptyComponent(): ReactNode {
 		return (
 			<div
-				onDrop={((ev) => this._handleDropEmptyComponent(ev))}
-				onDragLeave={(() => this.setState({ dragOver: false }))}
-				onDragOver={((ev) => this._handleDragOverEmptyComponent(ev))}
+				onDrop={(ev) => this._handleDropEmptyComponent(ev)}
+				onDragLeave={() => this.setState({ dragOver: false })}
+				onDragOver={(ev) => this._handleDragOverEmptyComponent(ev)}
 				className={`flex flex-col justify-center items-center w-full h-[64px] rounded-lg border-[1px] border-secondary-foreground/35 border-dashed ${this.state.dragOver ? "bg-secondary-foreground/35" : ""} transition-all duration-300 ease-in-out`}
 			>
-				<div>
-                    Drag'n'drop a script here
-				</div>
+				<div className="font-semibold text-muted-foreground">Drag'n'drop a script here</div>
 			</div>
 		);
 	}
@@ -118,7 +118,7 @@ export class ScriptInspectorComponent extends Component<IScriptInspectorComponen
 			}
 
 			if (this.props.object.metadata.scripts.find((script) => script.key === relativePath)) {
-				return;
+				return toast.warning(`Script '${relativePath}' is already attached to the object.`);
 			}
 
 			registerUndoRedo({

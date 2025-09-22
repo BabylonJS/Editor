@@ -1,5 +1,5 @@
-import { ipcRenderer } from "electron";
 import { dirname, join } from "path/posix";
+import { ipcRenderer, shell } from "electron";
 
 import { Component, ReactNode } from "react";
 
@@ -14,6 +14,7 @@ import { showConfirm } from "../../ui/dialog";
 import { ToolbarComponent } from "../../ui/toolbar";
 
 import { saveProject } from "../../project/save/save";
+import { startProjectDevProcess } from "../../project/run";
 import { exportProject } from "../../project/export/export";
 
 import { Editor } from "../main";
@@ -41,11 +42,7 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 		this._lightCommands = getLightCommands(this.props.editor);
 		this._cameraCommands = getCameraCommands(this.props.editor);
 
-		const commands = [
-			...this._meshCommands,
-			...this._lightCommands,
-			...this._cameraCommands,
-		];
+		const commands = [...this._meshCommands, ...this._lightCommands, ...this._cameraCommands];
 
 		commands.forEach((command) => {
 			ipcRenderer.on(`add:${command.ipcRendererChannelKey}`, command.action);
@@ -55,13 +52,9 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 	public render(): ReactNode {
 		return (
 			<>
-				{isDarwin() &&
-					<div className="absolute top-0 left-0 w-screen h-10 electron-draggable" />
-				}
+				{isDarwin() && <div className="absolute top-0 left-0 w-screen h-10 electron-draggable" />}
 
-				{(!isDarwin() || process.env.DEBUG) &&
-					this._getToolbar()
-				}
+				{(!isDarwin() || process.env.DEBUG) && this._getToolbar()}
 			</>
 		);
 	}
@@ -74,9 +67,7 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 
 					{/* File */}
 					<MenubarMenu>
-						<MenubarTrigger>
-							File
-						</MenubarTrigger>
+						<MenubarTrigger>File</MenubarTrigger>
 						<MenubarContent className="border-black/50">
 							<MenubarItem onClick={() => this._handleOpenProject()}>
 								Open Project <MenubarShortcut>CTRL+O</MenubarShortcut>
@@ -89,7 +80,7 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 							</MenubarItem>
 
 							<MenubarItem onClick={() => exportProject(this.props.editor, { optimize: true })}>
-								Export <MenubarShortcut>CTRL+G</MenubarShortcut>
+								Generate <MenubarShortcut>CTRL+G</MenubarShortcut>
 							</MenubarItem>
 
 							<MenubarSeparator />
@@ -97,14 +88,16 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 							<MenubarItem disabled={!visualStudioCodeAvailable} onClick={() => this._handleOpenVisualStudioCode()}>
 								Open in Visual Studio Code
 							</MenubarItem>
+
+							<MenubarSeparator />
+
+							<MenubarItem onClick={() => startProjectDevProcess(this.props.editor)}>Run Project...</MenubarItem>
 						</MenubarContent>
 					</MenubarMenu>
 
 					{/* Edit */}
 					<MenubarMenu>
-						<MenubarTrigger>
-							Edit
-						</MenubarTrigger>
+						<MenubarTrigger>Edit</MenubarTrigger>
 						<MenubarContent className="border-black/50">
 							<MenubarItem>
 								Undo <MenubarShortcut>CTRL+Z</MenubarShortcut>
@@ -127,23 +120,17 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 
 							<MenubarSeparator />
 
-							<MenubarItem onClick={() => this.props.editor.setState({ editProject: true })}>
-								Project...
-							</MenubarItem>
+							<MenubarItem onClick={() => this.props.editor.setState({ editProject: true })}>Project...</MenubarItem>
 
 							<MenubarSeparator />
 
-							<MenubarItem onClick={() => this.props.editor.setState({ editPreferences: true })}>
-								Preferences...
-							</MenubarItem>
+							<MenubarItem onClick={() => this.props.editor.setState({ editPreferences: true })}>Preferences...</MenubarItem>
 						</MenubarContent>
 					</MenubarMenu>
 
 					{/* Preview */}
 					<MenubarMenu>
-						<MenubarTrigger>
-							Preview
-						</MenubarTrigger>
+						<MenubarTrigger>Preview</MenubarTrigger>
 						<MenubarContent className="border-black/50">
 							<MenubarItem onClick={() => this.props.editor.layout.preview.setActiveGizmo("position")}>
 								Position <MenubarShortcut>CTRL+T</MenubarShortcut>
@@ -166,14 +153,16 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 							<MenubarItem onClick={() => this.props.editor.layout.inspector.setEditedObject(this.props.editor.layout.preview.scene.activeCamera)}>
 								Edit Camera
 							</MenubarItem>
+
+							<MenubarSeparator />
+
+							<MenubarItem onClick={() => this.props.editor.layout.preview.play.triggerPlayScene()}>Play Scene</MenubarItem>
 						</MenubarContent>
 					</MenubarMenu>
 
 					{/* Add */}
 					<MenubarMenu>
-						<MenubarTrigger>
-							Add
-						</MenubarTrigger>
+						<MenubarTrigger>Add</MenubarTrigger>
 						<MenubarContent className="border-black/50">
 							{this._meshCommands.map((command) => (
 								<MenubarItem key={command.key} onClick={command.action}>
@@ -197,9 +186,7 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 
 					{/* Window */}
 					<MenubarMenu>
-						<MenubarTrigger>
-							Window
-						</MenubarTrigger>
+						<MenubarTrigger>Window</MenubarTrigger>
 						<MenubarContent className="border-black/50">
 							<MenubarItem onClick={() => ipcRenderer.send("window:minimize")}>
 								Minimize <MenubarShortcut>CTRL+M</MenubarShortcut>
@@ -207,6 +194,19 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 							<MenubarItem onClick={() => this.props.editor.close()}>
 								Close <MenubarShortcut>CTRL+W</MenubarShortcut>
 							</MenubarItem>
+						</MenubarContent>
+					</MenubarMenu>
+
+					{/* Help */}
+					<MenubarMenu>
+						<MenubarTrigger>Help</MenubarTrigger>
+						<MenubarContent className="border-black/50">
+							<MenubarItem onClick={() => shell.openExternal("https://editor.babylonjs.com/documentation")}>Editor Documentation...</MenubarItem>
+							<MenubarItem onClick={() => shell.openExternal("https://doc.babylonjs.com")}>Babylon.js Documentation...</MenubarItem>
+							<MenubarSeparator />
+							<MenubarItem onClick={() => shell.openExternal("https://forum.babylonjs.com")}>Babylon.js Forum...</MenubarItem>
+							<MenubarSeparator />
+							<MenubarItem onClick={() => shell.openExternal("https://forum.babylonjs.com/c/bugs")}>Report an Issue...</MenubarItem>
 						</MenubarContent>
 					</MenubarMenu>
 				</Menubar>
@@ -217,9 +217,7 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 	private async _handleOpenProject(): Promise<void> {
 		const file = openSingleFileDialog({
 			title: "Open Project",
-			filters: [
-				{ name: "Babylon.js Editor Project File", extensions: ["bjseditor"] }
-			],
+			filters: [{ name: "Babylon.js Editor Project File", extensions: ["bjseditor"] }],
 		});
 
 		if (!file) {

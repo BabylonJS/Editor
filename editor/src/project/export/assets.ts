@@ -8,28 +8,15 @@ import { Editor } from "../../editor/main";
 import { compressFileToKtx } from "./ktx";
 import { processExportedTexture } from "./texture";
 
-const supportedImagesExtensions: string[] = [
-	".jpg", ".jpeg", ".webp",
-	".png",
-	".bmp",
-];
+const supportedImagesExtensions: string[] = [".jpg", ".jpeg", ".webp", ".png", ".bmp"];
 
-const supportedCubeTexturesExtensions: string[] = [
-	".env", ".dds",
-];
+const supportedCubeTexturesExtensions: string[] = [".env", ".dds"];
 
-const supportedAudioExtensions: string[] = [
-	".mp3", ".wav", ".wave", ".ogg",
-];
+const supportedAudioExtensions: string[] = [".mp3", ".wav", ".wave", ".ogg"];
 
-const supportedJsonExtensions: string[] = [
-	".gui", ".cinematic",
-];
+const supportedJsonExtensions: string[] = [".material", ".gui", ".cinematic", ".npss"];
 
-const supportedMiscExtensions: string[] = [
-	".3dl", ".exr", ".hdr",
-	".material",
-];
+const supportedMiscExtensions: string[] = [".3dl", ".exr", ".hdr"];
 
 const supportedExtensions: string[] = [
 	...supportedImagesExtensions,

@@ -9,19 +9,19 @@ import { getKeyFrame } from "./tools";
 import { ICinematicTrackerKey } from "./tracker";
 
 export interface ICinematicKeyConfigurationToMove {
-    startPosition: number;
-    key: CinematicKeyType | ICinematicTrackerKey;
+	startPosition: number;
+	key: CinematicKeyType | ICinematicTrackerKey;
 }
 
 export interface IConfigureDivEventsOptions {
-    div: HTMLDivElement;
-    cinematicEditor: CinematicEditor;
-    cinematicKey: CinematicKeyType | ICinematicTrackerKey;
+	div: HTMLDivElement;
+	cinematicEditor: CinematicEditor;
+	cinematicKey: CinematicKeyType | ICinematicTrackerKey;
 
-    onMoveStart?: () => void;
-    onMove?: () => void;
-    onMoveEnd?: () => void;
-    onClicked?: () => void;
+	onMoveStart?: () => void;
+	onMove?: () => void;
+	onMoveEnd?: () => void;
+	onClicked?: () => void;
 }
 
 export function configureDivEvents(options: IConfigureDivEventsOptions) {
@@ -36,15 +36,18 @@ export function configureDivEvents(options: IConfigureDivEventsOptions) {
 		let mouseMoveListener: (event: globalThis.MouseEvent) => void;
 
 		if (options.cinematicKey.type !== "group" && options.cinematicKey.type !== "sound" && options.cinematicKey.type !== "tracker" && getKeyFrame(options.cinematicKey) === 0) {
-			return document.body.addEventListener("mouseup", mouseUpListener = (ev) => {
-				ev.stopPropagation();
+			return document.body.addEventListener(
+				"mouseup",
+				(mouseUpListener = (ev) => {
+					ev.stopPropagation();
 
-				document.body.removeEventListener("mouseup", mouseUpListener);
+					document.body.removeEventListener("mouseup", mouseUpListener);
 
-				waitNextAnimationFrame().then(() => {
-					options.onClicked?.();
-				});
-			});
+					waitNextAnimationFrame().then(() => {
+						options.onClicked?.();
+					});
+				})
+			);
 		}
 
 		options.onMoveStart?.();
@@ -92,67 +95,70 @@ export function configureDivEvents(options: IConfigureDivEventsOptions) {
 				animationsKeyConfigurationsToMove.push(result);
 			});
 		} else {
-			animationsKeyConfigurationsToMove.push([{
-				startPosition,
-				key: options.cinematicKey,
-			}]);
+			animationsKeyConfigurationsToMove.push([
+				{
+					startPosition,
+					key: options.cinematicKey,
+				},
+			]);
 		}
 
-		document.body.addEventListener("mousemove", mouseMoveListener = (ev) => {
-			if (clientX === null) {
-				clientX = ev.clientX;
-			}
+		document.body.addEventListener(
+			"mousemove",
+			(mouseMoveListener = (ev) => {
+				if (clientX === null) {
+					clientX = ev.clientX;
+				}
 
-			const delta = clientX - ev.clientX;
-			if (moving || Math.abs(delta) > 5 * devicePixelRatio) {
-				moving = true;
-			} else {
-				return;
-			}
+				const delta = clientX - ev.clientX;
+				if (moving || Math.abs(delta) > 5 * devicePixelRatio) {
+					moving = true;
+				} else {
+					return;
+				}
 
-			animationsKeyConfigurationsToMove.forEach((trackConfiguration) => {
-				trackConfiguration.forEach((keyConfiguration) => {
-					const frame = Math.round(
-						Math.max(0, keyConfiguration.startPosition - delta / options.cinematicEditor.timelines.state.scale),
-					);
+				animationsKeyConfigurationsToMove.forEach((trackConfiguration) => {
+					trackConfiguration.forEach((keyConfiguration) => {
+						const frame = Math.round(Math.max(0, keyConfiguration.startPosition - delta / options.cinematicEditor.timelines.state.scale));
 
-					if (isCinematicKeyCut(keyConfiguration.key)) {
-						keyConfiguration.key.key1.frame = frame;
-						keyConfiguration.key.key2.frame = frame;
-					} else {
-						keyConfiguration.key.frame = frame;
+						if (isCinematicKeyCut(keyConfiguration.key)) {
+							keyConfiguration.key.key1.frame = frame;
+							keyConfiguration.key.key2.frame = frame;
+						} else {
+							keyConfiguration.key.frame = frame;
+						}
+					});
+				});
+
+				options.onMove?.();
+			})
+		);
+
+		document.body.addEventListener(
+			"mouseup",
+			(mouseUpListener = (ev) => {
+				ev.stopPropagation();
+
+				document.body.style.cursor = "auto";
+
+				document.body.removeEventListener("mouseup", mouseUpListener);
+				document.body.removeEventListener("mousemove", mouseMoveListener);
+
+				options.onMoveEnd?.();
+
+				waitNextAnimationFrame().then(() => {
+					options.onClicked?.();
+
+					if (moving) {
+						registerKeysMovedUndoRedo(options.cinematicEditor, animationsKeyConfigurationsToMove);
 					}
 				});
-			});
-
-			options.onMove?.();
-		});
-
-		document.body.addEventListener("mouseup", mouseUpListener = (ev) => {
-			ev.stopPropagation();
-
-			document.body.style.cursor = "auto";
-
-			document.body.removeEventListener("mouseup", mouseUpListener);
-			document.body.removeEventListener("mousemove", mouseMoveListener);
-
-			options.onMoveEnd?.();
-
-			waitNextAnimationFrame().then(() => {
-				options.onClicked?.();
-
-				if (moving) {
-					registerKeysMovedUndoRedo(options.cinematicEditor, animationsKeyConfigurationsToMove);
-				}
-			});
-		});
+			})
+		);
 	});
 }
 
-export function registerKeysMovedUndoRedo(
-	cinematicEditor: CinematicEditor,
-	animationsKeyConfigurationsToMove: ICinematicKeyConfigurationToMove[][],
-) {
+export function registerKeysMovedUndoRedo(cinematicEditor: CinematicEditor, animationsKeyConfigurationsToMove: ICinematicKeyConfigurationToMove[][]) {
 	const newKeyFrames = animationsKeyConfigurationsToMove.map((configuration) => {
 		return configuration.map((key) => {
 			if (isCinematicKeyCut(key.key)) {

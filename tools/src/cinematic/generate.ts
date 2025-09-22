@@ -19,12 +19,12 @@ import { cloneKey, getPropertyValue } from "./tools";
 import { ICinematic, ICinematicKey, ICinematicKeyCut } from "./typings";
 
 export type GenerateCinematicAnimationGroupOptions = {
-    /**
-     * Defines wether or not sounds should be ignored when generating the animation group.
-     * This means that no sound will be played during the cinematic playback.
-     * @default false
-     */
-    ignoreSounds?: boolean;
+	/**
+	 * Defines wether or not sounds should be ignored when generating the animation group.
+	 * This means that no sound will be played during the cinematic playback.
+	 * @default false
+	 */
+	ignoreSounds?: boolean;
 };
 
 /**
@@ -47,7 +47,9 @@ export function generateCinematicAnimationGroup(cinematic: ICinematic, scene: Sc
 					defer: {
 						const existingTargetedAnimations = result.targetedAnimations.filter((ta2) => ta2.target === targetedAnimation.target);
 						if (existingTargetedAnimations.length) {
-							const existingTargetedAnimationsPair = existingTargetedAnimations.find((et) => et.animation.targetProperty === targetedAnimation.animation.targetProperty);
+							const existingTargetedAnimationsPair = existingTargetedAnimations.find(
+								(et) => et.animation.targetProperty === targetedAnimation.animation.targetProperty
+							);
 							if (existingTargetedAnimationsPair) {
 								animation = existingTargetedAnimationsPair.animation;
 								break defer;
@@ -64,7 +66,7 @@ export function generateCinematicAnimationGroup(cinematic: ICinematic, scene: Sc
 					const sourceKeys = targetedAnimation.animation.getKeys();
 
 					const speed = configuration.speed;
-					const normalizedFps = (cinematic.framesPerSecond / targetedAnimation.animation.framePerSecond) / speed;
+					const normalizedFps = cinematic.framesPerSecond / targetedAnimation.animation.framePerSecond / speed;
 
 					sourceKeys.forEach((k) => {
 						if (k.frame >= configuration.startFrame && k.frame <= configuration.endFrame) {
@@ -98,17 +100,25 @@ export function generateCinematicAnimationGroup(cinematic: ICinematic, scene: Sc
 
 				maxFrame = Math.max(maxFrame, configuration.frame + duration);
 
-				soundAnimation.addEvent(new AnimationEvent(configuration.frame, (currentFrame) => {
-					const frameDiff = currentFrame - configuration.frame;
-					const offset = (frameDiff + configuration.startFrame) / cinematic.framesPerSecond;
+				soundAnimation.addEvent(
+					new AnimationEvent(
+						configuration.frame,
+						(currentFrame) => {
+							const frameDiff = currentFrame - configuration.frame;
+							const offset = (frameDiff + configuration.startFrame) / cinematic.framesPerSecond;
 
-					// sound.stop();
-					sound.play(0, offset);
-				}, false));
+							// sound.stop();
+							sound.play(0, offset);
+						},
+						false
+					)
+				);
 
-				soundAnimation.addEvent(new AnimationEvent(configuration.frame + duration, () => {
-					sound.stop();
-				}));
+				soundAnimation.addEvent(
+					new AnimationEvent(configuration.frame + duration, () => {
+						sound.stop();
+					})
+				);
 			});
 
 			soundAnimation.setKeys([
@@ -130,16 +140,18 @@ export function generateCinematicAnimationGroup(cinematic: ICinematic, scene: Sc
 			track.keyFrameEvents?.forEach((configuration) => {
 				maxFrame = Math.max(maxFrame, configuration.frame);
 
-				eventsAnimation.addEvent(new AnimationEvent(configuration.frame, () => {
-					switch (configuration.data?.type) {
-						case "set-enabled":
-							handleSetEnabledEvent(configuration.data);
-							break;
-						case "apply-impulse":
-							handleApplyImpulseEvent(scene, configuration.data);
-							break;
-					}
-				}));
+				eventsAnimation.addEvent(
+					new AnimationEvent(configuration.frame, () => {
+						switch (configuration.data?.type) {
+							case "set-enabled":
+								handleSetEnabledEvent(configuration.data);
+								break;
+							case "apply-impulse":
+								handleApplyImpulseEvent(scene, configuration.data);
+								break;
+						}
+					})
+				);
 			});
 
 			eventsAnimation.setKeys([
@@ -167,30 +179,32 @@ export function generateCinematicAnimationGroup(cinematic: ICinematic, scene: Sc
 		const keys: IAnimationKey[] = [];
 
 		track.keyFrameAnimations?.forEach((keyFrame) => {
-			const animationKey = keyFrame.type === "key" ? keyFrame as ICinematicKey : null;
+			const animationKey = keyFrame.type === "key" ? (keyFrame as ICinematicKey) : null;
 			if (animationKey) {
 				return keys.push(animationKey);
 			}
 
-			const animationKeyCut = keyFrame.type === "cut" ? keyFrame as ICinematicKeyCut : null;
+			const animationKeyCut = keyFrame.type === "cut" ? (keyFrame as ICinematicKeyCut) : null;
 			if (animationKeyCut) {
 				keys.push(animationKeyCut.key1);
 				keys.push(animationKeyCut.key2);
 
 				if (isCamera(node) && track.propertyPath === "position") {
-					animation.addEvent(new AnimationEvent(animationKeyCut.key1.frame, () => {
-						const motionBlur = getMotionBlurPostProcess();
-						if (!motionBlur) {
-							return;
-						}
+					animation.addEvent(
+						new AnimationEvent(animationKeyCut.key1.frame, () => {
+							const motionBlur = getMotionBlurPostProcess();
+							if (!motionBlur) {
+								return;
+							}
 
-						let motionStrength = motionBlur.motionStrength;
-						motionBlur.motionStrength = 0;
+							let motionStrength = motionBlur.motionStrength;
+							motionBlur.motionStrength = 0;
 
-						requestAnimationFrame(() => {
-							motionBlur.motionStrength = motionStrength;
-						});
-					}));
+							requestAnimationFrame(() => {
+								motionBlur.motionStrength = motionStrength;
+							});
+						})
+					);
 				}
 			}
 		});

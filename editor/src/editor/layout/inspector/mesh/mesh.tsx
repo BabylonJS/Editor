@@ -5,21 +5,27 @@ import { FaCopy, FaLink } from "react-icons/fa6";
 import { IoAddSharp, IoCloseOutline } from "react-icons/io5";
 import { AiOutlinePlus } from "react-icons/ai";
 
-import { SkyMaterial } from "babylonjs-materials";
-import {
-	AbstractMesh, InstancedMesh, Material, Mesh, MorphTarget, MultiMaterial, Node, Observer, PBRMaterial,
-	StandardMaterial, NodeMaterial,
-} from "babylonjs";
+import { AbstractMesh, InstancedMesh, Material, Mesh, MorphTarget, MultiMaterial, Node, Observer, PBRMaterial, StandardMaterial, NodeMaterial } from "babylonjs";
+import { SkyMaterial, GridMaterial, NormalMaterial, WaterMaterial, LavaMaterial, TriPlanarMaterial, CellMaterial, FireMaterial, GradientMaterial } from "babylonjs-materials";
 
 import { CollisionMesh } from "../../../nodes/collision";
 
 import { showPrompt } from "../../../../ui/dialog";
 import { Button } from "../../../../ui/shadcn/ui/button";
 import { Separator } from "../../../../ui/shadcn/ui/separator";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../../../ui/shadcn/ui/dropdown-menu";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+	DropdownMenuSub,
+	DropdownMenuSubContent,
+	DropdownMenuSubTrigger,
+	DropdownMenuTrigger,
+} from "../../../../ui/shadcn/ui/dropdown-menu";
 
-import { getMaterialCommands } from "../../../dialogs/command-palette/material";
 import { ICommandPaletteType } from "../../../dialogs/command-palette/command-palette";
+import { getMaterialCommands, getMaterialsLibraryCommands } from "../../../dialogs/command-palette/material";
 
 import { registerUndoRedo } from "../../../../tools/undoredo";
 import { onNodeModifiedObservable } from "../../../../tools/observables";
@@ -42,9 +48,17 @@ import { IEditorInspectorImplementationProps } from "../inspector";
 
 import { EditorPBRMaterialInspector } from "../material/pbr";
 import { EditorSkyMaterialInspector } from "../material/sky";
+import { EditorGridMaterialInspector } from "../material/grid";
 import { EditorNodeMaterialInspector } from "../material/node";
+import { EditorLavaMaterialInspector } from "../material/lava";
+import { EditorCellMaterialInspector } from "../material/cell";
+import { EditorFireMaterialInspector } from "../material/fire";
 import { EditorMultiMaterialInspector } from "../material/multi";
+import { EditorWaterMaterialInspector } from "../material/water";
+import { EditorNormalMaterialInspector } from "../material/normal";
+import { EditorGradientMaterialInspector } from "../material/gradient";
 import { EditorStandardMaterialInspector } from "../material/standard";
+import { EditorTriPlanarMaterialInspector } from "../material/tri-planar";
 
 import { MeshDecalInspector } from "./decal";
 import { MeshGeometryInspector } from "./geometry";
@@ -78,66 +92,100 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 			<>
 				<EditorInspectorSectionField title="Common">
 					<div className="flex justify-between items-center px-2 py-2">
-						<div className="w-1/2">
-							Type
-						</div>
+						<div className="w-1/2">Type</div>
 
 						<div className="flex justify-between items-center w-full">
-							<div className="text-white/50">
-								{this.props.object.getClassName()}
-							</div>
+							<div className="text-white/50">{this.props.object.getClassName()}</div>
 
-							{isInstancedMesh(this.props.object) &&
-								<Button variant="ghost" onClick={() => {
-									const instance = this.props.object as InstancedMesh;
-									this.props.editor.layout.preview.gizmo.setAttachedNode(instance.sourceMesh);
-									this.props.editor.layout.graph.setSelectedNode(instance.sourceMesh);
-									this.props.editor.layout.inspector.setEditedObject(instance.sourceMesh);
-								}}>
+							{isInstancedMesh(this.props.object) && (
+								<Button
+									variant="ghost"
+									onClick={() => {
+										const instance = this.props.object as InstancedMesh;
+										this.props.editor.layout.preview.gizmo.setAttachedNode(instance.sourceMesh);
+										this.props.editor.layout.graph.setSelectedNode(instance.sourceMesh);
+										this.props.editor.layout.inspector.setEditedObject(instance.sourceMesh);
+									}}
+								>
 									<FaLink className="w-4 h-4" />
 								</Button>
-							}
+							)}
 						</div>
 					</div>
-					<EditorInspectorStringField label="Name" object={this.props.object} property="name" onChange={() => onNodeModifiedObservable.notifyObservers(this.props.object)} />
-					<EditorInspectorSwitchField label="Pickable" object={this.props.object} property="isPickable" />
-					<EditorInspectorSwitchField label="Visible" object={this.props.object} property="isVisible" onChange={() => updateAllLights(this.props.editor.layout.preview.scene)} />
+					<EditorInspectorStringField
+						label="Name"
+						object={this.props.object}
+						property="name"
+						onChange={() => onNodeModifiedObservable.notifyObservers(this.props.object)}
+					/>
+					{this.props.object.geometry && (
+						<>
+							<EditorInspectorSwitchField label="Pickable" object={this.props.object} property="isPickable" />
+							<EditorInspectorSwitchField
+								label="Visible"
+								object={this.props.object}
+								property="isVisible"
+								onChange={() => updateAllLights(this.props.editor.layout.preview.scene)}
+							/>
+						</>
+					)}
 				</EditorInspectorSectionField>
 
 				<EditorInspectorSectionField title="Transforms">
-					<EditorInspectorVectorField label={<div className="w-14">Position</div>} object={this.props.object} property="position" onFinishChange={() => this._handleTransformsUpdated()} />
+					<EditorInspectorVectorField
+						label={<div className="w-14">Position</div>}
+						object={this.props.object}
+						property="position"
+						onFinishChange={() => this._handleTransformsUpdated()}
+					/>
 					{EditorTransformNodeInspector.GetRotationInspector(this.props.object, () => this._handleTransformsUpdated())}
-					<EditorInspectorVectorField label={<div className="w-14">Scaling</div>} object={this.props.object} property="scaling" onFinishChange={() => this._handleTransformsUpdated()} />
+					<EditorInspectorVectorField
+						label={<div className="w-14">Scaling</div>}
+						object={this.props.object}
+						property="scaling"
+						onFinishChange={() => this._handleTransformsUpdated()}
+					/>
 				</EditorInspectorSectionField>
 
-				<EditorMeshCollisionInspector {...this.props} />
+				{this.props.object.geometry && (
+					<>
+						<EditorMeshCollisionInspector {...this.props} />
+						<EditorMeshPhysicsInspector mesh={this.props.object} />
+					</>
+				)}
 
-				{this.props.editor.layout.preview.scene.lights.length > 0 &&
+				{this.props.editor.layout.preview.scene.lights.length > 0 && this.props.object.geometry && (
 					<EditorInspectorSectionField title="Shadows">
-						<EditorInspectorSwitchField label="Cast Shadows" object={this} property="_castShadows" noUndoRedo onChange={() => this._handleCastShadowsChanged(this._castShadows)} />
+						<EditorInspectorSwitchField
+							label="Cast Shadows"
+							object={this}
+							property="_castShadows"
+							noUndoRedo
+							onChange={() => this._handleCastShadowsChanged(this._castShadows)}
+						/>
 						<EditorInspectorSwitchField label="Receive Shadows" object={this.props.object} property="receiveShadows" />
 					</EditorInspectorSectionField>
-				}
+				)}
 
 				<ScriptInspectorComponent editor={this.props.editor} object={this.props.object} />
 
-				{isMesh(this.props.object) &&
+				{isMesh(this.props.object) && (
 					<>
-						<MeshGeometryInspector object={this.props.object} />
+						<MeshGeometryInspector object={this.props.object} editor={this.props.editor} />
 						<MeshDecalInspector object={this.props.object} />
 						{this._getLODsComponent()}
 					</>
-				}
-
-				<EditorMeshPhysicsInspector mesh={this.props.object} />
+				)}
 
 				{this._getMaterialComponent()}
 				{this._getSkeletonComponent()}
 				{this._getMorphTargetManagerComponent()}
 
-				<EditorInspectorSectionField title="Misc">
-					<EditorInspectorSwitchField label="Infinite Distance" object={this.props.object} property="infiniteDistance" />
-				</EditorInspectorSectionField>
+				{this.props.object.geometry && (
+					<EditorInspectorSectionField title="Misc">
+						<EditorInspectorSwitchField label="Infinite Distance" object={this.props.object} property="infiniteDistance" />
+					</EditorInspectorSectionField>
+				)}
 			</>
 		);
 	}
@@ -191,25 +239,36 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 
 		return (
 			<EditorInspectorSectionField title="LODs">
-				<EditorInspectorNumberField object={o} property="distance" label="Linear Distance" tooltip="Defines the distance that separates each LODs" step={1} noUndoRedo onChange={(v) => sortLods(v)} onFinishChange={(value, oldValue) => {
-					registerUndoRedo({
-						executeRedo: true,
-						undo: () => sortLods(oldValue),
-						redo: () => sortLods(value),
-					});
-				}} />
+				<EditorInspectorNumberField
+					object={o}
+					property="distance"
+					label="Linear Distance"
+					tooltip="Defines the distance that separates each LODs"
+					step={1}
+					noUndoRedo
+					onChange={(v) => sortLods(v)}
+					onFinishChange={(value, oldValue) => {
+						registerUndoRedo({
+							executeRedo: true,
+							undo: () => sortLods(oldValue),
+							redo: () => sortLods(value),
+						});
+					}}
+				/>
 			</EditorInspectorSectionField>
 		);
 	}
 
 	private _getMaterialComponent(): ReactNode {
+		if (!this.props.object.geometry) {
+			return;
+		}
+
 		if (!this.props.object.material) {
 			return (
 				<EditorInspectorSectionField title="Material">
 					<div className="flex justify-center items-center gap-2">
-						<div className="text-center text-xl">
-							No material
-						</div>
+						<div className="text-center text-xl">No material</div>
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild>
 								<Button variant="ghost" className="w-8 h-8 !rounded-lg p-0.5">
@@ -222,6 +281,19 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 										{command.text}
 									</DropdownMenuItem>
 								))}
+
+								<DropdownMenuSeparator />
+
+								<DropdownMenuSub>
+									<DropdownMenuSubTrigger>Materials Library</DropdownMenuSubTrigger>
+									<DropdownMenuSubContent>
+										{getMaterialsLibraryCommands(this.props.editor).map((command) => (
+											<DropdownMenuItem key={command.key} onClick={() => this._handleAddMaterial(command)}>
+												{command.text}
+											</DropdownMenuItem>
+										))}
+									</DropdownMenuSubContent>
+								</DropdownMenuSub>
 							</DropdownMenuContent>
 						</DropdownMenu>
 					</div>
@@ -233,18 +305,12 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 		if (!inspector) {
 			return (
 				<EditorInspectorSectionField title="Material">
-					<div className="text-center text-yellow-500">
-						Unsupported material type: {this.props.object.material.getClassName()}
-					</div>
+					<div className="text-center text-yellow-500">Unsupported material type: {this.props.object.material.getClassName()}</div>
 				</EditorInspectorSectionField>
 			);
 		}
 
-		return (
-			<div className="flex flex-col gap-2 relative">
-				{inspector}
-			</div>
-		);
+		return <div className="flex flex-col gap-2 relative">{inspector}</div>;
 	}
 
 	private _handleAddMaterial(command: ICommandPaletteType): void {
@@ -257,8 +323,8 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 		registerUndoRedo({
 			executeRedo: true,
 			onLost: () => material.dispose(),
-			undo: () => this.props.object.material = null,
-			redo: () => this.props.object.material = material,
+			undo: () => (this.props.object.material = null),
+			redo: () => (this.props.object.material = material),
 		});
 
 		this.forceUpdate();
@@ -267,33 +333,43 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 	private _getMaterialInspectorComponent(material: Material): ReactNode {
 		switch (material.getClassName()) {
 			case "PBRMaterial":
-				return <EditorPBRMaterialInspector
-					mesh={this.props.object}
-					material={this.props.object.material as PBRMaterial}
-				/>;
+				return <EditorPBRMaterialInspector mesh={this.props.object} material={this.props.object.material as PBRMaterial} />;
 
 			case "StandardMaterial":
-				return <EditorStandardMaterialInspector
-					mesh={this.props.object}
-					material={this.props.object.material as StandardMaterial}
-				/>;
+				return <EditorStandardMaterialInspector mesh={this.props.object} material={this.props.object.material as StandardMaterial} />;
 
 			case "NodeMaterial":
-				return <EditorNodeMaterialInspector
-					mesh={this.props.object}
-					material={this.props.object.material as NodeMaterial}
-				/>;
+				return <EditorNodeMaterialInspector mesh={this.props.object} material={this.props.object.material as NodeMaterial} />;
 
 			case "MultiMaterial":
-				return <EditorMultiMaterialInspector
-					material={this.props.object.material as MultiMaterial}
-				/>;
+				return <EditorMultiMaterialInspector material={this.props.object.material as MultiMaterial} />;
 
 			case "SkyMaterial":
-				return <EditorSkyMaterialInspector
-					mesh={this.props.object}
-					material={this.props.object.material as SkyMaterial}
-				/>;
+				return <EditorSkyMaterialInspector mesh={this.props.object} material={this.props.object.material as SkyMaterial} />;
+
+			case "GridMaterial":
+				return <EditorGridMaterialInspector mesh={this.props.object} material={this.props.object.material as GridMaterial} />;
+
+			case "NormalMaterial":
+				return <EditorNormalMaterialInspector mesh={this.props.object} material={this.props.object.material as NormalMaterial} />;
+
+			case "WaterMaterial":
+				return <EditorWaterMaterialInspector mesh={this.props.object} material={this.props.object.material as WaterMaterial} />;
+
+			case "LavaMaterial":
+				return <EditorLavaMaterialInspector mesh={this.props.object} material={this.props.object.material as LavaMaterial} />;
+
+			case "TriPlanarMaterial":
+				return <EditorTriPlanarMaterialInspector mesh={this.props.object} material={this.props.object.material as TriPlanarMaterial} />;
+
+			case "CellMaterial":
+				return <EditorCellMaterialInspector mesh={this.props.object} material={this.props.object.material as CellMaterial} />;
+
+			case "FireMaterial":
+				return <EditorFireMaterialInspector mesh={this.props.object} material={this.props.object.material as FireMaterial} />;
+
+			case "GradientMaterial":
+				return <EditorGradientMaterialInspector mesh={this.props.object} material={this.props.object.material as GradientMaterial} />;
 		}
 	}
 
@@ -308,68 +384,89 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 
 				<Separator />
 
-				<div className="px-[10px] text-lg text-center">
-					Animation Ranges
-				</div>
+				<div className="px-[10px] text-lg text-center">Animation Ranges</div>
 
-				{this.props.object.skeleton.getAnimationRanges().filter((range) => range).map((range, index) => (
-					<div key={index} className="flex items-center gap-[10px]">
-						<Button
-							variant="ghost"
-							className="justify-start w-1/2"
-							onDoubleClick={async () => {
-								const name = await showPrompt("Rename Animation Range", "Enter the new name for the animation range", range!.name);
-								if (name) {
-									range!.name = name;
-									this.forceUpdate();
-								}
-							}}
-							onClick={() => {
-								this.props.object._scene.stopAnimation(this.props.object.skeleton);
-								this.props.object.skeleton?.beginAnimation(range!.name, true, 1.0);
-							}}
-						>
-							{range!.name}
-						</Button>
-
-						<div className="flex items-center w-1/2">
-							<EditorInspectorNumberField object={range} property="from" onChange={() => {
-								this.props.editor.layout.preview.scene.stopAnimation(this.props.object.skeleton);
-								this.props.editor.layout.preview.scene.beginAnimation(this.props.object.skeleton, range!.from, range!.from, true, 1.0);
-							}} />
-							<EditorInspectorNumberField object={range} property="to" onChange={() => {
-								this.props.editor.layout.preview.scene.stopAnimation(this.props.object.skeleton);
-								this.props.editor.layout.preview.scene.beginAnimation(this.props.object.skeleton, range!.to, range!.to, true, 1.0);
-							}} />
-
-							<Button variant="ghost" className="p-2" onClick={() => {
-								try {
-									navigator.clipboard.writeText(range!.name);
-									toast.success("Animation range name copied to clipboard");
-								} catch (e) {
-									toast.error("Failed to copy animation range name");
-								}
-							}}>
-								<FaCopy />
+				{this.props.object.skeleton
+					.getAnimationRanges()
+					.filter((range) => range)
+					.map((range, index) => (
+						<div key={index} className="flex items-center gap-[10px]">
+							<Button
+								variant="ghost"
+								className="justify-start w-1/2"
+								onDoubleClick={async () => {
+									const name = await showPrompt("Rename Animation Range", "Enter the new name for the animation range", range!.name);
+									if (name) {
+										range!.name = name;
+										this.forceUpdate();
+									}
+								}}
+								onClick={() => {
+									this.props.object._scene.stopAnimation(this.props.object.skeleton);
+									this.props.object.skeleton?.beginAnimation(range!.name, true, 1.0);
+								}}
+							>
+								{range!.name}
 							</Button>
 
-							<Button variant="secondary" className="p-2" onClick={() => {
-								this.props.object.skeleton?.deleteAnimationRange(range!.name, false);
-								this.forceUpdate();
-							}}>
-								<IoCloseOutline className="w-4 h-4" />
-							</Button>
+							<div className="flex items-center w-1/2">
+								<EditorInspectorNumberField
+									object={range}
+									property="from"
+									onChange={() => {
+										this.props.editor.layout.preview.scene.stopAnimation(this.props.object.skeleton);
+										this.props.editor.layout.preview.scene.beginAnimation(this.props.object.skeleton, range!.from, range!.from, true, 1.0);
+									}}
+								/>
+								<EditorInspectorNumberField
+									object={range}
+									property="to"
+									onChange={() => {
+										this.props.editor.layout.preview.scene.stopAnimation(this.props.object.skeleton);
+										this.props.editor.layout.preview.scene.beginAnimation(this.props.object.skeleton, range!.to, range!.to, true, 1.0);
+									}}
+								/>
+
+								<Button
+									variant="ghost"
+									className="p-2"
+									onClick={() => {
+										try {
+											navigator.clipboard.writeText(range!.name);
+											toast.success("Animation range name copied to clipboard");
+										} catch (e) {
+											toast.error("Failed to copy animation range name");
+										}
+									}}
+								>
+									<FaCopy />
+								</Button>
+
+								<Button
+									variant="secondary"
+									className="p-2"
+									onClick={() => {
+										this.props.object.skeleton?.deleteAnimationRange(range!.name, false);
+										this.forceUpdate();
+									}}
+								>
+									<IoCloseOutline className="w-4 h-4" />
+								</Button>
+							</div>
 						</div>
-					</div>
-				))}
+					))}
 
-				<Button variant="secondary" className="flex items-center gap-[5px] w-full" onClick={async () => {
-					const name = await showPrompt("Add Animation Range", "Enter the name of the new animation range");
-					if (name) {
-						this.props.object.skeleton?.createAnimationRange(name, 0, 100);
-						this.forceUpdate();
-					}
-				}}>
+				<Button
+					variant="secondary"
+					className="flex items-center gap-[5px] w-full"
+					onClick={async () => {
+						const name = await showPrompt("Add Animation Range", "Enter the name of the new animation range");
+						if (name) {
+							this.props.object.skeleton?.createAnimationRange(name, 0, 100);
+							this.forceUpdate();
+						}
+					}}
+				>
 					<IoAddSharp className="w-6 h-6" /> Add
 				</Button>
 			</EditorInspectorSectionField>
@@ -431,7 +528,6 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 					updateLightShadowMapRefreshRate(light);
 					updatePointLightShadowMapRenderListPredicate(light);
 				});
-
 			},
 		});
 	}

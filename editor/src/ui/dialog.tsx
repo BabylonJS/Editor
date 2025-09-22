@@ -46,13 +46,9 @@ export function showDialog(title: ReactNode, children: ReactNode, asChild?: bool
 			<AlertDialogContent className="w-fit h-fit">
 				<AlertDialogHeader>
 					<AlertDialogTitle>{title}</AlertDialogTitle>
-					<AlertDialogDescription asChild={asChild}>
-						{children}
-					</AlertDialogDescription>
+					<AlertDialogDescription asChild={asChild}>{children}</AlertDialogDescription>
 				</AlertDialogHeader>
-				<AlertDialogFooter>
-
-				</AlertDialogFooter>
+				<AlertDialogFooter></AlertDialogFooter>
 			</AlertDialogContent>
 		</AlertDialog>
 	);
@@ -64,9 +60,10 @@ export function showConfirm(
 	title: string,
 	children: ReactNode,
 	options?: {
+		asChild?: boolean;
 		cancelText?: string;
 		confirmText?: string;
-	},
+	}
 ): Promise<boolean> {
 	return new Promise<boolean>((resolve) => {
 		const div = document.createElement("div");
@@ -78,23 +75,27 @@ export function showConfirm(
 				<AlertDialogContent>
 					<AlertDialogHeader>
 						<AlertDialogTitle>{title}</AlertDialogTitle>
-						<AlertDialogDescription>
-							{children}
-						</AlertDialogDescription>
+						<AlertDialogDescription asChild={options?.asChild}>{children}</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>
-						<AlertDialogCancel className="min-w-24" onClick={() => {
-							root.unmount();
-							document.body.removeChild(div);
-							resolve(false);
-						}}>
+						<AlertDialogCancel
+							className="min-w-24"
+							onClick={() => {
+								root.unmount();
+								document.body.removeChild(div);
+								resolve(false);
+							}}
+						>
 							{options?.cancelText ?? "Cancel"}
 						</AlertDialogCancel>
-						<AlertDialogAction className="min-w-24" onClick={() => {
-							root.unmount();
-							document.body.removeChild(div);
-							resolve(true);
-						}}>
+						<AlertDialogAction
+							className="min-w-24"
+							onClick={() => {
+								root.unmount();
+								document.body.removeChild(div);
+								resolve(true);
+							}}
+						>
 							{options?.confirmText ?? "Continue"}
 						</AlertDialogAction>
 					</AlertDialogFooter>
@@ -102,7 +103,7 @@ export function showConfirm(
 			</AlertDialog>
 		);
 	});
-};
+}
 
 export function showPrompt(title: string, children: ReactNode, value?: string): Promise<string | null> {
 	return new Promise<string | null>((resolve) => {
@@ -114,34 +115,38 @@ export function showPrompt(title: string, children: ReactNode, value?: string): 
 		const root = createRoot(div);
 		root.render(
 			<AlertDialog open>
-				<AlertDialogContent ref={(r) => {
-					if (r && ref) {
-						ref.focus();
-						ref.value = value ?? "";
-					}
-				}}>
+				<AlertDialogContent
+					ref={(r) => {
+						if (r && ref) {
+							ref.focus();
+							ref.value = value ?? "";
+						}
+					}}
+				>
 					<AlertDialogHeader>
 						<AlertDialogTitle>{title}</AlertDialogTitle>
-						<AlertDialogDescription>
-							{children}
-						</AlertDialogDescription>
+						<AlertDialogDescription>{children}</AlertDialogDescription>
 					</AlertDialogHeader>
 
-					<Input ref={(r) => ref = r} placeholder="Value..." />
+					<Input ref={(r) => (ref = r)} placeholder="Value..." />
 
 					<AlertDialogFooter>
-						<AlertDialogCancel onClick={() => {
-							resolve(null);
-							root.unmount();
-							document.body.removeChild(div);
-						}}>
+						<AlertDialogCancel
+							onClick={() => {
+								resolve(null);
+								root.unmount();
+								document.body.removeChild(div);
+							}}
+						>
 							Cancel
 						</AlertDialogCancel>
-						<AlertDialogAction onClick={() => {
-							resolve(ref?.value ?? null);
-							root.unmount();
-							document.body.removeChild(div);
-						}}>
+						<AlertDialogAction
+							onClick={() => {
+								resolve(ref?.value ?? null);
+								root.unmount();
+								document.body.removeChild(div);
+							}}
+						>
 							Continue
 						</AlertDialogAction>
 					</AlertDialogFooter>
@@ -171,7 +176,7 @@ export function showAlert(title: ReactNode, children: ReactNode, asChild?: boole
 		},
 		wait: () => {
 			return promise;
-		}
+		},
 	} as DialogReturnType;
 
 	root.render(
@@ -179,14 +184,10 @@ export function showAlert(title: ReactNode, children: ReactNode, asChild?: boole
 			<AlertDialogContent className="w-fit h-fit max-w-[95vw] max-h-[95vh]">
 				<AlertDialogHeader>
 					<AlertDialogTitle>{title}</AlertDialogTitle>
-					<AlertDialogDescription asChild={asChild}>
-						{children}
-					</AlertDialogDescription>
+					<AlertDialogDescription asChild={asChild}>{children}</AlertDialogDescription>
 				</AlertDialogHeader>
 				<AlertDialogFooter>
-					<AlertDialogAction onClick={() => returnValue.close()}>
-						Continue
-					</AlertDialogAction>
+					<AlertDialogAction onClick={() => returnValue.close()}>Continue</AlertDialogAction>
 				</AlertDialogFooter>
 			</AlertDialogContent>
 		</AlertDialog>

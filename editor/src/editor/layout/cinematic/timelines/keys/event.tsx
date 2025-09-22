@@ -3,10 +3,10 @@ import { ICinematicKeyEvent } from "babylonjs-editor-tools";
 import { CinematicEditor } from "../../editor";
 
 export interface ICinematicEditorEventKeyProps {
-    cinematicEditor: CinematicEditor;
-    scale: number;
-    move: boolean;
-    cinematicKey: ICinematicKeyEvent;
+	cinematicEditor: CinematicEditor;
+	scale: number;
+	move: boolean;
+	cinematicKey: ICinematicKeyEvent;
 }
 
 export function CinematicEditorEventKey(props: ICinematicEditorEventKeyProps) {

@@ -29,6 +29,7 @@ export function addBoxMesh(editor: Editor, parent?: Node) {
 		width: 100,
 		depth: 100,
 		height: 100,
+		sideOrientation: Mesh.FRONTSIDE,
 	};
 
 	if (box.geometry) {
@@ -87,6 +88,12 @@ export function addGroundMesh(editor: Editor, parent?: Node) {
 		width: 1024,
 		height: 1024,
 		subdivisions: 32,
+		heightMapTexturePath: null,
+		minHeight: 0,
+		maxHeight: 150,
+		smoothFactor: 0,
+		alphaFilter: 0,
+		colorFilter: [1, 1, 1],
 	};
 
 	if (ground.geometry) {
@@ -116,6 +123,7 @@ export function addSphereMesh(editor: Editor, parent?: Node) {
 		type: "Sphere",
 		diameter: 100,
 		segments: 32,
+		sideOrientation: Mesh.FRONTSIDE,
 	};
 
 	if (sphere.geometry) {
@@ -136,12 +144,16 @@ export function addSphereMesh(editor: Editor, parent?: Node) {
 }
 
 export function addSkyboxMesh(editor: Editor, parent?: Node) {
-	const skybox = MeshBuilder.CreateBox("New SkyBox", {
-		width: 10_000,
-		height: 10_000,
-		depth: 10_000,
-		sideOrientation: Mesh.BACKSIDE,
-	}, editor.layout.preview.scene);
+	const skybox = MeshBuilder.CreateBox(
+		"New SkyBox",
+		{
+			width: 10_000,
+			height: 10_000,
+			depth: 10_000,
+			sideOrientation: Mesh.BACKSIDE,
+		},
+		editor.layout.preview.scene
+	);
 
 	skybox.receiveShadows = false;
 	skybox.id = Tools.RandomId();

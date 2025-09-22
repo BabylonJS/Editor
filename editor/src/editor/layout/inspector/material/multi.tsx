@@ -2,8 +2,8 @@ import { extname } from "path/posix";
 
 import { Component, DragEvent, ReactNode } from "react";
 
-import { SkyMaterial } from "babylonjs-materials";
 import { Material, MultiMaterial, PBRMaterial, StandardMaterial } from "babylonjs";
+import { SkyMaterial, GridMaterial, NormalMaterial, WaterMaterial, TriPlanarMaterial, LavaMaterial, CellMaterial, FireMaterial, GradientMaterial } from "babylonjs-materials";
 
 import { Table, TableBody, TableCaption, TableCell, TableRow } from "../../../../ui/shadcn/ui/table";
 
@@ -15,14 +15,22 @@ import { EditorInspectorSectionField } from "../fields/section";
 
 import { EditorSkyMaterialInspector } from "./sky";
 import { EditorPBRMaterialInspector } from "./pbr";
+import { EditorCellMaterialInspector } from "./cell";
+import { EditorGridMaterialInspector } from "./grid";
+import { EditorFireMaterialInspector } from "./fire";
+import { EditorLavaMaterialInspector } from "./lava";
+import { EditorWaterMaterialInspector } from "./water";
+import { EditorNormalMaterialInspector } from "./normal";
+import { EditorGradientMaterialInspector } from "./gradient";
 import { EditorStandardMaterialInspector } from "./standard";
+import { EditorTriPlanarMaterialInspector } from "./tri-planar";
 
 export interface IEditorPBRMaterialInspectorProps {
-    material: MultiMaterial;
+	material: MultiMaterial;
 }
 
 export interface IEditorMultiMaterialInspectorState {
-    material: Material | null;
+	material: Material | null;
 }
 
 export class EditorMultiMaterialInspector extends Component<IEditorPBRMaterialInspectorProps, IEditorMultiMaterialInspectorState> {
@@ -37,9 +45,7 @@ export class EditorMultiMaterialInspector extends Component<IEditorPBRMaterialIn
 	public render(): ReactNode {
 		return (
 			<>
-				<EditorInspectorSectionField title="Multi Material">
-					{this._getMaterialSelectorComponent()}
-				</EditorInspectorSectionField>
+				<EditorInspectorSectionField title="Multi Material">{this._getMaterialSelectorComponent()}</EditorInspectorSectionField>
 
 				{this._getMaterialComponent()}
 			</>
@@ -108,17 +114,44 @@ export class EditorMultiMaterialInspector extends Component<IEditorPBRMaterialIn
 		if (!this.state.material) {
 			return (
 				<div className="flex flex-col gap-2 px-2">
-					<div className="text-center text-xl">
-                        No material
-					</div>
+					<div className="text-center text-xl">No material</div>
 				</div>
 			);
 		}
 
 		switch (this.state.material.getClassName()) {
-			case "PBRMaterial": return <EditorPBRMaterialInspector key={this.state.material.id} material={this.state.material as PBRMaterial} />;
-			case "StandardMaterial": return <EditorStandardMaterialInspector key={this.state.material.id} material={this.state.material as StandardMaterial} />;
-			case "SkyMaterial": return <EditorSkyMaterialInspector key={this.state.material.id} material={this.state.material as SkyMaterial} />;
+			case "PBRMaterial":
+				return <EditorPBRMaterialInspector key={this.state.material.id} material={this.state.material as PBRMaterial} />;
+
+			case "StandardMaterial":
+				return <EditorStandardMaterialInspector key={this.state.material.id} material={this.state.material as StandardMaterial} />;
+
+			case "SkyMaterial":
+				return <EditorSkyMaterialInspector key={this.state.material.id} material={this.state.material as SkyMaterial} />;
+
+			case "GridMaterial":
+				return <EditorGridMaterialInspector key={this.state.material.id} material={this.state.material as GridMaterial} />;
+
+			case "NormalMaterial":
+				return <EditorNormalMaterialInspector key={this.state.material.id} material={this.state.material as NormalMaterial} />;
+
+			case "WaterMaterial":
+				return <EditorWaterMaterialInspector key={this.state.material.id} material={this.state.material as WaterMaterial} />;
+
+			case "LavaMaterial":
+				return <EditorLavaMaterialInspector key={this.state.material.id} material={this.state.material as LavaMaterial} />;
+
+			case "TriPlanarMaterial":
+				return <EditorTriPlanarMaterialInspector key={this.state.material.id} material={this.state.material as TriPlanarMaterial} />;
+
+			case "CellMaterial":
+				return <EditorCellMaterialInspector key={this.state.material.id} material={this.state.material as CellMaterial} />;
+
+			case "FireMaterial":
+				return <EditorFireMaterialInspector key={this.state.material.id} material={this.state.material as FireMaterial} />;
+
+			case "GradientMaterial":
+				return <EditorGradientMaterialInspector key={this.state.material.id} material={this.state.material as GradientMaterial} />;
 		}
 	}
 }

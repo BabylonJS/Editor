@@ -1,8 +1,8 @@
 import { Node } from "@babylonjs/core/node";
 
 export type SetEnabledEventType = {
-    value: boolean;
-    node: Node;
+	value: boolean;
+	node: Node;
 };
 
 export function handleSetEnabledEvent(config: SetEnabledEventType) {

@@ -35,26 +35,37 @@ export class EditorSpotLightInspector extends Component<IEditorInspectorImplemen
 			<>
 				<EditorInspectorSectionField title="Common">
 					<div className="flex justify-between items-center px-2 py-2">
-						<div className="w-1/2">
-							Type
-						</div>
+						<div className="w-1/2">Type</div>
 
-						<div className="text-white/50 w-full">
-							{this.props.object.getClassName()}
-						</div>
+						<div className="text-white/50 w-full">{this.props.object.getClassName()}</div>
 					</div>
-					<EditorInspectorStringField label="Name" object={this.props.object} property="name" onChange={() => onNodeModifiedObservable.notifyObservers(this.props.object)} />
+					<EditorInspectorStringField
+						label="Name"
+						object={this.props.object}
+						property="name"
+						onChange={() => onNodeModifiedObservable.notifyObservers(this.props.object)}
+					/>
 				</EditorInspectorSectionField>
 
 				<EditorInspectorSectionField title="Transforms">
-					<EditorInspectorVectorField label={<div className="w-14">Position</div>} object={this.props.object} property="position" onChange={() => {
-						updateLightShadowMapRefreshRate(this.props.object);
-						updatePointLightShadowMapRenderListPredicate(this.props.object);
-					}} />
-					<EditorInspectorVectorField label={<div className="w-14">Direction</div>} object={this.props.object} property="direction" onChange={() => {
-						updateLightShadowMapRefreshRate(this.props.object);
-						updatePointLightShadowMapRenderListPredicate(this.props.object);
-					}} />
+					<EditorInspectorVectorField
+						label={<div className="w-14">Position</div>}
+						object={this.props.object}
+						property="position"
+						onChange={() => {
+							updateLightShadowMapRefreshRate(this.props.object);
+							updatePointLightShadowMapRenderListPredicate(this.props.object);
+						}}
+					/>
+					<EditorInspectorVectorField
+						label={<div className="w-14">Direction</div>}
+						object={this.props.object}
+						property="direction"
+						onChange={() => {
+							updateLightShadowMapRefreshRate(this.props.object);
+							updatePointLightShadowMapRenderListPredicate(this.props.object);
+						}}
+					/>
 				</EditorInspectorSectionField>
 
 				<EditorInspectorSectionField title="Light">
@@ -63,10 +74,18 @@ export class EditorSpotLightInspector extends Component<IEditorInspectorImplemen
 
 					<Divider />
 
-					<EditorInspectorNumberField label="Range" object={this.props.object} property="range" min={0} max={this.props.editor.layout.preview.camera.maxZ} step={this.props.editor.layout.preview.camera.maxZ / 1000} onChange={() => {
-						updateLightShadowMapRefreshRate(this.props.object);
-						updatePointLightShadowMapRenderListPredicate(this.props.object);
-					}} />
+					<EditorInspectorNumberField
+						label="Range"
+						object={this.props.object}
+						property="range"
+						min={0}
+						max={this.props.editor.layout.preview.camera.maxZ}
+						step={this.props.editor.layout.preview.camera.maxZ / 1000}
+						onChange={() => {
+							updateLightShadowMapRefreshRate(this.props.object);
+							updatePointLightShadowMapRenderListPredicate(this.props.object);
+						}}
+					/>
 
 					<Divider />
 

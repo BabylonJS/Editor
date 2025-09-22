@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 import { FileInspectorObject } from "../file";
 
 export interface IEditorInspectorImageComponentProps {
-    object: FileInspectorObject;
+	object: FileInspectorObject;
 }
 
 export function EditorInspectorImageComponent(props: IEditorInspectorImageComponentProps) {

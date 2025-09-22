@@ -1,4 +1,3 @@
-
 import { Node } from "@babylonjs/core/node";
 import { Scene } from "@babylonjs/core/scene";
 import { IParticleSystem } from "@babylonjs/core/Particles/IParticleSystem";
@@ -14,44 +13,46 @@ import { ScriptMap } from "./loader";
 /**
  * @internal
  */
-export function _applyScriptsForObject(scene: Scene, object: any, scriptsMap: ScriptMap, rootUrl: string) {
-	if (!object.metadata) {
+export async function _applyScriptsForObject(scene: Scene, object: any, scriptsMap: ScriptMap, rootUrl: string) {
+	if (!object.metadata?.scripts) {
 		return;
 	}
 
-	object.metadata.scripts?.forEach((script) => {
-		if (!script.enabled) {
-			return;
-		}
-
-		const exports = scriptsMap[script.key];
-		if (!exports) {
-			return;
-		}
-
-		if (exports.default) {
-			const instance = new exports.default(object);
-
-			registerScriptInstance(object, instance, script.key);
-			applyDecorators(scene, object, script, instance, rootUrl);
-
-			if (instance.onStart) {
-				scene.onBeforeRenderObservable.addOnce(() => instance.onStart!());
+	await Promise.all(
+		object.metadata.scripts?.map(async (script) => {
+			if (!script.enabled) {
+				return;
 			}
 
-			if (instance.onUpdate) {
-				scene.onBeforeRenderObservable.add(() => instance.onUpdate!());
-			}
-		} else {
-			if (exports.onStart) {
-				scene.onBeforeRenderObservable.addOnce(() => exports.onStart!(object));
+			const exports = scriptsMap[script.key];
+			if (!exports) {
+				return;
 			}
 
-			if (exports.onUpdate) {
-				scene.onBeforeRenderObservable.add(() => exports.onUpdate!(object));
+			if (exports.default) {
+				const instance = new exports.default(object);
+
+				registerScriptInstance(object, instance, script.key);
+				await applyDecorators(scene, object, script, instance, rootUrl);
+
+				if (instance.onStart) {
+					scene.onBeforeRenderObservable.addOnce(() => instance.onStart!());
+				}
+
+				if (instance.onUpdate) {
+					scene.onBeforeRenderObservable.add(() => instance.onUpdate!());
+				}
+			} else {
+				if (exports.onStart) {
+					scene.onBeforeRenderObservable.addOnce(() => exports.onStart!(object));
+				}
+
+				if (exports.onUpdate) {
+					scene.onBeforeRenderObservable.add(() => exports.onUpdate!(object));
+				}
 			}
-		}
-	});
+		})
+	);
 
 	object.metadata.scripts = undefined;
 }
@@ -67,7 +68,7 @@ export interface IRegisteredScript {
 	instance: IScript;
 }
 
-const scriptsDictionary = new Map<Node | IParticleSystem | Scene, IRegisteredScript[]>();
+export const scriptsDictionary = new Map<Node | IParticleSystem | Scene, IRegisteredScript[]>();
 
 /**
  * When a scene is being loaded, scripts that were attached to objects in the scene using the Editor are processed.
@@ -88,6 +89,9 @@ export function registerScriptInstance(object: any, scriptInstance: IScript, key
 		scriptsDictionary.get(object)!.push(registeredScript);
 	}
 
+	object.__editorRunningScripts ??= [];
+	object.__editorRunningScripts.push(registeredScript);
+
 	if (isNode(object) || isAnyParticleSystem(object) || isScene(object)) {
 		object.onDisposeObservable.addOnce((() => {
 			scriptsDictionary.delete(object);
@@ -103,7 +107,7 @@ export function registerScriptInstance(object: any, scriptInstance: IScript, key
  * @param classType defines the class of the type to retrieve
  * @example
  * import { IScript, getAllScriptsByClassForObject } from "babylonjs-editor-tools";
- * 
+ *
  * class ScriptClass implements IScript {
  * 	public onStart(): void {
  * 		const instances = getAllScriptsByClassForObject(mesh, OtherScriptClass);
@@ -112,7 +116,7 @@ export function registerScriptInstance(object: any, scriptInstance: IScript, key
  * 		});
  * 	}
  * }
- * 
+ *
  * class OtherScriptClass implements IScript {
  * 	public doSomething(): void {
  * 		console.log("Doing something!");
@@ -123,7 +127,7 @@ export function getAllScriptsByClassForObject<T extends new (...args: any) => an
 	const data = scriptsDictionary.get(object);
 	const result = data?.filter((s) => s.instance.constructor === classType);
 
-	return result?.map((r) => r.instance) as InstanceType<T>[] ?? null;
+	return (result?.map((r) => r.instance) as InstanceType<T>[]) ?? null;
 }
 
 /**
@@ -132,14 +136,14 @@ export function getAllScriptsByClassForObject<T extends new (...args: any) => an
  * @param classType defines the class of the type to retrieve
  * @example
  * import { IScript, getScriptByClassForObject } from "babylonjs-editor-tools";
- * 
+ *
  * class ScriptClass implements IScript {
  * 	public onStart(): void {
  * 		const instance = getScriptByClassForObject(mesh, OtherScriptClass);
  * 		instance.doSomething();
  * 	}
  * }
- * 
+ *
  * class OtherScriptClass implements IScript {
  * 	public doSomething(): void {
  * 		console.log("Doing something!");
@@ -148,5 +152,5 @@ export function getAllScriptsByClassForObject<T extends new (...args: any) => an
  */
 export function getScriptByClassForObject<T extends new (...args: any) => any>(object: any, classType: T) {
 	const result = getAllScriptsByClassForObject<T>(object, classType);
-	return result?.[0] as InstanceType<T> ?? null;
+	return (result?.[0] as InstanceType<T>) ?? null;
 }

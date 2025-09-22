@@ -1,6 +1,18 @@
 import {
-	Bone, Camera, GroundMesh, Light, Mesh, Node, PointLight, TransformNode,
-	DirectionalLight, InstancedMesh, FreeCamera, ArcRotateCamera, SpotLight, HemisphericLight,
+	Bone,
+	Camera,
+	GroundMesh,
+	Light,
+	Mesh,
+	Node,
+	PointLight,
+	TransformNode,
+	DirectionalLight,
+	InstancedMesh,
+	FreeCamera,
+	ArcRotateCamera,
+	SpotLight,
+	HemisphericLight,
 } from "babylonjs";
 
 import { EditorCamera } from "../../editor/nodes/camera";

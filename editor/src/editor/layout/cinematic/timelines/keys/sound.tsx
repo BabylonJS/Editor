@@ -3,10 +3,10 @@ import { ICinematicSound } from "babylonjs-editor-tools";
 import { CinematicEditor } from "../../editor";
 
 export interface ICinematicEditorSoundKeyProps {
-    cinematicEditor: CinematicEditor;
-    scale: number;
-    move: boolean;
-    cinematicKey: ICinematicSound;
+	cinematicEditor: CinematicEditor;
+	scale: number;
+	move: boolean;
+	cinematicKey: ICinematicSound;
 }
 
 export function CinematicEditorSoundKey(props: ICinematicEditorSoundKeyProps) {

@@ -1,8 +1,19 @@
 import {
-	GizmoCoordinatesMode, Node, Observable, PositionGizmo, Quaternion, RotationGizmo, ScaleGizmo, Scene,
-	UtilityLayerRenderer, Vector3, CameraGizmo, AbstractMesh,
+	GizmoCoordinatesMode,
+	Node,
+	Observable,
+	PositionGizmo,
+	Quaternion,
+	RotationGizmo,
+	ScaleGizmo,
+	Scene,
+	UtilityLayerRenderer,
+	Vector3,
+	CameraGizmo,
+	AbstractMesh,
 } from "babylonjs";
 
+import { isNodeLocked } from "../../../tools/node/metadata";
 import { registerUndoRedo } from "../../../tools/undoredo";
 import { isQuaternion, isVector3 } from "../../../tools/guards/math";
 import { updateIblShadowsRenderPipeline } from "../../../tools/light/ibl";
@@ -13,8 +24,8 @@ export const onGizmoNodeChangedObservable = new Observable<Node>();
 
 export class EditorPreviewGizmo {
 	/**
-     * @internal
-     */
+	 * @internal
+	 */
 	public _gizmosLayer: UtilityLayerRenderer;
 
 	private _scalingGizmo: ScaleGizmo | null = null;
@@ -33,16 +44,16 @@ export class EditorPreviewGizmo {
 	}
 
 	/**
-     * Gets the current gizmo.
-     */
+	 * Gets the current gizmo.
+	 */
 	public get currentGizmo(): PositionGizmo | RotationGizmo | ScaleGizmo | null {
 		return this._positionGizmo ?? this._rotationGizmo ?? this._scalingGizmo ?? null;
 	}
 
 	/**
-     * Sets the gizmo type.
-     * @param gizmo The gizmo to set.
-     */
+	 * Sets the gizmo type.
+	 * @param gizmo The gizmo to set.
+	 */
 	public setGizmoType(gizmo: "position" | "rotation" | "scaling" | "none"): void {
 		this.currentGizmo?.dispose();
 
@@ -87,17 +98,21 @@ export class EditorPreviewGizmo {
 	}
 
 	/**
-     * Gets the reference to the node that is attached and controlled by the gizmo.
-     */
+	 * Gets the reference to the node that is attached and controlled by the gizmo.
+	 */
 	public get attachedNode(): Node | null {
 		return this._attachedNode;
 	}
 
 	/**
-     * Sets the node that is attached and controlled by the gizmo.
-     * @param node The node to attach to the gizmo.
-     */
+	 * Sets the node that is attached and controlled by the gizmo.
+	 * @param node The node to attach to the gizmo.
+	 */
 	public setAttachedNode(node: Node | null): void {
+		if (node && isNodeLocked(node)) {
+			node = null;
+		}
+
 		this._attachedNode = node;
 
 		if (node && isCamera(node)) {
@@ -106,7 +121,7 @@ export class EditorPreviewGizmo {
 			this._cameraGizmo.attachedNode = node;
 		} else {
 			this._cameraGizmo?.dispose();
-			this._cameraGizmo = null; 
+			this._cameraGizmo = null;
 		}
 
 		if (this.currentGizmo) {
@@ -128,8 +143,10 @@ export class EditorPreviewGizmo {
 
 	public getCoordinatesModeString(): string {
 		switch (this._coordinatesMode) {
-			case GizmoCoordinatesMode.World: return "World";
-			case GizmoCoordinatesMode.Local: return "Local";
+			case GizmoCoordinatesMode.World:
+				return "World";
+			case GizmoCoordinatesMode.Local:
+				return "Local";
 		}
 	}
 

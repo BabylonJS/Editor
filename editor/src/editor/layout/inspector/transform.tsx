@@ -18,10 +18,10 @@ import { IEditorInspectorImplementationProps } from "./inspector";
 
 export class EditorTransformNodeInspector extends Component<IEditorInspectorImplementationProps<AbstractMesh>> {
 	/**
-     * Returns whether or not the given object is supported by this inspector.
-     * @param object defines the object to check.
-     * @returns true if the object is supported by this inspector.
-     */
+	 * Returns whether or not the given object is supported by this inspector.
+	 * @param object defines the object to check.
+	 * @returns true if the object is supported by this inspector.
+	 */
 	public static IsSupported(object: unknown): boolean {
 		return isTransformNode(object) || isSceneLinkNode(object);
 	}
@@ -30,7 +30,12 @@ export class EditorTransformNodeInspector extends Component<IEditorInspectorImpl
 		return (
 			<>
 				<EditorInspectorSectionField title="Common">
-					<EditorInspectorStringField label="Name" object={this.props.object} property="name" onChange={() => onNodeModifiedObservable.notifyObservers(this.props.object)} />
+					<EditorInspectorStringField
+						label="Name"
+						object={this.props.object}
+						property="name"
+						onChange={() => onNodeModifiedObservable.notifyObservers(this.props.object)}
+					/>
 				</EditorInspectorSectionField>
 
 				<EditorInspectorSectionField title="Transforms">
@@ -79,12 +84,26 @@ export class EditorTransformNodeInspector extends Component<IEditorInspectorImpl
 			const o = { proxy };
 
 			return (
-				<EditorInspectorVectorField label={<div className="w-14">Rotation</div>} object={o} property="proxy" asDegrees step={0.1} onFinishChange={() => onFinishChange?.()} />
+				<EditorInspectorVectorField
+					label={<div className="w-14">Rotation</div>}
+					object={o}
+					property="proxy"
+					asDegrees
+					step={0.1}
+					onFinishChange={() => onFinishChange?.()}
+				/>
 			);
 		}
 
 		return (
-			<EditorInspectorVectorField label={<div className="w-14">Rotation</div>} object={object} property="rotation" asDegrees step={0.1} onFinishChange={() => onFinishChange?.()} />
+			<EditorInspectorVectorField
+				label={<div className="w-14">Rotation</div>}
+				object={object}
+				property="rotation"
+				asDegrees
+				step={0.1}
+				onFinishChange={() => onFinishChange?.()}
+			/>
 		);
 	}
 }
