@@ -513,8 +513,8 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 	}
 
 	private async _computeTemporaryPreview(): Promise<void> {
-		const texture = this.props.object[this.props.property] as Texture | CubeTexture;
-		if (!texture.url || extname(texture.url).toLowerCase() === ".exr") {
+		const texture = this.props.object[this.props.property] as Texture | CubeTexture | null | undefined;
+		if (!texture?.url || extname(texture.url).toLowerCase() === ".exr") {
 			return;
 		}
 
