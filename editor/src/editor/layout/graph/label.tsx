@@ -257,7 +257,9 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
 		});
 
 		setRenaming(false);
+
 		props.editor.layout.graph.refresh();
+		props.editor.layout.inspector.forceUpdate();
 	}
 
 	function handleKeyDown(ev: KeyboardEvent<HTMLDivElement>) {
