@@ -11,50 +11,138 @@ import { isAnyParticleSystem, isNode, isScene } from "../tools/guards";
 import { ScriptMap } from "./loader";
 
 /**
+ * Defines the cache of all
+ */
+export const scriptAssetsCache = new Map<string, any>();
+
+/**
  * @internal
  */
-export async function _applyScriptsForObject(scene: Scene, object: any, scriptsMap: ScriptMap, rootUrl: string) {
+export async function _preloadScriptsAssets(scene: Scene, rootUrl: string) {
+	const nodes = [...scene.transformNodes, ...scene.meshes, ...scene.lights, ...scene.cameras];
+
+	const scripts = nodes
+		.filter((node) => node.metadata.scripts?.length)
+		.map((node) => node.metadata.scripts)
+		.flat();
+
+	scripts.forEach((script) => {
+		for (const key in script.values) {
+			if (!script.values.hasOwnProperty(key)) {
+				continue;
+			}
+
+			const obj = script.values[key];
+			if (obj.type === "asset" && obj.value) {
+				scriptAssetsCache.set(obj.value, null);
+			}
+		}
+	});
+
+	const promises: Promise<void>[] = [];
+
+	scriptAssetsCache.forEach((_, key) => {
+		if (scriptAssetsCache.get(key)) {
+			return;
+		}
+
+		promises.push(
+			new Promise<void>(async (resolve) => {
+				try {
+					const response = await fetch(`${rootUrl}${key}`);
+					const data = await response.json();
+
+					scriptAssetsCache.set(key, data);
+				} catch (e) {
+					console.error(e);
+				}
+
+				resolve();
+			})
+		);
+	});
+
+	await Promise.all(promises);
+}
+
+/**
+ * @internal
+ */
+export function _applyScriptsForObject(scene: Scene, object: any, scriptsMap: ScriptMap, rootUrl: string) {
 	if (!object.metadata?.scripts) {
 		return;
 	}
 
-	await Promise.all(
-		object.metadata.scripts?.map(async (script) => {
-			if (!script.enabled) {
-				return;
+	object.metadata.scripts?.forEach(async (script) => {
+		if (!script.enabled) {
+			return;
+		}
+
+		const exports = scriptsMap[script.key];
+		if (!exports) {
+			return;
+		}
+
+		if (exports.default) {
+			const instance = new exports.default(object);
+
+			registerScriptInstance(object, instance, script.key);
+			applyDecorators(scene, object, script, instance, rootUrl);
+
+			if (instance.onStart) {
+				scene.onBeforeRenderObservable.addOnce(() => instance.onStart!());
 			}
 
-			const exports = scriptsMap[script.key];
-			if (!exports) {
-				return;
+			if (instance.onUpdate) {
+				scene.onBeforeRenderObservable.add(() => instance.onUpdate!());
+			}
+		} else {
+			if (exports.onStart) {
+				scene.onBeforeRenderObservable.addOnce(() => exports.onStart!(object));
 			}
 
-			if (exports.default) {
-				const instance = new exports.default(object);
-
-				registerScriptInstance(object, instance, script.key);
-				await applyDecorators(scene, object, script, instance, rootUrl);
-
-				if (instance.onStart) {
-					scene.onBeforeRenderObservable.addOnce(() => instance.onStart!());
-				}
-
-				if (instance.onUpdate) {
-					scene.onBeforeRenderObservable.add(() => instance.onUpdate!());
-				}
-			} else {
-				if (exports.onStart) {
-					scene.onBeforeRenderObservable.addOnce(() => exports.onStart!(object));
-				}
-
-				if (exports.onUpdate) {
-					scene.onBeforeRenderObservable.add(() => exports.onUpdate!(object));
-				}
+			if (exports.onUpdate) {
+				scene.onBeforeRenderObservable.add(() => exports.onUpdate!(object));
 			}
-		})
-	);
+		}
+	});
 
 	object.metadata.scripts = undefined;
+}
+
+/**
+ * Applies the given script constructor on the given object on the fly.
+ * @param object defines the reference to the object on which the script must be applied.
+ * @param scriptConstructor defines the constructor of the script to apply on the object.
+ * @param scene defines the reference to the scene. If not provided, will try to get it from object.getScene()
+ * @example
+ * import { applyScriptOnObject } from "babylonjs-editor-tools";
+ * ...
+ * const instance = applyScriptOnObject(mesh, MyScriptClass);
+ */
+export function applyScriptOnObject(object: any, scriptConstructor: new (...args: any) => any, scene?: Scene) {
+	scene ??= object.getScene?.();
+	if (!scene) {
+		throw new Error("Cannot apply script on object: no scene available.");
+	}
+
+	const instance = new scriptConstructor(object);
+
+	const script = {
+		values: {},
+	};
+
+	applyDecorators(scene, object, script, instance, "");
+
+	if (instance.onStart) {
+		scene.onBeforeRenderObservable.addOnce(() => instance.onStart!());
+	}
+
+	if (instance.onUpdate) {
+		scene.onBeforeRenderObservable.add(() => instance.onUpdate!());
+	}
+
+	return instance;
 }
 
 export interface IRegisteredScript {

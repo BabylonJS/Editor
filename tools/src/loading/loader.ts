@@ -5,12 +5,13 @@ import { AppendSceneAsync } from "@babylonjs/core/Loading/sceneLoader";
 import { SceneLoaderFlags } from "@babylonjs/core/Loading/sceneLoaderFlags";
 
 import { isMesh } from "../tools/guards";
+import { configureShadowMapRefreshRate, configureShadowMapRenderListPredicate } from "../tools/light";
 
-import { _applyScriptsForObject } from "./script";
+import { applyRenderingConfigurationForCamera } from "../rendering/tools";
+
 import { configurePhysicsAggregate } from "./physics";
 import { applyRenderingConfigurations } from "./rendering";
-import { applyRenderingConfigurationForCamera } from "../rendering/tools";
-import { configureShadowMapRefreshRate, configureShadowMapRenderListPredicate } from "../tools/light";
+import { _applyScriptsForObject, _preloadScriptsAssets } from "./script";
 
 import "./sound";
 import "./texture";
@@ -99,6 +100,8 @@ export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scen
 		options?.onProgress?.(0.5 + (loadedItemsCount / waitingItemsCount) * 0.5);
 	}
 
+	await _preloadScriptsAssets(scene, rootUrl);
+
 	options?.onProgress?.(1);
 
 	configureShadowMapRenderListPredicate(scene);
@@ -116,20 +119,22 @@ export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scen
 		scene.getPhysicsEngine()?.setGravity(Vector3.FromArray(scene.metadata?.physicsGravity));
 	}
 
-	await Promise.all([
-		_applyScriptsForObject(scene, scene, scriptsMap, rootUrl),
-		...scene.transformNodes.map((transformNode) => {
-			return _applyScriptsForObject(scene, transformNode, scriptsMap, rootUrl);
-		}),
-		...scene.meshes.map((mesh) => {
-			configurePhysicsAggregate(mesh);
-			return _applyScriptsForObject(scene, mesh, scriptsMap, rootUrl);
-		}),
-		...scene.lights.map((light) => {
-			return _applyScriptsForObject(scene, light, scriptsMap, rootUrl);
-		}),
-		...scene.cameras.map((camera) => {
-			return _applyScriptsForObject(scene, camera, scriptsMap, rootUrl);
-		}),
-	]);
+	_applyScriptsForObject(scene, scene, scriptsMap, rootUrl);
+
+	scene.transformNodes.forEach((transformNode) => {
+		_applyScriptsForObject(scene, transformNode, scriptsMap, rootUrl);
+	});
+
+	scene.meshes.forEach((mesh) => {
+		configurePhysicsAggregate(mesh);
+		_applyScriptsForObject(scene, mesh, scriptsMap, rootUrl);
+	});
+
+	scene.lights.forEach((light) => {
+		_applyScriptsForObject(scene, light, scriptsMap, rootUrl);
+	});
+
+	scene.cameras.forEach((camera) => {
+		_applyScriptsForObject(scene, camera, scriptsMap, rootUrl);
+	});
 }

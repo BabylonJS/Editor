@@ -348,7 +348,7 @@ describe("decorators/apply", () => {
 	describe("applyDecorators", () => {
 		test("should do nothing when no decorated properties in target", async () => {
 			const target = new EmptyTarget();
-			await applyDecorators(scene, object, {}, target, "");
+			applyDecorators(scene, object, {}, target, "");
 
 			expect(scene.getSoundByName).not.toHaveBeenCalled();
 		});
@@ -359,7 +359,7 @@ describe("decorators/apply", () => {
 			expect(target.booleanProperty).toBe(false);
 			expect(target.numberProperty).toBe(0);
 
-			await applyDecorators(scene, object, object.metadata.scripts[0], target, "");
+			applyDecorators(scene, object, object.metadata.scripts[0], target, "");
 
 			expect(scene.getSoundByName).toHaveBeenCalledWith("test");
 			expect(target.soundProperty).toBe(soundObject);
@@ -414,14 +414,14 @@ describe("decorators/apply", () => {
 
 		test("should bind pointer events", async () => {
 			const target = new Target(null!);
-			await applyDecorators(scene, object, object.metadata.scripts[0], target, "");
+			applyDecorators(scene, object, object.metadata.scripts[0], target, "");
 
 			expect(scene.onPointerObservable.add).toHaveBeenCalledTimes(1);
 		});
 
 		test("should bind keyboard events", async () => {
 			const target = new Target(null!);
-			await applyDecorators(scene, object, object.metadata.scripts[0], target, "");
+			applyDecorators(scene, object, object.metadata.scripts[0], target, "");
 
 			expect(scene.onKeyboardObservable.add).toHaveBeenCalledTimes(1);
 		});

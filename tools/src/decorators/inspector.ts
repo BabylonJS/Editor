@@ -294,7 +294,7 @@ export function visibleAsKeyMap(label?: string, configuration?: Omit<VisibleInIn
 	};
 }
 
-export type VisibleInspectorDecoratorAssetPossibleTypes = "material" | "nodeParticleSystemSet";
+export type VisibleInspectorDecoratorAssetPossibleTypes = "json" | "material" | "nodeParticleSystemSet";
 
 export type VisibleInspectorDecoratorAssetConfiguration<T = VisibleInspectorDecoratorAssetPossibleTypes> = VisibleInInspectorDecoratorConfiguration & {
 	assetType: T;
