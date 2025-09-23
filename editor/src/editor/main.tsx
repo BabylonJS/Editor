@@ -8,6 +8,7 @@ import { createRoot } from "react-dom/client";
 import { HotkeysTarget2 } from "@blueprintjs/core";
 
 import { waitUntil } from "../tools/tools";
+import { isDomTextInputFocused } from "../tools/dom";
 import { onRedoObservable, onUndoObservable, redo, undo } from "../tools/undoredo";
 import { checkNodeJSAvailable, checkVisualStudioCodeAvailable } from "../tools/process";
 import { tryGetExperimentalFeaturesEnabledFromLocalStorage } from "../tools/local-storage";
@@ -37,7 +38,6 @@ import { removeNodes } from "./layout/graph/remove";
 
 import "./nodes/camera";
 import "./nodes/scene-link";
-import { isDomTextInputFocused } from "../tools/dom";
 
 export function createEditor(): void {
 	const theme = localStorage.getItem("editor-theme") ?? "dark";

@@ -1,6 +1,6 @@
 import { extname } from "path/posix";
 
-import { DragEvent, useEffect, useRef, useState } from "react";
+import { DragEvent, KeyboardEvent, useEffect, useRef, useState } from "react";
 
 import { FaLock } from "react-icons/fa";
 import { useEventListener } from "usehooks-ts";
@@ -9,6 +9,7 @@ import { Node, TransformNode, AbstractMesh, Vector3 } from "babylonjs";
 
 import { Input } from "../../../ui/shadcn/ui/input";
 
+import { isDarwin } from "../../../tools/os";
 import { isScene } from "../../../tools/guards/scene";
 import { isSound } from "../../../tools/guards/sound";
 import { registerUndoRedo } from "../../../tools/undoredo";
@@ -32,7 +33,7 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
 	const [over, setOver] = useState(false);
 
 	const [name, setName] = useState("");
-	const [doubleClicked, setDoubleClicked] = useState(false);
+	const [renaming, setRenaming] = useState(false);
 
 	const inputRef = useRef<HTMLInputElement>(null);
 
@@ -41,21 +42,21 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
 	}, [props.name]);
 
 	useEffect(() => {
-		if (doubleClicked) {
+		if (renaming) {
 			setTimeout(() => {
 				inputRef.current?.select();
 				inputRef.current?.focus();
 			}, 0);
 		}
-	}, [doubleClicked]);
+	}, [renaming]);
 
 	useEventListener("keyup", (ev) => {
-		if (ev.key === "Escape" && doubleClicked) {
+		if (ev.key === "Escape" && renaming) {
 			setName(props.name);
-			setDoubleClicked(false);
+			setRenaming(false);
 		}
 
-		if (ev.key === "Enter" && doubleClicked) {
+		if (ev.key === "Enter" && renaming) {
 			handleInputNameBlurred();
 		}
 	});
@@ -242,9 +243,9 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
 		});
 	}
 
-	function handleDoubleClick() {
+	function handleRenameObject() {
 		if (props.object.name) {
-			setDoubleClicked(!doubleClicked);
+			setRenaming(!renaming);
 		}
 	}
 
@@ -255,12 +256,22 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
 			redo: () => (props.object.name = name),
 		});
 
-		setDoubleClicked(false);
+		setRenaming(false);
 		props.editor.layout.graph.refresh();
 	}
 
+	function handleKeyDown(ev: KeyboardEvent<HTMLDivElement>) {
+		ev.stopPropagation();
+
+		if (isDarwin() && ev.key === "Enter") {
+			handleRenameObject();
+		} else if (ev.key === "F2") {
+			handleRenameObject();
+		}
+	}
+
 	function getLabel() {
-		if (doubleClicked) {
+		if (renaming) {
 			return (
 				<Input
 					value={name}
@@ -275,11 +286,13 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
 
 		const label = (
 			<div
+				tabIndex={0}
 				className={`
 					${!isNodeSerializable(props.object) ? "line-through" : ""}
 					${!isNodeSerializable(props.object) || isNodeLocked(props.object) ? "text-foreground/35" : ""}
 					transition-all duration-300 ease-in-out
 				`}
+				onKeyUp={(ev) => handleKeyDown(ev)}
 			>
 				{props.name}
 			</div>
@@ -300,6 +313,7 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
 	return (
 		<div
 			draggable
+			tabIndex={0}
 			className={`
                 ml-2 p-1 w-full
                 ${over ? "bg-muted px-2 py-2 rounded-lg" : ""}
@@ -309,7 +323,6 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
 			onDragOver={(ev) => handleDragOver(ev)}
 			onDragLeave={(ev) => handleDragLeave(ev)}
 			onDrop={(ev) => handleDrop(ev)}
-			onDoubleClick={() => handleDoubleClick()}
 			onBlur={() => handleInputNameBlurred()}
 		>
 			{getLabel()}
