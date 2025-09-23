@@ -16,71 +16,73 @@ import type { AudioSceneComponent as _AudioSceneComponent } from "@babylonjs/cor
 import { getSoundById } from "../tools/sound";
 import { isAbstractMesh, isNode } from "../tools/guards";
 
+import { scriptAssetsCache } from "../loading/script";
+
 import { IPointerEventDecoratorOptions } from "./events";
 import { VisibleInInspectorDecoratorConfiguration, VisibleInInspectorDecoratorEntityConfiguration, VisibleInspectorDecoratorAssetConfiguration } from "./inspector";
 
 export interface ISceneDecoratorData {
 	// @nodeFromScene
-	_NodesFromScene: {
+	_NodesFromScene?: {
 		nodeName: string;
 		propertyKey: string | Symbol;
 	}[];
 
 	// @nodeFromDescendants
-	_NodesFromDescendants: {
+	_NodesFromDescendants?: {
 		nodeName: string;
 		propertyKey: string | Symbol;
 		directDescendantsOnly: boolean;
 	}[];
 
 	// @fromAnimationGroups
-	_AnimationGroups: {
+	_AnimationGroups?: {
 		animationGroupName: string;
 		propertyKey: string | Symbol;
 	}[];
 
 	// @soundFromScene
-	_SoundsFromScene: {
+	_SoundsFromScene?: {
 		soundName: string;
 		propertyKey: string | Symbol;
 	}[];
 
 	// @guiFromAsset
-	_GuiFromAsset: {
+	_GuiFromAsset?: {
 		pathInAssets: string;
 		onGuiCreated?: (instance: unknown, gui: AdvancedDynamicTexture) => unknown;
 		propertyKey: string | Symbol;
 	}[];
 
 	// @fromParticleSystems
-	_ParticleSystemsFromScene: {
+	_ParticleSystemsFromScene?: {
 		particleSystemName: string;
 		directDescendantsOnly: boolean;
 		propertyKey: string | Symbol;
 	}[];
 
 	// @visibleAsNumber, @visibleAsBoolean etc.
-	_VisibleInInspector: {
+	_VisibleInInspector?: {
 		label?: string;
 		propertyKey: string | Symbol;
 		configuration: VisibleInInspectorDecoratorConfiguration;
 	}[];
 
 	// @onPointerEvent
-	_PointerEvents: {
+	_PointerEvents?: {
 		eventTypes: number[];
 		options: IPointerEventDecoratorOptions;
 		propertyKey: string | Symbol;
 	}[];
 
 	// @onKeyboardEvent
-	_KeyboardEvents: {
+	_KeyboardEvents?: {
 		eventTypes: number[];
 		propertyKey: string | Symbol;
 	}[];
 }
 
-export async function applyDecorators(scene: Scene, object: any, script: any, instance: any, rootUrl: string) {
+export function applyDecorators(scene: Scene, object: any, script: any, instance: any, rootUrl: string) {
 	const ctor = instance.constructor as ISceneDecoratorData;
 	if (!ctor) {
 		return;
@@ -109,25 +111,23 @@ export async function applyDecorators(scene: Scene, object: any, script: any, in
 	});
 
 	// @guiFromAsset
-	await Promise.all(
-		(ctor._GuiFromAsset ?? []).map(async (params) => {
-			const guiUrl = `${rootUrl}assets/${params.pathInAssets}`;
+	(ctor._GuiFromAsset ?? []).map(async (params) => {
+		const guiUrl = `${rootUrl}assets/${params.pathInAssets}`;
 
-			try {
-				const response = await fetch(guiUrl);
-				const data = await response.json();
+		try {
+			const response = await fetch(guiUrl);
+			const data = await response.json();
 
-				const gui = AdvancedDynamicTexture.CreateFullscreenUI(data.name, true, scene);
-				gui.parseSerializedObject(data.content, false);
+			const gui = AdvancedDynamicTexture.CreateFullscreenUI(data.name, true, scene);
+			gui.parseSerializedObject(data.content, false);
 
-				instance[params.propertyKey.toString()] = gui;
-				params.onGuiCreated?.(instance, gui);
-			} catch (e) {
-				console.error(`Failed to load GUI from asset: ${guiUrl}`);
-				throw e;
-			}
-		})
-	);
+			instance[params.propertyKey.toString()] = gui;
+			params.onGuiCreated?.(instance, gui);
+		} catch (e) {
+			console.error(`Failed to load GUI from asset: ${guiUrl}`);
+			throw e;
+		}
+	});
 
 	// @fromParticleSystems
 	ctor._ParticleSystemsFromScene?.forEach((params) => {
@@ -143,81 +143,82 @@ export async function applyDecorators(scene: Scene, object: any, script: any, in
 	});
 
 	// @visibleAsNumber, @visibleAsBoolean etc.
-	await Promise.all(
-		(ctor._VisibleInInspector ?? []).map(async (params) => {
-			const propertyKey = params.propertyKey.toString();
-			const attachedScripts = script.values;
+	(ctor._VisibleInInspector ?? []).map(async (params) => {
+		const propertyKey = params.propertyKey.toString();
+		const attachedScripts = script.values;
 
-			if (attachedScripts.hasOwnProperty(propertyKey) && attachedScripts[propertyKey].hasOwnProperty("value")) {
-				const value = attachedScripts[propertyKey].value;
+		if (attachedScripts.hasOwnProperty(propertyKey) && attachedScripts[propertyKey].hasOwnProperty("value")) {
+			const value = attachedScripts[propertyKey].value;
 
-				switch (params.configuration.type) {
-					case "number":
-					case "boolean":
-					case "keymap":
-					case "string":
-						instance[propertyKey] = value;
-						break;
+			switch (params.configuration.type) {
+				case "number":
+				case "boolean":
+				case "keymap":
+				case "string":
+					instance[propertyKey] = value;
+					break;
 
-					case "vector2":
-						instance[propertyKey] = Vector2.FromArray(value);
-						break;
-					case "vector3":
-						instance[propertyKey] = Vector3.FromArray(value);
-						break;
+				case "vector2":
+					instance[propertyKey] = Vector2.FromArray(value);
+					break;
+				case "vector3":
+					instance[propertyKey] = Vector3.FromArray(value);
+					break;
 
-					case "color3":
-						instance[propertyKey] = Color3.FromArray(value);
-						break;
-					case "color4":
-						instance[propertyKey] = Color4.FromArray(value);
-						break;
+				case "color3":
+					instance[propertyKey] = Color3.FromArray(value);
+					break;
+				case "color4":
+					instance[propertyKey] = Color4.FromArray(value);
+					break;
 
-					case "entity":
-						const entityType = (params.configuration as VisibleInInspectorDecoratorEntityConfiguration).entityType;
-						switch (entityType) {
-							case "node":
-								instance[propertyKey] = scene.getNodeById(value) ?? null;
+				case "entity":
+					const entityType = (params.configuration as VisibleInInspectorDecoratorEntityConfiguration).entityType;
+					switch (entityType) {
+						case "node":
+							instance[propertyKey] = scene.getNodeById(value) ?? null;
+							break;
+						case "animationGroup":
+							instance[propertyKey] = scene.getAnimationGroupByName(value) ?? null;
+							break;
+						case "sound":
+							instance[propertyKey] = getSoundById(value, scene);
+							break;
+						case "particleSystem":
+							instance[propertyKey] = scene.particleSystems?.find((ps) => ps.id === value) ?? null;
+							break;
+					}
+					break;
+
+				case "texture":
+					if (value) {
+						instance[propertyKey] = Texture.Parse(value, scene, rootUrl);
+					}
+					break;
+
+				case "asset":
+					if (value) {
+						const assetType = (params.configuration as VisibleInspectorDecoratorAssetConfiguration).assetType;
+						const data = scriptAssetsCache.get(value);
+
+						switch (assetType) {
+							case "json":
+								instance[propertyKey] = data;
 								break;
-							case "animationGroup":
-								instance[propertyKey] = scene.getAnimationGroupByName(value) ?? null;
+
+							case "nodeParticleSystemSet":
+								const npss = NodeParticleSystemSet.Parse(data);
+								instance[propertyKey] = npss;
 								break;
-							case "sound":
-								instance[propertyKey] = getSoundById(value, scene);
-								break;
-							case "particleSystem":
-								instance[propertyKey] = scene.particleSystems?.find((ps) => ps.id === value) ?? null;
+
+							case "material":
+								instance[propertyKey] = Material.Parse(data, scene, rootUrl);
 								break;
 						}
-						break;
-
-					case "texture":
-						if (value) {
-							instance[propertyKey] = Texture.Parse(value, scene, rootUrl);
-						}
-						break;
-
-					case "asset":
-						if (value) {
-							const assetType = (params.configuration as VisibleInspectorDecoratorAssetConfiguration).assetType;
-
-							const response = await fetch(`${rootUrl}${value}`);
-							const data = await response.json();
-							switch (assetType) {
-								case "nodeParticleSystemSet":
-									const npss = NodeParticleSystemSet.Parse(data);
-									instance[propertyKey] = npss;
-									break;
-
-								case "material":
-									instance[propertyKey] = Material.Parse(data, scene, rootUrl);
-									break;
-							}
-						}
-				}
+					}
 			}
-		})
-	);
+		}
+	});
 
 	// @onPointerEvent
 	if (ctor._PointerEvents?.length) {
@@ -234,7 +235,7 @@ export async function applyDecorators(scene: Scene, object: any, script: any, in
 		scene.onPointerObservable.add((pointerInfo) => {
 			let pickInfo: PickingInfo | null = null;
 
-			ctor._PointerEvents.forEach((params) => {
+			ctor._PointerEvents!.forEach((params) => {
 				if (!params.eventTypes.includes(pointerInfo.type)) {
 					return;
 				}
@@ -278,7 +279,7 @@ export async function applyDecorators(scene: Scene, object: any, script: any, in
 	// @onKeyboardEvent
 	if (ctor._KeyboardEvents?.length) {
 		scene.onKeyboardObservable.add((keyboardInfo) => {
-			ctor._KeyboardEvents.forEach((params) => {
+			ctor._KeyboardEvents!.forEach((params) => {
 				if (!params.eventTypes.includes(keyboardInfo.type)) {
 					return;
 				}

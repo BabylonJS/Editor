@@ -30,9 +30,9 @@ describe("decorators/inspector", () => {
 			fn(target, "testProperty");
 
 			expect(target.constructor._VisibleInInspector).toBeDefined();
-			expect(target.constructor._VisibleInInspector.length).toBe(1);
-			expect(target.constructor._VisibleInInspector[0].label).toBe("test");
-			expect(target.constructor._VisibleInInspector[0].propertyKey).toBe("testProperty");
+			expect(target.constructor._VisibleInInspector!.length).toBe(1);
+			expect(target.constructor._VisibleInInspector![0].label).toBe("test");
+			expect(target.constructor._VisibleInInspector![0].propertyKey).toBe("testProperty");
 		});
 	});
 
@@ -42,9 +42,9 @@ describe("decorators/inspector", () => {
 			fn(target, "testProperty");
 
 			expect(target.constructor._VisibleInInspector).toBeDefined();
-			expect(target.constructor._VisibleInInspector.length).toBe(1);
-			expect(target.constructor._VisibleInInspector[0].label).toBe("test");
-			expect(target.constructor._VisibleInInspector[0].propertyKey).toBe("testProperty");
+			expect(target.constructor._VisibleInInspector!.length).toBe(1);
+			expect(target.constructor._VisibleInInspector![0].label).toBe("test");
+			expect(target.constructor._VisibleInInspector![0].propertyKey).toBe("testProperty");
 		});
 	});
 
@@ -58,10 +58,10 @@ describe("decorators/inspector", () => {
 			fn(target, "testProperty");
 
 			expect(target.constructor._VisibleInInspector).toBeDefined();
-			expect(target.constructor._VisibleInInspector.length).toBe(1);
-			expect(target.constructor._VisibleInInspector[0].label).toBe("test");
-			expect(target.constructor._VisibleInInspector[0].propertyKey).toBe("testProperty");
-			expect(target.constructor._VisibleInInspector[0].configuration).toEqual({
+			expect(target.constructor._VisibleInInspector!.length).toBe(1);
+			expect(target.constructor._VisibleInInspector![0].label).toBe("test");
+			expect(target.constructor._VisibleInInspector![0].propertyKey).toBe("testProperty");
+			expect(target.constructor._VisibleInInspector![0].configuration).toEqual({
 				type: "number",
 				step: 0.1,
 				min: 10,
@@ -81,10 +81,10 @@ describe("decorators/inspector", () => {
 			fn(target, "testProperty");
 
 			expect(target.constructor._VisibleInInspector).toBeDefined();
-			expect(target.constructor._VisibleInInspector.length).toBe(1);
-			expect(target.constructor._VisibleInInspector[0].label).toBe("test");
-			expect(target.constructor._VisibleInInspector[0].propertyKey).toBe("testProperty");
-			expect(target.constructor._VisibleInInspector[0].configuration).toEqual({
+			expect(target.constructor._VisibleInInspector!.length).toBe(1);
+			expect(target.constructor._VisibleInInspector![0].label).toBe("test");
+			expect(target.constructor._VisibleInInspector![0].propertyKey).toBe("testProperty");
+			expect(target.constructor._VisibleInInspector![0].configuration).toEqual({
 				type: "vector2",
 				step: 0.1,
 				min: 10,
@@ -105,10 +105,10 @@ describe("decorators/inspector", () => {
 			fn(target, "testProperty");
 
 			expect(target.constructor._VisibleInInspector).toBeDefined();
-			expect(target.constructor._VisibleInInspector.length).toBe(1);
-			expect(target.constructor._VisibleInInspector[0].label).toBe("test");
-			expect(target.constructor._VisibleInInspector[0].propertyKey).toBe("testProperty");
-			expect(target.constructor._VisibleInInspector[0].configuration).toEqual({
+			expect(target.constructor._VisibleInInspector!.length).toBe(1);
+			expect(target.constructor._VisibleInInspector![0].label).toBe("test");
+			expect(target.constructor._VisibleInInspector![0].propertyKey).toBe("testProperty");
+			expect(target.constructor._VisibleInInspector![0].configuration).toEqual({
 				type: "vector3",
 				step: 0.1,
 				min: 10,
@@ -127,10 +127,10 @@ describe("decorators/inspector", () => {
 			fn(target, "testProperty");
 
 			expect(target.constructor._VisibleInInspector).toBeDefined();
-			expect(target.constructor._VisibleInInspector.length).toBe(1);
-			expect(target.constructor._VisibleInInspector[0].label).toBe("test");
-			expect(target.constructor._VisibleInInspector[0].propertyKey).toBe("testProperty");
-			expect(target.constructor._VisibleInInspector[0].configuration).toEqual({
+			expect(target.constructor._VisibleInInspector!.length).toBe(1);
+			expect(target.constructor._VisibleInInspector![0].label).toBe("test");
+			expect(target.constructor._VisibleInInspector![0].propertyKey).toBe("testProperty");
+			expect(target.constructor._VisibleInInspector![0].configuration).toEqual({
 				type: "color3",
 				noClamp: true,
 				noColorPicker: true,
@@ -147,10 +147,10 @@ describe("decorators/inspector", () => {
 			fn(target, "testProperty");
 
 			expect(target.constructor._VisibleInInspector).toBeDefined();
-			expect(target.constructor._VisibleInInspector.length).toBe(1);
-			expect(target.constructor._VisibleInInspector[0].label).toBe("test");
-			expect(target.constructor._VisibleInInspector[0].propertyKey).toBe("testProperty");
-			expect(target.constructor._VisibleInInspector[0].configuration).toEqual({
+			expect(target.constructor._VisibleInInspector!.length).toBe(1);
+			expect(target.constructor._VisibleInInspector![0].label).toBe("test");
+			expect(target.constructor._VisibleInInspector![0].propertyKey).toBe("testProperty");
+			expect(target.constructor._VisibleInInspector![0].configuration).toEqual({
 				type: "color4",
 				noClamp: true,
 				noColorPicker: true,
@@ -164,10 +164,10 @@ describe("decorators/inspector", () => {
 			fn(target, "testProperty");
 
 			expect(target.constructor._VisibleInInspector).toBeDefined();
-			expect(target.constructor._VisibleInInspector.length).toBe(1);
-			expect(target.constructor._VisibleInInspector[0].label).toBe("test");
-			expect(target.constructor._VisibleInInspector[0].propertyKey).toBe("testProperty");
-			expect(target.constructor._VisibleInInspector[0].configuration).toEqual({
+			expect(target.constructor._VisibleInInspector!.length).toBe(1);
+			expect(target.constructor._VisibleInInspector![0].label).toBe("test");
+			expect(target.constructor._VisibleInInspector![0].propertyKey).toBe("testProperty");
+			expect(target.constructor._VisibleInInspector![0].configuration).toEqual({
 				type: "entity",
 				entityType: "node",
 			});
@@ -183,10 +183,10 @@ describe("decorators/inspector", () => {
 			fn(target, "testProperty");
 
 			expect(target.constructor._VisibleInInspector).toBeDefined();
-			expect(target.constructor._VisibleInInspector.length).toBe(1);
-			expect(target.constructor._VisibleInInspector[0].label).toBe("test");
-			expect(target.constructor._VisibleInInspector[0].propertyKey).toBe("testProperty");
-			expect(target.constructor._VisibleInInspector[0].configuration).toEqual({
+			expect(target.constructor._VisibleInInspector!.length).toBe(1);
+			expect(target.constructor._VisibleInInspector![0].label).toBe("test");
+			expect(target.constructor._VisibleInInspector![0].propertyKey).toBe("testProperty");
+			expect(target.constructor._VisibleInInspector![0].configuration).toEqual({
 				type: "texture",
 				onlyCubes: false,
 				acceptCubes: false,
@@ -200,10 +200,10 @@ describe("decorators/inspector", () => {
 			fn(target, "testProperty");
 
 			expect(target.constructor._VisibleInInspector).toBeDefined();
-			expect(target.constructor._VisibleInInspector.length).toBe(1);
-			expect(target.constructor._VisibleInInspector[0].label).toBe("test");
-			expect(target.constructor._VisibleInInspector[0].propertyKey).toBe("testProperty");
-			expect(target.constructor._VisibleInInspector[0].configuration).toEqual({
+			expect(target.constructor._VisibleInInspector!.length).toBe(1);
+			expect(target.constructor._VisibleInInspector![0].label).toBe("test");
+			expect(target.constructor._VisibleInInspector![0].propertyKey).toBe("testProperty");
+			expect(target.constructor._VisibleInInspector![0].configuration).toEqual({
 				type: "keymap",
 			});
 		});
@@ -215,10 +215,10 @@ describe("decorators/inspector", () => {
 			fn(target, "testProperty");
 
 			expect(target.constructor._VisibleInInspector).toBeDefined();
-			expect(target.constructor._VisibleInInspector.length).toBe(1);
-			expect(target.constructor._VisibleInInspector[0].label).toBe("test");
-			expect(target.constructor._VisibleInInspector[0].propertyKey).toBe("testProperty");
-			expect(target.constructor._VisibleInInspector[0].configuration).toEqual({
+			expect(target.constructor._VisibleInInspector!.length).toBe(1);
+			expect(target.constructor._VisibleInInspector![0].label).toBe("test");
+			expect(target.constructor._VisibleInInspector![0].propertyKey).toBe("testProperty");
+			expect(target.constructor._VisibleInInspector![0].configuration).toEqual({
 				type: "asset",
 				assetType: "nodeParticleSystemSet",
 			});
