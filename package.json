@@ -38,7 +38,7 @@
 		"start": "yarn workspace babylonjs-editor start",
 		"package": "yarn clean && yarn clean:node_modules && yarn && yarn lint && yarn build-all && yarn test && node build.mjs",
 		"clean": "rimraf editor/build editor/declaration editor/electron-packages editor/coverage quixel/build quixel/declaration tools/build tools/declaration tools/coverage templates/nextjs/.next templates/solidjs/dist templates/vanillajs/dist website/.next",
-		"clean:node_modules": "rimraf --glob **/node_modules",
+		"clean:node_modules": "rm -rf editor/node_modules tools/node_modules quixel/node_modules templates/**/node_modules website/node_modules node_modules",
 		"test": "yarn workspace babylonjs-editor-tools test && yarn workspace babylonjs-editor test",
 		"coverage": "yarn workspace babylonjs-editor-tools coverage && yarn workspace babylonjs-editor coverage",
 		"format": "prettier --write \"editor/src/**/*.{ts,tsx,js,json}\" \"tools/src/**/*.{ts,tsx,js,json}\" \"quixel/src/**/*.{ts,tsx,js,json}\" \"website/src/**/*.{ts,tsx,js,json}\"",
