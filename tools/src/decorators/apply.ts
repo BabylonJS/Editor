@@ -21,60 +21,60 @@ import { VisibleInInspectorDecoratorConfiguration, VisibleInInspectorDecoratorEn
 
 export interface ISceneDecoratorData {
 	// @nodeFromScene
-	_NodesFromScene: {
+	_NodesFromScene?: {
 		nodeName: string;
 		propertyKey: string | Symbol;
 	}[];
 
 	// @nodeFromDescendants
-	_NodesFromDescendants: {
+	_NodesFromDescendants?: {
 		nodeName: string;
 		propertyKey: string | Symbol;
 		directDescendantsOnly: boolean;
 	}[];
 
 	// @fromAnimationGroups
-	_AnimationGroups: {
+	_AnimationGroups?: {
 		animationGroupName: string;
 		propertyKey: string | Symbol;
 	}[];
 
 	// @soundFromScene
-	_SoundsFromScene: {
+	_SoundsFromScene?: {
 		soundName: string;
 		propertyKey: string | Symbol;
 	}[];
 
 	// @guiFromAsset
-	_GuiFromAsset: {
+	_GuiFromAsset?: {
 		pathInAssets: string;
 		onGuiCreated?: (instance: unknown, gui: AdvancedDynamicTexture) => unknown;
 		propertyKey: string | Symbol;
 	}[];
 
 	// @fromParticleSystems
-	_ParticleSystemsFromScene: {
+	_ParticleSystemsFromScene?: {
 		particleSystemName: string;
 		directDescendantsOnly: boolean;
 		propertyKey: string | Symbol;
 	}[];
 
 	// @visibleAsNumber, @visibleAsBoolean etc.
-	_VisibleInInspector: {
+	_VisibleInInspector?: {
 		label?: string;
 		propertyKey: string | Symbol;
 		configuration: VisibleInInspectorDecoratorConfiguration;
 	}[];
 
 	// @onPointerEvent
-	_PointerEvents: {
+	_PointerEvents?: {
 		eventTypes: number[];
 		options: IPointerEventDecoratorOptions;
 		propertyKey: string | Symbol;
 	}[];
 
 	// @onKeyboardEvent
-	_KeyboardEvents: {
+	_KeyboardEvents?: {
 		eventTypes: number[];
 		propertyKey: string | Symbol;
 	}[];
@@ -234,7 +234,7 @@ export async function applyDecorators(scene: Scene, object: any, script: any, in
 		scene.onPointerObservable.add((pointerInfo) => {
 			let pickInfo: PickingInfo | null = null;
 
-			ctor._PointerEvents.forEach((params) => {
+			ctor._PointerEvents!.forEach((params) => {
 				if (!params.eventTypes.includes(pointerInfo.type)) {
 					return;
 				}
@@ -278,7 +278,7 @@ export async function applyDecorators(scene: Scene, object: any, script: any, in
 	// @onKeyboardEvent
 	if (ctor._KeyboardEvents?.length) {
 		scene.onKeyboardObservable.add((keyboardInfo) => {
-			ctor._KeyboardEvents.forEach((params) => {
+			ctor._KeyboardEvents!.forEach((params) => {
 				if (!params.eventTypes.includes(keyboardInfo.type)) {
 					return;
 				}

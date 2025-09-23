@@ -57,6 +57,43 @@ export async function _applyScriptsForObject(scene: Scene, object: any, scriptsM
 	object.metadata.scripts = undefined;
 }
 
+/**
+ *
+ * @param object
+ * @param scriptConstructor
+ * @param scene
+ * @param rootUrl
+ * @returns
+ */
+export async function applyScriptOnObject(object: any, scriptConstructor: new (...args: any) => any, scene?: Scene, rootUrl?: string) {
+	scene ??= object.getScene?.();
+	if (!scene) {
+		throw new Error("Cannot apply script on object: no scene available.");
+	}
+
+	const instance = new scriptConstructor(object);
+
+	await applyDecorators(
+		scene,
+		object,
+		{
+			values: {},
+		},
+		instance,
+		rootUrl ?? ""
+	);
+
+	if (instance.onStart) {
+		scene.onBeforeRenderObservable.addOnce(() => instance.onStart!());
+	}
+
+	if (instance.onUpdate) {
+		scene.onBeforeRenderObservable.add(() => instance.onUpdate!());
+	}
+
+	return instance;
+}
+
 export interface IRegisteredScript {
 	/**
 	 * Defines the key of the script. Refer to scriptMap.
