@@ -44,13 +44,16 @@ export const lightCommandItems = {
 	} as CommandItem,
 };
 
-export const meshCommandItems = {
+export const nodeCommandItems = {
 	transformNode: {
 		text: "Transform Node",
 		label: "Add a new transform node to the scene",
 		key: "add-transform-node",
 		ipcRendererChannelKey: "transform-node",
 	} as CommandItem,
+};
+
+export const meshCommandItems = {
 	box: {
 		text: "Box Mesh",
 		label: "Add a new box mesh to the scene",
@@ -74,6 +77,30 @@ export const meshCommandItems = {
 		label: "Add a new sphere mesh to the scene",
 		key: "add-sphere-mesh",
 		ipcRendererChannelKey: "sphere-mesh",
+	} as CommandItem,
+	capsule: {
+		text: "Capsule Mesh",
+		label: "Add a new capsule mesh to the scene",
+		key: "add-capsule-mesh",
+		ipcRendererChannelKey: "capsule-mesh",
+	} as CommandItem,
+	cylinder: {
+		text: "Cylinder Mesh",
+		label: "Add a new cylinder mesh to the scene",
+		key: "add-cylinder-mesh",
+		ipcRendererChannelKey: "cylinder-mesh",
+	} as CommandItem,
+	torus: {
+		text: "Torus Mesh",
+		label: "Add a new torus mesh to the scene",
+		key: "add-torus-mesh",
+		ipcRendererChannelKey: "torus-mesh",
+	} as CommandItem,
+	torusKnot: {
+		text: "Torus Knot Mesh",
+		label: "Add a new torus knot mesh to the scene",
+		key: "add-torus-knot-mesh",
+		ipcRendererChannelKey: "torus-knot-mesh",
 	} as CommandItem,
 	skybox: {
 		text: "Skybox Mesh",

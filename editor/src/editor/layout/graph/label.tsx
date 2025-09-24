@@ -262,7 +262,7 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
 		props.editor.layout.inspector.forceUpdate();
 	}
 
-	function handleKeyDown(ev: KeyboardEvent<HTMLDivElement>) {
+	function handleKeyUp(ev: KeyboardEvent<HTMLDivElement>) {
 		ev.stopPropagation();
 
 		if (isDarwin() && ev.key === "Enter") {
@@ -294,7 +294,7 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
 					${!isNodeSerializable(props.object) || isNodeLocked(props.object) ? "text-foreground/35" : ""}
 					transition-all duration-300 ease-in-out
 				`}
-				onKeyUp={(ev) => handleKeyDown(ev)}
+				onKeyUp={(ev) => handleKeyUp(ev)}
 			>
 				{props.name}
 			</div>
@@ -315,7 +315,6 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
 	return (
 		<div
 			draggable
-			tabIndex={0}
 			className={`
                 ml-2 p-1 w-full
                 ${over ? "bg-muted px-2 py-2 rounded-lg" : ""}

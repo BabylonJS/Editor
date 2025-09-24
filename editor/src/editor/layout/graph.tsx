@@ -66,6 +66,7 @@ import { onProjectConfigurationChangedObservable } from "../../project/configura
 
 import { EditorGraphLabel } from "./graph/label";
 import { EditorGraphContextMenu } from "./graph/graph";
+import { getNodeCommands } from "../dialogs/command-palette/node";
 import { getMeshCommands } from "../dialogs/command-palette/mesh";
 import { getLightCommands } from "../dialogs/command-palette/light";
 import { getCameraCommands } from "../dialogs/command-palette/camera";
@@ -206,14 +207,6 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 									<AiOutlinePlus className="w-5 h-5" /> Add
 								</ContextMenuSubTrigger>
 								<ContextMenuSubContent>
-									{getMeshCommands(this.props.editor).map((command) => {
-										return (
-											<ContextMenuItem key={command.key} onClick={command.action}>
-												{command.text}
-											</ContextMenuItem>
-										);
-									})}
-									<ContextMenuSeparator />
 									{getLightCommands(this.props.editor).map((command) => {
 										return (
 											<ContextMenuItem key={command.key} onClick={command.action}>
@@ -221,6 +214,29 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 											</ContextMenuItem>
 										);
 									})}
+									<ContextMenuSeparator />
+									{getNodeCommands(this.props.editor).map((command) => {
+										return (
+											<ContextMenuItem key={command.key} onClick={command.action}>
+												{command.text}
+											</ContextMenuItem>
+										);
+									})}
+									<ContextMenuSeparator />
+									<ContextMenuSub>
+										<ContextMenuSubTrigger className="flex items-center gap-2">
+											<IoMdCube className="w-5 h-5" /> Meshes
+										</ContextMenuSubTrigger>
+										<ContextMenuSubContent>
+											{getMeshCommands(this.props.editor).map((command) => {
+												return (
+													<ContextMenuItem key={command.key} onClick={command.action}>
+														{command.text}
+													</ContextMenuItem>
+												);
+											})}
+										</ContextMenuSubContent>
+									</ContextMenuSub>
 									<ContextMenuSeparator />
 									{getCameraCommands(this.props.editor).map((command) => {
 										return (
