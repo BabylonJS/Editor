@@ -18,6 +18,7 @@ import { startProjectDevProcess } from "../../project/run";
 import { exportProject } from "../../project/export/export";
 
 import { Editor } from "../main";
+import { getNodeCommands } from "../dialogs/command-palette/node";
 import { getMeshCommands } from "../dialogs/command-palette/mesh";
 import { getLightCommands } from "../dialogs/command-palette/light";
 import { getCameraCommands } from "../dialogs/command-palette/camera";
@@ -28,6 +29,7 @@ export interface IEditorToolbarProps {
 }
 
 export class EditorToolbar extends Component<IEditorToolbarProps> {
+	private _nodeCommands: ICommandPaletteType[];
 	private _meshCommands: ICommandPaletteType[];
 	private _lightCommands: ICommandPaletteType[];
 	private _cameraCommands: ICommandPaletteType[];
@@ -38,11 +40,12 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 		ipcRenderer.on("editor:open-project", () => this._handleOpenProject());
 		ipcRenderer.on("editor:open-vscode", () => this._handleOpenVisualStudioCode());
 
+		this._nodeCommands = getNodeCommands(this.props.editor);
 		this._meshCommands = getMeshCommands(this.props.editor);
 		this._lightCommands = getLightCommands(this.props.editor);
 		this._cameraCommands = getCameraCommands(this.props.editor);
 
-		const commands = [...this._meshCommands, ...this._lightCommands, ...this._cameraCommands];
+		const commands = [...this._nodeCommands, ...this._meshCommands, ...this._lightCommands, ...this._cameraCommands];
 
 		commands.forEach((command) => {
 			ipcRenderer.on(`add:${command.ipcRendererChannelKey}`, command.action);
@@ -164,6 +167,12 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 					<MenubarMenu>
 						<MenubarTrigger>Add</MenubarTrigger>
 						<MenubarContent className="border-black/50">
+							{this._nodeCommands.map((command) => (
+								<MenubarItem key={command.key} onClick={command.action}>
+									{command.text}
+								</MenubarItem>
+							))}
+							<MenubarSeparator />
 							{this._meshCommands.map((command) => (
 								<MenubarItem key={command.key} onClick={command.action}>
 									{command.text}

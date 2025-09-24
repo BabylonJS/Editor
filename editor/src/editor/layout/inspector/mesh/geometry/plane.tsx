@@ -33,7 +33,7 @@ export function PlaneMeshGeometryInspector(props: IPlaneMeshGeometryInspectorPro
 	}
 
 	return (
-		<EditorInspectorSectionField title="Box">
+		<EditorInspectorSectionField title="Plane">
 			<EditorInspectorNumberField object={proxy} property="size" label="Size" step={0.1} />
 			<EditorInspectorListField
 				object={proxy}

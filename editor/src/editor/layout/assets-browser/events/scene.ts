@@ -5,7 +5,7 @@ import { isSceneLinkNode } from "../../../../tools/guards/scene";
 
 import { projectConfiguration } from "../../../../project/configuration";
 
-import { checkProjectCachedCompressedTextures } from "../../../../export";
+import { checkProjectCachedCompressedTextures } from "../../../../tools/assets/ktx";
 
 import { Editor } from "../../../main";
 

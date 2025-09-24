@@ -26,7 +26,7 @@ export function EditorInspectorImageComponent(props: IEditorInspectorImageCompon
 
 			<Divider />
 
-			<div className="w-full aspect-square p-5 rounded-lg bg-black/50">
+			<div className="w-full aspect-square p-5 rounded-lg bg-secondary dark:bg-secondary/35">
 				<img
 					alt=""
 					draggable={false}
@@ -39,7 +39,7 @@ export function EditorInspectorImageComponent(props: IEditorInspectorImageCompon
 				/>
 			</div>
 
-			<div className="bg-black/50 p-5 rounded-lg">
+			<div className="bg-secondary dark:bg-secondary/35 p-5 rounded-lg">
 				<Table>
 					<TableHeader>
 						<TableRow>

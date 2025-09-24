@@ -1,29 +1,11 @@
-import { MeshBuilder, Mesh, Node, Tools, TransformNode } from "babylonjs";
-
-import { UniqueNumber } from "../../tools/tools";
+import { MeshBuilder, Mesh, Node } from "babylonjs";
 
 import { Editor } from "../../editor/main";
 
-export function addTransformNode(editor: Editor, parent?: Node) {
-	const transformNode = new TransformNode("New Transform Node", editor.layout.preview.scene);
-	transformNode.id = Tools.RandomId();
-	transformNode.uniqueId = UniqueNumber.Get();
-	transformNode.parent = parent ?? null;
-
-	editor.layout.graph.refresh().then(() => {
-		editor.layout.graph.setSelectedNode(transformNode);
-	});
-
-	editor.layout.inspector.setEditedObject(transformNode);
-	editor.layout.preview.gizmo.setAttachedNode(transformNode);
-}
+import { configureAddedMesh } from "./configure";
 
 export function addBoxMesh(editor: Editor, parent?: Node) {
 	const box = MeshBuilder.CreateBox("New Box", { width: 100, height: 100, depth: 100 }, editor.layout.preview.scene);
-	box.receiveShadows = true;
-	box.id = Tools.RandomId();
-	box.uniqueId = UniqueNumber.Get();
-	box.parent = parent ?? null;
 	box.metadata = {
 		type: "Box",
 		width: 100,
@@ -32,57 +14,21 @@ export function addBoxMesh(editor: Editor, parent?: Node) {
 		sideOrientation: Mesh.FRONTSIDE,
 	};
 
-	if (box.geometry) {
-		box.geometry.id = Tools.RandomId();
-		box.geometry.uniqueId = UniqueNumber.Get();
-	}
-
-	editor.layout.preview.scene.lights.forEach((light) => {
-		light.getShadowGenerator()?.getShadowMap()?.renderList?.push(box);
-	});
-
-	editor.layout.graph.refresh().then(() => {
-		editor.layout.graph.setSelectedNode(box);
-	});
-
-	editor.layout.inspector.setEditedObject(box);
-	editor.layout.preview.gizmo.setAttachedNode(box);
+	return configureAddedMesh(editor, box, parent);
 }
 
 export function addPlaneMesh(editor: Editor, parent?: Node) {
 	const plane = MeshBuilder.CreatePlane("New Plane", { size: 100 }, editor.layout.preview.scene);
-	plane.receiveShadows = true;
-	plane.id = Tools.RandomId();
-	plane.uniqueId = UniqueNumber.Get();
-	plane.parent = parent ?? null;
 	plane.metadata = {
 		type: "Plane",
 		size: 100,
 	};
 
-	if (plane.geometry) {
-		plane.geometry.id = Tools.RandomId();
-		plane.geometry.uniqueId = UniqueNumber.Get();
-	}
-
-	editor.layout.preview.scene.lights.forEach((light) => {
-		light.getShadowGenerator()?.getShadowMap()?.renderList?.push(plane);
-	});
-
-	editor.layout.graph.refresh().then(() => {
-		editor.layout.graph.setSelectedNode(plane);
-	});
-
-	editor.layout.inspector.setEditedObject(plane);
-	editor.layout.preview.gizmo.setAttachedNode(plane);
+	return configureAddedMesh(editor, plane, parent);
 }
 
 export function addGroundMesh(editor: Editor, parent?: Node) {
 	const ground = MeshBuilder.CreateGround("New Ground", { width: 1024, height: 1024, subdivisions: 32 }, editor.layout.preview.scene);
-	ground.receiveShadows = true;
-	ground.id = Tools.RandomId();
-	ground.uniqueId = UniqueNumber.Get();
-	ground.parent = parent ?? null;
 	ground.metadata = {
 		type: "Ground",
 		width: 1024,
@@ -96,29 +42,11 @@ export function addGroundMesh(editor: Editor, parent?: Node) {
 		colorFilter: [1, 1, 1],
 	};
 
-	if (ground.geometry) {
-		ground.geometry.id = Tools.RandomId();
-		ground.geometry.uniqueId = UniqueNumber.Get();
-	}
-
-	editor.layout.preview.scene.lights.forEach((light) => {
-		light.getShadowGenerator()?.getShadowMap()?.renderList?.push(ground);
-	});
-
-	editor.layout.graph.refresh().then(() => {
-		editor.layout.graph.setSelectedNode(ground);
-	});
-
-	editor.layout.inspector.setEditedObject(ground);
-	editor.layout.preview.gizmo.setAttachedNode(ground);
+	return configureAddedMesh(editor, ground, parent);
 }
 
 export function addSphereMesh(editor: Editor, parent?: Node) {
 	const sphere = MeshBuilder.CreateSphere("New Sphere", { diameter: 100, segments: 32 }, editor.layout.preview.scene);
-	sphere.receiveShadows = true;
-	sphere.id = Tools.RandomId();
-	sphere.uniqueId = UniqueNumber.Get();
-	sphere.parent = parent ?? null;
 	sphere.metadata = {
 		type: "Sphere",
 		diameter: 100,
@@ -126,21 +54,63 @@ export function addSphereMesh(editor: Editor, parent?: Node) {
 		sideOrientation: Mesh.FRONTSIDE,
 	};
 
-	if (sphere.geometry) {
-		sphere.geometry.id = Tools.RandomId();
-		sphere.geometry.uniqueId = UniqueNumber.Get();
-	}
+	return configureAddedMesh(editor, sphere, parent);
+}
 
-	editor.layout.preview.scene.lights.forEach((light) => {
-		light.getShadowGenerator()?.getShadowMap()?.renderList?.push(sphere);
-	});
+export function addCapsuleMesh(editor: Editor, parent?: Node) {
+	const capsule = MeshBuilder.CreateCapsule(
+		"New Capsule",
+		{ radius: 50, height: 100, subdivisions: 32, topCapSubdivisions: 32, bottomCapSubdivisions: 32 },
+		editor.layout.preview.scene
+	);
+	capsule.metadata = {
+		type: "Capsule",
+		radius: 50,
+		height: 100,
+		subdivisions: 32,
+		topCapSubdivisions: 32,
+		bottomCapSubdivisions: 32,
+	};
 
-	editor.layout.graph.refresh().then(() => {
-		editor.layout.graph.setSelectedNode(sphere);
-	});
+	return configureAddedMesh(editor, capsule, parent);
+}
 
-	editor.layout.inspector.setEditedObject(sphere);
-	editor.layout.preview.gizmo.setAttachedNode(sphere);
+export function addTorusMesh(editor: Editor, parent?: Node) {
+	const torus = MeshBuilder.CreateTorus("New Torus", { diameter: 100, tessellation: 32, thickness: 25 }, editor.layout.preview.scene);
+	torus.metadata = {
+		type: "Torus",
+		diameter: 100,
+		thickness: 25,
+		tessellation: 32,
+	};
+
+	return configureAddedMesh(editor, torus, parent);
+}
+
+export function addTorusKnotMesh(editor: Editor, parent?: Node) {
+	const torusKnot = MeshBuilder.CreateTorusKnot("New Torus Knot", { radius: 100, tube: 40, radialSegments: 32, tubularSegments: 64 }, editor.layout.preview.scene);
+	torusKnot.metadata = {
+		type: "TorusKnot",
+		radius: 100,
+		tube: 40,
+		radialSegments: 32,
+		tubularSegments: 64,
+	};
+
+	return configureAddedMesh(editor, torusKnot, parent);
+}
+
+export function addCylinderMesh(editor: Editor, parent?: Node) {
+	const cylinder = MeshBuilder.CreateCylinder("New Cylinder", { diameter: 100, height: 100, diameterBottom: 25, diameterTop: 25 }, editor.layout.preview.scene);
+	cylinder.metadata = {
+		type: "Cylinder",
+		height: 100,
+		diameterTop: 25,
+		diameterBottom: 25,
+		subdivisions: 32,
+	};
+
+	return configureAddedMesh(editor, cylinder, parent);
 }
 
 export function addSkyboxMesh(editor: Editor, parent?: Node) {
@@ -154,11 +124,6 @@ export function addSkyboxMesh(editor: Editor, parent?: Node) {
 		},
 		editor.layout.preview.scene
 	);
-
-	skybox.receiveShadows = false;
-	skybox.id = Tools.RandomId();
-	skybox.uniqueId = UniqueNumber.Get();
-	skybox.parent = parent ?? null;
 	skybox.infiniteDistance = true;
 	skybox.metadata = {
 		type: "Box",
@@ -167,29 +132,11 @@ export function addSkyboxMesh(editor: Editor, parent?: Node) {
 		height: 10_000,
 	};
 
-	if (skybox.geometry) {
-		skybox.geometry.id = Tools.RandomId();
-		skybox.geometry.uniqueId = UniqueNumber.Get();
-	}
-
-	editor.layout.graph.refresh().then(() => {
-		editor.layout.graph.setSelectedNode(skybox);
-	});
-
-	editor.layout.inspector.setEditedObject(skybox);
-	editor.layout.preview.gizmo.setAttachedNode(skybox);
+	return configureAddedMesh(editor, skybox, parent);
 }
 
 export function addEmptyMesh(editor: Editor, parent?: Node) {
 	const emptyMesh = new Mesh("New Empty Mesh", editor.layout.preview.scene);
-	emptyMesh.id = Tools.RandomId();
-	emptyMesh.uniqueId = UniqueNumber.Get();
-	emptyMesh.parent = parent ?? null;
 
-	editor.layout.graph.refresh().then(() => {
-		editor.layout.graph.setSelectedNode(emptyMesh);
-	});
-
-	editor.layout.inspector.setEditedObject(emptyMesh);
-	editor.layout.preview.gizmo.setAttachedNode(emptyMesh);
+	return configureAddedMesh(editor, emptyMesh, parent);
 }

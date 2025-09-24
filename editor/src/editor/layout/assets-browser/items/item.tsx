@@ -4,7 +4,7 @@ import { basename, extname, dirname, join } from "path/posix";
 
 import { ipcRenderer } from "electron";
 
-import { Component, DragEvent, MouseEvent, ReactNode, Fragment } from "react";
+import { Component, DragEvent, MouseEvent, ReactNode, Fragment, KeyboardEvent } from "react";
 
 import { Tooltip } from "@blueprintjs/core";
 
@@ -26,6 +26,8 @@ import { FolderIcon } from "@heroicons/react/20/solid";
 import { EXRIcon } from "../../../../ui/icons/exr";
 import { Input } from "../../../../ui/shadcn/ui/input";
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger, ContextMenuSeparator } from "../../../../ui/shadcn/ui/context-menu";
+
+import { isDarwin } from "../../../../tools/os";
 
 import { Editor } from "../../../main";
 
@@ -121,7 +123,9 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 				<ContextMenu>
 					<ContextMenuTrigger>
 						<div
+							tabIndex={0}
 							draggable={!this.state.isRenaming}
+							onKeyUp={(ev) => this._handleKeyUp(ev)}
 							onDrop={(ev) => this._handleDrop(ev)}
 							onDragStart={(ev) => this._handleDragStart(ev)}
 							onDragOver={(ev) => {
@@ -222,6 +226,16 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 		}
 	}
 
+	private _handleKeyUp(ev: KeyboardEvent<HTMLDivElement>): void {
+		ev.stopPropagation();
+
+		if (isDarwin() && ev.key === "Enter") {
+			this._handleRenamingItem();
+		} else if (ev.key === "F2") {
+			this._handleRenamingItem();
+		}
+	}
+
 	private _handleDoubleClick(): void {
 		if (!this.state.isLoading && !this.state.isRenaming) {
 			this.props.onDoubleClick(this);
@@ -284,37 +298,40 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 	}
 
 	private _renameMouseListener: ((ev: globalThis.MouseEvent) => void) | null = null;
-	private _renameKeyboardListener: ((ev: KeyboardEvent) => void) | null = null;
+	private _renameKeyboardListener: ((ev: globalThis.KeyboardEvent) => void) | null = null;
 
 	private _handleNameDoubleClicked(ev: MouseEvent<HTMLDivElement>): void {
 		if (!this.state.isRenaming) {
 			ev.stopPropagation();
-
-			this.setState({
-				isRenaming: true,
-			});
-
-			window.addEventListener(
-				"keyup",
-				(this._renameKeyboardListener = (ev) => {
-					if (ev.key === "Escape") {
-						this.setState({
-							isRenaming: false,
-						});
-						this._removeRenameEventListeners();
-
-						this.props.setSelectionEnabled(true);
-					}
-				})
-			);
-
-			window.addEventListener(
-				"click",
-				(this._renameMouseListener = () => {
-					this._handleRenameFileOrFolder(this._renameValue);
-				})
-			);
+			this._handleRenamingItem();
 		}
+	}
+
+	private _handleRenamingItem(): void {
+		this.setState({
+			isRenaming: true,
+		});
+
+		window.addEventListener(
+			"keyup",
+			(this._renameKeyboardListener = (ev) => {
+				if (ev.key === "Escape") {
+					this.setState({
+						isRenaming: false,
+					});
+					this._removeRenameEventListeners();
+
+					this.props.setSelectionEnabled(true);
+				}
+			})
+		);
+
+		window.addEventListener(
+			"click",
+			(this._renameMouseListener = () => {
+				this._handleRenameFileOrFolder(this._renameValue);
+			})
+		);
 	}
 
 	private async _handleRenameFileOrFolder(value: string): Promise<void> {

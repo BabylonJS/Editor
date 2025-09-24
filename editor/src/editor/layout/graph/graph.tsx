@@ -2,6 +2,7 @@ import { platform } from "os";
 
 import { Component, PropsWithChildren, ReactNode } from "react";
 
+import { IoMdCube } from "react-icons/io";
 import { AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
 
 import { Mesh, SubMesh, Node, InstancedMesh } from "babylonjs";
@@ -23,16 +24,18 @@ import { showConfirm } from "../../../ui/dialog";
 import { Separator } from "../../../ui/shadcn/ui/separator";
 import { SceneAssetBrowserDialogMode, showAssetBrowserDialog } from "../../../ui/scene-asset-browser";
 
+import { getNodeCommands } from "../../dialogs/command-palette/node";
 import { getMeshCommands } from "../../dialogs/command-palette/mesh";
 import { getLightCommands } from "../../dialogs/command-palette/light";
+import { getCameraCommands } from "../../dialogs/command-palette/camera";
 
 import { isSound } from "../../../tools/guards/sound";
-import { cloneNode, ICloneNodeOptions } from "../../../tools/node/clone";
 import { reloadSound } from "../../../tools/sound/tools";
 import { registerUndoRedo } from "../../../tools/undoredo";
 import { waitNextAnimationFrame } from "../../../tools/tools";
 import { createMeshInstance } from "../../../tools/mesh/instance";
 import { isScene, isSceneLinkNode } from "../../../tools/guards/scene";
+import { cloneNode, ICloneNodeOptions } from "../../../tools/node/clone";
 import { isAbstractMesh, isMesh, isNode } from "../../../tools/guards/nodes";
 import { isNodeLocked, isNodeSerializable, setNodeLocked, setNodeSerializable } from "../../../tools/node/metadata";
 
@@ -97,17 +100,40 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
 										<AiOutlinePlus className="w-5 h-5" /> Add
 									</ContextMenuSubTrigger>
 									<ContextMenuSubContent>
-										{getMeshCommands(this.props.editor, parent).map((command) => (
-											<ContextMenuItem key={command.key} onClick={command.action}>
-												{command.text}
-											</ContextMenuItem>
-										))}
-										<ContextMenuSeparator />
 										{getLightCommands(this.props.editor, parent).map((command) => (
 											<ContextMenuItem key={command.key} onClick={command.action}>
 												{command.text}
 											</ContextMenuItem>
 										))}
+										<ContextMenuSeparator />
+										{getNodeCommands(this.props.editor, parent).map((command) => {
+											return (
+												<ContextMenuItem key={command.key} onClick={command.action}>
+													{command.text}
+												</ContextMenuItem>
+											);
+										})}
+										<ContextMenuSeparator />
+										<ContextMenuSub>
+											<ContextMenuSubTrigger className="flex items-center gap-2">
+												<IoMdCube className="w-5 h-5" /> Meshes
+											</ContextMenuSubTrigger>
+											<ContextMenuSubContent>
+												{getMeshCommands(this.props.editor, parent).map((command) => (
+													<ContextMenuItem key={command.key} onClick={command.action}>
+														{command.text}
+													</ContextMenuItem>
+												))}
+											</ContextMenuSubContent>
+										</ContextMenuSub>
+										<ContextMenuSeparator />
+										{getCameraCommands(this.props.editor, parent).map((command) => {
+											return (
+												<ContextMenuItem key={command.key} onClick={command.action}>
+													{command.text}
+												</ContextMenuItem>
+											);
+										})}
 										{isAbstractMesh(this.props.object) && (
 											<>
 												<ContextMenuSeparator />
