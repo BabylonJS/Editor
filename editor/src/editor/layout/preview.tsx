@@ -492,11 +492,17 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		this.gizmo = new EditorPreviewGizmo(this.scene);
 
 		this.engine.hideLoadingUI();
-
 		this.engine.registerView(this._mainCanvas);
 
 		this.engine.runRenderLoop(() => {
 			if (this._renderScene && !this.play.state.playing) {
+				// TODO: remove this once fixed
+				// Bug report on forum: https://forum.babylonjs.com/t/multi-canvas-and-post-processes/59616/23
+				const ppRenderer = this.scene.prePassRenderer;
+				if (ppRenderer) {
+					ppRenderer.markAsDirty();
+				}
+
 				this.scene.render();
 
 				if (!this.engine.activeView?.camera) {

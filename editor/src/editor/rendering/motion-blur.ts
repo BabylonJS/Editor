@@ -1,4 +1,4 @@
-import { MotionBlurPostProcess, Camera } from "babylonjs";
+import { MotionBlurPostProcess, Camera, Texture } from "babylonjs";
 
 import { Editor } from "../main";
 
@@ -21,7 +21,18 @@ export function disposeMotionBlurPostProcess(): void {
 }
 
 export function createMotionBlurPostProcess(editor: Editor): MotionBlurPostProcess {
-	motionBlurPostProcess = new MotionBlurPostProcess("MotionBlurPostProcess", editor.layout.preview.scene, 1.0, editor.layout.preview.scene.activeCamera);
+	motionBlurPostProcess = new MotionBlurPostProcess(
+		"MotionBlurPostProcess",
+		editor.layout.preview.scene,
+		1.0,
+		editor.layout.preview.scene.activeCamera,
+		Texture.TRILINEAR_SAMPLINGMODE,
+		undefined,
+		false,
+		undefined,
+		undefined,
+		false
+	);
 	motionBlurPostProcess.samples = 16;
 	motionBlurPostProcess.motionStrength = 1.0;
 	motionBlurPostProcess.isObjectBased = true;
