@@ -43,7 +43,7 @@ export class EditorFreeCameraPanInput implements ICameraInput<FreeCamera> {
 		}
 
 		this._scene = this.camera.getScene();
-		this._canvas = this._scene.getEngine().getRenderingCanvas();
+		this._canvas = this._scene.getEngine().inputElement as HTMLCanvasElement;
 		if (!this._canvas) {
 			console.warn("EditorFreeCameraPanInput: No canvas found");
 			return;
