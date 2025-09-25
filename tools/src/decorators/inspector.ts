@@ -31,6 +31,10 @@ export function visibleAsBoolean(label?: string, configuration?: Omit<VisibleInI
 	};
 }
 
+export type VisibleInInspectorDecoratorStringConfiguration = VisibleInInspectorDecoratorConfiguration & {
+	multiline?: boolean;
+};
+
 /**
  * Makes the decorated property visible in the editor inspector as a string.
  * The property can be customized per object in the editor and the custom value is applied
@@ -39,7 +43,7 @@ export function visibleAsBoolean(label?: string, configuration?: Omit<VisibleInI
  * @param label defines the optional label displayed in the inspector in the editor.
  * @param configuration defines the optional configuration for the field in the inspector (description, etc.).
  */
-export function visibleAsString(label?: string, configuration?: Omit<VisibleInInspectorDecoratorConfiguration, "type">) {
+export function visibleAsString(label?: string, configuration?: Omit<VisibleInInspectorDecoratorStringConfiguration, "type">) {
 	return function (target: any, propertyKey: string | Symbol) {
 		const ctor = target.constructor as ISceneDecoratorData;
 
