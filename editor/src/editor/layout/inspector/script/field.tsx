@@ -13,7 +13,11 @@ import { XMarkIcon } from "@heroicons/react/20/solid";
 import { toast } from "sonner";
 
 import { Vector2, Vector3, Color3, Color4, Texture, CubeTexture } from "babylonjs";
-import { VisibleInInspectorDecoratorEntityConfiguration, VisibleInspectorDecoratorAssetConfiguration } from "babylonjs-editor-tools";
+import {
+	VisibleInInspectorDecoratorEntityConfiguration,
+	VisibleInInspectorDecoratorStringConfiguration,
+	VisibleInspectorDecoratorAssetConfiguration,
+} from "babylonjs-editor-tools";
 
 import { Editor } from "../../../main";
 
@@ -343,6 +347,7 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 										property="value"
 										label={value.label ?? value.propertyKey}
 										tooltip={value.configuration.description}
+										multiline={(value.configuration as VisibleInInspectorDecoratorStringConfiguration).multiline}
 										onChange={() =>
 											applyValueToRunningSceneObject(props.editor, {
 												value,
