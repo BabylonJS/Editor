@@ -231,7 +231,7 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 
 		if (isDarwin() && ev.key === "Enter") {
 			this._handleRenamingItem();
-		} else if (ev.key === "F2") {
+		} else if (!isDarwin() && ev.key === "F2") {
 			this._handleRenamingItem();
 		}
 	}

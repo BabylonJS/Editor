@@ -1,6 +1,6 @@
 import { extname } from "path/posix";
 
-import { DragEvent, KeyboardEvent, useEffect, useRef, useState } from "react";
+import { DragEvent, useEffect, useRef, useState } from "react";
 
 import { FaLock } from "react-icons/fa";
 import { useEventListener } from "usehooks-ts";
@@ -51,13 +51,24 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
 	}, [renaming]);
 
 	useEventListener("keyup", (ev) => {
+		const graph = props.editor.layout.graph;
+		const canRename = graph.state.isFocused && graph.isNodeSelected(props.object);
+
 		if (ev.key === "Escape" && renaming) {
 			setName(props.name);
 			setRenaming(false);
 		}
 
-		if (ev.key === "Enter" && renaming) {
-			handleInputNameBlurred();
+		if (ev.key === "F2" && !isDarwin() && canRename) {
+			handleRenameObject();
+		}
+
+		if (ev.key === "Enter") {
+			if (renaming) {
+				handleInputNameBlurred();
+			} else if (isDarwin() && canRename) {
+				handleRenameObject();
+			}
 		}
 	});
 
@@ -262,16 +273,6 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
 		props.editor.layout.inspector.forceUpdate();
 	}
 
-	function handleKeyUp(ev: KeyboardEvent<HTMLDivElement>) {
-		ev.stopPropagation();
-
-		if (isDarwin() && ev.key === "Enter") {
-			handleRenameObject();
-		} else if (ev.key === "F2") {
-			handleRenameObject();
-		}
-	}
-
 	function getLabel() {
 		if (renaming) {
 			return (
@@ -288,13 +289,11 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
 
 		const label = (
 			<div
-				tabIndex={0}
 				className={`
 					${!isNodeSerializable(props.object) ? "line-through" : ""}
 					${!isNodeSerializable(props.object) || isNodeLocked(props.object) ? "text-foreground/35" : ""}
 					transition-all duration-300 ease-in-out
 				`}
-				onKeyUp={(ev) => handleKeyUp(ev)}
 			>
 				{props.name}
 			</div>
