@@ -457,6 +457,10 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			this.props.editor.layout.preview.gizmo.setAttachedNode(node.nodeData);
 		}
 
+		if (isCamera(node.nodeData)) {
+			this.props.editor.layout.preview.setCameraPreviewActive(node.nodeData);
+		}
+
 		if (ev.ctrlKey || ev.metaKey) {
 			this._forEachNode(this.state.nodes, (n) => n.id === node.id && (n.isSelected = !n.isSelected));
 		} else if (ev.shiftKey) {
