@@ -79,6 +79,7 @@ import { Stats } from "./preview/stats/stats";
 import { StatRow } from "./preview/stats/row";
 import { StatsValuesType } from "./preview/stats/types";
 
+import { EditorPreviewCamera } from "./preview/camera";
 import { applySoundAsset } from "./preview/import/sound";
 import { EditorPreviewAxisHelper } from "./preview/axis";
 import { applyImportedGuiFile } from "./preview/import/gui";
@@ -87,7 +88,6 @@ import { applyMaterialAssetToObject } from "./preview/import/material";
 import { EditorPreviewConvertProgress } from "./preview/import/progress";
 import { loadImportedParticleSystemFile } from "./preview/import/particles";
 import { loadImportedSceneFile, tryConvertSceneFile } from "./preview/import/import";
-import { EditorPreviewCamera } from "./preview/camera";
 
 export interface IEditorPreviewProps {
 	/**
@@ -286,8 +286,6 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
 		this.axis?.stop();
 		this.icons?.stop();
-		this.scene?.dispose();
-		this.engine?.dispose();
 
 		disposeSSRRenderingPipeline();
 		disposeMotionBlurPostProcess();
