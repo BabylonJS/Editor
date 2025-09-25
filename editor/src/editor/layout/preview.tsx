@@ -498,7 +498,10 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		this.engine.runRenderLoop(() => {
 			if (this._renderScene && !this.play.state.playing) {
 				this.scene.render();
-				this.axis.scene?.render();
+
+				if (!this.engine.activeView?.camera) {
+					this.axis.scene?.render();
+				}
 				return;
 			}
 

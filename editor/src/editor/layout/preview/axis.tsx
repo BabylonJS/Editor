@@ -19,7 +19,7 @@ export class EditorPreviewAxisHelper extends Component<IEditorPreviewAxisHelperP
 	// private _axisMeshUnderPointer: AbstractMesh | null = null;
 
 	public render(): ReactNode {
-		return <div></div>;
+		return <></>;
 	}
 
 	public componentWillUnmount(): void {
