@@ -336,6 +336,14 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 	}
 
 	/**
+	 * Returns whether or not the given node is selected in the graph.
+	 * @param nodeData defines the reference to the node data to check.
+	 */
+	public isNodeSelected(nodeData: any): boolean {
+		return this.getSelectedNodes().find((n) => n.nodeData === nodeData) !== undefined;
+	}
+
+	/**
 	 * Sets the given node selected in the graph. All other selected nodes remain selected.
 	 * @param node defines the reference to the node to select in the graph.
 	 */
