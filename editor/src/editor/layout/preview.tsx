@@ -1185,6 +1185,8 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
 				case ".scene":
 					createSceneLink(this.props.editor, absolutePath).then((node) => {
+						this.setRenderScene(true);
+
 						if (pick.pickedPoint) {
 							node?.position.addInPlace(pick.pickedPoint);
 						}
