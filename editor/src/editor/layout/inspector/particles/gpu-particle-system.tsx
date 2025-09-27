@@ -16,6 +16,7 @@ import {
 	PointParticleEmitter,
 	HemisphericParticleEmitter,
 	MeshParticleEmitter,
+	Observer,
 } from "babylonjs";
 
 import { Button } from "../../../../ui/shadcn/ui/button";
@@ -61,12 +62,29 @@ export class EditorGPUParticleSystemInspector extends Component<IEditorInspector
 			}) as IEditorInspectorListFieldItem
 	);
 
+	private _stoppedObserver: Observer<ParticleSystem> | null = null;
+
 	public constructor(props: IEditorInspectorImplementationProps<GPUParticleSystem>) {
 		super(props);
 
 		this.state = {
-			started: props.object.isStarted(),
+			started: props.object.isStarted() && !props.object.isStopped(),
 		};
+	}
+
+	public componentDidMount(): void {
+		this._stoppedObserver = this.props.object.onStoppedObservable.add(() => {
+			this.setState({
+				started: false,
+			});
+		});
+	}
+
+	public componentWillUnmount(): void {
+		if (this._stoppedObserver) {
+			this.props.object.onStoppedObservable.remove(this._stoppedObserver);
+			this._stoppedObserver = null;
+		}
 	}
 
 	public render(): ReactNode {
@@ -134,6 +152,7 @@ export class EditorGPUParticleSystemInspector extends Component<IEditorInspector
 					{this._getRandomTextureSizeInspector()}
 
 					<EditorInspectorNumberField object={this.props.object} property="emitRate" label="Rate" />
+					<EditorInspectorNumberField object={this.props.object} property="targetStopDuration" label="Stop Duration" min={0} step={0.01} />
 
 					<EditorInspectorBlockField>
 						<div className="px-2">Emit Power</div>
@@ -207,6 +226,7 @@ export class EditorGPUParticleSystemInspector extends Component<IEditorInspector
 			});
 		} else {
 			this.props.object.start();
+
 			this.setState({
 				started: true,
 			});
