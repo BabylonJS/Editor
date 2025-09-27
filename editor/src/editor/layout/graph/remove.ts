@@ -1,10 +1,11 @@
-import { Node, Light, AbstractMesh, Scene } from "babylonjs";
+import { Node, Light, AbstractMesh, Scene, IParticleSystem, Sound, SoundTrack } from "babylonjs";
 
+import { unique } from "../../../tools/tools";
 import { isSound } from "../../../tools/guards/sound";
 import { registerUndoRedo } from "../../../tools/undoredo";
 import { isSceneLinkNode } from "../../../tools/guards/scene";
 import { updateAllLights } from "../../../tools/light/shadows";
-import { isParticleSystem } from "../../../tools/guards/particles";
+import { isAnyParticleSystem } from "../../../tools/guards/particles";
 import { isAdvancedDynamicTexture } from "../../../tools/guards/texture";
 import { getLinkedAnimationGroupsFor } from "../../../tools/animation/group";
 import { isNode, isMesh, isAbstractMesh, isInstancedMesh, isCollisionInstancedMesh, isTransformNode, isLight, isCamera } from "../../../tools/guards/nodes";
@@ -16,6 +17,11 @@ type _RemoveNodeData = {
 	parent: Node | null;
 
 	lights: Light[];
+	sounds: {
+		sound: Sound;
+		soundtrack?: SoundTrack;
+	}[];
+	particleSystems: IParticleSystem[];
 };
 
 /**
@@ -41,6 +47,18 @@ export function removeNodes(editor: Editor) {
 					return {
 						node: descendant,
 						parent: descendant.parent,
+						particleSystems: scene.particleSystems.filter((ps) => ps.emitter === descendant),
+						sounds:
+							scene.soundTracks
+								?.map((soundTrack) =>
+									soundTrack.soundCollection
+										.filter((sound) => sound.spatialSound && sound["_connectedTransformNode"] === descendant)
+										.map((sound) => ({
+											sound,
+											soundtrack: scene.soundTracks?.[sound.soundTrackId + 1],
+										}))
+								)
+								.flat() ?? [],
 						lights: scene.lights.filter((light) => {
 							return light
 								.getShadowGenerator()
@@ -54,16 +72,28 @@ export function removeNodes(editor: Editor) {
 		})
 		.flat();
 
-	const sounds = allData
-		.filter((d) => isSound(d))
-		.map((sound) => ({
-			sound,
-			soundtrack: scene.soundTracks?.[sound.soundTrackId + 1],
-		}));
+	const sounds = unique(
+		nodes
+			.map((d) => d.sounds)
+			.flat()
+			.concat(
+				allData
+					.filter((d) => isSound(d))
+					.map((sound) => ({
+						sound,
+						soundtrack: scene.soundTracks?.[sound.soundTrackId + 1],
+					}))
+			)
+	);
 
-	const particleSystems = allData.filter((d) => isParticleSystem(d));
+	const particleSystems = unique(
+		nodes
+			.map((d) => d.particleSystems)
+			.flat()
+			.concat(allData.filter((d) => isAnyParticleSystem(d)))
+	);
+
 	const advancedGuiTextures = allData.filter((d) => isAdvancedDynamicTexture(d));
-
 	const animationGroups = getLinkedAnimationGroupsFor([...particleSystems, ...advancedGuiTextures, ...sounds.map((d) => d.sound), ...nodes.map((d) => d.node)], scene);
 
 	registerUndoRedo({

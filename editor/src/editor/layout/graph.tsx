@@ -712,7 +712,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			return null;
 		}
 
-		if (isTransformNode(node)) {
+		if (isTransformNode(node) || isSceneLinkNode(node)) {
 			if (!node._scene.transformNodes.includes(node)) {
 				return null;
 			}
