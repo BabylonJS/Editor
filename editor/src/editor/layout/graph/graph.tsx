@@ -45,6 +45,7 @@ import { EditorInspectorSwitchField } from "../inspector/fields/switch";
 
 import { Editor } from "../../main";
 
+import { exportScene, exportNode } from "./export";
 import { removeNodes } from "./remove";
 
 export interface IEditorGraphContextMenuProps extends PropsWithChildren {
@@ -74,10 +75,6 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
 
 							{!isScene(this.props.object) && !isSound(this.props.object) && (
 								<>
-									<ContextMenuItem onClick={() => this._cloneNode(this.props.object)}>Clone</ContextMenuItem>
-
-									<ContextMenuSeparator />
-
 									<ContextMenuItem onClick={() => this.props.editor.layout.graph.copySelectedNodes()}>
 										Copy <ContextMenuShortcut>{platform() === "darwin" ? "⌘+C" : "CTRL+C"}</ContextMenuShortcut>
 									</ContextMenuItem>
@@ -89,10 +86,25 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
 									)}
 
 									<ContextMenuSeparator />
+
+									<ContextMenuItem onClick={() => this._cloneNode(this.props.object)}>Clone</ContextMenuItem>
+
+									{isNode(this.props.object) && !isScene(this.props.object) && (
+										<ContextMenuItem onClick={() => exportNode(this.props.editor, this.props.object)}>Export Node (.babylon)</ContextMenuItem>
+									)}
+
+									<ContextMenuSeparator />
 								</>
 							)}
 
 							{isSound(this.props.object) && <ContextMenuItem onClick={() => this._reloadSound()}>Reload</ContextMenuItem>}
+
+							{isScene(this.props.object) && (
+								<>
+									<ContextMenuItem onClick={() => exportScene(this.props.editor)}>Export Scene (.babylon)</ContextMenuItem>
+									<ContextMenuSeparator />
+								</>
+							)}
 
 							{(isNode(this.props.object) || isScene(this.props.object)) && !isSceneLinkNode(this.props.object) && (
 								<ContextMenuSub>
