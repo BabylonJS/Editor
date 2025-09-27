@@ -243,20 +243,24 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 				return;
 			}
 
-			const data = await readJSON(join(scenePath, "nodes", file), "utf-8");
+			try {
+				const data = await readJSON(join(scenePath, "nodes", file), "utf-8");
 
-			if (options?.asLink && data.metadata?.doNotSerialize) {
-				return;
+				if (options?.asLink && data.metadata?.doNotSerialize) {
+					return;
+				}
+
+				const transformNode = TransformNode.Parse(data, scene, join(projectPath, "/"));
+				transformNode.uniqueId = data.uniqueId;
+				transformNode.metadata ??= {};
+				transformNode.metadata._waitingParentId = data.metadata?.parentId;
+
+				loadResult.transformNodes.push(transformNode);
+			} catch (e) {
+				editor.layout.console.error(`Failed to load transform node file "${file}": ${e.message}`);
 			}
 
-			const transformNode = TransformNode.Parse(data, scene, join(projectPath, "/"));
-			transformNode.uniqueId = data.uniqueId;
-			transformNode.metadata ??= {};
-			transformNode.metadata._waitingParentId = data.metadata?.parentId;
-
 			progress.step(progressStep);
-
-			loadResult.transformNodes.push(transformNode);
 		})
 	);
 
@@ -267,8 +271,12 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 				return;
 			}
 
-			const data = await readJSON(join(scenePath, "skeletons", file), "utf-8");
-			Skeleton.Parse(data, scene);
+			try {
+				const data = await readJSON(join(scenePath, "skeletons", file), "utf-8");
+				Skeleton.Parse(data, scene);
+			} catch (e) {
+				editor.layout.console.error(`Failed to load skeleton file "${file}": ${e.message}`);
+			}
 		})
 	);
 
@@ -473,46 +481,50 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 				return;
 			}
 
-			const data = await readJSON(join(scenePath, "morphTargetManagers", file), "utf-8");
+			try {
+				const data = await readJSON(join(scenePath, "morphTargetManagers", file), "utf-8");
 
-			await Promise.all(
-				data.targets.map(async (target) => {
-					const binaryFileData = join(scenePath, "morphTargets", basename(target.delayLoadingFile));
-					const buffer = (await readFile(binaryFileData)).buffer;
+				await Promise.all(
+					data.targets.map(async (target) => {
+						const binaryFileData = join(scenePath, "morphTargets", basename(target.delayLoadingFile));
+						const buffer = (await readFile(binaryFileData)).buffer;
 
-					if (target.positionsCount) {
-						target.positions = new Float32Array(buffer, target.positionsOffset, target.positionsCount);
+						if (target.positionsCount) {
+							target.positions = new Float32Array(buffer, target.positionsOffset, target.positionsCount);
+						}
+
+						if (target.normalsCount) {
+							target.normals = new Float32Array(buffer, target.normalsOffset, target.normalsCount);
+						}
+
+						if (target.tangentsCount) {
+							target.tangents = new Float32Array(buffer, target.tangentsOffset, target.tangentsCount);
+						}
+
+						if (target.uvsCount) {
+							target.uvs = new Float32Array(buffer, target.uvsOffset, target.uvsCount);
+						}
+
+						if (target.uv2sCount) {
+							target.uv2s = new Float32Array(buffer, target.uv2sOffset, target.uv2sCount);
+						}
+					})
+				);
+
+				const mesh = scene.getMeshById(data.meshId);
+				if (mesh) {
+					const morphTargetManager = MorphTargetManager.Parse(data, scene);
+					morphTargetManager["_uniqueId"] = data.uniqueId;
+
+					for (let i = 0, len = morphTargetManager.numTargets; i < len; i++) {
+						const target = morphTargetManager.getTarget(i);
+						target["_uniqueId"] = data.targets[i].uniqueId;
 					}
 
-					if (target.normalsCount) {
-						target.normals = new Float32Array(buffer, target.normalsOffset, target.normalsCount);
-					}
-
-					if (target.tangentsCount) {
-						target.tangents = new Float32Array(buffer, target.tangentsOffset, target.tangentsCount);
-					}
-
-					if (target.uvsCount) {
-						target.uvs = new Float32Array(buffer, target.uvsOffset, target.uvsCount);
-					}
-
-					if (target.uv2sCount) {
-						target.uv2s = new Float32Array(buffer, target.uv2sOffset, target.uv2sCount);
-					}
-				})
-			);
-
-			const mesh = scene.getMeshById(data.meshId);
-			if (mesh) {
-				const morphTargetManager = MorphTargetManager.Parse(data, scene);
-				morphTargetManager["_uniqueId"] = data.uniqueId;
-
-				for (let i = 0, len = morphTargetManager.numTargets; i < len; i++) {
-					const target = morphTargetManager.getTarget(i);
-					target["_uniqueId"] = data.targets[i].uniqueId;
+					mesh.morphTargetManager = morphTargetManager;
 				}
-
-				mesh.morphTargetManager = morphTargetManager;
+			} catch (e) {
+				editor.layout.console.error(`Failed to load morph target manager file "${file}": ${e.message}`);
 			}
 
 			progress.step(progressStep);
@@ -526,19 +538,23 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 				return;
 			}
 
-			const data = await readJSON(join(scenePath, "lights", file), "utf-8");
+			try {
+				const data = await readJSON(join(scenePath, "lights", file), "utf-8");
 
-			if (options?.asLink && data.metadata?.doNotSerialize) {
-				return;
-			}
+				if (options?.asLink && data.metadata?.doNotSerialize) {
+					return;
+				}
 
-			const light = Light.Parse(data, scene);
-			if (light) {
-				light.uniqueId = data.uniqueId;
-				light.metadata ??= {};
-				light.metadata._waitingParentId = data.metadata?.parentId;
+				const light = Light.Parse(data, scene);
+				if (light) {
+					light.uniqueId = data.uniqueId;
+					light.metadata ??= {};
+					light.metadata._waitingParentId = data.metadata?.parentId;
 
-				loadResult.lights.push(light);
+					loadResult.lights.push(light);
+				}
+			} catch (e) {
+				editor.layout.console.error(`Failed to load light file "${file}": ${e.message}`);
 			}
 
 			progress.step(progressStep);
@@ -552,20 +568,24 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 				return;
 			}
 
-			const data = await readJSON(join(scenePath, "cameras", file), "utf-8");
+			try {
+				const data = await readJSON(join(scenePath, "cameras", file), "utf-8");
 
-			if (options?.asLink && data.metadata?.doNotSerialize) {
-				return;
+				if (options?.asLink && data.metadata?.doNotSerialize) {
+					return;
+				}
+
+				const camera = Camera.Parse(data, scene);
+				camera._waitingParentId = data.parentId;
+				camera.metadata ??= {};
+				camera.metadata._waitingParentId = data.metadata?.parentId;
+
+				loadResult.cameras.push(camera);
+			} catch (e) {
+				editor.layout.console.error(`Failed to load camera file "${file}": ${e.message}`);
 			}
 
-			const camera = Camera.Parse(data, scene);
-			camera._waitingParentId = data.parentId;
-			camera.metadata ??= {};
-			camera.metadata._waitingParentId = data.metadata?.parentId;
-
 			progress.step(progressStep);
-
-			loadResult.cameras.push(camera);
 		})
 	);
 
@@ -577,24 +597,28 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 					return;
 				}
 
-				const data = await readJSON(join(scenePath, "shadowGenerators", file), "utf-8");
+				try {
+					const data = await readJSON(join(scenePath, "shadowGenerators", file), "utf-8");
 
-				const light = scene.lights.find((light) => light.id === data.lightId);
-				if (!light) {
-					return;
-				}
+					const light = scene.lights.find((light) => light.id === data.lightId);
+					if (!light) {
+						return;
+					}
 
-				let shadowGenerator: ShadowGenerator;
+					let shadowGenerator: ShadowGenerator;
 
-				if (data.className === CascadedShadowGenerator.CLASSNAME) {
-					shadowGenerator = CascadedShadowGenerator.Parse(data, scene);
-				} else {
-					shadowGenerator = ShadowGenerator.Parse(data, scene);
-				}
+					if (data.className === CascadedShadowGenerator.CLASSNAME) {
+						shadowGenerator = CascadedShadowGenerator.Parse(data, scene);
+					} else {
+						shadowGenerator = ShadowGenerator.Parse(data, scene);
+					}
 
-				const shadowMap = shadowGenerator.getShadowMap();
-				if (shadowMap) {
-					shadowMap.refreshRate = data.refreshRate ?? RenderTargetTexture.REFRESHRATE_RENDER_ONEVERYFRAME;
+					const shadowMap = shadowGenerator.getShadowMap();
+					if (shadowMap) {
+						shadowMap.refreshRate = data.refreshRate ?? RenderTargetTexture.REFRESHRATE_RENDER_ONEVERYFRAME;
+					}
+				} catch (e) {
+					editor.layout.console.error(`Failed to load shadow generator file "${file}": ${e.message}`);
 				}
 
 				progress.step(progressStep);
@@ -609,9 +633,9 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 				return;
 			}
 
-			const data = await readJSON(join(scenePath, "gui", file), "utf-8");
-
 			try {
+				const data = await readJSON(join(scenePath, "gui", file), "utf-8");
+
 				const gui = await applyImportedGuiFile(editor, join(projectPath, "assets", data.relativePath));
 
 				if (gui) {
@@ -632,9 +656,9 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 				return;
 			}
 
-			const data = await readJSON(join(scenePath, "sounds", file), "utf-8");
-
 			try {
+				const data = await readJSON(join(scenePath, "sounds", file), "utf-8");
+
 				if (data.name && assetsCache[data.name]) {
 					data.name = assetsCache[data.name].newRelativePath;
 				}
@@ -662,37 +686,41 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 				return;
 			}
 
-			const data = await readJSON(join(scenePath, "particleSystems", file), "utf-8");
+			try {
+				const data = await readJSON(join(scenePath, "particleSystems", file), "utf-8");
 
-			let particleSystem: ParticleSystem | GPUParticleSystem;
+				let particleSystem: ParticleSystem | GPUParticleSystem;
 
-			switch (data.className) {
-				case "GPUParticleSystem":
-					particleSystem = GPUParticleSystem.Parse(data, scene, join(projectPath, "/"));
-					break;
+				switch (data.className) {
+					case "GPUParticleSystem":
+						particleSystem = GPUParticleSystem.Parse(data, scene, join(projectPath, "/"));
+						break;
 
-				default:
-					particleSystem = ParticleSystem.Parse(data, scene, join(projectPath, "/"));
-					break;
-			}
-
-			if (!particleSystem.emitter) {
-				editor.layout.console.warn(`No emitter found for particle system "${particleSystem.name}". Skipping.`);
-				if (isGPUParticleSystem(particleSystem)) {
-					particleSystem.dispose(true);
-				} else {
-					particleSystem.dispose(true, true, true);
+					default:
+						particleSystem = ParticleSystem.Parse(data, scene, join(projectPath, "/"));
+						break;
 				}
 
-				return;
+				if (!particleSystem.emitter) {
+					editor.layout.console.warn(`No emitter found for particle system "${particleSystem.name}". Skipping.`);
+					if (isGPUParticleSystem(particleSystem)) {
+						particleSystem.dispose(true);
+					} else {
+						particleSystem.dispose(true, true, true);
+					}
+
+					return;
+				}
+
+				particleSystem!.uniqueId = data.uniqueId;
+				particleSystem!.sourceParticleSystemSetId = data.sourceParticleSystemSetId;
+
+				loadResult.particleSystems.push(particleSystem!);
+			} catch (e) {
+				editor.layout.console.error(`Failed to particle system file "${file}": ${e.message}`);
 			}
 
-			particleSystem!.uniqueId = data.uniqueId;
-			particleSystem!.sourceParticleSystemSetId = data.sourceParticleSystemSetId;
-
 			progress.step(progressStep);
-
-			loadResult.particleSystems.push(particleSystem!);
 		})
 	);
 
@@ -771,25 +799,29 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 
 	await Promise.all(
 		sceneLinkFiles.map(async (file) => {
-			const data = await readJSON(join(scenePath, "sceneLinks", file), "utf-8");
+			try {
+				const data = await readJSON(join(scenePath, "sceneLinks", file), "utf-8");
 
-			if (options?.asLink && data.metadata?.doNotSerialize) {
-				return;
-			}
+				if (options?.asLink && data.metadata?.doNotSerialize) {
+					return;
+				}
 
-			if (loadedScenes.includes(data._relativePath)) {
-				return editor.layout.console.error(`Can't load scene "${data._relativePath}": cycle references detected.`);
-			}
+				if (loadedScenes.includes(data._relativePath)) {
+					return editor.layout.console.error(`Can't load scene "${data._relativePath}": cycle references detected.`);
+				}
 
-			const sceneLink = await createSceneLink(editor, join(projectPath, data._relativePath));
-			if (sceneLink) {
-				sceneLink.parse(data);
+				const sceneLink = await createSceneLink(editor, join(projectPath, data._relativePath));
+				if (sceneLink) {
+					sceneLink.parse(data);
 
-				sceneLink.uniqueId = data.uniqueId;
-				sceneLink.metadata ??= {};
-				sceneLink.metadata._waitingParentId = data.parentId;
+					sceneLink.uniqueId = data.uniqueId;
+					sceneLink.metadata ??= {};
+					sceneLink.metadata._waitingParentId = data.parentId;
 
-				loadResult.sceneLinks.push(sceneLink);
+					loadResult.sceneLinks.push(sceneLink);
+				}
+			} catch (e) {
+				editor.layout.console.error(`Failed to load scene link file "${file}": ${e.message}`);
 			}
 
 			progress.step(progressStep);
