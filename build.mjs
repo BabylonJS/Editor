@@ -1,6 +1,7 @@
 import { join } from "node:path";
 import { rm } from "node:fs/promises";
 import { platform, arch } from "node:os";
+import { execSync } from "node:child_process";
 
 import dotEnv from "dotenv";
 import yargs from "minimist";
@@ -30,6 +31,20 @@ function build({ x64, arm64 } = options) {
 							notarize: args.noSign ? false : true,
 							identity: args.noSign ? null : undefined,
 						},
+			win: {
+				target: "nsis",
+				forceCodeSigning: args.noSign ? false : true,
+				signtoolOptions: {
+					sign: (configuration) => {
+						if (configuration.path) {
+							execSync(`smctl.exe sign --keypair-alias=${process.env.KEYPAIR_ALIAS} --input "${String(configuration.path)}"`);
+						}
+					},
+					publisherName: "cesharpe",
+					signingHashAlgorithms: ["sha256"],
+					rfc3161TimeStampServer: "http://timestamp.digicert.com",
+				},
+			},
 			fileAssociations: [
 				{
 					ext: "bjseditor",
