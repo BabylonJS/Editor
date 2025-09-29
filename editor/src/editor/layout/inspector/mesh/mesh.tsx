@@ -46,6 +46,10 @@ import { onGizmoNodeChangedObservable } from "../../preview/gizmo";
 import { EditorTransformNodeInspector } from "../transform";
 import { IEditorInspectorImplementationProps } from "../inspector";
 
+export interface IEditorMeshInspectorState {
+	dragOver: boolean;
+}
+
 import { EditorPBRMaterialInspector } from "../material/pbr";
 import { EditorSkyMaterialInspector } from "../material/sky";
 import { EditorGridMaterialInspector } from "../material/grid";
@@ -64,8 +68,11 @@ import { MeshDecalInspector } from "./decal";
 import { MeshGeometryInspector } from "./geometry";
 import { EditorMeshPhysicsInspector } from "./physics";
 import { EditorMeshCollisionInspector } from "./collision";
+import { waitNextAnimationFrame } from "../../../../tools/tools";
+import { extname } from "path/posix";
+import { applyMaterialAssetToObject } from "../../preview/import/material";
 
-export class EditorMeshInspector extends Component<IEditorInspectorImplementationProps<AbstractMesh>> {
+export class EditorMeshInspector extends Component<IEditorInspectorImplementationProps<AbstractMesh>, IEditorMeshInspectorState> {
 	/**
 	 * Returns whether or not the given object is supported by this inspector.
 	 * @param object defines the object to check.
@@ -81,6 +88,10 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 
 	public constructor(props: IEditorInspectorImplementationProps<AbstractMesh>) {
 		super(props);
+
+		this.state = {
+			dragOver: false,
+		};
 
 		this._castShadows = props.editor.layout.preview.scene.lights.some((light) => {
 			return light.getShadowGenerator()?.getShadowMap()?.renderList?.includes(props.object);
@@ -267,35 +278,47 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 		if (!this.props.object.material) {
 			return (
 				<EditorInspectorSectionField title="Material">
-					<div className="flex justify-center items-center gap-2">
-						<div className="text-center text-xl">No material</div>
-						<DropdownMenu>
-							<DropdownMenuTrigger asChild>
-								<Button variant="ghost" className="w-8 h-8 !rounded-lg p-0.5">
-									<AiOutlinePlus className="w-4 h-4" />
-								</Button>
-							</DropdownMenuTrigger>
-							<DropdownMenuContent>
-								{getMaterialCommands(this.props.editor).map((command) => (
-									<DropdownMenuItem key={command.key} onClick={() => this._handleAddMaterial(command)}>
-										{command.text}
-									</DropdownMenuItem>
-								))}
+					<div
+						onDrop={(e) => this._handleMaterialDrop(e)}
+						onDragLeave={() => this.setState({ dragOver: false })}
+						onDragOver={(ev) => this._handleMaterialDragOver(ev)}
+						className={`flex flex-col justify-center items-center w-full p-4 rounded-lg border-[1px] border-secondary-foreground/35 border-dashed ${this.state.dragOver ? "bg-secondary-foreground/35" : ""} transition-all duration-300 ease-in-out`}
+					>
+						<div className="text-center">
+							<div className="text-xl mb-2">No material</div>
+							<div className="text-sm text-muted-foreground mb-2">Drop materialfile or create material</div>
+						</div>
 
-								<DropdownMenuSeparator />
+						<div className="flex gap-2">
+							<DropdownMenu>
+								<DropdownMenuTrigger asChild>
+									<Button variant="outline" className="flex gap-2 items-center">
+										<AiOutlinePlus className="w-4 h-4" />
+										Create Material
+									</Button>
+								</DropdownMenuTrigger>
+								<DropdownMenuContent>
+									{getMaterialCommands(this.props.editor).map((command) => (
+										<DropdownMenuItem key={command.key} onClick={() => this._handleAddMaterial(command)}>
+											{command.text}
+										</DropdownMenuItem>
+									))}
 
-								<DropdownMenuSub>
-									<DropdownMenuSubTrigger>Materials Library</DropdownMenuSubTrigger>
-									<DropdownMenuSubContent>
-										{getMaterialsLibraryCommands(this.props.editor).map((command) => (
-											<DropdownMenuItem key={command.key} onClick={() => this._handleAddMaterial(command)}>
-												{command.text}
-											</DropdownMenuItem>
-										))}
-									</DropdownMenuSubContent>
-								</DropdownMenuSub>
-							</DropdownMenuContent>
-						</DropdownMenu>
+									<DropdownMenuSeparator />
+
+									<DropdownMenuSub>
+										<DropdownMenuSubTrigger>Materials Library</DropdownMenuSubTrigger>
+										<DropdownMenuSubContent>
+											{getMaterialsLibraryCommands(this.props.editor).map((command) => (
+												<DropdownMenuItem key={command.key} onClick={() => this._handleAddMaterial(command)}>
+													{command.text}
+												</DropdownMenuItem>
+											))}
+										</DropdownMenuSubContent>
+									</DropdownMenuSub>
+								</DropdownMenuContent>
+							</DropdownMenu>
+						</div>
 					</div>
 				</EditorInspectorSectionField>
 			);
@@ -311,6 +334,42 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 		}
 
 		return <div className="flex flex-col gap-2 relative">{inspector}</div>;
+	}
+
+	private _handleMaterialDrop(ev: React.DragEvent<HTMLDivElement>): void {
+		ev.preventDefault();
+		ev.stopPropagation();
+		this.setState({ dragOver: false });
+
+		const assets = ev.dataTransfer.getData("assets");
+		if (assets) {
+			this._handleMaterialDropped(assets);
+		}
+	}
+
+	private _handleMaterialDragOver(ev: React.DragEvent<HTMLDivElement>): void {
+		ev.preventDefault();
+		ev.stopPropagation();
+
+		this.setState({ dragOver: true });
+	}
+
+	private _handleMaterialDropped(assets: string): void {
+		const absolutePaths = JSON.parse(assets) as string[];
+
+		if (!Array.isArray(absolutePaths)) {
+			return;
+		}
+
+		absolutePaths.forEach(async (absolutePath) => {
+			await waitNextAnimationFrame();
+			const extension = extname(absolutePath).toLowerCase();
+			switch (extension) {
+				case ".material":
+					applyMaterialAssetToObject(this.props.editor, this.props.object, absolutePath);
+					break;
+			}
+		});
 	}
 
 	private _handleAddMaterial(command: ICommandPaletteType): void {
