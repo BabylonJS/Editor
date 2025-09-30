@@ -1,4 +1,4 @@
-import { Scene, Tools, PBRMaterial, StandardMaterial, NodeMaterial } from "babylonjs";
+import { Scene, Tools, PBRMaterial, StandardMaterial, NodeMaterial, Color3 } from "babylonjs";
 import { SkyMaterial, GridMaterial, NormalMaterial, WaterMaterial, LavaMaterial, TriPlanarMaterial, CellMaterial, FireMaterial, GradientMaterial } from "babylonjs-materials";
 
 import { UniqueNumber } from "../../tools/tools";
@@ -64,6 +64,7 @@ export function addWaterMaterial(scene: Scene) {
 
 export function addLavaMaterial(scene: Scene) {
 	const material = new LavaMaterial("New Lava Material", scene);
+	material.fogColor = new Color3(0.2, 0.2, 0.2);
 	material.id = Tools.RandomId();
 	material.uniqueId = UniqueNumber.Get();
 
