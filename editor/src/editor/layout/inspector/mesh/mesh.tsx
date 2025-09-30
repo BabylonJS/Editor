@@ -1,3 +1,5 @@
+import { extname } from "path/posix";
+
 import { toast } from "sonner";
 import { Component, ReactNode } from "react";
 
@@ -28,10 +30,13 @@ import { ICommandPaletteType } from "../../../dialogs/command-palette/command-pa
 import { getMaterialCommands, getMaterialsLibraryCommands } from "../../../dialogs/command-palette/material";
 
 import { registerUndoRedo } from "../../../../tools/undoredo";
+import { waitNextAnimationFrame } from "../../../../tools/tools";
 import { onNodeModifiedObservable } from "../../../../tools/observables";
 import { updateIblShadowsRenderPipeline } from "../../../../tools/light/ibl";
 import { isAbstractMesh, isInstancedMesh, isMesh } from "../../../../tools/guards/nodes";
 import { updateAllLights, updateLightShadowMapRefreshRate, updatePointLightShadowMapRenderListPredicate } from "../../../../tools/light/shadows";
+
+import { applyMaterialAssetToObject } from "../../preview/import/material";
 
 import { EditorInspectorStringField } from "../fields/string";
 import { EditorInspectorSwitchField } from "../fields/switch";
@@ -45,10 +50,6 @@ import { onGizmoNodeChangedObservable } from "../../preview/gizmo";
 
 import { EditorTransformNodeInspector } from "../transform";
 import { IEditorInspectorImplementationProps } from "../inspector";
-
-export interface IEditorMeshInspectorState {
-	dragOver: boolean;
-}
 
 import { EditorPBRMaterialInspector } from "../material/pbr";
 import { EditorSkyMaterialInspector } from "../material/sky";
@@ -68,9 +69,10 @@ import { MeshDecalInspector } from "./decal";
 import { MeshGeometryInspector } from "./geometry";
 import { EditorMeshPhysicsInspector } from "./physics";
 import { EditorMeshCollisionInspector } from "./collision";
-import { waitNextAnimationFrame } from "../../../../tools/tools";
-import { extname } from "path/posix";
-import { applyMaterialAssetToObject } from "../../preview/import/material";
+
+export interface IEditorMeshInspectorState {
+	dragOver: boolean;
+}
 
 export class EditorMeshInspector extends Component<IEditorInspectorImplementationProps<AbstractMesh>, IEditorMeshInspectorState> {
 	/**
@@ -280,13 +282,17 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 				<EditorInspectorSectionField title="Material">
 					<div
 						onDrop={(e) => this._handleMaterialDrop(e)}
-						onDragLeave={() => this.setState({ dragOver: false })}
+						onDragLeave={() =>
+							this.setState({
+								dragOver: false,
+							})
+						}
 						onDragOver={(ev) => this._handleMaterialDragOver(ev)}
 						className={`flex flex-col justify-center items-center w-full p-4 rounded-lg border-[1px] border-secondary-foreground/35 border-dashed ${this.state.dragOver ? "bg-secondary-foreground/35" : ""} transition-all duration-300 ease-in-out`}
 					>
 						<div className="text-center">
 							<div className="text-xl mb-2">No material</div>
-							<div className="text-sm text-muted-foreground mb-2">Drop materialfile or create material</div>
+							<div className="text-sm text-muted-foreground mb-2">Drop material file or create material</div>
 						</div>
 
 						<div className="flex gap-2">
@@ -339,7 +345,10 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 	private _handleMaterialDrop(ev: React.DragEvent<HTMLDivElement>): void {
 		ev.preventDefault();
 		ev.stopPropagation();
-		this.setState({ dragOver: false });
+
+		this.setState({
+			dragOver: false,
+		});
 
 		const assets = ev.dataTransfer.getData("assets");
 		if (assets) {
@@ -351,7 +360,9 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 		ev.preventDefault();
 		ev.stopPropagation();
 
-		this.setState({ dragOver: true });
+		this.setState({
+			dragOver: true,
+		});
 	}
 
 	private _handleMaterialDropped(assets: string): void {
