@@ -5,7 +5,7 @@ import { copyFile, copy, mkdir, move, pathExists, readdir, stat, writeFile, writ
 import filenamify from "filenamify";
 
 import { AdvancedDynamicTexture } from "babylonjs-gui";
-import { Camera, Material, NodeMaterial, Tools, NodeParticleSystemSet } from "babylonjs";
+import { Material, NodeMaterial, Tools, NodeParticleSystemSet } from "babylonjs";
 
 import { ICinematic } from "babylonjs-editor-tools";
 
@@ -24,8 +24,6 @@ import { FaFolder, FaFolderOpen, FaRegFolderOpen } from "react-icons/fa";
 import { Button, Tree, TreeNodeInfo } from "@blueprintjs/core";
 
 import { Editor } from "../main";
-
-import { EditorCamera } from "../nodes/camera";
 
 import { UniqueNumber } from "../../tools/tools";
 import { execNodePty } from "../../tools/node-pty";
@@ -946,31 +944,50 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 			return;
 		}
 
-		const name = await findAvailableFilename(this.state.browsedPath, "New Scene", ".scene");
-		const absolutePath = join(this.state.browsedPath, name);
-
-		const serializedCamera = this.props.editor.layout.preview.camera.serialize();
-
-		await this.props.editor.layout.preview.reset();
-
-		const camera = Camera.Parse(serializedCamera, this.props.editor.layout.preview.scene) as EditorCamera | null;
-		if (camera) {
-			this.props.editor.layout.preview.camera.dispose();
-			this.props.editor.layout.preview.camera = camera;
-
-			camera.attachControl(true);
+		let name = await showPrompt("Scene Name", "Enter the name of the new scene", "New Scene");
+		if (!name) {
+			return;
 		}
 
-		this.props.editor.setState({
-			lastOpenedScenePath: absolutePath,
-		});
+		name = await findAvailableFilename(this.state.browsedPath, name, ".scene");
+
+		const scene = this.props.editor.layout.preview.scene;
+		const absolutePath = join(this.state.browsedPath, name);
+		const serializedCamera = this.props.editor.layout.preview.camera.serialize();
 
 		await mkdir(absolutePath);
 
-		saveProject(this.props.editor);
+		const config = {
+			newScene: true,
+			metadata: {},
+			environment: {
+				environmentIntensity: 1,
+			},
+			fog: {
+				fogEnabled: scene.fogEnabled,
+				fogMode: scene.fogMode,
+				fogStart: scene.fogStart,
+				fogEnd: scene.fogEnd,
+				fogDensity: scene.fogDensity,
+				fogColor: scene.fogColor.asArray(),
+			},
+			editorCamera: serializedCamera,
+		};
 
-		this.props.editor.layout.graph.refresh();
+		await writeJSON(join(absolutePath, "config.json"), config, {
+			spaces: "\t",
+			encoding: "utf-8",
+		});
+
+		const previewContent = await fetch("assets/new-scene-preview.png").then((r) => r.arrayBuffer());
+		await writeFile(join(absolutePath, "preview.png"), Buffer.from(previewContent));
+
 		this._refreshItems(this.state.browsedPath!);
+
+		const openResult = await showConfirm("Open New Scene", "Do you want to open the new scene now?");
+		if (openResult) {
+			this._handleLoadScene(absolutePath, true);
+		}
 	}
 
 	private async _handleAddMaterial(command: ICommandPaletteType): Promise<void> {
@@ -1201,7 +1218,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 		if (item.state.isDirectory) {
 			const extension = extname(item.props.absolutePath).toLowerCase();
 			if (extension === ".scene") {
-				this._handleLoadScene(item);
+				this._handleLoadScene(item.props.absolutePath);
 			} else {
 				this.setBrowsePath(item.props.absolutePath);
 			}
@@ -1241,32 +1258,49 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 		}
 	}
 
-	private async _handleLoadScene(item: AssetsBrowserItem): Promise<void> {
+	private async _handleLoadScene(absolutePath: string, newlyCreated?: boolean): Promise<void> {
 		if (!this.props.editor.state.projectPath) {
 			return;
 		}
 
-		if (!(await pathExists(join(item.props.absolutePath, "config.json")))) {
+		if (!(await pathExists(join(absolutePath, "config.json")))) {
 			return;
 		}
 
-		const accept = await showConfirm("Are you sure?", "This will close the current scene and open the selected one.");
-		if (!accept) {
-			return;
+		if (!newlyCreated) {
+			const accept = await showConfirm("Are you sure?", "This will close the current scene and open the selected one.");
+			if (!accept) {
+				return;
+			}
+		}
+
+		const acceptSave = await showConfirm("Save Current Scene?", "Do you want to save the current scene before opening the new one?", {
+			confirmText: "Save",
+			cancelText: "Don't Save",
+		});
+
+		if (acceptSave) {
+			await saveProject(this.props.editor);
 		}
 
 		clearUndoRedo();
 
 		await this.props.editor.layout.preview.reset();
 		this.props.editor.setState({
-			lastOpenedScenePath: item.props.absolutePath,
+			lastOpenedScenePath: absolutePath,
 		});
 
 		const directory = dirname(this.props.editor.state.projectPath);
 
-		await loadScene(this.props.editor, directory, item.props.absolutePath);
+		await loadScene(this.props.editor, directory, absolutePath);
 
-		this.props.editor.layout.graph.refresh();
+		await this.props.editor.layout.graph.refresh();
+
+		const scene = this.props.editor.layout.preview.scene;
+
+		this.props.editor.layout.inspector.setEditedObject(scene);
+		this.props.editor.layout.animations.setEditedObject(scene);
+		this.props.editor.layout.preview.gizmo.setAttachedNode(null);
 	}
 
 	private _handleNodeClicked(node: TreeNodeInfo): void {

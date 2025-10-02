@@ -61,6 +61,7 @@ import { configureSimultaneousLightsForMaterial } from "../../tools/material/mat
 import { isAbstractMesh, isCollisionMesh, isEditorCamera, isMesh } from "../../tools/guards/nodes";
 import { updateAllLights, updatePointLightShadowMapRenderListPredicate } from "../../tools/light/shadows";
 
+import { createNewSceneDefaultNodes } from "./default";
 import { showLoadSceneProgressDialog } from "./progress";
 
 import "./texture";
@@ -234,6 +235,11 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 		if (config.physics) {
 			scene.getPhysicsEngine()?.setGravity(Vector3.FromArray(config.physics.gravity));
 		}
+	}
+
+	if (config.newScene) {
+		createNewSceneDefaultNodes(editor, loadResult);
+		delete config.newScene;
 	}
 
 	// Load transform nodes
