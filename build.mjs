@@ -46,10 +46,27 @@ function build({ x64, arm64 } = options) {
 				oneClick: false,
 			},
 			linux: {
-				target: "AppImage",
+				category: "Development",
+				target: ["AppImage", "flatpak", "snap"],
+			},
+			flatpak: {
+				baseVersion: "22.08",
+				runtimeVersion: "22.08",
+				category: "Development",
+
+				finishArgs: ["--share=network", "--socket=x11", "--socket=wayland"],
+			},
+			snap: {
+				base: "core22",
+				confinement: "classic",
+				grade: args.noSign ? "devel" : "stable",
+				environment: {
+					PATH: "$SNAP/bin:$SNAP/usr/bin:/usr/local/bin:$PATH",
+				},
+				plugs: ["home", "network", "opengl", "x11", "wayland", "browser-support", "process-control"],
 			},
 			asar: true,
-			asarUnpack: ["**/node_modules/sharp/**/*", "**/node_modules/@img/**/*"],
+			asarUnpack: ["**/node_modules/sharp/**/*", "**/node_modules/@img/**/*", "**/node_modules/node-pty/**/*"],
 			compression: "normal",
 			extraFiles: ["bin/**", "templates/**"],
 			files: ["./build/**", "./fonts/**", "./assets/**", "./index.html"],
