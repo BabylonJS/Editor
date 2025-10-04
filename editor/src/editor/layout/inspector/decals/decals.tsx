@@ -100,7 +100,7 @@ export class EditorDecalsInspector extends Component<IEditorDecalsInspectorProps
 	}
 
 	public async componentDidMount(): Promise<void> {
-		const canvas = this.props.editor.layout.preview.engine.getRenderingCanvas()!;
+		const canvas = this.props.editor.layout.preview.engine.inputElement as HTMLCanvasElement;
 
 		canvas.addEventListener(
 			"mousemove",
@@ -155,7 +155,7 @@ export class EditorDecalsInspector extends Component<IEditorDecalsInspectorProps
 	}
 
 	public componentWillUnmount(): void {
-		const canvas = this.props.editor.layout.preview.engine.getRenderingCanvas()!;
+		const canvas = this.props.editor.layout.preview.engine.inputElement as HTMLCanvasElement;
 
 		canvas.removeEventListener("mousemove", this._mouseMoveListener!);
 		canvas.removeEventListener("pointerdown", this._mouseDownListener!);
