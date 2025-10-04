@@ -30,6 +30,7 @@ import {
 	HavokPlugin,
 	PickingInfo,
 	SceneLoaderFlags,
+	EngineView,
 } from "babylonjs";
 
 import { Button } from "../../ui/shadcn/ui/button";
@@ -166,6 +167,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
 	private _workingCanvas: HTMLCanvasElement | null = null;
 	private _mainCanvas: HTMLCanvasElement | null = null;
+	private _mainView: EngineView | null = null;
 
 	private _previewCamera: Camera | null = null;
 
@@ -325,18 +327,36 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 			fixedDimensions,
 		});
 
+		if (!this.engine || !this._mainView || !this._mainCanvas) {
+			return;
+		}
+
+		this._mainView!.customResize = undefined;
+
 		switch (fixedDimensions) {
 			case "720p":
-				this.engine?.setSize(1280, 720);
+				this._mainCanvas!.width = 1280;
+				this._mainCanvas!.height = 720;
+
+				this._mainView!.customResize = () => {
+					this.engine.setSize(1280, 720);
+				};
 				break;
 			case "1080p":
-				this.engine?.setSize(1920, 1080);
+				this._mainCanvas!.width = 1920;
+				this._mainCanvas!.height = 1080;
+
+				this._mainView!.customResize = () => {
+					this.engine.setSize(1920, 1080);
+				};
 				break;
 			case "4k":
-				this.engine?.setSize(3840, 2160);
-				break;
-			default:
-				this.engine?.resize();
+				this._mainCanvas!.width = 3840;
+				this._mainCanvas!.height = 2160;
+
+				this._mainView!.customResize = () => {
+					this.engine.setSize(3840, 2160);
+				};
 				break;
 		}
 	}
@@ -492,7 +512,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		this.gizmo = new EditorPreviewGizmo(this.scene);
 
 		this.engine.hideLoadingUI();
-		this.engine.registerView(this._mainCanvas);
+		this._mainView = this.engine.registerView(this._mainCanvas);
 
 		this.engine.runRenderLoop(() => {
 			if (this._renderScene && !this.play.state.playing) {

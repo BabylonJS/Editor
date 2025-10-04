@@ -50,6 +50,8 @@ export async function renderCinematic(cinematicEditor: CinematicEditor, options:
 	preview.setFixedDimensions(options.type);
 	preview.scene.render();
 
+	await waitNextAnimationFrame();
+
 	// Prepare
 	let encoder = createVideoEncoder(width, height);
 
