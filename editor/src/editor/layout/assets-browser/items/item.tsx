@@ -156,7 +156,7 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
                                 ${this.state.isRenaming ? "px-1 scale-150 relative z-[9999] backdrop-blur-sm" : "px-5 scale-100"}
                                 ${this.props.selected ? "bg-muted-foreground/35" : "hover:bg-secondary"}
 								${this.state.isDragOver ? "bg-black/50" : ""}
-                                transition-all duration-300
+                                transition-all duration-300 ease-in-out
                             `}
 						>
 							<div className="relative w-full aspect-square">
@@ -191,13 +191,12 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 											setTimeout(() => {
 												r?.focus();
 												r?.select();
-											}, 0);
+											}, 300);
 										}}
 										onClick={(ev) => ev.stopPropagation()}
 										onChange={(ev) => (this._renameValue = ev.currentTarget.value)}
 										defaultValue={basename(this.props.absolutePath)}
 										onFocus={(ev) => (this._renameValue = ev.currentTarget.value)}
-										onBlur={(ev) => this._handleRenameFileOrFolder(ev.currentTarget.value)}
 										onKeyDown={(ev) => ev.key === "Enter" && this._handleRenameFileOrFolder(ev.currentTarget.value)}
 									/>
 								)}
@@ -312,7 +311,7 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 			isRenaming: true,
 		});
 
-		window.addEventListener(
+		document.addEventListener(
 			"keyup",
 			(this._renameKeyboardListener = (ev) => {
 				if (ev.key === "Escape") {
@@ -323,14 +322,16 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 
 					this.props.setSelectionEnabled(true);
 				}
-			})
+			}),
+			true
 		);
 
 		window.addEventListener(
 			"click",
 			(this._renameMouseListener = () => {
 				this._handleRenameFileOrFolder(this._renameValue);
-			})
+			}),
+			true
 		);
 	}
 
@@ -368,12 +369,12 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 
 	private _removeRenameEventListeners(): void {
 		if (this._renameKeyboardListener) {
-			window.removeEventListener("keyup", this._renameKeyboardListener);
+			document.removeEventListener("keyup", this._renameKeyboardListener, true);
 			this._renameKeyboardListener = null;
 		}
 
 		if (this._renameMouseListener) {
-			window.removeEventListener("click", this._renameMouseListener);
+			window.removeEventListener("click", this._renameMouseListener, true);
 			this._renameMouseListener = null;
 		}
 	}
@@ -408,9 +409,9 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 				<ContextMenuSeparator />
 
 				<ContextMenuItem
-					onClick={() => {
-						this.setState({ isRenaming: true });
-						this.props.setSelectionEnabled(false);
+					onClick={(ev) => {
+						ev.stopPropagation();
+						this._handleRenamingItem();
 					}}
 				>
 					Rename...
