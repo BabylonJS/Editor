@@ -11,6 +11,7 @@ import { Toaster } from "../ui/shadcn/ui/sonner";
 import { Separator } from "../ui/shadcn/ui/separator";
 import { showConfirm, showAlert } from "../ui/dialog";
 
+import { wait } from "../tools/tools";
 import { openSingleFileDialog } from "../tools/dialog";
 import { ProjectType, projectsKey } from "../tools/project";
 import { checkNodeJSAvailable, nodeJSAvailable } from "../tools/process";
@@ -133,21 +134,19 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
 	}
 
 	public async componentDidMount(): Promise<void> {
-		ipcRenderer.send("dashboard:ready");
-
 		ipcRenderer.on("dashboard:import-project", () => this._handleImportProject());
 		ipcRenderer.on("dashboard:new-project", () => this.setState({ createProject: true }));
 
 		ipcRenderer.on("dashboard:opened-projects", (_, openedProjects) => this.setState({ openedProjects }));
 		ipcRenderer.on("dashboard:update-projects", () => this.setState({ projects: tryGetProjectsFromLocalStorage() }));
 
-		this._checkSystemAvailabilities();
+		try {
+			this._checkSystemAvailabilities();
 
-		// Update list of projects to remove those that were deleted from the hard drive
-		const projects = this.state.projects.slice();
+			// Update list of projects to remove those that were deleted from the hard drive
+			const projects = this.state.projects.slice();
 
-		await Promise.all(
-			projects.map(async (project) => {
+			projects.forEach(async (project) => {
 				const exists = await pathExists(project.absolutePath);
 				if (exists) {
 					return;
@@ -162,8 +161,14 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
 						projects,
 					});
 				}
-			})
-		);
+			});
+		} catch (e) {
+			console.error(e);
+		}
+
+		await wait(150);
+
+		ipcRenderer.send("dashboard:ready");
 	}
 
 	private async _checkSystemAvailabilities(): Promise<void> {
