@@ -11,12 +11,14 @@ import { Grid } from "react-loader-spinner";
 import { IoPlay, IoStop, IoRefresh } from "react-icons/io5";
 
 import { Scene, Vector3, HavokPlugin } from "babylonjs";
+import { IRegisteredScript } from "babylonjs-editor-tools";
 
 import { ensureTemporaryDirectoryExists } from "../../../tools/project";
 
-import { wait, waitNextAnimationFrame } from "../../../tools/tools";
+import { isScene } from "../../../tools/guards/scene";
 import { compilePlayScript } from "../../../tools/scene/play/compile";
 import { forceCompileAllSceneMaterials } from "../../../tools/scene/materials";
+import { cloneJSObject, wait, waitNextAnimationFrame } from "../../../tools/tools";
 import { applyOverrides, restorePlayOverrides } from "../../../tools/scene/play/override";
 
 import { exportProject } from "../../../project/export/export";
@@ -67,6 +69,8 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 
 	private _srcWatcher: FSWatcher | null = null;
 	private _temporaryDirectory: string | null = null;
+
+	private _compiledScriptExports: any = null;
 
 	public constructor(props: IEditorPreviewPlayComponentProps) {
 		super(props);
@@ -322,9 +326,7 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 
 		applyOverrides(this.props.editor);
 
-		const scriptPath = join(this._temporaryDirectory!, "play/script.cjs");
-		const exports = require(scriptPath);
-		delete require.cache[nativeJoin(scriptPath)];
+		this._requireCompiledScripts();
 
 		const scene = new Scene(this.props.editor.layout.preview.engine);
 		scene.enablePhysics(new Vector3(0, -981, 0), new HavokPlugin());
@@ -337,7 +339,7 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 		const sceneName = basename(this.props.editor.state.lastOpenedScenePath!).split(".").shift()!;
 
 		try {
-			await exports.loadScene(rootUrl, `${sceneName}.babylon`, scene, exports.scriptsMap, {
+			await this._compiledScriptExports.loadScene(rootUrl, `${sceneName}.babylon`, scene, this._compiledScriptExports.scriptsMap, {
 				quality: "high",
 				onProgress: (progress) =>
 					this.props.editor.layout.preview.setState({
@@ -365,6 +367,12 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 		});
 	}
 
+	private _requireCompiledScripts(): void {
+		const scriptPath = join(this._temporaryDirectory!, "play/script.cjs");
+		this._compiledScriptExports = require(scriptPath);
+		delete require.cache[nativeJoin(scriptPath)];
+	}
+
 	/**
 	 * Watches all the src directory of the project to detect changes in the scripts.
 	 * If a change is detected, it will restart the game / application.
@@ -386,7 +394,13 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 			if (this.canPlayScene) {
 				this.props.editor.layout.console.log(`Detected change in ${path}, restarting play...`);
 				await this._compileScripts();
-				await this.restart();
+
+				if (this.props.editor.state.enableExperimentalFeatures) {
+					const scriptKey = path.replace(nativeJoin(srcPath, "/"), "").replace(/\\/g, "/");
+					this.hotReloadScript(scriptKey, true);
+				} else {
+					await this.restart();
+				}
 			}
 		});
 	}
@@ -394,5 +408,57 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 	private _closeWatchSrcDirectory(): void {
 		this._srcWatcher?.close();
 		this._srcWatcher = null;
+	}
+
+	public hotReloadScript(scriptKey: string, compile: boolean): void {
+		if (!this.scene || !this.state.playing || !this.props.editor.state.enableExperimentalFeatures) {
+			return;
+		}
+
+		const oldScriptExports = this._compiledScriptExports;
+
+		const projectDir = dirname(projectConfiguration.path!);
+		const rootUrl = join(projectDir, "public", "scene", "/");
+
+		if (compile) {
+			this._requireCompiledScripts();
+		}
+
+		if (oldScriptExports) {
+			Object.assign(this._compiledScriptExports.scriptAssetsCache, oldScriptExports.scriptAssetsCache);
+		}
+
+		const allNodes = [this.scene, ...this.scene.meshes, ...this.scene.transformNodes, ...this.scene.lights, ...this.scene.cameras];
+		allNodes.forEach((n) => {
+			const runningScripts = oldScriptExports.scriptsDictionary.get(n) as IRegisteredScript[] | undefined;
+			if (!runningScripts) {
+				return;
+			}
+
+			const runningScriptsCopy = runningScripts.slice();
+
+			runningScriptsCopy.forEach(async (script) => {
+				if (script.key !== scriptKey) {
+					return;
+				}
+
+				oldScriptExports._removeRegisteredScriptInstance(n, script);
+
+				const sourceObject = isScene(n) ? this.scene! : this.props.editor.layout.preview.scene!.getNodeById(n.id);
+				const sourceMetadata = sourceObject?.metadata?.scripts?.find((sourceScript) => sourceScript.key === script.key);
+
+				if (sourceMetadata) {
+					n.metadata ??= {};
+					n.metadata.scripts ??= [];
+					n.metadata.scripts.push(cloneJSObject(sourceMetadata));
+				}
+			});
+		});
+
+		this._compiledScriptExports._preloadScriptsAssets(this.scene, rootUrl).then(() => {
+			allNodes.forEach((n) => {
+				this._compiledScriptExports._applyScriptsForObject(this.scene!, n, this._compiledScriptExports.scriptsMap, rootUrl);
+			});
+		});
 	}
 }

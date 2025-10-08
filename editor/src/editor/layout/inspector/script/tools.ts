@@ -1,7 +1,3 @@
-import { Vector2, Vector3, Color3, Color4 } from "babylonjs";
-
-import { Editor } from "../../../main";
-
 export type VisibleInInspectorDecoratorObject = {
 	label?: string;
 	propertyKey: string;
@@ -148,58 +144,4 @@ export function computeDefaultValuesForObject(script: any, output: VisibleInInsp
 				break;
 		}
 	});
-}
-
-export interface IApplyValueToRunningSceneObjectOptions {
-	object: any;
-	script: any;
-	scriptIndex: number;
-	value: VisibleInInspectorDecoratorObject;
-}
-
-export function applyValueToRunningSceneObject(editor: Editor, options: IApplyValueToRunningSceneObjectOptions) {
-	if (!editor.state.enableExperimentalFeatures) {
-		return;
-	}
-
-	const scene = editor.layout.preview.play.scene;
-	if (!scene) {
-		return;
-	}
-
-	let runningObject: any = null;
-	if (options.object.id) {
-		runningObject = scene.getNodeById(options.object.id);
-	}
-
-	if (!runningObject) {
-		return;
-	}
-
-	const scriptInstance = runningObject.__editorRunningScripts?.[options.scriptIndex];
-	if (!scriptInstance) {
-		return;
-	}
-
-	switch (options.value.configuration.type) {
-		case "boolean":
-		case "number":
-		case "string":
-			scriptInstance.instance[options.value.propertyKey] = options.script[scriptValues][options.value.propertyKey].value;
-			break;
-
-		case "vector2":
-			scriptInstance.instance[options.value.propertyKey] = Vector2.FromArray(options.script[scriptValues][options.value.propertyKey].value);
-			break;
-		case "vector3":
-			scriptInstance.instance[options.value.propertyKey] = Vector3.FromArray(options.script[scriptValues][options.value.propertyKey].value);
-			break;
-
-		case "color3":
-			scriptInstance.instance[options.value.propertyKey] = Color3.FromArray(options.script[scriptValues][options.value.propertyKey].value);
-			break;
-		case "color4":
-			scriptInstance.instance[options.value.propertyKey] = Color4.FromArray(options.script[scriptValues][options.value.propertyKey].value);
-			break;
-	}
 }

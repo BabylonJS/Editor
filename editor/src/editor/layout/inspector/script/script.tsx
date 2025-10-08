@@ -3,6 +3,8 @@ import { extname, join, dirname } from "path/posix";
 import { toast } from "sonner";
 import { Component, DragEvent, ReactNode } from "react";
 
+import { Tools } from "babylonjs";
+
 import { Editor } from "../../../main";
 
 import { registerUndoRedo } from "../../../../tools/undoredo";
@@ -38,7 +40,7 @@ export class ScriptInspectorComponent extends Component<IScriptInspectorComponen
 					<InspectorScriptField
 						script={script}
 						scriptIndex={index}
-						key={`${script}_${index}`}
+						key={Tools.RandomId()}
 						editor={this.props.editor}
 						object={this.props.object}
 						onRemove={() => this._handleRemoveScript(index)}

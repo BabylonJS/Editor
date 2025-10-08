@@ -7,6 +7,8 @@ import { SceneLoaderFlags } from "@babylonjs/core/Loading/sceneLoaderFlags";
 import { isMesh } from "../tools/guards";
 import { configureShadowMapRefreshRate, configureShadowMapRenderListPredicate } from "../tools/light";
 
+import { IScript } from "../script";
+
 import { applyRenderingConfigurationForCamera } from "../rendering/tools";
 
 import { configurePhysicsAggregate } from "./physics";
@@ -26,13 +28,8 @@ import "./shadows";
 export type ScriptMap = Record<
 	string,
 	{
-		default?: new (object: any) => {
-			onStart?(): void;
-			onUpdate?(): void;
-		};
-		onStart?: (object: any) => void;
-		onUpdate?: (object: any) => void;
-	}
+		default?: new (object: any) => IScript;
+	} & IScript
 >;
 
 /**

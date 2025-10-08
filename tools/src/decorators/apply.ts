@@ -1,7 +1,10 @@
 import { Node } from "@babylonjs/core/node";
 import { Scene } from "@babylonjs/core/scene";
+import { Observer } from "@babylonjs/core/Misc/observable";
 import { Material } from "@babylonjs/core/Materials/material";
 import { Color3, Color4 } from "@babylonjs/core/Maths/math.color";
+import { PointerInfo } from "@babylonjs/core/Events/pointerEvents";
+import { KeyboardInfo } from "@babylonjs/core/Events/keyboardEvents";
 import { PickingInfo } from "@babylonjs/core/Collisions/pickingInfo";
 import { Texture } from "@babylonjs/core/Materials/Textures/texture";
 import { Vector2, Vector3 } from "@babylonjs/core/Maths/math.vector";
@@ -220,6 +223,9 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 		}
 	});
 
+	let pointerObserver: Observer<PointerInfo> | null = null;
+	let keyboardObserver: Observer<KeyboardInfo> | null = null;
+
 	// @onPointerEvent
 	if (ctor._PointerEvents?.length) {
 		const wrongMeshListener = ctor._PointerEvents.find((params) => params.options.mode === "attachedMeshOnly");
@@ -232,7 +238,7 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 			throw new Error(`@onPointerEvent with mode different from "global" can be used only on scripts attached to Node: Mesh, Light, Camera, TransformNode.`);
 		}
 
-		scene.onPointerObservable.add((pointerInfo) => {
+		pointerObserver = scene.onPointerObservable.add((pointerInfo) => {
 			let pickInfo: PickingInfo | null = null;
 
 			ctor._PointerEvents!.forEach((params) => {
@@ -278,7 +284,7 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 
 	// @onKeyboardEvent
 	if (ctor._KeyboardEvents?.length) {
-		scene.onKeyboardObservable.add((keyboardInfo) => {
+		keyboardObserver = scene.onKeyboardObservable.add((keyboardInfo) => {
 			ctor._KeyboardEvents!.forEach((params) => {
 				if (!params.eventTypes.includes(keyboardInfo.type)) {
 					return;
@@ -288,4 +294,11 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 			});
 		});
 	}
+
+	return {
+		observers: {
+			pointerObserver,
+			keyboardObserver,
+		},
+	};
 }
