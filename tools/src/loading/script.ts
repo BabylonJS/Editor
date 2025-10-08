@@ -1,5 +1,8 @@
 import { Node } from "@babylonjs/core/node";
 import { Scene } from "@babylonjs/core/scene";
+import { Observer } from "@babylonjs/core/Misc/observable";
+import { PointerInfo } from "@babylonjs/core/Events/pointerEvents";
+import { KeyboardInfo } from "@babylonjs/core/Events/keyboardEvents";
 import { IParticleSystem } from "@babylonjs/core/Particles/IParticleSystem";
 
 import { IScript } from "../script";
@@ -83,28 +86,25 @@ export function _applyScriptsForObject(scene: Scene, object: any, scriptsMap: Sc
 			return;
 		}
 
+		let result = exports;
+		let observers: IRegisteredScriptObservers = {};
+
 		if (exports.default) {
-			const instance = new exports.default(object);
+			result = new exports.default(object);
 
-			registerScriptInstance(object, instance, script.key);
-			applyDecorators(scene, object, script, instance, rootUrl);
-
-			if (instance.onStart) {
-				scene.onBeforeRenderObservable.addOnce(() => instance.onStart!());
-			}
-
-			if (instance.onUpdate) {
-				scene.onBeforeRenderObservable.add(() => instance.onUpdate!());
-			}
-		} else {
-			if (exports.onStart) {
-				scene.onBeforeRenderObservable.addOnce(() => exports.onStart!(object));
-			}
-
-			if (exports.onUpdate) {
-				scene.onBeforeRenderObservable.add(() => exports.onUpdate!(object));
-			}
+			const decoratorsResult = applyDecorators(scene, object, script, result, rootUrl);
+			Object.assign(observers, decoratorsResult?.observers ?? {});
 		}
+
+		if (result.onStart) {
+			observers.onStartObserver = scene.onBeforeRenderObservable.addOnce(() => result.onStart!(object));
+		}
+
+		if (result.onUpdate) {
+			observers.onUpdateObserver = scene.onBeforeRenderObservable.add(() => result.onUpdate!(object));
+		}
+
+		_registerScriptInstance(object, result, script.key, observers);
 	});
 
 	object.metadata.scripts = undefined;
@@ -154,6 +154,17 @@ export interface IRegisteredScript {
 	 * Defines the instance of the script that was created while loading the scene.
 	 */
 	instance: IScript;
+	/**
+	 * Defines the dictionary of all registered observers for this script.
+	 */
+	observers: IRegisteredScriptObservers;
+}
+
+export interface IRegisteredScriptObservers {
+	onStartObserver?: Observer<Scene> | null;
+	onUpdateObserver?: Observer<Scene> | null;
+	pointerObserver?: Observer<PointerInfo> | null;
+	keyboardObserver?: Observer<KeyboardInfo> | null;
 }
 
 export const scriptsDictionary = new Map<Node | IParticleSystem | Scene, IRegisteredScript[]>();
@@ -161,13 +172,12 @@ export const scriptsDictionary = new Map<Node | IParticleSystem | Scene, IRegist
 /**
  * When a scene is being loaded, scripts that were attached to objects in the scene using the Editor are processed.
  * This function registers the instance of scripts per object in order to retrieve them later.
- * @param object defines the object in the scene on which the script is attached to.
- * @param scriptInstance defines the instance of the script to register.
- * @param key defines the key of the script. This value is used to identify the script.
+ * @internal
  */
-export function registerScriptInstance(object: any, scriptInstance: IScript, key: string) {
+export function _registerScriptInstance(object: any, scriptInstance: IScript, key: string, observers: IRegisteredScriptObservers) {
 	const registeredScript = {
 		key,
+		observers,
 		instance: scriptInstance,
 	} as IRegisteredScript;
 
@@ -177,13 +187,38 @@ export function registerScriptInstance(object: any, scriptInstance: IScript, key
 		scriptsDictionary.get(object)!.push(registeredScript);
 	}
 
-	object.__editorRunningScripts ??= [];
-	object.__editorRunningScripts.push(registeredScript);
-
 	if (isNode(object) || isAnyParticleSystem(object) || isScene(object)) {
 		object.onDisposeObservable.addOnce((() => {
+			scriptsDictionary.get(object)?.forEach((s) => {
+				_removeRegisteredScriptInstance(object, s);
+			});
+
 			scriptsDictionary.delete(object);
 		}) as any);
+	}
+}
+
+/**
+ * When a node is disposed, or for hot reload purpose, the script should be unregistered and all observers removed.
+ * @internal
+ */
+export function _removeRegisteredScriptInstance(object: any, registeredScript: IRegisteredScript) {
+	registeredScript.observers.onStartObserver?.remove();
+	registeredScript.observers.onUpdateObserver?.remove();
+
+	registeredScript.observers.pointerObserver?.remove();
+	registeredScript.observers.keyboardObserver?.remove();
+
+	try {
+		registeredScript.instance.onStop?.(object);
+	} catch (e) {
+		console.error(`Failed to call onStop for script ${registeredScript.key} on object ${object}`, e);
+	}
+
+	const runningScripts = scriptsDictionary.get(object);
+	const index = runningScripts?.indexOf(registeredScript) ?? -1;
+	if (index !== -1) {
+		runningScripts?.splice(index, 1);
 	}
 }
 

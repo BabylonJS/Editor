@@ -5,10 +5,15 @@ export interface IScript {
 	/**
 	 * Method called when the script starts. This method is called only once.
 	 */
-	onStart?(): void;
+	onStart?(object: any): void;
 
 	/**
 	 * Method called on each frame.
 	 */
-	onUpdate?(): void;
+	onUpdate?(object: any): void;
+
+	/**
+	 * Method called on the script is stopped or the object is disposed.
+	 */
+	onStop?(object: any): void;
 }

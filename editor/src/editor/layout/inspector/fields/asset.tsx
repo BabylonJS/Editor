@@ -21,6 +21,8 @@ import { IEditorInspectorFieldProps } from "./field";
 export interface IEditorInspectorAssetFieldProps extends IEditorInspectorFieldProps {
 	assetType: VisibleInspectorDecoratorAssetPossibleTypes;
 	typeRestriction?: string;
+
+	onChange?: (assetPath: string | null) => void;
 }
 
 export function EditorInspectorAssetField(props: IEditorInspectorAssetFieldProps) {
@@ -100,7 +102,7 @@ export function EditorInspectorAssetField(props: IEditorInspectorAssetFieldProps
 		setValue(path);
 		setInspectorEffectivePropertyValue(props.object, props.property, path);
 
-		// props.onChange?.(path);
+		props.onChange?.(path);
 
 		registerSimpleUndoRedo({
 			object: props.object,

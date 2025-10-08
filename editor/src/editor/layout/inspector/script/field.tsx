@@ -45,7 +45,7 @@ import { EditorInspectorStringField } from "../fields/string";
 import { EditorInspectorTextureField } from "../fields/texture";
 import { EditorInspectorSceneEntityField } from "../fields/entity";
 
-import { VisibleInInspectorDecoratorObject, applyValueToRunningSceneObject, computeDefaultValuesForObject, scriptValues } from "./tools";
+import { VisibleInInspectorDecoratorObject, computeDefaultValuesForObject, scriptValues } from "./tools";
 
 const cachedScripts: Record<
 	string,
@@ -193,6 +193,7 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 
 							registerUndoRedo({
 								executeRedo: true,
+								action: () => props.editor.layout.preview.play.hotReloadScript(props.script.key, false),
 								undo: () => (props.script[scriptValues][value.propertyKey].value = oldValue),
 								redo: () => (props.script[scriptValues][value.propertyKey].value = v?.id),
 							});
@@ -208,6 +209,7 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 						property="value"
 						label={value.label ?? value.propertyKey}
 						tooltip={value.configuration.description}
+						onChange={() => props.editor.layout.preview.play.hotReloadScript(props.script.key, false)}
 						items={props.editor.layout.preview.scene.animationGroups.map((animationGroup) => ({
 							text: animationGroup.name,
 							value: animationGroup.name,
@@ -252,6 +254,7 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 
 					registerUndoRedo({
 						executeRedo: true,
+						action: () => props.editor.layout.preview.play.hotReloadScript(props.script.key, false),
 						undo: () => (props.script[scriptValues][value.propertyKey].value = oldSerializedTexture),
 						redo: () => (props.script[scriptValues][value.propertyKey].value = v?.serialize() ?? null),
 					});
@@ -306,14 +309,7 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 										property="value"
 										label={value.label ?? value.propertyKey}
 										tooltip={value.configuration.description}
-										onChange={() =>
-											applyValueToRunningSceneObject(props.editor, {
-												value,
-												object: props.object,
-												script: props.script,
-												scriptIndex: props.scriptIndex,
-											})
-										}
+										onChange={() => props.editor.layout.preview.play.hotReloadScript(props.script.key, false)}
 									/>
 								);
 
@@ -328,14 +324,7 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 										max={value.configuration.max}
 										step={value.configuration.step}
 										tooltip={value.configuration.description}
-										onChange={() =>
-											applyValueToRunningSceneObject(props.editor, {
-												value,
-												object: props.object,
-												script: props.script,
-												scriptIndex: props.scriptIndex,
-											})
-										}
+										onChange={() => props.editor.layout.preview.play.hotReloadScript(props.script.key, false)}
 									/>
 								);
 
@@ -348,14 +337,7 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 										label={value.label ?? value.propertyKey}
 										tooltip={value.configuration.description}
 										multiline={(value.configuration as VisibleInInspectorDecoratorStringConfiguration).multiline}
-										onChange={() =>
-											applyValueToRunningSceneObject(props.editor, {
-												value,
-												object: props.object,
-												script: props.script,
-												scriptIndex: props.scriptIndex,
-											})
-										}
+										onChange={() => props.editor.layout.preview.play.hotReloadScript(props.script.key, false)}
 									/>
 								);
 
@@ -378,14 +360,10 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 										asDegrees={value.configuration.asDegrees}
 										onChange={() => {
 											const scriptCopy = cloneJSObject(props.script);
-											scriptCopy[scriptValues][value.propertyKey].value = tempVector.value.asArray();
 
-											applyValueToRunningSceneObject(props.editor, {
-												value,
-												script: scriptCopy,
-												object: props.object,
-												scriptIndex: props.scriptIndex,
-											});
+											props.script[scriptValues][value.propertyKey].value = tempVector.value.asArray();
+											props.editor.layout.preview.play.hotReloadScript(props.script.key, false);
+											props.script[scriptValues][value.propertyKey].value = scriptCopy[scriptValues][value.propertyKey].value;
 										}}
 										onFinishChange={() => {
 											const oldValue = props.script[scriptValues][value.propertyKey].value.slice();
@@ -420,14 +398,10 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 										noColorPicker={value.configuration.noColorPicker}
 										onChange={() => {
 											const scriptCopy = cloneJSObject(props.script);
-											scriptCopy[scriptValues][value.propertyKey].value = tempColor.value.asArray();
 
-											applyValueToRunningSceneObject(props.editor, {
-												value,
-												script: scriptCopy,
-												object: props.object,
-												scriptIndex: props.scriptIndex,
-											});
+											props.script[scriptValues][value.propertyKey].value = tempColor.value.asArray();
+											props.editor.layout.preview.play.hotReloadScript(props.script.key, false);
+											props.script[scriptValues][value.propertyKey].value = scriptCopy[scriptValues][value.propertyKey].value;
 										}}
 										onFinishChange={() => {
 											const oldValue = props.script[scriptValues][value.propertyKey].value.slice();
@@ -449,13 +423,7 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 										label={value.label ?? value.propertyKey}
 										onChange={(v) => {
 											props.script[scriptValues][value.propertyKey].value = v;
-
-											applyValueToRunningSceneObject(props.editor, {
-												value,
-												object: props.object,
-												script: props.script,
-												scriptIndex: props.scriptIndex,
-											});
+											props.editor.layout.preview.play.hotReloadScript(props.script.key, false);
 										}}
 									/>
 								);
@@ -476,6 +444,7 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 										label={value.label ?? value.propertyKey}
 										tooltip={value.configuration.description}
 										typeRestriction={(value.configuration as VisibleInspectorDecoratorAssetConfiguration).typeRestriction}
+										onChange={() => props.editor.layout.preview.play.hotReloadScript(props.script.key, false)}
 									/>
 								);
 
