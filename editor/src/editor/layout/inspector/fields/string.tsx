@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { MdOutlineInfo } from "react-icons/md";
 
 import { Textarea } from "../../../../ui/shadcn/ui/textarea";
@@ -17,6 +17,11 @@ export interface IEditorInspectorStringFieldProps extends IEditorInspectorFieldP
 export function EditorInspectorStringField(props: IEditorInspectorStringFieldProps) {
 	const [value, setValue] = useState<string>(getInspectorPropertyValue(props.object, props.property) ?? "");
 	const [oldValue, setOldValue] = useState<string>(getInspectorPropertyValue(props.object, props.property) ?? "");
+
+	useEffect(() => {
+		setValue(getInspectorPropertyValue(props.object, props.property) ?? "");
+		setOldValue(getInspectorPropertyValue(props.object, props.property) ?? "");
+	}, [props.object, props.property]);
 
 	function handleChange(newValue: string) {
 		setValue(newValue);

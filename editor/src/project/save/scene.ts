@@ -9,13 +9,14 @@ import { Editor } from "../../editor/main";
 
 import { isSceneLinkNode } from "../../tools/guards/scene";
 import { applyAssetsCache } from "../../tools/assets/cache";
+import { isSpriteMapNode } from "../../tools/guards/sprites";
 import { isFromSceneLink } from "../../tools/scene/scene-link";
 import { isNodeVisibleInGraph } from "../../tools/node/metadata";
 import { getBufferSceneScreenshot } from "../../tools/scene/screenshot";
 import { createDirectoryIfNotExist, normalizedGlob } from "../../tools/fs";
-import { isCollisionMesh, isEditorCamera, isMesh } from "../../tools/guards/nodes";
 import { isGPUParticleSystem, isParticleSystem } from "../../tools/guards/particles";
 import { serializePhysicsAggregate } from "../../tools/physics/serialization/aggregate";
+import { isCollisionMesh, isEditorCamera, isMesh, isTransformNode } from "../../tools/guards/nodes";
 
 import { vlsPostProcessCameraConfigurations } from "../../editor/rendering/vls";
 import { saveRenderingConfigurationForCamera } from "../../editor/rendering/tools";
@@ -52,6 +53,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 		createDirectoryIfNotExist(join(scenePath, "morphTargetManagers")),
 		createDirectoryIfNotExist(join(scenePath, "morphTargets")),
 		createDirectoryIfNotExist(join(scenePath, "animationGroups")),
+		createDirectoryIfNotExist(join(scenePath, "sprite-maps")),
 	]);
 
 	const scene = editor.layout.preview.scene;
@@ -103,6 +105,10 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 							mesh.metadata.parentId = instantiatedMesh.parent.uniqueId;
 
 							delete mesh.parentId;
+						}
+
+						if (!instantiatedMesh?.material) {
+							delete mesh.materialUniqueId;
 						}
 
 						mesh.instances?.forEach((instanceData: any) => {
@@ -289,7 +295,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 	// Write transform nodes
 	await Promise.all(
 		scene.transformNodes.map(async (transformNode) => {
-			if (isFromSceneLink(transformNode)) {
+			if (!isTransformNode(transformNode)) {
 				return;
 			}
 
@@ -533,6 +539,34 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 		})
 	);
 
+	// Write sprite maps
+	await Promise.all(
+		scene.transformNodes.map(async (transformNode) => {
+			if (!isSpriteMapNode(transformNode)) {
+				return;
+			}
+
+			const spriteMapPath = join(scenePath, "sprite-maps", `${transformNode.id}.json`);
+
+			try {
+				const data = transformNode.serialize();
+
+				data.metadata ??= {};
+				data.metadata.parentId = transformNode.parent?.uniqueId;
+
+				delete data.parentId;
+
+				await writeJSON(spriteMapPath, data, {
+					spaces: 4,
+				});
+			} catch (e) {
+				editor.layout.console.error(`Failed to write sprite map node ${transformNode.name}`);
+			} finally {
+				savedFiles.push(spriteMapPath);
+			}
+		})
+	);
+
 	// Write configuration
 	const configPath = join(scenePath, "config.json");
 
@@ -576,7 +610,10 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 					iblShadowsRenderPipeline: iblShadowsRenderingPipelineCameraConfigurations.get(camera),
 				})),
 				metadata: scene.metadata,
-				editorCamera: editor.layout.preview.camera.serialize(),
+				editorCamera: {
+					...editor.layout.preview.camera.serialize(),
+					uniqueId: undefined,
+				},
 				animations: scene.animations.map((animation) => animation.serialize()),
 			},
 			{

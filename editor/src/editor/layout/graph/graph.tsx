@@ -28,16 +28,18 @@ import { getNodeCommands } from "../../dialogs/command-palette/node";
 import { getMeshCommands } from "../../dialogs/command-palette/mesh";
 import { getLightCommands } from "../../dialogs/command-palette/light";
 import { getCameraCommands } from "../../dialogs/command-palette/camera";
+import { getSpriteCommands } from "../../dialogs/command-palette/sprite";
 
 import { isSound } from "../../../tools/guards/sound";
 import { reloadSound } from "../../../tools/sound/tools";
 import { registerUndoRedo } from "../../../tools/undoredo";
 import { waitNextAnimationFrame } from "../../../tools/tools";
+import { isSpriteMapNode } from "../../../tools/guards/sprites";
 import { createMeshInstance } from "../../../tools/mesh/instance";
 import { isScene, isSceneLinkNode } from "../../../tools/guards/scene";
 import { cloneNode, ICloneNodeOptions } from "../../../tools/node/clone";
 import { isAbstractMesh, isMesh, isNode } from "../../../tools/guards/nodes";
-import { isNodeLocked, isNodeSerializable, setNodeLocked, setNodeSerializable } from "../../../tools/node/metadata";
+import { isNodeLocked, isNodeSerializable, isNodeVisibleInGraph, setNodeLocked, setNodeSerializable } from "../../../tools/node/metadata";
 
 import { addGPUParticleSystem, addParticleSystem } from "../../../project/add/particles";
 
@@ -127,13 +129,11 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
 											</ContextMenuSubContent>
 										</ContextMenuSub>
 										<ContextMenuSeparator />
-										{getCameraCommands(this.props.editor, parent).map((command) => {
-											return (
-												<ContextMenuItem key={command.key} onClick={command.action}>
-													{command.text}
-												</ContextMenuItem>
-											);
-										})}
+										{getCameraCommands(this.props.editor, parent).map((command) => (
+											<ContextMenuItem key={command.key} onClick={command.action}>
+												{command.text}
+											</ContextMenuItem>
+										))}
 										{isAbstractMesh(this.props.object) && (
 											<>
 												<ContextMenuSeparator />
@@ -141,6 +141,12 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
 												<ContextMenuItem onClick={() => addGPUParticleSystem(this.props.editor, this.props.object)}>GPU Particle System</ContextMenuItem>
 											</>
 										)}
+										<ContextMenuSeparator />
+										{getSpriteCommands(this.props.editor, parent).map((command) => (
+											<ContextMenuItem key={command.key} onClick={command.action}>
+												{command.text}
+											</ContextMenuItem>
+										))}
 									</ContextMenuSubContent>
 								</ContextMenuSub>
 							)}
@@ -255,6 +261,10 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
 	}
 
 	private async _cloneNode(node: any): Promise<void> {
+		if (isNode(node) && node.parent && isSpriteMapNode(node.parent) && node.parent.outputPlane === node) {
+			node = node.parent;
+		}
+
 		let clone: Node | null = null;
 
 		const cloneOptions: ICloneNodeOptions = {
@@ -264,7 +274,19 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
 			cloneThinInstances: true,
 		};
 
-		const allNodes = isNode(node) ? [node, ...node.getDescendants(false)] : [node];
+		let allNodes = isNode(node) ? [node, ...node.getDescendants(false)] : [node];
+		allNodes = allNodes.filter((n) => {
+			if (!isNodeVisibleInGraph(n)) {
+				return false;
+			}
+
+			if (isAbstractMesh(n) && n._masterMesh) {
+				return false;
+			}
+
+			return true;
+		});
+
 		if (allNodes.find((node) => isMesh(node))) {
 			const result = await showConfirm(
 				"Clone options",

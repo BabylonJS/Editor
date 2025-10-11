@@ -2,12 +2,18 @@ import { Node, Tools } from "babylonjs";
 
 import { Editor } from "../../editor/main";
 
+import { SpriteMapNode } from "../../editor/nodes/sprite-map";
+
 import { configureImportedMaterial, configureImportedNodeIds, configureImportedTexture } from "../../editor/layout/preview/import/import";
+
+import { getProjectAssetsRootUrl } from "../../project/configuration";
 
 import { UniqueNumber } from "../tools";
 
 import { isTexture } from "../guards/texture";
+import { isSpriteMapNode } from "../guards/sprites";
 import { isCamera, isInstancedMesh, isLight, isMesh, isTransformNode } from "../guards/nodes";
+import { isNodeVisibleInGraph } from "./metadata";
 
 export interface ICloneNodeOptions {
 	shareGeometry?: boolean;
@@ -44,13 +50,31 @@ export function cloneNode(editor: Editor, node: Node, options?: ICloneNodeOption
 			clone = node.clone(name, node.parent, false);
 			break defer;
 		}
+
+		if (isSpriteMapNode(node)) {
+			const name = `${node.name.replace(` ${suffix}`, "")} ${suffix}`;
+			const serializationData = node.serialize();
+
+			clone = SpriteMapNode.Parse(serializationData, editor.layout.preview.scene, getProjectAssetsRootUrl()!);
+			clone.name = name;
+			clone.parent = node.parent;
+
+			break defer;
+		}
 	}
 
 	if (!clone) {
 		return null;
 	}
 
-	const descendants = [clone, ...clone.getDescendants(false)];
+	const descendants = [clone, ...clone.getDescendants(false)].filter((n) => {
+		if (!isNodeVisibleInGraph(n)) {
+			return false;
+		}
+
+		return true;
+	});
+
 	descendants.forEach((descendant) => {
 		if (isMesh(descendant)) {
 			if (descendant.material && options?.cloneMaterial) {

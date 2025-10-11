@@ -116,7 +116,7 @@ export function applyTextureToObject(editor: Editor, object: any, texture: Textu
 
 	const dialog = showDialog(
 		title,
-		<div className="flex flex-col gap-4 w-64 pt-4">
+		<div className="flex flex-col gap-2 w-64 pt-4">
 			{isPBRMaterial(material) && (
 				<>
 					<TextureSlotComponent property="albedoTexture" />

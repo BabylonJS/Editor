@@ -7,6 +7,7 @@ import { GiSparkles } from "react-icons/gi";
 import { BsSoundwave } from "react-icons/bs";
 import { AiOutlinePlus } from "react-icons/ai";
 import { HiSpeakerWave } from "react-icons/hi2";
+import { TbGhost2Filled } from "react-icons/tb";
 import { FaCamera, FaLightbulb } from "react-icons/fa";
 import { MdOutlineQuestionMark } from "react-icons/md";
 import { HiOutlineCubeTransparent } from "react-icons/hi";
@@ -36,6 +37,7 @@ import { registerUndoRedo } from "../../tools/undoredo";
 import { isDomTextInputFocused } from "../../tools/dom";
 import { isSceneLinkNode } from "../../tools/guards/scene";
 import { updateAllLights } from "../../tools/light/shadows";
+import { isSpriteMapNode } from "../../tools/guards/sprites";
 import { getCollisionMeshFor } from "../../tools/mesh/collision";
 import { isNodeVisibleInGraph } from "../../tools/node/metadata";
 import { isAdvancedDynamicTexture } from "../../tools/guards/texture";
@@ -44,6 +46,7 @@ import { UniqueNumber, waitNextAnimationFrame } from "../../tools/tools";
 import { isAnyParticleSystem, isGPUParticleSystem, isParticleSystem } from "../../tools/guards/particles";
 import {
 	isAbstractMesh,
+	isAnyTransformNode,
 	isCamera,
 	isCollisionInstancedMesh,
 	isCollisionMesh,
@@ -62,14 +65,16 @@ import {
 	onTextureModifiedObservable,
 } from "../../tools/observables";
 
-import { onProjectConfigurationChangedObservable } from "../../project/configuration";
-
-import { EditorGraphLabel } from "./graph/label";
-import { EditorGraphContextMenu } from "./graph/graph";
 import { getNodeCommands } from "../dialogs/command-palette/node";
 import { getMeshCommands } from "../dialogs/command-palette/mesh";
 import { getLightCommands } from "../dialogs/command-palette/light";
 import { getCameraCommands } from "../dialogs/command-palette/camera";
+import { getSpriteCommands } from "../dialogs/command-palette/sprite";
+
+import { onProjectConfigurationChangedObservable } from "../../project/configuration";
+
+import { EditorGraphLabel } from "./graph/label";
+import { EditorGraphContextMenu } from "./graph/graph";
 
 export interface IEditorGraphProps {
 	/**
@@ -239,6 +244,14 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 									</ContextMenuSub>
 									<ContextMenuSeparator />
 									{getCameraCommands(this.props.editor).map((command) => {
+										return (
+											<ContextMenuItem key={command.key} onClick={command.action}>
+												{command.text}
+											</ContextMenuItem>
+										);
+									})}
+									<ContextMenuSeparator />
+									{getSpriteCommands(this.props.editor).map((command) => {
 										return (
 											<ContextMenuItem key={command.key} onClick={command.action}>
 												{command.text}
@@ -712,28 +725,20 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			return null;
 		}
 
-		if (isTransformNode(node) || isSceneLinkNode(node)) {
-			if (!node._scene.transformNodes.includes(node)) {
-				return null;
-			}
+		if (isAnyTransformNode(node) && !node._scene.transformNodes.includes(node)) {
+			return null;
 		}
 
-		if (isAbstractMesh(node)) {
-			if (!node._scene.meshes.includes(node)) {
-				return null;
-			}
+		if (isAbstractMesh(node) && !node._scene.meshes.includes(node)) {
+			return null;
 		}
 
-		if (isLight(node)) {
-			if (!node._scene.lights.includes(node)) {
-				return null;
-			}
+		if (isLight(node) && !node._scene.lights.includes(node)) {
+			return null;
 		}
 
-		if (isCamera(node)) {
-			if (!node._scene.cameras.includes(node)) {
-				return null;
-			}
+		if (isCamera(node) && !node._scene.cameras.includes(node)) {
+			return null;
 		}
 
 		node.id ??= Tools.RandomId();
@@ -881,6 +886,10 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 
 		if (isGPUParticleSystem(object)) {
 			return <GiSparkles className="w-4 h-4" />;
+		}
+
+		if (isSpriteMapNode(object)) {
+			return <TbGhost2Filled className="w-4 h-4" />;
 		}
 
 		return <MdOutlineQuestionMark className="w-4 h-4" />;

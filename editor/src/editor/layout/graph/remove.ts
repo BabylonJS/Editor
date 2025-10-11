@@ -3,12 +3,11 @@ import { Node, Light, AbstractMesh, Scene, IParticleSystem, Sound, SoundTrack } 
 import { unique } from "../../../tools/tools";
 import { isSound } from "../../../tools/guards/sound";
 import { registerUndoRedo } from "../../../tools/undoredo";
-import { isSceneLinkNode } from "../../../tools/guards/scene";
 import { updateAllLights } from "../../../tools/light/shadows";
 import { isAnyParticleSystem } from "../../../tools/guards/particles";
 import { isAdvancedDynamicTexture } from "../../../tools/guards/texture";
 import { getLinkedAnimationGroupsFor } from "../../../tools/animation/group";
-import { isNode, isMesh, isAbstractMesh, isInstancedMesh, isCollisionInstancedMesh, isTransformNode, isLight, isCamera } from "../../../tools/guards/nodes";
+import { isNode, isMesh, isAbstractMesh, isInstancedMesh, isCollisionInstancedMesh, isLight, isCamera, isAnyTransformNode } from "../../../tools/guards/nodes";
 
 import { Editor } from "../../main";
 
@@ -189,7 +188,7 @@ function restoreNodeData(data: _RemoveNodeData, scene: Scene) {
 		});
 	}
 
-	if (isTransformNode(node) || isSceneLinkNode(node)) {
+	if (isAnyTransformNode(node)) {
 		scene.addTransformNode(node);
 	}
 
@@ -221,7 +220,7 @@ function removeNodeData(data: _RemoveNodeData, scene: Scene) {
 		});
 	}
 
-	if (isTransformNode(node) || isSceneLinkNode(node)) {
+	if (isAnyTransformNode(node)) {
 		scene.removeTransformNode(node);
 	}
 
