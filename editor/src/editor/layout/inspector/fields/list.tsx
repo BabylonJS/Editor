@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../../ui/shadcn/ui/select";
 
@@ -11,6 +11,7 @@ export interface IEditorInspectorListFieldItem {
 	text: string;
 	value: any;
 
+	icon?: ReactNode;
 	label?: string;
 }
 
@@ -23,6 +24,11 @@ export interface IEditorInspectorListFieldProps extends IEditorInspectorFieldPro
 export function EditorInspectorListField(props: IEditorInspectorListFieldProps) {
 	const [selectedItem, setSelectedItem] = useState<IEditorInspectorListFieldItem | null>(getStartValue());
 	const [oldSelectedItem, setOldSelectedItem] = useState<IEditorInspectorListFieldItem | null>(getStartValue());
+
+	useEffect(() => {
+		setSelectedItem(getStartValue());
+		setOldSelectedItem(getStartValue());
+	}, [props.object, props.property, props.items]);
 
 	function getStartValue() {
 		const property = getInspectorPropertyValue(props.object, props.property);
@@ -67,7 +73,10 @@ export function EditorInspectorListField(props: IEditorInspectorListFieldProps) 
 				<SelectContent>
 					{props.items.map((item) => (
 						<SelectItem key={item.text} value={item.value}>
-							{item.text}
+							<div className="flex gap-2 items-center">
+								{item.icon}
+								{item.text}
+							</div>
 						</SelectItem>
 					))}
 				</SelectContent>

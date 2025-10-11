@@ -12,7 +12,6 @@ import { Grid } from "react-loader-spinner";
 
 import { toast } from "sonner";
 
-import { VscJson } from "react-icons/vsc";
 import { ImFinder } from "react-icons/im";
 import { BiSolidFileCss } from "react-icons/bi";
 import { GiCeilingLight } from "react-icons/gi";
@@ -283,7 +282,7 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 			isDragOver: false,
 		});
 
-		if (!this.state.isDirectory) {
+		if (!this.state.isDirectory || this.props.absolutePath.endsWith(".scene")) {
 			return;
 		}
 
@@ -477,9 +476,6 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 			case ".wav":
 			case ".wave":
 				return <BsFiletypeWav size="64px" />;
-
-			case ".json":
-				return <VscJson size="64px" />;
 
 			case ".js":
 			case ".jsx":

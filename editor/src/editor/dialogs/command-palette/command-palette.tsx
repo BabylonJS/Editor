@@ -11,7 +11,8 @@ import { HiMiniCommandLine } from "react-icons/hi2";
 import { Node, IParticleSystem, Sound } from "babylonjs";
 
 import { normalizedGlob } from "../../../tools/fs";
-import { isNode } from "../../../tools/guards/nodes";
+import { isNodeVisibleInGraph } from "../../../tools/node/metadata";
+import { isAbstractMesh, isNode } from "../../../tools/guards/nodes";
 import { onSelectedAssetChanged } from "../../../tools/observables";
 
 import { Editor } from "../../main";
@@ -21,6 +22,7 @@ import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, C
 import { getMeshCommands } from "./mesh";
 import { getLightCommands } from "./light";
 import { getCameraCommands } from "./camera";
+import { getSpriteCommands } from "./sprite";
 import { getProjectCommands } from "./project";
 import { getParticleSystemsCommands } from "./particle-systems";
 
@@ -95,6 +97,12 @@ export class CommandPalette extends Component<ICommandPaletteProps, ICommandPale
 								<IoSparklesSharp className="w-10 h-10" /> {command.text}
 							</CommandItem>
 						))}
+
+						{getSpriteCommands(this.props.editor).map((command) => (
+							<CommandItem key={command.key} onSelect={() => this._executeCommand(command)} className="flex items-center gap-2">
+								<FaCirclePlus className="w-10 h-10" /> {command.text}
+							</CommandItem>
+						))}
 					</CommandGroup>
 
 					<CommandGroup heading="Hierarchy">
@@ -134,9 +142,21 @@ export class CommandPalette extends Component<ICommandPaletteProps, ICommandPale
 	private _refreshEntities(): void {
 		const scene = this.props.editor.layout.preview.scene;
 
-		const objects = [...scene.meshes, ...scene.lights, ...scene.cameras, ...scene.particleSystems] as (Node | IParticleSystem | Sound)[];
+		let objects = [...scene.meshes, ...scene.lights, ...scene.cameras, ...scene.particleSystems, ...scene.transformNodes] as (Node | IParticleSystem | Sound)[];
 		scene.soundTracks?.forEach((soundTrack) => {
 			objects.push(...soundTrack.soundCollection);
+		});
+
+		objects = objects.filter((o) => {
+			if (isNode(o) && !isNodeVisibleInGraph(o)) {
+				return false;
+			}
+
+			if (isAbstractMesh(o) && o._masterMesh) {
+				return false;
+			}
+
+			return true;
 		});
 
 		const entities = objects.map(

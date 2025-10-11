@@ -1,7 +1,7 @@
 import { platform } from "os";
 import { BrowserWindow, Menu, shell } from "electron";
 
-import { cameraCommandItems, lightCommandItems, meshCommandItems, nodeCommandItems } from "./dialogs/command-palette/shared-commands";
+import { cameraCommandItems, lightCommandItems, meshCommandItems, nodeCommandItems, spriteCommandItems } from "./dialogs/command-palette/shared-commands";
 
 export function setupEditorMenu(): void {
 	Menu.setApplicationMenu(
@@ -185,6 +185,13 @@ export function setupEditorMenu(): void {
 						type: "separator",
 					},
 					...Object.values(cameraCommandItems).map((command) => ({
+						label: command.text,
+						click: () => BrowserWindow.getFocusedWindow()?.webContents.send(`add:${command.ipcRendererChannelKey}`),
+					})),
+					{
+						type: "separator",
+					},
+					...Object.values(spriteCommandItems).map((command) => ({
 						label: command.text,
 						click: () => BrowserWindow.getFocusedWindow()?.webContents.send(`add:${command.ipcRendererChannelKey}`),
 					})),

@@ -43,6 +43,8 @@ import { EditorDecalsInspector } from "./inspector/decals/decals";
 import { EditorParticleSystemInspector } from "./inspector/particles/particle-system";
 import { EditorGPUParticleSystemInspector } from "./inspector/particles/gpu-particle-system";
 
+import { EditorSpriteMapNodeInspector } from "./inspector/sprites/sprite-map";
+
 export interface IEditorInspectorProps {
 	/**
 	 * The editor reference.
@@ -80,6 +82,8 @@ export class EditorInspector extends Component<IEditorInspectorProps, IEditorIns
 
 		EditorParticleSystemInspector,
 		EditorGPUParticleSystemInspector,
+
+		EditorSpriteMapNodeInspector,
 	];
 
 	public constructor(props: IEditorInspectorProps) {

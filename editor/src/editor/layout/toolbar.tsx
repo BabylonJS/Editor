@@ -22,6 +22,7 @@ import { getNodeCommands } from "../dialogs/command-palette/node";
 import { getMeshCommands } from "../dialogs/command-palette/mesh";
 import { getLightCommands } from "../dialogs/command-palette/light";
 import { getCameraCommands } from "../dialogs/command-palette/camera";
+import { getSpriteCommands } from "../dialogs/command-palette/sprite";
 import { ICommandPaletteType } from "../dialogs/command-palette/command-palette";
 
 export interface IEditorToolbarProps {
@@ -33,6 +34,7 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 	private _meshCommands: ICommandPaletteType[];
 	private _lightCommands: ICommandPaletteType[];
 	private _cameraCommands: ICommandPaletteType[];
+	private _spriteCommands: ICommandPaletteType[];
 
 	public constructor(props: IEditorToolbarProps) {
 		super(props);
@@ -44,8 +46,9 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 		this._meshCommands = getMeshCommands(this.props.editor);
 		this._lightCommands = getLightCommands(this.props.editor);
 		this._cameraCommands = getCameraCommands(this.props.editor);
+		this._spriteCommands = getSpriteCommands(this.props.editor);
 
-		const commands = [...this._nodeCommands, ...this._meshCommands, ...this._lightCommands, ...this._cameraCommands];
+		const commands = [...this._nodeCommands, ...this._meshCommands, ...this._lightCommands, ...this._cameraCommands, ...this._spriteCommands];
 
 		commands.forEach((command) => {
 			ipcRenderer.on(`add:${command.ipcRendererChannelKey}`, command.action);
@@ -186,6 +189,12 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 							))}
 							<MenubarSeparator />
 							{this._cameraCommands.map((command) => (
+								<MenubarItem key={command.key} onClick={command.action}>
+									{command.text}
+								</MenubarItem>
+							))}
+							<MenubarSeparator />
+							{this._spriteCommands.map((command) => (
 								<MenubarItem key={command.key} onClick={command.action}>
 									{command.text}
 								</MenubarItem>

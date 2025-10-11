@@ -27,6 +27,7 @@ import { writeBinaryGeometry } from "../tools/geometry";
 import { processAssetFile } from "./assets";
 import { configureMeshesLODs } from "./lod";
 import { handleExportScripts } from "./scripts";
+import { configureMaterials } from "./materials";
 import { configureMeshesPhysics } from "./physics";
 import { EditorExportProjectProgressComponent } from "./progress";
 
@@ -143,6 +144,7 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 
 	data.metadata.physicsGravity = scene.getPhysicsEngine()?.gravity?.asArray();
 
+	configureMaterials(data);
 	configureMeshesLODs(data, scene);
 	configureMeshesPhysics(data, scene);
 

@@ -64,6 +64,7 @@ import { FileInspectorObject } from "./inspector/file";
 
 import { AssetBrowserGUIItem } from "./assets-browser/items/gui-item";
 import { AssetBrowserHDRItem } from "./assets-browser/items/hdr-item";
+import { AssetBrowserJsonItem } from "./assets-browser/items/json-item";
 import { AssetBrowserMeshItem } from "./assets-browser/items/mesh-item";
 import { AssetBrowserSceneItem } from "./assets-browser/items/scene-item";
 import { AssetBrowserImageItem } from "./assets-browser/items/image-item";
@@ -88,6 +89,7 @@ import "../../loader/assimpjs";
 
 const HDRSelectable = createSelectable(AssetBrowserHDRItem);
 const GuiSelectable = createSelectable(AssetBrowserGUIItem);
+const JsonSelectable = createSelectable(AssetBrowserJsonItem);
 const DefaultSelectable = createSelectable(AssetsBrowserItem);
 const MeshSelectable = createSelectable(AssetBrowserMeshItem);
 const ImageSelectable = createSelectable(AssetBrowserImageItem);
@@ -848,6 +850,9 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 
 			case ".hdr":
 				return <HDRSelectable {...props} />;
+
+			case ".json":
+				return <JsonSelectable {...props} />;
 
 			case ".gui":
 				return <GuiSelectable {...props} />;

@@ -115,3 +115,12 @@ export const meshCommandItems = {
 		ipcRendererChannelKey: "empty-mesh",
 	} as CommandItem,
 };
+
+export const spriteCommandItems = {
+	spriteMap: {
+		text: "Sprite Map Node",
+		label: "Add a new sprite-map node to the scene",
+		key: "add-sprite-map-node",
+		ipcRendererChannelKey: "sprite-map-node",
+	} as CommandItem,
+};

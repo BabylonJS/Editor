@@ -47,6 +47,7 @@ import { isDomTextInputFocused } from "../../tools/dom";
 import { isNodeLocked } from "../../tools/node/metadata";
 import { registerUndoRedo } from "../../tools/undoredo";
 import { initializeHavok } from "../../tools/physics/init";
+import { isSpriteMapNode } from "../../tools/guards/sprites";
 import { isAnyParticleSystem } from "../../tools/guards/particles";
 import { onTextureAddedObservable } from "../../tools/observables";
 import { getCameraFocusPositionFor } from "../../tools/camera/focus";
@@ -74,15 +75,16 @@ import { EditorGraphContextMenu } from "./graph/graph";
 
 import { EditorPreviewGizmo } from "./preview/gizmo";
 import { EditorPreviewIcons } from "./preview/icons";
+import { EditorPreviewCamera } from "./preview/camera";
+import { EditorPreviewAxisHelper } from "./preview/axis";
 import { EditorPreviewPlayComponent } from "./preview/play";
 
 import { Stats } from "./preview/stats/stats";
 import { StatRow } from "./preview/stats/row";
 import { StatsValuesType } from "./preview/stats/types";
 
-import { EditorPreviewCamera } from "./preview/camera";
+import { importJsonFile } from "./preview/import/json";
 import { applySoundAsset } from "./preview/import/sound";
-import { EditorPreviewAxisHelper } from "./preview/axis";
 import { applyImportedGuiFile } from "./preview/import/gui";
 import { applyTextureAssetToObject } from "./preview/import/texture";
 import { applyMaterialAssetToObject } from "./preview/import/material";
@@ -681,6 +683,10 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 				mesh = sceneLink;
 			}
 
+			if (mesh.parent && isSpriteMapNode(mesh.parent) && mesh.parent.outputPlane === mesh) {
+				mesh = mesh.parent;
+			}
+
 			this.gizmo.setAttachedNode(mesh);
 			this.props.editor.layout.graph.setSelectedNode(mesh);
 			this.props.editor.layout.inspector.setEditedObject(mesh);
@@ -1235,6 +1241,12 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 						loadImportedParticleSystemFile(this.props.editor.layout.preview.scene, mesh, absolutePath).then(() => {
 							this.props.editor.layout.graph.refresh();
 						});
+					}
+					break;
+
+				case ".json":
+					if (this.props.editor.state.enableExperimentalFeatures) {
+						importJsonFile(this.props.editor, absolutePath);
 					}
 					break;
 			}

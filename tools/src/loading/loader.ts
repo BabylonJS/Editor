@@ -18,6 +18,7 @@ import { _applyScriptsForObject, _preloadScriptsAssets } from "./script";
 import "./sound";
 import "./texture";
 import "./shadows";
+import "./sprite-map";
 
 /**
  * Defines the possible output type of a script.
