@@ -37,10 +37,7 @@ export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldPro
 	const step = props.step ?? 0.01;
 	const digitCount = props.step?.toString().split(".")[1]?.length ?? 2;
 
-	let startValue = getInspectorPropertyValue(props.object, props.property) ?? 0;
-	if (props.asDegrees) {
-		startValue = Tools.ToDegrees(startValue);
-	}
+	let startValue = getStartValue();
 
 	const [value, setValue] = useState<string>(getStartValue());
 	const [oldValue, setOldValue] = useState<string>(getStartValue());
@@ -48,7 +45,7 @@ export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldPro
 	useEffect(() => {
 		setValue(getStartValue());
 		setOldValue(getStartValue());
-	}, [props.object, props.property, props.step]);
+	}, [props.object, props.property, props.step, startValue]);
 
 	useEventListener("keydown", (ev) => {
 		if (ev.key === "Shift") {

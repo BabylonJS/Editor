@@ -36,6 +36,7 @@ import { EditorCamera } from "../../editor/nodes/camera";
 import { CollisionMesh } from "../../editor/nodes/collision";
 import { SceneLinkNode } from "../../editor/nodes/scene-link";
 import { SpriteMapNode } from "../../editor/nodes/sprite-map";
+import { SpriteManagerNode } from "../../editor/nodes/sprite-manager";
 
 import { parseVLSPostProcess, vlsPostProcessCameraConfigurations } from "../../editor/rendering/vls";
 import { parseSSRRenderingPipeline, ssrRenderingPipelineCameraConfigurations } from "../../editor/rendering/ssr";
@@ -89,6 +90,7 @@ export type SceneLoadResult = {
 	animationGroups: AnimationGroup[];
 	particleSystems: IParticleSystem[];
 	spriteMaps: SpriteMapNode[];
+	spriteManagers: SpriteManagerNode[];
 };
 
 export async function loadScene(editor: Editor, projectPath: string, scenePath: string, options?: SceneLoaderOptions): Promise<SceneLoadResult> {
@@ -104,6 +106,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 		animationGroups: [],
 		particleSystems: [],
 		spriteMaps: [],
+		spriteManagers: [],
 	} as SceneLoadResult;
 
 	options ??= {};
@@ -129,6 +132,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 		createDirectoryIfNotExist(join(scenePath, "morphTargets")),
 		createDirectoryIfNotExist(join(scenePath, "animationGroups")),
 		createDirectoryIfNotExist(join(scenePath, "sprite-maps")),
+		createDirectoryIfNotExist(join(scenePath, "sprite-managers")),
 	]);
 
 	const [
@@ -146,6 +150,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 		morphTargetManagers,
 		animationGroups,
 		spriteMaps,
+		spriteManagers,
 	] = await Promise.all([
 		readdir(join(scenePath, "nodes")),
 		readdir(join(scenePath, "meshes")),
@@ -161,6 +166,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 		readdir(join(scenePath, "morphTargetManagers")),
 		readdir(join(scenePath, "animationGroups")),
 		readdir(join(scenePath, "sprite-maps")),
+		readdir(join(scenePath, "sprite-managers")),
 	]);
 
 	const progress = await showLoadSceneProgressDialog(`Loading ${basename(scenePath)}...`);
@@ -179,7 +185,8 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 			particleSystemFiles.length +
 			morphTargetManagers.length +
 			animationGroups.length +
-			spriteMaps.length);
+			spriteMaps.length +
+			spriteManagers.length);
 
 	SceneLoaderFlags.ForceFullSceneLoadingForIncremental = true;
 
@@ -780,6 +787,30 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 				node.metadata._waitingParentId = data.metadata?.parentId;
 
 				loadResult.spriteMaps.push(node);
+			} catch (e) {
+				editor.layout.console.error(`Failed to load sprite map file "${file}": ${e.message}`);
+			}
+
+			progress.step(progressStep);
+		})
+	);
+
+	// Load sprite managers
+	await Promise.all(
+		spriteManagers.map(async (file) => {
+			if (file.startsWith(".")) {
+				return;
+			}
+
+			try {
+				const data = await readJSON(join(scenePath, "sprite-managers", file), "utf-8");
+
+				const node = await SpriteManagerNode.ParseAsync(data, scene, join(projectPath, "/"));
+				node.uniqueId = data.uniqueId;
+				node.metadata ??= {};
+				node.metadata._waitingParentId = data.metadata?.parentId;
+
+				loadResult.spriteManagers.push(node);
 			} catch (e) {
 				editor.layout.console.error(`Failed to load sprite map file "${file}": ${e.message}`);
 			}

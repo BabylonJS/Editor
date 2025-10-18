@@ -5,7 +5,7 @@ import { Component, PropsWithChildren, ReactNode } from "react";
 import { IoMdCube } from "react-icons/io";
 import { AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
 
-import { Mesh, SubMesh, Node, InstancedMesh } from "babylonjs";
+import { Mesh, SubMesh, Node, InstancedMesh, Sprite } from "babylonjs";
 
 import {
 	ContextMenu,
@@ -34,10 +34,10 @@ import { isSound } from "../../../tools/guards/sound";
 import { reloadSound } from "../../../tools/sound/tools";
 import { registerUndoRedo } from "../../../tools/undoredo";
 import { waitNextAnimationFrame } from "../../../tools/tools";
-import { isSpriteMapNode } from "../../../tools/guards/sprites";
 import { createMeshInstance } from "../../../tools/mesh/instance";
 import { isScene, isSceneLinkNode } from "../../../tools/guards/scene";
 import { cloneNode, ICloneNodeOptions } from "../../../tools/node/clone";
+import { isSprite, isSpriteMapNode } from "../../../tools/guards/sprites";
 import { isAbstractMesh, isMesh, isNode } from "../../../tools/guards/nodes";
 import { isNodeLocked, isNodeSerializable, isNodeVisibleInGraph, setNodeLocked, setNodeSerializable } from "../../../tools/node/metadata";
 
@@ -78,19 +78,23 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
 								<>
 									<ContextMenuItem onClick={() => this._cloneNode(this.props.object)}>Clone</ContextMenuItem>
 
-									<ContextMenuSeparator />
+									{!isSprite(this.props.object) && (
+										<>
+											<ContextMenuSeparator />
 
-									<ContextMenuItem onClick={() => this.props.editor.layout.graph.copySelectedNodes()}>
-										Copy <ContextMenuShortcut>{platform() === "darwin" ? "⌘+C" : "CTRL+C"}</ContextMenuShortcut>
-									</ContextMenuItem>
+											<ContextMenuItem onClick={() => this.props.editor.layout.graph.copySelectedNodes()}>
+												Copy <ContextMenuShortcut>{platform() === "darwin" ? "⌘+C" : "CTRL+C"}</ContextMenuShortcut>
+											</ContextMenuItem>
 
-									{isNode(this.props.object) && (
-										<ContextMenuItem onClick={() => this.props.editor.layout.graph.pasteSelectedNodes(this.props.object)}>
-											Paste <ContextMenuShortcut>{platform() === "darwin" ? "⌘+V" : "CTRL+V"}</ContextMenuShortcut>
-										</ContextMenuItem>
+											{isNode(this.props.object) && (
+												<ContextMenuItem onClick={() => this.props.editor.layout.graph.pasteSelectedNodes(this.props.object)}>
+													Paste <ContextMenuShortcut>{platform() === "darwin" ? "⌘+V" : "CTRL+V"}</ContextMenuShortcut>
+												</ContextMenuItem>
+											)}
+
+											<ContextMenuSeparator />
+										</>
 									)}
-
-									<ContextMenuSeparator />
 								</>
 							)}
 
@@ -151,7 +155,7 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
 								</ContextMenuSub>
 							)}
 
-							{!isScene(this.props.object) && !isSound(this.props.object) && (
+							{!isScene(this.props.object) && !isSound(this.props.object) && !isSprite(this.props.object) && (
 								<>
 									<ContextMenuSeparator />
 
@@ -265,7 +269,7 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
 			node = node.parent;
 		}
 
-		let clone: Node | null = null;
+		let clone: Node | Sprite | null = null;
 
 		const cloneOptions: ICloneNodeOptions = {
 			shareGeometry: true,

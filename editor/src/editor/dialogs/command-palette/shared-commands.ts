@@ -117,6 +117,12 @@ export const meshCommandItems = {
 };
 
 export const spriteCommandItems = {
+	spriteManager: {
+		text: "Sprite Manager",
+		label: "Add a new sprite manager to the scene",
+		key: "add-sprite-manager",
+		ipcRendererChannelKey: "sprite-manager",
+	} as CommandItem,
 	spriteMap: {
 		text: "Sprite Map Node",
 		label: "Add a new sprite-map node to the scene",

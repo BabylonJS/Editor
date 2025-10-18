@@ -19,7 +19,7 @@ import { EditorCamera } from "../../editor/nodes/camera";
 import { CollisionMesh } from "../../editor/nodes/collision";
 
 import { isSceneLinkNode } from "./scene";
-import { isSpriteMapNode } from "./sprites";
+import { isSpriteManagerNode, isSpriteMapNode } from "./sprites";
 
 /**
  * Returns wether or not the given object is an AbstractMesh.
@@ -104,7 +104,7 @@ export function isTransformNode(object: any): object is TransformNode {
  * @param object defines the reference to the object to test its class name.
  */
 export function isAnyTransformNode(object: any): object is TransformNode {
-	return isTransformNode(object) || isSceneLinkNode(object) || isSpriteMapNode(object);
+	return isTransformNode(object) || isSceneLinkNode(object) || isSpriteMapNode(object) || isSpriteManagerNode(object);
 }
 
 /**
@@ -209,5 +209,5 @@ export function isLight(object: any): object is Light {
  * @param object defines the reference to the object to test its class name.
  */
 export function isNode(object: any): object is Node {
-	return isAbstractMesh(object) || isTransformNode(object) || isLight(object) || isCamera(object) || isSceneLinkNode(object) || isSpriteMapNode(object);
+	return isAbstractMesh(object) || isAnyTransformNode(object) || isLight(object) || isCamera(object);
 }

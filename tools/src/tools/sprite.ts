@@ -1,6 +1,7 @@
 import { SpriteMap } from "@babylonjs/core/Sprites/spriteMap";
 import { IVector2Like } from "@babylonjs/core/Maths/math.like";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
+import { SpriteManager } from "@babylonjs/core/Sprites/spriteManager";
 
 export interface ISpriteMapTile {
 	id: string;
@@ -18,6 +19,14 @@ export interface ISpriteMapTile {
 // eslint-disable-next-line @typescript-eslint/naming-convention
 export interface SpriteMapNode extends TransformNode {
 	spriteMap?: SpriteMap | null;
+}
+
+/**
+ * This interface is used to define extra properties on TransformNode. For example for SpriteManager support.
+ */
+// eslint-disable-next-line @typescript-eslint/naming-convention
+export interface SpriteManagerNode extends TransformNode {
+	spriteManager?: SpriteManager | null;
 }
 
 export function normalizeAtlasJson(data: any) {

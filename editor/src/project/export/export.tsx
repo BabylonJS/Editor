@@ -141,6 +141,7 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 		}));
 
 	delete data.postProcesses;
+	delete data.spriteManagers;
 
 	data.metadata.physicsGravity = scene.getPhysicsEngine()?.gravity?.asArray();
 

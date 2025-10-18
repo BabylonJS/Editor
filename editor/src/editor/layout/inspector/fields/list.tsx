@@ -8,6 +8,7 @@ import { getInspectorPropertyValue, setInspectorEffectivePropertyValue } from ".
 import { IEditorInspectorFieldProps } from "./field";
 
 export interface IEditorInspectorListFieldItem {
+	key?: string;
 	text: string;
 	value: any;
 
@@ -72,7 +73,7 @@ export function EditorInspectorListField(props: IEditorInspectorListFieldProps) 
 				</SelectTrigger>
 				<SelectContent>
 					{props.items.map((item) => (
-						<SelectItem key={item.text} value={item.value}>
+						<SelectItem key={item.key ?? item.text} value={item.value}>
 							<div className="flex gap-2 items-center">
 								{item.icon}
 								{item.text}

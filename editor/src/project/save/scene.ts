@@ -9,11 +9,11 @@ import { Editor } from "../../editor/main";
 
 import { isSceneLinkNode } from "../../tools/guards/scene";
 import { applyAssetsCache } from "../../tools/assets/cache";
-import { isSpriteMapNode } from "../../tools/guards/sprites";
 import { isFromSceneLink } from "../../tools/scene/scene-link";
 import { isNodeVisibleInGraph } from "../../tools/node/metadata";
 import { getBufferSceneScreenshot } from "../../tools/scene/screenshot";
 import { createDirectoryIfNotExist, normalizedGlob } from "../../tools/fs";
+import { isSpriteManagerNode, isSpriteMapNode } from "../../tools/guards/sprites";
 import { isGPUParticleSystem, isParticleSystem } from "../../tools/guards/particles";
 import { serializePhysicsAggregate } from "../../tools/physics/serialization/aggregate";
 import { isCollisionMesh, isEditorCamera, isMesh, isTransformNode } from "../../tools/guards/nodes";
@@ -54,6 +54,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 		createDirectoryIfNotExist(join(scenePath, "morphTargets")),
 		createDirectoryIfNotExist(join(scenePath, "animationGroups")),
 		createDirectoryIfNotExist(join(scenePath, "sprite-maps")),
+		createDirectoryIfNotExist(join(scenePath, "sprite-managers")),
 	]);
 
 	const scene = editor.layout.preview.scene;
@@ -563,6 +564,34 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 				editor.layout.console.error(`Failed to write sprite map node ${transformNode.name}`);
 			} finally {
 				savedFiles.push(spriteMapPath);
+			}
+		})
+	);
+
+	// Write sprite managers
+	await Promise.all(
+		scene.transformNodes.map(async (transformNode) => {
+			if (!isSpriteManagerNode(transformNode)) {
+				return;
+			}
+
+			const spriteManagerPath = join(scenePath, "sprite-managers", `${transformNode.id}.json`);
+
+			try {
+				const data = transformNode.serialize();
+
+				data.metadata ??= {};
+				data.metadata.parentId = transformNode.parent?.uniqueId;
+
+				delete data.parentId;
+
+				await writeJSON(spriteManagerPath, data, {
+					spaces: 4,
+				});
+			} catch (e) {
+				editor.layout.console.error(`Failed to write sprite manager node ${transformNode.name}`);
+			} finally {
+				savedFiles.push(spriteManagerPath);
 			}
 		})
 	);

@@ -3,19 +3,19 @@ import { Button, Tree, TreeNodeInfo } from "@blueprintjs/core";
 
 import { FaLink } from "react-icons/fa6";
 import { IoMdCube } from "react-icons/io";
-import { GiSparkles } from "react-icons/gi";
 import { BsSoundwave } from "react-icons/bs";
 import { AiOutlinePlus } from "react-icons/ai";
 import { HiSpeakerWave } from "react-icons/hi2";
 import { TbGhost2Filled } from "react-icons/tb";
-import { FaCamera, FaLightbulb } from "react-icons/fa";
 import { MdOutlineQuestionMark } from "react-icons/md";
+import { GiBrickWall, GiSparkles } from "react-icons/gi";
 import { HiOutlineCubeTransparent } from "react-icons/hi";
 import { IoCheckmark, IoSparklesSharp } from "react-icons/io5";
+import { FaCamera, FaImage, FaLightbulb } from "react-icons/fa";
 import { SiAdobeindesign, SiBabylondotjs } from "react-icons/si";
 
 import { AdvancedDynamicTexture } from "babylonjs-gui";
-import { BaseTexture, Node, Scene, Sound, Tools, IParticleSystem, ParticleSystem } from "babylonjs";
+import { BaseTexture, Node, Scene, Sound, Tools, IParticleSystem, ParticleSystem, Sprite } from "babylonjs";
 
 import { Editor } from "../main";
 
@@ -37,12 +37,13 @@ import { registerUndoRedo } from "../../tools/undoredo";
 import { isDomTextInputFocused } from "../../tools/dom";
 import { isSceneLinkNode } from "../../tools/guards/scene";
 import { updateAllLights } from "../../tools/light/shadows";
-import { isSpriteMapNode } from "../../tools/guards/sprites";
 import { getCollisionMeshFor } from "../../tools/mesh/collision";
 import { isNodeVisibleInGraph } from "../../tools/node/metadata";
 import { isAdvancedDynamicTexture } from "../../tools/guards/texture";
 import { updateIblShadowsRenderPipeline } from "../../tools/light/ibl";
 import { UniqueNumber, waitNextAnimationFrame } from "../../tools/tools";
+import { getSpriteManagerNodeFromSprite } from "../../tools/sprite/tools";
+import { isSprite, isSpriteManagerNode, isSpriteMapNode } from "../../tools/guards/sprites";
 import { isAnyParticleSystem, isGPUParticleSystem, isParticleSystem } from "../../tools/guards/particles";
 import {
 	isAbstractMesh,
@@ -324,7 +325,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 	 * become unselected to have only the given node selected. All parents are expanded.
 	 * @param node defines the reference tot the node to select in the graph.
 	 */
-	public setSelectedNode(node: Node | Sound | IParticleSystem): void {
+	public setSelectedNode(node: Node | Sound | IParticleSystem | Sprite): void {
 		let source = isSound(node) ? node["_connectedTransformNode"] : isAnyParticleSystem(node) ? node.emitter : node;
 
 		if (!source) {
@@ -332,9 +333,17 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		}
 
 		const idsToExpand: string[] = [];
-		while (source) {
-			idsToExpand.push(source.id);
-			source = source.parent;
+
+		if (isSprite(node)) {
+			const spriteManagerNode = getSpriteManagerNodeFromSprite(node);
+			if (spriteManagerNode) {
+				idsToExpand.push(spriteManagerNode.id);
+			}
+		} else {
+			while (source) {
+				idsToExpand.push(source.id);
+				source = source.parent;
+			}
 		}
 
 		this._forEachNode(this.state.nodes, (n) => {
@@ -394,7 +403,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			return;
 		}
 
-		const newNodes: (Node | ParticleSystem)[] = [];
+		const newNodes: (Node | ParticleSystem | Sprite)[] = [];
 		const nodesToCopy = this._objectsToCopy.map((n) => n.nodeData);
 
 		registerUndoRedo({
@@ -407,7 +416,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 					if (firstNode) {
 						this.props.editor.layout.graph.setSelectedNode(firstNode);
 
-						if (isNode(firstNode)) {
+						if (isNode(firstNode) || isSprite(firstNode)) {
 							this.props.editor.layout.preview.gizmo.setAttachedNode(firstNode);
 						}
 					}
@@ -424,7 +433,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			},
 			redo: () => {
 				nodesToCopy.forEach((object) => {
-					let node: Node | ParticleSystem | null = null;
+					let node: Node | ParticleSystem | Sprite | null = null;
 
 					defer: {
 						if (isAbstractMesh(object)) {
@@ -453,14 +462,17 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 							break defer;
 						}
 
-						if (isNode(object)) {
+						if (isNode(object) || isSprite(object)) {
 							node = cloneNode(this.props.editor, object);
 							break defer;
 						}
 					}
 
 					if (node) {
-						node.id = Tools.RandomId();
+						if (!isSprite(node)) {
+							node.id = Tools.RandomId();
+						}
+
 						node.uniqueId = UniqueNumber.Get();
 
 						if (parent && isNode(node)) {
@@ -663,6 +675,24 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		return info;
 	}
 
+	private _getSpriteNode(sprite: Sprite): TreeNodeInfo {
+		const info = {
+			nodeData: sprite,
+			id: sprite.uniqueId,
+			icon: this._getIcon(sprite),
+			label: this._getNodeLabelComponent(sprite, sprite.name, false),
+		} as TreeNodeInfo;
+
+		this._forEachNode(this.state.nodes, (n) => {
+			if (n.id === info.id) {
+				info.isSelected = n.isSelected;
+				info.isExpanded = n.isExpanded;
+			}
+		});
+
+		return info;
+	}
+
 	private _parseGuiNode(scene: Scene): TreeNodeInfo | null {
 		const guiTextures = scene.textures.filter((texture) => texture.getClassName() === "AdvancedDynamicTexture") as AdvancedDynamicTexture[];
 		if (!guiTextures.length) {
@@ -780,6 +810,13 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 				});
 			}
 
+			// Handle sprites
+			if (isSpriteManagerNode(node) && !noChildren) {
+				node.spriteManager?.sprites.forEach((sprite) => {
+					info.childNodes?.push(this._getSpriteNode(sprite));
+				});
+			}
+
 			if (info.childNodes?.length) {
 				info.hasCaret = true;
 			} else {
@@ -888,7 +925,15 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			return <GiSparkles className="w-4 h-4" />;
 		}
 
+		if (isSprite(object)) {
+			return <FaImage className="w-4 h-4" />;
+		}
+
 		if (isSpriteMapNode(object)) {
+			return <GiBrickWall className="w-4 h-4" />;
+		}
+
+		if (isSpriteManagerNode(object)) {
 			return <TbGhost2Filled className="w-4 h-4" />;
 		}
 

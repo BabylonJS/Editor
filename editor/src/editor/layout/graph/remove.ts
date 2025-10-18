@@ -1,7 +1,8 @@
-import { Node, Light, AbstractMesh, Scene, IParticleSystem, Sound, SoundTrack } from "babylonjs";
+import { Node, Light, AbstractMesh, Scene, IParticleSystem, Sound, SoundTrack, Sprite } from "babylonjs";
 
 import { unique } from "../../../tools/tools";
 import { isSound } from "../../../tools/guards/sound";
+import { isSprite } from "../../../tools/guards/sprites";
 import { registerUndoRedo } from "../../../tools/undoredo";
 import { updateAllLights } from "../../../tools/light/shadows";
 import { isAnyParticleSystem } from "../../../tools/guards/particles";
@@ -92,6 +93,7 @@ export function removeNodes(editor: Editor) {
 			.concat(allData.filter((d) => isAnyParticleSystem(d)))
 	);
 
+	const sprites = allData.filter((d) => isSprite(d)) as Sprite[];
 	const advancedGuiTextures = allData.filter((d) => isAdvancedDynamicTexture(d));
 	const animationGroups = getLinkedAnimationGroupsFor([...particleSystems, ...advancedGuiTextures, ...sounds.map((d) => d.sound), ...nodes.map((d) => d.node)], scene);
 
@@ -115,6 +117,10 @@ export function removeNodes(editor: Editor) {
 
 			particleSystems.forEach((particleSystem) => {
 				scene.addParticleSystem(particleSystem);
+			});
+
+			sprites.forEach((sprite) => {
+				sprite.manager.sprites.push(sprite);
 			});
 
 			advancedGuiTextures.forEach((node) => {
@@ -147,6 +153,13 @@ export function removeNodes(editor: Editor) {
 
 			particleSystems.forEach((particleSystem) => {
 				scene.removeParticleSystem(particleSystem);
+			});
+
+			sprites.forEach((sprite) => {
+				const index = sprite.manager.sprites.indexOf(sprite);
+				if (index !== -1) {
+					sprite.manager.sprites.splice(index, 1);
+				}
 			});
 
 			advancedGuiTextures.forEach((node) => {
