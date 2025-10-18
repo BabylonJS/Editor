@@ -11,16 +11,19 @@ import {
 	Vector3,
 	CameraGizmo,
 	AbstractMesh,
+	TransformNode,
+	Sprite,
 } from "babylonjs";
 
-import { isNodeLocked } from "../../../tools/node/metadata";
+import { isSprite } from "../../../tools/guards/sprites";
 import { registerUndoRedo } from "../../../tools/undoredo";
+import { isNodeLocked } from "../../../tools/node/metadata";
 import { isQuaternion, isVector3 } from "../../../tools/guards/math";
 import { updateIblShadowsRenderPipeline } from "../../../tools/light/ibl";
-import { isAbstractMesh, isCamera, isLight } from "../../../tools/guards/nodes";
+import { isAbstractMesh, isCamera, isLight, isNode } from "../../../tools/guards/nodes";
 import { updateLightShadowMapRefreshRate, updatePointLightShadowMapRenderListPredicate } from "../../../tools/light/shadows";
 
-export const onGizmoNodeChangedObservable = new Observable<Node>();
+export const onGizmoNodeChangedObservable = new Observable<Node | Sprite>();
 
 export class EditorPreviewGizmo {
 	/**
@@ -37,10 +40,15 @@ export class EditorPreviewGizmo {
 	private _cameraGizmo: CameraGizmo | null = null;
 
 	private _attachedNode: Node | null = null;
+	private _attachedSprite: Sprite | null = null;
+
+	private _spriteTransformNode: TransformNode;
 
 	public constructor(scene: Scene) {
 		this._gizmosLayer = new UtilityLayerRenderer(scene);
 		this._gizmosLayer.utilityLayerScene.postProcessesEnabled = false;
+
+		this._spriteTransformNode = new TransformNode("spriteGizmoTransformNode", this._gizmosLayer.utilityLayerScene);
 	}
 
 	/**
@@ -94,7 +102,9 @@ export class EditorPreviewGizmo {
 			}
 		}
 
-		this.setAttachedNode(this._attachedNode);
+		this._spriteTransformNode.billboardMode = this._scalingGizmo || this._rotationGizmo ? TransformNode.BILLBOARDMODE_ALL : TransformNode.BILLBOARDMODE_NONE;
+
+		this.setAttachedNode(this._attachedSprite ?? this._attachedNode);
 	}
 
 	/**
@@ -108,24 +118,54 @@ export class EditorPreviewGizmo {
 	 * Sets the node that is attached and controlled by the gizmo.
 	 * @param node The node to attach to the gizmo.
 	 */
-	public setAttachedNode(node: Node | null): void {
-		if (node && isNodeLocked(node)) {
+	public setAttachedNode(node: Node | Sprite | null): void {
+		if (node && isNode(node) && isNodeLocked(node)) {
 			node = null;
 		}
 
-		this._attachedNode = node;
+		this._attachedNode = null;
+		this._attachedSprite = null;
 
-		if (node && isCamera(node)) {
-			this._cameraGizmo ??= new CameraGizmo(this._gizmosLayer);
-			this._cameraGizmo.camera = node;
-			this._cameraGizmo.attachedNode = node;
+		if (node) {
+			if (isNode(node)) {
+				this._attachedNode = node;
+				this._attachedSprite = null;
+			} else if (isSprite(node)) {
+				this._attachedSprite = node;
+				this._attachedNode = this._spriteTransformNode;
+
+				this._spriteTransformNode.position.copyFrom(node.position);
+				this._spriteTransformNode.scaling.set(node.width, node.height, 1);
+				this._spriteTransformNode.rotation.set(0, 0, node.angle);
+			}
+
+			if (isCamera(node)) {
+				this._cameraGizmo ??= new CameraGizmo(this._gizmosLayer);
+				this._cameraGizmo.camera = node;
+				this._cameraGizmo.attachedNode = node;
+			}
 		} else {
 			this._cameraGizmo?.dispose();
 			this._cameraGizmo = null;
 		}
 
 		if (this.currentGizmo) {
-			this.currentGizmo.attachedNode = node;
+			this.currentGizmo.xGizmo.isEnabled = true;
+			this.currentGizmo.yGizmo.isEnabled = true;
+			this.currentGizmo.zGizmo.isEnabled = true;
+
+			this.currentGizmo.attachedNode = this._attachedNode;
+
+			if (node && isSprite(node)) {
+				if (this._scalingGizmo) {
+					this.currentGizmo.zGizmo.isEnabled = false;
+				}
+
+				if (this._rotationGizmo) {
+					this.currentGizmo.xGizmo.isEnabled = false;
+					this.currentGizmo.yGizmo.isEnabled = false;
+				}
+			}
 		}
 	}
 
@@ -162,6 +202,8 @@ export class EditorPreviewGizmo {
 
 	private _attachVector3UndoRedoEvents(gizmo: PositionGizmo | ScaleGizmo | RotationGizmo, property: "position" | "scaling"): void {
 		let temporaryNode: Node | null = null;
+		let temporarySprite: Sprite | null = null;
+
 		let temporaryOldValue: Vector3 | null = null;
 
 		gizmo.onDragStartObservable.add(() => {
@@ -170,9 +212,10 @@ export class EditorPreviewGizmo {
 			}
 
 			temporaryNode = this._attachedNode;
+			temporarySprite = this._attachedSprite;
 
 			const value = this._attachedNode[property];
-			temporaryOldValue = isVector3(value) ? value.clone() : null;
+			temporaryOldValue = isVector3(value) ? value.clone() : value;
 		});
 
 		gizmo.onDragObservable.add(() => {
@@ -181,6 +224,13 @@ export class EditorPreviewGizmo {
 				updatePointLightShadowMapRenderListPredicate(temporaryNode);
 			} else if (isAbstractMesh(temporaryNode)) {
 				this._updateShadowMapsForMesh(temporaryNode);
+			} else if (temporarySprite) {
+				if (property === "scaling") {
+					temporarySprite.width = this._spriteTransformNode.scaling.x;
+					temporarySprite.height = this._spriteTransformNode.scaling.y;
+				} else {
+					temporarySprite.position.copyFrom(this._spriteTransformNode.position);
+				}
 			}
 		});
 
@@ -190,15 +240,24 @@ export class EditorPreviewGizmo {
 			}
 
 			const node = temporaryNode;
-			const oldValue = temporaryOldValue?.clone();
+			const sprite = temporarySprite;
 
+			const oldValue = temporaryOldValue?.clone();
 			const newValueRef = temporaryNode[property];
 			const newValue = isVector3(newValueRef) ? newValueRef.clone() : null;
 
 			registerUndoRedo({
 				undo: () => {
-					const valueRef = node[property];
-					if (isVector3(valueRef) && oldValue) {
+					const valueRef = sprite?.[property] ?? node[property];
+
+					if (sprite) {
+						if (property === "position") {
+							sprite.position = oldValue?.clone() ?? sprite.position;
+						} else {
+							sprite.width = oldValue?.x ?? sprite.width;
+							sprite.height = oldValue?.y ?? sprite.height;
+						}
+					} else if (isVector3(valueRef) && oldValue) {
 						valueRef.copyFrom(oldValue);
 					} else {
 						node[property] = oldValue?.clone() ?? null;
@@ -209,13 +268,23 @@ export class EditorPreviewGizmo {
 						updatePointLightShadowMapRenderListPredicate(node);
 					}
 
-					updateIblShadowsRenderPipeline(node.getScene());
+					if (!sprite) {
+						updateIblShadowsRenderPipeline(node.getScene());
+					}
 
-					this.setAttachedNode(node);
+					this.setAttachedNode(sprite ?? node);
 				},
 				redo: () => {
-					const valueRef = node[property];
-					if (isVector3(valueRef) && newValue) {
+					const valueRef = sprite?.[property] ?? node[property];
+
+					if (sprite) {
+						if (property === "position") {
+							sprite.position = newValue?.clone() ?? sprite.position;
+						} else {
+							sprite.width = newValue?.x ?? sprite.width;
+							sprite.height = newValue?.y ?? sprite.height;
+						}
+					} else if (isVector3(valueRef) && newValue) {
 						valueRef.copyFrom(newValue);
 					} else {
 						node[property] = newValue?.clone() ?? null;
@@ -226,20 +295,26 @@ export class EditorPreviewGizmo {
 						updatePointLightShadowMapRenderListPredicate(node);
 					}
 
-					updateIblShadowsRenderPipeline(node.getScene());
+					if (!sprite) {
+						updateIblShadowsRenderPipeline(node.getScene());
+					}
 
-					this.setAttachedNode(node);
+					this.setAttachedNode(sprite ?? node);
 				},
 			});
 
-			updateIblShadowsRenderPipeline(node.getScene());
+			if (!sprite) {
+				updateIblShadowsRenderPipeline(node.getScene());
+			}
 
-			onGizmoNodeChangedObservable.notifyObservers(node);
+			onGizmoNodeChangedObservable.notifyObservers(sprite ?? node);
 		});
 	}
 
 	private _attachRotationUndoRedoEvents(gizmo: RotationGizmo): void {
 		let temporaryNode: Node | null = null;
+		let temporarySprite: Sprite | null = null;
+
 		let temporaryOldValue: Vector3 | Quaternion | null = null;
 
 		gizmo.onDragStartObservable.add(() => {
@@ -248,6 +323,7 @@ export class EditorPreviewGizmo {
 			}
 
 			temporaryNode = this._attachedNode;
+			temporarySprite = this._attachedSprite;
 
 			const value = this._attachedNode["rotationQuaternion"] ?? this._attachedNode["rotation"];
 			temporaryOldValue = isVector3(value) || isQuaternion(value) ? value.clone() : null;
@@ -259,6 +335,8 @@ export class EditorPreviewGizmo {
 				updatePointLightShadowMapRenderListPredicate(temporaryNode);
 			} else if (isAbstractMesh(temporaryNode)) {
 				this._updateShadowMapsForMesh(temporaryNode);
+			} else if (temporarySprite) {
+				temporarySprite.angle = this._spriteTransformNode.rotation.z;
 			}
 		});
 
@@ -268,15 +346,19 @@ export class EditorPreviewGizmo {
 			}
 
 			const node = temporaryNode;
-			const oldValue = temporaryOldValue?.clone();
+			const sprite = temporarySprite;
 
+			const oldValue = temporaryOldValue?.clone();
 			const newValueRef = temporaryNode["rotationQuaternion"] ?? temporaryNode["rotation"];
 			const newValue = isVector3(newValueRef) || isQuaternion(newValueRef) ? newValueRef.clone() : null;
 
 			registerUndoRedo({
 				undo: () => {
 					const valueRef = node["rotationQuaternion"] ?? node["rotation"];
-					if (isVector3(valueRef) && isVector3(oldValue)) {
+
+					if (sprite) {
+						sprite.angle = oldValue?.z ?? sprite.angle;
+					} else if (isVector3(valueRef) && isVector3(oldValue)) {
 						valueRef.copyFrom(oldValue);
 					} else if (isQuaternion(valueRef) && isQuaternion(oldValue)) {
 						valueRef.copyFrom(oldValue);
@@ -287,13 +369,18 @@ export class EditorPreviewGizmo {
 						updatePointLightShadowMapRenderListPredicate(node);
 					}
 
-					updateIblShadowsRenderPipeline(node.getScene());
+					if (!sprite) {
+						updateIblShadowsRenderPipeline(node.getScene());
+					}
 
-					this.setAttachedNode(node);
+					this.setAttachedNode(sprite ?? node);
 				},
 				redo: () => {
 					const valueRef = node["rotationQuaternion"] ?? node["rotation"];
-					if (isVector3(valueRef) && isVector3(newValue)) {
+
+					if (sprite) {
+						sprite.angle = newValue?.z ?? sprite.angle;
+					} else if (isVector3(valueRef) && isVector3(newValue)) {
 						valueRef.copyFrom(newValue);
 					} else if (isQuaternion(valueRef) && isQuaternion(newValue)) {
 						valueRef.copyFrom(newValue);
@@ -304,15 +391,17 @@ export class EditorPreviewGizmo {
 						updatePointLightShadowMapRenderListPredicate(node);
 					}
 
-					updateIblShadowsRenderPipeline(node.getScene());
+					if (!sprite) {
+						updateIblShadowsRenderPipeline(node.getScene());
+					}
 
-					this.setAttachedNode(node);
+					this.setAttachedNode(sprite ?? node);
 				},
 			});
 
 			updateIblShadowsRenderPipeline(node.getScene());
 
-			onGizmoNodeChangedObservable.notifyObservers(node);
+			onGizmoNodeChangedObservable.notifyObservers(sprite ?? node);
 		});
 	}
 }

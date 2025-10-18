@@ -43,6 +43,7 @@ export interface IEditorInspectorTextureFieldProps extends PropsWithChildren {
 
 	hideLevel?: boolean;
 	hideSize?: boolean;
+	hideInvert?: boolean;
 
 	scene?: Scene;
 	onChange?: (texture: Texture | CubeTexture | ColorGradingTexture | null) => void;
@@ -110,16 +111,19 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 												onFinishChange={() => this.props.onChange?.(texture)}
 											/>
 										)}
-										<EditorInspectorSwitchField
-											noUndoRedo={this.props.noUndoRedo}
-											label="Invert Y"
-											object={texture}
-											property="_invertY"
-											onChange={() => {
-												this._handleReloadTexture(texture);
-												this.props.onChange?.(texture);
-											}}
-										/>
+
+										{!this.props.hideInvert && (
+											<EditorInspectorSwitchField
+												noUndoRedo={this.props.noUndoRedo}
+												label="Invert Y"
+												object={texture}
+												property="_invertY"
+												onChange={() => {
+													this._handleReloadTexture(texture);
+													this.props.onChange?.(texture);
+												}}
+											/>
+										)}
 									</>
 								)}
 

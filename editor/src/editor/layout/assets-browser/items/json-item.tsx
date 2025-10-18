@@ -10,7 +10,7 @@ import { SpinnerUIComponent } from "../../../../ui/spinner";
 import { Popover, PopoverContent, PopoverTrigger } from "../../../../ui/shadcn/ui/popover";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../../../ui/shadcn/ui/tooltip";
 
-import { computeSpritePreviewImages } from "../../../../tools/sprite/atlas-json";
+import { computeSpritePreviewImagesFromAtlasJson } from "../../../../tools/sprite/atlas-json";
 
 import { AssetsBrowserItem } from "./item";
 
@@ -60,14 +60,12 @@ export class AssetBrowserJsonItem extends AssetsBrowserItem {
 		const imagePath = join(dirname(this.props.absolutePath), this._data.meta.image);
 
 		normalizeAtlasJson(this._data);
-		await computeSpritePreviewImages(this._data, imagePath);
+		await computeSpritePreviewImagesFromAtlasJson(this._data, imagePath);
 
 		this.forceUpdate();
 	}
 
 	private _getSpritesheetPreviews(): ReactNode {
-		const imagePath = join(dirname(this.props.absolutePath), this._data.meta.image);
-
 		return (
 			<Popover modal={false}>
 				<PopoverTrigger className="flex justify-center items-center w-[80px] aspect-square ring-yellow-500 ring-2 rounded-lg">
@@ -83,21 +81,7 @@ export class AssetBrowserJsonItem extends AssetsBrowserItem {
 								<Tooltip key={index}>
 									<TooltipTrigger>
 										<div className="flex justify-center items-center w-14 h-14 p-2 bg-secondary rounded-lg cursor-pointer hover:bg-background transition-all duration-300 ease-in-out">
-											<img
-												draggable
-												src={f._preview}
-												className="w-full h-full object-contain"
-												onDragStart={(ev) => {
-													ev.dataTransfer.setData(
-														"sprite",
-														JSON.stringify({
-															imagePath,
-															droppedFrame: f,
-															atlasJson: this._data,
-														})
-													);
-												}}
-											/>
+											<img draggable src={f._preview} className="w-full h-full object-contain" />
 										</div>
 									</TooltipTrigger>
 									<TooltipContent>{f.filename}</TooltipContent>

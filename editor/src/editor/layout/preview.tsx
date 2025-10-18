@@ -7,9 +7,9 @@ import { Component, MouseEvent, ReactNode } from "react";
 import { Grid } from "react-loader-spinner";
 
 import { FaCheck } from "react-icons/fa6";
-import { GiArrowCursor, GiTeapot, GiWireframeGlobe } from "react-icons/gi";
 import { IoIosStats } from "react-icons/io";
 import { LuMove3D, LuRotate3D, LuScale3D } from "react-icons/lu";
+import { GiArrowCursor, GiTeapot, GiWireframeGlobe } from "react-icons/gi";
 
 import {
 	AbstractEngine,
@@ -31,13 +31,16 @@ import {
 	PickingInfo,
 	SceneLoaderFlags,
 	EngineView,
+	Sprite,
+	Color4,
+	BoundingBox,
 } from "babylonjs";
 
 import { Button } from "../../ui/shadcn/ui/button";
-import { Progress } from "../../ui/shadcn/ui/progress";
 import { Toggle } from "../../ui/shadcn/ui/toggle";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/shadcn/ui/select";
+import { Progress } from "../../ui/shadcn/ui/progress";
 import { ToolbarRadioGroup, ToolbarRadioGroupItem } from "../../ui/shadcn/ui/toolbar-radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/shadcn/ui/select";
 
 import { Editor } from "../main";
 
@@ -47,16 +50,27 @@ import { isDomTextInputFocused } from "../../tools/dom";
 import { isNodeLocked } from "../../tools/node/metadata";
 import { registerUndoRedo } from "../../tools/undoredo";
 import { initializeHavok } from "../../tools/physics/init";
-import { isSpriteMapNode } from "../../tools/guards/sprites";
 import { isAnyParticleSystem } from "../../tools/guards/particles";
 import { onTextureAddedObservable } from "../../tools/observables";
 import { getCameraFocusPositionFor } from "../../tools/camera/focus";
-import { waitNextAnimationFrame, waitUntil } from "../../tools/tools";
 import { ITweenConfiguration, Tween } from "../../tools/animation/tween";
 import { checkProjectCachedCompressedTextures } from "../../tools/assets/ktx";
 import { createSceneLink, getRootSceneLink } from "../../tools/scene/scene-link";
-import { isAbstractMesh, isCamera, isCollisionInstancedMesh, isCollisionMesh, isInstancedMesh, isLight, isMesh, isTransformNode } from "../../tools/guards/nodes";
+import { UniqueNumber, waitNextAnimationFrame, waitUntil } from "../../tools/tools";
+import { isSprite, isSpriteManagerNode, isSpriteMapNode } from "../../tools/guards/sprites";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../../ui/shadcn/ui/dropdown-menu";
+import {
+	isAbstractMesh,
+	isAnyTransformNode,
+	isCamera,
+	isCollisionInstancedMesh,
+	isCollisionMesh,
+	isInstancedMesh,
+	isLight,
+	isMesh,
+	isNode,
+	isTransformNode,
+} from "../../tools/guards/nodes";
 
 import { EditorCamera } from "../nodes/camera";
 
@@ -165,7 +179,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	private _renderScene: boolean = true;
 	private _mouseDownPosition: Vector2 = Vector2.Zero();
 
-	private _meshUnderPointer: AbstractMesh | null;
+	private _objectUnderPointer: AbstractMesh | Sprite | null;
 
 	private _workingCanvas: HTMLCanvasElement | null = null;
 	private _mainCanvas: HTMLCanvasElement | null = null;
@@ -219,6 +233,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 							onPointerDown={(ev) => this._handleMouseDown(ev)}
 							onDoubleClick={(ev) => this._handleDoubleClick(ev)}
 							onMouseLeave={() => this._handleMouseLeave()}
+							onDragLeave={() => this._handleMouseLeave()}
 							onMouseMove={() => this._handleMouseMove(this.scene.pointerX, this.scene.pointerY)}
 							className={`
                                 select-none outline-none w-full h-full object-contain
@@ -398,7 +413,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 				maximum: bb.boundingBox.maximumWorld,
 			});
 			target = bb.boundingBox.centerWorld;
-		} else if (isLight(selectedNode) || isTransformNode(selectedNode)) {
+		} else if (isLight(selectedNode) || isAnyTransformNode(selectedNode)) {
 			target = selectedNode.getAbsolutePosition();
 		} else if (isAnyParticleSystem(selectedNode)) {
 			if (isAbstractMesh(selectedNode.emitter)) {
@@ -414,6 +429,17 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 			} else if (!soundPosition.equalsToFloats(0, 0, 0)) {
 				target = selectedNode["_position"]();
 			}
+		} else if (isSprite(selectedNode)) {
+			const bb = new BoundingBox(new Vector3(-selectedNode.width * 0.5, -selectedNode.height * 0.5, 0), new Vector3(selectedNode.width * 0.5, selectedNode.height * 0.5, 0));
+			const center = bb.centerWorld;
+
+			position = getCameraFocusPositionFor(center, camera, {
+				distance: 2,
+				minimum: bb.minimumWorld,
+				maximum: bb.maximumWorld,
+			});
+
+			target = selectedNode.position.clone();
 		}
 
 		if (target) {
@@ -597,7 +623,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
 	private _handleMouseLeave(): void {
 		this._restoreCurrentMeshUnderPointer();
-		this._meshUnderPointer = null;
+		this._objectUnderPointer = null;
 	}
 
 	private _mouseMoveTimeoutId: number = -1;
@@ -608,13 +634,18 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		}
 
 		const pickingInfo = this._getPickingInfo(x, y);
-		const mesh = pickingInfo.pickedMesh?._masterMesh ?? pickingInfo.pickedMesh;
+		const pickedObject = pickingInfo.pickedSprite ?? pickingInfo.pickedMesh?._masterMesh ?? pickingInfo.pickedMesh;
 
-		if (mesh && this._meshUnderPointer !== mesh && !isNodeLocked(mesh)) {
+		if (!pickedObject || (isNode(pickedObject) && isNodeLocked(pickedObject))) {
+			this._objectUnderPointer = null;
+			return this._restoreCurrentMeshUnderPointer();
+		}
+
+		if (this._objectUnderPointer !== pickedObject) {
 			this._restoreCurrentMeshUnderPointer();
-			this._highlightCurrentMeshUnderPointer(mesh);
+			this._highlightCurrentMeshUnderPointer(pickedObject);
 
-			this._meshUnderPointer = mesh;
+			this._objectUnderPointer = pickedObject;
 
 			if (this._mouseMoveTimeoutId) {
 				clearTimeout(this._mouseMoveTimeoutId);
@@ -635,12 +666,12 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
 		if (event.button === 2) {
 			this.setState({
-				rightClickedObject: this._meshUnderPointer,
+				rightClickedObject: this._objectUnderPointer,
 			});
 		}
 
 		this._restoreCurrentMeshUnderPointer();
-		this._meshUnderPointer = null;
+		this._objectUnderPointer = null;
 
 		if (event.button === 2) {
 			this.scene.activeCamera?.inputs.detachElement();
@@ -654,8 +685,8 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		}
 
 		const pickingInfo = this._getPickingInfo(this.scene.pointerX, this.scene.pointerY);
-		if (pickingInfo.pickedMesh) {
-			this.focusObject(pickingInfo.pickedMesh);
+		if (pickingInfo.pickedMesh || pickingInfo.pickedSprite) {
+			this.focusObject(pickingInfo.pickedMesh ?? pickingInfo.pickedSprite);
 		}
 	}
 
@@ -676,21 +707,23 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
 		const pickingInfo = this._getPickingInfo(this.scene.pointerX, this.scene.pointerY);
 
-		let mesh = (pickingInfo.pickedMesh?._masterMesh ?? pickingInfo.pickedMesh) as Node;
-		if (mesh && !isNodeLocked(mesh)) {
-			const sceneLink = getRootSceneLink(mesh);
+		let effectivePickedObject = (pickingInfo.pickedSprite ?? pickingInfo.pickedMesh?._masterMesh ?? pickingInfo.pickedMesh) as Node;
+		if (effectivePickedObject && isNode(effectivePickedObject) && !isNodeLocked(effectivePickedObject)) {
+			const sceneLink = getRootSceneLink(effectivePickedObject);
 			if (sceneLink) {
-				mesh = sceneLink;
+				effectivePickedObject = sceneLink;
 			}
 
-			if (mesh.parent && isSpriteMapNode(mesh.parent) && mesh.parent.outputPlane === mesh) {
-				mesh = mesh.parent;
+			if (effectivePickedObject.parent && isSpriteMapNode(effectivePickedObject.parent) && effectivePickedObject.parent.outputPlane === effectivePickedObject) {
+				effectivePickedObject = effectivePickedObject.parent;
 			}
+		}
 
-			this.gizmo.setAttachedNode(mesh);
-			this.props.editor.layout.graph.setSelectedNode(mesh);
-			this.props.editor.layout.inspector.setEditedObject(mesh);
-			this.props.editor.layout.animations.setEditedObject(mesh);
+		if (effectivePickedObject) {
+			this.gizmo.setAttachedNode(effectivePickedObject);
+			this.props.editor.layout.graph.setSelectedNode(effectivePickedObject);
+			this.props.editor.layout.inspector.setEditedObject(effectivePickedObject);
+			this.props.editor.layout.animations.setEditedObject(effectivePickedObject);
 		}
 	}
 
@@ -713,6 +746,8 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 			false
 		);
 
+		const spritePick = this.scene.pickSprite(x, y, (s) => isSprite(s), false);
+
 		let pickingInfo = meshPick;
 		if (decalPick?.pickedPoint && meshPick?.pickedPoint) {
 			const distance = Vector3.Distance(decalPick.pickedPoint, meshPick.pickedPoint);
@@ -720,6 +755,19 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
 			if (distance <= zOffset + 0.01) {
 				pickingInfo = decalPick;
+			}
+		}
+
+		if (spritePick?.pickedSprite) {
+			if (!pickingInfo.pickedMesh) {
+				pickingInfo = spritePick;
+			} else if (pickingInfo.ray && spritePick.ray) {
+				const spriteDistance = Vector2.Distance(spritePick.ray.origin, spritePick.pickedPoint!);
+				const meshDistance = Vector3.Distance(pickingInfo.ray.origin, pickingInfo.pickedPoint!);
+
+				if (spriteDistance <= meshDistance) {
+					pickingInfo = spritePick;
+				}
 			}
 		}
 
@@ -736,36 +784,11 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		}
 	}
 
-	private _highlightCurrentMeshUnderPointer(pickedMesh: AbstractMesh): void {
-		Tween.killTweensOf(pickedMesh);
+	private _highlightCurrentMeshUnderPointer(pickedObject: AbstractMesh | Sprite): void {
+		Tween.killTweensOf(pickedObject);
 
-		const effectiveMesh = isInstancedMesh(pickedMesh) ? pickedMesh.sourceMesh : pickedMesh;
-
-		const meshes = [effectiveMesh];
-
-		if (isMesh(effectiveMesh)) {
-			effectiveMesh.getLODLevels().forEach((lod) => {
-				if (lod.mesh) {
-					meshes.push(lod.mesh);
-				}
-			});
-		}
-
-		meshes.forEach((mesh) => {
-			Tween.create(mesh, 0.1, {
-				overlayAlpha: 0.5,
-				overlayColor: Color3.Black(),
-				onStart: () => (mesh!.renderOverlay = true),
-			});
-		});
-	}
-
-	private _restoreCurrentMeshUnderPointer(): void {
-		const mesh = this._meshUnderPointer;
-
-		if (mesh) {
-			const effectiveMesh = isInstancedMesh(mesh) ? mesh.sourceMesh : mesh;
-
+		if (isAbstractMesh(pickedObject)) {
+			const effectiveMesh = isInstancedMesh(pickedObject) ? pickedObject.sourceMesh : pickedObject;
 			const meshes = [effectiveMesh];
 
 			if (isMesh(effectiveMesh)) {
@@ -777,17 +800,58 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 			}
 
 			meshes.forEach((mesh) => {
-				Tween.killTweensOf(mesh);
-
-				mesh.overlayAlpha ??= 0;
-				mesh.overlayColor ??= Color3.Black();
-
 				Tween.create(mesh, 0.1, {
-					overlayAlpha: 0,
+					overlayAlpha: 0.5,
 					overlayColor: Color3.Black(),
-					onStart: () => (mesh.renderOverlay = true),
+					onStart: () => (mesh!.renderOverlay = true),
 				});
 			});
+		}
+
+		if (isSprite(pickedObject)) {
+			Tween.create(pickedObject, 0.1, {
+				color: new Color4(0.5, 0.5, 0.5, 1.0),
+			});
+		}
+	}
+
+	private _restoreCurrentMeshUnderPointer(): void {
+		const objectUnderPointer = this._objectUnderPointer;
+
+		if (objectUnderPointer) {
+			if (isAbstractMesh(objectUnderPointer)) {
+				const effectiveMesh = isInstancedMesh(objectUnderPointer) ? objectUnderPointer.sourceMesh : objectUnderPointer;
+				const meshes = [effectiveMesh];
+
+				if (isMesh(effectiveMesh)) {
+					effectiveMesh.getLODLevels().forEach((lod) => {
+						if (lod.mesh) {
+							meshes.push(lod.mesh);
+						}
+					});
+				}
+
+				meshes.forEach((mesh) => {
+					Tween.killTweensOf(mesh);
+
+					mesh.overlayAlpha ??= 0;
+					mesh.overlayColor ??= Color3.Black();
+
+					Tween.create(mesh, 0.1, {
+						overlayAlpha: 0,
+						overlayColor: Color3.Black(),
+						onStart: () => (mesh.renderOverlay = true),
+					});
+				});
+			}
+
+			if (isSprite(objectUnderPointer)) {
+				Tween.killTweensOf(objectUnderPointer);
+
+				Tween.create(objectUnderPointer, 0.1, {
+					color: new Color4(1.0, 1.0, 1.0, 1.0),
+				});
+			}
 		}
 	}
 
@@ -1122,6 +1186,11 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		if (graphNode) {
 			return this._handleGraphNodesDropped(ev);
 		}
+
+		const sprite = ev.dataTransfer.getData("sprite");
+		if (sprite) {
+			return this._handleSpritesDropped(ev);
+		}
 	}
 
 	private _handleGraphNodesDropped(ev: React.DragEvent<HTMLCanvasElement>): void {
@@ -1162,6 +1231,37 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 				});
 			},
 		});
+	}
+
+	private _handleSpritesDropped(ev: React.DragEvent<HTMLCanvasElement>): void {
+		const data = JSON.parse(ev.dataTransfer.getData("sprite"));
+		const spriteNode = this.scene.getNodeById(data.spriteNodeId);
+
+		if (!isSpriteManagerNode(spriteNode) || !spriteNode.spriteManager) {
+			return;
+		}
+
+		const pick = this.scene.pick(ev.nativeEvent.offsetX, ev.nativeEvent.offsetY, (m) => !m._masterMesh && !isCollisionMesh(m) && !isCollisionInstancedMesh(m), false);
+
+		const sprite = new Sprite(`sprite-${spriteNode.spriteManager.sprites.length}`, spriteNode.spriteManager);
+		sprite.size = 100;
+		sprite.uniqueId = UniqueNumber.Get();
+
+		if (data.cellRef) {
+			sprite.cellRef = data.cellRef;
+
+			sprite.width = spriteNode.atlasJson.frames[data.cellRef].sourceSize.w;
+			sprite.height = spriteNode.atlasJson.frames[data.cellRef].sourceSize.h;
+		} else if (data.cellIndex !== undefined) {
+			sprite.cellIndex = data.cellIndex;
+		}
+
+		if (pick.pickedPoint) {
+			sprite.position.copyFrom(pick.pickedPoint);
+		}
+
+		this.gizmo.setAttachedNode(sprite);
+		this.props.editor.layout.graph.refresh();
 	}
 
 	private _handleAssetsDropped(ev: React.DragEvent<HTMLCanvasElement>): void {

@@ -1,4 +1,4 @@
-import { Node, Tools } from "babylonjs";
+import { Node, Tools, Sprite } from "babylonjs";
 
 import { Editor } from "../../editor/main";
 
@@ -10,9 +10,12 @@ import { getProjectAssetsRootUrl } from "../../project/configuration";
 
 import { UniqueNumber } from "../tools";
 
+import { cloneSprite } from "../sprite/tools";
+
 import { isTexture } from "../guards/texture";
-import { isSpriteMapNode } from "../guards/sprites";
-import { isCamera, isInstancedMesh, isLight, isMesh, isTransformNode } from "../guards/nodes";
+import { isSprite, isSpriteMapNode } from "../guards/sprites";
+import { isCamera, isInstancedMesh, isLight, isMesh, isNode, isTransformNode } from "../guards/nodes";
+
 import { isNodeVisibleInGraph } from "./metadata";
 
 export interface ICloneNodeOptions {
@@ -22,10 +25,10 @@ export interface ICloneNodeOptions {
 	cloneThinInstances?: boolean;
 }
 
-export function cloneNode(editor: Editor, node: Node, options?: ICloneNodeOptions) {
+export function cloneNode(editor: Editor, node: Node | Sprite, options?: ICloneNodeOptions) {
 	const suffix = "(Clone)";
 
-	let clone: Node | null = null;
+	let clone: Node | Sprite | null = null;
 
 	defer: {
 		if (isMesh(node)) {
@@ -61,19 +64,27 @@ export function cloneNode(editor: Editor, node: Node, options?: ICloneNodeOption
 
 			break defer;
 		}
+
+		if (isSprite(node)) {
+			clone = cloneSprite(node);
+			break defer;
+		}
 	}
 
 	if (!clone) {
 		return null;
 	}
 
-	const descendants = [clone, ...clone.getDescendants(false)].filter((n) => {
-		if (!isNodeVisibleInGraph(n)) {
-			return false;
-		}
+	let descendants = [clone];
+	if (isNode(clone)) {
+		descendants = [clone, ...clone.getDescendants(false)].filter((n) => {
+			if (!isNodeVisibleInGraph(n)) {
+				return false;
+			}
 
-		return true;
-	});
+			return true;
+		});
+	}
 
 	descendants.forEach((descendant) => {
 		if (isMesh(descendant)) {
@@ -111,20 +122,22 @@ export function cloneNode(editor: Editor, node: Node, options?: ICloneNodeOption
 
 		configureImportedNodeIds(descendant);
 
-		if (descendant.parent) {
-			// Removes the hierarchy prefix from the name. Maybe we should keep it instead of removing it?
-			let parent: Node | null = descendant.parent;
-			while (parent) {
-				descendant.name = descendant.name.replace(`${parent.name}.`, "");
-				parent = parent.parent;
+		if (isNode(descendant)) {
+			if (descendant.parent) {
+				// Removes the hierarchy prefix from the name. Maybe we should keep it instead of removing it?
+				let parent: Node | null = descendant.parent;
+				while (parent) {
+					descendant.name = descendant.name.replace(`${parent.name}.`, "");
+					parent = parent.parent;
+				}
 			}
-		}
 
-		if (descendant.metadata) {
-			try {
-				descendant.metadata = JSON.parse(JSON.stringify(descendant.metadata));
-			} catch (e) {
-				editor.layout.console.warn(`Failed to clone metadata for the mesh being cloned ${descendant.name}: ${e.message}`);
+			if (descendant.metadata) {
+				try {
+					descendant.metadata = JSON.parse(JSON.stringify(descendant.metadata));
+				} catch (e) {
+					editor.layout.console.warn(`Failed to clone metadata for the mesh being cloned ${descendant.name}: ${e.message}`);
+				}
 			}
 		}
 	});

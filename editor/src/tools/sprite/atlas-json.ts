@@ -1,6 +1,4 @@
-import { waitNextAnimationFrame } from "../tools";
-
-export async function computeSpritePreviewImages(data: any, imagePath: string) {
+export async function computeSpritePreviewImagesFromAtlasJson(atlasJson: any, imagePath: string) {
 	const image = new Image();
 	await new Promise<void>((resolve, reject) => {
 		image.addEventListener("load", () => resolve());
@@ -9,7 +7,11 @@ export async function computeSpritePreviewImages(data: any, imagePath: string) {
 	});
 
 	const canvas = document.createElement("canvas");
-	for (const f of data.frames) {
+	const frameKeys = Object.keys(atlasJson.frames);
+
+	for (const key of frameKeys) {
+		const f = atlasJson.frames[key];
+
 		if (f._preview) {
 			continue;
 		}
@@ -27,7 +29,5 @@ export async function computeSpritePreviewImages(data: any, imagePath: string) {
 		context.drawImage(image, f.frame.x, f.frame.y, f.frame.w, f.frame.h, 0, 0, f.frame.w, f.frame.h);
 
 		f._preview = canvas.toDataURL("image/png");
-
-		await waitNextAnimationFrame();
 	}
 }

@@ -19,6 +19,7 @@ import "./sound";
 import "./texture";
 import "./shadows";
 import "./sprite-map";
+import "./sprite-manager";
 
 /**
  * Defines the possible output type of a script.

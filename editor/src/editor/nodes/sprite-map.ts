@@ -244,60 +244,54 @@ export class SpriteMapNode extends TransformNode {
 		});
 	}
 
-	public static Parse(parsedTransformNode: any, scene: Scene, rootUrl: string): SpriteMapNode {
-		const spriteMap = SerializationHelper.Parse(() => new SpriteMapNode(parsedTransformNode.name, scene), parsedTransformNode, scene, rootUrl);
+	public static Parse(parsedData: any, scene: Scene, rootUrl: string): SpriteMapNode {
+		const node = SerializationHelper.Parse(() => new SpriteMapNode(parsedData.name, scene), parsedData, scene, rootUrl);
 
-		if (parsedTransformNode.localMatrix) {
-			spriteMap.setPreTransformMatrix(Matrix.FromArray(parsedTransformNode.localMatrix));
-		} else if (parsedTransformNode.pivotMatrix) {
-			spriteMap.setPivotMatrix(Matrix.FromArray(parsedTransformNode.pivotMatrix));
+		if (parsedData.localMatrix) {
+			node.setPreTransformMatrix(Matrix.FromArray(parsedData.localMatrix));
+		} else if (parsedData.pivotMatrix) {
+			node.setPivotMatrix(Matrix.FromArray(parsedData.pivotMatrix));
 		}
 
-		spriteMap.setEnabled(parsedTransformNode.isEnabled);
+		node.setEnabled(parsedData.isEnabled);
 
-		spriteMap._waitingParsedUniqueId = parsedTransformNode.uniqueId;
+		node._waitingParsedUniqueId = parsedData.uniqueId;
 
 		// Parent
-		if (parsedTransformNode.parentId !== undefined) {
-			spriteMap._waitingParentId = parsedTransformNode.parentId;
+		if (parsedData.parentId !== undefined) {
+			node._waitingParentId = parsedData.parentId;
 		}
 
-		if (parsedTransformNode.parentInstanceIndex !== undefined) {
-			spriteMap._waitingParentInstanceIndex = parsedTransformNode.parentInstanceIndex;
+		if (parsedData.parentInstanceIndex !== undefined) {
+			node._waitingParentInstanceIndex = parsedData.parentInstanceIndex;
 		}
 
 		// Animations
-		if (parsedTransformNode.animations) {
-			for (let animationIndex = 0; animationIndex < parsedTransformNode.animations.length; animationIndex++) {
-				const parsedAnimation = parsedTransformNode.animations[animationIndex];
+		if (parsedData.animations) {
+			for (let animationIndex = 0; animationIndex < parsedData.animations.length; animationIndex++) {
+				const parsedAnimation = parsedData.animations[animationIndex];
 				const internalClass = GetClass("BABYLON.Animation");
 				if (internalClass) {
-					spriteMap.animations.push(internalClass.Parse(parsedAnimation));
+					node.animations.push(internalClass.Parse(parsedAnimation));
 				}
 			}
-			Node.ParseAnimationRanges(spriteMap, parsedTransformNode, scene);
+			Node.ParseAnimationRanges(node, parsedData, scene);
 		}
 
-		if (parsedTransformNode.autoAnimate) {
-			scene.beginAnimation(
-				spriteMap,
-				parsedTransformNode.autoAnimateFrom,
-				parsedTransformNode.autoAnimateTo,
-				parsedTransformNode.autoAnimateLoop,
-				parsedTransformNode.autoAnimateSpeed || 1.0
-			);
+		if (parsedData.autoAnimate) {
+			scene.beginAnimation(node, parsedData.autoAnimateFrom, parsedData.autoAnimateTo, parsedData.autoAnimateLoop, parsedData.autoAnimateSpeed || 1.0);
 		}
 
-		if (spriteMap.atlasJsonRelativePath) {
-			spriteMap.buildFromAbsolutePath(join(rootUrl, spriteMap.atlasJsonRelativePath), undefined, undefined, {
-				layerCount: parsedTransformNode.options.layerCount,
-				stageSize: Vector2.FromArray(parsedTransformNode.options.stageSize ?? [10, 1]),
-				outputSize: Vector2.FromArray(parsedTransformNode.options.outputSize ?? [100, 100]),
-				colorMultiply: Vector3.FromArray(parsedTransformNode.options.colorMultiply ?? [1, 1, 1]),
+		if (node.atlasJsonRelativePath) {
+			node.buildFromAbsolutePath(join(rootUrl, node.atlasJsonRelativePath), undefined, undefined, {
+				layerCount: parsedData.options.layerCount,
+				stageSize: Vector2.FromArray(parsedData.options.stageSize ?? [10, 1]),
+				outputSize: Vector2.FromArray(parsedData.options.outputSize ?? [100, 100]),
+				colorMultiply: Vector3.FromArray(parsedData.options.colorMultiply ?? [1, 1, 1]),
 			});
 		}
 
-		return spriteMap;
+		return node;
 	}
 }
 

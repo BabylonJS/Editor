@@ -32,7 +32,7 @@ import { ScriptInspectorComponent } from "../script/script";
 
 import { EditorTransformNodeInspector } from "../transform";
 import { IEditorInspectorImplementationProps } from "../inspector";
-import { computeSpritePreviewImages } from "../../../../tools/sprite/atlas-json";
+import { computeSpritePreviewImagesFromAtlasJson } from "../../../../tools/sprite/atlas-json";
 
 export interface IEditorSpriteMapNodeInspectorState {
 	dragOver: boolean;
@@ -103,7 +103,7 @@ export class EditorSpriteMapNodeInspector extends Component<IEditorInspectorImpl
 	private async _computeSpritePreviewImages(): Promise<void> {
 		if (this.props.object.atlasJson && this.props.object.spritesheet) {
 			const imagePath = join(getProjectAssetsRootUrl()!, this.props.object.spritesheet!.name);
-			await computeSpritePreviewImages(this.props.object.atlasJson, imagePath);
+			await computeSpritePreviewImagesFromAtlasJson(this.props.object.atlasJson, imagePath);
 			this.forceUpdate();
 		}
 	}
