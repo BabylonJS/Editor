@@ -9,7 +9,7 @@ import { Texture } from "@babylonjs/core/Materials/Textures/texture";
 import { Vector2, Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { AddParser } from "@babylonjs/core/Loading/Plugins/babylonFileParser.function";
 
-import { SpriteMapNode } from "../tools/sprite";
+import { normalizeAtlasJson, SpriteMapNode } from "../tools/sprite";
 
 AddParser("SpriteMapNode", (parsedData: any, scene: Scene, container: AssetContainer, rootUrl: string) => {
 	parsedData.transformNodes?.forEach((transformNode: any) => {
@@ -21,6 +21,8 @@ AddParser("SpriteMapNode", (parsedData: any, scene: Scene, container: AssetConta
 		if (!instance) {
 			return;
 		}
+
+		instance.isSpriteMap = transformNode.isSpriteMap;
 
 		const atlasJsonAbsolutePath = `${rootUrl}${transformNode.atlasJsonRelativePath}`;
 
@@ -34,6 +36,8 @@ AddParser("SpriteMapNode", (parsedData: any, scene: Scene, container: AssetConta
 			scene.removePendingData(atlasJsonAbsolutePath);
 
 			const atlasJson = JSON.parse(atlasRequest.responseText);
+			normalizeAtlasJson(atlasJson);
+
 			const imagePath = `${Tools.GetFolderPath(atlasJsonAbsolutePath)}${atlasJson.meta.image}`;
 
 			const spritesheet = new Texture(imagePath, scene, false, false, Texture.NEAREST_NEAREST, null, null, null, false, Engine.TEXTUREFORMAT_RGBA);
@@ -53,9 +57,12 @@ AddParser("SpriteMapNode", (parsedData: any, scene: Scene, container: AssetConta
 			);
 
 			transformNode.tiles.forEach((tile: any) => {
-				for (let x = 0, lenX = tile.repeat.x + 1; x < lenX; ++x) {
-					for (let y = 0, lenY = tile.repeat.y + 1; y < lenY; ++y) {
-						spriteMap!.changeTiles(tile.layer, new Vector2(tile.position.x + x, (spriteMap.options.stageSize?.y ?? 0) - 1 - tile.position.y - y), tile.tile);
+				for (let x = 0, lenX = tile.repeatCount.x + 1; x < lenX; ++x) {
+					for (let y = 0, lenY = tile.repeatCount.y + 1; y < lenY; ++y) {
+						const offsetX = x * (tile.repeatOffset.x + 1);
+						const offsetY = y * (tile.repeatOffset.y + 1);
+
+						spriteMap.changeTiles(tile.layer, new Vector2(tile.position.x + offsetX, (spriteMap.options.stageSize?.y ?? 0) - 1 - tile.position.y - offsetY), tile.tile);
 					}
 				}
 			});

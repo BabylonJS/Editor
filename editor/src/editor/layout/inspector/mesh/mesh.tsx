@@ -115,7 +115,7 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 									variant="ghost"
 									onClick={() => {
 										const instance = this.props.object as InstancedMesh;
-										this.props.editor.layout.preview.gizmo.setAttachedNode(instance.sourceMesh);
+										this.props.editor.layout.preview.gizmo.setAttachedObject(instance.sourceMesh);
 										this.props.editor.layout.graph.setSelectedNode(instance.sourceMesh);
 										this.props.editor.layout.inspector.setEditedObject(instance.sourceMesh);
 									}}

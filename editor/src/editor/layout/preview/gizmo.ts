@@ -104,7 +104,7 @@ export class EditorPreviewGizmo {
 
 		this._spriteTransformNode.billboardMode = this._scalingGizmo || this._rotationGizmo ? TransformNode.BILLBOARDMODE_ALL : TransformNode.BILLBOARDMODE_NONE;
 
-		this.setAttachedNode(this._attachedSprite ?? this._attachedNode);
+		this.setAttachedObject(this._attachedSprite ?? this._attachedNode);
 	}
 
 	/**
@@ -115,38 +115,45 @@ export class EditorPreviewGizmo {
 	}
 
 	/**
-	 * Sets the node that is attached and controlled by the gizmo.
-	 * @param node The node to attach to the gizmo.
+	 * Gets the reference to the sprite that is attached and controlled by the gizmo.
 	 */
-	public setAttachedNode(node: Node | Sprite | null): void {
-		if (node && isNode(node) && isNodeLocked(node)) {
-			node = null;
+	public get attachedSprite(): Sprite | null {
+		return this._attachedSprite;
+	}
+
+	/**
+	 * Sets the node that is attached and controlled by the gizmo.
+	 * @param object The node to attach to the gizmo.
+	 */
+	public setAttachedObject(object: Node | Sprite | null): void {
+		if (object && isNode(object) && isNodeLocked(object)) {
+			object = null;
 		}
 
 		this._attachedNode = null;
 		this._attachedSprite = null;
 
-		if (node) {
-			if (isNode(node)) {
-				this._attachedNode = node;
+		if (object) {
+			if (isNode(object)) {
+				this._attachedNode = object;
 				this._attachedSprite = null;
-			} else if (isSprite(node)) {
-				this._attachedSprite = node;
+			} else if (isSprite(object)) {
+				this._attachedSprite = object;
 				this._attachedNode = this._spriteTransformNode;
 
-				this._spriteTransformNode.position.copyFrom(node.position);
-				this._spriteTransformNode.scaling.set(node.width, node.height, 1);
-				this._spriteTransformNode.rotation.set(0, 0, node.angle);
+				this._spriteTransformNode.position.copyFrom(object.position);
+				this._spriteTransformNode.scaling.set(object.width, object.height, 1);
+				this._spriteTransformNode.rotation.set(0, 0, object.angle);
 			}
 
-			if (isCamera(node)) {
+			if (isCamera(object)) {
 				this._cameraGizmo ??= new CameraGizmo(this._gizmosLayer);
-				this._cameraGizmo.camera = node;
-				this._cameraGizmo.attachedNode = node;
+				this._cameraGizmo.camera = object;
+				this._cameraGizmo.attachedNode = object;
+			} else {
+				this._cameraGizmo?.dispose();
+				this._cameraGizmo = null;
 			}
-		} else {
-			this._cameraGizmo?.dispose();
-			this._cameraGizmo = null;
 		}
 
 		if (this.currentGizmo) {
@@ -156,7 +163,7 @@ export class EditorPreviewGizmo {
 
 			this.currentGizmo.attachedNode = this._attachedNode;
 
-			if (node && isSprite(node)) {
+			if (object && isSprite(object)) {
 				if (this._scalingGizmo) {
 					this.currentGizmo.zGizmo.isEnabled = false;
 				}
@@ -272,7 +279,7 @@ export class EditorPreviewGizmo {
 						updateIblShadowsRenderPipeline(node.getScene());
 					}
 
-					this.setAttachedNode(sprite ?? node);
+					this.setAttachedObject(sprite ?? node);
 				},
 				redo: () => {
 					const valueRef = sprite?.[property] ?? node[property];
@@ -299,7 +306,7 @@ export class EditorPreviewGizmo {
 						updateIblShadowsRenderPipeline(node.getScene());
 					}
 
-					this.setAttachedNode(sprite ?? node);
+					this.setAttachedObject(sprite ?? node);
 				},
 			});
 
@@ -373,7 +380,7 @@ export class EditorPreviewGizmo {
 						updateIblShadowsRenderPipeline(node.getScene());
 					}
 
-					this.setAttachedNode(sprite ?? node);
+					this.setAttachedObject(sprite ?? node);
 				},
 				redo: () => {
 					const valueRef = node["rotationQuaternion"] ?? node["rotation"];
@@ -395,7 +402,7 @@ export class EditorPreviewGizmo {
 						updateIblShadowsRenderPipeline(node.getScene());
 					}
 
-					this.setAttachedNode(sprite ?? node);
+					this.setAttachedObject(sprite ?? node);
 				},
 			});
 

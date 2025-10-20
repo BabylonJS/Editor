@@ -26,7 +26,7 @@ export function addParticleSystem(editor: Editor, emitter: AbstractMesh) {
 	});
 
 	editor.layout.inspector.setEditedObject(particleSystem);
-	editor.layout.preview.gizmo.setAttachedNode(particleSystem.emitter);
+	editor.layout.preview.gizmo.setAttachedObject(particleSystem.emitter);
 }
 
 export function addGPUParticleSystem(editor: Editor, emitter: AbstractMesh) {
@@ -57,5 +57,5 @@ export function addGPUParticleSystem(editor: Editor, emitter: AbstractMesh) {
 	});
 
 	editor.layout.inspector.setEditedObject(particleSystem);
-	editor.layout.preview.gizmo.setAttachedNode(particleSystem.emitter);
+	editor.layout.preview.gizmo.setAttachedObject(particleSystem.emitter);
 }

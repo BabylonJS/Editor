@@ -1,4 +1,4 @@
-import { readJSON } from "fs-extra";
+import { readJSONSync } from "fs-extra";
 import { dirname, isAbsolute, join } from "path/posix";
 
 import { Node, TransformNode, Scene, Tools, serialize, SerializationHelper, Matrix, GetClass, SpriteManager, Texture, Sprite, Observer } from "babylonjs";
@@ -65,7 +65,19 @@ export class SpriteManagerNode extends TransformNode {
 		this.atlasJson = null;
 		this.atlasJsonRelativePath = null;
 
-		this.spriteManager = new SpriteManager(this.name, imagePath, 1000, 64, this._scene, undefined, undefined, false);
+		this.spriteManager = new SpriteManager(
+			this.name,
+			imagePath,
+			serializeSpriteManager?.capacity ?? 1000,
+			{
+				width: serializeSpriteManager?.cellWidth ?? 64,
+				height: serializeSpriteManager?.cellHeight ?? 64,
+			},
+			this._scene,
+			undefined,
+			undefined,
+			false
+		);
 		this.spriteManager.isPickable = true;
 
 		configureImportedTexture(this.spriteManager.texture);
@@ -75,15 +87,25 @@ export class SpriteManagerNode extends TransformNode {
 		}
 	}
 
-	public async buildFromAtlasJsonAbsolutePath(absolutePath: string, serializeSpriteManager?: any): Promise<void> {
+	public buildFromAtlasJsonAbsolutePath(absolutePath: string, serializeSpriteManager?: any): void {
 		this.spriteManager?.dispose();
 
-		this.atlasJson = await readJSON(absolutePath);
+		this.atlasJson = readJSONSync(absolutePath);
 		this.atlasJsonRelativePath = absolutePath.replace(getProjectAssetsRootUrl()!, "");
 
 		const imagePath = join(dirname(absolutePath), this.atlasJson.meta["image"]);
 
-		this.spriteManager = new SpriteManager(this.name, imagePath, 1000, 64, this._scene, undefined, undefined, true, this.atlasJson);
+		this.spriteManager = new SpriteManager(
+			this.name,
+			imagePath,
+			serializeSpriteManager?.capacity ?? 1000,
+			serializeSpriteManager?.cellHeight ?? 64,
+			this._scene,
+			undefined,
+			undefined,
+			true,
+			this.atlasJson
+		);
 		this.spriteManager.isPickable = true;
 
 		configureImportedTexture(this.spriteManager.texture);
@@ -128,7 +150,27 @@ export class SpriteManagerNode extends TransformNode {
 		for (const parsedSprite of serializeSpriteManager.sprites) {
 			const sprite = Sprite.Parse(parsedSprite, this.spriteManager);
 			sprite.uniqueId = parsedSprite.uniqueId;
+			sprite.metadata = parsedSprite.metadata;
 		}
+
+		const spriteRenderer = this.spriteManager.spriteRenderer;
+
+		const _appendSpriteVertex = spriteRenderer["_appendSpriteVertex"];
+		spriteRenderer["_appendSpriteVertex"] = function (index, sprite, ...args: any[]) {
+			_appendSpriteVertex.call(this, index, sprite, ...args);
+
+			let arrayOffset = index * this._vertexBufferSize;
+			if (this._useInstancing) {
+				arrayOffset -= 2;
+			}
+
+			if (sprite.overrideColor) {
+				this._vertexData[arrayOffset + 14] *= sprite.overrideColor.r;
+				this._vertexData[arrayOffset + 15] *= sprite.overrideColor.g;
+				this._vertexData[arrayOffset + 16] *= sprite.overrideColor.b;
+				this._vertexData[arrayOffset + 17] *= sprite.overrideColor.a;
+			}
+		};
 	}
 
 	private _onBeforeRenderScene(): void {
@@ -165,6 +207,7 @@ export class SpriteManagerNode extends TransformNode {
 		if (spriteManager) {
 			spriteManager.sprites.forEach((sprite, index) => {
 				sprite.uniqueId = this.spriteManager!.sprites[index].uniqueId;
+				sprite.metadata = this.spriteManager!.sprites[index].metadata;
 			});
 		}
 
@@ -174,7 +217,7 @@ export class SpriteManagerNode extends TransformNode {
 		});
 	}
 
-	public static async ParseAsync(parsedData: any, scene: Scene, rootUrl: string): Promise<SpriteManagerNode> {
+	public static Parse(parsedData: any, scene: Scene, rootUrl: string): SpriteManagerNode {
 		const node = SerializationHelper.Parse(() => new SpriteManagerNode(parsedData.name, scene), parsedData, scene, rootUrl);
 
 		if (parsedData.localMatrix) {
@@ -213,7 +256,7 @@ export class SpriteManagerNode extends TransformNode {
 		}
 
 		if (node.atlasJsonRelativePath) {
-			await node.buildFromAtlasJsonAbsolutePath(join(rootUrl, node.atlasJsonRelativePath), parsedData.spriteManager);
+			node.buildFromAtlasJsonAbsolutePath(join(rootUrl, node.atlasJsonRelativePath), parsedData.spriteManager);
 		} else if (parsedData.spriteManager) {
 			node.buildFromImageAbsolutePath(join(rootUrl, parsedData.spriteManager.textureUrl), parsedData.spriteManager);
 		}

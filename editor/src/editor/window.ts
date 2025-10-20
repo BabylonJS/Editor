@@ -1,8 +1,6 @@
 import { join } from "path/posix";
 import { app, BrowserWindow, dialog, ipcMain, nativeImage, screen } from "electron";
 
-import { isWindows } from "../tools/os";
-
 import { closeAllNodePtyForWebContentsId } from "../electron/node-pty";
 
 /**
@@ -175,7 +173,7 @@ export function showCloseEditorWindowsDialog(window: BrowserWindow): boolean {
 		buttons: ["Yes", "No"],
 		title: "Close window",
 		message: "Are you sure you want to close the window?",
-		icon: isWindows() ? nativeImage.createFromPath(join(app.getAppPath(), "assets/babylonjs_icon.png")) : undefined,
+		icon: nativeImage.createFromPath(join(app.getAppPath(), "assets/babylonjs_icon.png")),
 	});
 
 	return result === 0;

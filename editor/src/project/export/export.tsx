@@ -162,6 +162,18 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 	// to single JSON file.
 	await Promise.all(
 		data.meshes?.map(async (mesh: any) => {
+			if (mesh.renderOverlay) {
+				mesh.renderOverlay = false;
+			}
+
+			if (mesh.overlayAlpha) {
+				mesh.overlayAlpha = 1;
+			}
+
+			if (mesh.overlayColor) {
+				mesh.overlayColor = [0, 0, 0];
+			}
+
 			const instantiatedMesh = scene.getMeshById(mesh.id);
 
 			if (instantiatedMesh) {

@@ -101,7 +101,7 @@ export function removeNodes(editor: Editor) {
 		executeRedo: true,
 		action: () => {
 			editor.layout.graph.refresh();
-			editor.layout.preview.gizmo.setAttachedNode(null);
+			editor.layout.preview.gizmo.setAttachedObject(null);
 			editor.layout.inspector.setEditedObject(editor.layout.preview.scene);
 
 			updateAllLights(scene);

@@ -100,6 +100,18 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 					}
 
 					data.meshes?.forEach((mesh) => {
+						if (mesh.renderOverlay) {
+							mesh.renderOverlay = false;
+						}
+
+						if (mesh.overlayAlpha) {
+							mesh.overlayAlpha = 1;
+						}
+
+						if (mesh.overlayColor) {
+							mesh.overlayColor = [0, 0, 0];
+						}
+
 						const instantiatedMesh = scene.getMeshById(mesh.id);
 						if (instantiatedMesh?.parent) {
 							mesh.metadata ??= {};

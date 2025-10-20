@@ -30,8 +30,8 @@ import { execNodePty } from "../../tools/node-pty";
 import { clearUndoRedo } from "../../tools/undoredo";
 import { isTexture } from "../../tools/guards/texture";
 import { renameScene } from "../../tools/scene/rename";
-import { openMultipleFilesDialog } from "../../tools/dialog";
 import { onSelectedAssetChanged } from "../../tools/observables";
+import { openMultipleFilesAndFoldersDialog } from "../../tools/dialog";
 import { findAvailableFilename, normalizedGlob } from "../../tools/fs";
 import { loadSavedThumbnailsCache } from "../../tools/assets/thumbnail";
 import { assetsCache, saveAssetsCache } from "../../tools/assets/cache";
@@ -936,11 +936,25 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 			return;
 		}
 
-		const files = openMultipleFilesDialog({
-			title: "Import Files",
+		const files = openMultipleFilesAndFoldersDialog({
+			title: "Import Files & Folders",
 		});
 
-		await Promise.all(files.map((file) => copyFile(file, join(this.state.browsedPath!, basename(file)))));
+		await Promise.all(
+			files.map(async (file) => {
+				const destination = join(this.state.browsedPath!, basename(file));
+
+				const fStat = await stat(file);
+				if (fStat.isDirectory()) {
+					await copy(file, destination, {
+						recursive: true,
+					});
+				} else {
+					await copyFile(file, destination);
+				}
+			})
+		);
+
 		this._refreshItems(this.state.browsedPath);
 	}
 
@@ -1305,7 +1319,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 
 		this.props.editor.layout.inspector.setEditedObject(scene);
 		this.props.editor.layout.animations.setEditedObject(scene);
-		this.props.editor.layout.preview.gizmo.setAttachedNode(null);
+		this.props.editor.layout.preview.gizmo.setAttachedObject(null);
 	}
 
 	private _handleNodeClicked(node: TreeNodeInfo): void {

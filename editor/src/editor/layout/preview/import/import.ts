@@ -73,6 +73,8 @@ export async function loadImportedSceneFile(scene: Scene, absolutePath: string):
 	result.meshes.forEach((mesh) => {
 		configureImportedNodeIds(mesh);
 
+		mesh.receiveShadows = true;
+
 		if (mesh.skeleton) {
 			mesh.skeleton.id = Tools.RandomId();
 			mesh.skeleton["_uniqueId"] = UniqueNumber.Get();

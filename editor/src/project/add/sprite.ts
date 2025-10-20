@@ -14,7 +14,7 @@ export function addSpriteManager(editor: Editor, parent?: Node) {
 	});
 
 	editor.layout.inspector.setEditedObject(node);
-	editor.layout.preview.gizmo.setAttachedNode(node);
+	editor.layout.preview.gizmo.setAttachedObject(node);
 
 	return node;
 }
@@ -40,7 +40,7 @@ export function addSpriteMapNode(editor: Editor, parent?: Node) {
 	});
 
 	editor.layout.inspector.setEditedObject(node);
-	editor.layout.preview.gizmo.setAttachedNode(node);
+	editor.layout.preview.gizmo.setAttachedObject(node);
 
 	return node;
 }

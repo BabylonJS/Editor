@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Switch } from "../../../../ui/shadcn/ui/switch";
 
@@ -13,6 +13,10 @@ export interface IEditorInspectorSwitchFieldProps extends IEditorInspectorFieldP
 
 export function EditorInspectorSwitchField(props: IEditorInspectorSwitchFieldProps) {
 	const [value, setValue] = useState<boolean>(getInspectorPropertyValue(props.object, props.property) ?? false);
+
+	useEffect(() => {
+		setValue(getInspectorPropertyValue(props.object, props.property) ?? false);
+	}, [props.object, props.property]);
 
 	return (
 		<div

@@ -3,6 +3,7 @@ import { Node, Tools, Sprite } from "babylonjs";
 import { Editor } from "../../editor/main";
 
 import { SpriteMapNode } from "../../editor/nodes/sprite-map";
+import { SpriteManagerNode } from "../../editor/nodes/sprite-manager";
 
 import { configureImportedMaterial, configureImportedNodeIds, configureImportedTexture } from "../../editor/layout/preview/import/import";
 
@@ -13,7 +14,7 @@ import { UniqueNumber } from "../tools";
 import { cloneSprite } from "../sprite/tools";
 
 import { isTexture } from "../guards/texture";
-import { isSprite, isSpriteMapNode } from "../guards/sprites";
+import { isSprite, isSpriteManagerNode, isSpriteMapNode } from "../guards/sprites";
 import { isCamera, isInstancedMesh, isLight, isMesh, isNode, isTransformNode } from "../guards/nodes";
 
 import { isNodeVisibleInGraph } from "./metadata";
@@ -54,6 +55,22 @@ export function cloneNode(editor: Editor, node: Node | Sprite, options?: ICloneN
 			break defer;
 		}
 
+		if (isSprite(node)) {
+			clone = cloneSprite(node);
+			break defer;
+		}
+
+		if (isSpriteManagerNode(node)) {
+			const name = `${node.name.replace(` ${suffix}`, "")} ${suffix}`;
+			const serializationData = node.serialize();
+
+			clone = SpriteManagerNode.Parse(serializationData, editor.layout.preview.scene, getProjectAssetsRootUrl()!);
+			clone.name = name;
+			clone.parent = node.parent;
+
+			break defer;
+		}
+
 		if (isSpriteMapNode(node)) {
 			const name = `${node.name.replace(` ${suffix}`, "")} ${suffix}`;
 			const serializationData = node.serialize();
@@ -62,11 +79,6 @@ export function cloneNode(editor: Editor, node: Node | Sprite, options?: ICloneN
 			clone.name = name;
 			clone.parent = node.parent;
 
-			break defer;
-		}
-
-		if (isSprite(node)) {
-			clone = cloneSprite(node);
 			break defer;
 		}
 	}
@@ -84,6 +96,10 @@ export function cloneNode(editor: Editor, node: Node | Sprite, options?: ICloneN
 
 			return true;
 		});
+
+		if (isSpriteManagerNode(clone) && clone.spriteManager) {
+			descendants.push(...clone.spriteManager.sprites);
+		}
 	}
 
 	descendants.forEach((descendant) => {
@@ -131,13 +147,13 @@ export function cloneNode(editor: Editor, node: Node | Sprite, options?: ICloneN
 					parent = parent.parent;
 				}
 			}
+		}
 
-			if (descendant.metadata) {
-				try {
-					descendant.metadata = JSON.parse(JSON.stringify(descendant.metadata));
-				} catch (e) {
-					editor.layout.console.warn(`Failed to clone metadata for the mesh being cloned ${descendant.name}: ${e.message}`);
-				}
+		if (descendant.metadata) {
+			try {
+				descendant.metadata = JSON.parse(JSON.stringify(descendant.metadata));
+			} catch (e) {
+				editor.layout.console.warn(`Failed to clone metadata for the mesh being cloned ${descendant.name}: ${e.message}`);
 			}
 		}
 	});

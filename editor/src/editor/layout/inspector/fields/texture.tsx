@@ -44,6 +44,7 @@ export interface IEditorInspectorTextureFieldProps extends PropsWithChildren {
 	hideLevel?: boolean;
 	hideSize?: boolean;
 	hideInvert?: boolean;
+	noPopover?: boolean;
 
 	scene?: Scene;
 	onChange?: (texture: Texture | CubeTexture | ColorGradingTexture | null) => void;
@@ -217,8 +218,8 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 		return (
 			<div className={`flex justify-center items-center ${textureUrl ? "w-24 h-24" : "w-8 h-8"} aspect-square`}>
 				{textureUrl && (
-					<Popover>
-						<PopoverTrigger>
+					<Popover open={this.props.noPopover ? false : undefined}>
+						<PopoverTrigger className="w-24 h-24">
 							<>
 								{isCubeTexture(this.props.object[this.props.property]) ? (
 									<SiDotenv className="w-24 h-24" />
@@ -227,7 +228,7 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 								) : extname(textureUrl).toLowerCase() === ".exr" ? (
 									<EXRIcon size="96px" />
 								) : this.state.previewTemporaryUrl ? (
-									<img className="w-24 h-24 object-contain" src={this.state.previewTemporaryUrl} />
+									<img className="w-24 h-24 object-contain bg-background" src={this.state.previewTemporaryUrl} />
 								) : this.state.previewError ? (
 									<XMarkIcon className="w-24 h-24 bg-red-500/35 rounded-lg" />
 								) : (

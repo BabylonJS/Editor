@@ -10,12 +10,14 @@ import { Grid } from "react-loader-spinner";
 
 import { IoPlay, IoStop, IoRefresh } from "react-icons/io5";
 
-import { Scene, Vector3, HavokPlugin } from "babylonjs";
 import { IRegisteredScript } from "babylonjs-editor-tools";
+import { Node, Scene, Vector3, HavokPlugin, Sprite } from "babylonjs";
 
 import { ensureTemporaryDirectoryExists } from "../../../tools/project";
 
+import { isNode } from "../../../tools/guards/nodes";
 import { isScene } from "../../../tools/guards/scene";
+import { isSprite } from "../../../tools/guards/sprites";
 import { compilePlayScript } from "../../../tools/scene/play/compile";
 import { forceCompileAllSceneMaterials } from "../../../tools/scene/materials";
 import { cloneJSObject, wait, waitNextAnimationFrame } from "../../../tools/tools";
@@ -416,6 +418,7 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 		}
 
 		const oldScriptExports = this._compiledScriptExports;
+		const originalScene = this.props.editor.layout.preview.scene;
 
 		const projectDir = dirname(projectConfiguration.path!);
 		const rootUrl = join(projectDir, "public", "scene", "/");
@@ -428,7 +431,12 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 			Object.assign(this._compiledScriptExports.scriptAssetsCache, oldScriptExports.scriptAssetsCache);
 		}
 
-		const allNodes = [this.scene, ...this.scene.meshes, ...this.scene.transformNodes, ...this.scene.lights, ...this.scene.cameras];
+		const allNodes = [this.scene, ...this.scene.meshes, ...this.scene.transformNodes, ...this.scene.lights, ...this.scene.cameras] as (Node | Scene | Sprite)[];
+
+		this.scene.spriteManagers?.forEach((manager) => {
+			allNodes.push(...manager.sprites);
+		});
+
 		allNodes.forEach((n) => {
 			const runningScripts = oldScriptExports.scriptsDictionary.get(n) as IRegisteredScript[] | undefined;
 			if (!runningScripts) {
@@ -444,7 +452,22 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 
 				oldScriptExports._removeRegisteredScriptInstance(n, script);
 
-				const sourceObject = isScene(n) ? this.scene! : this.props.editor.layout.preview.scene!.getNodeById(n.id);
+				let sourceObject: Node | Scene | Sprite | null | undefined;
+				if (isScene(n)) {
+					sourceObject = originalScene;
+				} else if (isNode(n)) {
+					sourceObject = originalScene.getNodeById(n.id);
+				} else if (isSprite(n)) {
+					spriteLoop: for (const manager of originalScene.spriteManagers ?? []) {
+						for (const sprite of manager.sprites) {
+							if (sprite.uniqueId === n.uniqueId) {
+								sourceObject = sprite;
+								break spriteLoop;
+							}
+						}
+					}
+				}
+
 				const sourceMetadata = sourceObject?.metadata?.scripts?.find((sourceScript) => sourceScript.key === script.key);
 
 				if (sourceMetadata) {

@@ -1,4 +1,4 @@
-import { extname, join } from "path/posix";
+import { extname } from "path/posix";
 
 import { Component, ReactNode } from "react";
 
@@ -16,11 +16,10 @@ import { SpriteMapNode } from "../../../nodes/sprite-map";
 
 import { onGizmoNodeChangedObservable } from "../../preview/gizmo";
 
-import { getProjectAssetsRootUrl } from "../../../../project/configuration";
-
 import { registerUndoRedo } from "../../../../tools/undoredo";
 import { isSpriteMapNode } from "../../../../tools/guards/sprites";
 import { onNodeModifiedObservable } from "../../../../tools/observables";
+import { computeSpriteMapPreviews } from "../../../../tools/sprite/preview";
 
 import { EditorInspectorListField } from "../fields/list";
 import { EditorInspectorStringField } from "../fields/string";
@@ -32,7 +31,6 @@ import { ScriptInspectorComponent } from "../script/script";
 
 import { EditorTransformNodeInspector } from "../transform";
 import { IEditorInspectorImplementationProps } from "../inspector";
-import { computeSpritePreviewImagesFromAtlasJson } from "../../../../tools/sprite/atlas-json";
 
 export interface IEditorSpriteMapNodeInspectorState {
 	dragOver: boolean;
@@ -101,11 +99,8 @@ export class EditorSpriteMapNodeInspector extends Component<IEditorInspectorImpl
 	}
 
 	private async _computeSpritePreviewImages(): Promise<void> {
-		if (this.props.object.atlasJson && this.props.object.spritesheet) {
-			const imagePath = join(getProjectAssetsRootUrl()!, this.props.object.spritesheet!.name);
-			await computeSpritePreviewImagesFromAtlasJson(this.props.object.atlasJson, imagePath);
-			this.forceUpdate();
-		}
+		await computeSpriteMapPreviews(this.props.object);
+		this.forceUpdate();
 	}
 
 	private _getAtlasJsonDraggableZone(): ReactNode {
@@ -222,7 +217,9 @@ export class EditorSpriteMapNodeInspector extends Component<IEditorInspectorImpl
 
 					<Reorder.Group
 						axis="y"
-						onPanStart={() => (this._tilesBeforePan = this.props.object.tiles.slice())}
+						onPanStart={() => {
+							this._tilesBeforePan = this.props.object.tiles.slice();
+						}}
 						onPanEnd={() => {
 							if (this._tilesBeforePan) {
 								const oldTiles = this._tilesBeforePan;

@@ -33,6 +33,7 @@ export function cloneSprite(sprite: Sprite) {
 	clone.isVisible = sprite.isVisible;
 	clone.cellIndex = sprite.cellIndex;
 	clone.cellRef = sprite.cellRef;
+	clone.metadata = sprite.metadata;
 
 	return clone;
 }

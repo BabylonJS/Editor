@@ -24,7 +24,7 @@ export function configureAddedMesh(editor: Editor, mesh: AbstractMesh, parent?: 
 	});
 
 	editor.layout.inspector.setEditedObject(mesh);
-	editor.layout.preview.gizmo.setAttachedNode(mesh);
+	editor.layout.preview.gizmo.setAttachedObject(mesh);
 
 	return mesh;
 }

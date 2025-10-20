@@ -62,7 +62,7 @@ export class EditorConsole extends Component<IEditorConsoleProps, IEditorConsole
 	 */
 	public warn(message: ReactNode): void {
 		this._addLog(
-			<div key={this.state.logs.length + 1} className="whitespace-break-spaces text-yellow-500 hover:bg-secondary/50 transition-all duration-300 ease-in-out">
+			<div key={this.state.logs.length + 1} className="whitespace-break-spaces !text-yellow-500 hover:bg-secondary/50 transition-all duration-300 ease-in-out">
 				{message}
 			</div>
 		);
@@ -74,7 +74,7 @@ export class EditorConsole extends Component<IEditorConsoleProps, IEditorConsole
 	 */
 	public error(message: ReactNode): void {
 		this._addLog(
-			<div key={this.state.logs.length + 1} className="whitespace-break-spaces text-red-500 hover:bg-secondary/50 transition-all duration-300 ease-in-out">
+			<div key={this.state.logs.length + 1} className="whitespace-break-spaces !text-red-500 hover:bg-secondary/50 transition-all duration-300 ease-in-out">
 				{message}
 			</div>
 		);

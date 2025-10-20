@@ -805,7 +805,11 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 			try {
 				const data = await readJSON(join(scenePath, "sprite-managers", file), "utf-8");
 
-				const node = await SpriteManagerNode.ParseAsync(data, scene, join(projectPath, "/"));
+				if (data.spriteManager?.textureUrl && assetsCache[data.spriteManager.textureUrl]) {
+					data.spriteManager.textureUrl = assetsCache[data.spriteManager.textureUrl].newRelativePath;
+				}
+
+				const node = SpriteManagerNode.Parse(data, scene, join(projectPath, "/"));
 				node.uniqueId = data.uniqueId;
 				node.metadata ??= {};
 				node.metadata._waitingParentId = data.metadata?.parentId;

@@ -16,7 +16,7 @@ export function addPointLight(editor: Editor, parent?: Node) {
 	});
 
 	editor.layout.inspector.setEditedObject(light);
-	editor.layout.preview.gizmo.setAttachedNode(light);
+	editor.layout.preview.gizmo.setAttachedObject(light);
 
 	return light;
 }
@@ -33,7 +33,7 @@ export function addDirectionalLight(editor: Editor, parent?: Node) {
 	});
 
 	editor.layout.inspector.setEditedObject(light);
-	editor.layout.preview.gizmo.setAttachedNode(light);
+	editor.layout.preview.gizmo.setAttachedObject(light);
 
 	return light;
 }
@@ -49,7 +49,7 @@ export function addSpotLight(editor: Editor, parent?: Node) {
 	});
 
 	editor.layout.inspector.setEditedObject(light);
-	editor.layout.preview.gizmo.setAttachedNode(light);
+	editor.layout.preview.gizmo.setAttachedObject(light);
 
 	return light;
 }
@@ -65,7 +65,7 @@ export function addHemisphericLight(editor: Editor, parent?: Node) {
 	});
 
 	editor.layout.inspector.setEditedObject(light);
-	editor.layout.preview.gizmo.setAttachedNode(light);
+	editor.layout.preview.gizmo.setAttachedObject(light);
 
 	return light;
 }

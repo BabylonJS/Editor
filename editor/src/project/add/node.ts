@@ -15,5 +15,5 @@ export function addTransformNode(editor: Editor, parent?: Node) {
 	});
 
 	editor.layout.inspector.setEditedObject(transformNode);
-	editor.layout.preview.gizmo.setAttachedNode(transformNode);
+	editor.layout.preview.gizmo.setAttachedObject(transformNode);
 }

@@ -17,7 +17,8 @@ import { AdvancedDynamicTexture } from "@babylonjs/gui/2D/advancedDynamicTexture
 import type { AudioSceneComponent as _AudioSceneComponent } from "@babylonjs/core/Audio/audioSceneComponent";
 
 import { getSoundById } from "../tools/sound";
-import { isAbstractMesh, isNode } from "../tools/guards";
+import { ISpriteAnimation, SpriteManagerNode } from "../tools/sprite";
+import { isAbstractMesh, isNode, isSprite, isTransformNode } from "../tools/guards";
 
 import { scriptAssetsCache } from "../loading/script";
 
@@ -81,6 +82,18 @@ export interface ISceneDecoratorData {
 	// @onKeyboardEvent
 	_KeyboardEvents?: {
 		eventTypes: number[];
+		propertyKey: string | Symbol;
+	}[];
+
+	// @spriteFromSpriteManager
+	_SpritesFromSpriteManager?: {
+		spriteName: string;
+		propertyKey: string | Symbol;
+	}[];
+
+	// @animationFromSprite
+	_AnimationsFromSprite?: {
+		animationName: string;
 		propertyKey: string | Symbol;
 	}[];
 }
@@ -292,6 +305,45 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 
 				instance[params.propertyKey.toString()]?.(keyboardInfo);
 			});
+		});
+	}
+
+	// @spriteFromSpriteManager
+	if (ctor._SpritesFromSpriteManager?.length) {
+		const spriteManagerNode = object as SpriteManagerNode;
+
+		if (!isTransformNode(spriteManagerNode) || !spriteManagerNode.isSpriteManager) {
+			return console.error(`@spriteFromSpriteManager decorator can only be used on SpriteManagerNode.`);
+		}
+
+		if (!spriteManagerNode.spriteManager) {
+			return console.error(`SpriteManagerNode "${spriteManagerNode.name}" has no sprite manager assigned.`);
+		}
+
+		ctor._SpritesFromSpriteManager?.forEach((params) => {
+			const sprite = spriteManagerNode.spriteManager?.sprites.find((s) => s.name === params.spriteName) || null;
+			instance[params.propertyKey.toString()] = sprite;
+		});
+	}
+
+	// @animationFromSprite
+	if (ctor._AnimationsFromSprite?.length) {
+		if (!isSprite(object)) {
+			return console.error(`@animationFromSprite decorator can only be used in scripts attached on Sprite.`);
+		}
+
+		const spriteAnimations = object.metadata?.spriteAnimations as ISpriteAnimation[];
+		if (!spriteAnimations?.length) {
+			return console.error(`Sprite "${object.name}" has no sprite animations assigned.`);
+		}
+
+		ctor._AnimationsFromSprite.forEach((params) => {
+			const animation = spriteAnimations.find((a) => a.name === params.animationName);
+			if (animation) {
+				instance[params.propertyKey.toString()] = animation ?? null;
+			} else {
+				console.warn(`Sprite animation named "${params.animationName}" not found on sprite "${object.name}".`);
+			}
 		});
 	}
 
