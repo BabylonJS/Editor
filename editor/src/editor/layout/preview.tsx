@@ -59,18 +59,7 @@ import { createSceneLink, getRootSceneLink } from "../../tools/scene/scene-link"
 import { UniqueNumber, waitNextAnimationFrame, waitUntil } from "../../tools/tools";
 import { isSprite, isSpriteManagerNode, isSpriteMapNode } from "../../tools/guards/sprites";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../../ui/shadcn/ui/dropdown-menu";
-import {
-	isAbstractMesh,
-	isAnyTransformNode,
-	isCamera,
-	isCollisionInstancedMesh,
-	isCollisionMesh,
-	isInstancedMesh,
-	isLight,
-	isMesh,
-	isNode,
-	isTransformNode,
-} from "../../tools/guards/nodes";
+import { isAbstractMesh, isAnyTransformNode, isCamera, isCollisionInstancedMesh, isCollisionMesh, isInstancedMesh, isLight, isMesh, isNode } from "../../tools/guards/nodes";
 
 import { EditorCamera } from "../nodes/camera";
 
@@ -97,7 +86,6 @@ import { Stats } from "./preview/stats/stats";
 import { StatRow } from "./preview/stats/row";
 import { StatsValuesType } from "./preview/stats/types";
 
-import { importJsonFile } from "./preview/import/json";
 import { applySoundAsset } from "./preview/import/sound";
 import { applyImportedGuiFile } from "./preview/import/gui";
 import { applyTextureAssetToObject } from "./preview/import/texture";
@@ -720,7 +708,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		}
 
 		if (effectivePickedObject) {
-			this.gizmo.setAttachedNode(effectivePickedObject);
+			this.gizmo.setAttachedObject(effectivePickedObject);
 			this.props.editor.layout.graph.setSelectedNode(effectivePickedObject);
 			this.props.editor.layout.inspector.setEditedObject(effectivePickedObject);
 			this.props.editor.layout.animations.setEditedObject(effectivePickedObject);
@@ -809,8 +797,10 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		}
 
 		if (isSprite(pickedObject)) {
+			pickedObject.overrideColor ??= new Color4(1, 1, 1, 1);
+
 			Tween.create(pickedObject, 0.1, {
-				color: new Color4(0.5, 0.5, 0.5, 1.0),
+				overrideColor: new Color4(0.5, 0.5, 0.5, 1.0),
 			});
 		}
 	}
@@ -849,7 +839,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 				Tween.killTweensOf(objectUnderPointer);
 
 				Tween.create(objectUnderPointer, 0.1, {
-					color: new Color4(1.0, 1.0, 1.0, 1.0),
+					overrideColor: new Color4(1.0, 1.0, 1.0, 1.0),
 				});
 			}
 		}
@@ -1207,8 +1197,10 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		const oldPositionsMap = new Map<unknown, Vector3>();
 
 		nodesToMove.forEach((n) => {
-			if (isTransformNode(n.nodeData) || isAbstractMesh(n.nodeData)) {
+			if (isAnyTransformNode(n.nodeData) || isAbstractMesh(n.nodeData)) {
 				oldPositionsMap.set(n.nodeData, n.nodeData.getAbsolutePosition().clone());
+			} else if (isSprite(n.nodeData)) {
+				oldPositionsMap.set(n.nodeData, n.nodeData.position.clone());
 			}
 		});
 
@@ -1216,17 +1208,21 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 			executeRedo: true,
 			undo: () => {
 				nodesToMove.forEach((n) => {
-					if (isTransformNode(n.nodeData) || isAbstractMesh(n.nodeData)) {
-						if (oldPositionsMap.has(n.nodeData)) {
+					if (oldPositionsMap.has(n.nodeData)) {
+						if (isAnyTransformNode(n.nodeData) || isAbstractMesh(n.nodeData)) {
 							n.nodeData.setAbsolutePosition(oldPositionsMap.get(n.nodeData)!);
+						} else if (isSprite(n.nodeData)) {
+							n.nodeData.position.copyFrom(oldPositionsMap.get(n.nodeData)!);
 						}
 					}
 				});
 			},
 			redo: () => {
 				nodesToMove.forEach((n) => {
-					if (isTransformNode(n.nodeData) || isAbstractMesh(n.nodeData)) {
+					if (isAnyTransformNode(n.nodeData) || isAbstractMesh(n.nodeData)) {
 						n.nodeData.setAbsolutePosition(pickedPoint);
+					} else if (isSprite(n.nodeData)) {
+						n.nodeData.position.copyFrom(pickedPoint);
 					}
 				});
 			},
@@ -1260,7 +1256,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 			sprite.position.copyFrom(pick.pickedPoint);
 		}
 
-		this.gizmo.setAttachedNode(sprite);
+		this.gizmo.setAttachedObject(sprite);
 		this.props.editor.layout.graph.refresh();
 	}
 
@@ -1341,12 +1337,6 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 						loadImportedParticleSystemFile(this.props.editor.layout.preview.scene, mesh, absolutePath).then(() => {
 							this.props.editor.layout.graph.refresh();
 						});
-					}
-					break;
-
-				case ".json":
-					if (this.props.editor.state.enableExperimentalFeatures) {
-						importJsonFile(this.props.editor, absolutePath);
 					}
 					break;
 			}

@@ -137,4 +137,10 @@ export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scen
 	scene.cameras.forEach((camera) => {
 		_applyScriptsForObject(scene, camera, scriptsMap, rootUrl);
 	});
+
+	scene.spriteManagers?.forEach((spriteManager) => {
+		spriteManager.sprites.forEach((sprite) => {
+			_applyScriptsForObject(scene, sprite, scriptsMap, rootUrl);
+		});
+	});
 }

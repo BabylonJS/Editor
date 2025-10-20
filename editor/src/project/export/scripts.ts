@@ -63,11 +63,12 @@ export async function handleExportScripts(editor: Editor): Promise<void> {
 				// Catch silently.
 			}
 
-			const [nodesFiles, meshesFiles, lightsFiles, cameraFiles] = await Promise.all([
+			const [nodesFiles, meshesFiles, lightsFiles, cameraFiles, spriteManagerfiles] = await Promise.all([
 				readdir(join(file, "nodes")),
 				readdir(join(file, "meshes")),
 				readdir(join(file, "lights")),
 				readdir(join(file, "cameras")),
+				readdir(join(file, "sprite-managers")),
 			]);
 
 			await Promise.all(
@@ -86,6 +87,22 @@ export async function handleExportScripts(editor: Editor): Promise<void> {
 					}
 				})
 			);
+
+			await Promise.all(
+				spriteManagerfiles
+					.map((file) => join("sprite-managers", file))
+					.map(async (f) => {
+						const data = await readJSON(join(file, f), "utf-8");
+						data.spriteManager?.sprites.forEach((sprite) => {
+							if (sprite.metadata) {
+								availableMetadata.push({
+									metadata: sprite.metadata,
+									entityName: sprite.name,
+								});
+							}
+						});
+					})
+			);
 		})
 	);
 
@@ -97,6 +114,10 @@ export async function handleExportScripts(editor: Editor): Promise<void> {
 		...editor.layout.preview.scene.transformNodes,
 		...editor.layout.preview.scene.particleSystems,
 	] as { name: string; metadata?: any }[];
+
+	if (editor.layout.preview.scene.spriteManagers) {
+		entities.push(...editor.layout.preview.scene.spriteManagers.map((sm) => sm.sprites).flat());
+	}
 
 	entities.forEach((entity) => {
 		if (entity.metadata) {

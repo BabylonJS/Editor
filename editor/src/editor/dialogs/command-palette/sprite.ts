@@ -10,12 +10,12 @@ import { addSpriteManager, addSpriteMapNode } from "../../../project/add/sprite"
 export function getSpriteCommands(editor?: Editor, parent?: Node): ICommandPaletteType[] {
 	return [
 		{
-			...spriteCommandItems.spriteMap,
-			action: () => editor && addSpriteMapNode(editor, parent),
-		},
-		{
 			...spriteCommandItems.spriteManager,
 			action: () => editor && addSpriteManager(editor, parent),
+		},
+		{
+			...spriteCommandItems.spriteMap,
+			action: () => editor && addSpriteMapNode(editor, parent),
 		},
 	];
 }

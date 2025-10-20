@@ -10,8 +10,8 @@ import { HotkeysTarget2 } from "@blueprintjs/core";
 import { waitUntil } from "../tools/tools";
 import { isDomTextInputFocused } from "../tools/dom";
 import { onRedoObservable, onUndoObservable, redo, undo } from "../tools/undoredo";
-import { checkNodeJSAvailable, checkVisualStudioCodeAvailable } from "../tools/process";
 import { tryGetExperimentalFeaturesEnabledFromLocalStorage } from "../tools/local-storage";
+import { checkNodeJSAvailable, checkVisualStudioCodeAvailable, nodeJSAvailable, visualStudioCodeAvailable } from "../tools/process";
 
 import { saveProject } from "../project/save/save";
 import { onProjectConfigurationChangedObservable, projectConfiguration } from "../project/configuration";
@@ -38,6 +38,8 @@ import { removeNodes } from "./layout/graph/remove";
 
 import "./nodes/camera";
 import "./nodes/scene-link";
+// import "./nodes/sprite-manager";
+// import "./nodes/sprite-map";
 
 export function createEditor(): void {
 	const theme = localStorage.getItem("editor-theme") ?? "dark";
@@ -107,6 +109,15 @@ export interface IEditorState {
 	 * Defines if the preferences are being edited.
 	 */
 	editPreferences: boolean;
+
+	/**
+	 * Defines wether or not NodeJS is available.
+	 */
+	nodeJSAvailable: boolean;
+	/**
+	 * Defines wether or not Visual Studio Code is available.
+	 */
+	visualStudioCodeAvailable: boolean;
 }
 
 export class Editor extends Component<IEditorProps, IEditorState> {
@@ -139,6 +150,9 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 
 			editProject: false,
 			editPreferences: false,
+
+			nodeJSAvailable: false,
+			visualStudioCodeAvailable: false,
 		};
 
 		webFrame.setZoomFactor(0.8);
@@ -217,7 +231,12 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 			this.layout.animations.forceUpdate();
 		});
 
-		await Promise.all([await checkNodeJSAvailable(), await checkVisualStudioCodeAvailable()]);
+		await checkNodeJSAvailable();
+		this.setState({ nodeJSAvailable });
+
+		checkVisualStudioCodeAvailable().then(() => {
+			this.setState({ visualStudioCodeAvailable });
+		});
 
 		// Ready
 		ipcRenderer.send("editor:ready");

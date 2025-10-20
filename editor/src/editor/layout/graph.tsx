@@ -63,6 +63,7 @@ import {
 	onNodesAddedObservable,
 	onParticleSystemAddedObservable,
 	onParticleSystemModifiedObservable,
+	onSpriteModifiedObservable,
 	onTextureModifiedObservable,
 } from "../../tools/observables";
 
@@ -135,9 +136,10 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		onNodesAddedObservable.add(() => this.refresh());
 		onParticleSystemAddedObservable.add(() => this.refresh());
 
-		onNodeModifiedObservable.add((node) => this._handleNodeModified(node));
-		onTextureModifiedObservable.add((texture) => this._handleNodeModified(texture));
-		onParticleSystemModifiedObservable.add((particleSystem) => this._handleNodeModified(particleSystem));
+		onNodeModifiedObservable.add((node) => this._handleObjectModified(node));
+		onSpriteModifiedObservable.add((node) => this._handleObjectModified(node));
+		onTextureModifiedObservable.add((texture) => this._handleObjectModified(texture));
+		onParticleSystemModifiedObservable.add((particleSystem) => this._handleObjectModified(particleSystem));
 
 		document.addEventListener("copy", () => !isDomTextInputFocused() && this.copySelectedNodes());
 		document.addEventListener("paste", () => !isDomTextInputFocused() && this.pasteSelectedNodes());
@@ -215,7 +217,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 								<ContextMenuSubContent>
 									{getLightCommands(this.props.editor).map((command) => {
 										return (
-											<ContextMenuItem key={command.key} onClick={command.action}>
+											<ContextMenuItem key={command.key} disabled={command.disabled} onClick={command.action}>
 												{command.text}
 											</ContextMenuItem>
 										);
@@ -223,7 +225,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 									<ContextMenuSeparator />
 									{getNodeCommands(this.props.editor).map((command) => {
 										return (
-											<ContextMenuItem key={command.key} onClick={command.action}>
+											<ContextMenuItem key={command.key} disabled={command.disabled} onClick={command.action}>
 												{command.text}
 											</ContextMenuItem>
 										);
@@ -236,7 +238,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 										<ContextMenuSubContent>
 											{getMeshCommands(this.props.editor).map((command) => {
 												return (
-													<ContextMenuItem key={command.key} onClick={command.action}>
+													<ContextMenuItem key={command.key} disabled={command.disabled} onClick={command.action}>
 														{command.text}
 													</ContextMenuItem>
 												);
@@ -246,7 +248,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 									<ContextMenuSeparator />
 									{getCameraCommands(this.props.editor).map((command) => {
 										return (
-											<ContextMenuItem key={command.key} onClick={command.action}>
+											<ContextMenuItem key={command.key} disabled={command.disabled} onClick={command.action}>
 												{command.text}
 											</ContextMenuItem>
 										);
@@ -254,7 +256,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 									<ContextMenuSeparator />
 									{getSpriteCommands(this.props.editor).map((command) => {
 										return (
-											<ContextMenuItem key={command.key} onClick={command.action}>
+											<ContextMenuItem key={command.key} disabled={command.disabled} onClick={command.action}>
 												{command.text}
 											</ContextMenuItem>
 										);
@@ -332,18 +334,15 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			return;
 		}
 
+		if (isSprite(source)) {
+			source = getSpriteManagerNodeFromSprite(source);
+		}
+
 		const idsToExpand: string[] = [];
 
-		if (isSprite(node)) {
-			const spriteManagerNode = getSpriteManagerNodeFromSprite(node);
-			if (spriteManagerNode) {
-				idsToExpand.push(spriteManagerNode.id);
-			}
-		} else {
-			while (source) {
-				idsToExpand.push(source.id);
-				source = source.parent;
-			}
+		while (source) {
+			idsToExpand.push(source.id);
+			source = source.parent;
 		}
 
 		this._forEachNode(this.state.nodes, (n) => {
@@ -417,7 +416,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 						this.props.editor.layout.graph.setSelectedNode(firstNode);
 
 						if (isNode(firstNode) || isSprite(firstNode)) {
-							this.props.editor.layout.preview.gizmo.setAttachedNode(firstNode);
+							this.props.editor.layout.preview.gizmo.setAttachedObject(firstNode);
 						}
 					}
 
@@ -502,8 +501,8 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		this.props.editor.layout.inspector.setEditedObject(node.nodeData);
 		this.props.editor.layout.animations.setEditedObject(node.nodeData);
 
-		if (isNode(node.nodeData)) {
-			this.props.editor.layout.preview.gizmo.setAttachedNode(node.nodeData);
+		if (isNode(node.nodeData) || isSprite(node.nodeData)) {
+			this.props.editor.layout.preview.gizmo.setAttachedObject(node.nodeData);
 		}
 
 		if (isCamera(node.nodeData)) {
@@ -954,7 +953,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		);
 	}
 
-	private _handleNodeModified(node: Node | BaseTexture | IParticleSystem): void {
+	private _handleObjectModified(node: Node | BaseTexture | IParticleSystem | Sprite): void {
 		this._forEachNode(this.state.nodes, (n) => {
 			if (n.nodeData === node) {
 				n.label = this._getNodeLabelComponent(node, node.name);

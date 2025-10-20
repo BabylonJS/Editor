@@ -10,7 +10,7 @@ import { SpinnerUIComponent } from "../../../../ui/spinner";
 import { Popover, PopoverContent, PopoverTrigger } from "../../../../ui/shadcn/ui/popover";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../../../ui/shadcn/ui/tooltip";
 
-import { computeSpritePreviewImagesFromAtlasJson } from "../../../../tools/sprite/atlas-json";
+import { computeSpritePreviewImagesFromAtlasJson } from "../../../../tools/sprite/preview";
 
 import { AssetsBrowserItem } from "./item";
 

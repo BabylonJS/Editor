@@ -8,7 +8,6 @@ import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarSeparator, Me
 import { isDarwin } from "../../tools/os";
 import { execNodePty } from "../../tools/node-pty";
 import { openSingleFileDialog } from "../../tools/dialog";
-import { visualStudioCodeAvailable } from "../../tools/process";
 
 import { showConfirm } from "../../ui/dialog";
 import { ToolbarComponent } from "../../ui/toolbar";
@@ -91,7 +90,7 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 
 							<MenubarSeparator />
 
-							<MenubarItem disabled={!visualStudioCodeAvailable} onClick={() => this._handleOpenVisualStudioCode()}>
+							<MenubarItem disabled={!this.props.editor.state.visualStudioCodeAvailable} onClick={() => this._handleOpenVisualStudioCode()}>
 								Open in Visual Studio Code
 							</MenubarItem>
 
@@ -171,31 +170,31 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 						<MenubarTrigger>Add</MenubarTrigger>
 						<MenubarContent className="border-black/50">
 							{this._nodeCommands.map((command) => (
-								<MenubarItem key={command.key} onClick={command.action}>
+								<MenubarItem key={command.key} disabled={command.disabled} onClick={command.action}>
 									{command.text}
 								</MenubarItem>
 							))}
 							<MenubarSeparator />
 							{this._meshCommands.map((command) => (
-								<MenubarItem key={command.key} onClick={command.action}>
+								<MenubarItem key={command.key} disabled={command.disabled} onClick={command.action}>
 									{command.text}
 								</MenubarItem>
 							))}
 							<MenubarSeparator />
 							{this._lightCommands.map((command) => (
-								<MenubarItem key={command.key} onClick={command.action}>
+								<MenubarItem key={command.key} disabled={command.disabled} onClick={command.action}>
 									{command.text}
 								</MenubarItem>
 							))}
 							<MenubarSeparator />
 							{this._cameraCommands.map((command) => (
-								<MenubarItem key={command.key} onClick={command.action}>
+								<MenubarItem key={command.key} disabled={command.disabled} onClick={command.action}>
 									{command.text}
 								</MenubarItem>
 							))}
 							<MenubarSeparator />
 							{this._spriteCommands.map((command) => (
-								<MenubarItem key={command.key} onClick={command.action}>
+								<MenubarItem key={command.key} disabled={command.disabled} onClick={command.action}>
 									{command.text}
 								</MenubarItem>
 							))}

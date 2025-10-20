@@ -21,6 +21,7 @@ export * from "./decorators/sound";
 export * from "./decorators/particle-systems";
 export * from "./decorators/inspector";
 export * from "./decorators/events";
+export * from "./decorators/sprite";
 
 export * from "./script";
 

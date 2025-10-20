@@ -23,6 +23,8 @@ import { ParticleSystem } from "@babylonjs/core/Particles/particleSystem";
 import { IParticleSystem } from "@babylonjs/core/Particles/IParticleSystem";
 import { GPUParticleSystem } from "@babylonjs/core/Particles/gpuParticleSystem";
 
+import { Sprite } from "@babylonjs/core/Sprites/sprite";
+
 /**
  * Returns wether or not the given object is an AbstractMesh.
  * @param object defines the reference to the object to test its class name.
@@ -226,4 +228,12 @@ export function isAnyParticleSystem(object: any): object is IParticleSystem {
 	}
 
 	return false;
+}
+
+/**
+ * Returns wether or not the given object is a Sprite.
+ * @param object defines the reference to the object to test its class name.
+ */
+export function isSprite(object: any): object is Sprite {
+	return object.getClassName?.() === "Sprite";
 }

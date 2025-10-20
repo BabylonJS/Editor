@@ -1,10 +1,11 @@
 import { basename, join, dirname } from "path/posix";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
-import { Engine, Scene, ArcRotateCamera, Vector3, CubeTexture, SceneLoader } from "babylonjs";
+import { Engine, Scene, ArcRotateCamera, CubeTexture, AppendSceneAsync } from "babylonjs";
 
 import { showAlert } from "../../../../ui/dialog";
+import { Progress } from "../../../../ui/shadcn/ui/progress";
 
 import { projectConfiguration } from "../../../../project/configuration";
 
@@ -21,6 +22,9 @@ export interface IAssetBrowserModelViewerProps {
 
 function AssetBrowserModelViewer(props: IAssetBrowserModelViewerProps) {
 	const canvasRef = useRef<HTMLCanvasElement>(null);
+
+	const [loading, setLoading] = useState(true);
+	const [progress, setProgress] = useState(0);
 
 	useEffect(() => {
 		if (!projectConfiguration.path) {
@@ -47,25 +51,9 @@ function AssetBrowserModelViewer(props: IAssetBrowserModelViewerProps) {
 			scene.environmentTexture = texture;
 		}
 
-		const camera = new ArcRotateCamera("camera", Math.PI / 2, Math.PI / 2, 150, Vector3.Zero(), scene, true);
-		camera.lowerRadiusLimit = 75;
-		camera.upperRadiusLimit = 200;
-		camera.attachControl();
-
 		const sceneRootUrl = dirname(props.absolutePath);
-		SceneLoader.Append(join(sceneRootUrl, "/"), basename(props.absolutePath), scene, () => {
-			scene.createDefaultCameraOrLight(true, true, true);
-			scene.createDefaultEnvironment({
-				createSkybox: false,
-				enableGroundShadow: true,
-				enableGroundMirror: true,
-				environmentTexture: scene.environmentTexture!,
-			});
 
-			engine.runRenderLoop(() => {
-				scene.render();
-			});
-		});
+		handleLoad(basename(props.absolutePath), scene, join(sceneRootUrl, "/"));
 
 		return () => {
 			scene.dispose();
@@ -73,9 +61,37 @@ function AssetBrowserModelViewer(props: IAssetBrowserModelViewerProps) {
 		};
 	}, []);
 
+	async function handleLoad(source: string, scene: Scene, rootUrl: string) {
+		await AppendSceneAsync(source, scene, {
+			rootUrl,
+			onProgress: (ev) => setProgress((ev.loaded / ev.total) * 100),
+		});
+
+		scene.createDefaultCameraOrLight(true, true, true);
+		scene.createDefaultEnvironment({
+			createSkybox: true,
+			enableGroundShadow: true,
+			enableGroundMirror: true,
+		});
+
+		const camera = scene.activeCamera as ArcRotateCamera;
+		camera.alpha = Math.PI * 0.5;
+		camera.beta = Math.PI * 0.35;
+		camera.angularSensibilityX = 500;
+		camera.angularSensibilityY = 500;
+
+		setLoading(false);
+
+		scene.getEngine().runRenderLoop(() => {
+			scene.render();
+		});
+	}
+
 	return (
-		<div className="w-[50vw] h-[50vh]">
+		<div className="relative w-[50vw] h-[50vh]">
 			<canvas ref={canvasRef} className="w-full h-full rounded-md" />
+
+			{loading && <Progress value={progress} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[35vw]" />}
 		</div>
 	);
 }

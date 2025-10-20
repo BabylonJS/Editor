@@ -1,24 +1,28 @@
-import { join } from "path/posix";
-
 import { Component, ReactNode } from "react";
+
 import { LuRefreshCcw } from "react-icons/lu";
+import { IoPlay, IoStop } from "react-icons/io5";
+import { AiOutlineMinus, AiOutlinePlus } from "react-icons/ai";
 
 import { Sprite, Observer } from "babylonjs";
+import { ISpriteAnimation } from "babylonjs-editor-tools";
 
 import { Button } from "../../../../ui/shadcn/ui/button";
 
 import { isSprite } from "../../../../tools/guards/sprites";
+import { registerUndoRedo } from "../../../../tools/undoredo";
+import { onSpriteModifiedObservable } from "../../../../tools/observables";
 import { getSpriteManagerNodeFromSprite } from "../../../../tools/sprite/tools";
-import { computeSpritePreviewImagesFromDimensions } from "../../../../tools/sprite/image";
-import { computeSpritePreviewImagesFromAtlasJson } from "../../../../tools/sprite/atlas-json";
+import { computeSpriteManagerPreviews } from "../../../../tools/sprite/preview";
 
 import { SpriteManagerNode } from "../../../nodes/sprite-manager";
 
 import { onGizmoNodeChangedObservable } from "../../preview/gizmo";
 
-import { getProjectAssetsRootUrl } from "../../../../project/configuration";
+import { ScriptInspectorComponent } from "../script/script";
 
 import { EditorInspectorListField } from "../fields/list";
+import { EditorInspectorColorField } from "../fields/color";
 import { EditorInspectorStringField } from "../fields/string";
 import { EditorInspectorVectorField } from "../fields/vector";
 import { EditorInspectorNumberField } from "../fields/number";
@@ -28,7 +32,11 @@ import { EditorInspectorDimensionsField } from "../fields/dimensions";
 
 import { IEditorInspectorImplementationProps } from "../inspector";
 
-export class EditorSpriteInspector extends Component<IEditorInspectorImplementationProps<Sprite>> {
+export interface IEditorSpriteInspectorState {
+	selectedAnimation: ISpriteAnimation | null;
+}
+
+export class EditorSpriteInspector extends Component<IEditorInspectorImplementationProps<Sprite>, IEditorSpriteInspectorState> {
 	/**
 	 * Returns whether or not the given object is supported by this inspector.
 	 * @param object defines the object to check.
@@ -44,13 +52,25 @@ export class EditorSpriteInspector extends Component<IEditorInspectorImplementat
 		super(props);
 
 		this._spriteManagerNode = getSpriteManagerNodeFromSprite(this.props.object);
+
+		this.props.object.metadata ??= {};
+		this.props.object.metadata.spriteAnimations ??= [];
+
+		this.state = {
+			selectedAnimation: this.props.object.metadata.spriteAnimations[0] ?? null,
+		};
 	}
 
 	public render(): ReactNode {
 		return (
 			<>
 				<EditorInspectorSectionField title="Common">
-					<EditorInspectorStringField label="Name" object={this.props.object} property="name" />
+					<EditorInspectorStringField
+						label="Name"
+						object={this.props.object}
+						property="name"
+						onChange={() => onSpriteModifiedObservable.notifyObservers(this.props.object)}
+					/>
 				</EditorInspectorSectionField>
 
 				<EditorInspectorSectionField title="Transforms">
@@ -65,6 +85,8 @@ export class EditorSpriteInspector extends Component<IEditorInspectorImplementat
 						</Button>
 					)}
 				</EditorInspectorSectionField>
+
+				<ScriptInspectorComponent object={this.props.object} editor={this.props.editor} />
 
 				<EditorInspectorSectionField title="Sprite">
 					<EditorInspectorNumberField object={this.props.object} property="angle" label="Angle" asDegrees onFinishChange={() => this.forceUpdate()} />
@@ -107,7 +129,11 @@ export class EditorSpriteInspector extends Component<IEditorInspectorImplementat
 							}))}
 						/>
 					)}
+
+					<EditorInspectorColorField object={this.props.object} property="color" label="Color" />
 				</EditorInspectorSectionField>
+
+				{this._getSpriteAnimationsInspector()}
 			</>
 		);
 	}
@@ -121,7 +147,10 @@ export class EditorSpriteInspector extends Component<IEditorInspectorImplementat
 			}
 		});
 
-		this._computeSpritePreviewImages();
+		if (this._spriteManagerNode) {
+			await computeSpriteManagerPreviews(this._spriteManagerNode);
+			this.forceUpdate();
+		}
 	}
 
 	public componentWillUnmount(): void {
@@ -130,22 +159,91 @@ export class EditorSpriteInspector extends Component<IEditorInspectorImplementat
 		}
 	}
 
-	private async _computeSpritePreviewImages(): Promise<void> {
-		if (this._spriteManagerNode?.spriteManager && this._spriteManagerNode?.spritesheet) {
-			const imagePath = join(getProjectAssetsRootUrl()!, this._spriteManagerNode.spritesheet.name);
-
-			if (this._spriteManagerNode.atlasJson) {
-				await computeSpritePreviewImagesFromAtlasJson(this._spriteManagerNode.atlasJson, imagePath);
-			} else if (!this._spriteManagerNode._previews.length) {
-				this._spriteManagerNode._previews = await computeSpritePreviewImagesFromDimensions(
-					imagePath,
-					this._spriteManagerNode.spriteManager.cellWidth,
-					this._spriteManagerNode.spriteManager.cellHeight
-				);
-			}
-
-			this.forceUpdate();
+	private _getSpriteAnimationsInspector(): ReactNode {
+		let maxFrame = this._spriteManagerNode?._previews?.length;
+		if (maxFrame !== undefined) {
+			maxFrame -= 1;
 		}
+
+		const spriteAnimations = this.props.object.metadata.spriteAnimations as ISpriteAnimation[];
+
+		this.props.object.animationStarted;
+
+		return (
+			<EditorInspectorSectionField title="Animations">
+				<div className="flex justify-between items-center">
+					<div className="p-2 font-bold">Sprite Animations</div>
+
+					<div className="flex gap-2">
+						<Button variant="ghost" disabled={spriteAnimations.length === 0} className="p-0.5 w-6 h-6" onClick={() => this._handleRemoveAnimation()}>
+							<AiOutlineMinus className="w-4 h-4" />
+						</Button>
+
+						<Button variant="ghost" className="p-0.5 w-6 h-6" onClick={() => this._handleAddAnimation()}>
+							<AiOutlinePlus className="w-4 h-4" />
+						</Button>
+					</div>
+				</div>
+
+				<div className="flex flex-col rounded-lg bg-black/50 text-white/75 h-96">
+					{spriteAnimations.map((animation, index) => (
+						<div
+							key={`${animation.name}-${index}`}
+							onClick={() => this.setState({ selectedAnimation: animation })}
+							className={`p-2 hover:bg-muted/35 ${this.state.selectedAnimation === animation ? "bg-muted" : ""} transition-all duration-300 ease-in-out`}
+						>
+							{animation.name}
+						</div>
+					))}
+				</div>
+
+				{this.state.selectedAnimation && (
+					<>
+						<Button
+							variant="secondary"
+							onClick={() => this._playOrStopAnimation()}
+							className={`
+								${this.props.object.animationStarted ? "!bg-red-500/35" : "hover:!bg-green-500/35"}
+								transition-all duration-300 ease-in-out
+							`}
+						>
+							{this.props.object.animationStarted && <IoStop className="w-6 h-6" strokeWidth={1} color="red" />}
+							{!this.props.object.animationStarted && <IoPlay className="w-6 h-6" strokeWidth={1} color="green" />}
+							{this.props.object.animationStarted ? " Stop" : " Play"}
+						</Button>
+
+						<EditorInspectorStringField object={this.state.selectedAnimation} property="name" label="Name" onChange={() => this.forceUpdate()} />
+						<EditorInspectorNumberField
+							object={this.state.selectedAnimation}
+							property="from"
+							label="From Frame"
+							step={1}
+							min={0}
+							max={maxFrame}
+							onChange={() => this._handleAnimationPropertiesChanged()}
+						/>
+						<EditorInspectorNumberField
+							object={this.state.selectedAnimation}
+							property="to"
+							label="To Frame"
+							step={1}
+							min={0}
+							max={maxFrame}
+							onChange={() => this._handleAnimationPropertiesChanged()}
+						/>
+						<EditorInspectorNumberField
+							object={this.state.selectedAnimation}
+							property="delay"
+							label="Delay (ms)"
+							min={0}
+							step={1}
+							onChange={() => this._handleAnimationPropertiesChanged()}
+						/>
+						<EditorInspectorSwitchField object={this.state.selectedAnimation} property="loop" label="Loop" />
+					</>
+				)}
+			</EditorInspectorSectionField>
+		);
 	}
 
 	private _resetDimensionsFromAtlasJson(): void {
@@ -158,6 +256,77 @@ export class EditorSpriteInspector extends Component<IEditorInspectorImplementat
 			this.props.object.width = sourceSize.w;
 			this.props.object.height = sourceSize.h;
 			this.forceUpdate();
+		}
+	}
+
+	private _handleAddAnimation(): void {
+		const spriteAnimations = this.props.object.metadata.spriteAnimations as ISpriteAnimation[];
+		const newAnimation: ISpriteAnimation = {
+			name: `Animation ${spriteAnimations.length + 1}`,
+			from: 0,
+			to: 1,
+			loop: true,
+			delay: 100,
+		};
+
+		registerUndoRedo({
+			executeRedo: true,
+			undo: () => spriteAnimations.pop(),
+			redo: () => spriteAnimations.push(newAnimation),
+		});
+
+		this.setState({
+			selectedAnimation: newAnimation,
+		});
+	}
+
+	private _handleRemoveAnimation(): void {
+		const selectedAnimation = this.state.selectedAnimation;
+		if (!selectedAnimation) {
+			return;
+		}
+
+		const spriteAnimations = this.props.object.metadata.spriteAnimations as ISpriteAnimation[];
+
+		const index = spriteAnimations.indexOf(selectedAnimation);
+		if (index === -1) {
+			return;
+		}
+
+		registerUndoRedo({
+			executeRedo: true,
+			undo: () => spriteAnimations.splice(index, 0, selectedAnimation),
+			redo: () => spriteAnimations.splice(index, 1),
+		});
+
+		this.setState({
+			selectedAnimation: spriteAnimations[0] ?? null,
+		});
+	}
+
+	private _playOrStopAnimation(): void {
+		if (this.props.object.animationStarted) {
+			this.props.object.stopAnimation();
+		} else {
+			this.props.object.playAnimation(
+				this.state.selectedAnimation!.from,
+				this.state.selectedAnimation!.to,
+				this.state.selectedAnimation!.loop,
+				this.state.selectedAnimation!.delay
+			);
+		}
+		this.forceUpdate();
+	}
+
+	private _handleAnimationPropertiesChanged(): void {
+		if (this.props.object.animationStarted) {
+			this.props.object.stopAnimation();
+			this.props.object.playAnimation(
+				this.state.selectedAnimation!.from,
+				this.state.selectedAnimation!.to,
+				this.state.selectedAnimation!.loop,
+				this.state.selectedAnimation!.delay
+			);
 		}
 	}
 }

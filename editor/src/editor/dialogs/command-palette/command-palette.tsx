@@ -42,6 +42,7 @@ export interface ICommandPaletteType {
 	text: string;
 	key: string;
 	label: string;
+	disabled?: boolean;
 	ipcRendererChannelKey?: string;
 	action: () => unknown;
 }
@@ -75,31 +76,31 @@ export class CommandPalette extends Component<ICommandPaletteProps, ICommandPale
 
 					<CommandGroup heading="Scene">
 						{getLightCommands(this.props.editor).map((command) => (
-							<CommandItem key={command.key} onSelect={() => this._executeCommand(command)} className="flex items-center gap-2">
+							<CommandItem key={command.key} disabled={command.disabled} onSelect={() => this._executeCommand(command)} className="flex items-center gap-2">
 								<FaCirclePlus className="w-10 h-10" /> {command.text}
 							</CommandItem>
 						))}
 
 						{getMeshCommands(this.props.editor).map((command) => (
-							<CommandItem key={command.key} onSelect={() => this._executeCommand(command)} className="flex items-center gap-2">
+							<CommandItem key={command.key} disabled={command.disabled} onSelect={() => this._executeCommand(command)} className="flex items-center gap-2">
 								<FaCirclePlus className="w-10 h-10" /> {command.text}
 							</CommandItem>
 						))}
 
 						{getCameraCommands(this.props.editor).map((command) => (
-							<CommandItem key={command.key} onSelect={() => this._executeCommand(command)} className="flex items-center gap-2">
+							<CommandItem key={command.key} disabled={command.disabled} onSelect={() => this._executeCommand(command)} className="flex items-center gap-2">
 								<FaCirclePlus className="w-10 h-10" /> {command.text}
 							</CommandItem>
 						))}
 
 						{getParticleSystemsCommands(this.props.editor).map((command) => (
-							<CommandItem key={command.key} onSelect={() => this._executeCommand(command)} className="flex items-center gap-2">
+							<CommandItem key={command.key} disabled={command.disabled} onSelect={() => this._executeCommand(command)} className="flex items-center gap-2">
 								<IoSparklesSharp className="w-10 h-10" /> {command.text}
 							</CommandItem>
 						))}
 
 						{getSpriteCommands(this.props.editor).map((command) => (
-							<CommandItem key={command.key} onSelect={() => this._executeCommand(command)} className="flex items-center gap-2">
+							<CommandItem key={command.key} disabled={command.disabled} onSelect={() => this._executeCommand(command)} className="flex items-center gap-2">
 								<FaCirclePlus className="w-10 h-10" /> {command.text}
 							</CommandItem>
 						))}
@@ -170,7 +171,7 @@ export class CommandPalette extends Component<ICommandPaletteProps, ICommandPale
 						this.props.editor.layout.inspector.setEditedObject(entity);
 						this.props.editor.layout.animations.setEditedObject(entity);
 						if (isNode(entity)) {
-							this.props.editor.layout.preview.gizmo.setAttachedNode(entity);
+							this.props.editor.layout.preview.gizmo.setAttachedObject(entity);
 						}
 
 						this.props.editor.layout.preview.focusObject(entity);

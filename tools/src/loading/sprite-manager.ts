@@ -32,6 +32,7 @@ function parseSerializedSpriteManager(spriteManager: SpriteManager, parsedSprite
 	for (const parsedSprite of parsedSpriteManager?.sprites ?? []) {
 		const sprite = Sprite.Parse(parsedSprite, spriteManager);
 		sprite.uniqueId = parsedSprite.uniqueId;
+		sprite.metadata = parsedSprite.metadata;
 	}
 }
 
@@ -45,6 +46,8 @@ AddParser("SpriteManagerNode", (parsedData: any, scene: Scene, container: AssetC
 		if (!instance) {
 			return;
 		}
+
+		instance.isSpriteManager = transformNode.isSpriteManager;
 
 		if (transformNode.atlasJsonRelativePath) {
 			const atlasJsonAbsolutePath = `${rootUrl}${transformNode.atlasJsonRelativePath}`;

@@ -107,14 +107,14 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
 									</ContextMenuSubTrigger>
 									<ContextMenuSubContent>
 										{getLightCommands(this.props.editor, parent).map((command) => (
-											<ContextMenuItem key={command.key} onClick={command.action}>
+											<ContextMenuItem key={command.key} disabled={command.disabled} onClick={command.action}>
 												{command.text}
 											</ContextMenuItem>
 										))}
 										<ContextMenuSeparator />
 										{getNodeCommands(this.props.editor, parent).map((command) => {
 											return (
-												<ContextMenuItem key={command.key} onClick={command.action}>
+												<ContextMenuItem key={command.key} disabled={command.disabled} onClick={command.action}>
 													{command.text}
 												</ContextMenuItem>
 											);
@@ -126,7 +126,7 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
 											</ContextMenuSubTrigger>
 											<ContextMenuSubContent>
 												{getMeshCommands(this.props.editor, parent).map((command) => (
-													<ContextMenuItem key={command.key} onClick={command.action}>
+													<ContextMenuItem key={command.key} disabled={command.disabled} onClick={command.action}>
 														{command.text}
 													</ContextMenuItem>
 												))}
@@ -134,7 +134,7 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
 										</ContextMenuSub>
 										<ContextMenuSeparator />
 										{getCameraCommands(this.props.editor, parent).map((command) => (
-											<ContextMenuItem key={command.key} onClick={command.action}>
+											<ContextMenuItem key={command.key} disabled={command.disabled} onClick={command.action}>
 												{command.text}
 											</ContextMenuItem>
 										))}
@@ -147,7 +147,7 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
 										)}
 										<ContextMenuSeparator />
 										{getSpriteCommands(this.props.editor, parent).map((command) => (
-											<ContextMenuItem key={command.key} onClick={command.action}>
+											<ContextMenuItem key={command.key} disabled={command.disabled} onClick={command.action}>
 												{command.text}
 											</ContextMenuItem>
 										))}
@@ -251,7 +251,7 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
 					}
 
 					this.props.editor.layout.inspector.setEditedObject(instance);
-					this.props.editor.layout.preview.gizmo.setAttachedNode(instance);
+					this.props.editor.layout.preview.gizmo.setAttachedObject(instance);
 				});
 			},
 			undo: () => {
@@ -329,7 +329,7 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
 					}
 
 					this.props.editor.layout.inspector.setEditedObject(clone);
-					this.props.editor.layout.preview.gizmo.setAttachedNode(clone);
+					this.props.editor.layout.preview.gizmo.setAttachedObject(clone);
 				});
 			},
 			undo: () => {

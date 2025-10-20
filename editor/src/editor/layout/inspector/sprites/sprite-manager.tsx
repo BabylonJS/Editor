@@ -13,8 +13,7 @@ import { isTexture } from "../../../../tools/guards/texture";
 import { registerUndoRedo } from "../../../../tools/undoredo";
 import { isSpriteManagerNode } from "../../../../tools/guards/sprites";
 import { onNodeModifiedObservable } from "../../../../tools/observables";
-import { computeSpritePreviewImagesFromDimensions } from "../../../../tools/sprite/image";
-import { computeSpritePreviewImagesFromAtlasJson } from "../../../../tools/sprite/atlas-json";
+import { computeSpriteManagerPreviews } from "../../../../tools/sprite/preview";
 
 import { getProjectAssetsRootUrl } from "../../../../project/configuration";
 
@@ -25,11 +24,11 @@ import { ScriptInspectorComponent } from "../script/script";
 import { EditorInspectorListField } from "../fields/list";
 import { EditorInspectorStringField } from "../fields/string";
 import { EditorInspectorSwitchField } from "../fields/switch";
+import { EditorInspectorNumberField } from "../fields/number";
 import { EditorInspectorSectionField } from "../fields/section";
 import { EditorInspectorTextureField } from "../fields/texture";
 
 import { IEditorInspectorImplementationProps } from "../inspector";
-import { EditorInspectorNumberField } from "../fields/number";
 
 export interface IEditorSpriteManagerNodeInspectorState {
 	dragOver: boolean;
@@ -112,28 +111,30 @@ export class EditorSpriteManagerNodeInspector extends Component<IEditorInspector
 	}
 
 	private async _computeSpritePreviewImages(): Promise<void> {
-		if (this.props.object.spritesheet) {
-			const imagePath = join(getProjectAssetsRootUrl()!, this.props.object.spritesheet!.name);
-
-			if (this.props.object.atlasJson) {
-				await computeSpritePreviewImagesFromAtlasJson(this.props.object.atlasJson, imagePath);
-			} else if (!this.props.object._previews.length) {
-				this.props.object._previews = await computeSpritePreviewImagesFromDimensions(
-					imagePath,
-					this.props.object.spriteManager!.cellWidth,
-					this.props.object.spriteManager!.cellHeight
-				);
-			}
-
-			this.forceUpdate();
-		}
+		await computeSpriteManagerPreviews(this.props.object);
+		this.forceUpdate();
 	}
 
 	private _getCommonSpriteManagerInspector(): ReactNode {
 		const spritesheetSize = this.props.object.spritesheet!.getSize();
 
+		const o = {
+			capacity: this.props.object.spriteManager?.capacity ?? 0,
+		};
+
 		return (
 			<EditorInspectorSectionField title="Sprite Manager">
+				<EditorInspectorNumberField
+					noUndoRedo
+					object={o}
+					property="capacity"
+					label="Capacity"
+					step={1}
+					min={1}
+					max={100_000}
+					onFinishChange={(v) => this._handleCapacityChanged(v)}
+				/>
+
 				{!this.props.object.atlasJson && (
 					<>
 						<EditorInspectorNumberField
@@ -191,6 +192,40 @@ export class EditorSpriteManagerNodeInspector extends Component<IEditorInspector
 		);
 	}
 
+	private _handleCapacityChanged(newCapacity: number): void {
+		const rootUrl = getProjectAssetsRootUrl()!;
+
+		const oldSerializationData = this.props.object.serialize();
+		const newSerializationData = {
+			...oldSerializationData.spriteManager,
+			capacity: newCapacity,
+		};
+
+		const absoluteFilePath = this.props.object.atlasJsonRelativePath
+			? join(rootUrl, this.props.object.atlasJsonRelativePath)
+			: join(rootUrl, oldSerializationData.spriteManager.textureUrl);
+
+		registerUndoRedo({
+			executeRedo: true,
+			undo: () => {
+				if (this.props.object.atlasJsonRelativePath) {
+					this.props.object.buildFromImageAbsolutePath(absoluteFilePath, oldSerializationData.spriteManager);
+				} else {
+					this.props.object.buildFromImageAbsolutePath(absoluteFilePath, oldSerializationData.spriteManager);
+				}
+			},
+			redo: () => {
+				if (this.props.object.atlasJsonRelativePath) {
+					this.props.object.buildFromImageAbsolutePath(absoluteFilePath, newSerializationData);
+				} else {
+					this.props.object.buildFromImageAbsolutePath(absoluteFilePath, newSerializationData);
+				}
+			},
+		});
+
+		this.forceUpdate();
+	}
+
 	private _getUnpackedSpriteManagerInspector(): ReactNode {
 		const o = {
 			texture: this.props.object.spritesheet,
@@ -205,6 +240,7 @@ export class EditorSpriteManagerNodeInspector extends Component<IEditorInspector
 					hideLevel
 					hideSize
 					hideInvert
+					noPopover
 					object={o}
 					property="texture"
 					title="Texture"
@@ -218,7 +254,7 @@ export class EditorSpriteManagerNodeInspector extends Component<IEditorInspector
 					}}
 				/>
 
-				{!this.props.object.atlasJsonRelativePath && (
+				{this.props.object.spritesheet && (
 					<div className="flex flex-col gap-2 w-full">
 						<div
 							style={{

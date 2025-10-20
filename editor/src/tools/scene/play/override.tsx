@@ -103,9 +103,9 @@ export function applyOverrides(editor: Editor) {
 	consoleMethodsList.forEach((method) => {
 		console[method] = (...args: any[]) => {
 			const node = (
-				<div>
-					<b className="font-bold text-[#2d72d2]"> [DEBUG] </b>
-					{args.join("\n")}
+				<div className="text-inherit">
+					<b className="font-bold text-[#2d72d2]">[{method.toUpperCase()}] </b>
+					{args.join(", ")}
 				</div>
 			);
 
