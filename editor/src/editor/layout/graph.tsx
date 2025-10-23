@@ -901,36 +901,77 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 	}
 
 	private _setParentPreservingWorldTransform(node: Node, newParent: Node | null): void {
-		if (!(node instanceof TransformNode)) {
-			// For non-transform nodes, just set the parent directly
+		// TransformNodes (including Meshes) support full world transform preservation
+		if (node instanceof TransformNode) {
+			// Store the current world transform
+			const worldPosition = node.getAbsolutePosition();
+			const worldRotation = node.rotationQuaternion || node.rotation.toQuaternion();
+			const worldScaling = node.absoluteScaling.clone();
+
+			// Set the new parent
 			node.parent = newParent;
+
+			// Restore the world transform
+			node.position.copyFrom(worldPosition);
+
+			// Compute the local rotation based on the parent's rotation
+			let localRotation = worldRotation;
+			if (newParent instanceof TransformNode) {
+				const parentRotation = newParent.absoluteRotationQuaternion;
+				localRotation = parentRotation.conjugate().multiply(worldRotation);
+			}
+
+			if (node.rotationQuaternion) {
+				node.rotationQuaternion.copyFrom(localRotation);
+			} else {
+				node.rotation.copyFrom(localRotation.toEulerAngles());
+			}
+
+			node.scaling.copyFrom(worldScaling);
 			return;
 		}
 
-		// Store the current world transform
-		const worldPosition = node.getAbsolutePosition();
-		const worldRotation = node.rotationQuaternion || node.rotation.toQuaternion();
-		const worldScaling = node.absoluteScaling.clone();
+		// Cameras and Lights have position and rotation but not the full transform methods
+		if (isCamera(node) || isLight(node)) {
+			// Store current world position and rotation
+			const worldPosition = (node as any).position.clone();
+			const worldRotation = (node as any).rotationQuaternion || (node as any).rotation.toQuaternion();
 
-		// Set the new parent
+			// Set the new parent
+			node.parent = newParent;
+
+			// For cameras and lights, we need to compute local position manually
+			if (newParent instanceof TransformNode) {
+				// Compute local position from world position
+				const localPosition = worldPosition.subtract(newParent.getAbsolutePosition());
+				const parentRotationInverse = newParent.absoluteRotationQuaternion.conjugate();
+				localPosition.applyRotationQuaternionInPlace(parentRotationInverse);
+				localPosition.divideInPlace(newParent.absoluteScaling);
+				(node as any).position.copyFrom(localPosition);
+
+				// Compute local rotation
+				const parentRotation = newParent.absoluteRotationQuaternion;
+				const localRotation = parentRotation.conjugate().multiply(worldRotation);
+				
+				if ((node as any).rotationQuaternion) {
+					(node as any).rotationQuaternion.copyFrom(localRotation);
+				} else {
+					(node as any).rotation.copyFrom(localRotation.toEulerAngles());
+				}
+			} else {
+				// No parent, world position/rotation equals local position/rotation
+				(node as any).position.copyFrom(worldPosition);
+				
+				if ((node as any).rotationQuaternion) {
+					(node as any).rotationQuaternion.copyFrom(worldRotation);
+				} else {
+					(node as any).rotation.copyFrom(worldRotation.toEulerAngles());
+				}
+			}
+			return;
+		}
+
+		// For other node types, just set the parent directly
 		node.parent = newParent;
-
-		// Restore the world transform
-		node.setAbsolutePosition(worldPosition);
-
-		// Compute the local rotation based on the parent's rotation
-		let localRotation = worldRotation;
-		if (newParent instanceof TransformNode) {
-			const parentRotation = newParent.absoluteRotationQuaternion;
-			localRotation = parentRotation.conjugate().multiply(worldRotation);
-		}
-
-		if (node.rotationQuaternion) {
-			node.rotationQuaternion.copyFrom(localRotation);
-		} else {
-			node.rotation.copyFrom(localRotation.toEulerAngles());
-		}
-
-		node.scaling.copyFrom(worldScaling);
 	}
 }
