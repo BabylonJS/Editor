@@ -910,7 +910,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		// Store the current world transform
 		const worldPosition = node.getAbsolutePosition();
 		const worldRotation = node.rotationQuaternion || node.rotation.toQuaternion();
-		const worldScaling = node.absoluteScaling;
+		const worldScaling = node.absoluteScaling.clone();
 
 		// Set the new parent
 		node.parent = newParent;
@@ -918,11 +918,17 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		// Restore the world transform
 		node.setAbsolutePosition(worldPosition);
 
+		// Compute the local rotation based on the parent's rotation
+		let localRotation = worldRotation;
+		if (newParent instanceof TransformNode) {
+			const parentRotation = newParent.absoluteRotationQuaternion;
+			localRotation = parentRotation.conjugate().multiply(worldRotation);
+		}
+
 		if (node.rotationQuaternion) {
-			node.absoluteRotationQuaternion.copyFrom(worldRotation);
+			node.rotationQuaternion.copyFrom(localRotation);
 		} else {
-			const rotationVector = worldRotation.toEulerAngles();
-			node.rotation.copyFrom(rotationVector);
+			node.rotation.copyFrom(localRotation.toEulerAngles());
 		}
 
 		node.scaling.copyFrom(worldScaling);
