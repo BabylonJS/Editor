@@ -254,7 +254,7 @@ export class EditorSpriteManagerNodeInspector extends Component<IEditorInspector
 					}}
 				/>
 
-				{this.props.object.spritesheet && (
+				{this.props.object.spritesheet && !this.props.object.atlasJsonRelativePath && (
 					<div className="flex flex-col gap-2 w-full">
 						<div
 							style={{
@@ -296,6 +296,9 @@ export class EditorSpriteManagerNodeInspector extends Component<IEditorInspector
 
 		registerUndoRedo({
 			executeRedo: true,
+			action: () => {
+				this.props.object._previews = [];
+			},
 			undo: async () => {
 				this.props.object.disposeSpriteManager();
 
@@ -398,9 +401,10 @@ export class EditorSpriteManagerNodeInspector extends Component<IEditorInspector
 					const path = JSON.parse(ev.dataTransfer.getData("assets"))[0];
 					const extension = extname(path).toLowerCase();
 					if (extension === ".json") {
-						await this.props.object.buildFromAtlasJsonAbsolutePath(path);
-						await this._computeSpritePreviewImages();
-						this.forceUpdate();
+						this.props.object._previews = [];
+						this.props.object.buildFromAtlasJsonAbsolutePath(path);
+
+						this._computeSpritePreviewImages();
 					}
 				}}
 				className={`
