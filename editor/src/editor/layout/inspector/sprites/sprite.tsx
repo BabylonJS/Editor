@@ -160,14 +160,18 @@ export class EditorSpriteInspector extends Component<IEditorInspectorImplementat
 	}
 
 	private _getSpriteAnimationsInspector(): ReactNode {
-		let maxFrame = this._spriteManagerNode?._previews?.length;
-		if (maxFrame !== undefined) {
-			maxFrame -= 1;
+		let maxFrame = 0;
+
+		if (this._spriteManagerNode?.atlasJson) {
+			maxFrame = Object.keys(this._spriteManagerNode.atlasJson.frames).length - 1;
+		} else if (this._spriteManagerNode) {
+			maxFrame = this._spriteManagerNode._previews?.length;
+			if (maxFrame !== undefined) {
+				maxFrame -= 1;
+			}
 		}
 
 		const spriteAnimations = this.props.object.metadata.spriteAnimations as ISpriteAnimation[];
-
-		this.props.object.animationStarted;
 
 		return (
 			<EditorInspectorSectionField title="Animations">
