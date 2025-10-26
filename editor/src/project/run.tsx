@@ -25,6 +25,8 @@ export async function startProjectDevProcess(editor: Editor) {
 
 	isBusy = true;
 
+	editor.layout.selectTab("console");
+
 	const log = await editor.layout.console.progress("Starting the game / application...");
 
 	await checkPackageManagerAvailable(editor.state.packageManager!);
