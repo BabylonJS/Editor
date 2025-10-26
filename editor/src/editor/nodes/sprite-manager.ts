@@ -85,6 +85,8 @@ export class SpriteManagerNode extends TransformNode {
 		if (serializeSpriteManager) {
 			this._parseSpriteManager(serializeSpriteManager);
 		}
+
+		this._overrideSpriteRenderer();
 	}
 
 	public buildFromAtlasJsonAbsolutePath(absolutePath: string, serializeSpriteManager?: any): void {
@@ -113,6 +115,8 @@ export class SpriteManagerNode extends TransformNode {
 		if (serializeSpriteManager) {
 			this._parseSpriteManager(serializeSpriteManager);
 		}
+
+		this._overrideSpriteRenderer();
 	}
 
 	public disposeSpriteManager(): void {
@@ -151,6 +155,12 @@ export class SpriteManagerNode extends TransformNode {
 			const sprite = Sprite.Parse(parsedSprite, this.spriteManager);
 			sprite.uniqueId = parsedSprite.uniqueId;
 			sprite.metadata = parsedSprite.metadata;
+		}
+	}
+
+	private _overrideSpriteRenderer(): void {
+		if (!this.spriteManager) {
+			return;
 		}
 
 		const spriteRenderer = this.spriteManager.spriteRenderer;
