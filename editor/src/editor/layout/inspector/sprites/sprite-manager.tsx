@@ -248,7 +248,7 @@ export class EditorSpriteManagerNodeInspector extends Component<IEditorInspector
 					accept3dlTexture={false}
 					acceptCubeTexture={false}
 					onChange={async (texture) => {
-						if (isTexture(texture)) {
+						if (!texture || isTexture(texture)) {
 							this._handleSpritesheetTextureChanged(texture);
 						}
 					}}

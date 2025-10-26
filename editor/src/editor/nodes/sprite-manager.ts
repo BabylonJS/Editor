@@ -1,7 +1,9 @@
-import { readJSONSync } from "fs-extra";
 import { dirname, isAbsolute, join } from "path/posix";
+import { pathExistsSync, readJSONSync } from "fs-extra";
 
 import { Node, TransformNode, Scene, Tools, serialize, SerializationHelper, Matrix, GetClass, SpriteManager, Texture, Sprite, Observer } from "babylonjs";
+
+import { showAlert } from "../../ui/dialog";
 
 import { UniqueNumber } from "../../tools/tools";
 
@@ -90,12 +92,18 @@ export class SpriteManagerNode extends TransformNode {
 	}
 
 	public buildFromAtlasJsonAbsolutePath(absolutePath: string, serializeSpriteManager?: any): void {
+		const atlasJson = readJSONSync(absolutePath);
+		const imagePath = join(dirname(absolutePath), atlasJson.meta["image"]);
+
+		if (!pathExistsSync(imagePath)) {
+			showAlert("Error", `Cannot find the associated image for the atlas JSON file: ${imagePath}`);
+			return;
+		}
+
 		this.spriteManager?.dispose();
 
-		this.atlasJson = readJSONSync(absolutePath);
+		this.atlasJson = atlasJson;
 		this.atlasJsonRelativePath = absolutePath.replace(getProjectAssetsRootUrl()!, "");
-
-		const imagePath = join(dirname(absolutePath), this.atlasJson.meta["image"]);
 
 		this.spriteManager = new SpriteManager(
 			this.name,

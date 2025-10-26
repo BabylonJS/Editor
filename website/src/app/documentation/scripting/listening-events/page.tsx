@@ -15,11 +15,8 @@ import {
 } from "./pointer-event";
 
 import { NextChapterComponent } from "../../components/next-chapter";
-import { PointerEventTypes } from "@babylonjs/core";
 
 export default function DocumentationRunningProjectPage() {
-	PointerEventTypes.POINTERDOUBLETAP;
-
 	return (
 		<main className="w-full min-h-screen p-5 bg-black text-neutral-50">
 			<div className="flex flex-col gap-10 lg:max-w-3xl 2xl:max-w-6xl mx-auto pt-32">
@@ -128,7 +125,7 @@ export default function DocumentationRunningProjectPage() {
 
 						<CodeBlock code={onKeyboardEventArrayBasicExample} />
 
-						<NextChapterComponent href="/documentation/advanced/compressing-textures" title="Compressing textures" />
+						<NextChapterComponent href="/documentation/sprites/using-sprite-manager" title="Using Sprite Manager" />
 					</div>
 				</Fade>
 			</div>
