@@ -50,6 +50,18 @@ const savedHtmlElementListeners: {
 	listener: EventListenerOrEventListenerObject;
 }[] = [];
 
+function normalizeUrl(url: string) {
+	if (url.startsWith("scene/")) {
+		url = url.substring("scene/".length);
+	}
+
+	if (url.startsWith("/scene/")) {
+		url = url.substring("/scene/".length);
+	}
+
+	return url;
+}
+
 /**
  * To play scene inline in the editor, we need to override some methods.
  * This function restores all the orignal methods for all object that have been overridden.
@@ -135,6 +147,7 @@ export function applyOverrides(editor: Editor) {
 	// Fetch
 	window.fetch = async (input: string | URL | Request, init?: RequestInit) => {
 		if (!isAbsolute(input.toString())) {
+			input = normalizeUrl(input.toString());
 			input = join(publicDir, input.toString());
 		}
 
@@ -171,6 +184,7 @@ export function applyOverrides(editor: Editor) {
 	// WebRequest
 	WebRequest.prototype.open = function (method: string, url: string) {
 		if (url && !isAbsolute(url)) {
+			url = normalizeUrl(url);
 			url = join(publicDir, url);
 		}
 
@@ -184,6 +198,11 @@ export function applyOverrides(editor: Editor) {
 
 	// Engine
 	Engine.prototype.createTexture = (url: string, ...args: any[]) => {
+		if (!isAbsolute(url) && !url.startsWith("data:")) {
+			url = normalizeUrl(url);
+			url = join(publicScene, url);
+		}
+
 		const temporaryTextureIndex = url?.indexOf(".bjseditor") ?? -1;
 
 		if (temporaryTextureIndex !== -1) {
