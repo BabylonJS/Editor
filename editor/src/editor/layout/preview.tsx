@@ -625,8 +625,9 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		const pickedObject = pickingInfo.pickedSprite ?? pickingInfo.pickedMesh?._masterMesh ?? pickingInfo.pickedMesh;
 
 		if (!pickedObject || (isNode(pickedObject) && isNodeLocked(pickedObject))) {
+			this._restoreCurrentMeshUnderPointer();
 			this._objectUnderPointer = null;
-			return this._restoreCurrentMeshUnderPointer();
+			return;
 		}
 
 		if (this._objectUnderPointer !== pickedObject) {
@@ -659,12 +660,13 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		}
 
 		this._restoreCurrentMeshUnderPointer();
-		this._objectUnderPointer = null;
 
-		if (event.button === 2) {
+		if (event.button === 2 && this._objectUnderPointer) {
 			this.scene.activeCamera?.inputs.detachElement();
 			this._handleMouseUp(event);
 		}
+
+		this._objectUnderPointer = null;
 	}
 
 	private _handleDoubleClick(_event: MouseEvent<HTMLCanvasElement, globalThis.MouseEvent>): void {
