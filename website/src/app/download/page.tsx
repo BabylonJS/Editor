@@ -26,12 +26,12 @@ export default function DownloadPage() {
 					</Fade>
 
 					<DownloadVersionComponent
-						version="v5.1.10"
-						windowsx64Link="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/updates/BabylonJS%20Editor%20Setup%205.1.10.exe"
-						macArm64Link="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/updates/BabylonJS%20Editor-5.1.10-arm64.dmg"
-						macIntelLink="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/updates/x64/BabylonJS%20Editor-5.1.10.dmg"
-						linuxx64Link="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/updates/BabylonJS%20Editor-5.1.10.AppImage"
-						linuxArm64Link="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/updates/BabylonJS%20Editor-5.1.10-arm64.AppImage"
+						version="v5.2.0"
+						windowsx64Link="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/updates/BabylonJS%20Editor%20Setup%205.2.0.exe"
+						macArm64Link="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/updates/BabylonJS%20Editor-5.2.0-arm64.dmg"
+						macIntelLink="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/updates/x64/BabylonJS%20Editor-5.2.0.dmg"
+						linuxx64Link="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/updates/BabylonJS%20Editor-5.2.0.AppImage"
+						linuxArm64Link="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/updates/BabylonJS%20Editor-5.2.0-arm64.AppImage"
 					/>
 
 					<DownloadVersionComponent
