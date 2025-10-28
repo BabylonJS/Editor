@@ -1,8 +1,25 @@
 import { Component, ReactNode } from "react";
 
-import { Scene, ArcRotateCamera, Vector3, Viewport, TransformNode, Quaternion, Color3, MeshBuilder, StandardMaterial, AbstractMesh } from "babylonjs";
+import {
+	Scene,
+	ArcRotateCamera,
+	Vector3,
+	Viewport,
+	TransformNode,
+	Quaternion,
+	Color3,
+	MeshBuilder,
+	StandardMaterial,
+	AbstractMesh,
+	PointerEventTypes,
+	Vector2,
+	Mesh,
+} from "babylonjs";
 
 import { waitUntil } from "../../../tools/tools";
+import { Tween } from "../../../tools/animation/tween";
+import { isAbstractMesh } from "../../../tools/guards/nodes";
+import { projectVectorOnScreen } from "../../../tools/maths/projection";
 
 import { Editor } from "../../main";
 
@@ -10,16 +27,62 @@ export interface IEditorPreviewAxisHelperProps {
 	editor: Editor;
 }
 
-export interface IEditorPreviewAxisHelperState {}
+export interface IEditorPreviewAxisHelperState {
+	xLabelPosition: Vector2;
+	yLabelPosition: Vector2;
+	zLabelPosition: Vector2;
+}
 
 export class EditorPreviewAxisHelper extends Component<IEditorPreviewAxisHelperProps, IEditorPreviewAxisHelperState> {
 	public scene: Scene | null = null;
 
 	private _axisClickableMeshes: AbstractMesh[] = [];
-	// private _axisMeshUnderPointer: AbstractMesh | null = null;
+	private _axisMeshUnderPointer: AbstractMesh | null = null;
+
+	public constructor(props: IEditorPreviewAxisHelperProps) {
+		super(props);
+
+		this.state = {
+			xLabelPosition: Vector2.Zero(),
+			yLabelPosition: Vector2.Zero(),
+			zLabelPosition: Vector2.Zero(),
+		};
+	}
 
 	public render(): ReactNode {
-		return <></>;
+		return (
+			<>
+				<div
+					className="absolute text-black/50 text-xs font-semibold -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+					style={{
+						top: `calc(100% - calc(164px - ${this.state.xLabelPosition.y}px))`,
+						left: `${this.state.xLabelPosition.x}px`,
+					}}
+				>
+					X
+				</div>
+
+				<div
+					className="absolute text-black/50 text-xs font-semibold -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+					style={{
+						top: `calc(100% - calc(164px - ${this.state.yLabelPosition.y}px))`,
+						left: `${this.state.yLabelPosition.x}px`,
+					}}
+				>
+					Y
+				</div>
+
+				<div
+					className="absolute text-black/50 text-xs font-semibold -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+					style={{
+						top: `calc(100% - calc(164px - ${this.state.zLabelPosition.y}px))`,
+						left: `${this.state.zLabelPosition.x}px`,
+					}}
+				>
+					Z
+				</div>
+			</>
+		);
 	}
 
 	public componentWillUnmount(): void {
@@ -54,9 +117,9 @@ export class EditorPreviewAxisHelper extends Component<IEditorPreviewAxisHelperP
 		const dummy = new TransformNode("dummy", this.scene);
 		dummy.rotationQuaternion = Quaternion.Identity();
 
-		this._createAxis(dummy, Color3.FromHexString("#ff4466"), new Vector3(0, 0, -Math.PI / 2), new Vector3(0.25, 0, 0));
-		this._createAxis(dummy, Color3.FromHexString("#88ff44"), Vector3.Zero(), new Vector3(0, 0.25, 0));
-		this._createAxis(dummy, Color3.FromHexString("#4488ff"), new Vector3(Math.PI / 2, 0, 0), new Vector3(0, 0, 0.25));
+		const xSphere = this._createAxis(dummy, Color3.FromHexString("#ff4466"), new Vector3(0, 0, -Math.PI / 2), new Vector3(0.25, 0, 0));
+		const ySphere = this._createAxis(dummy, Color3.FromHexString("#88ff44"), Vector3.Zero(), new Vector3(0, 0.25, 0));
+		const zSphere = this._createAxis(dummy, Color3.FromHexString("#4488ff"), new Vector3(Math.PI / 2, 0, 0), new Vector3(0, 0, 0.25));
 
 		this._createNegativeAlphaSphere(dummy, new Vector3(-0.25, 0, 0));
 		this._createNegativeAlphaSphere(dummy, new Vector3(0, -0.25, 0));
@@ -75,71 +138,80 @@ export class EditorPreviewAxisHelper extends Component<IEditorPreviewAxisHelperP
 			const height = absoluteSize / engine.getRenderHeight();
 
 			camera.viewport = new Viewport(1 - width, 0, width, height);
+
+			this.setState({
+				xLabelPosition: projectVectorOnScreen(xSphere.computeWorldMatrix(true).getTranslation(), this.scene!),
+				yLabelPosition: projectVectorOnScreen(ySphere.computeWorldMatrix(true).getTranslation(), this.scene!),
+				zLabelPosition: projectVectorOnScreen(zSphere.computeWorldMatrix(true).getTranslation(), this.scene!),
+			});
 		});
 
-		// this.scene.onPointerObservable.add((pointerInfo) => {
-		// 	switch (pointerInfo.type) {
-		// 		case PointerEventTypes.POINTERMOVE:
-		// 			this._handlePointerMove();
-		// 			break;
+		this.scene.onPointerObservable.add((pointerInfo) => {
+			switch (pointerInfo.type) {
+				case PointerEventTypes.POINTERMOVE:
+					this._handlePointerMove(pointerInfo.event as MouseEvent);
+					break;
 
-		// 		case PointerEventTypes.POINTERTAP:
-		// 			// TODO: determine what can be done with FreeCamera. Center point is obvious with ArcRotateCamera, but not with FreeCamera. Please help :)
-		// 			// this._handlePointerTap();
-		// 			break;
-		// 	}
-		// });
+				case PointerEventTypes.POINTERTAP:
+					this._handlePointerTap(pointerInfo.event as MouseEvent);
+					break;
+			}
+		});
 	}
 
-	// private _handlePointerMove(): void {
-	// 	const pick = this.scene!.pick(this.scene!.pointerX, this.scene!.pointerY, (mesh) => mesh.metadata?.axis, false);
+	private _handlePointerMove(ev: MouseEvent): void {
+		const pick = this.scene!.pick(this.scene!.pointerX, this.scene!.pointerY, (mesh) => mesh.metadata?.axis, false);
 
-	// 	if (pick.pickedMesh !== this._axisMeshUnderPointer) {
-	// 		Tween.create(this._axisMeshUnderPointer, 0.35, {
-	// 			killAllTweensOfTarget: true,
-	// 			scaling: new Vector3(1, 1, 1),
-	// 		});
+		if (pick.pickedMesh !== this._axisMeshUnderPointer) {
+			Tween.create(this._axisMeshUnderPointer, 0.35, {
+				killAllTweensOfTarget: true,
+				scaling: new Vector3(1, 1, 1),
+			});
 
-	// 		this._axisMeshUnderPointer = null;
-	// 	}
+			this._axisMeshUnderPointer = null;
+		}
 
-	// 	if (pick.pickedMesh) {
-	// 		this._axisMeshUnderPointer = pick.pickedMesh;
-	// 		pick.pickedMesh.scaling.setAll(1.4);
-	// 	}
-	// }
+		if (pick.pickedMesh) {
+			this._axisMeshUnderPointer = pick.pickedMesh;
+			this._axisMeshUnderPointer.scaling.setAll(1.4);
 
-	// private _handlePointerTap(): void {
-	// 	const camera = this.props.editor.layout.preview?.scene.activeCamera;
-	// 	if (!this._axisMeshUnderPointer || !camera) {
-	// 		return;
-	// 	}
+			ev.stopPropagation();
+		}
+	}
 
-	// 	const graphSelectedObjects = this.props.editor.layout.graph.getSelectedNodes();
-	// 	const mesh = graphSelectedObjects.find((n) => isAbstractMesh(n.nodeData))?.nodeData as AbstractMesh;
+	private _handlePointerTap(ev: MouseEvent): void {
+		const camera = this.props.editor.layout.preview?.scene.activeCamera as ArcRotateCamera;
+		if (!this._axisMeshUnderPointer || !camera) {
+			return;
+		}
 
-	// 	if (!mesh) {
-	// 		return;
-	// 	}
+		ev.stopPropagation();
 
-	// 	mesh.refreshBoundingInfo({
-	// 		applyMorph: true,
-	// 		applySkeleton: true,
-	// 		updatePositionsArray: true,
-	// 	});
+		const graphSelectedObjects = this.props.editor.layout.graph.getSelectedNodes();
+		const mesh = graphSelectedObjects.find((n) => isAbstractMesh(n.nodeData))?.nodeData as AbstractMesh;
 
-	// 	const center = mesh.getBoundingInfo().boundingBox.centerWorld;
-	// 	const radius = Vector3.Distance(camera.globalPosition, center);
-	// 	const cameraPosition = center.add(this._axisMeshUnderPointer.metadata.axis.scale(radius));
+		if (!mesh) {
+			return;
+		}
 
-	// 	Tween.create(camera, 0.35, {
-	// 		killAllTweensOfTarget: true,
-	// 		target: center,
-	// 		position: cameraPosition,
-	// 	});
-	// }
+		mesh.refreshBoundingInfo({
+			applyMorph: true,
+			applySkeleton: true,
+			updatePositionsArray: true,
+		});
 
-	private _createAxis(root: TransformNode, color: Color3, rotation: Vector3, offset: Vector3): void {
+		const center = mesh.getBoundingInfo().boundingBox.centerWorld;
+		const radius = Vector3.Distance(camera.globalPosition, center);
+		const cameraPosition = center.add(this._axisMeshUnderPointer.metadata.axis.scale(radius));
+
+		Tween.create(camera, 0.35, {
+			target: center,
+			position: cameraPosition,
+			killAllTweensOfTarget: true,
+		});
+	}
+
+	private _createAxis(root: TransformNode, color: Color3, rotation: Vector3, offset: Vector3): Mesh {
 		const material = new StandardMaterial("", this.scene!);
 		material.emissiveColor = color;
 		material.transparencyMode = StandardMaterial.MATERIAL_OPAQUE;
@@ -157,6 +229,8 @@ export class EditorPreviewAxisHelper extends Component<IEditorPreviewAxisHelperP
 		sphere.metadata = { axis: offset.clone().normalize() };
 
 		this._axisClickableMeshes.push(sphere);
+
+		return sphere;
 	}
 
 	private _createNegativeAlphaSphere(root: TransformNode, offset: Vector3): void {
