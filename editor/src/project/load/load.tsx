@@ -5,15 +5,22 @@ import { toast } from "sonner";
 
 import { Editor } from "../../editor/main";
 
-import { execNodePty } from "../../tools/node-pty";
+import packageJson from "../../../package.json";
 
-import { IEditorProject } from "../typings";
+import { EditorProjectPackageManager, IEditorProject } from "../typings";
 import { projectConfiguration } from "../configuration";
 
 import { loadScene } from "./scene";
 import { LoadScenePrepareComponent } from "./prepare";
+import { installBabylonJSEditorTools, installDependencies } from "./install";
 
-export async function loadProject(editor: Editor, path: string): Promise<void> {
+/**
+ * Loads an editor project located at the given path. Typically called at startup when opening
+ * a project from the dashboard.
+ * @param editor defines the reference to the editor.
+ * @param path defines the absolute path to the project file.
+ */
+export async function loadProject(editor: Editor, path: string) {
 	const directory = dirname(path);
 	const project = (await readJSON(path, "utf-8")) as IEditorProject;
 	const packageManager = project.packageManager ?? "yarn";
@@ -33,41 +40,11 @@ export async function loadProject(editor: Editor, path: string): Promise<void> {
 	projectConfiguration.compressedTexturesEnabled = project.compressedTexturesEnabled ?? false;
 
 	// Update dependencies
-	const toastId = toast(<LoadScenePrepareComponent />, {
-		duration: Infinity,
-		dismissible: false,
-	});
-
-	let command = "";
-	switch (packageManager) {
-		case "npm":
-			command = "npm i";
-			break;
-		case "pnpm":
-			command = "pnpm i";
-			break;
-		case "bun":
-			command = "bun i";
-			break;
-		default:
-			command = "yarn";
-			break;
-	}
-
-	const p = await execNodePty(command, { cwd: directory });
-	p.wait().then(async (code) => {
-		toast.dismiss(toastId);
-
-		if (code !== 0) {
-			toast.warning(`Package manager "${packageManager}" is not available on your system. Dependencies will not be updated.`);
-		} else {
-			editor.layout.preview.setState({
-				playEnabled: true,
-			});
-			toast.success("Dependencies successfully updated");
-		}
-
-		loadProjectPlugins(editor, path, project);
+	checkDependencies(editor, {
+		path,
+		project,
+		directory,
+		packageManager,
 	});
 
 	// Load scene?
@@ -85,6 +62,63 @@ export async function loadProject(editor: Editor, path: string): Promise<void> {
 		editor.layout.graph.refresh();
 		editor.layout.inspector.setEditedObject(editor.layout.preview.scene);
 	}
+}
+
+export async function checkDependencies(
+	editor: Editor,
+	{
+		directory,
+		path,
+		project,
+		packageManager,
+	}: {
+		directory: string;
+		path: string;
+		project: IEditorProject;
+		packageManager: EditorProjectPackageManager;
+	}
+) {
+	const toastId = toast(<LoadScenePrepareComponent />, {
+		duration: Infinity,
+		dismissible: false,
+	});
+
+	const installCode = await installDependencies(packageManager as any, directory);
+	if (installCode !== 0) {
+		toast.warning(`Package manager "${packageManager}" is not available on your system. Dependencies will not be updated.`);
+	}
+
+	const toolsPackageJsonPath = join(directory, "node_modules/babylonjs-editor-tools/package.json");
+
+	let matchesVersion = false;
+	try {
+		const toolsPackageJson = await readJSON(toolsPackageJsonPath, "utf-8");
+		if (toolsPackageJson.version === packageJson.version) {
+			matchesVersion = true;
+		}
+	} catch (e) {
+		// Catch silently
+	}
+
+	let toolsCode = 0;
+	if (!matchesVersion) {
+		toolsCode = await installBabylonJSEditorTools(packageManager, directory, packageJson.version);
+		if (toolsCode !== 0) {
+			toast.warning(`Package manager "${packageManager}" is not available on your system. Can't install "babylonjs-editor-tools" package dependency.`);
+		}
+	}
+
+	toast.dismiss(toastId);
+
+	if (installCode === 0 && toolsCode === 0) {
+		editor.layout.preview.setState({
+			playEnabled: true,
+		});
+
+		toast.success("Dependencies successfully updated");
+	}
+
+	loadProjectPlugins(editor, path, project);
 }
 
 export async function loadProjectPlugins(editor: Editor, path: string, project: IEditorProject) {
