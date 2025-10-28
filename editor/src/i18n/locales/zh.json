@@ -93,15 +93,20 @@
 		"save": {
 			"title": "保存项目",
 			"saving": "正在保存项目...",
-			"savedSuccessfully": "项目保存成功",
-			"saveFailed": "保存项目失败"
+			"savedSuccessfully": "项目已保存",
+			"saveFailed": "保存项目时出错",
+			"compilingMaterials": "正在编译材质..."
 		},
 		"load": {
 			"title": "加载项目",
 			"loading": "正在加载项目...",
 			"loadedSuccessfully": "项目加载成功",
 			"loadFailed": "加载项目失败",
-			"preparing": "正在准备项目..."
+			"preparing": "正在准备项目...",
+			"sceneLoaded": "场景已加载，编辑器已就绪。",
+			"sceneNotFound": "场景 {{sceneName}} 不存在。",
+			"packageManagerNotAvailable": "系统上不可用包管理器 {{packageManager}}。依赖项将不会更新。",
+			"dependenciesUpdated": "依赖项已成功更新"
 		},
 		"export": {
 			"title": "导出项目",
@@ -118,7 +123,11 @@
 			"running": "项目正在运行",
 			"stopped": "项目已停止",
 			"failed": "启动项目失败"
-		}
+		},
+		"confirmRemove": "删除项目",
+		"confirmRemoveMessage": "您确定要删除此项目吗？",
+		"confirmCloseProject": "您确定吗？",
+		"confirmCloseProjectMessage": "这将关闭当前项目并打开选定的项目。"
 	},
 	"dialogs": {
 		"confirm": "确认",

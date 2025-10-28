@@ -93,15 +93,20 @@
 		"save": {
 			"title": "プロジェクトを保存",
 			"saving": "プロジェクトを保存中...",
-			"savedSuccessfully": "プロジェクトが正常に保存されました",
-			"saveFailed": "プロジェクトの保存に失敗しました"
+			"savedSuccessfully": "プロジェクトが保存されました",
+			"saveFailed": "プロジェクトの保存に失敗しました",
+			"compilingMaterials": "マテリアルをコンパイル中..."
 		},
 		"load": {
 			"title": "プロジェクトを読み込む",
 			"loading": "プロジェクトを読み込み中...",
 			"loadedSuccessfully": "プロジェクトが正常に読み込まれました",
 			"loadFailed": "プロジェクトの読み込みに失敗しました",
-			"preparing": "プロジェクトを準備中..."
+			"preparing": "プロジェクトを準備中...",
+			"sceneLoaded": "シーンが読み込まれ、エディターの準備が整いました。",
+			"sceneNotFound": "シーン「{{sceneName}}」が存在しません。",
+			"packageManagerNotAvailable": "パッケージマネージャー「{{packageManager}}」がシステムで利用できません。依存関係は更新されません。",
+			"dependenciesUpdated": "依存関係が正常に更新されました"
 		},
 		"export": {
 			"title": "プロジェクトをエクスポート",
@@ -118,7 +123,11 @@
 			"running": "プロジェクトが実行中です",
 			"stopped": "プロジェクトが停止しました",
 			"failed": "プロジェクトの起動に失敗しました"
-		}
+		},
+		"confirmRemove": "プロジェクトを削除",
+		"confirmRemoveMessage": "このプロジェクトを削除してもよろしいですか？",
+		"confirmCloseProject": "よろしいですか？",
+		"confirmCloseProjectMessage": "現在のプロジェクトが閉じられ、選択したプロジェクトが開かれます。"
 	},
 	"dialogs": {
 		"confirm": "確認",

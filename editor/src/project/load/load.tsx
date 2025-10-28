@@ -3,6 +3,8 @@ import { pathExists, readJSON } from "fs-extra";
 
 import { toast } from "sonner";
 
+import { t } from "../../i18n";
+
 import { Editor } from "../../editor/main";
 
 import { execNodePty } from "../../tools/node-pty";
@@ -59,12 +61,12 @@ export async function loadProject(editor: Editor, path: string): Promise<void> {
 		toast.dismiss(toastId);
 
 		if (code !== 0) {
-			toast.warning(`Package manager "${packageManager}" is not available on your system. Dependencies will not be updated.`);
+			toast.warning(t("project.load.packageManagerNotAvailable", { packageManager }));
 		} else {
 			editor.layout.preview.setState({
 				playEnabled: true,
 			});
-			toast.success("Dependencies successfully updated");
+			toast.success(t("project.load.dependenciesUpdated"));
 		}
 
 		loadProjectPlugins(editor, path, project);
@@ -75,7 +77,7 @@ export async function loadProject(editor: Editor, path: string): Promise<void> {
 		const absolutePath = join(directory, project.lastOpenedScene);
 
 		if (!(await pathExists(absolutePath))) {
-			toast(`Scene "${project.lastOpenedScene}" does not exist.`);
+			toast(t("project.load.sceneNotFound", { sceneName: project.lastOpenedScene }));
 
 			return editor.layout.console.error(`Scene "${project.lastOpenedScene}" does not exist.`);
 		}

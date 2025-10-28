@@ -93,15 +93,20 @@
 		"save": {
 			"title": "Save Project",
 			"saving": "Saving project...",
-			"savedSuccessfully": "Project saved successfully",
-			"saveFailed": "Failed to save project"
+			"savedSuccessfully": "Project saved",
+			"saveFailed": "Error saving project",
+			"compilingMaterials": "Compiling materials..."
 		},
 		"load": {
 			"title": "Load Project",
 			"loading": "Loading project...",
 			"loadedSuccessfully": "Project loaded successfully",
 			"loadFailed": "Failed to load project",
-			"preparing": "Preparing project..."
+			"preparing": "Preparing project...",
+			"sceneLoaded": "Scene loaded and editor is ready.",
+			"sceneNotFound": "Scene \"{{sceneName}}\" does not exist.",
+			"packageManagerNotAvailable": "Package manager \"{{packageManager}}\" is not available on your system. Dependencies will not be updated.",
+			"dependenciesUpdated": "Dependencies successfully updated"
 		},
 		"export": {
 			"title": "Export Project",
@@ -118,7 +123,11 @@
 			"running": "Project is running",
 			"stopped": "Project stopped",
 			"failed": "Failed to start project"
-		}
+		},
+		"confirmRemove": "Remove project",
+		"confirmRemoveMessage": "Are you sure you want to remove this project?",
+		"confirmCloseProject": "Are you sure?",
+		"confirmCloseProjectMessage": "This will close the current project and open the selected one."
 	},
 	"dialogs": {
 		"confirm": "Confirm",

@@ -93,15 +93,20 @@
 		"save": {
 			"title": "Enregistrer le projet",
 			"saving": "Enregistrement du projet...",
-			"savedSuccessfully": "Projet enregistré avec succès",
-			"saveFailed": "Échec de l'enregistrement du projet"
+			"savedSuccessfully": "Projet enregistré",
+			"saveFailed": "Erreur lors de l'enregistrement du projet",
+			"compilingMaterials": "Compilation des matériaux..."
 		},
 		"load": {
 			"title": "Charger le projet",
 			"loading": "Chargement du projet...",
 			"loadedSuccessfully": "Projet chargé avec succès",
 			"loadFailed": "Échec du chargement du projet",
-			"preparing": "Préparation du projet..."
+			"preparing": "Préparation du projet...",
+			"sceneLoaded": "Scène chargée et éditeur prêt.",
+			"sceneNotFound": "La scène \"{{sceneName}}\" n'existe pas.",
+			"packageManagerNotAvailable": "Le gestionnaire de paquets \"{{packageManager}}\" n'est pas disponible sur votre système. Les dépendances ne seront pas mises à jour.",
+			"dependenciesUpdated": "Dépendances mises à jour avec succès"
 		},
 		"export": {
 			"title": "Exporter le projet",
@@ -118,7 +123,11 @@
 			"running": "Le projet est en cours d'exécution",
 			"stopped": "Projet arrêté",
 			"failed": "Échec du démarrage du projet"
-		}
+		},
+		"confirmRemove": "Retirer le projet",
+		"confirmRemoveMessage": "Êtes-vous sûr de vouloir retirer ce projet ?",
+		"confirmCloseProject": "Êtes-vous sûr ?",
+		"confirmCloseProjectMessage": "Cela fermera le projet actuel et ouvrira celui sélectionné."
 	},
 	"dialogs": {
 		"confirm": "Confirmer",

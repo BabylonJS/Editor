@@ -218,7 +218,7 @@ class DashboardClass extends Component<IDashboardProps & { t: (key: string, opti
 	}
 
 	private async _tryRemoveProjectFromLocalStorage(project: ProjectType): Promise<void> {
-		const confirm = await showConfirm("Remove project", "Are you sure you want to remove this project?");
+		const confirm = await showConfirm(this.t("project.confirmRemove"), this.t("project.confirmRemoveMessage"));
 		if (!confirm) {
 			return;
 		}
