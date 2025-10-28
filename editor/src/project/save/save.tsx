@@ -6,7 +6,7 @@ import { toast } from "sonner";
 
 import packageJson from "../../../package.json";
 
-import { t } from "../../i18n";
+import i18n from "../../i18n";
 
 import { Editor } from "../../editor/main";
 
@@ -36,7 +36,7 @@ export async function saveProject(editor: Editor): Promise<void> {
 	} catch (e) {
 		if (e instanceof Error) {
 			editor.layout.console.error(`Error saving project:\n ${e.message}`);
-			toast.error(t("project.save.saveFailed"));
+			toast.error(i18n.t("project.save.saveFailed"));
 		}
 	} finally {
 		saving = false;
@@ -85,7 +85,7 @@ async function _saveProject(editor: Editor) {
 	}
 
 	toast.dismiss(toastId);
-	toast.success(t("project.save.savedSuccessfully"));
+	toast.success(i18n.t("project.save.savedSuccessfully"));
 
 	if (!editor.props.editedScenePath) {
 		try {

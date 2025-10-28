@@ -6,11 +6,11 @@ import decompress from "decompress";
 import decompressTargz from "decompress-targz";
 
 import { useEffect, useState } from "react";
-import { useTranslation } from "react-i18next";
 
 import { RxCross2 } from "react-icons/rx";
 import { Grid } from "react-loader-spinner";
 
+import i18n from "../i18n";
 import { showAlert, showConfirm } from "../ui/dialog";
 
 import { Input } from "../ui/shadcn/ui/input";
@@ -32,7 +32,6 @@ export interface IDashboardCreateProjectDialogProps {
 type PackageManagerCheckState = "processing" | "available" | "not-available";
 
 export function DashboardCreateProjectDialog(props: IDashboardCreateProjectDialogProps) {
-	const { t } = useTranslation();
 	const [destination, setDestination] = useState("");
 	const [packageManager, setPackageManager] = useState<EditorProjectPackageManager>("npm");
 	const [template, setTemplate] = useState<EditorProjectTemplate>("nextjs");
@@ -53,7 +52,7 @@ export function DashboardCreateProjectDialog(props: IDashboardCreateProjectDialo
 	}, [props.isOpened]);
 
 	async function handleBrowseFolderPath() {
-		const folder = openSingleFolderDialog(t("dashboard.createProjectDialog.selectFolder"));
+		const folder = openSingleFolderDialog(i18n.t("dashboard.createProjectDialog.selectFolder"));
 
 		if (folder) {
 			setDestination(folder);
@@ -97,16 +96,16 @@ export function DashboardCreateProjectDialog(props: IDashboardCreateProjectDialo
 
 			props.onClose();
 
-			const result = await showConfirm(t("dashboard.confirmOpenProject"), t("dashboard.confirmOpenProjectMessage"), {
-				cancelText: t("editor.no"),
-				confirmText: t("editor.yes"),
+			const result = await showConfirm(i18n.t("dashboard.confirmOpenProject"), i18n.t("dashboard.confirmOpenProjectMessage"), {
+				cancelText: i18n.t("editor.no"),
+				confirmText: i18n.t("editor.yes"),
 			});
 
 			if (result) {
 				ipcRenderer.send("dashboard:open-project", projectAbsolutePath);
 			}
 		} catch (e) {
-			showAlert(t("dashboard.unexpectedError"), e.message);
+			showAlert(i18n.t("dashboard.unexpectedError"), e.message);
 		}
 
 		setCreating(false);
@@ -141,27 +140,27 @@ export function DashboardCreateProjectDialog(props: IDashboardCreateProjectDialo
 		<Dialog open={props.isOpened} onOpenChange={(o) => !o && props.onClose()}>
 			<DialogContent>
 				<DialogHeader>
-					<DialogTitle>{t("dashboard.createProjectDialog.title")}</DialogTitle>
+					<DialogTitle>{i18n.t("dashboard.createProjectDialog.title")}</DialogTitle>
 					<DialogDescription className="flex flex-col gap-4 py-5">
 						{!creating && (
 							<>
 								<div className="flex flex-col gap-2">
-									<div>{t("dashboard.createProjectDialog.selectFolder")}</div>
+									<div>{i18n.t("dashboard.createProjectDialog.selectFolder")}</div>
 
 									<div className="flex gap-[10px]">
-										<Input value={destination} disabled placeholder={t("dashboard.createProjectDialog.folderPath")} />
+										<Input value={destination} disabled placeholder={i18n.t("dashboard.createProjectDialog.folderPath")} />
 										<Button variant="secondary" className="w-24" onClick={() => handleBrowseFolderPath()}>
-											{t("dashboard.createProjectDialog.browse")}
+											{i18n.t("dashboard.createProjectDialog.browse")}
 										</Button>
 									</div>
 								</div>
 
 								<div className="flex flex-col gap-2">
-									<div>{t("dashboard.createProjectDialog.packageManager")}</div>
+									<div>{i18n.t("dashboard.createProjectDialog.packageManager")}</div>
 
 									<Select value={packageManager} onValueChange={(v) => setPackageManager(v as EditorProjectPackageManager)}>
 										<SelectTrigger className="w-full">
-											<SelectValue placeholder={t("dashboard.createProjectDialog.packageManager")} />
+											<SelectValue placeholder={i18n.t("dashboard.createProjectDialog.packageManager")} />
 										</SelectTrigger>
 										<SelectContent>
 											{getPackageManagerSelectItem("npm", npmAvailable)}
@@ -173,11 +172,11 @@ export function DashboardCreateProjectDialog(props: IDashboardCreateProjectDialo
 								</div>
 
 								<div className="flex flex-col gap-2">
-									<div>{t("dashboard.createProjectDialog.template")}</div>
+									<div>{i18n.t("dashboard.createProjectDialog.template")}</div>
 
 									<Select value={template} onValueChange={(v) => setTemplate(v as EditorProjectTemplate)}>
 										<SelectTrigger className="w-full">
-											<SelectValue placeholder={t("dashboard.createProjectDialog.template")} />
+											<SelectValue placeholder={i18n.t("dashboard.createProjectDialog.template")} />
 										</SelectTrigger>
 										<SelectContent>
 											{getTemplateSelectItem("nextjs")}
@@ -193,14 +192,14 @@ export function DashboardCreateProjectDialog(props: IDashboardCreateProjectDialo
 							<div className="flex flex-col gap-[10px] justify-center items-center pt-5">
 								<Grid width={24} height={24} color="#ffffff" />
 
-								<div>{t("dashboard.createProjectDialog.creatingProject")}</div>
+								<div>{i18n.t("dashboard.createProjectDialog.creatingProject")}</div>
 							</div>
 						)}
 					</DialogDescription>
 				</DialogHeader>
 				<DialogFooter>
 					<Button variant="default" className="w-24" onClick={() => handleCreateProject()} disabled={destination === "" || creating}>
-						{t("dashboard.createProjectDialog.create")}
+						{i18n.t("dashboard.createProjectDialog.create")}
 					</Button>
 				</DialogFooter>
 			</DialogContent>

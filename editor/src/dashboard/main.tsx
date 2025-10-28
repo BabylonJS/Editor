@@ -3,11 +3,10 @@ import { ipcRenderer, shell, webFrame } from "electron";
 
 import { Component, ReactNode } from "react";
 import { createRoot } from "react-dom/client";
-import { useTranslation } from "react-i18next";
 
 import { Fade } from "react-awesome-reveal";
 
-import "../i18n";
+import i18n from "../i18n";
 
 import { Button } from "../ui/shadcn/ui/button";
 import { Toaster } from "../ui/shadcn/ui/sonner";
@@ -23,6 +22,7 @@ import { tryAddProjectToLocalStorage, tryGetProjectsFromLocalStorage } from "../
 import { DashboardProjectItem } from "./item";
 import { DashboardCreateProjectDialog } from "./create";
 import { DashboardWindowControls } from "./window-controls";
+import { LanguageSwitcher } from "../ui/language-switcher";
 
 import packageJson from "../../package.json";
 
@@ -53,13 +53,9 @@ export interface IDashboardState {
 	createProject: boolean;
 }
 
-class DashboardClass extends Component<IDashboardProps & { t: (key: string, options?: any) => string }, IDashboardState> {
-	public t: (key: string, options?: any) => string;
-
-	public constructor(props: IDashboardProps & { t: (key: string, options?: any) => string }) {
+export class Dashboard extends Component<IDashboardProps, IDashboardState> {
+	public constructor(props: IDashboardProps) {
 		super(props);
-
-		this.t = props.t;
 
 		this.state = {
 			openedProjects: [],
@@ -79,11 +75,12 @@ class DashboardClass extends Component<IDashboardProps & { t: (key: string, opti
 
 					<Fade delay={0}>
 						<div className="flex justify-between items-end w-full mt-1">
-							<div className="text-5xl font-semibold">{this.t("dashboard.title")}</div>
+							<div className="text-5xl font-semibold">{i18n.t("dashboard.title")}</div>
 
 							<div className="flex flex-col items-end gap-2">
 								<img alt="" src="assets/babylonjs_icon.png" className="w-[48px] object-contain" />
-								<div className="text-xs">{this.t("dashboard.version", { version: packageJson.version })}</div>
+								<div className="text-xs">{i18n.t("dashboard.version", { version: packageJson.version })}</div>
+								<LanguageSwitcher className="w-40" />
 							</div>
 						</div>
 					</Fade>
@@ -94,14 +91,14 @@ class DashboardClass extends Component<IDashboardProps & { t: (key: string, opti
 
 					<Fade delay={500}>
 						<div className="flex justify-between items-center">
-							<div className="text-3xl font-semibold">{this.t("dashboard.projects")}</div>
+							<div className="text-3xl font-semibold">{i18n.t("dashboard.projects")}</div>
 
 							<div className="flex gap-2">
 								<Button variant="secondary" className="font-semibold" onClick={() => this._handleImportProject()}>
-									{this.t("dashboard.importProject")}
+									{i18n.t("dashboard.importProject")}
 								</Button>
 								<Button className="font-semibold" onClick={() => this.setState({ createProject: true })}>
-									{this.t("dashboard.createProject")}
+									{i18n.t("dashboard.createProject")}
 								</Button>
 							</div>
 						</div>
@@ -183,9 +180,9 @@ class DashboardClass extends Component<IDashboardProps & { t: (key: string, opti
 
 		if (!nodeJSAvailable) {
 			await showAlert(
-				this.t("dashboard.nodeJsNotFound"),
+				i18n.t("dashboard.nodeJsNotFound"),
 				<div className="flex flex-col">
-					<div>{this.t("dashboard.nodeJsNotFoundMessage")}</div>
+					<div>{i18n.t("dashboard.nodeJsNotFoundMessage")}</div>
 					<div>
 						<a className="underline transition-all duration-300 ease-in-out" onClick={() => shell.openExternal("https://nodejs.org/en/download")}>
 							this link
@@ -198,8 +195,8 @@ class DashboardClass extends Component<IDashboardProps & { t: (key: string, opti
 
 	private _handleImportProject(): unknown {
 		const file = openSingleFileDialog({
-			title: this.t("dashboard.openProject"),
-			filters: [{ name: this.t("fileFilters.babylonJsEditorProject"), extensions: ["bjseditor"] }],
+			title: i18n.t("dashboard.openProject"),
+			filters: [{ name: i18n.t("fileFilters.babylonJsEditorProject"), extensions: ["bjseditor"] }],
 		});
 
 		if (!file) {
@@ -218,7 +215,7 @@ class DashboardClass extends Component<IDashboardProps & { t: (key: string, opti
 	}
 
 	private async _tryRemoveProjectFromLocalStorage(project: ProjectType): Promise<void> {
-		const confirm = await showConfirm(this.t("project.confirmRemove"), this.t("project.confirmRemoveMessage"));
+		const confirm = await showConfirm(i18n.t("project.confirmRemove"), i18n.t("project.confirmRemoveMessage"));
 		if (!confirm) {
 			return;
 		}
@@ -234,9 +231,4 @@ class DashboardClass extends Component<IDashboardProps & { t: (key: string, opti
 			});
 		}
 	}
-}
-
-export function Dashboard() {
-	const { t } = useTranslation();
-	return <DashboardClass t={t} />;
 }

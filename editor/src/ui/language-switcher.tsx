@@ -27,6 +27,9 @@ export function LanguageSwitcher(props: ILanguageSwitcherProps) {
 	const handleLanguageChange = (language: string) => {
 		i18n.changeLanguage(language);
 		setCurrentLanguage(language);
+		
+		// Reload the page to apply the language change everywhere
+		window.location.reload();
 	};
 
 	return (

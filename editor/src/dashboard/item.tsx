@@ -3,8 +3,9 @@ import { ipcRenderer, shell } from "electron";
 import { basename, dirname } from "path/posix";
 
 import { useEffect, useState } from "react";
-import { useTranslation } from "react-i18next";
 import { Grid } from "react-loader-spinner";
+
+import i18n from "../i18n";
 
 import { FaQuestion } from "react-icons/fa";
 import { AiOutlineClose } from "react-icons/ai";
@@ -33,7 +34,6 @@ export interface IDashboardProjectItemProps {
 }
 
 export function DashboardProjectItem(props: IDashboardProjectItemProps) {
-	const { t } = useTranslation();
 	const [contextMenuOpen, setContextMenuOpen] = useState(false);
 
 	const [launching, setLaunching] = useState(false);
@@ -172,18 +172,18 @@ export function DashboardProjectItem(props: IDashboardProjectItemProps) {
 									</DropdownMenuTrigger>
 									<DropdownMenuContent>
 										<DropdownMenuItem onClick={() => ipcRenderer.send("dashboard:open-project", props.project.absolutePath)}>
-											{t("dashboard.openProject")}
+											{i18n.t("dashboard.openProject")}
 										</DropdownMenuItem>
 										<DropdownMenuItem className="flex items-center gap-2" onClick={() => ipcRenderer.send("editor:show-item", props.project.absolutePath)}>
-											{isDarwin() ? t("dashboard.showInFinder") : t("dashboard.showInExplorer")}
+											{isDarwin() ? i18n.t("dashboard.showInFinder") : i18n.t("dashboard.showInExplorer")}
 										</DropdownMenuItem>
 										<DropdownMenuSeparator />
 										<DropdownMenuItem className="flex items-center gap-2" onClick={() => handleOpenInVisualStudioCode()}>
-											{t("menu.openInVSCode")}
+											{i18n.t("menu.openInVSCode")}
 										</DropdownMenuItem>
 										<DropdownMenuSeparator />
 										<DropdownMenuItem className="flex items-center gap-2 !text-red-400" onClick={() => props.onRemove()}>
-											<AiOutlineClose className="w-5 h-5" fill="rgb(248, 113, 113)" /> {t("dashboard.removeProject")}
+											<AiOutlineClose className="w-5 h-5" fill="rgb(248, 113, 113)" /> {i18n.t("dashboard.removeProject")}
 										</DropdownMenuItem>
 									</DropdownMenuContent>
 								</DropdownMenu>
@@ -219,18 +219,18 @@ export function DashboardProjectItem(props: IDashboardProjectItemProps) {
 			</ContextMenuTrigger>
 			<ContextMenuContent>
 				<ContextMenuItem onClick={() => ipcRenderer.send("dashboard:open-project", props.project.absolutePath)}>
-					{t("dashboard.openProject")}
+					{i18n.t("dashboard.openProject")}
 				</ContextMenuItem>
 				<ContextMenuItem className="flex items-center gap-2" onClick={() => ipcRenderer.send("editor:show-item", props.project.absolutePath)}>
-					{isDarwin() ? t("dashboard.showInFinder") : t("dashboard.showInExplorer")}
+					{isDarwin() ? i18n.t("dashboard.showInFinder") : i18n.t("dashboard.showInExplorer")}
 				</ContextMenuItem>
 				<ContextMenuSeparator />
 				<ContextMenuItem className="flex items-center gap-2" onClick={() => handleOpenInVisualStudioCode()}>
-					{t("menu.openInVSCode")}
+					{i18n.t("menu.openInVSCode")}
 				</ContextMenuItem>
 				<ContextMenuSeparator />
 				<ContextMenuItem className="flex items-center gap-2 !text-red-400" onClick={() => props.onRemove()}>
-					<AiOutlineClose className="w-5 h-5" fill="rgb(248, 113, 113)" /> {t("dashboard.removeProject")}
+					<AiOutlineClose className="w-5 h-5" fill="rgb(248, 113, 113)" /> {i18n.t("dashboard.removeProject")}
 				</ContextMenuItem>
 			</ContextMenuContent>
 		</ContextMenu>

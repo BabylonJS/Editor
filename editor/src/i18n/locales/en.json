@@ -13,7 +13,7 @@
 		"nodeJsNotFoundMessage": "Node.js is required to run the project. Please install Node.js and restart the editor.",
 		"confirmOpenProject": "Open project?",
 		"confirmOpenProjectMessage": "Do you want to open the newly created project?",
-		"unexpectedError": "An unexpected error occured",
+		"unexpectedError": "An unexpected error occurred",
 		"createProjectDialog": {
 			"title": "Create project",
 			"selectFolder": "Select the folder where to create the project.",

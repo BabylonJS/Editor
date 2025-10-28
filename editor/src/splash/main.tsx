@@ -2,12 +2,11 @@ import { webFrame } from "electron";
 
 import { Component, ReactNode } from "react";
 import { createRoot } from "react-dom/client";
-import { useTranslation } from "react-i18next";
 
 import { Grid } from "react-loader-spinner";
 import { Fade } from "react-awesome-reveal";
 
-import "../i18n";
+import i18n from "../i18n";
 import { isDarwin } from "../tools/os";
 
 export function createSplash(): void {
@@ -29,8 +28,8 @@ export function createSplash(): void {
 	);
 }
 
-class SplashClass extends Component<{ t: (key: string, options?: any) => string }> {
-	public constructor(props: { t: (key: string, options?: any) => string }) {
+export class Splash extends Component {
+	public constructor(props: {}) {
 		super(props);
 
 		webFrame.setZoomFactor(0.8);
@@ -46,19 +45,14 @@ class SplashClass extends Component<{ t: (key: string, options?: any) => string 
 				</Fade>
 
 				<Fade delay={500}>
-					<div className="text-center w-full text-3xl">{this.props.t("menu.babylonJsEditor")}</div>
+					<div className="text-center w-full text-3xl">{i18n.t("menu.babylonJsEditor")}</div>
 				</Fade>
 
 				<div className="flex items-center gap-[10px]">
 					<Grid width={24} height={24} color="gray" />
-					<div className="animate-pulse">{this.props.t("editor.loading")}</div>
+					<div className="animate-pulse">{i18n.t("editor.loading")}</div>
 				</div>
 			</div>
 		);
 	}
-}
-
-export function Splash() {
-	const { t } = useTranslation();
-	return <SplashClass t={t} />;
 }
