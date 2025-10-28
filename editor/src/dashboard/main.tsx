@@ -53,7 +53,7 @@ export interface IDashboardState {
 	createProject: boolean;
 }
 
-class DashboardClass extends Component<IDashboardProps, IDashboardState> {
+class DashboardClass extends Component<IDashboardProps & { t: (key: string, options?: any) => string }, IDashboardState> {
 	public t: (key: string, options?: any) => string;
 
 	public constructor(props: IDashboardProps & { t: (key: string, options?: any) => string }) {
