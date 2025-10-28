@@ -67,7 +67,7 @@ export class EditorPreviewIcons extends Component<IEditorPreviewIconsProps, IEdi
 							}
 						}}
 						className={`
-							absolute w-16 h-16 rounded-lg -translate-x-1/2 hover:bg-black/20 transition-colors duration-300
+							absolute w-16 h-16 rounded-lg -translate-x-1/2 -translate-y-1/2 hover:bg-black/20 transition-colors duration-300
 							${isNode(button.node) && isNodeLocked(button.node) ? "pointer-events-none" : "pointer-events-auto"}	
 						`}
 					>
