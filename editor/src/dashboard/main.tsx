@@ -3,8 +3,11 @@ import { ipcRenderer, shell, webFrame } from "electron";
 
 import { Component, ReactNode } from "react";
 import { createRoot } from "react-dom/client";
+import { useTranslation } from "react-i18next";
 
 import { Fade } from "react-awesome-reveal";
+
+import "../i18n";
 
 import { Button } from "../ui/shadcn/ui/button";
 import { Toaster } from "../ui/shadcn/ui/sonner";
@@ -50,9 +53,13 @@ export interface IDashboardState {
 	createProject: boolean;
 }
 
-export class Dashboard extends Component<IDashboardProps, IDashboardState> {
-	public constructor(props: IDashboardProps) {
+class DashboardClass extends Component<IDashboardProps, IDashboardState> {
+	public t: (key: string, options?: any) => string;
+
+	public constructor(props: IDashboardProps & { t: (key: string, options?: any) => string }) {
 		super(props);
+
+		this.t = props.t;
 
 		this.state = {
 			openedProjects: [],
@@ -72,11 +79,11 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
 
 					<Fade delay={0}>
 						<div className="flex justify-between items-end w-full mt-1">
-							<div className="text-5xl font-semibold">Dashboard</div>
+							<div className="text-5xl font-semibold">{this.t("dashboard.title")}</div>
 
 							<div className="flex flex-col items-end gap-2">
 								<img alt="" src="assets/babylonjs_icon.png" className="w-[48px] object-contain" />
-								<div className="text-xs">Babylon.js Editor v{packageJson.version}</div>
+								<div className="text-xs">{this.t("dashboard.version", { version: packageJson.version })}</div>
 							</div>
 						</div>
 					</Fade>
@@ -87,14 +94,14 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
 
 					<Fade delay={500}>
 						<div className="flex justify-between items-center">
-							<div className="text-3xl font-semibold">Projects</div>
+							<div className="text-3xl font-semibold">{this.t("dashboard.projects")}</div>
 
 							<div className="flex gap-2">
 								<Button variant="secondary" className="font-semibold" onClick={() => this._handleImportProject()}>
-									Import project
+									{this.t("dashboard.importProject")}
 								</Button>
 								<Button className="font-semibold" onClick={() => this.setState({ createProject: true })}>
-									Create project
+									{this.t("dashboard.createProject")}
 								</Button>
 							</div>
 						</div>
@@ -176,15 +183,13 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
 
 		if (!nodeJSAvailable) {
 			await showAlert(
-				"Node.js not found",
+				this.t("dashboard.nodeJsNotFound"),
 				<div className="flex flex-col">
-					<div>Node.js was not found on your system.</div>
+					<div>{this.t("dashboard.nodeJsNotFoundMessage")}</div>
 					<div>
-						Node.js is required to build and run projects. You can install Node.js following{" "}
 						<a className="underline transition-all duration-300 ease-in-out" onClick={() => shell.openExternal("https://nodejs.org/en/download")}>
 							this link
 						</a>
-						.
 					</div>
 				</div>
 			).wait();
@@ -193,8 +198,8 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
 
 	private _handleImportProject(): unknown {
 		const file = openSingleFileDialog({
-			title: "Open Project",
-			filters: [{ name: "Babylon.js Editor Project File", extensions: ["bjseditor"] }],
+			title: this.t("dashboard.openProject"),
+			filters: [{ name: this.t("fileFilters.babylonJsEditorProject"), extensions: ["bjseditor"] }],
 		});
 
 		if (!file) {
@@ -229,4 +234,9 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
 			});
 		}
 	}
+}
+
+export function Dashboard() {
+	const { t } = useTranslation();
+	return <DashboardClass t={t} />;
 }

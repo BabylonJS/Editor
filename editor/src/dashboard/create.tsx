@@ -6,6 +6,7 @@ import decompress from "decompress";
 import decompressTargz from "decompress-targz";
 
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { RxCross2 } from "react-icons/rx";
 import { Grid } from "react-loader-spinner";
@@ -31,6 +32,7 @@ export interface IDashboardCreateProjectDialogProps {
 type PackageManagerCheckState = "processing" | "available" | "not-available";
 
 export function DashboardCreateProjectDialog(props: IDashboardCreateProjectDialogProps) {
+	const { t } = useTranslation();
 	const [destination, setDestination] = useState("");
 	const [packageManager, setPackageManager] = useState<EditorProjectPackageManager>("npm");
 	const [template, setTemplate] = useState<EditorProjectTemplate>("nextjs");
@@ -51,7 +53,7 @@ export function DashboardCreateProjectDialog(props: IDashboardCreateProjectDialo
 	}, [props.isOpened]);
 
 	async function handleBrowseFolderPath() {
-		const folder = openSingleFolderDialog("Select folder to create the project in");
+		const folder = openSingleFolderDialog(t("dashboard.createProjectDialog.selectFolder"));
 
 		if (folder) {
 			setDestination(folder);
@@ -95,16 +97,16 @@ export function DashboardCreateProjectDialog(props: IDashboardCreateProjectDialo
 
 			props.onClose();
 
-			const result = await showConfirm("Open project?", "Do you want to open the newly created project?", {
-				cancelText: "No",
-				confirmText: "Yes",
+			const result = await showConfirm(t("dashboard.confirmOpenProject"), t("dashboard.confirmOpenProjectMessage"), {
+				cancelText: t("editor.no"),
+				confirmText: t("editor.yes"),
 			});
 
 			if (result) {
 				ipcRenderer.send("dashboard:open-project", projectAbsolutePath);
 			}
 		} catch (e) {
-			showAlert("An unexpected error occured", e.message);
+			showAlert(t("dashboard.unexpectedError"), e.message);
 		}
 
 		setCreating(false);
@@ -139,27 +141,27 @@ export function DashboardCreateProjectDialog(props: IDashboardCreateProjectDialo
 		<Dialog open={props.isOpened} onOpenChange={(o) => !o && props.onClose()}>
 			<DialogContent>
 				<DialogHeader>
-					<DialogTitle>Create project</DialogTitle>
+					<DialogTitle>{t("dashboard.createProjectDialog.title")}</DialogTitle>
 					<DialogDescription className="flex flex-col gap-4 py-5">
 						{!creating && (
 							<>
 								<div className="flex flex-col gap-2">
-									<div>Select the folder where to create the project.</div>
+									<div>{t("dashboard.createProjectDialog.selectFolder")}</div>
 
 									<div className="flex gap-[10px]">
-										<Input value={destination} disabled placeholder="Folder path..." />
+										<Input value={destination} disabled placeholder={t("dashboard.createProjectDialog.folderPath")} />
 										<Button variant="secondary" className="w-24" onClick={() => handleBrowseFolderPath()}>
-											Browse...
+											{t("dashboard.createProjectDialog.browse")}
 										</Button>
 									</div>
 								</div>
 
 								<div className="flex flex-col gap-2">
-									<div>Package manager</div>
+									<div>{t("dashboard.createProjectDialog.packageManager")}</div>
 
 									<Select value={packageManager} onValueChange={(v) => setPackageManager(v as EditorProjectPackageManager)}>
 										<SelectTrigger className="w-full">
-											<SelectValue placeholder="Package manager" />
+											<SelectValue placeholder={t("dashboard.createProjectDialog.packageManager")} />
 										</SelectTrigger>
 										<SelectContent>
 											{getPackageManagerSelectItem("npm", npmAvailable)}
@@ -171,11 +173,11 @@ export function DashboardCreateProjectDialog(props: IDashboardCreateProjectDialo
 								</div>
 
 								<div className="flex flex-col gap-2">
-									<div>Template</div>
+									<div>{t("dashboard.createProjectDialog.template")}</div>
 
 									<Select value={template} onValueChange={(v) => setTemplate(v as EditorProjectTemplate)}>
 										<SelectTrigger className="w-full">
-											<SelectValue placeholder="Template" />
+											<SelectValue placeholder={t("dashboard.createProjectDialog.template")} />
 										</SelectTrigger>
 										<SelectContent>
 											{getTemplateSelectItem("nextjs")}
@@ -191,14 +193,14 @@ export function DashboardCreateProjectDialog(props: IDashboardCreateProjectDialo
 							<div className="flex flex-col gap-[10px] justify-center items-center pt-5">
 								<Grid width={24} height={24} color="#ffffff" />
 
-								<div>Creating project...</div>
+								<div>{t("dashboard.createProjectDialog.creatingProject")}</div>
 							</div>
 						)}
 					</DialogDescription>
 				</DialogHeader>
 				<DialogFooter>
 					<Button variant="default" className="w-24" onClick={() => handleCreateProject()} disabled={destination === "" || creating}>
-						Create
+						{t("dashboard.createProjectDialog.create")}
 					</Button>
 				</DialogFooter>
 			</DialogContent>

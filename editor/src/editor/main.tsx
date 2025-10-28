@@ -13,6 +13,8 @@ import { onRedoObservable, onUndoObservable, redo, undo } from "../tools/undored
 import { tryGetExperimentalFeaturesEnabledFromLocalStorage } from "../tools/local-storage";
 import { checkNodeJSAvailable, checkVisualStudioCodeAvailable, nodeJSAvailable, visualStudioCodeAvailable } from "../tools/process";
 
+import "../i18n";
+
 import { saveProject } from "../project/save/save";
 import { onProjectConfigurationChangedObservable, projectConfiguration } from "../project/configuration";
 
