@@ -14,11 +14,12 @@ import {
 	PointerEventTypes,
 	Vector2,
 	Mesh,
+	FreeCamera,
 } from "babylonjs";
 
 import { waitUntil } from "../../../tools/tools";
 import { Tween } from "../../../tools/animation/tween";
-import { isAbstractMesh } from "../../../tools/guards/nodes";
+import { isArcRotateCamera } from "../../../tools/guards/nodes";
 import { projectVectorOnScreen } from "../../../tools/maths/projection";
 
 import { Editor } from "../../main";
@@ -36,8 +37,10 @@ export interface IEditorPreviewAxisHelperState {
 export class EditorPreviewAxisHelper extends Component<IEditorPreviewAxisHelperProps, IEditorPreviewAxisHelperState> {
 	public scene: Scene | null = null;
 
+	/** @internal */
+	public _axisMeshUnderPointer: AbstractMesh | null = null;
+
 	private _axisClickableMeshes: AbstractMesh[] = [];
-	private _axisMeshUnderPointer: AbstractMesh | null = null;
 
 	public constructor(props: IEditorPreviewAxisHelperProps) {
 		super(props);
@@ -144,14 +147,12 @@ export class EditorPreviewAxisHelper extends Component<IEditorPreviewAxisHelperP
 				yLabelPosition: projectVectorOnScreen(ySphere.computeWorldMatrix(true).getTranslation(), this.scene!),
 				zLabelPosition: projectVectorOnScreen(zSphere.computeWorldMatrix(true).getTranslation(), this.scene!),
 			});
+
+			this._checkAxisUnderPointer();
 		});
 
 		this.scene.onPointerObservable.add((pointerInfo) => {
 			switch (pointerInfo.type) {
-				case PointerEventTypes.POINTERMOVE:
-					this._handlePointerMove(pointerInfo.event as MouseEvent);
-					break;
-
 				case PointerEventTypes.POINTERTAP:
 					this._handlePointerTap(pointerInfo.event as MouseEvent);
 					break;
@@ -159,7 +160,7 @@ export class EditorPreviewAxisHelper extends Component<IEditorPreviewAxisHelperP
 		});
 	}
 
-	private _handlePointerMove(ev: MouseEvent): void {
+	private _checkAxisUnderPointer(): void {
 		const pick = this.scene!.pick(this.scene!.pointerX, this.scene!.pointerY, (mesh) => mesh.metadata?.axis, false);
 
 		if (pick.pickedMesh !== this._axisMeshUnderPointer) {
@@ -175,40 +176,50 @@ export class EditorPreviewAxisHelper extends Component<IEditorPreviewAxisHelperP
 			this._axisMeshUnderPointer = pick.pickedMesh;
 			this._axisMeshUnderPointer.scaling.setAll(1.4);
 
-			ev.stopPropagation();
+			this.props.editor.layout.preview._handleMouseLeave();
 		}
 	}
 
 	private _handlePointerTap(ev: MouseEvent): void {
-		const camera = this.props.editor.layout.preview?.scene.activeCamera as ArcRotateCamera;
+		const camera = this.props.editor.layout.preview?.scene.activeCamera as FreeCamera | ArcRotateCamera;
 		if (!this._axisMeshUnderPointer || !camera) {
 			return;
 		}
 
 		ev.stopPropagation();
 
-		const graphSelectedObjects = this.props.editor.layout.graph.getSelectedNodes();
-		const mesh = graphSelectedObjects.find((n) => isAbstractMesh(n.nodeData))?.nodeData as AbstractMesh;
+		const axis = this._axisMeshUnderPointer.metadata.axis;
 
-		if (!mesh) {
-			return;
+		const target = camera.target.clone();
+		const distance = Math.max(Vector3.Distance(camera.globalPosition, target), 100);
+		const cameraPosition = target.add(axis.scale(distance));
+
+		if (isArcRotateCamera(camera)) {
+			// TODO: handle arc rotate camera
+		} else {
+			const cameraRotation = Vector3.Zero();
+
+			if (axis.equals(Vector3.UpReadOnly)) {
+				cameraRotation.set(Math.PI * 0.5, 0, 0);
+			} else if (axis.equals(Vector3.DownReadOnly)) {
+				cameraRotation.set(-Math.PI * 0.5, 0, 0);
+			} else if (axis.equals(Vector3.RightReadOnly)) {
+				cameraRotation.set(0, -Math.PI * 0.5, 0);
+			} else if (axis.equals(Vector3.LeftReadOnly)) {
+				cameraRotation.set(0, Math.PI * 0.5, 0);
+			} else if (axis.equals(Vector3.LeftHandedForwardReadOnly)) {
+				cameraRotation.set(0, Math.PI, 0);
+			} else if (axis.equals(Vector3.LeftHandedBackwardReadOnly)) {
+				cameraRotation.set(0, 0, 0);
+			}
+
+			Tween.create(camera, 0.35, {
+				rotation: cameraRotation,
+				position: cameraPosition,
+				noOptimize: true,
+				killAllTweensOfTarget: true,
+			});
 		}
-
-		mesh.refreshBoundingInfo({
-			applyMorph: true,
-			applySkeleton: true,
-			updatePositionsArray: true,
-		});
-
-		const center = mesh.getBoundingInfo().boundingBox.centerWorld;
-		const radius = Vector3.Distance(camera.globalPosition, center);
-		const cameraPosition = center.add(this._axisMeshUnderPointer.metadata.axis.scale(radius));
-
-		Tween.create(camera, 0.35, {
-			target: center,
-			position: cameraPosition,
-			killAllTweensOfTarget: true,
-		});
 	}
 
 	private _createAxis(root: TransformNode, color: Color3, rotation: Vector3, offset: Vector3): Mesh {

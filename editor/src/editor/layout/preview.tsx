@@ -609,7 +609,8 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		return engine;
 	}
 
-	private _handleMouseLeave(): void {
+	/** @internal */
+	public _handleMouseLeave(): void {
 		this._restoreCurrentMeshUnderPointer();
 		this._objectUnderPointer = null;
 	}
@@ -670,7 +671,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	}
 
 	private _handleDoubleClick(_event: MouseEvent<HTMLCanvasElement, globalThis.MouseEvent>): void {
-		if (!this.state.pickingEnabled) {
+		if (!this.state.pickingEnabled || this.axis._axisMeshUnderPointer) {
 			return;
 		}
 
