@@ -37,6 +37,7 @@ export interface ITweenConfiguration {
 
 	[propertyPath: string]: ITweenPropertyConfiguration | any;
 
+	noOptimize?: boolean;
 	killAllTweensOfTarget?: boolean;
 }
 
@@ -239,8 +240,10 @@ export class Tween {
 				const endValue = property.value ?? property.to ?? property;
 				const startValue = property.from ?? animatedProperty.clone?.() ?? animatedProperty;
 
-				if (!delay && (endValue.equals?.(startValue) || endValue === startValue)) {
-					return;
+				if (!options.noOptimize) {
+					if (!delay && (endValue.equals?.(startValue) || endValue === startValue)) {
+						return;
+					}
 				}
 
 				if (endFrame) {
