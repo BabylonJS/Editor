@@ -18,6 +18,8 @@ export function addFreeCamera(editor: Editor, parent?: Node) {
 
 	editor.layout.inspector.setEditedObject(camera);
 	editor.layout.preview.gizmo.setAttachedObject(camera);
+
+	return camera;
 }
 
 export function addArcRotateCamera(editor: Editor, parent?: Node) {
@@ -34,4 +36,6 @@ export function addArcRotateCamera(editor: Editor, parent?: Node) {
 
 	editor.layout.inspector.setEditedObject(camera);
 	editor.layout.preview.gizmo.setAttachedObject(camera);
+
+	return camera;
 }
