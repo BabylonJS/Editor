@@ -95,5 +95,12 @@ function getNodeFromContainerByName(container: AssetContainer, name: string): Tr
 		return mesh;
 	}
 
+	for (const skeleton of container.skeletons) {
+		const bone = skeleton.bones.find((b) => b.name === name);
+		if (bone) {
+			return bone;
+		}
+	}
+
 	return null;
 }
