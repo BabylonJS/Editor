@@ -21,7 +21,13 @@ export function EditorPreviewCamera(props: IEditorPreviewCameraProps) {
 		const canvas = canvasRef.current!;
 		const engine = props.editor.layout.preview.engine;
 
-		engine.registerView(canvas, props.camera);
+		const mainCanvas = engine.getRenderingCanvas()!;
+
+		const view = engine.registerView(canvas, props.camera);
+		view.customResize = (canvas) => {
+			canvas.width = mainCanvas.width;
+			canvas.height = mainCanvas.height;
+		};
 
 		return () => {
 			engine.unRegisterView(canvas);
@@ -36,7 +42,7 @@ export function EditorPreviewCamera(props: IEditorPreviewCameraProps) {
 					<AiOutlineClose />
 				</Button>
 			</div>
-			<canvas ref={canvasRef} className="w-full h-full bg-black" />
+			<canvas ref={canvasRef} className="w-full h-full object-contain bg-black" />
 		</div>
 	);
 }
