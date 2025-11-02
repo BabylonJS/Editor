@@ -11,7 +11,7 @@ import { getPowerOfTwoUntil } from "../tools/scalar";
 const textureParser = SerializationHelper._TextureParser;
 
 SerializationHelper._TextureParser = (sourceProperty: any, scene: Scene, rootUrl: string): Nullable<BaseTexture> => {
-	if (scene.loadingQuality === "high" || !sourceProperty.metadata?.baseSize) {
+	if (scene.loadingTexturesQuality === "high" || !sourceProperty.metadata?.baseSize) {
 		return textureParser(sourceProperty, scene, rootUrl);
 	}
 
@@ -22,7 +22,7 @@ SerializationHelper._TextureParser = (sourceProperty: any, scene: Scene, rootUrl
 
 	let suffix = "";
 
-	switch (scene.loadingQuality) {
+	switch (scene.loadingTexturesQuality) {
 		case "medium":
 			let midWidth = (width * 0.66) >> 0;
 			let midHeight = (height * 0.66) >> 0;
@@ -36,6 +36,7 @@ SerializationHelper._TextureParser = (sourceProperty: any, scene: Scene, rootUrl
 			break;
 
 		case "low":
+		case "very-low":
 			let lowWidth = (width * 0.33) >> 0;
 			let lowHeight = (height * 0.33) >> 0;
 
