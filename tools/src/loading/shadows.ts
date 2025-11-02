@@ -8,15 +8,19 @@ import { getPowerOfTwoUntil } from "../tools/scalar";
 const shadowsGeneratorParser = GetParser(SceneComponentConstants.NAME_SHADOWGENERATOR);
 
 AddParser(SceneComponentConstants.NAME_SHADOWGENERATOR, (parsedData: any, scene: Scene, container: AssetContainer, rootUrl: string) => {
-	if (scene.loadingQuality !== "high") {
+	if (scene.loadingShadowsQuality !== "high") {
 		parsedData.shadowGenerators?.forEach((shadowGenerator: any) => {
-			switch (scene.loadingQuality) {
+			switch (scene.loadingShadowsQuality) {
 				case "medium":
 					shadowGenerator.mapSize = shadowGenerator.mapSize * 0.5;
 					break;
 
 				case "low":
 					shadowGenerator.mapSize = shadowGenerator.mapSize * 0.25;
+					break;
+
+				case "very-low":
+					shadowGenerator.mapSize = shadowGenerator.mapSize * 0.125;
 					break;
 			}
 

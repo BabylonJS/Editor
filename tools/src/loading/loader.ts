@@ -41,7 +41,7 @@ export type ScriptMap = Record<
  * Using "medium" or "low" quality levels will reduce the memory usage and improve the performance of the scene
  * especially on mobiles where memory is limited.
  */
-export type SceneLoaderQualitySelector = "low" | "medium" | "high";
+export type SceneLoaderQualitySelector = "very-low" | "low" | "medium" | "high";
 
 export type SceneLoaderOptions = {
 	/**
@@ -49,9 +49,19 @@ export type SceneLoaderOptions = {
 	 * This will affect the quality of textures that will be loaded in terms of dimensions.
 	 * The editor computes automatic "high (untouched)", "medium (half)", and "low (quarter)" quality levels for textures.
 	 * Using "medium" or "low" quality levels will reduce the memory usage and improve the performance of the scene
-	 * especially on mobiles where memory is limited.
+	 * especially on mobiles where memory is limited. The "very-low" quality level is even more aggressive with shadows quality.
 	 */
 	quality?: SceneLoaderQualitySelector;
+
+	/**
+	 * Same as "quality" but only applied to textures. If set, this has priority over "quality".
+	 */
+	texturesQuality?: SceneLoaderQualitySelector;
+	/**
+	 * Same as "quality" but only applied to shadows. If set, this has priority over "quality".
+	 */
+	shadowsQuality?: SceneLoaderQualitySelector;
+
 	/**
 	 * Defines the function called to notify the loading progress in interval [0, 1]
 	 */
@@ -62,11 +72,16 @@ declare module "@babylonjs/core/scene" {
 	// eslint-disable-next-line @typescript-eslint/naming-convention
 	interface Scene {
 		loadingQuality: SceneLoaderQualitySelector;
+		loadingTexturesQuality: SceneLoaderQualitySelector;
+		loadingShadowsQuality: SceneLoaderQualitySelector;
 	}
 }
 
 export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scene, scriptsMap: ScriptMap, options?: SceneLoaderOptions) {
 	scene.loadingQuality = options?.quality ?? "high";
+
+	scene.loadingTexturesQuality = options?.texturesQuality ?? scene.loadingQuality;
+	scene.loadingShadowsQuality = options?.shadowsQuality ?? scene.loadingQuality;
 
 	await AppendSceneAsync(`${rootUrl}${sceneFilename}`, scene, {
 		pluginExtension: ".babylon",
