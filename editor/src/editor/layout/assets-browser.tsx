@@ -35,6 +35,7 @@ import { openMultipleFilesAndFoldersDialog } from "../../tools/dialog";
 import { findAvailableFilename, normalizedGlob } from "../../tools/fs";
 import { loadSavedThumbnailsCache } from "../../tools/assets/thumbnail";
 import { assetsCache, saveAssetsCache } from "../../tools/assets/cache";
+import { assetsAllSupportedExtensions } from "../../tools/assets/extensions";
 import { checkProjectCachedCompressedTextures, processingCompressedTextures } from "../../tools/assets/ktx";
 
 import { ICommandPaletteType } from "../dialogs/command-palette/command-palette";
@@ -44,7 +45,7 @@ import { loadScene } from "../../project/load/scene";
 import { saveProject, saveProjectConfiguration } from "../../project/save/save";
 import { onProjectConfigurationChangedObservable, projectConfiguration } from "../../project/configuration";
 
-import { showConfirm, showPrompt } from "../../ui/dialog";
+import { showAlert, showConfirm, showPrompt } from "../../ui/dialog";
 
 import { Input } from "../../ui/shadcn/ui/input";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator } from "../../ui/shadcn/ui/breadcrumb";
@@ -227,6 +228,20 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 		listenSceneAssetsEvents(this.props.editor);
 		listenMaterialAssetsEvents(this.props.editor);
 		listenParticleAssetsEvents(this.props.editor);
+	}
+
+	/**
+	 * Returns wether or not the currently browsed folder is the /assets folder.
+	 */
+	public isAssetsFolder(): boolean {
+		return this.state.browsedPath?.startsWith(join(dirname(projectConfiguration.path!), "/assets")) ?? false;
+	}
+
+	/**
+	 * Returns wether or not the currently browsed folder is the /src folder.
+	 */
+	public isSrcFolder(): boolean {
+		return this.state.browsedPath?.startsWith(join(dirname(projectConfiguration.path!), "/src")) ?? false;
 	}
 
 	private async _refreshFilesTreeNodes(path: string): Promise<void> {
@@ -732,66 +747,20 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 							Paste
 						</ContextMenuItem>
 
-						<ContextMenuSeparator />
-
-						<ContextMenuSub>
-							<ContextMenuSubTrigger className="flex items-center gap-2">
-								<AiOutlinePlus className="w-5 h-5" /> Add
-							</ContextMenuSubTrigger>
-							<ContextMenuSubContent>
-								<ContextMenuItem onClick={() => this._handleAddScene()}>Scene</ContextMenuItem>
+						{(this.isAssetsFolder() || this.isSrcFolder()) && (
+							<>
 								<ContextMenuSeparator />
-								{getMaterialCommands(this.props.editor).map((command) => (
-									<ContextMenuItem key={command.key} onClick={() => this._handleAddMaterial(command)}>
-										{command.text}
-									</ContextMenuItem>
-								))}
-
-								<ContextMenuSeparator />
-								<ContextMenuItem onClick={() => this._handleAddNodeMaterialFromSnippet()}>Node Material From Snippet...</ContextMenuItem>
-								<ContextMenuSeparator />
-
 								<ContextMenuSub>
-									<ContextMenuSubTrigger className="flex items-center gap-2">Materials Library</ContextMenuSubTrigger>
+									<ContextMenuSubTrigger className="flex items-center gap-2">
+										<AiOutlinePlus className="w-5 h-5" /> Add
+									</ContextMenuSubTrigger>
 									<ContextMenuSubContent>
-										{getMaterialsLibraryCommands(this.props.editor).map((command) => (
-											<ContextMenuItem key={command.key} onClick={() => this._handleAddMaterial(command)}>
-												{command.text}
-											</ContextMenuItem>
-										))}
+										{this.isAssetsFolder() && this._getAssetsContextMenuItems()}
+										{this.isSrcFolder() && this._getSrcContextMenuItems()}
 									</ContextMenuSubContent>
 								</ContextMenuSub>
-
-								{this.props.editor.state.enableExperimentalFeatures && (
-									<>
-										<ContextMenuSeparator />
-										<ContextMenuItem onClick={() => this._handleAddNodeParticleSystem()}>Node Particle System</ContextMenuItem>
-										<ContextMenuSeparator />
-										<ContextMenuItem onClick={() => this._handleAddCinematic()}>Cinematic</ContextMenuItem>
-									</>
-								)}
-
-								{this.props.editor.state.enableExperimentalFeatures && (
-									<>
-										<ContextMenuSeparator />
-										<ContextMenuItem onClick={() => this._handleAddFullScreenGUI()}>Full Screen GUI</ContextMenuItem>
-									</>
-								)}
-
-								{this.state.browsedPath?.startsWith(join(dirname(projectConfiguration.path!), "/src")) && (
-									<>
-										<ContextMenuSeparator />
-										<ContextMenuSub>
-											<ContextMenuSubTrigger className="flex items-center gap-2">Script</ContextMenuSubTrigger>
-											<ContextMenuSubContent>
-												<ContextMenuItem onClick={() => this._handleAddScript("class")}>Class-based</ContextMenuItem>
-												<ContextMenuItem onClick={() => this._handleAddScript("function")}>Function-based</ContextMenuItem>
-											</ContextMenuSubContent>
-										</ContextMenuSub>
-									</>
-								)}
-							</ContextMenuSubContent>
-						</ContextMenuSub>
+							</>
+						)}
 
 						<ContextMenuSeparator />
 
@@ -801,6 +770,60 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 					</ContextMenuContent>
 				</ContextMenu>
 			</SelectableGroup>
+		);
+	}
+
+	private _getAssetsContextMenuItems(): ReactNode {
+		return (
+			<>
+				<ContextMenuItem onClick={() => this._handleAddScene()}>Scene</ContextMenuItem>
+				<ContextMenuSeparator />
+				{getMaterialCommands(this.props.editor).map((command) => (
+					<ContextMenuItem key={command.key} onClick={() => this._handleAddMaterial(command)}>
+						{command.text}
+					</ContextMenuItem>
+				))}
+
+				<ContextMenuSeparator />
+				<ContextMenuItem onClick={() => this._handleAddNodeMaterialFromSnippet()}>Node Material From Snippet...</ContextMenuItem>
+				<ContextMenuSeparator />
+
+				<ContextMenuSub>
+					<ContextMenuSubTrigger className="flex items-center gap-2">Materials Library</ContextMenuSubTrigger>
+					<ContextMenuSubContent>
+						{getMaterialsLibraryCommands(this.props.editor).map((command) => (
+							<ContextMenuItem key={command.key} onClick={() => this._handleAddMaterial(command)}>
+								{command.text}
+							</ContextMenuItem>
+						))}
+					</ContextMenuSubContent>
+				</ContextMenuSub>
+
+				{this.props.editor.state.enableExperimentalFeatures && (
+					<>
+						<ContextMenuSeparator />
+						<ContextMenuItem onClick={() => this._handleAddNodeParticleSystem()}>Node Particle System</ContextMenuItem>
+						<ContextMenuSeparator />
+						<ContextMenuItem onClick={() => this._handleAddCinematic()}>Cinematic</ContextMenuItem>
+					</>
+				)}
+
+				{this.props.editor.state.enableExperimentalFeatures && (
+					<>
+						<ContextMenuSeparator />
+						<ContextMenuItem onClick={() => this._handleAddFullScreenGUI()}>Full Screen GUI</ContextMenuItem>
+					</>
+				)}
+			</>
+		);
+	}
+
+	private _getSrcContextMenuItems(): ReactNode {
+		return (
+			<>
+				<ContextMenuItem onClick={() => this._handleAddScript("class")}>Class-based Script</ContextMenuItem>
+				<ContextMenuItem onClick={() => this._handleAddScript("function")}>Function-based Script</ContextMenuItem>
+			</>
 		);
 	}
 
@@ -887,6 +910,8 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 			return;
 		}
 
+		let assetFileNotInAssetsFolder = false;
+
 		const filesToCopy: Record<string, string> = {};
 
 		for (let i = 0, len = event.dataTransfer.files.length; i < len; ++i) {
@@ -898,7 +923,28 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 			const path = webUtils.getPathForFile(file).replace(/\\/g, "/");
 			const absolutePath = join(this.state.browsedPath, basename(path));
 
+			if (!this.isAssetsFolder()) {
+				const extension = extname(path).toLowerCase();
+
+				if (assetsAllSupportedExtensions.includes(extension)) {
+					assetFileNotInAssetsFolder = true;
+					continue;
+				}
+			}
+
 			filesToCopy[path] = absolutePath;
+		}
+
+		if (assetFileNotInAssetsFolder) {
+			showAlert(
+				"Warning",
+				<div>
+					You tried to import assets in a directory not located at least in the root "assets" folder.
+					<br />
+					To prevent broken references, these files were not copied. Please drag'n'drop them at least in the /assets folder.
+				</div>,
+				true
+			);
 		}
 
 		await Promise.all(
@@ -940,6 +986,8 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 			title: "Import Files & Folders",
 		});
 
+		let assetFileNotInAssetsFolder = false;
+
 		await Promise.all(
 			files.map(async (file) => {
 				const destination = join(this.state.browsedPath!, basename(file));
@@ -950,10 +998,30 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 						recursive: true,
 					});
 				} else {
+					if (!this.isAssetsFolder()) {
+						const extension = extname(file).toLowerCase();
+						if (assetsAllSupportedExtensions.includes(extension)) {
+							assetFileNotInAssetsFolder = true;
+							return;
+						}
+					}
+
 					await copyFile(file, destination);
 				}
 			})
 		);
+
+		if (assetFileNotInAssetsFolder) {
+			showAlert(
+				"Warning",
+				<div>
+					You tried to import assets in a directory not located at least in the root "assets" folder.
+					<br />
+					To prevent broken references, these files were not copied. Please drag'n'drop them at least in the /assets folder.
+				</div>,
+				true
+			);
+		}
 
 		this._refreshItems(this.state.browsedPath);
 	}
