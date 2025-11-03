@@ -17,6 +17,7 @@ import { EditorConsole } from "./layout/console";
 import { EditorInspector } from "./layout/inspector";
 import { EditorAnimation } from "./layout/animation";
 import { EditorAssetsBrowser } from "./layout/assets-browser";
+import { EditorTerminal } from "./layout/terminal";
 
 export interface IEditorLayoutProps {
 	/**
@@ -50,6 +51,10 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
 	 * The animation editor of the editor.
 	 */
 	public animations: EditorAnimation;
+	/**
+	 * The terminal of the editor.
+	 */
+	public terminal: EditorTerminal;
 
 	private _layoutRef: Layout | null = null;
 	private _model: Model = Model.fromJson(layoutModel as any);
@@ -60,6 +65,7 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
 		graph: <EditorGraph editor={this.props.editor} ref={(r) => (this.graph = r!)} />,
 		"assets-browser": <EditorAssetsBrowser editor={this.props.editor} ref={(r) => (this.assets = r!)} />,
 		animations: <EditorAnimation editor={this.props.editor} ref={(r) => (this.animations = r!)} />,
+		terminal: <EditorTerminal editor={this.props.editor} ref={(r) => (this.terminal = r!)} />,
 	};
 
 	private _layoutVersion: string = "5.0.0-alpha.2";
@@ -133,8 +139,8 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
 	 * If the tab is hidden, makes it visible and selected.
 	 * @param tabId defines the id of the tab to make active.
 	 */
-	public selectTab(tabId: "graph" | "preview" | "assets-browser" | "console" | "inspector" | (string & {})): void {
-		this._layoutRef?.props.model.doAction(Actions.selectTab(tabId));
+	public selectTab(tabId: "graph" | "preview" | "assets-browser" | "console" | "terminal" | "inspector" | (string & {})): void {
+		this._layoutRef?.props.model.doAction(Actions.selectTab(tabId)); 
 	}
 
 	/**
