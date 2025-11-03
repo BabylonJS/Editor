@@ -47,6 +47,7 @@ import { EditorInspectorSwitchField } from "../inspector/fields/switch";
 
 import { Editor } from "../../main";
 
+import { exportScene, exportNode } from "./export";
 import { removeNodes } from "./remove";
 
 export interface IEditorGraphContextMenuProps extends PropsWithChildren {
@@ -95,10 +96,25 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
 											<ContextMenuSeparator />
 										</>
 									)}
+
+									<ContextMenuSeparator />
+
+									{isNode(this.props.object) && !isScene(this.props.object) && (
+										<ContextMenuItem onClick={() => exportNode(this.props.editor, this.props.object)}>Export Node (.babylon)</ContextMenuItem>
+									)}
+
+									<ContextMenuSeparator />
 								</>
 							)}
 
 							{isSound(this.props.object) && <ContextMenuItem onClick={() => this._reloadSound()}>Reload</ContextMenuItem>}
+
+							{isScene(this.props.object) && (
+								<>
+									<ContextMenuItem onClick={() => exportScene(this.props.editor)}>Export Scene (.babylon)</ContextMenuItem>
+									<ContextMenuSeparator />
+								</>
+							)}
 
 							{(isNode(this.props.object) || isScene(this.props.object)) && !isSceneLinkNode(this.props.object) && (
 								<ContextMenuSub>
