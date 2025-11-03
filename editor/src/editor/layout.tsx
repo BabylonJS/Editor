@@ -140,7 +140,7 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
 	 * @param tabId defines the id of the tab to make active.
 	 */
 	public selectTab(tabId: "graph" | "preview" | "assets-browser" | "console" | "terminal" | "inspector" | (string & {})): void {
-		this._layoutRef?.props.model.doAction(Actions.selectTab(tabId)); 
+		this._layoutRef?.props.model.doAction(Actions.selectTab(tabId));
 	}
 
 	/**
