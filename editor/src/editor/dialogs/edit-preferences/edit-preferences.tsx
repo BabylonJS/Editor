@@ -221,8 +221,8 @@ export class EditorEditPreferencesComponent extends Component<IEditorEditPrefere
 
 								trySetExperimentalFeaturesEnabledInLocalStorage(v);
 
-								this.props.editor.layout.graph.forceUpdate();
-								this.props.editor.layout.assets.forceUpdate();
+								this.props.editor.layout.graph.refresh();
+								this.props.editor.layout.assets.refresh();
 								this.props.editor.layout.preview.forceUpdate();
 								this.props.editor.layout.inspector.forceUpdate();
 								this.props.editor.layout.animations.forceUpdate();

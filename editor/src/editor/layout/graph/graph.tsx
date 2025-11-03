@@ -47,8 +47,8 @@ import { EditorInspectorSwitchField } from "../inspector/fields/switch";
 
 import { Editor } from "../../main";
 
-import { exportScene, exportNode } from "./export";
 import { removeNodes } from "./remove";
+import { exportScene, exportNode } from "./export";
 
 export interface IEditorGraphContextMenuProps extends PropsWithChildren {
 	editor: Editor;
@@ -97,19 +97,18 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
 										</>
 									)}
 
-									<ContextMenuSeparator />
-
-									{isNode(this.props.object) && !isScene(this.props.object) && (
-										<ContextMenuItem onClick={() => exportNode(this.props.editor, this.props.object)}>Export Node (.babylon)</ContextMenuItem>
+									{isNode(this.props.object) && !isScene(this.props.object) && this.props.editor.state.enableExperimentalFeatures && (
+										<>
+											<ContextMenuItem onClick={() => exportNode(this.props.editor, this.props.object)}>Export Node (.babylon)</ContextMenuItem>
+											<ContextMenuSeparator />
+										</>
 									)}
-
-									<ContextMenuSeparator />
 								</>
 							)}
 
 							{isSound(this.props.object) && <ContextMenuItem onClick={() => this._reloadSound()}>Reload</ContextMenuItem>}
 
-							{isScene(this.props.object) && (
+							{isScene(this.props.object) && this.props.editor.state.enableExperimentalFeatures && (
 								<>
 									<ContextMenuItem onClick={() => exportScene(this.props.editor)}>Export Scene (.babylon)</ContextMenuItem>
 									<ContextMenuSeparator />

@@ -61,6 +61,8 @@ import {
 	ContextMenuSubContent,
 } from "../../ui/shadcn/ui/context-menu";
 
+import { exportNodeToPath } from "./graph/export";
+
 import { FileInspectorObject } from "./inspector/file";
 
 import { AssetBrowserGUIItem } from "./assets-browser/items/gui-item";
@@ -893,8 +895,12 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 
 	private _handleDragOver(event: DragEvent<HTMLDivElement>): void {
 		event.preventDefault();
+
+		const isGraphNode = event.dataTransfer.types.includes("graph/node");
+		const isFiles = event.dataTransfer.types.length === 1 && event.dataTransfer.types[0] === "Files";
+
 		this.setState({
-			dragAndDroppingFiles: event.dataTransfer.types.length === 1 && event.dataTransfer.types[0] === "Files",
+			dragAndDroppingFiles: isFiles || isGraphNode,
 		});
 	}
 
@@ -910,6 +916,17 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 			return;
 		}
 
+		// Nodes from graph?
+		try {
+			const data = JSON.parse(event.dataTransfer.getData("graph/node")) as string[];
+			if (data?.length) {
+				return this._handleDroppedNodesFromGraph(data);
+			}
+		} catch (e) {
+			// Catch silently.
+		}
+
+		// Those are files.
 		let assetFileNotInAssetsFolder = false;
 
 		const filesToCopy: Record<string, string> = {};
@@ -961,6 +978,34 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 		);
 
 		this.refresh();
+	}
+
+	private async _handleDroppedNodesFromGraph(nodeIds: string[]): Promise<void> {
+		if (!this.state.browsedPath || !this.props.editor.state.enableExperimentalFeatures) {
+			return;
+		}
+
+		if (!this.isAssetsFolder()) {
+			showAlert("Warning", <div>You can only export nodes to at least in the root "assets" folder.</div>, true);
+			return;
+		}
+
+		for (const nodeId of nodeIds) {
+			const node = this.props.editor.layout.preview.scene.getNodeById(nodeId);
+			if (node) {
+				const scenePath = join(this.state.browsedPath, `${filenamify(node.name)}.babylon`);
+				if (await pathExists(scenePath)) {
+					const overwrite = await showConfirm("Overwrite Scene?", `A scene named "${node.name}" already exists at this location. Do you want to overwrite it?`);
+					if (!overwrite) {
+						continue;
+					}
+				}
+
+				await exportNodeToPath(this.props.editor, node, join(this.state.browsedPath, `${filenamify(node.name)}.babylon`));
+			}
+		}
+
+		return this.refresh();
 	}
 
 	private async _handleCreateDirectory(): Promise<void> {
