@@ -250,7 +250,10 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 	 * Called on the item is double-clicked. To be overriden by the specialized items implementations.
 	 */
 	protected onDoubleClick(): void | Promise<void> {
-		// Nothing to do by default.
+		// If it's a file (not a directory), open it in the default editor
+		if (!this.state.isDirectory) {
+			ipcRenderer.send("editor:open-with", this.props.absolutePath);
+		}
 	}
 
 	private _handleDragStart(ev: DragEvent<HTMLDivElement>): void {
