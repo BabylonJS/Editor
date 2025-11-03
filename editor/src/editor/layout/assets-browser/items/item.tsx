@@ -396,6 +396,12 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 					<ImFinder className="w-4 h-4" /> {`Show in ${isDarwin ? "Finder" : "Explorer"}`}
 				</ContextMenuItem>
 
+				{!this.state.isDirectory && (
+					<ContextMenuItem className="flex items-center gap-2" onClick={() => ipcRenderer.send("editor:open-with", this.props.absolutePath)}>
+						Edit
+					</ContextMenuItem>
+				)}
+
 				<ContextMenuSeparator />
 
 				{items.map((item, index) => (
@@ -418,7 +424,7 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 				<ContextMenuSeparator />
 
 				<ContextMenuItem className="flex items-center gap-2 !text-red-400" onClick={() => this._handleTrashItem()}>
-					<AiOutlineClose className="w-5 h-5" fill="rgb(248, 113, 113)" /> Remove
+					<AiOutlineClose className="w-5 h-5" fill="rgb(248, 113, 113)" /> Delete
 				</ContextMenuItem>
 			</ContextMenuContent>
 		);
@@ -437,6 +443,8 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 			console.error(e);
 		}
 	}
+
+    
 
 	private async _computePreviewImage(): Promise<void> {
 		const files = await readdir(this.props.absolutePath);
