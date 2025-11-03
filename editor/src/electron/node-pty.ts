@@ -41,12 +41,14 @@ ipcMain.on("editor:create-node-pty", (ev, command, id, options) => {
 		args.push("-l");
 	}
 
-    const p = spawn(shell!, args, {
+	const p = spawn(shell!, args, {
 		cols: 80,
 		rows: 30,
 		name: "xterm-color",
 		encoding: "utf-8",
 		useConpty: false,
+		cwd: (options as any)?.cwd ?? process.cwd(),
+		env: { ...process.env, ...(((options as any)?.env) ?? {}) },
 		...options,
 	});
 
