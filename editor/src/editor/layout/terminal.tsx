@@ -1,3 +1,4 @@
+import { dirname } from "path/posix";
 import { Component, ReactNode } from "react";
 
 import { Terminal } from "@xterm/xterm";
@@ -6,6 +7,7 @@ import { FitAddon } from "@xterm/addon-fit";
 import { Editor } from "../main";
 import { isDarwin } from "../../tools/os";
 import { execNodePty, NodePtyInstance } from "../../tools/node-pty";
+import { projectConfiguration } from "../../project/configuration";
 
 export interface IEditorTerminalProps {
 	editor: Editor;
@@ -22,9 +24,9 @@ export class EditorTerminal extends Component<IEditorTerminalProps> {
 				<div className="sticky z-50 top-0 left-0 w-full h-10 bg-primary-foreground flex items-center px-2">
 					<div className="text-sm text-muted-foreground">Terminal</div>
 				</div>
- 
-				<div className="w-full h-[calc(100%-40px)] p-2 text-foreground overflow-hidden">
-					<div ref={(r) => this._onTerminalContainerChanged(r)} className="w-full h-full overflow-hidden rounded border border-border" />
+
+				<div className="w-full h-[calc(100%-40px)] p-2 overflow-hidden">
+					<div ref={(r) => this._onTerminalContainerChanged(r)} className="w-full h-full overflow-hidden" />
 				</div>
 			</div>
 		);
@@ -61,7 +63,7 @@ export class EditorTerminal extends Component<IEditorTerminalProps> {
 
 	private async _initializeTerminal(ref: HTMLDivElement): Promise<void> {
 		this._terminal = new Terminal({
-			fontSize: 12,
+			fontSize: 14,
 			lineHeight: 1,
 			fontWeight: "400",
 			fontWeightBold: "600",
@@ -70,6 +72,9 @@ export class EditorTerminal extends Component<IEditorTerminalProps> {
 			fontFamily: "'Inter var', sans-serif",
 			cursorBlink: true,
 			convertEol: true,
+			theme: {
+				background: "transparent",
+			},
 			windowOptions: {
 				getWinSizePixels: true,
 				getCellSizePixels: true,
@@ -83,10 +88,13 @@ export class EditorTerminal extends Component<IEditorTerminalProps> {
 		this._terminal.open(ref);
 
 		requestAnimationFrame(() => {
-			this._fitAddon?.fit();
+			if (this._terminal && this._fitAddon) {
+				this._fitAddon.fit();
+			}
 		});
 
-		this._pty = await execNodePty("", { interactive: true, cwd: process.cwd(), env: process.env });
+		const cwd = projectConfiguration.path ? dirname(projectConfiguration.path) : undefined;
+		this._pty = await execNodePty("", { interactive: true, cwd } as any);
 
 		this._pty.onGetDataObservable.add((data) => {
 			this._terminal?.write(data);
@@ -101,10 +109,12 @@ export class EditorTerminal extends Component<IEditorTerminalProps> {
 		});
 
 		const ro = new ResizeObserver(() => {
-			requestAnimationFrame(() => this._fitAddon?.fit());
+			requestAnimationFrame(() => {
+				if (this._terminal && this._fitAddon) {
+					this._fitAddon.fit();
+				}
+			});
 		});
 		ro.observe(ref);
 	}
 }
-
-

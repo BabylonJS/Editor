@@ -78,7 +78,7 @@
 								"component": "console",
 								"enableClose": false,
 								"enableRenderOnDemand": false
-							}, 
+							},
 							{
 								"type": "tab",
 								"id": "terminal",
