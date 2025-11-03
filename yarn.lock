@@ -4143,6 +4143,11 @@
   resolved "https://registry.yarnpkg.com/@xterm/addon-fit/-/addon-fit-0.10.0.tgz#bebf87fadd74e3af30fdcdeef47030e2592c6f55"
   integrity sha512-UFYkDm4HUahf2lnEyHvio51TNGiLK66mqP2JoATy7hRZeXaGMRDr00JiSF7m63vR5WKATF605yEggJKsw0JpMQ==
 
+"@xterm/addon-webgl@^0.19.0":
+  version "0.19.0-beta.137"
+  resolved "https://registry.yarnpkg.com/@xterm/addon-webgl/-/addon-webgl-0.19.0-beta.137.tgz#86c4f1036bf9f474fc8e9ffe3e49394cf3f793d3"
+  integrity sha512-WOIHuDo0VoFHVfcUTat7+IoehiHNFG8e2nfPIAotW/81e4If0WWb4t8oCji/TSd/l6MjsTCYrV3sdSyM8icA2Q==
+
 "@xterm/xterm@^5.6.0-beta.119":
   version "5.6.0-beta.129"
   resolved "https://registry.yarnpkg.com/@xterm/xterm/-/xterm-5.6.0-beta.129.tgz#b8d8133396b4ce763e8bc27d312957eca210c1cb"
@@ -4749,10 +4754,10 @@ babylonjs-editor-tools@latest:
   integrity sha512-AREjL0WjtjyOvud0EMG/II3zH73KlSif/u0HV965tPWmUZHrxr+g/4iX6eU0mIYlIjOuepfRAopaF04IYJOaHA==
 
 "babylonjs-editor-tools@link:tools":
-  version "5.1.10"
+  version "5.2.0"
 
 "babylonjs-editor@link:editor":
-  version "5.1.10"
+  version "5.2.0"
   dependencies:
     "@babylonjs/core" "8.33.2"
     "@babylonjs/havok" "1.3.10"
@@ -4783,6 +4788,7 @@ babylonjs-editor-tools@latest:
     "@radix-ui/react-toggle-group" "1.1.11"
     "@radix-ui/react-tooltip" "^1.0.7"
     "@xterm/addon-fit" "^0.10.0"
+    "@xterm/addon-webgl" "^0.19.0"
     "@xterm/xterm" "^5.6.0-beta.119"
     assimpjs "0.0.10"
     axios "^1.12.0"

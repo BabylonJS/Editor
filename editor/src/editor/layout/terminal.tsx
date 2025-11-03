@@ -3,11 +3,11 @@ import { Component, ReactNode } from "react";
 
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
+import { WebglAddon } from "@xterm/addon-webgl";
 
 import { Editor } from "../main";
 import { execNodePty, NodePtyInstance } from "../../tools/node-pty";
 import { projectConfiguration, onProjectConfigurationChangedObservable } from "../../project/configuration";
-import { isDarwin } from "../../export";
 
 export interface IEditorTerminalProps {
 	editor: Editor;
@@ -20,6 +20,7 @@ export interface IEditorTerminalState {
 export class EditorTerminal extends Component<IEditorTerminalProps, IEditorTerminalState> {
 	private _terminal: Terminal | null = null;
 	private _fitAddon: FitAddon | null = null;
+	private _webglAddon: WebglAddon | null = null;
 	private _pty: NodePtyInstance | null = null;
 	private _projectPath: string | null = null;
 
@@ -83,6 +84,13 @@ export class EditorTerminal extends Component<IEditorTerminalProps, IEditorTermi
 		this._fitAddon?.dispose();
 		this._fitAddon = null;
 
+		try {
+			this._webglAddon?.dispose();
+		} catch (e) {
+			// ignore
+		}
+		this._webglAddon = null;
+
 		this._terminal?.dispose();
 		this._terminal = null;
 
@@ -106,20 +114,20 @@ export class EditorTerminal extends Component<IEditorTerminalProps, IEditorTermi
 
 	private async _initializeTerminal(ref: HTMLDivElement): Promise<void> {
 		this._terminal = new Terminal({
-			fontSize: 14,
-			lineHeight: 1,
-			letterSpacing: isDarwin() ? -6 : 0,
+			fontSize: 15,
+			lineHeight: 1.2,
+			letterSpacing: 0,
 			fontWeight: "400",
-			fontWeightBold: "600",
-			fontFamily: "Arial",
+			fontWeightBold: "700",
+			fontFamily: "'Monaco', 'Menlo', 'Consolas', 'Courier New', monospace",
 			allowTransparency: true,
 			cursorBlink: true,
 			convertEol: true,
 			theme: {
 				background: "#0000",
-				foreground: "#0000",
+				foreground: "#d4d4d4",
 				selectionBackground: "rgba(255, 255, 255, 0.3)",
-				selectionForeground: "#d4d4d4",
+				selectionForeground: "#ffffff",
 			},
 			windowOptions: {
 				getWinSizePixels: true,
@@ -132,6 +140,14 @@ export class EditorTerminal extends Component<IEditorTerminalProps, IEditorTermi
 		this._terminal.loadAddon(this._fitAddon);
 
 		this._terminal.open(ref);
+
+		// Try WebGL renderer for higher quality rendering; fall back silently if unavailable
+		try {
+			this._webglAddon = new WebglAddon();
+			this._terminal.loadAddon(this._webglAddon);
+		} catch (e) {
+			// WebGL not available; keep default renderer
+		}
 
 		requestAnimationFrame(() => {
 			if (this._terminal && this._fitAddon) {
