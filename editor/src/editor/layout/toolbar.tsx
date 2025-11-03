@@ -90,6 +90,10 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 
 							<MenubarSeparator />
 
+							<MenubarItem disabled={!this.props.editor.state.projectPath} onClick={() => this._handleOpenInDefaultIde()}>
+								Open in Default IDE
+							</MenubarItem>
+
 							<MenubarItem disabled={!this.props.editor.state.visualStudioCodeAvailable} onClick={() => this._handleOpenVisualStudioCode()}>
 								Open in Visual Studio Code
 							</MenubarItem>
@@ -257,5 +261,14 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 
 		const p = await execNodePty(`code "${join(dirname(this.props.editor.state.projectPath), "/")}"`);
 		await p.wait();
+	}
+
+	private _handleOpenInDefaultIde(): void {
+		if (!this.props.editor.state.projectPath) {
+			return;
+		}
+
+		const projectDir = dirname(this.props.editor.state.projectPath);
+		ipcRenderer.send("editor:open-with", projectDir);
 	}
 }
