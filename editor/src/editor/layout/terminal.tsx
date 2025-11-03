@@ -63,10 +63,10 @@ export class EditorTerminal extends Component<IEditorTerminalProps, IEditorTermi
 			const newPath = config.path;
 			if (newPath && newPath !== this._projectPath) {
 				this._projectPath = newPath;
-				
+
 				// Update state to trigger re-render and show terminal
 				this.setState({ hasProject: true });
-				
+
 				// Restart terminal with new project path only if terminal is already initialized
 				if (this._terminal && this._pty) {
 					this._restartTerminal();
@@ -105,7 +105,6 @@ export class EditorTerminal extends Component<IEditorTerminalProps, IEditorTermi
 	}
 
 	private async _initializeTerminal(ref: HTMLDivElement): Promise<void> {
-		
 		this._terminal = new Terminal({
 			fontSize: 14,
 			lineHeight: 1,
@@ -121,11 +120,11 @@ export class EditorTerminal extends Component<IEditorTerminalProps, IEditorTermi
 				foreground: "#0000",
 				selectionBackground: "rgba(255, 255, 255, 0.3)",
 				selectionForeground: "#d4d4d4",
-			}, 
+			},
 			windowOptions: {
 				getWinSizePixels: true,
 				getCellSizePixels: true,
-				getWinSizeChars: true, 
+				getWinSizeChars: true,
 			},
 		});
 
@@ -139,7 +138,7 @@ export class EditorTerminal extends Component<IEditorTerminalProps, IEditorTermi
 				this._fitAddon.fit();
 			}
 		});
-		
+
 		const cwd = this._projectPath ? dirname(this._projectPath) : undefined;
 		this._pty = await execNodePty("", { interactive: true, cwd } as any);
 
