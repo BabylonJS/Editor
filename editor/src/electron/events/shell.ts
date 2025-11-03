@@ -66,13 +66,21 @@ async function openInIde(path: string, isDirectory: boolean): Promise<void> {
 		// On macOS, try JetBrains IDEs (PhpStorm, WebStorm, IntelliJ IDEA)
 		if (platform() === "darwin") {
 			exec(`open -a "PhpStorm" "${normalizedPath}"`, (error) => {
-				if (!error) return;
+				if (!error) {
+					return;
+				}
 				exec(`open -a "WebStorm" "${normalizedPath}"`, (error) => {
-					if (!error) return;
+					if (!error) {
+						return;
+					}
 					exec(`open -a "IntelliJ IDEA" "${normalizedPath}"`, (error) => {
-						if (!error) return;
+						if (!error) {
+							return;
+						}
 						exec(`open -a "IntelliJ IDEA CE" "${normalizedPath}"`, (error) => {
-							if (!error) return;
+							if (!error) {
+								return;
+							}
 							// Fallback to shell.openPath
 							shell.openPath(normalizedPath);
 						});

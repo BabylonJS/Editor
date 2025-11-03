@@ -39,6 +39,7 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 		super(props);
 
 		ipcRenderer.on("editor:open-project", () => this._handleOpenProject());
+		ipcRenderer.on("editor:open-default-ide", () => this._handleOpenInDefaultIde());
 		ipcRenderer.on("editor:open-vscode", () => this._handleOpenVisualStudioCode());
 
 		this._nodeCommands = getNodeCommands(this.props.editor);
