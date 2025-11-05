@@ -255,6 +255,23 @@ export class CinematicEditorCurvesRoot extends Component<ICinematicEditorCurvesR
 		} else if (track?.animationGroups) {
 			normalizeAnimationGroupWeightKeys(track);
 			keyFrameAnimationLayers.push(track.animationGroupWeight!);
+
+			track.animationGroups.forEach((ag, index) => {
+				result.push(
+					<rect
+						key={`animation-group-${index}`}
+						x={ag.frame}
+						y={height * 0.5 - 8 / this.props.scale}
+						width={ag.endFrame - ag.startFrame}
+						height={16 / this.props.scale}
+						rx={8 / this.props.scale}
+						ry={8 / this.props.scale}
+						opacity={0.35}
+						stroke="black"
+						strokeWidth={2}
+					/>
+				);
+			});
 		}
 
 		keyFrameAnimationLayers.forEach((keyFrameAnimations) => {
