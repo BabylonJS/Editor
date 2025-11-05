@@ -54,7 +54,7 @@ export class EditorPreviewAxisHelper extends Component<IEditorPreviewAxisHelperP
 
 	public render(): ReactNode {
 		return (
-			<>
+			<div hidden={this.props.editor.layout.preview?.state.fixedDimensions !== "fit"}>
 				<div
 					className="absolute text-black/50 text-xs font-semibold -translate-x-1/2 -translate-y-1/2 pointer-events-none"
 					style={{
@@ -84,7 +84,7 @@ export class EditorPreviewAxisHelper extends Component<IEditorPreviewAxisHelperP
 				>
 					Z
 				</div>
-			</>
+			</div>
 		);
 	}
 
