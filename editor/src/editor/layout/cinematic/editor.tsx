@@ -254,7 +254,16 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 	public createTemporaryAnimationGroup(): AnimationGroup {
 		this.prepareTemporaryAnimationGroup();
 
-		this._temporaryAnimationGroup ??= generateCinematicAnimationGroup(this.cinematic, this.props.editor.layout.preview.scene as any) as any;
+		const scene = this.props.editor.layout.preview.scene;
+
+		this._temporaryAnimationGroup ??= generateCinematicAnimationGroup(this.cinematic, scene as any) as any;
+
+		if (this._temporaryAnimationGroup) {
+			const index = scene.animationGroups.indexOf(this._temporaryAnimationGroup);
+			if (index !== -1) {
+				scene.animationGroups.splice(index, 1);
+			}
+		}
 
 		return this._temporaryAnimationGroup!;
 	}
