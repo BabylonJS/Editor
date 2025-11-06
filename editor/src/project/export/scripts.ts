@@ -1,7 +1,7 @@
+import { pathExists, readJSON, writeFile } from "fs-extra";
 import { join, dirname, extname, basename } from "path/posix";
-import { pathExists, readJSON, readdir, writeFile } from "fs-extra";
 
-import { normalizedGlob } from "../../tools/fs";
+import { normalizedGlob, tryReadDir } from "../../tools/fs";
 
 import { Editor } from "../../editor/main";
 
@@ -63,12 +63,13 @@ export async function handleExportScripts(editor: Editor): Promise<void> {
 				// Catch silently.
 			}
 
-			const [nodesFiles, meshesFiles, lightsFiles, cameraFiles, spriteManagerfiles] = await Promise.all([
-				readdir(join(file, "nodes")),
-				readdir(join(file, "meshes")),
-				readdir(join(file, "lights")),
-				readdir(join(file, "cameras")),
-				readdir(join(file, "sprite-managers")),
+			const [nodesFiles, meshesFiles, lightsFiles, cameraFiles, spriteManagerfiles, spriteMapFiles] = await Promise.all([
+				tryReadDir(join(file, "nodes")),
+				tryReadDir(join(file, "meshes")),
+				tryReadDir(join(file, "lights")),
+				tryReadDir(join(file, "cameras")),
+				tryReadDir(join(file, "sprite-managers")),
+				tryReadDir(join(file, "sprite-maps")),
 			]);
 
 			await Promise.all(
@@ -77,6 +78,8 @@ export async function handleExportScripts(editor: Editor): Promise<void> {
 					...meshesFiles.map((file) => join("meshes", file)),
 					...lightsFiles.map((file) => join("lights", file)),
 					...cameraFiles.map((file) => join("cameras", file)),
+					...spriteMapFiles.map((file) => join("sprite-maps", file)),
+					...spriteManagerfiles.map((file) => join("sprite-managers", file)),
 				].map(async (f) => {
 					const data = await readJSON(join(file, f), "utf-8");
 					if (data.metadata) {
