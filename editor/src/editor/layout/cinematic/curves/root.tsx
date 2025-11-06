@@ -16,7 +16,7 @@ import { getEditableProperties, getEditablePropertyValue } from "./tools/propert
 
 import { CinematicEditorCurvesTicks } from "./ticks";
 import { CinematicEditorPropertyCurve } from "./curve";
-import { normalizeAnimationGroupWeightKeys } from "./tools/animation-group";
+import { createAnimationGroupGhostRect, normalizeAnimationGroupWeightKeys } from "./tools/animation-group";
 
 export interface ICinematicEditorCurvesRootProps {
 	scale: number;
@@ -245,32 +245,22 @@ export class CinematicEditorCurvesRoot extends Component<ICinematicEditorCurvesR
 		const result: ReactNode[] = [];
 
 		const track = this.props.cinematicEditor.state.selectedTrack;
+		if (!track) {
+			return result;
+		}
 
 		const keyFrameAnimationLayers: (ICinematicKey | ICinematicKeyCut)[][] = [];
-		if (track?.keyFrameAnimations) {
+		if (track.keyFrameAnimations) {
 			keyFrameAnimationLayers.push(track.keyFrameAnimations);
-		} else if (track?.sounds) {
+		} else if (track.sounds) {
 			normalizeSoundVolumeKeys(track);
 			keyFrameAnimationLayers.push(track.soundVolume!);
-		} else if (track?.animationGroups) {
+		} else if (track.animationGroups) {
 			normalizeAnimationGroupWeightKeys(track);
 			keyFrameAnimationLayers.push(track.animationGroupWeight!);
 
-			track.animationGroups.forEach((ag, index) => {
-				result.push(
-					<rect
-						key={`animation-group-${index}`}
-						x={ag.frame}
-						y={height * 0.5 - 8 / this.props.scale}
-						width={ag.endFrame - ag.startFrame}
-						height={16 / this.props.scale}
-						rx={8 / this.props.scale}
-						ry={8 / this.props.scale}
-						opacity={0.35}
-						stroke="black"
-						strokeWidth={2}
-					/>
-				);
+			track.animationGroups.forEach((ag) => {
+				result.push(createAnimationGroupGhostRect(ag, this.props.scale, height));
 			});
 		}
 
@@ -315,6 +305,7 @@ export class CinematicEditorCurvesRoot extends Component<ICinematicEditorCurvesR
 								this.props.cinematicEditor.inspector.state.editedObject === key ||
 								this.props.cinematicEditor.inspector.state.editedObject === nextKey
 							}
+							track={track}
 							cinematicKey={key}
 							nextCinematicKey={nextKey}
 							editableAnimationKey={editableAnimationKey}

@@ -1,5 +1,5 @@
 import { IAnimationKey } from "babylonjs";
-import { ICinematicKey, ICinematicKeyCut } from "babylonjs-editor-tools";
+import { ICinematicKey, ICinematicKeyCut, ICinematicTrack } from "babylonjs-editor-tools";
 
 import { getKeyFrame } from "../timelines/tools";
 
@@ -7,6 +7,8 @@ import { CinematicEditor } from "../editor";
 
 import { convertKeysToBezier, valueToSVGY } from "./tools/tools";
 import { getEditablePropertyValue, ICinematicEditorEditableProperty } from "./tools/property";
+
+import { removeAnimationKey } from "../timelines/remove";
 
 import { CinematicEditorCurveHandle } from "./handle";
 import { CinematicEditorPropertyPoint } from "./point";
@@ -20,6 +22,8 @@ export interface ICinematicEditorPropertyCubeProps {
 
 	drawPoint: boolean;
 	drawHandles: boolean;
+
+	track: ICinematicTrack;
 
 	cinematicKey: ICinematicKey | ICinematicKeyCut;
 	nextCinematicKey: ICinematicKey | ICinematicKeyCut;
@@ -75,6 +79,7 @@ export function CinematicEditorPropertyCurve(props: ICinematicEditorPropertyCube
 					editableProperty={props.editableProperty}
 					animationKey={props.editableAnimationKey}
 					cinematicEditor={props.cinematicEditor}
+					onRemoved={() => removeAnimationKey(props.cinematicEditor, props.track, props.cinematicKey)}
 				/>
 			)}
 
@@ -87,6 +92,7 @@ export function CinematicEditorPropertyCurve(props: ICinematicEditorPropertyCube
 				editableProperty={props.nextEditableProperty}
 				animationKey={props.nextEditableAnimationKey}
 				cinematicEditor={props.cinematicEditor}
+				onRemoved={() => removeAnimationKey(props.cinematicEditor, props.track, props.nextCinematicKey)}
 			/>
 
 			{props.editableTangentProperty && props.drawHandles && (

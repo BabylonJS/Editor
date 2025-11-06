@@ -1,7 +1,11 @@
 import { MouseEvent } from "react";
 
+import { AiOutlineClose } from "react-icons/ai";
+
 import { IAnimationKey, Scalar } from "babylonjs";
 import { ICinematicKey, ICinematicKeyCut, isCinematicKeyCut } from "babylonjs-editor-tools";
+
+import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from "../../../../ui/shadcn/ui/context-menu";
 
 import { registerUndoRedo } from "../../../../tools/undoredo";
 import { waitNextAnimationFrame } from "../../../../tools/tools";
@@ -25,6 +29,8 @@ export interface ICinematicEditorPropertyPointProps {
 	editableProperty: ICinematicEditorEditableProperty;
 
 	cinematicEditor: CinematicEditor;
+
+	onRemoved: () => void;
 }
 
 export function CinematicEditorPropertyPoint(props: ICinematicEditorPropertyPointProps) {
@@ -142,16 +148,25 @@ export function CinematicEditorPropertyPoint(props: ICinematicEditorPropertyPoin
 	}
 
 	return (
-		<circle
-			className="fill-primary stroke-orange-500"
-			cursor="pointer"
-			cx={props.cx}
-			cy={props.cy}
-			r={10 / props.scale}
-			strokeWidth={props.cinematicEditor.inspector.state.editedObject === props.cinematicKey ? 4 / props.scale : 0}
-			onClick={handleClick}
-			onMouseDown={handleMouseDown}
-			onDoubleClick={() => props.cinematicEditor.setCurrentTime(getKeyFrame(props.cinematicKey))}
-		></circle>
+		<ContextMenu>
+			<ContextMenuTrigger asChild>
+				<circle
+					className="fill-primary stroke-orange-500"
+					cursor="pointer"
+					cx={props.cx}
+					cy={props.cy}
+					r={10 / props.scale}
+					strokeWidth={props.cinematicEditor.inspector.state.editedObject === props.cinematicKey ? 4 / props.scale : 0}
+					onClick={handleClick}
+					onMouseDown={handleMouseDown}
+					onDoubleClick={() => props.cinematicEditor.setCurrentTime(getKeyFrame(props.cinematicKey))}
+				></circle>
+			</ContextMenuTrigger>
+			<ContextMenuContent>
+				<ContextMenuItem className="flex items-center gap-2 !text-red-400" onClick={() => props.onRemoved()}>
+					<AiOutlineClose className="w-5 h-5" fill="rgb(248, 113, 113)" /> Remove
+				</ContextMenuItem>
+			</ContextMenuContent>
+		</ContextMenu>
 	);
 }
