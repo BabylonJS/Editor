@@ -38,7 +38,7 @@ export class CinematicEditorCurves extends Component<ICinematicEditorCurvesProps
 			<div
 				ref={(r) => (this._divRef = r)}
 				className={`
-                    relative flex flex-col flex-1 w-full min-h-fit h-full overflow-x-auto overflow-y-hidden
+                    relative flex flex-col flex-1 w-full min-h-fit h-full overflow-x-hidden overflow-y-hidden
                     ${this.props.cinematicEditor.state.editType !== "curves" ? "hidden pointer-events-none" : ""}
                 `}
 				onMouseDown={(ev) => this._handleMainDivPointerDown(ev)}
