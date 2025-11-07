@@ -322,6 +322,8 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 
 		scene.beginDirectAnimation(this, [this._playAnimation], currentTime, maxFrame, false, 1.0);
 
+		engine.maxFPS = this.cinematic.outputFramesPerSecond;
+
 		if (this._playRenderLoop) {
 			engine.stopRenderLoop(this._playRenderLoop);
 		}
@@ -330,10 +332,6 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 			(this._playRenderLoop = () => {
 				this.setState({
 					currentTime: this._animatedCurrentTime,
-				});
-
-				scene.lights.forEach((light) => {
-					updateLightShadowMapRefreshRate(light);
 				});
 			})
 		);
@@ -349,6 +347,7 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 		});
 
 		const engine = this.props.editor.layout.preview.engine;
+		engine.maxFPS = undefined;
 
 		if (this._playRenderLoop) {
 			engine.stopRenderLoop(this._playRenderLoop);
