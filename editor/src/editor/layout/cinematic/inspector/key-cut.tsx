@@ -1,6 +1,12 @@
+import { IAnimationKey } from "babylonjs";
 import { ICinematicKeyCut, ICinematicTrack, getAnimationTypeForObject } from "babylonjs-editor-tools";
 
-import { registerSimpleUndoRedo } from "../../../../tools/undoredo";
+import { Button } from "../../../../ui/shadcn/ui/button";
+
+import { getInspectorPropertyValue } from "../../../../tools/property";
+import { registerSimpleUndoRedo, registerUndoRedo } from "../../../../tools/undoredo";
+
+import { getDefaultRenderingPipeline } from "../../../rendering/default-pipeline";
 
 import { CinematicEditor } from "../editor";
 
@@ -18,6 +24,35 @@ export interface ICinematicEditorKeyCutInspectorProps {
 
 export function CinematicEditorKeyCutInspector(props: ICinematicEditorKeyCutInspectorProps) {
 	const animationType = getAnimationTypeForObject(props.cinematicKey.key1.value);
+
+	function copyCurrentValue(key: IAnimationKey) {
+		const node = props.track.defaultRenderingPipeline ? getDefaultRenderingPipeline() : props.track.node;
+
+		if (!node || !props.track?.propertyPath) {
+			return;
+		}
+
+		const oldValue = key.value.clone?.() ?? key.value;
+
+		let newValue = getInspectorPropertyValue(node, props.track.propertyPath);
+		newValue = newValue.clone?.() ?? newValue;
+
+		registerUndoRedo({
+			executeRedo: false,
+			action: () => {
+				props.cinematicEditor.updateTracksAtCurrentTime();
+			},
+			undo: () => {
+				key.value = oldValue;
+			},
+			redo: () => {
+				key.value = newValue;
+			},
+		});
+
+		key.value = newValue;
+		props.cinematicEditor.inspector.forceUpdate();
+	}
 
 	return (
 		<EditorInspectorSectionField title="Key Cut">
@@ -48,6 +83,10 @@ export function CinematicEditorKeyCutInspector(props: ICinematicEditorKeyCutInsp
 				},
 			})}
 
+			<Button variant="secondary" onClick={() => copyCurrentValue(props.cinematicKey.key1)}>
+				Set current value
+			</Button>
+
 			{getPropertyInspector({
 				animationType,
 				object: props.cinematicKey.key2,
@@ -59,6 +98,10 @@ export function CinematicEditorKeyCutInspector(props: ICinematicEditorKeyCutInsp
 					props.cinematicEditor.updateTracksAtCurrentTime();
 				},
 			})}
+
+			<Button variant="secondary" onClick={() => copyCurrentValue(props.cinematicKey.key2)}>
+				Set current value
+			</Button>
 
 			<EditorInspectorSwitchField
 				label="In Tangents"

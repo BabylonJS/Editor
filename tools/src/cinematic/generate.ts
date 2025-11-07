@@ -90,37 +90,37 @@ export function generateCinematicAnimationGroup(cinematic: ICinematic, scene: Sc
 			});
 
 			// TODO: fix that
-			if (groupedAnimations.length && (track.animationGroupWeight?.length ?? 0) >= 2) {
-				const dummyObject = {
-					weight: 0,
-				};
+			// if (groupedAnimations.length && (track.animationGroupWeight?.length ?? 0) >= 2) {
+			// 	const dummyObject = {
+			// 		weight: 0,
+			// 	};
 
-				const weightAnimation = new Animation(`${animationGroup.name}-weights`, "weight", 60, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CYCLE, false);
-				const weightKeys: IAnimationKey[] = [];
+			// 	const weightAnimation = new Animation(`${animationGroup.name}-weights`, "weight", 60, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CYCLE, false);
+			// 	const weightKeys: IAnimationKey[] = [];
 
-				track.animationGroupWeight!.forEach((keyFrame) => {
-					if (isCinematicKeyCut(keyFrame)) {
-						weightKeys.push(keyFrame.key1);
-						weightKeys.push(keyFrame.key2);
-					} else {
-						weightKeys.push(keyFrame);
-					}
-				});
+			// 	track.animationGroupWeight!.forEach((keyFrame) => {
+			// 		if (isCinematicKeyCut(keyFrame)) {
+			// 			weightKeys.push(keyFrame.key1);
+			// 			weightKeys.push(keyFrame.key2);
+			// 		} else {
+			// 			weightKeys.push(keyFrame);
+			// 		}
+			// 	});
 
-				weightAnimation.setKeys(weightKeys);
-				result.addTargetedAnimation(weightAnimation, dummyObject);
+			// 	weightAnimation.setKeys(weightKeys);
+			// 	result.addTargetedAnimation(weightAnimation, dummyObject);
 
-				registerAfterAnimationCallback(result, scene, () => {
-					result.animatables.forEach((animatable) => {
-						for (const animation of animatable.getAnimations()) {
-							if (groupedAnimations.includes(animation.animation)) {
-								animatable.weight = dummyObject.weight;
-								break;
-							}
-						}
-					});
-				});
-			}
+			// 	registerAfterAnimationCallback(result, scene, () => {
+			// 		result.animatables.forEach((animatable) => {
+			// 			for (const animation of animatable.getAnimations()) {
+			// 				if (groupedAnimations.includes(animation.animation)) {
+			// 					animatable.weight = dummyObject.weight;
+			// 					break;
+			// 				}
+			// 			}
+			// 		});
+			// 	});
+			// }
 		}
 
 		const sound = track.sound as Sound;
