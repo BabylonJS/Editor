@@ -4,6 +4,7 @@ import { ipcRenderer } from "electron";
 import { createDirectoryIfNotExist } from "../../../../tools/fs";
 import { isNodeMaterial } from "../../../../tools/guards/material";
 import { extractNodeMaterialTextures } from "../../../../tools/material/extract";
+import { normalizeNodeMaterialUniqueIds } from "../../../../tools/material/material";
 
 import { getProjectAssetsRootUrl } from "../../../../project/configuration";
 
@@ -36,6 +37,8 @@ export function listenMaterialAssetsEvents(editor: Editor) {
 			material.clear();
 			material.parseSerializedObject(materialData, rootUrl ?? undefined);
 			material.build(false);
+
+			normalizeNodeMaterialUniqueIds(material, materialData);
 		}
 	});
 }

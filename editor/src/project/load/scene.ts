@@ -50,7 +50,6 @@ import { applyImportedGuiFile } from "../../editor/layout/preview/import/gui";
 import { wait } from "../../tools/tools";
 import { createDirectoryIfNotExist } from "../../tools/fs";
 
-import { isMultiMaterial } from "../../tools/guards/material";
 import { createSceneLink } from "../../tools/scene/scene-link";
 import { loadSavedAssetsCache } from "../../tools/assets/cache";
 import { isGPUParticleSystem } from "../../tools/guards/particles";
@@ -58,10 +57,11 @@ import { isCubeTexture, isTexture } from "../../tools/guards/texture";
 import { updateIblShadowsRenderPipeline } from "../../tools/light/ibl";
 import { forceCompileAllSceneMaterials } from "../../tools/scene/materials";
 import { checkProjectCachedCompressedTextures } from "../../tools/assets/ktx";
+import { isMultiMaterial, isNodeMaterial } from "../../tools/guards/material";
 import { parsePhysicsAggregate } from "../../tools/physics/serialization/aggregate";
-import { configureSimultaneousLightsForMaterial } from "../../tools/material/material";
 import { isAbstractMesh, isCollisionMesh, isEditorCamera, isMesh } from "../../tools/guards/nodes";
 import { updateAllLights, updatePointLightShadowMapRenderListPredicate } from "../../tools/light/shadows";
+import { configureSimultaneousLightsForMaterial, normalizeNodeMaterialUniqueIds } from "../../tools/material/material";
 
 import { createNewSceneDefaultNodes } from "./default";
 import { showLoadSceneProgressDialog } from "./progress";
@@ -432,6 +432,8 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 								if (existingMaterial) {
 									m.material.dispose(false, false);
 									m.material = existingMaterial;
+								} else if (isNodeMaterial(m.material)) {
+									normalizeNodeMaterialUniqueIds(m.material, material);
 								}
 							}
 						}
