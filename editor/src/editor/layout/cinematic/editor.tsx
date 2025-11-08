@@ -33,6 +33,7 @@ import { getDefaultRenderingPipeline } from "../../rendering/default-pipeline";
 import { serializeCinematic } from "./serialization/serialize";
 
 import { restoreSceneState, saveSceneState } from "./tools/state";
+import { syncAnimationGroupsToFrame, syncSoundsToFrame } from "./tools/sync";
 
 import { CinematicEditorTimelineOptions } from "./timelines/options";
 
@@ -228,6 +229,10 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 		group.goToFrame(time);
 		group.pause();
 
+		syncAnimationGroupsToFrame(time, this.cinematic, {
+			pauseAfterSync: true,
+		});
+
 		this.editor.layout.preview.scene.lights.forEach((light) => {
 			updateLightShadowMapRefreshRate(light);
 		});
@@ -303,21 +308,9 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 		const group = this.createTemporaryAnimationGroup();
 		group.start(false, 1.0, frame);
 
-		// Start all sounds that were created before the current frame
-		this.cinematic.tracks.forEach((track) => {
-			track.sounds?.forEach((sound) => {
-				const endFrame = sound.frame + (sound.endFrame - sound.startFrame);
-				if (sound.frame > frame || endFrame < frame) {
-					return;
-				}
-
-				const frameDiff = frame - sound.frame;
-
-				if (frameDiff > 0) {
-					const offset = frameDiff / this.cinematic.framesPerSecond;
-					track.sound?.play(0, offset);
-				}
-			});
+		syncSoundsToFrame(frame, this.cinematic);
+		syncAnimationGroupsToFrame(frame, this.cinematic, {
+			pauseAfterSync: false,
 		});
 
 		scene.beginDirectAnimation(this, [this._playAnimation], currentTime, maxFrame, false, 1.0);

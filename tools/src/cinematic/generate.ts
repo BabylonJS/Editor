@@ -1,5 +1,4 @@
 import { Scene } from "@babylonjs/core/scene";
-import { Tools } from "@babylonjs/core/Misc/tools";
 import { Sound } from "@babylonjs/core/Audio/sound";
 import { Animation } from "@babylonjs/core/Animations/animation";
 import { IAnimationKey } from "@babylonjs/core/Animations/animationKey";
@@ -19,7 +18,7 @@ import { handleApplyImpulseEvent } from "./events/apply-impulse";
 import { ICinematic } from "./typings";
 import { Cinematic } from "./cinematic";
 import { isCinematicKey, isCinematicKeyCut } from "./guards";
-import { cloneKey, getPropertyValue, registerAfterAnimationCallback } from "./tools";
+import { getPropertyValue, registerAfterAnimationCallback } from "./tools";
 
 export type GenerateCinematicAnimationGroupOptions = {
 	/**
@@ -42,85 +41,79 @@ export function generateCinematicAnimationGroup(cinematic: ICinematic, scene: Sc
 	cinematic.tracks.forEach((track) => {
 		// Animation groups
 		const animationGroup = track.animationGroup as AnimationGroup;
-		if (animationGroup) {
-			const groupedAnimations: Animation[] = [];
+		if (animationGroup && track.animationGroups?.length) {
+			const effectiveAnimationGroup = animationGroup.clone(`${animationGroup.name}-cinematic-temp`);
 
-			track.animationGroups?.forEach((configuration) => {
-				animationGroup.targetedAnimations.forEach((targetedAnimation) => {
-					let animation: Animation | null = null;
+			const index = scene.animationGroups.indexOf(effectiveAnimationGroup);
+			if (index !== -1) {
+				scene.animationGroups.splice(index, 1);
+			}
 
-					defer: {
-						const existingTargetedAnimations = result.targetedAnimations.filter((ta2) => ta2.target === targetedAnimation.target);
-						if (existingTargetedAnimations.length) {
-							const existingTargetedAnimationsPair = existingTargetedAnimations.find(
-								(et) => et.animation.targetProperty === targetedAnimation.animation.targetProperty
-							);
-							if (existingTargetedAnimationsPair) {
-								animation = existingTargetedAnimationsPair.animation;
-								break defer;
-							}
-						}
-
-						animation = targetedAnimation.animation.clone();
-						animation.setKeys([]);
-						animation.name = Tools.RandomId();
-						animation.framePerSecond = cinematic.framesPerSecond;
-					}
-
-					const keys = animation.getKeys();
-					const sourceKeys = targetedAnimation.animation.getKeys();
-
-					const speed = configuration.speed;
-					const normalizedFps = cinematic.framesPerSecond / targetedAnimation.animation.framePerSecond / speed;
-
-					sourceKeys.forEach((k) => {
-						if (k.frame >= configuration.startFrame && k.frame <= configuration.endFrame) {
-							keys.push({
-								...cloneKey(targetedAnimation.animation.dataType, k),
-								frame: configuration.frame + k.frame * normalizedFps,
-							});
-						}
-					});
-
-					animation.setKeys(keys);
-					result.addTargetedAnimation(animation, targetedAnimation.target);
-
-					groupedAnimations.push(animation);
-				});
+			result.onAnimationEndObservable.add(() => {
+				animationGroup.stop();
+				effectiveAnimationGroup.stop();
 			});
 
-			// TODO: fix that
-			// if (groupedAnimations.length && (track.animationGroupWeight?.length ?? 0) >= 2) {
-			// 	const dummyObject = {
-			// 		weight: 0,
-			// 	};
+			const minFrame = track.animationGroups.reduce((prev, curr) => Math.min(prev, curr.frame), Number.MAX_VALUE) ?? 0;
+			const maxFrame = track.animationGroups.reduce((prev, curr) => Math.max(prev, curr.frame + curr.endFrame), 0) ?? 0;
 
-			// 	const weightAnimation = new Animation(`${animationGroup.name}-weights`, "weight", 60, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CYCLE, false);
-			// 	const weightKeys: IAnimationKey[] = [];
+			const dummyObject = {
+				frame: minFrame,
+			};
 
-			// 	track.animationGroupWeight!.forEach((keyFrame) => {
-			// 		if (isCinematicKeyCut(keyFrame)) {
-			// 			weightKeys.push(keyFrame.key1);
-			// 			weightKeys.push(keyFrame.key2);
-			// 		} else {
-			// 			weightKeys.push(keyFrame);
-			// 		}
-			// 	});
+			const animationGroupsAnimation = new Animation(effectiveAnimationGroup.name, "frame", 60, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CYCLE, false);
 
-			// 	weightAnimation.setKeys(weightKeys);
-			// 	result.addTargetedAnimation(weightAnimation, dummyObject);
+			animationGroupsAnimation.setKeys([
+				{ frame: minFrame, value: 0 },
+				{ frame: maxFrame, value: maxFrame },
+			]);
 
-			// 	registerAfterAnimationCallback(result, scene, () => {
-			// 		result.animatables.forEach((animatable) => {
-			// 			for (const animation of animatable.getAnimations()) {
-			// 				if (groupedAnimations.includes(animation.animation)) {
-			// 					animatable.weight = dummyObject.weight;
-			// 					break;
-			// 				}
-			// 			}
-			// 		});
-			// 	});
-			// }
+			track.animationGroups.forEach((configuration) => {
+				animationGroupsAnimation.addEvent(
+					new AnimationEvent(configuration.frame, () => {
+						effectiveAnimationGroup.from = configuration.startFrame;
+						effectiveAnimationGroup.to = configuration.endFrame;
+						effectiveAnimationGroup.speedRatio = configuration.speed;
+						effectiveAnimationGroup.stop();
+						effectiveAnimationGroup.goToFrame(configuration.startFrame);
+						effectiveAnimationGroup.play(false);
+					})
+				);
+			});
+
+			result.addTargetedAnimation(animationGroupsAnimation, dummyObject);
+
+			if ((track.animationGroupWeight?.length ?? 0) >= 2) {
+				const dummyObject = {
+					weight: 0,
+				};
+
+				const weightAnimation = new Animation(
+					`${effectiveAnimationGroup.name}-weights`,
+					"weight",
+					60,
+					Animation.ANIMATIONTYPE_FLOAT,
+					Animation.ANIMATIONLOOPMODE_CYCLE,
+					false
+				);
+				const weightKeys: IAnimationKey[] = [];
+
+				track.animationGroupWeight!.forEach((keyFrame) => {
+					if (isCinematicKeyCut(keyFrame)) {
+						weightKeys.push(keyFrame.key1);
+						weightKeys.push(keyFrame.key2);
+					} else {
+						weightKeys.push(keyFrame);
+					}
+				});
+
+				weightAnimation.setKeys(weightKeys);
+				result.addTargetedAnimation(weightAnimation, dummyObject);
+
+				registerAfterAnimationCallback(result, scene, () => {
+					effectiveAnimationGroup.weight = dummyObject.weight;
+				});
+			}
 		}
 
 		const sound = track.sound as Sound;
