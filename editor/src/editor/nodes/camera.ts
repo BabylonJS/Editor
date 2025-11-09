@@ -91,7 +91,7 @@ export class EditorCamera extends FreeCamera {
 				this.keysUpward = keys.keysUpward;
 				this.keysDownward = keys.keysDownward;
 			} else {
-				this._setDefaultKeys();
+				this._setDefaultKeysFromLayout();
 			}
 
 			// Load pan sensitivity multiplier if available
@@ -100,7 +100,7 @@ export class EditorCamera extends FreeCamera {
 			}
 		} catch (e) {
 			// If no preferences found or error occurred, use defaults
-			this._setDefaultKeys();
+			this._setDefaultKeysFromLayout();
 		}
 	}
 
@@ -138,13 +138,49 @@ export class EditorCamera extends FreeCamera {
 		this._panInput.panSensitivityMultiplier = value;
 	}
 
-	private _setDefaultKeys() {
+	private _setDefaultKeys(): void {
 		this.keysUp = DEFAULT_KEYS.keysUp;
 		this.keysDown = DEFAULT_KEYS.keysDown;
 		this.keysLeft = DEFAULT_KEYS.keysLeft;
 		this.keysRight = DEFAULT_KEYS.keysRight;
 		this.keysUpward = DEFAULT_KEYS.keysUpward;
 		this.keysDownward = DEFAULT_KEYS.keysDownward;
+	}
+
+	private _setDefaultKeysFromLayout(): void {
+		this._setDefaultKeys();
+
+		navigator.keyboard?.getLayoutMap().then((layout) => {
+			const keyUp = layout.get("KeyW")?.toUpperCase().charCodeAt(0);
+			if (keyUp) {
+				this.keysUp = [keyUp];
+			}
+
+			const keyDown = layout.get("KeyS")?.toUpperCase().charCodeAt(0);
+			if (keyDown) {
+				this.keysDown = [keyDown];
+			}
+
+			const keyLeft = layout.get("KeyA")?.toUpperCase().charCodeAt(0);
+			if (keyLeft) {
+				this.keysLeft = [keyLeft];
+			}
+
+			const keyRight = layout.get("KeyD")?.toUpperCase().charCodeAt(0);
+			if (keyRight) {
+				this.keysRight = [keyRight];
+			}
+
+			const keyUpward = layout.get("KeyE")?.toUpperCase().charCodeAt(0);
+			if (keyUpward) {
+				this.keysUpward = [keyUpward];
+			}
+
+			const keyDownward = layout.get("KeyQ")?.toUpperCase().charCodeAt(0);
+			if (keyDownward) {
+				this.keysDownward = [keyDownward];
+			}
+		});
 	}
 }
 
