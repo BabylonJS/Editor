@@ -1,4 +1,4 @@
-import { Node, Tools, Sprite } from "babylonjs";
+import { Node, Tools, Sprite, ParticleSystem, GPUParticleSystem } from "babylonjs";
 
 import { Editor } from "../../editor/main";
 
@@ -14,6 +14,7 @@ import { UniqueNumber } from "../tools";
 import { cloneSprite } from "../sprite/tools";
 
 import { isTexture } from "../guards/texture";
+import { isAnyParticleSystem } from "../guards/particles";
 import { isSprite, isSpriteManagerNode, isSpriteMapNode } from "../guards/sprites";
 import { isCamera, isInstancedMesh, isLight, isMesh, isNode, isTransformNode } from "../guards/nodes";
 
@@ -26,10 +27,10 @@ export interface ICloneNodeOptions {
 	cloneThinInstances?: boolean;
 }
 
-export function cloneNode(editor: Editor, node: Node | Sprite, options?: ICloneNodeOptions) {
+export function cloneNode(editor: Editor, node: Node | Sprite | ParticleSystem | GPUParticleSystem, options?: ICloneNodeOptions) {
 	const suffix = "(Clone)";
 
-	let clone: Node | Sprite | null = null;
+	let clone: Node | Sprite | ParticleSystem | GPUParticleSystem | null = null;
 
 	defer: {
 		if (isMesh(node)) {
@@ -78,6 +79,13 @@ export function cloneNode(editor: Editor, node: Node | Sprite, options?: ICloneN
 			clone = SpriteMapNode.Parse(serializationData, editor.layout.preview.scene, getProjectAssetsRootUrl()!);
 			clone.name = name;
 			clone.parent = node.parent;
+
+			break defer;
+		}
+
+		if (isAnyParticleSystem(node)) {
+			const name = `${node.name.replace(` ${suffix}`, "")} ${suffix}`;
+			clone = node.clone(name, node.emitter);
 
 			break defer;
 		}

@@ -5,12 +5,27 @@ import { pathExists, readFile, readJSON, writeFile } from "fs-extra";
 import axios from "axios";
 import { toast } from "sonner";
 
-import { CubeTexture, ISceneLoaderAsyncResult, Material, Node, Scene, SceneLoader, Texture, Tools, ColorGradingTexture, Vector3, Quaternion, Sprite } from "babylonjs";
+import {
+	CubeTexture,
+	ISceneLoaderAsyncResult,
+	Material,
+	Node,
+	Scene,
+	SceneLoader,
+	Texture,
+	Tools,
+	ColorGradingTexture,
+	Vector3,
+	Quaternion,
+	Sprite,
+	IParticleSystem,
+} from "babylonjs";
 
 import { UniqueNumber } from "../../../../tools/tools";
+import { isMesh } from "../../../../tools/guards/nodes";
+import { isSprite } from "../../../../tools/guards/sprites";
 import { isTexture } from "../../../../tools/guards/texture";
 import { executeSimpleWorker } from "../../../../tools/worker";
-import { isMesh, isNode } from "../../../../tools/guards/nodes";
 import { isMultiMaterial } from "../../../../tools/guards/material";
 import { configureSimultaneousLightsForMaterial } from "../../../../tools/material/material";
 import { onNodesAddedObservable, onTextureAddedObservable } from "../../../../tools/observables";
@@ -158,8 +173,8 @@ export async function loadImportedSceneFile(scene: Scene, absolutePath: string):
 	return result;
 }
 
-export function configureImportedNodeIds(node: Node | Sprite): void {
-	if (isNode(node)) {
+export function configureImportedNodeIds(node: Node | Sprite | IParticleSystem): void {
+	if (!isSprite(node)) {
 		node.id = Tools.RandomId();
 	}
 

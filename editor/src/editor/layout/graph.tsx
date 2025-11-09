@@ -15,7 +15,7 @@ import { FaCamera, FaImage, FaLightbulb } from "react-icons/fa";
 import { SiAdobeindesign, SiBabylondotjs } from "react-icons/si";
 
 import { AdvancedDynamicTexture } from "babylonjs-gui";
-import { BaseTexture, Node, Scene, Sound, Tools, IParticleSystem, ParticleSystem, Sprite } from "babylonjs";
+import { BaseTexture, Node, Scene, Sound, Tools, IParticleSystem, Sprite } from "babylonjs";
 
 import { Editor } from "../main";
 
@@ -117,7 +117,9 @@ export interface IEditorGraphState {
 
 export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState> {
 	private _soundsList: Sound[] = [];
-	private _objectsToCopy: TreeNodeInfo<unknown>[] = [];
+
+	public _nodeToCopyTransform: Node | null = null;
+	public _objectsToCopy: TreeNodeInfo<unknown>[] = [];
 
 	public constructor(props: IEditorGraphProps) {
 		super(props);
@@ -392,6 +394,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 	 */
 	public copySelectedNodes(): void {
 		this._objectsToCopy = this.props.editor.layout.graph.getSelectedNodes();
+		this.refresh();
 	}
 
 	/**
@@ -402,7 +405,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			return;
 		}
 
-		const newNodes: (Node | ParticleSystem | Sprite)[] = [];
+		const newNodes: (Node | IParticleSystem | Sprite)[] = [];
 		const nodesToCopy = this._objectsToCopy.map((n) => n.nodeData);
 
 		registerUndoRedo({
@@ -432,7 +435,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			},
 			redo: () => {
 				nodesToCopy.forEach((object) => {
-					let node: Node | ParticleSystem | Sprite | null = null;
+					let node: Node | IParticleSystem | Sprite | null = null;
 
 					defer: {
 						if (isAbstractMesh(object)) {
@@ -489,6 +492,91 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 				});
 			},
 		});
+	}
+
+	public copySelectedNodeTransform(node: Node): void {
+		this._nodeToCopyTransform = node;
+		this.refresh();
+	}
+
+	public pasteSelectedNodeTransform(node: Node): void {
+		if (!this._nodeToCopyTransform) {
+			return;
+		}
+
+		const sourcePosition = this._nodeToCopyTransform["position"];
+		const sourceRotation = this._nodeToCopyTransform["rotation"];
+		const sourceScaling = this._nodeToCopyTransform["scaling"];
+		const sourceRotationQuaternion = this._nodeToCopyTransform["rotationQuaternion"];
+		const sourceDirection = this._nodeToCopyTransform["direction"];
+
+		const targetPosition = node["position"];
+		const targetRotation = node["rotation"];
+		const targetScaling = node["scaling"];
+		const targetRotationQuaternion = node["rotationQuaternion"];
+		const targetDirection = node["direction"];
+
+		const savedTargetPosition = targetPosition?.clone();
+		const savedTargetRotation = targetRotation?.clone();
+		const savedTargetScaling = targetScaling?.clone();
+		const savedTargetRotationQuaternion = targetRotationQuaternion?.clone();
+		const savedTargetDirection = targetDirection?.clone();
+
+		registerUndoRedo({
+			executeRedo: true,
+			undo: () => {
+				if (savedTargetPosition && targetPosition) {
+					targetPosition.copyFrom(savedTargetPosition);
+				}
+
+				if (savedTargetRotation && targetRotation) {
+					targetRotation.copyFrom(savedTargetRotation);
+				}
+
+				if (savedTargetScaling && targetScaling) {
+					targetScaling.copyFrom(savedTargetScaling);
+				}
+
+				if (targetRotationQuaternion) {
+					if (!savedTargetRotationQuaternion) {
+						node["rotationQuaternion"] = null;
+					} else {
+						targetRotationQuaternion.copyFrom(savedTargetRotationQuaternion);
+					}
+				}
+
+				if (savedTargetDirection && targetDirection) {
+					targetDirection.copyFrom(savedTargetDirection);
+				}
+			},
+			redo: () => {
+				if (sourcePosition && targetPosition) {
+					targetPosition.copyFrom(sourcePosition);
+				}
+
+				if (sourceRotation && targetRotation) {
+					targetRotation.copyFrom(sourceRotation);
+				}
+
+				if (sourceScaling && targetScaling) {
+					targetScaling.copyFrom(sourceScaling);
+				}
+
+				if (sourceRotationQuaternion) {
+					if (targetRotationQuaternion) {
+						targetRotationQuaternion.copyFrom(sourceRotationQuaternion);
+					} else {
+						node["rotationQuaternion"] = sourceRotationQuaternion.clone();
+					}
+				}
+
+				if (sourceDirection && targetDirection) {
+					targetDirection.copyFrom(sourceDirection);
+				}
+			},
+		});
+
+		this.props.editor.layout.inspector.forceUpdate();
 	}
 
 	private _handleSearch(search: string) {
