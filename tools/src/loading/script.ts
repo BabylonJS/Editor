@@ -30,6 +30,10 @@ export async function _preloadScriptsAssets(scene: Scene, rootUrl: string) {
 		.flat();
 
 	scripts.forEach((script) => {
+		if (!script.values) {
+			return;
+		}
+
 		for (const key in script.values) {
 			if (!script.values.hasOwnProperty(key)) {
 				continue;
