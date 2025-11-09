@@ -159,9 +159,13 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 	});
 
 	// @visibleAsNumber, @visibleAsBoolean etc.
-	(ctor._VisibleInInspector ?? []).map(async (params) => {
+	(ctor._VisibleInInspector ?? []).forEach(async (params) => {
 		const propertyKey = params.propertyKey.toString();
 		const attachedScripts = script.values;
+
+		if (!attachedScripts) {
+			throw new Error(`No values found for script with key "${script.key}".`);
+		}
 
 		if (attachedScripts.hasOwnProperty(propertyKey) && attachedScripts[propertyKey].hasOwnProperty("value")) {
 			const value = attachedScripts[propertyKey].value;
