@@ -61,6 +61,7 @@ function build({ x64, arm64 } = options) {
 			},
 			nsis: {
 				oneClick: false,
+				allowToChangeInstallationDirectory: true,
 			},
 			linux: {
 				target: "AppImage",
