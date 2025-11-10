@@ -107,9 +107,20 @@ async function openDashboard(): Promise<void> {
 	dashboardWindow.focus();
 }
 
-ipcMain.on("dashboard:open-project", (_, file) => {
+function closeDashboard(): void {
+	if (dashboardWindow) {
+		dashboardWindow.close();
+		dashboardWindow = null;
+	}
+}
+
+ipcMain.on("dashboard:open-project", (_, file: string, shouldCloseDashboard?: boolean) => {
 	openProject(file);
 	dashboardWindow?.minimize();
+
+	if (shouldCloseDashboard) {
+		closeDashboard();
+	}
 });
 
 ipcMain.on("dashboard:update-projects", () => {
@@ -138,7 +149,7 @@ async function openProject(filePath: string): Promise<void> {
 		notifyWindows("dashboard:opened-projects", openedProjects);
 
 		if (openedProjects.length === 0) {
-			dashboardWindow?.restore();
+			openDashboard();
 		}
 	});
 
