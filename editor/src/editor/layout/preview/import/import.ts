@@ -188,6 +188,12 @@ export function configureImportedMaterial(material: Material): void {
 
 export function configureImportedTexture<T extends Texture | CubeTexture | ColorGradingTexture>(texture: T): T {
 	if (isAbsolute(texture.name)) {
+		if (isTexture(texture) && !texture.invertY && !texture._buffer) {
+			texture._invertY = true;
+			texture.vScale *= -1;
+			texture.updateURL(texture.name);
+		}
+
 		texture.name = texture.name.replace(join(dirname(projectConfiguration.path!), "/"), "");
 		texture.url = texture.name;
 	}
@@ -246,6 +252,12 @@ export async function configureEmbeddedTexture(texture: Texture, absolutePath: s
 
 		if (!(await pathExists(filename))) {
 			await writeFile(filename, buffer);
+		}
+
+		if (!texture.invertY) {
+			texture._invertY = true;
+			texture.vScale *= -1;
+			texture.updateURL(filename);
 		}
 	}
 

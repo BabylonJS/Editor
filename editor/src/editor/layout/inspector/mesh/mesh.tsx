@@ -197,6 +197,7 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 				{this.props.object.geometry && (
 					<EditorInspectorSectionField title="Misc">
 						<EditorInspectorSwitchField label="Infinite Distance" object={this.props.object} property="infiniteDistance" />
+						<EditorInspectorSwitchField label="Always Select As Active Mesh" object={this.props.object} property="alwaysSelectAsActiveMesh" />
 					</EditorInspectorSectionField>
 				)}
 			</>
