@@ -34,6 +34,8 @@ export interface ICinematicAnimationGroup {
 	speed: number;
 	startFrame: number;
 	endFrame: number;
+
+	repeatCount?: number;
 }
 
 export interface ICinematicKey extends IAnimationKey {

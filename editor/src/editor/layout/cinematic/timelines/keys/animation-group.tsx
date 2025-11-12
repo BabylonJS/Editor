@@ -11,7 +11,12 @@ export interface ICinematicEditorAnimationGroupKeyProps {
 
 export function CinematicEditorAnimationGroupKey(props: ICinematicEditorAnimationGroupKeyProps) {
 	function getAnimationGroupFramesCount() {
-		return props.cinematicKey.endFrame - props.cinematicKey.startFrame;
+		let framesCount = props.cinematicKey.endFrame - props.cinematicKey.startFrame;
+		if (props.cinematicKey.repeatCount) {
+			framesCount += framesCount * props.cinematicKey.repeatCount;
+		}
+
+		return framesCount;
 	}
 
 	return (
