@@ -29,6 +29,7 @@ import { configureMeshesLODs } from "./lod";
 import { handleExportScripts } from "./scripts";
 import { configureMaterials } from "./materials";
 import { configureMeshesPhysics } from "./physics";
+import { configureCustomMetadata } from "./metadata";
 import { EditorExportProjectProgressComponent } from "./progress";
 
 export type IExportProjectOptions = {
@@ -148,6 +149,7 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 	configureMaterials(data);
 	configureMeshesLODs(data, scene);
 	configureMeshesPhysics(data, scene);
+	configureCustomMetadata(data, scene);
 
 	const sceneName = basename(editor.state.lastOpenedScenePath).split(".").shift()!;
 

@@ -45,6 +45,7 @@ import { EditorInspectorNumberField } from "../fields/number";
 import { EditorInspectorSectionField } from "../fields/section";
 
 import { ScriptInspectorComponent } from "../script/script";
+import { CustomMetadataInspector } from "../metadata/custom-metadata";
 
 import { onGizmoNodeChangedObservable } from "../../preview/gizmo";
 
@@ -199,6 +200,8 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 						<EditorInspectorSwitchField label="Infinite Distance" object={this.props.object} property="infiniteDistance" />
 					</EditorInspectorSectionField>
 				)}
+
+				<CustomMetadataInspector object={this.props.object} />
 			</>
 		);
 	}
