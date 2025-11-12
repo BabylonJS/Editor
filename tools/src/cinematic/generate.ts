@@ -71,12 +71,24 @@ export function generateCinematicAnimationGroup(cinematic: ICinematic, scene: Sc
 			track.animationGroups.forEach((configuration) => {
 				animationGroupsAnimation.addEvent(
 					new AnimationEvent(configuration.frame, () => {
-						effectiveAnimationGroup.from = configuration.startFrame;
+						const repeatCount = configuration.repeatCount ?? 0;
+
 						effectiveAnimationGroup.to = configuration.endFrame;
 						effectiveAnimationGroup.speedRatio = configuration.speed;
 						effectiveAnimationGroup.stop();
+						effectiveAnimationGroup.play(repeatCount > 0);
 						effectiveAnimationGroup.goToFrame(configuration.startFrame);
-						effectiveAnimationGroup.play(false);
+
+						if (repeatCount) {
+							let currentRepeatCount = 0;
+							effectiveAnimationGroup.onAnimationGroupLoopObservable.add(() => {
+								++currentRepeatCount;
+
+								if (currentRepeatCount > repeatCount) {
+									effectiveAnimationGroup.stop();
+								}
+							});
+						}
 					})
 				);
 			});

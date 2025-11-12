@@ -69,6 +69,18 @@ export function CinematicEditorAnimationGroupKeyInspector(props: ICinematicEdito
 					props.cinematicEditor.updateTracksAtCurrentTime();
 				}}
 			/>
+
+			<EditorInspectorNumberField
+				object={props.cinematicKey}
+				property="repeatCount"
+				label="Repeat Count"
+				step={1}
+				min={0}
+				onChange={() => {
+					props.cinematicEditor.inspector.forceUpdate();
+					props.cinematicEditor.updateTracksAtCurrentTime();
+				}}
+			/>
 		</EditorInspectorSectionField>
 	);
 }

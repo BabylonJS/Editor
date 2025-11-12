@@ -256,6 +256,7 @@ export class EditorPBRMaterialInspector extends Component<IEditorPBRMaterialInsp
 					<EditorInspectorNumberField label="Z Offset" object={this.props.material} property="zOffset" />
 					<EditorInspectorNumberField label="Z Offset Units" object={this.props.material} property="zOffsetUnits" />
 					<EditorInspectorSwitchField label="Fog Enabled" object={this.props.material} property="fogEnabled" />
+					<EditorInspectorSwitchField label="Use Logarithmic Depth" object={this.props.material} property="useLogarithmicDepth" />
 				</EditorInspectorSectionField>
 			</>
 		);
