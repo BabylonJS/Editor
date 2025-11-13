@@ -91,7 +91,8 @@ export function _applyScriptsForObject(scene: Scene, object: any, scriptsMap: Sc
 		}
 
 		let result = exports;
-		let observers: IRegisteredScriptObservers = {};
+
+		const observers: IRegisteredScriptObservers = {};
 
 		if (exports.default) {
 			result = new exports.default(object);
@@ -131,6 +132,7 @@ export function applyScriptOnObject(object: any, scriptConstructor: new (...args
 	}
 
 	const instance = new scriptConstructor(object);
+	const observers: IRegisteredScriptObservers = {};
 
 	const script = {
 		values: {},
@@ -139,12 +141,14 @@ export function applyScriptOnObject(object: any, scriptConstructor: new (...args
 	applyDecorators(scene, object, script, instance, "");
 
 	if (instance.onStart) {
-		scene.onBeforeRenderObservable.addOnce(() => instance.onStart!());
+		observers.onStartObserver = scene.onBeforeRenderObservable.addOnce(() => instance.onStart!());
 	}
 
 	if (instance.onUpdate) {
 		scene.onBeforeRenderObservable.add(() => instance.onUpdate!());
 	}
+
+	_registerScriptInstance(object, instance, "runtime", observers);
 
 	return instance;
 }
