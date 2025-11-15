@@ -11,6 +11,7 @@ import { EditorInspectorVectorField } from "./fields/vector";
 import { EditorInspectorSectionField } from "./fields/section";
 
 import { ScriptInspectorComponent } from "./script/script";
+import { CustomMetadataInspector } from "./metadata/custom-metadata";
 
 import { onGizmoNodeChangedObservable } from "../preview/gizmo";
 
@@ -45,6 +46,8 @@ export class EditorTransformNodeInspector extends Component<IEditorInspectorImpl
 				</EditorInspectorSectionField>
 
 				<ScriptInspectorComponent editor={this.props.editor} object={this.props.object} />
+
+				<CustomMetadataInspector object={this.props.object} />
 			</>
 		);
 	}
