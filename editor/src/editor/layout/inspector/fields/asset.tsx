@@ -70,6 +70,10 @@ export function EditorInspectorAssetField(props: IEditorInspectorAssetFieldProps
 			return showAlert("Can't assign asset", "Only Node Particle System Set files (.npss) are supported.");
 		}
 
+		if (props.assetType === "scene" && extension !== ".scene") {
+			return showAlert("Can't assign asset", "Only Scene files (.scene) are supported.");
+		}
+
 		if (props.assetType === "material") {
 			if (extension !== ".material") {
 				return showAlert("Can't assign asset", "Only Material files (.material) are supported.");
