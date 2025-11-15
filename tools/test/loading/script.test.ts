@@ -18,6 +18,14 @@ jest.mock("@babylonjs/core/Particles/Node/nodeParticleSystemSet", () => ({
 jest.mock("@babylonjs/gui/2D/advancedDynamicTexture", () => ({
 	AdvancedDynamicTexture: class {},
 }));
+jest.mock("@babylonjs/core/Loading/sceneLoaderFlags", () => ({
+	SceneLoaderFlags: {
+		ForceFullSceneLoadingForIncremental: 1,
+	},
+}));
+jest.mock("@babylonjs/core/Loading/sceneLoader", () => ({
+	LoadAssetContainerAsync: jest.fn(),
+}));
 
 import { applyScriptOnObject } from "../../src/loading/script";
 
