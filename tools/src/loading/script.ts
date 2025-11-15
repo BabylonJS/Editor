@@ -3,15 +3,17 @@ import { Scene } from "@babylonjs/core/scene";
 import { Observer } from "@babylonjs/core/Misc/observable";
 import { PointerInfo } from "@babylonjs/core/Events/pointerEvents";
 import { KeyboardInfo } from "@babylonjs/core/Events/keyboardEvents";
+import { LoadAssetContainerAsync } from "@babylonjs/core/Loading/sceneLoader";
+import { SceneLoaderFlags } from "@babylonjs/core/Loading/sceneLoaderFlags";
 import { IParticleSystem } from "@babylonjs/core/Particles/IParticleSystem";
 
 import { IScript } from "../script";
 
 import { applyDecorators } from "../decorators/apply";
 
-import { isAnyParticleSystem, isNode, isScene } from "../tools/guards";
+import { isAnyParticleSystem, isMesh, isNode, isScene } from "../tools/guards";
 
-import { loadScene, SceneLoaderOptions, ScriptMap } from "./loader";
+import { ScriptMap } from "./loader";
 
 /**
  * Defines the cache of all
@@ -21,7 +23,7 @@ export const scriptAssetsCache = new Map<string, any>();
 /**
  * @internal
  */
-export async function _preloadScriptsAssets(scene: Scene, rootUrl: string, scriptsMap: ScriptMap, options?: SceneLoaderOptions) {
+export async function _preloadScriptsAssets(rootUrl: string, scene: Scene) {
 	const nodes = [scene, ...scene.transformNodes, ...scene.meshes, ...scene.lights, ...scene.cameras];
 
 	const scripts = nodes
@@ -61,9 +63,19 @@ export async function _preloadScriptsAssets(scene: Scene, rootUrl: string, scrip
 						const filename = key.split("/").pop()!;
 						const sceneFilename = filename.replace(".scene", ".babylon");
 
-						scriptAssetsCache.set(key, "done");
+						// Load asset container
+						const container = await LoadAssetContainerAsync(`${rootUrl}${sceneFilename}`, scene, {
+							pluginExtension: ".babylon",
+						});
 
-						await loadScene(rootUrl, sceneFilename, scene, scriptsMap, options);
+						// Ensure all meshes perform their delay state check
+						if (SceneLoaderFlags.ForceFullSceneLoadingForIncremental) {
+							scene.meshes.forEach((m) => isMesh(m) && m._checkDelayState());
+						}
+
+						container.addAllToScene();
+
+						scriptAssetsCache.set(key, container);
 					} else {
 						const response = await fetch(`${rootUrl}${key}`);
 						const data = await response.json();
