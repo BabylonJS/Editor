@@ -18,7 +18,7 @@ import { isNodeLocked } from "../../tools/node/metadata";
 import { setInspectorSearch } from "./inspector/fields/field";
 import { IEditorInspectorImplementationProps } from "./inspector/inspector";
 
-import { EditorSceneInspector } from "./inspector/scene";
+import { EditorSceneInspector } from "./inspector/scene/scene";
 
 import { EditorMeshInspector } from "./inspector/mesh/mesh";
 import { EditorTransformNodeInspector } from "./inspector/transform";
