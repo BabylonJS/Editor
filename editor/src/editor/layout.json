@@ -78,6 +78,14 @@
 								"component": "console",
 								"enableClose": false,
 								"enableRenderOnDemand": false
+							},
+							{
+								"type": "tab",
+								"id": "terminal",
+								"name": "Terminal",
+								"component": "terminal",
+								"enableClose": false,
+								"enableRenderOnDemand": false
 							}
 						]
 					}
