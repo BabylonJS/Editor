@@ -323,9 +323,8 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 
 		engine.runRenderLoop(
 			(this._playRenderLoop = () => {
-				this.setState({
-					currentTime: this._animatedCurrentTime,
-				});
+				this.curves.tracker.setForcedCurrentTime(this._animatedCurrentTime);
+				this.timelines.tracker.setForcedCurrentTime(this._animatedCurrentTime);
 			})
 		);
 	}
@@ -334,6 +333,9 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 		if (!this.state.playing) {
 			return;
 		}
+
+		this.curves.tracker.setForcedCurrentTime(null);
+		this.timelines.tracker.setForcedCurrentTime(null);
 
 		this.setState({
 			playing: false,
