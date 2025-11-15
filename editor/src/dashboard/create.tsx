@@ -19,7 +19,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 
 import { openSingleFolderDialog } from "../tools/dialog";
 import { isPackageManagerAvailable } from "../tools/process";
-import { tryAddProjectToLocalStorage } from "../tools/local-storage";
+import { tryAddProjectToLocalStorage, tryGetCloseDashboardOnProjectOpenFromLocalStorage } from "../tools/local-storage";
 
 import { EditorProjectPackageManager, IEditorProject, EditorProjectTemplate } from "../project/typings";
 
@@ -101,7 +101,8 @@ export function DashboardCreateProjectDialog(props: IDashboardCreateProjectDialo
 			});
 
 			if (result) {
-				ipcRenderer.send("dashboard:open-project", projectAbsolutePath);
+				const shouldCloseDashboard = tryGetCloseDashboardOnProjectOpenFromLocalStorage();
+				ipcRenderer.send("dashboard:open-project", projectAbsolutePath, shouldCloseDashboard);
 			}
 		} catch (e) {
 			showAlert("An unexpected error occured", e.message);
