@@ -11,7 +11,7 @@ import { applyDecorators } from "../decorators/apply";
 
 import { isAnyParticleSystem, isNode, isScene } from "../tools/guards";
 
-import { ScriptMap } from "./loader";
+import { loadScene, SceneLoaderOptions, ScriptMap } from "./loader";
 
 /**
  * Defines the cache of all
@@ -21,7 +21,7 @@ export const scriptAssetsCache = new Map<string, any>();
 /**
  * @internal
  */
-export async function _preloadScriptsAssets(scene: Scene, rootUrl: string) {
+export async function _preloadScriptsAssets(scene: Scene, rootUrl: string, scriptsMap: ScriptMap, options?: SceneLoaderOptions) {
 	const nodes = [scene, ...scene.transformNodes, ...scene.meshes, ...scene.lights, ...scene.cameras];
 
 	const scripts = nodes
@@ -56,10 +56,20 @@ export async function _preloadScriptsAssets(scene: Scene, rootUrl: string) {
 		promises.push(
 			new Promise<void>(async (resolve) => {
 				try {
-					const response = await fetch(`${rootUrl}${key}`);
-					const data = await response.json();
+					const extension = key.split(".").pop();
+					if (extension === "scene") {
+						const filename = key.split("/").pop()!;
+						const sceneFilename = filename.replace(".scene", ".babylon");
 
-					scriptAssetsCache.set(key, data);
+						scriptAssetsCache.set(key, "done");
+
+						await loadScene(rootUrl, sceneFilename, scene, scriptsMap, options);
+					} else {
+						const response = await fetch(`${rootUrl}${key}`);
+						const data = await response.json();
+
+						scriptAssetsCache.set(key, data);
+					}
 				} catch (e) {
 					console.error(e);
 				}

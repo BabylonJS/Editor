@@ -1,70 +1,70 @@
 import { Component, DragEvent, ReactNode } from "react";
 
-import { Grid } from "react-loader-spinner";
 import { IoMdCube } from "react-icons/io";
-import { HiOutlineTrash } from "react-icons/hi2";
-import { IoPlay, IoStop } from "react-icons/io5";
-
 import { Divider } from "@blueprintjs/core";
 
 import { DepthOfFieldEffectBlurLevel, Scene, TonemappingOperator, AnimationGroup, VolumetricLightScatteringPostProcess } from "babylonjs";
 
-import { Button } from "../../../ui/shadcn/ui/button";
+import { Button } from "../../../../ui/shadcn/ui/button";
 
-import { isMesh } from "../../../tools/guards/nodes";
-import { isScene } from "../../../tools/guards/scene";
+import { isMesh } from "../../../../tools/guards/nodes";
+import { isScene } from "../../../../tools/guards/scene";
 
-import { registerUndoRedo } from "../../../tools/undoredo";
-import { updateAllLights } from "../../../tools/light/shadows";
-import { updateIblShadowsRenderPipeline } from "../../../tools/light/ibl";
+import { registerUndoRedo } from "../../../../tools/undoredo";
+import { updateAllLights } from "../../../../tools/light/shadows";
+import { updateIblShadowsRenderPipeline } from "../../../../tools/light/ibl";
 
-import { createVLSPostProcess, disposeVLSPostProcess, getVLSPostProcess, parseVLSPostProcess, serializeVLSPostProcess } from "../../rendering/vls";
-import { createSSRRenderingPipeline, disposeSSRRenderingPipeline, getSSRRenderingPipeline, parseSSRRenderingPipeline, serializeSSRRenderingPipeline } from "../../rendering/ssr";
+import { createVLSPostProcess, disposeVLSPostProcess, getVLSPostProcess, parseVLSPostProcess, serializeVLSPostProcess } from "../../../rendering/vls";
+import { createSSRRenderingPipeline, disposeSSRRenderingPipeline, getSSRRenderingPipeline, parseSSRRenderingPipeline, serializeSSRRenderingPipeline } from "../../../rendering/ssr";
 import {
 	createSSAO2RenderingPipeline,
 	disposeSSAO2RenderingPipeline,
 	getSSAO2RenderingPipeline,
 	parseSSAO2RenderingPipeline,
 	serializeSSAO2RenderingPipeline,
-} from "../../rendering/ssao";
+} from "../../../rendering/ssao";
 import {
 	createMotionBlurPostProcess,
 	disposeMotionBlurPostProcess,
 	getMotionBlurPostProcess,
 	parseMotionBlurPostProcess,
 	serializeMotionBlurPostProcess,
-} from "../../rendering/motion-blur";
+} from "../../../rendering/motion-blur";
 import {
 	createDefaultRenderingPipeline,
 	disposeDefaultRenderingPipeline,
 	getDefaultRenderingPipeline,
 	parseDefaultRenderingPipeline,
 	serializeDefaultRenderingPipeline,
-} from "../../rendering/default-pipeline";
+} from "../../../rendering/default-pipeline";
 import {
 	createIblShadowsRenderingPipeline,
 	disposeIblShadowsRenderingPipeline,
 	getIblShadowsRenderingPipeline,
 	parseIblShadowsRenderingPipeline,
 	serializeIblShadowsRenderingPipeline,
-} from "../../rendering/ibl-shadows";
+} from "../../../rendering/ibl-shadows";
 
-import { EditorInspectorSectionField } from "./fields/section";
+import { EditorInspectorSectionField } from "../fields/section";
 
-import { EditorInspectorListField } from "./fields/list";
-import { EditorInspectorColorField } from "./fields/color";
-import { EditorInspectorSwitchField } from "./fields/switch";
-import { EditorInspectorNumberField } from "./fields/number";
-import { EditorInspectorVectorField } from "./fields/vector";
-import { EditorInspectorSliderField } from "./fields/slider";
-import { EditorInspectorTextureField } from "./fields/texture";
+import { EditorInspectorListField } from "../fields/list";
+import { EditorInspectorColorField } from "../fields/color";
+import { EditorInspectorSwitchField } from "../fields/switch";
+import { EditorInspectorNumberField } from "../fields/number";
+import { EditorInspectorVectorField } from "../fields/vector";
+import { EditorInspectorSliderField } from "../fields/slider";
+import { EditorInspectorTextureField } from "../fields/texture";
 
-import { ScriptInspectorComponent } from "./script/script";
+import { ScriptInspectorComponent } from "../script/script";
 
-import { IEditorInspectorImplementationProps } from "./inspector";
+import { IEditorInspectorImplementationProps } from "../inspector";
+import { EditorSceneAnimationGroupsInspector } from "./animation-groups";
 
 export interface IEditorSceneInspectorState {
 	dragOverVlsMesh: boolean;
+
+	animationGroupsSearch: string;
+	selectedAnimationGroups: AnimationGroup[];
 }
 
 export class EditorSceneInspector extends Component<IEditorInspectorImplementationProps<Scene>, IEditorSceneInspectorState> {
@@ -82,6 +82,9 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 
 		this.state = {
 			dragOverVlsMesh: false,
+
+			animationGroupsSearch: "",
+			selectedAnimationGroups: [],
 		};
 	}
 
@@ -149,7 +152,7 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 
 				{/* {this.props.editor.state.enableExperimentalFeatures && this._getIblShadowsRenderingPipelineComponent()} */}
 
-				{this._getAnimationGroupsComponent()}
+				<EditorSceneAnimationGroupsInspector editor={this.props.editor} object={this.props.object} />
 			</>
 		);
 	}
@@ -997,63 +1000,5 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 				)}
 			</EditorInspectorSectionField>
 		);
-	}
-
-	private _getAnimationGroupsComponent(): ReactNode {
-		return (
-			<EditorInspectorSectionField title="Animation Groups">
-				{!this.props.object.animationGroups.length && <div className="text-center text-xl">No animation groups</div>}
-				<div className="flex flex-col">
-					{this.props.object.animationGroups.map((animationGroup) => (
-						<div key={animationGroup.name} className="flex flex-col">
-							<div
-								className={`
-                                    flex gap-2 justify-between items-center p-2 rounded-lg
-                                    hover:bg-accent
-                                    transition-all duration-300 ease-in-out
-                                `}
-							>
-								<div className="flex gap-2 items-center">
-									<Button
-										variant="ghost"
-										className="w-8 h-8 p-1"
-										onClick={() => {
-											animationGroup.isPlaying ? animationGroup.stop() : animationGroup.start();
-											this.forceUpdate();
-										}}
-									>
-										{animationGroup.isPlaying ? <IoStop className="w-6 h-6" strokeWidth={1} /> : <IoPlay className="w-6 h-6" strokeWidth={1} />}
-									</Button>
-
-									<div className="flex flex-col">
-										<div>{animationGroup.name}</div>
-
-										<div className="text-xs">Duration: {Math.round(animationGroup.to - animationGroup.from)} frames</div>
-									</div>
-								</div>
-
-								<div className="flex gap-2 items-center">
-									{animationGroup.isPlaying && <Grid width={16} height={16} color="gray" />}
-
-									<Button variant="ghost" onClick={() => this._handleRemoveAnimationGroup(animationGroup)}>
-										<HiOutlineTrash className="w-5 h-5" />
-									</Button>
-								</div>
-							</div>
-						</div>
-					))}
-				</div>
-			</EditorInspectorSectionField>
-		);
-	}
-
-	private _handleRemoveAnimationGroup(animationGroup: AnimationGroup): void {
-		registerUndoRedo({
-			executeRedo: true,
-			undo: () => this.props.editor.layout.preview.scene.addAnimationGroup(animationGroup),
-			redo: () => this.props.editor.layout.preview.scene.removeAnimationGroup(animationGroup),
-		});
-
-		this.forceUpdate();
 	}
 }

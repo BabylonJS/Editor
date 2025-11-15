@@ -67,6 +67,14 @@ export type SceneLoaderOptions = {
 	 * Defines the function called to notify the loading progress in interval [0, 1]
 	 */
 	onProgress?: (value: number) => void;
+
+	/**
+	 * Defines whether to skip the preloading of assets linked to scripts.
+	 * To ensure all resources are loaded before resolving loadScene promise, all resources linked to scripts are preloaded after the scene is loaded.
+	 * To bypass this behavior, you can set this flag to true.
+	 * @default false
+	 */
+	skipAssetsPreload?: boolean;
 };
 
 declare module "@babylonjs/core/scene" {
@@ -123,7 +131,9 @@ export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scen
 		options?.onProgress?.(0.5 + (loadedItemsCount / waitingItemsCount) * 0.5);
 	}
 
-	await _preloadScriptsAssets(scene, rootUrl);
+	if (!options?.skipAssetsPreload) {
+		await _preloadScriptsAssets(scene, rootUrl, scriptsMap, options);
+	}
 
 	options?.onProgress?.(1);
 
