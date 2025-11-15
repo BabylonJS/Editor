@@ -120,6 +120,15 @@ jest.mock("@babylonjs/core/Particles/Node/nodeParticleSystemSet", () => ({
 	},
 }));
 
+jest.mock("@babylonjs/core/Loading/sceneLoaderFlags", () => ({
+	SceneLoaderFlags: {
+		ForceFullSceneLoadingForIncremental: 1,
+	},
+}));
+jest.mock("@babylonjs/core/Loading/sceneLoader", () => ({
+	LoadAssetContainerAsync: jest.fn(),
+}));
+
 import { Node } from "@babylonjs/core/node";
 import { Scene } from "@babylonjs/core/scene";
 import { Sound } from "@babylonjs/core/Audio/sound";

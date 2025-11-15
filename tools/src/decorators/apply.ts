@@ -223,6 +223,7 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 
 						switch (assetType) {
 							case "json":
+							case "scene":
 								instance[propertyKey] = data;
 								break;
 
