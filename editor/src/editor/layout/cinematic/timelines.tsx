@@ -10,6 +10,7 @@ import { isDomElementDescendantOf } from "../../../tools/dom";
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "../../../ui/shadcn/ui/context-menu";
 
 import { CinematicEditor } from "./editor";
+import { CinematicEditorTracker } from "./tracker";
 
 import { CinematicEditorKeyBase } from "./timelines/keys/base";
 import { addAnimationGroupKey, addAnimationKey, addEventKey, addSoundKey } from "./timelines/add";
@@ -27,6 +28,8 @@ export interface ICinematicEditorTimelinesState {
 }
 
 export class CinematicEditorTimelines extends Component<ICinematicEditorTimelinesProps, ICinematicEditorTimelinesState> {
+	public tracker: CinematicEditorTracker;
+
 	private _divRef: HTMLDivElement | null = null;
 
 	public constructor(props: ICinematicEditorTimelinesProps) {
@@ -68,21 +71,7 @@ export class CinematicEditorTimelines extends Component<ICinematicEditorTimeline
 					className="fixed h-10 bg-background pointer-events-none"
 				/>
 
-				<div
-					style={{
-						left: `${this.props.currentTime * this.props.scale}px`,
-					}}
-					className="absolute w-[1px] ml-2 mt-10 bg-muted h-full pointer-events-none"
-				>
-					<div
-						className={`
-                            absolute w-7 h-7 rotate-45 -translate-x-1/2 -translate-y-8 bg-muted
-                        `}
-						style={{
-							mask: "linear-gradient(135deg, transparent 0%, transparent 50%, black 50%, black 100%)",
-						}}
-					/>
-				</div>
+				<CinematicEditorTracker ref={(r) => (this.tracker = r!)} scale={this.props.scale} currentTime={this.props.currentTime} />
 			</div>
 		);
 	}

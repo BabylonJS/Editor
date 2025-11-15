@@ -6,6 +6,7 @@ import { ICinematicTrack } from "babylonjs-editor-tools";
 import { isDomElementDescendantOf } from "../../../tools/dom";
 
 import { CinematicEditor } from "./editor";
+import { CinematicEditorTracker } from "./tracker";
 
 import { CinematicEditorCurvesRoot } from "./curves/root";
 
@@ -23,6 +24,8 @@ export interface ICinematicEditorCurvesState {
 }
 
 export class CinematicEditorCurves extends Component<ICinematicEditorCurvesProps, ICinematicEditorCurvesState> {
+	public tracker: CinematicEditorTracker;
+
 	private _divRef: HTMLDivElement | null = null;
 
 	public constructor(props: ICinematicEditorCurvesProps) {
@@ -44,20 +47,7 @@ export class CinematicEditorCurves extends Component<ICinematicEditorCurvesProps
 				onMouseDown={(ev) => this._handleMainDivPointerDown(ev)}
 			>
 				<CinematicEditorCurvesRoot scale={this.props.scale} translation={this.state.translation} cinematicEditor={this.props.cinematicEditor} />
-
-				<div
-					className="absolute w-[1px] ml-2 mt-10 bg-muted h-full pointer-events-none"
-					style={{
-						left: `${this.props.currentTime * this.props.scale + this.state.translation.x}px`,
-					}}
-				>
-					<div
-						className="absolute w-7 h-7 rotate-45 -translate-x-1/2 -translate-y-8 bg-muted"
-						style={{
-							mask: "linear-gradient(135deg, transparent 0%, transparent 50%, black 50%, black 100%)",
-						}}
-					/>
-				</div>
+				<CinematicEditorTracker ref={(r) => (this.tracker = r!)} scale={this.props.scale} currentTime={this.props.currentTime} />
 			</div>
 		);
 	}
