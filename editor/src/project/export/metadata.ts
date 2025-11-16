@@ -16,10 +16,7 @@ export function configureCustomMetadata(data: any, scene: Scene) {
 			return;
 		}
 
-		if (mesh.metadata?.customMetadata) {
-			m.metadata ??= {};
-			m.metadata.customMetadata = mesh.metadata.customMetadata;
-		}
+		m.metadata.customMetadata = mesh.metadata.customMetadata;
 
 		// Process instances
 		m.instances?.forEach((instance: any) => {
@@ -38,10 +35,7 @@ export function configureCustomMetadata(data: any, scene: Scene) {
 			return;
 		}
 
-		if (light.metadata?.customMetadata) {
-			l.metadata ??= {};
-			l.metadata.customMetadata = light.metadata.customMetadata;
-		}
+		l.metadata.customMetadata = light.metadata.customMetadata;
 	});
 
 	// Process cameras
@@ -51,10 +45,7 @@ export function configureCustomMetadata(data: any, scene: Scene) {
 			return;
 		}
 
-		if (camera.metadata?.customMetadata) {
-			c.metadata ??= {};
-			c.metadata.customMetadata = camera.metadata.customMetadata;
-		}
+		c.metadata.customMetadata = camera.metadata.customMetadata;
 	});
 
 	// Process transform nodes
@@ -64,9 +55,6 @@ export function configureCustomMetadata(data: any, scene: Scene) {
 			return;
 		}
 
-		if (transformNode.metadata?.customMetadata) {
-			t.metadata ??= {};
-			t.metadata.customMetadata = transformNode.metadata.customMetadata;
-		}
+		t.metadata.customMetadata = transformNode.metadata.customMetadata;
 	});
 }

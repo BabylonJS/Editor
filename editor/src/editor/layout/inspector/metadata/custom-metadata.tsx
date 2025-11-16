@@ -20,12 +20,8 @@ export interface ICustomMetadataInspectorProps {
  */
 export class CustomMetadataInspector extends Component<ICustomMetadataInspectorProps> {
 	public render(): ReactNode {
-		// Ensure metadata exists
-		this.props.object.metadata ??= {};
-		this.props.object.metadata.customMetadata ??= {};
-
-		const customMetadata = this.props.object.metadata.customMetadata;
-		const keys = Object.keys(customMetadata);
+		
+		const keys = Object.keys(this.props.object.metadata?.customMetadata ?? {});
 
 		return (
 			<EditorInspectorSectionField title="Metadata">
@@ -40,7 +36,7 @@ export class CustomMetadataInspector extends Component<ICustomMetadataInspectorP
 						<div className="w-full">
 							<EditorInspectorStringField
 								label={key}
-								object={customMetadata}
+								object={this.props.object.metadata.customMetadata}
 								property={key}
 								onChange={() => this.forceUpdate()}
 							/>
@@ -76,17 +72,13 @@ export class CustomMetadataInspector extends Component<ICustomMetadataInspectorP
 
 		// Validate key name
 		if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(key)) {
-			await showAlert("Invalid Key Name", "Key must start with a letter or underscore and contain only letters, numbers, and underscores.");
+			showAlert("Invalid Key Name", "Key must start with a letter or underscore and contain only letters, numbers, and underscores.");
 			return;
 		}
 
-		// Ensure metadata structure exists
-		this.props.object.metadata ??= {};
-		this.props.object.metadata.customMetadata ??= {};
-
 		// Check if key already exists
-		if (key in this.props.object.metadata.customMetadata) {
-			await showAlert("Duplicate Key", `Key "${key}" already exists.`);
+		if (key in (this.props.object.metadata?.customMetadata ?? {})) {
+			showAlert("Duplicate Key", `Key "${key}" already exists.`);
 			return;
 		}
 
