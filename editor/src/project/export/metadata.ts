@@ -10,12 +10,7 @@ import { isMesh } from "../../tools/guards/nodes";
  * @param scene defines the scene that contains the source nodes.
  */
 export function configureCustomMetadata(data: any, scene: Scene) {
-	// Process meshes
 	data.meshes?.forEach((m: any) => {
-		if (!m) {
-			return;
-		}
-
 		const mesh = scene.getMeshById(m.id);
 		if (!mesh || !isMesh(mesh)) {
 			return;
@@ -38,10 +33,6 @@ export function configureCustomMetadata(data: any, scene: Scene) {
 
 	// Process lights
 	data.lights?.forEach((l: any) => {
-		if (!l) {
-			return;
-		}
-
 		const light = scene.getLightById(l.id);
 		if (!light) {
 			return;
@@ -55,10 +46,6 @@ export function configureCustomMetadata(data: any, scene: Scene) {
 
 	// Process cameras
 	data.cameras?.forEach((c: any) => {
-		if (!c) {
-			return;
-		}
-
 		const camera = scene.getCameraById(c.id);
 		if (!camera) {
 			return;
@@ -72,10 +59,6 @@ export function configureCustomMetadata(data: any, scene: Scene) {
 
 	// Process transform nodes
 	data.transformNodes?.forEach((t: any) => {
-		if (!t) {
-			return;
-		}
-
 		const transformNode = scene.getTransformNodeById(t.id);
 		if (!transformNode) {
 			return;
