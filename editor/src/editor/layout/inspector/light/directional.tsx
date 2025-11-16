@@ -16,6 +16,7 @@ import { EditorInspectorNumberField } from "../fields/number";
 import { EditorInspectorSectionField } from "../fields/section";
 
 import { ScriptInspectorComponent } from "../script/script";
+import { CustomMetadataInspector } from "../metadata/custom-metadata";
 
 import { EditorLightShadowsInspector } from "./shadows";
 
@@ -79,6 +80,8 @@ export class EditorDirectionalLightInspector extends Component<IEditorInspectorI
 				<ScriptInspectorComponent editor={this.props.editor} object={this.props.object} />
 
 				<EditorLightShadowsInspector light={this.props.object} />
+
+				<CustomMetadataInspector object={this.props.object} />
 			</>
 		);
 	}

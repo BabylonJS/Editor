@@ -9,6 +9,8 @@ import { IEditorInspectorImplementationProps } from "../inspector";
 import { EditorInspectorNumberField } from "../fields/number";
 import { EditorInspectorSectionField } from "../fields/section";
 
+import { CustomMetadataInspector } from "../metadata/custom-metadata";
+
 import { FocalLengthInspector } from "./utils/focal";
 
 export class EditorCameraInspector extends Component<IEditorInspectorImplementationProps<EditorCamera>> {
@@ -54,6 +56,8 @@ export class EditorCameraInspector extends Component<IEditorInspectorImplementat
 						Configure in preferences...
 					</Button>
 				</EditorInspectorSectionField>
+
+				<CustomMetadataInspector object={this.props.object} />
 			</>
 		);
 	}

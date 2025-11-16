@@ -17,6 +17,7 @@ import { EditorInspectorSectionField } from "../fields/section";
 // import { EditorInspectorTextureField } from "../fields/texture";
 
 import { ScriptInspectorComponent } from "../script/script";
+import { CustomMetadataInspector } from "../metadata/custom-metadata";
 
 import { EditorLightShadowsInspector } from "./shadows";
 
@@ -103,6 +104,8 @@ export class EditorSpotLightInspector extends Component<IEditorInspectorImplemen
 				<EditorLightShadowsInspector light={this.props.object}>
 					<EditorInspectorNumberField label="Angle" object={this.props.object} property="shadowAngleScale" min={0} max={Math.PI * 2} />
 				</EditorLightShadowsInspector>
+
+				<CustomMetadataInspector object={this.props.object} />
 			</>
 		);
 	}

@@ -36,7 +36,7 @@ export class CustomMetadataInspector extends Component<ICustomMetadataInspectorP
 						<div className="w-full">
 							<EditorInspectorStringField
 								label={key}
-								object={this.props.object.metadata.customMetadata}
+								object={this.props.object.metadata?.customMetadata ?? {}}
 								property={key}
 								onChange={() => this.forceUpdate()}
 							/>
@@ -76,8 +76,18 @@ export class CustomMetadataInspector extends Component<ICustomMetadataInspectorP
 			return;
 		}
 
+		// Ensure metadata exists
+		if (!this.props.object.metadata) {
+			this.props.object.metadata = {};
+		}
+
+		// Ensure customMetadata exists
+		if (!this.props.object.metadata.customMetadata) {
+			this.props.object.metadata.customMetadata = {};
+		}
+
 		// Check if key already exists
-		if (key in (this.props.object.metadata?.customMetadata ?? {})) {
+		if (key in this.props.object.metadata.customMetadata) {
 			showAlert("Duplicate Key", `Key "${key}" already exists.`);
 			return;
 		}
@@ -94,6 +104,11 @@ export class CustomMetadataInspector extends Component<ICustomMetadataInspectorP
 		}
 
 		delete this.props.object.metadata.customMetadata[key];
+
+		// Clean up empty customMetadata object
+		if (Object.keys(this.props.object.metadata.customMetadata).length === 0) {
+			delete this.props.object.metadata.customMetadata;
+		}
 
 		this.forceUpdate();
 	}

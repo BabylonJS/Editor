@@ -15,6 +15,7 @@ import { EditorInspectorNumberField } from "../fields/number";
 import { EditorInspectorSectionField } from "../fields/section";
 
 import { ScriptInspectorComponent } from "../script/script";
+import { CustomMetadataInspector } from "../metadata/custom-metadata";
 
 export class EditorHemisphericLightInspector extends Component<IEditorInspectorImplementationProps<HemisphericLight>> {
 	/**
@@ -58,6 +59,8 @@ export class EditorHemisphericLightInspector extends Component<IEditorInspectorI
 				</EditorInspectorSectionField>
 
 				<ScriptInspectorComponent editor={this.props.editor} object={this.props.object} />
+
+				<CustomMetadataInspector object={this.props.object} />
 			</>
 		);
 	}
