@@ -1,6 +1,6 @@
 import { join, dirname, basename } from "path/posix";
 
-import { Node } from "babylonjs";
+import { Node, AnimationGroup, Tags } from "babylonjs";
 
 import { Editor } from "../../editor/main";
 import { SceneLinkNode } from "../../editor/nodes/scene-link";
@@ -39,6 +39,13 @@ export function isFromSceneLink(node: Node) {
 	}
 
 	return false;
+}
+
+/**
+ * Returns whether or not the given animation group comes from a SceneLinkNode instance.
+ */
+export function isAnimationGroupFromSceneLink(animationGroup: AnimationGroup) {
+	return Tags.MatchesQuery(animationGroup, "from-scene-link");
 }
 
 /**

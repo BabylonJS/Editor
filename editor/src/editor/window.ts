@@ -138,6 +138,7 @@ export async function createCustomWindow(indexPath: string, options: any): Promi
 		height: 800,
 		webPreferences: {
 			nodeIntegration: true,
+			nodeIntegrationInWorker: true,
 			contextIsolation: process.env.DEBUG !== "true",
 			preload: join(app.getAppPath(), "build/src/editor/windows/preload.js"),
 		},
