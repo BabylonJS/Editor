@@ -9,14 +9,14 @@ import { Editor } from "../../editor/main";
 
 import { isSceneLinkNode } from "../../tools/guards/scene";
 import { applyAssetsCache } from "../../tools/assets/cache";
-import { isFromSceneLink } from "../../tools/scene/scene-link";
 import { isNodeVisibleInGraph } from "../../tools/node/metadata";
 import { getBufferSceneScreenshot } from "../../tools/scene/screenshot";
 import { createDirectoryIfNotExist, normalizedGlob } from "../../tools/fs";
 import { isSpriteManagerNode, isSpriteMapNode } from "../../tools/guards/sprites";
 import { isGPUParticleSystem, isParticleSystem } from "../../tools/guards/particles";
 import { serializePhysicsAggregate } from "../../tools/physics/serialization/aggregate";
-import { isCollisionMesh, isEditorCamera, isMesh, isTransformNode } from "../../tools/guards/nodes";
+import { isAnimationGroupFromSceneLink, isFromSceneLink } from "../../tools/scene/scene-link";
+import { isAnyTransformNode, isCollisionMesh, isEditorCamera, isMesh, isTransformNode } from "../../tools/guards/nodes";
 
 import { vlsPostProcessCameraConfigurations } from "../../editor/rendering/vls";
 import { saveRenderingConfigurationForCamera } from "../../editor/rendering/tools";
@@ -308,7 +308,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 	// Write transform nodes
 	await Promise.all(
 		scene.transformNodes.map(async (transformNode) => {
-			if (!isTransformNode(transformNode)) {
+			if (!isTransformNode(transformNode) || isFromSceneLink(transformNode)) {
 				return;
 			}
 
@@ -513,6 +513,11 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 		scene.particleSystems.map(async (particleSystem) => {
 			const particleSystemPath = join(scenePath, "particleSystems", `${particleSystem.id}.json`);
 
+			const emitter = particleSystem.emitter;
+			if (emitter && isAnyTransformNode(emitter) && isFromSceneLink(emitter)) {
+				return;
+			}
+
 			try {
 				const data = particleSystem.serialize(true);
 
@@ -537,6 +542,10 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 	// Write animation groups
 	await Promise.all(
 		scene.animationGroups?.map(async (animationGroup) => {
+			if (isAnimationGroupFromSceneLink(animationGroup)) {
+				return;
+			}
+
 			const animationGroupPath = join(scenePath, "animationGroups", `${filenamify(animationGroup.name)}_${animationGroup.uniqueId}.json`);
 
 			try {
@@ -555,7 +564,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 	// Write sprite maps
 	await Promise.all(
 		scene.transformNodes.map(async (transformNode) => {
-			if (!isSpriteMapNode(transformNode)) {
+			if (!isSpriteMapNode(transformNode) || isFromSceneLink(transformNode)) {
 				return;
 			}
 
@@ -583,7 +592,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 	// Write sprite managers
 	await Promise.all(
 		scene.transformNodes.map(async (transformNode) => {
-			if (!isSpriteManagerNode(transformNode)) {
+			if (!isSpriteManagerNode(transformNode) || isFromSceneLink(transformNode)) {
 				return;
 			}
 
