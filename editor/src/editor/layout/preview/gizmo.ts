@@ -145,15 +145,15 @@ export class EditorPreviewGizmo {
 				this._spriteTransformNode.scaling.set(object.width, object.height, 1);
 				this._spriteTransformNode.rotation.set(0, 0, object.angle);
 			}
+		}
 
-			if (isCamera(object)) {
-				this._cameraGizmo ??= new CameraGizmo(this._gizmosLayer);
-				this._cameraGizmo.camera = object;
-				this._cameraGizmo.attachedNode = object;
-			} else {
-				this._cameraGizmo?.dispose();
-				this._cameraGizmo = null;
-			}
+		if (object && isCamera(object) && this._gizmosLayer.originalScene.cameras.includes(object)) {
+			this._cameraGizmo ??= new CameraGizmo(this._gizmosLayer);
+			this._cameraGizmo.camera = object;
+			this._cameraGizmo.attachedNode = object;
+		} else {
+			this._cameraGizmo?.dispose();
+			this._cameraGizmo = null;
 		}
 
 		if (this.currentGizmo) {
