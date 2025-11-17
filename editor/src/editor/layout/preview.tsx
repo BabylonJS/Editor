@@ -173,7 +173,8 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	private _mainCanvas: HTMLCanvasElement | null = null;
 	private _mainView: EngineView | null = null;
 
-	private _previewCamera: Camera | null = null;
+	/** @internal */
+	public _previewCamera: Camera | null = null;
 
 	public constructor(props: IEditorPreviewProps) {
 		super(props);
@@ -246,7 +247,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 					<EditorPreviewIcons ref={(r) => this._onGotIconsRef(r!)} editor={this.props.editor} />
 				</EditorGraphContextMenu>
 
-				{this._previewCamera && (
+				{this._previewCamera && this.scene?.cameras.includes(this._previewCamera) && (
 					<EditorPreviewCamera hidden={this.play?.state.playing} key={this._previewCamera.id} editor={this.props.editor} camera={this._previewCamera} />
 				)}
 
@@ -451,7 +452,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	 * @param camera the camera to activate the preview
 	 */
 	public setCameraPreviewActive(camera: Camera | null): void {
-		if (this._previewCamera === camera) {
+		if (this._previewCamera === camera || camera === this.scene.activeCamera) {
 			return;
 		}
 
@@ -1116,6 +1117,10 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		});
 
 		this.props.editor.layout.inspector.forceUpdate();
+
+		if (this._previewCamera === camera) {
+			this.setCameraPreviewActive(null);
+		}
 	}
 
 	/**

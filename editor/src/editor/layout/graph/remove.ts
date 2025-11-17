@@ -144,7 +144,7 @@ export function removeNodes(editor: Editor) {
 		},
 		redo: () => {
 			nodes.forEach((d) => {
-				removeNodeData(d, scene);
+				removeNodeData(editor, d, scene);
 			});
 
 			sounds.forEach((d) => {
@@ -214,7 +214,7 @@ function restoreNodeData(data: _RemoveNodeData, scene: Scene) {
 	}
 }
 
-function removeNodeData(data: _RemoveNodeData, scene: Scene) {
+function removeNodeData(editor: Editor, data: _RemoveNodeData, scene: Scene) {
 	const node = data.node;
 
 	if (isAbstractMesh(node)) {
@@ -243,5 +243,9 @@ function removeNodeData(data: _RemoveNodeData, scene: Scene) {
 
 	if (isCamera(node)) {
 		scene.removeCamera(node);
+
+		if (node === editor.layout.preview._previewCamera) {
+			editor.layout.preview.setCameraPreviewActive(null);
+		}
 	}
 }
