@@ -141,7 +141,7 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 
 		if (!cached || cached.time !== fStat.mtimeMs) {
 			const temporaryDirectory = await ensureTemporaryDirectoryExists(projectConfiguration.path);
-			const outputAbsolutePath = join(temporaryDirectory, "scripts", `${props.script.key.replace(/\//g, "_")}.js`);
+			const outputAbsolutePath = join(temporaryDirectory, "scripts", `${props.script.key.replace(/\//g, "_")}.cjs`);
 
 			const compilationSuccess = await executeSimpleWorker<{ success: boolean; error?: string }>("workers/script.js", {
 				action: "compile",
