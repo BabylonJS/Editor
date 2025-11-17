@@ -45,6 +45,7 @@ import { EditorInspectorNumberField } from "../fields/number";
 import { EditorInspectorSectionField } from "../fields/section";
 
 import { ScriptInspectorComponent } from "../script/script";
+import { CustomMetadataInspector } from "../metadata/custom-metadata";
 
 import { onGizmoNodeChangedObservable } from "../../preview/gizmo";
 
@@ -200,6 +201,8 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 						<EditorInspectorSwitchField label="Always Select As Active Mesh" object={this.props.object} property="alwaysSelectAsActiveMesh" />
 					</EditorInspectorSectionField>
 				)}
+
+				<CustomMetadataInspector object={this.props.object} />
 			</>
 		);
 	}

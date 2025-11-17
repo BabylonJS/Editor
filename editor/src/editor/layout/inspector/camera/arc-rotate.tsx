@@ -13,6 +13,7 @@ import { EditorInspectorStringField } from "../fields/string";
 import { EditorInspectorSectionField } from "../fields/section";
 
 import { ScriptInspectorComponent } from "../script/script";
+import { CustomMetadataInspector } from "../metadata/custom-metadata";
 
 import { CameraModeInspector } from "./utils/mode";
 import { FocalLengthInspector } from "./utils/focal";
@@ -58,6 +59,8 @@ export class EditorArcRotateCameraInspector extends Component<IEditorInspectorIm
 				</EditorInspectorSectionField>
 
 				<ScriptInspectorComponent editor={this.props.editor} object={this.props.object} />
+
+				<CustomMetadataInspector object={this.props.object} />
 			</>
 		);
 	}

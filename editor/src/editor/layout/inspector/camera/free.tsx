@@ -18,6 +18,7 @@ import { EditorInspectorStringField } from "../fields/string";
 import { EditorInspectorSectionField } from "../fields/section";
 
 import { ScriptInspectorComponent } from "../script/script";
+import { CustomMetadataInspector } from "../metadata/custom-metadata";
 
 import { CameraModeInspector } from "./utils/mode";
 import { FocalLengthInspector } from "./utils/focal";
@@ -80,6 +81,8 @@ export class EditorFreeCameraInspector extends Component<IEditorInspectorImpleme
 					<EditorInspectorKeyField value={this.props.object.keysUpward[0]?.toString() ?? ""} onChange={(v) => (this.props.object.keysUpward = [v])} label="Up" />
 					<EditorInspectorKeyField value={this.props.object.keysDownward[0]?.toString() ?? ""} onChange={(v) => (this.props.object.keysDownward = [v])} label="Down" />
 				</EditorInspectorSectionField>
+
+				<CustomMetadataInspector object={this.props.object} />
 			</>
 		);
 	}
