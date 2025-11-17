@@ -61,10 +61,15 @@
 		"dotenv": "16.4.5",
 		"eslint": "9.29.0",
 		"minimist": "1.2.8",
-		"rimraf": "6.0.1",
-		"prettier": "3.6.2"
+		"prettier": "3.6.2",
+		"rimraf": "6.0.1"
 	},
-	"dependencies": {},
+	"dependencies": {
+		"@langchain/core": "^1.0.5",
+		"@langchain/langgraph": "^1.0.2",
+		"@langchain/ollama": "^1.0.1",
+		"zod": "^4.1.12"
+	},
 	"resolutions": {
 		"braces": "3.0.3",
 		"node-abi": "4.14.0",

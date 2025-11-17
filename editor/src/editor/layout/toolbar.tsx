@@ -201,6 +201,19 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 						</MenubarContent>
 					</MenubarMenu>
 
+					{/* Tools */}
+					<MenubarMenu>
+						<MenubarTrigger>Tools</MenubarTrigger>
+						<MenubarContent className="border-black/50">
+							<MenubarItem onClick={async () => {
+								await this.props.editor.loadAIAssistant();
+								this.props.editor.setState({ showAIAssistant: true });
+							}}>
+								AI Assistant...
+							</MenubarItem>
+						</MenubarContent>
+					</MenubarMenu>
+
 					{/* Window */}
 					<MenubarMenu>
 						<MenubarTrigger>Window</MenubarTrigger>

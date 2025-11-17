@@ -118,6 +118,14 @@ export interface IEditorState {
 	 * Defines wether or not Visual Studio Code is available.
 	 */
 	visualStudioCodeAvailable: boolean;
+	/**
+	 * Defines whether the AI Assistant is open.
+	 */
+	showAIAssistant: boolean;
+	/**
+	 * The AI Assistant component (lazy loaded)
+	 */
+	AIAssistantComponent?: any;
 }
 
 export class Editor extends Component<IEditorProps, IEditorState> {
@@ -153,9 +161,22 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 
 			nodeJSAvailable: false,
 			visualStudioCodeAvailable: false,
+			showAIAssistant: false,
+			AIAssistantComponent: null,
 		};
 
 		webFrame.setZoomFactor(0.8);
+	}
+
+	public async loadAIAssistant(): Promise<void> {
+		if (!this.state.AIAssistantComponent) {
+			try {
+				const module = await import("../assistant/ai-assistant-ui");
+				this.setState({ AIAssistantComponent: module.AIAssistantUI });
+			} catch (error) {
+				console.error("Failed to load AI Assistant:", error);
+			}
+		}
 	}
 
 	public render(): ReactNode {
@@ -192,6 +213,10 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 				<EditorEditProjectComponent editor={this} open={this.state.editProject} onClose={() => this.setState({ editProject: false })} />
 
 				<EditorEditPreferencesComponent editor={this} open={this.state.editPreferences} onClose={() => this.setState({ editPreferences: false })} />
+
+				{this.state.showAIAssistant && this.state.AIAssistantComponent && (
+					<this.state.AIAssistantComponent editor={this} onClose={() => this.setState({ showAIAssistant: false })} />
+				)}
 
 				<CommandPalette ref={(r) => (this.commandPalette = r!)} editor={this} />
 				<Toaster />
