@@ -47,6 +47,8 @@ ipcMain.on("editor:create-node-pty", (ev, command, id, options) => {
 		name: "xterm-color",
 		encoding: "utf-8",
 		useConpty: false,
+		cwd: (options as any)?.cwd ?? process.cwd(),
+		env: (options as any)?.env ?? process.env,
 		...options,
 	});
 
@@ -70,14 +72,17 @@ ipcMain.on("editor:create-node-pty", (ev, command, id, options) => {
 
 	ev.sender.send(`editor:create-node-pty-${id}`);
 
-	const hasBackSlashes = shell!.toLowerCase() === process.env["COMSPEC"]?.toLowerCase();
-	if (hasBackSlashes) {
-		p.write(`${command.replace(/\//g, "\\")}\n\r`);
-	} else {
-		p.write(`${command}\n\r`);
-	}
+	const interactive: boolean = Boolean((options as any)?.interactive);
+	if (!interactive) {
+		const hasBackSlashes = shell!.toLowerCase() === process.env["COMSPEC"]?.toLowerCase();
+		if (hasBackSlashes) {
+			p.write(`${command.replace(/\//g, "\\")}\n\r`);
+		} else {
+			p.write(`${command}\n\r`);
+		}
 
-	p.write("exit\n\r");
+		p.write("exit\n\r");
+	}
 });
 
 // On write on a pty process
