@@ -25,6 +25,7 @@ import { EditorProjectPackageManager, IEditorProject, EditorProjectTemplate } fr
 
 export interface IDashboardCreateProjectDialogProps {
 	isOpened: boolean;
+	closeDashboardOnProjectOpen: boolean;
 	onClose: () => void;
 }
 
@@ -101,7 +102,7 @@ export function DashboardCreateProjectDialog(props: IDashboardCreateProjectDialo
 			});
 
 			if (result) {
-				ipcRenderer.send("dashboard:open-project", projectAbsolutePath);
+				ipcRenderer.send("dashboard:open-project", projectAbsolutePath, props.closeDashboardOnProjectOpen);
 			}
 		} catch (e) {
 			showAlert("An unexpected error occured", e.message);

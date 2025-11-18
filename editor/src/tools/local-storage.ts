@@ -54,12 +54,35 @@ export function tryGetExperimentalFeaturesEnabledFromLocalStorage(): boolean {
 }
 
 /**
- * Sets wether or not experimental features are enabled in the local storage.
+ * Sets whether or not experimental features are enabled in the local storage.
  * @param enabled defines wether or not experimental features are enabled.
  */
 export function trySetExperimentalFeaturesEnabledInLocalStorage(enabled: boolean): void {
 	try {
 		localStorage.setItem("editor-experimental-features", JSON.stringify(enabled));
+	} catch (e) {
+		// Catch silently.
+	}
+}
+
+/**
+ * Returns wether or not the dashboard should be closed when a project is opened.
+ */
+export function tryGetCloseDashboardOnProjectOpenFromLocalStorage(): boolean {
+	try {
+		return localStorage.getItem("babylonjs-editor-close-dashboard-on-project-open") === "true";
+	} catch (e) {
+		return false;
+	}
+}
+
+/**
+ * Sets whether or not the dashboard should be closed when a project is opened.
+ * @param enabled defines whether or not the dashboard should be closed when a project is opened.
+ */
+export function trySetCloseDashboardOnProjectOpenInLocalStorage(enabled: boolean): void {
+	try {
+		localStorage.setItem("babylonjs-editor-close-dashboard-on-project-open", JSON.stringify(enabled));
 	} catch (e) {
 		// Catch silently.
 	}

@@ -27,7 +27,7 @@ import { DashboardProgressComponent } from "./progress";
 export interface IDashboardProjectItemProps {
 	isOpened: boolean;
 	project: ProjectType;
-
+	closeDashboardOnProjectOpen: boolean;
 	onRemove: () => void;
 }
 
@@ -127,6 +127,10 @@ export function DashboardProjectItem(props: IDashboardProjectItemProps) {
 		setPlayingAddress("");
 	}
 
+	function handleLoadProject() {
+		ipcRenderer.send("dashboard:open-project", props.project.absolutePath, props.closeDashboardOnProjectOpen);
+	}
+
 	function handleOpenInVisualStudioCode() {
 		execNodePty(`code "${dirname(props.project.absolutePath)}"`);
 	}
@@ -135,7 +139,7 @@ export function DashboardProjectItem(props: IDashboardProjectItemProps) {
 		<ContextMenu onOpenChange={(o) => setContextMenuOpen(o)}>
 			<ContextMenuTrigger>
 				<div
-					onDoubleClick={() => ipcRenderer.send("dashboard:open-project", props.project.absolutePath)}
+					onDoubleClick={handleLoadProject}
 					className={`
                         group
                         flex flex-col w-full rounded-lg cursor-pointer select-none
@@ -169,7 +173,7 @@ export function DashboardProjectItem(props: IDashboardProjectItemProps) {
 										</Button>
 									</DropdownMenuTrigger>
 									<DropdownMenuContent>
-										<DropdownMenuItem onClick={() => ipcRenderer.send("dashboard:open-project", props.project.absolutePath)}>Open</DropdownMenuItem>
+										<DropdownMenuItem onClick={handleLoadProject}>Open</DropdownMenuItem>
 										<DropdownMenuItem className="flex items-center gap-2" onClick={() => ipcRenderer.send("editor:show-item", props.project.absolutePath)}>
 											{`Show in ${isDarwin() ? "Finder" : "Explorer"}`}
 										</DropdownMenuItem>
@@ -214,7 +218,7 @@ export function DashboardProjectItem(props: IDashboardProjectItemProps) {
 				</div>
 			</ContextMenuTrigger>
 			<ContextMenuContent>
-				<ContextMenuItem onClick={() => ipcRenderer.send("dashboard:open-project", props.project.absolutePath)}>Open</ContextMenuItem>
+				<ContextMenuItem onClick={handleLoadProject}>Open</ContextMenuItem>
 				<ContextMenuItem className="flex items-center gap-2" onClick={() => ipcRenderer.send("editor:show-item", props.project.absolutePath)}>
 					{`Show in ${isDarwin() ? "Finder" : "Explorer"}`}
 				</ContextMenuItem>
