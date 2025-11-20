@@ -14,6 +14,7 @@ import { applyDecorators } from "../decorators/apply";
 import { isAnyParticleSystem, isMesh, isNode, isScene } from "../tools/guards";
 
 import { ScriptMap } from "./loader";
+import { AdvancedAssetContainer } from "./container";
 
 /**
  * Defines the cache of all
@@ -23,7 +24,7 @@ export const scriptAssetsCache = new Map<string, any>();
 /**
  * @internal
  */
-export async function _preloadScriptsAssets(rootUrl: string, scene: Scene) {
+export async function _preloadScriptsAssets(rootUrl: string, scene: Scene, scriptsMap: ScriptMap) {
 	const nodes = [scene, ...scene.transformNodes, ...scene.meshes, ...scene.lights, ...scene.cameras];
 
 	const scripts = nodes
@@ -64,7 +65,8 @@ export async function _preloadScriptsAssets(rootUrl: string, scene: Scene) {
 						const sceneFilename = filename.replace(".scene", ".babylon");
 
 						// Load asset container
-						const container = await LoadAssetContainerAsync(`${rootUrl}${sceneFilename}`, scene, {
+						const container = await LoadAssetContainerAsync(sceneFilename, scene, {
+							rootUrl: rootUrl,
 							pluginExtension: ".babylon",
 						});
 
@@ -75,7 +77,7 @@ export async function _preloadScriptsAssets(rootUrl: string, scene: Scene) {
 
 						container.addAllToScene();
 
-						scriptAssetsCache.set(key, container);
+						scriptAssetsCache.set(key, new AdvancedAssetContainer(container, rootUrl, scriptsMap));
 					} else {
 						const response = await fetch(`${rootUrl}${key}`);
 						const data = await response.json();
@@ -102,7 +104,7 @@ export function _applyScriptsForObject(scene: Scene, object: any, scriptsMap: Sc
 		return;
 	}
 
-	object.metadata.scripts?.forEach(async (script) => {
+	object.metadata.scripts?.forEach((script) => {
 		if (!script.enabled) {
 			return;
 		}
@@ -219,7 +221,8 @@ export function _registerScriptInstance(object: any, scriptInstance: IScript, ke
 
 	if (isNode(object) || isAnyParticleSystem(object) || isScene(object)) {
 		object.onDisposeObservable.addOnce((() => {
-			scriptsDictionary.get(object)?.forEach((s) => {
+			const scripts = scriptsDictionary.get(object)?.slice();
+			scripts?.forEach((s) => {
 				_removeRegisteredScriptInstance(object, s);
 			});
 

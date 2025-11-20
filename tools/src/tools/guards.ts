@@ -4,6 +4,7 @@ import { Node } from "@babylonjs/core/node";
 import { Bone } from "@babylonjs/core/Bones/bone";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { GroundMesh } from "@babylonjs/core/Meshes/groundMesh";
+import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { InstancedMesh } from "@babylonjs/core/Meshes/instancedMesh";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 
@@ -29,7 +30,7 @@ import { Sprite } from "@babylonjs/core/Sprites/sprite";
  * Returns wether or not the given object is an AbstractMesh.
  * @param object defines the reference to the object to test its class name.
  */
-export function isAbstractMesh(object: any): object is Mesh {
+export function isAbstractMesh(object: any): object is AbstractMesh {
 	switch (object.getClassName?.()) {
 		case "Mesh":
 		case "LineMesh":
