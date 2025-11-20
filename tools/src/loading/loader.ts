@@ -132,7 +132,7 @@ export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scen
 	}
 
 	if (!options?.skipAssetsPreload) {
-		await _preloadScriptsAssets(rootUrl, scene);
+		await _preloadScriptsAssets(rootUrl, scene, scriptsMap);
 	}
 
 	options?.onProgress?.(1);
