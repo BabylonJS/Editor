@@ -1,6 +1,7 @@
 export * from "./loading/loader";
 export * from "./loading/material";
 export * from "./loading/script";
+export * from "./loading/container";
 
 export * from "./tools/guards";
 export * from "./tools/texture";
