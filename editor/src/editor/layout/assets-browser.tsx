@@ -5,6 +5,7 @@ import { copyFile, copy, mkdir, move, pathExists, readdir, stat, writeFile, writ
 import filenamify from "filenamify";
 
 import { AdvancedDynamicTexture } from "babylonjs-gui";
+import { INavMeshParametersV2 } from "babylonjs-addons/navigation/types";
 import { Material, NodeMaterial, Tools, NodeParticleSystemSet } from "babylonjs";
 
 import { ICinematic } from "babylonjs-editor-tools";
@@ -65,12 +66,15 @@ import { exportNodeToPath } from "./graph/export";
 
 import { FileInspectorObject } from "./inspector/file";
 
+import { INavMeshConfiguration } from "./navmesh/types";
+
 import { AssetBrowserGUIItem } from "./assets-browser/items/gui-item";
 import { AssetBrowserHDRItem } from "./assets-browser/items/hdr-item";
 import { AssetBrowserJsonItem } from "./assets-browser/items/json-item";
 import { AssetBrowserMeshItem } from "./assets-browser/items/mesh-item";
 import { AssetBrowserSceneItem } from "./assets-browser/items/scene-item";
 import { AssetBrowserImageItem } from "./assets-browser/items/image-item";
+import { AssetBrowserNavmeshItem } from "./assets-browser/items/navmesh-item";
 import { AssetBrowserMaterialItem } from "./assets-browser/items/material-item";
 import { AssetBrowserCinematicItem } from "./assets-browser/items/cinematic-item";
 import { AssetsBrowserItem, IAssetsBrowserItemProps } from "./assets-browser/items/item";
@@ -97,9 +101,12 @@ const DefaultSelectable = createSelectable(AssetsBrowserItem);
 const MeshSelectable = createSelectable(AssetBrowserMeshItem);
 const ImageSelectable = createSelectable(AssetBrowserImageItem);
 const SceneSelectable = createSelectable(AssetBrowserSceneItem);
+const NavmeshSelectable = createSelectable(AssetBrowserNavmeshItem);
 const MaterialSelectable = createSelectable(AssetBrowserMaterialItem);
 const CinematicSelectable = createSelectable(AssetBrowserCinematicItem);
 const ParticleSystemSelectable = createSelectable(AssetBrowserParticleSystemItem);
+
+const directoryPackagesExtensions = [".scene", ".navmesh"];
 
 export interface IEditorAssetsBrowserProps {
 	/**
@@ -249,8 +256,8 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 	private async _refreshFilesTreeNodes(path: string): Promise<void> {
 		const files = await normalizedGlob(join(dirname(path), "**"), {
 			ignore: {
-				childrenIgnored: (p) => extname(p.name).toLocaleLowerCase() === ".scene",
-				ignored: (p) => !p.isDirectory() || extname(p.name).toLocaleLowerCase() === ".scene",
+				childrenIgnored: (p) => directoryPackagesExtensions.includes(extname(p.name).toLowerCase()),
+				ignored: (p) => !p.isDirectory() || directoryPackagesExtensions.includes(extname(p.name).toLowerCase()),
 			},
 		});
 
@@ -807,6 +814,8 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 						<ContextMenuItem onClick={() => this._handleAddNodeParticleSystem()}>Node Particle System</ContextMenuItem>
 						<ContextMenuSeparator />
 						<ContextMenuItem onClick={() => this._handleAddCinematic()}>Cinematic</ContextMenuItem>
+						<ContextMenuSeparator />
+						<ContextMenuItem onClick={() => this._handleAddNavmesh()}>Navmesh</ContextMenuItem>
 					</>
 				)}
 
@@ -887,6 +896,9 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 
 			case ".npss":
 				return <ParticleSystemSelectable {...props} />;
+
+			case ".navmesh":
+				return <NavmeshSelectable {...props} />;
 
 			default:
 				return <DefaultSelectable {...props} />;
@@ -1222,6 +1234,39 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 		return this._refreshItems(this.state.browsedPath);
 	}
 
+	private async _handleAddNavmesh(): Promise<void> {
+		if (!this.state.browsedPath) {
+			return;
+		}
+
+		const cellSize = 10;
+		const walkableRadius = 10;
+		const walkableHeight = 10;
+		const navmeshParameters = {
+			ch: 1,
+			cs: cellSize,
+			walkableHeight: Math.round(walkableHeight / cellSize),
+			walkableRadius: Math.round(walkableRadius / cellSize),
+			keepIntermediates: true,
+		} as INavMeshParametersV2;
+
+		const configuration: INavMeshConfiguration = {
+			navMeshParameters: navmeshParameters,
+			staticMeshes: [],
+			obstacleMeshes: [],
+		};
+
+		const name = await findAvailableFilename(this.state.browsedPath, "New NavMesh", ".navmesh");
+
+		await mkdir(join(this.state.browsedPath, name));
+		await writeJSON(join(this.state.browsedPath, name, "config.json"), configuration, {
+			spaces: "\t",
+			encoding: "utf-8",
+		});
+
+		return this._refreshItems(this.state.browsedPath);
+	}
+
 	private async _handleAddFullScreenGUI(): Promise<void> {
 		if (!this.state.browsedPath) {
 			return;
@@ -1351,7 +1396,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 			const extension = extname(item.props.absolutePath).toLowerCase();
 			if (extension === ".scene") {
 				this._handleLoadScene(item.props.absolutePath);
-			} else {
+			} else if (!directoryPackagesExtensions.includes(extension)) {
 				this.setBrowsePath(item.props.absolutePath);
 			}
 
