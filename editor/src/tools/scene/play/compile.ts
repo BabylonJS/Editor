@@ -30,7 +30,8 @@ export async function compilePlayScript(temporaryDirectory: string, options?: IC
 					.replace(/"@babylonjs\/post-processes\/?.*"/g, '"babylonjs-post-process"')
 					.replace(/"@babylonjs\/procedural-textures\/?.*"/g, '"babylonjs-procedural-textures"')
 					.replace(/"@babylonjs\/addons\/?.*"/g, '"babylonjs-addons"')
-					.replace(/import\.meta\.dirname/g, "__dirname");
+					.replace(/import\.meta\.dirname/g, "__dirname")
+					.replace(/import\("/g, 'require("');
 
 				options?.onTransformSource?.(args.path);
 
