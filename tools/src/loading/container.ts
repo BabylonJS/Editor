@@ -6,7 +6,7 @@ import { AssetContainer, InstantiatedEntries } from "@babylonjs/core/assetContai
 import { cloneJSObject } from "../tools/tools";
 
 import { ScriptMap } from "./loader";
-import { _applyScriptsForObject } from "./script";
+import { _applyScriptsForObject } from "./script/apply";
 
 interface _ISavedMapEntry {
 	node: Node;
