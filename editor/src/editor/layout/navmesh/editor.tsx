@@ -143,15 +143,31 @@ export class NavMeshEditor extends Component<INavmeshEditorProps, INavmeshEditor
 			const debugObstacles = meshes.map((entry) => {
 				entry.clone.material = debugMaterial;
 
-				const obstacle =
-					entry.config.type === "box"
-						? this.plugin.addBoxObstacle(entry.clone.position, entry.clone.getBoundingInfo().boundingBox.extendSizeWorld, 0, false)
-						: this.plugin.addCylinderObstacle(
-								entry.clone.position,
-								entry.clone.getBoundingInfo().boundingBox.extendSizeWorld.x,
-								entry.clone.getBoundingInfo().boundingBox.extendSizeWorld.y,
-								false
-							);
+				const boundingBox = entry.clone.getBoundingInfo().boundingBox;
+
+				let obstacle: IObstacle | null = null;
+				switch (entry.config.type) {
+					case "box":
+						entry.config.position = entry.clone.position.asArray();
+						entry.config.extent = boundingBox.extendSizeWorld.asArray();
+						entry.config.angle = 0;
+
+						obstacle = this.plugin.addBoxObstacle(entry.clone.position, boundingBox.extendSizeWorld, 0, false);
+						break;
+
+					case "cylinder":
+						entry.config.position = entry.clone.position.asArray();
+						entry.config.radius = boundingBox.extendSizeWorld.x;
+						entry.config.height = boundingBox.extendSizeWorld.y;
+
+						obstacle = this.plugin.addCylinderObstacle(
+							entry.clone.position,
+							entry.clone.getBoundingInfo().boundingBox.extendSizeWorld.x,
+							entry.clone.getBoundingInfo().boundingBox.extendSizeWorld.y,
+							false
+						);
+						break;
+				}
 
 				if (!obstacle) {
 					entry.clone.dispose(false, true);
