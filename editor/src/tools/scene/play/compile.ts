@@ -29,6 +29,7 @@ export async function compilePlayScript(temporaryDirectory: string, options?: IC
 					.replace(/"@babylonjs\/materials\/?.*"/g, '"babylonjs-materials"')
 					.replace(/"@babylonjs\/post-processes\/?.*"/g, '"babylonjs-post-process"')
 					.replace(/"@babylonjs\/procedural-textures\/?.*"/g, '"babylonjs-procedural-textures"')
+					.replace(/"@babylonjs\/addons\/?.*"/g, '"babylonjs-addons"')
 					.replace(/import\.meta\.dirname/g, "__dirname");
 
 				options?.onTransformSource?.(args.path);
@@ -78,6 +79,10 @@ export async function compilePlayScript(temporaryDirectory: string, options?: IC
 			"babylonjs-materials",
 			"babylonjs-post-process",
 			"babylonjs-procedural-textures",
+			"babylonjs-addons",
+
+			"@recast-navigation/core",
+			"@recast-navigation/generators",
 
 			// IMPORTANT: Don't make babylonjs-editor-tools external. It has to be bundled
 			// so that one loaded in the editor is not altered by the one used by the play script.

@@ -5,7 +5,7 @@
 	"productName": "Babylon.js Editor Tools",
 	"scripts": {
 		"build": "tsc -p . && node esbuild.mjs",
-		"watch": "concurrently \"tsc -p . --watch\" \"node esbuild.mjs --watch\"",
+		"watch": "concurrently \"tsc -p . --watch\" \"node esbuild.mjs --watch\" -c bgYellow.bold,bgBlue.bold --names tools-ts,editor-dependencies",
 		"test": "jest build/test/*",
 		"coverage": "jest build/test/* --coverage"
 	},
@@ -23,6 +23,7 @@
 		"@babel/core": "^7.26.10",
 		"@babel/preset-env": "^7.26.9",
 		"@babel/preset-typescript": "^7.27.0",
+		"@babylonjs/addons": "8.33.2",
 		"@babylonjs/core": "8.33.2",
 		"@babylonjs/gui": "8.33.2",
 		"@types/jest": "^29.5.14",
