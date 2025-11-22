@@ -17,7 +17,7 @@ export function NavMeshEditorInspector(props: INavMeshEditorInspectorProps) {
 			<div className="flex justify-center items-center">Inspector</div>
 
 			<EditorInspectorSectionField title="Parameters">
-				<EditorInspectorNumberField object={parameters} property="cs" label="Cell Size" min={0.1} step={0.1} onFinishChange={() => props.navMeshEditor.updateNavMesh()} />
+				<EditorInspectorNumberField object={parameters} property="cs" label="Cell Size" min={10} step={0.1} onFinishChange={() => props.navMeshEditor.updateNavMesh()} />
 				<EditorInspectorNumberField object={parameters} property="ch" label="Cell Height" min={0.1} step={0.1} onFinishChange={() => props.navMeshEditor.updateNavMesh()} />
 
 				<EditorInspectorNumberField
