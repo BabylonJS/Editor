@@ -1,5 +1,3 @@
-import { ReactNode } from "react";
-
 import { SlGraph } from "react-icons/sl";
 import { FaDiamond } from "react-icons/fa6";
 import { IoPlay, IoStop } from "react-icons/io5";
@@ -15,7 +13,7 @@ export interface ICinematicEditorToolbarProps {
 	playing: boolean;
 }
 
-export function CinematicEditorToolbar(props: ICinematicEditorToolbarProps): ReactNode {
+export function CinematicEditorToolbar(props: ICinematicEditorToolbarProps) {
 	return (
 		<div className="relative flex justify-between items-center w-full h-10 bg-primary-foreground">
 			{/* Left */}

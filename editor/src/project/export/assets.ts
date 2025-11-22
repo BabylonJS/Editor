@@ -35,8 +35,10 @@ export type ProcessFileOptions = {
 };
 
 export async function processAssetFile(editor: Editor, file: string, options: ProcessFileOptions): Promise<void> {
+	const isNavMesh = file.includes(".navmesh");
 	const extension = extname(file).toLocaleLowerCase();
-	if (!supportedExtensions.includes(extension)) {
+
+	if (!isNavMesh && !supportedExtensions.includes(extension)) {
 		return;
 	}
 
@@ -72,13 +74,11 @@ export async function processAssetFile(editor: Editor, file: string, options: Pr
 	const finalPath = join(options.scenePath, relativePath);
 	const finalPathExists = await pathExists(finalPath);
 
-	if (supportedExtensions.includes(extension)) {
-		if (isNewFile || !finalPathExists) {
-			await copyFile(file, finalPath);
-		}
-
-		options.exportedAssets.push(finalPath);
+	if (isNewFile || !finalPathExists) {
+		await copyFile(file, finalPath);
 	}
+
+	options.exportedAssets.push(finalPath);
 
 	if (options.optimize) {
 		await compressFileToKtx(editor, finalPath, {

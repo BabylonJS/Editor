@@ -7,6 +7,8 @@ import { LoadAssetContainerAsync } from "@babylonjs/core/Loading/sceneLoader";
 import { SceneLoaderFlags } from "@babylonjs/core/Loading/sceneLoaderFlags";
 import { IParticleSystem } from "@babylonjs/core/Particles/IParticleSystem";
 
+import { CreateNavigationPluginAsync } from "@babylonjs/addons";
+
 import { IScript } from "../script";
 
 import { applyDecorators } from "../decorators/apply";
@@ -60,29 +62,51 @@ export async function _preloadScriptsAssets(rootUrl: string, scene: Scene, scrip
 			new Promise<void>(async (resolve) => {
 				try {
 					const extension = key.split(".").pop();
-					if (extension === "scene") {
-						const filename = key.split("/").pop()!;
-						const sceneFilename = filename.replace(".scene", ".babylon");
+					switch (extension) {
+						case "scene":
+							const filename = key.split("/").pop()!;
+							const sceneFilename = filename.replace(".scene", ".babylon");
 
-						// Load asset container
-						const container = await LoadAssetContainerAsync(sceneFilename, scene, {
-							rootUrl: rootUrl,
-							pluginExtension: ".babylon",
-						});
+							// Load asset container
+							const container = await LoadAssetContainerAsync(sceneFilename, scene, {
+								rootUrl: rootUrl,
+								pluginExtension: ".babylon",
+							});
 
-						// Ensure all meshes perform their delay state check
-						if (SceneLoaderFlags.ForceFullSceneLoadingForIncremental) {
-							scene.meshes.forEach((m) => isMesh(m) && m._checkDelayState());
-						}
+							// Ensure all meshes perform their delay state check
+							if (SceneLoaderFlags.ForceFullSceneLoadingForIncremental) {
+								scene.meshes.forEach((m) => isMesh(m) && m._checkDelayState());
+							}
 
-						container.addAllToScene();
+							container.addAllToScene();
 
-						scriptAssetsCache.set(key, new AdvancedAssetContainer(container, rootUrl, scriptsMap));
-					} else {
-						const response = await fetch(`${rootUrl}${key}`);
-						const data = await response.json();
+							scriptAssetsCache.set(key, new AdvancedAssetContainer(container, rootUrl, scriptsMap));
+							break;
 
-						scriptAssetsCache.set(key, data);
+						case "navmesh":
+							const [navmeshResponse, tilesResponse] = await Promise.all([fetch(`${rootUrl}${key}/navmesh.bin`), fetch(`${rootUrl}${key}/tilecache.bin`)]);
+							const [navmeshData, tilesData] = await Promise.all([navmeshResponse.arrayBuffer(), tilesResponse.arrayBuffer()]);
+
+							const [recastCore, recastGenerators] = await Promise.all([import("@recast-navigation/core"), import("@recast-navigation/generators")]);
+
+							const recast = await CreateNavigationPluginAsync({
+								instance: {
+									...recastCore,
+									...recastGenerators,
+								},
+							});
+							recast.buildFromNavmeshData(new Uint8Array(navmeshData));
+							recast.buildFromTileCacheData(new Uint8Array(tilesData));
+
+							scriptAssetsCache.set(key, recast);
+							break;
+
+						default:
+							const response = await fetch(`${rootUrl}${key}`);
+							const data = await response.json();
+
+							scriptAssetsCache.set(key, data);
+							break;
 					}
 				} catch (e) {
 					console.error(e);
