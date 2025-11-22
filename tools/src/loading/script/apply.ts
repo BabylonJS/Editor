@@ -3,122 +3,15 @@ import { Scene } from "@babylonjs/core/scene";
 import { Observer } from "@babylonjs/core/Misc/observable";
 import { PointerInfo } from "@babylonjs/core/Events/pointerEvents";
 import { KeyboardInfo } from "@babylonjs/core/Events/keyboardEvents";
-import { LoadAssetContainerAsync } from "@babylonjs/core/Loading/sceneLoader";
-import { SceneLoaderFlags } from "@babylonjs/core/Loading/sceneLoaderFlags";
 import { IParticleSystem } from "@babylonjs/core/Particles/IParticleSystem";
 
-import { CreateNavigationPluginAsync } from "@babylonjs/addons";
+import { IScript } from "../../script";
 
-import { IScript } from "../script";
+import { applyDecorators } from "../../decorators/apply";
 
-import { applyDecorators } from "../decorators/apply";
+import { isAnyParticleSystem, isNode, isScene } from "../../tools/guards";
 
-import { isAnyParticleSystem, isMesh, isNode, isScene } from "../tools/guards";
-
-import { ScriptMap } from "./loader";
-import { AdvancedAssetContainer } from "./container";
-
-/**
- * Defines the cache of all
- */
-export const scriptAssetsCache = new Map<string, any>();
-
-/**
- * @internal
- */
-export async function _preloadScriptsAssets(rootUrl: string, scene: Scene, scriptsMap: ScriptMap) {
-	const nodes = [scene, ...scene.transformNodes, ...scene.meshes, ...scene.lights, ...scene.cameras];
-
-	const scripts = nodes
-		.filter((node) => node.metadata?.scripts?.length)
-		.map((node) => node.metadata.scripts)
-		.flat();
-
-	scripts.forEach((script) => {
-		if (!script.values) {
-			return;
-		}
-
-		for (const key in script.values) {
-			if (!script.values.hasOwnProperty(key)) {
-				continue;
-			}
-
-			const obj = script.values[key];
-			if (obj.type === "asset" && obj.value) {
-				scriptAssetsCache.set(obj.value, null);
-			}
-		}
-	});
-
-	const promises: Promise<void>[] = [];
-
-	scriptAssetsCache.forEach((_, key) => {
-		if (scriptAssetsCache.get(key)) {
-			return;
-		}
-
-		promises.push(
-			new Promise<void>(async (resolve) => {
-				try {
-					const extension = key.split(".").pop();
-					switch (extension) {
-						case "scene":
-							const filename = key.split("/").pop()!;
-							const sceneFilename = filename.replace(".scene", ".babylon");
-
-							// Load asset container
-							const container = await LoadAssetContainerAsync(sceneFilename, scene, {
-								rootUrl: rootUrl,
-								pluginExtension: ".babylon",
-							});
-
-							// Ensure all meshes perform their delay state check
-							if (SceneLoaderFlags.ForceFullSceneLoadingForIncremental) {
-								scene.meshes.forEach((m) => isMesh(m) && m._checkDelayState());
-							}
-
-							container.addAllToScene();
-
-							scriptAssetsCache.set(key, new AdvancedAssetContainer(container, rootUrl, scriptsMap));
-							break;
-
-						case "navmesh":
-							const [navmeshResponse, tilesResponse] = await Promise.all([fetch(`${rootUrl}${key}/navmesh.bin`), fetch(`${rootUrl}${key}/tilecache.bin`)]);
-							const [navmeshData, tilesData] = await Promise.all([navmeshResponse.arrayBuffer(), tilesResponse.arrayBuffer()]);
-
-							const [recastCore, recastGenerators] = await Promise.all([import("@recast-navigation/core"), import("@recast-navigation/generators")]);
-
-							const recast = await CreateNavigationPluginAsync({
-								instance: {
-									...recastCore,
-									...recastGenerators,
-								},
-							});
-							recast.buildFromNavmeshData(new Uint8Array(navmeshData));
-							recast.buildFromTileCacheData(new Uint8Array(tilesData));
-
-							scriptAssetsCache.set(key, recast);
-							break;
-
-						default:
-							const response = await fetch(`${rootUrl}${key}`);
-							const data = await response.json();
-
-							scriptAssetsCache.set(key, data);
-							break;
-					}
-				} catch (e) {
-					console.error(e);
-				}
-
-				resolve();
-			})
-		);
-	});
-
-	await Promise.all(promises);
-}
+import { ScriptMap } from "../loader";
 
 /**
  * @internal

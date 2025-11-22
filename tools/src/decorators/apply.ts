@@ -20,7 +20,7 @@ import { getSoundById } from "../tools/sound";
 import { ISpriteAnimation, SpriteManagerNode } from "../tools/sprite";
 import { isAbstractMesh, isNode, isSprite, isTransformNode } from "../tools/guards";
 
-import { scriptAssetsCache } from "../loading/script";
+import { scriptAssetsCache } from "../loading/script/preload";
 
 import { IPointerEventDecoratorOptions } from "./events";
 import { VisibleInInspectorDecoratorConfiguration, VisibleInInspectorDecoratorEntityConfiguration, VisibleInspectorDecoratorAssetConfiguration } from "./inspector";

@@ -27,7 +27,7 @@ jest.mock("@babylonjs/core/Loading/sceneLoader", () => ({
 	LoadAssetContainerAsync: jest.fn(),
 }));
 
-import { applyScriptOnObject } from "../../src/loading/script";
+import { applyScriptOnObject } from "../../src/loading/script/apply";
 
 describe("loading/script", () => {
 	describe("applyScriptOnObject", () => {

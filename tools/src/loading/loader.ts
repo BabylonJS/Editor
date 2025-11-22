@@ -13,7 +13,9 @@ import { applyRenderingConfigurationForCamera } from "../rendering/tools";
 
 import { configurePhysicsAggregate } from "./physics";
 import { applyRenderingConfigurations } from "./rendering";
-import { _applyScriptsForObject, _preloadScriptsAssets } from "./script";
+
+import { _applyScriptsForObject } from "./script/apply";
+import { _preloadScriptsAssets } from "./script/preload";
 
 import { registerAudioParser } from "./sound";
 import { registerTextureParser } from "./texture";
