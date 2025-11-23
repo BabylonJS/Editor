@@ -31,8 +31,8 @@ import { execNodePty } from "../../tools/node-pty";
 import { clearUndoRedo } from "../../tools/undoredo";
 import { isTexture } from "../../tools/guards/texture";
 import { renameScene } from "../../tools/scene/rename";
+import { openMultipleFilesDialog } from "../../tools/dialog";
 import { onSelectedAssetChanged } from "../../tools/observables";
-import { openMultipleFilesAndFoldersDialog } from "../../tools/dialog";
 import { findAvailableFilename, normalizedGlob } from "../../tools/fs";
 import { loadSavedThumbnailsCache } from "../../tools/assets/thumbnail";
 import { assetsCache, saveAssetsCache } from "../../tools/assets/cache";
@@ -1039,7 +1039,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 			return;
 		}
 
-		const files = openMultipleFilesAndFoldersDialog({
+		const files = openMultipleFilesDialog({
 			title: "Import Files & Folders",
 		});
 
