@@ -16,6 +16,12 @@ const savedConsoleMethods: Record<string, any> = {
 
 const savedWindowMethods: Record<string, any> = {
 	fetch: window.fetch,
+
+	setTimeout: window.setTimeout,
+	clearTimeout: window.clearTimeout,
+
+	setInterval: window.setInterval,
+	clearInterval: window.clearInterval,
 };
 
 const savedWebRequestMethods: Record<string, any> = {
@@ -54,6 +60,9 @@ const savedHtmlElementListeners: {
 	listener: EventListenerOrEventListenerObject;
 }[] = [];
 
+const savedTimeoutIds: number[] = [];
+const savedIntervalIds: number[] = [];
+
 function normalizeUrl(url: string) {
 	if (url.startsWith("scene/")) {
 		url = url.substring("scene/".length);
@@ -77,6 +86,22 @@ export function restorePlayOverrides(editor: Editor) {
 	console.error = savedConsoleMethods.error;
 
 	window.fetch = savedWindowMethods.fetch;
+
+	window.setTimeout = savedWindowMethods.setTimeout;
+	window.clearTimeout = savedWindowMethods.clearTimeout;
+
+	window.setInterval = savedWindowMethods.setInterval;
+	window.clearInterval = savedWindowMethods.clearInterval;
+
+	savedTimeoutIds.forEach((id) => {
+		clearTimeout(id);
+	});
+	savedTimeoutIds.splice(0, savedTimeoutIds.length);
+
+	savedIntervalIds.forEach((id) => {
+		clearInterval(id);
+	});
+	savedIntervalIds.splice(0, savedIntervalIds.length);
 
 	WebRequest.prototype.open = savedWebRequestMethods.open;
 	Engine.prototype.createTexture = savedEngineMethods.createTexture;
@@ -158,6 +183,47 @@ export function applyOverrides(editor: Editor) {
 		}
 
 		return savedWindowMethods.fetch.call(window, input, init);
+	};
+
+	window.setTimeout = ((callback: (...args: any[]) => void, timeout?: number, ...args: any[]) => {
+		const id = savedWindowMethods.setTimeout.call(
+			window,
+			(...args: any[]) => {
+				callback(...args);
+				const index = savedTimeoutIds.indexOf(id);
+				if (index !== -1) {
+					savedTimeoutIds.splice(index, 1);
+				}
+			},
+			timeout,
+			...args
+		);
+		savedTimeoutIds.push(id);
+		return id;
+	}) as any;
+
+	window.clearTimeout = (id: number) => {
+		const index = savedTimeoutIds.indexOf(id);
+		if (index !== -1) {
+			savedTimeoutIds.splice(index, 1);
+		}
+
+		return savedWindowMethods.clearTimeout.call(window, id);
+	};
+
+	window.setInterval = (handler: TimerHandler, timeout?: number) => {
+		const id = savedWindowMethods.setInterval.call(window, handler, timeout);
+		savedIntervalIds.push(id);
+		return id;
+	};
+
+	window.clearInterval = (id: number) => {
+		const index = savedIntervalIds.indexOf(id);
+		if (index !== -1) {
+			savedIntervalIds.splice(index, 1);
+		}
+
+		return savedWindowMethods.clearInterval.call(window, id);
 	};
 
 	// HTML Element
