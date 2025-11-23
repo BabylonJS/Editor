@@ -1,3 +1,5 @@
+import { describe, beforeEach, test, expect } from "vitest";
+
 import { ISceneDecoratorData } from "../../src/decorators/apply";
 import { onPointerEvent, onKeyboardEvent } from "../../src/decorators/events";
 

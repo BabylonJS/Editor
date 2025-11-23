@@ -1,25 +1,21 @@
 {
-    "compilerOptions": {
-        "target": "ESNext",
-        "module": "ESNext",
-        "moduleResolution": "node",
-        "sourceMap": true,
-        "declaration": true,
-        "outDir": "./build",
-        "declarationDir": "./declaration",
-        "strictNullChecks": true,
-        "noUnusedLocals": true,
-        "noUnusedParameters": true,
-        "allowSyntheticDefaultImports": true,
-        "resolveJsonModule": true,
-        "esModuleInterop": true,
-        "downlevelIteration": true,
-        "experimentalDecorators": true,
-        "skipLibCheck": true
-    },
-    "exclude": [
-        "node_modules",
-        "build",
-        "declaration"
-    ]
+	"compilerOptions": {
+		"target": "ESNext",
+		"module": "ESNext",
+		"moduleResolution": "node",
+		"sourceMap": true,
+		"declaration": true,
+		"outDir": "./build",
+		"declarationDir": "./declaration",
+		"strictNullChecks": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"allowSyntheticDefaultImports": true,
+		"resolveJsonModule": true,
+		"esModuleInterop": true,
+		"downlevelIteration": true,
+		"experimentalDecorators": true,
+		"skipLibCheck": true
+	},
+	"exclude": ["node_modules", "build", "declaration", "vitest.config.ts"]
 }
