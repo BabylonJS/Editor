@@ -1,5 +1,7 @@
-jest.mock("fs-extra", () => ({
-	ensureDir: jest.fn(),
+import { describe, expect, test, vi } from "vitest";
+
+vi.mock("fs-extra", () => ({
+	ensureDir: vi.fn(),
 }));
 
 import { getProjectAssetsRootUrl, projectConfiguration } from "../../src/project/configuration";

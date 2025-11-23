@@ -1,3 +1,5 @@
+import { describe, expect, test, vi } from "vitest";
+
 import { wait, waitNextAnimationFrame, waitUntil, unique, UniqueNumber, sortAlphabetically, getCurrentCallStack } from "../../src/tools/tools";
 
 describe("tools/tools", () => {
@@ -13,11 +15,11 @@ describe("tools/tools", () => {
 
 	describe("waitNextAnimationFrame", () => {
 		test("should call requestAnimationFrame to wait", async () => {
-			(globalThis as any).requestAnimationFrame = jest.fn((callback) => {
+			(globalThis as any).requestAnimationFrame = vi.fn((callback) => {
 				setTimeout(callback, 0);
 			});
 
-			const requestAnimationFrameSpy = jest.spyOn(globalThis, "requestAnimationFrame");
+			const requestAnimationFrameSpy = vi.spyOn(globalThis, "requestAnimationFrame");
 			await waitNextAnimationFrame();
 			expect(requestAnimationFrameSpy).toHaveBeenCalled();
 			requestAnimationFrameSpy.mockRestore();

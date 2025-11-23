@@ -1,3 +1,5 @@
+import { describe, expect, test } from "vitest";
+
 import {
 	ensureNodeMetadata,
 	isNodeLocked,
@@ -10,13 +12,13 @@ import {
 
 describe("tools/node/metadata", () => {
 	describe("ensureNodeMetadata", () => {
-		it("should create metadata if they don't exist", () => {
+		test("should create metadata if they don't exist", () => {
 			const node = {} as any;
 			ensureNodeMetadata(node);
 			expect(node.metadata).toBeDefined();
 		});
 
-		it("should keep existing metadata", () => {
+		test("should keep existing metadata", () => {
 			const node = { metadata: { isLocked: true } } as any;
 			const metadata = ensureNodeMetadata(node);
 			expect(metadata).toBe(node.metadata);
@@ -24,26 +26,26 @@ describe("tools/node/metadata", () => {
 	});
 
 	describe("isNodeLocked", () => {
-		it("should return false when not defined", () => {
+		test("should return false when not defined", () => {
 			const node = {} as any;
 			expect(isNodeLocked(node)).toBe(false);
 		});
 
-		it("should return value", () => {
+		test("should return value", () => {
 			const node = { metadata: { isLocked: true } } as any;
 			expect(isNodeLocked(node)).toBe(true);
 		});
 	});
 
 	describe("setNodeLocked", () => {
-		it("should set isLocked to true", () => {
+		test("should set isLocked to true", () => {
 			const node = {} as any;
 			setNodeLocked(node, true);
 			expect(isNodeLocked(node)).toBe(true);
 			expect(node.metadata.isLocked).toBe(true);
 		});
 
-		it("should set isLocked to false", () => {
+		test("should set isLocked to false", () => {
 			const node = { metadata: { isLocked: true } } as any;
 			setNodeLocked(node, false);
 			expect(isNodeLocked(node)).toBe(false);
