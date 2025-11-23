@@ -8,6 +8,7 @@ import { Editor } from "../main";
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from "../../ui/shadcn/ui/context-menu";
 
 import { EditorConsoleProgressLogComponent } from "./console/progress-log";
+import { UniqueNumber } from "../../tools/tools";
 
 export interface IEditorConsoleProps {
 	editor: Editor;
@@ -49,11 +50,7 @@ export class EditorConsole extends Component<IEditorConsoleProps, IEditorConsole
 	 * @param message defines the message to log.
 	 */
 	public log(message: ReactNode): void {
-		this._addLog(
-			<div key={this.state.logs.length + 1} className="whitespace-break-spaces hover:bg-secondary/50 transition-all duration-300 ease-in-out">
-				{message}
-			</div>
-		);
+		this._addLog(<div className="whitespace-break-spaces hover:bg-secondary/50 transition-all duration-300 ease-in-out">{message}</div>);
 	}
 
 	/**
@@ -61,11 +58,7 @@ export class EditorConsole extends Component<IEditorConsoleProps, IEditorConsole
 	 * @param message defines the message to log.
 	 */
 	public warn(message: ReactNode): void {
-		this._addLog(
-			<div key={this.state.logs.length + 1} className="whitespace-break-spaces !text-yellow-500 hover:bg-secondary/50 transition-all duration-300 ease-in-out">
-				{message}
-			</div>
-		);
+		this._addLog(<div className="whitespace-break-spaces !text-yellow-500 hover:bg-secondary/50 transition-all duration-300 ease-in-out">{message}</div>);
 	}
 
 	/**
@@ -73,11 +66,7 @@ export class EditorConsole extends Component<IEditorConsoleProps, IEditorConsole
 	 * @param message defines the message to log.
 	 */
 	public error(message: ReactNode): void {
-		this._addLog(
-			<div key={this.state.logs.length + 1} className="whitespace-break-spaces !text-red-500 hover:bg-secondary/50 transition-all duration-300 ease-in-out">
-				{message}
-			</div>
-		);
+		this._addLog(<div className="whitespace-break-spaces !text-red-500 hover:bg-secondary/50 transition-all duration-300 ease-in-out">{message}</div>);
 	}
 
 	/**
@@ -101,7 +90,7 @@ export class EditorConsole extends Component<IEditorConsoleProps, IEditorConsole
 		let ref: HTMLDivElement | null = null;
 
 		this.state.logs.push(
-			<ContextMenu key={`log-${this.state.logs.length}`}>
+			<ContextMenu key={`log-${UniqueNumber.Get()}`}>
 				<ContextMenuTrigger>
 					<div ref={(r) => (ref = r)}>{log}</div>
 				</ContextMenuTrigger>
