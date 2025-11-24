@@ -8,6 +8,17 @@ import { cloneJSObject } from "../tools/tools";
 import { ScriptMap } from "./loader";
 import { _applyScriptsForObject } from "./script/apply";
 
+export interface IAdvancedAssetContainerInstantiateOptions {
+	/**
+	 * Defines if the model must be instantiated or just cloned
+	 */
+	doNotInstantiate?: boolean | ((node: Node) => boolean);
+	/**
+	 * Defines a predicate used to filter whih mesh to instantiate/clone
+	 */
+	predicate?: (entity: any) => boolean;
+}
+
 interface _ISavedMapEntry {
 	node: Node;
 	metadata: any;
@@ -55,11 +66,11 @@ export class AdvancedAssetContainer {
 		this.container.removeAllFromScene();
 	}
 
-	public instantiate(): InstantiatedEntries {
+	public instantiate(options?: IAdvancedAssetContainerInstantiateOptions): InstantiatedEntries {
 		const namingId = Tools.RandomId();
 		const nameFunction = (sourceName: string) => `${sourceName}-${namingId}`;
 
-		const entries = this.container.instantiateModelsToScene(nameFunction, false);
+		const entries = this.container.instantiateModelsToScene(nameFunction, false, options);
 
 		const newDescendants: Node[] = [];
 		entries.rootNodes.forEach((node) => {
