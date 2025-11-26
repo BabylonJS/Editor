@@ -1,11 +1,13 @@
 import "babylonjs-loaders";
-import { Engine, Scene, FreeCamera, Vector3, CubeTexture, LoadAssetContainerAsync } from "babylonjs";
+import { Engine, Scene, FreeCamera, Vector3, CubeTexture, LoadAssetContainerAsync, RegisterSceneLoaderPlugin } from "babylonjs";
 
-// TODO: update assimp to work in a worker. Fbx etc. is not the most used format in web, can be delayed.
-// import "../../../loader/assimpjs";
+import { AssimpJSLoader } from "../../../loader/assimpjs";
 
 import { readBlobAsDataUrl } from "../../tools";
+
 import { getCameraFocusPositionFor } from "../../camera/focus";
+
+RegisterSceneLoaderPlugin(new AssimpJSLoader(false));
 
 let engine: Engine;
 let scene: Scene;
