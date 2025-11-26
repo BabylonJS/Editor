@@ -11,11 +11,11 @@ import { MdOutlineQuestionMark } from "react-icons/md";
 import { GiBrickWall, GiSparkles } from "react-icons/gi";
 import { HiOutlineCubeTransparent } from "react-icons/hi";
 import { IoCheckmark, IoSparklesSharp } from "react-icons/io5";
-import { FaCamera, FaImage, FaLightbulb } from "react-icons/fa";
+import { FaCamera, FaImage, FaLightbulb, FaBone } from "react-icons/fa";
 import { SiAdobeindesign, SiBabylondotjs } from "react-icons/si";
 
 import { AdvancedDynamicTexture } from "babylonjs-gui";
-import { BaseTexture, Node, Scene, Sound, Tools, IParticleSystem, Sprite } from "babylonjs";
+import { BaseTexture, Node, Scene, Sound, Tools, IParticleSystem, Sprite, Skeleton } from "babylonjs";
 
 import { Editor } from "../main";
 
@@ -308,6 +308,11 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		const soundNode = this._parseSoundNode(scene);
 		if (soundNode) {
 			nodes.splice(0, 0, soundNode);
+		}
+
+		const skeletonNode = this._parseSkeletonNode(scene);
+		if (skeletonNode) {
+			nodes.splice(0, 0, skeletonNode);
 		}
 
 		nodes.splice(0, 0, {
@@ -682,6 +687,56 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			callback(node, i);
 			this._forEachNode(node.childNodes, callback);
 		}
+	}
+
+	private _parseSkeletonNode(scene: Scene): TreeNodeInfo | null {
+		if (!scene.skeletons.length) {
+			return null;
+		}
+
+		const childNodes: TreeNodeInfo[] = [];
+
+		scene.skeletons.forEach((skeleton) => {
+			if (!skeleton.name.toLowerCase().includes(this.state.search.toLowerCase())) {
+				return;
+			}
+
+			childNodes.push(this._getSkeletonNode(skeleton));
+		});
+
+		const rootSkeletonNode = {
+			childNodes,
+			nodeData: scene,
+			id: "__editor__skeletons__",
+			icon: <FaBone className="w-4 h-4" />,
+			label: this._getNodeLabelComponent(scene, "Skeletons", false),
+		} as TreeNodeInfo;
+
+		this._forEachNode(this.state.nodes, (n) => {
+			if (n.id === rootSkeletonNode.id) {
+				rootSkeletonNode.isSelected = n.isSelected;
+				rootSkeletonNode.isExpanded = n.isExpanded;
+			}
+		});
+
+		return rootSkeletonNode;
+	}
+
+	private _getSkeletonNode(skeleton: Skeleton): TreeNodeInfo {
+		const info = {
+			nodeData: skeleton,
+			id: skeleton.id,
+			icon: <FaBone className="w-4 h-4" />,
+			label: this._getNodeLabelComponent(skeleton, skeleton.name, false),
+		} as TreeNodeInfo;
+
+		this._forEachNode(this.state.nodes, (n) => {
+			if (n.id === info.id) {
+				info.isSelected = n.isSelected;
+			}
+		});
+
+		return info;
 	}
 
 	private _parseSoundNode(scene: Scene): TreeNodeInfo | null {
