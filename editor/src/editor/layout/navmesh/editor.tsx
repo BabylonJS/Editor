@@ -9,6 +9,8 @@ import { Mesh, StandardMaterial, Color3, IObstacle } from "babylonjs";
 import { CreateNavMeshResult } from "babylonjs-addons/navigation/types";
 import { CreateNavigationPluginAsync, RecastNavigationJSPluginV2, WaitForFullTileCacheUpdate } from "babylonjs-addons";
 
+import * as RecastCore from "@recast-navigation/core";
+
 import { SpinnerUIComponent } from "../../../ui/spinner";
 
 import { setNodeSerializable, setNodeVisibleInGraph } from "../../../tools/node/metadata";
@@ -114,6 +116,13 @@ export class NavMeshEditor extends Component<INavmeshEditorProps, INavmeshEditor
 			} catch (e) {
 				toast.error("Failed to create NavMesh");
 				this.props.editor.layout.console.error(`Failed to create NavMesh: ${e.message}`);
+
+				try {
+					await RecastCore.init();
+				} catch (e) {
+					toast.error("Failed to re-initialize RecastCore");
+					this.props.editor.layout.console.error(`Failed to re-initialize RecastCore: ${e.message}`);
+				}
 			}
 
 			meshes.clonedMeshes.forEach((mesh) => {

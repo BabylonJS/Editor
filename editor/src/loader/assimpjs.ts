@@ -164,7 +164,7 @@ export class AssimpJSLoader implements ISceneLoaderPluginAsync {
 		if (!this._assimpjs) {
 			const assimpjs = require("assimpjs");
 			const nodeModules = process.env.DEBUG ? "../node_modules" : "node_modules";
-			const wasmPath = join(__dirname, "../../../", nodeModules, "assimpjs/dist");
+			const wasmPath = join(__dirname, "../../../../../../", nodeModules, "assimpjs/dist");
 
 			this._assimpjs = await assimpjs({
 				locateFile: (file) => {

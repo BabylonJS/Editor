@@ -47,6 +47,8 @@ import { EditorSpriteInspector } from "./inspector/sprites/sprite";
 import { EditorSpriteMapNodeInspector } from "./inspector/sprites/sprite-map";
 import { EditorSpriteManagerNodeInspector } from "./inspector/sprites/sprite-manager";
 
+import { EditorSkeletonInspector } from "./inspector/mesh/skeleton";
+
 export interface IEditorInspectorProps {
 	/**
 	 * The editor reference.
@@ -88,6 +90,8 @@ export class EditorInspector extends Component<IEditorInspectorProps, IEditorIns
 		EditorSpriteMapNodeInspector,
 		EditorSpriteManagerNodeInspector,
 		EditorSpriteInspector,
+
+		EditorSkeletonInspector,
 	];
 
 	public constructor(props: IEditorInspectorProps) {
