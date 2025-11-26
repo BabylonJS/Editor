@@ -6,7 +6,7 @@ import filenamify from "filenamify";
 
 import { AdvancedDynamicTexture } from "babylonjs-gui";
 import { INavMeshParametersV2 } from "babylonjs-addons/navigation/types";
-import { Material, NodeMaterial, Tools, NodeParticleSystemSet } from "babylonjs";
+import { Material, NodeMaterial, Tools, NodeParticleSystemSet, RegisterSceneLoaderPlugin } from "babylonjs";
 
 import { ICinematic } from "babylonjs-editor-tools";
 
@@ -92,7 +92,7 @@ import { EditorAssetsTreeLabel } from "./assets-browser/label";
 
 import "babylonjs-loaders";
 
-import "../../loader/assimpjs";
+import { AssimpJSLoader } from "../../loader/assimpjs";
 
 const HDRSelectable = createSelectable(AssetBrowserHDRItem);
 const GuiSelectable = createSelectable(AssetBrowserGUIItem);
@@ -107,6 +107,8 @@ const CinematicSelectable = createSelectable(AssetBrowserCinematicItem);
 const ParticleSystemSelectable = createSelectable(AssetBrowserParticleSystemItem);
 
 const directoryPackagesExtensions = [".scene", ".navmesh"];
+
+RegisterSceneLoaderPlugin(new AssimpJSLoader(true));
 
 export interface IEditorAssetsBrowserProps {
 	/**

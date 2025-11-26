@@ -22,7 +22,7 @@ export function parseMaterial(runtime: AssimpJSRuntime, data: IAssimpJSMaterialD
 			case "$raw.DiffuseColor|file":
 			case "$raw.AmbientColor|file":
 			case "$raw.SpecularColor|file":
-				if (typeof p.value === "string") {
+				if (typeof p.value === "string" && p.value) {
 					const map = materialPropertyMap[p.key];
 					const texturePath = join(runtime.rootUrl, p.value.replace(/\\/g, "/"));
 
