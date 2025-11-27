@@ -186,9 +186,9 @@ export function configureImportedMaterial(material: Material): void {
 	material.uniqueId = UniqueNumber.Get();
 }
 
-export function configureImportedTexture<T extends Texture | CubeTexture | ColorGradingTexture>(texture: T): T {
+export function configureImportedTexture<T extends Texture | CubeTexture | ColorGradingTexture>(texture: T, noCheckInvertY?: boolean): T {
 	if (isAbsolute(texture.name)) {
-		if (isTexture(texture) && !texture.invertY && !texture._buffer) {
+		if (!noCheckInvertY && isTexture(texture) && !texture.invertY && !texture._buffer) {
 			texture._invertY = true;
 			texture.vScale *= -1;
 			texture.updateURL(texture.name);

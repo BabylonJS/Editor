@@ -1,7 +1,5 @@
 import "babylonjs-materials";
 
-window["CANNON"] = require("cannon");
-
 window.addEventListener("DOMContentLoaded", () => {
 	require("./overrides");
 

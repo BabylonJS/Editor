@@ -82,7 +82,7 @@ export class SpriteManagerNode extends TransformNode {
 		);
 		this.spriteManager.isPickable = true;
 
-		configureImportedTexture(this.spriteManager.texture);
+		configureImportedTexture(this.spriteManager.texture, true);
 
 		if (serializeSpriteManager) {
 			this._parseSpriteManager(serializeSpriteManager);
@@ -118,7 +118,7 @@ export class SpriteManagerNode extends TransformNode {
 		);
 		this.spriteManager.isPickable = true;
 
-		configureImportedTexture(this.spriteManager.texture);
+		configureImportedTexture(this.spriteManager.texture, true);
 
 		if (serializeSpriteManager) {
 			this._parseSpriteManager(serializeSpriteManager);
