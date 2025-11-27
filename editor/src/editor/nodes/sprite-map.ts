@@ -86,7 +86,7 @@ export class SpriteMapNode extends TransformNode {
 		if (!spritesheet) {
 			const imagePath = join(dirname(absolutePath), atlasJson!.meta!["image"]);
 			spritesheet = new Texture(imagePath, this._scene, false, false, Texture.NEAREST_NEAREST, null, null, null, false, Engine.TEXTUREFORMAT_RGBA);
-			configureImportedTexture(spritesheet);
+			configureImportedTexture(spritesheet, true);
 		}
 
 		const spriteMap = new SpriteMap(
