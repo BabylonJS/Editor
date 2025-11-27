@@ -1,9 +1,12 @@
+import { clipboard } from "electron";
 import { pathExists } from "fs-extra";
-import { extname, join, dirname } from "path/posix";
+import { extname, join, dirname, basename } from "path/posix";
 
 import sharp from "sharp";
 
 import { Component, DragEvent, PropsWithChildren, ReactNode } from "react";
+
+import { toast } from "sonner";
 
 import { SiDotenv } from "react-icons/si";
 import { IoIosColorPalette } from "react-icons/io";
@@ -85,7 +88,14 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 					{this._getPreviewComponent(textureUrl)}
 
 					<div className="flex flex-col w-full">
-						<div className="px-2">{this.props.title}</div>
+						<div className="flex flex-col px-2">
+							<div>{this.props.title}</div>
+							{this.state.previewError && textureUrl && (
+								<div className="text-red-500 text-sm cursor-pointer" onClick={() => this._copyMissingTexture(textureUrl)}>
+									...{textureUrl.substring(Math.max(0, textureUrl.length - 30))}
+								</div>
+							)}
+						</div>
 
 						{textureUrl && !texture.loadingError && (
 							<div className="flex flex-col gap-1 mt-1 w-full">
@@ -192,6 +202,11 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 		if (this.state.previewTemporaryUrl) {
 			URL.revokeObjectURL(this.state.previewTemporaryUrl);
 		}
+	}
+
+	private _copyMissingTexture(textureUrl: string): void {
+		clipboard.writeText(basename(textureUrl));
+		toast.info("Texture name copied to clipboard", { duration: 3000 });
 	}
 
 	private _handleReloadTexture(texture: Texture | CubeTexture): void {
