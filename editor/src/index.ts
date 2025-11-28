@@ -76,6 +76,8 @@ app.on("second-instance", async () => {
 	}
 });
 
+let shouldAppQuit = false;
+
 ipcMain.on("app:quit", () => {
 	for (const window of editorWindows.slice()) {
 		window.close();
@@ -86,6 +88,7 @@ ipcMain.on("app:quit", () => {
 	}
 
 	if (!editorWindows.length) {
+		shouldAppQuit = true;
 		app.quit();
 	}
 });
@@ -148,7 +151,7 @@ async function openProject(filePath: string): Promise<void> {
 		openedProjects.splice(openedProjects.indexOf(filePath), 1);
 		notifyWindows("dashboard:opened-projects", openedProjects);
 
-		if (openedProjects.length === 0) {
+		if (openedProjects.length === 0 && !shouldAppQuit) {
 			openDashboard();
 		}
 	});
