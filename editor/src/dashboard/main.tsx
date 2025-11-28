@@ -6,10 +6,15 @@ import { createRoot } from "react-dom/client";
 
 import { Fade } from "react-awesome-reveal";
 
+import { FaGear } from "react-icons/fa6";
+import { IoCheckmark } from "react-icons/io5";
+
 import { Button } from "../ui/shadcn/ui/button";
 import { Toaster } from "../ui/shadcn/ui/sonner";
 import { Separator } from "../ui/shadcn/ui/separator";
 import { showConfirm, showAlert } from "../ui/dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/shadcn/ui/tooltip";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/shadcn/ui/dropdown-menu";
 
 import { wait } from "../tools/tools";
 import { openSingleFileDialog } from "../tools/dialog";
@@ -27,8 +32,6 @@ import { DashboardCreateProjectDialog } from "./create";
 import { DashboardWindowControls } from "./window-controls";
 
 import packageJson from "../../package.json";
-import { Switch } from "../ui/shadcn/ui/switch";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/shadcn/ui/tooltip";
 
 export function createDashboard(): void {
 	const theme = localStorage.getItem("editor-theme") ?? "dark";
@@ -75,13 +78,11 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
 
 	public render(): ReactNode {
 		const handleKeepDashboardChanged = (checked: boolean): void => {
-			const shouldClose = !checked;
-
 			this.setState({
-				closeDashboardOnProjectOpen: shouldClose,
+				closeDashboardOnProjectOpen: checked,
 			});
 
-			trySetCloseDashboardOnProjectOpenInLocalStorage(shouldClose);
+			trySetCloseDashboardOnProjectOpenInLocalStorage(checked);
 		};
 
 		return (
@@ -140,23 +141,33 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
 					</Fade>
 
 					<Fade delay={1000} className="flex-[0_0_auto]">
-						<div>
-							<Separator />
-							<div className="flex justify-end pt-3 pb-1">
-								<TooltipProvider>
-									<Tooltip>
-										<TooltipTrigger className="flex items-center gap-2 cursor-auto">
-											<Switch checked={!this.state.closeDashboardOnProjectOpen} onCheckedChange={handleKeepDashboardChanged} />
-											<span>Keep dashboard open</span>
-										</TooltipTrigger>
-										<TooltipContent align="end" side="top" collisionPadding={8}>
-											If enabled, the dashboard will stay open when a project starts.
-											<br />
-											If disabled, the dashboard will close when a project starts and reopen after the project is closed.
-										</TooltipContent>
-									</Tooltip>
-								</TooltipProvider>
-							</div>
+						<div className="flex justify-end">
+							<TooltipProvider>
+								<DropdownMenu>
+									<DropdownMenuTrigger asChild>
+										<Button variant="ghost" className="p-1">
+											<FaGear className="w-6 h-6" />
+										</Button>
+									</DropdownMenuTrigger>
+									<DropdownMenuContent className="w-56" align="end">
+										<DropdownMenuItem className="flex gap-2 items-center">
+											<Tooltip>
+												<TooltipTrigger
+													className="flex gap-1 items-center"
+													onClick={() => handleKeepDashboardChanged(!this.state.closeDashboardOnProjectOpen)}
+												>
+													{!this.state.closeDashboardOnProjectOpen ? <IoCheckmark /> : ""} Keep dashboard open
+												</TooltipTrigger>
+												<TooltipContent align="end" side="top" collisionPadding={8}>
+													If enabled, the dashboard will stay open when a project starts.
+													<br />
+													If disabled, the dashboard will close when a project starts and reopen after the project is closed.
+												</TooltipContent>
+											</Tooltip>
+										</DropdownMenuItem>
+									</DropdownMenuContent>
+								</DropdownMenu>
+							</TooltipProvider>
 						</div>
 					</Fade>
 				</div>
