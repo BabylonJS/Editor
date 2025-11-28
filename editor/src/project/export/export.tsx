@@ -30,9 +30,11 @@ import { handleExportScripts } from "./scripts";
 import { configureMaterials } from "./materials";
 import { configureMeshesPhysics } from "./physics";
 import { EditorExportProjectProgressComponent } from "./progress";
+import { ExportSceneProgressComponent, showExportSceneProgressDialog } from "./dialog";
 
 export type IExportProjectOptions = {
 	optimize: boolean;
+	noDialog?: boolean;
 	noProgress?: boolean;
 };
 
@@ -44,6 +46,10 @@ export async function exportProject(editor: Editor, options: IExportProjectOptio
 	}
 
 	exporting = true;
+
+	if (options.optimize) {
+		editor.layout.selectTab("console");
+	}
 
 	try {
 		await _exportProject(editor, options);
@@ -67,6 +73,11 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 		dismissible: false,
 		duration: options.noProgress ? -1 : Infinity,
 	});
+
+	let dialog: ExportSceneProgressComponent | null = null;
+	if (!options.noDialog) {
+		dialog = await showExportSceneProgressDialog(editor, "Exporting scene...");
+	}
 
 	const scene = editor.layout.preview.scene;
 	const editorCamera = scene.cameras.find((camera) => isEditorCamera(camera));
@@ -343,6 +354,7 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 					optimize: options.optimize,
 				});
 				progress?.step(progressStep);
+				dialog?.step(progressStep);
 				resolve();
 			})
 		);
@@ -356,6 +368,7 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 	});
 
 	toast.dismiss(toastId);
+	dialog?.dispose();
 
 	if (options.optimize) {
 		toast.success("Project exported");

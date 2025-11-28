@@ -82,6 +82,8 @@ async function _saveProject(editor: Editor) {
 		editor.layout.console.log(`Project "${project.lastOpenedScene}" saved.`);
 	}
 
+	editor.layout.preview.setRenderScene(true);
+
 	toast.dismiss(toastId);
 	toast.success("Project saved");
 
@@ -109,5 +111,9 @@ async function _saveProject(editor: Editor) {
 		// Catch silently.
 	}
 
-	await exportProject(editor, { optimize: false, noProgress: true });
+	exportProject(editor, {
+		optimize: false,
+		noProgress: false,
+		noDialog: true,
+	});
 }
