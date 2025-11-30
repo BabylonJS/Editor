@@ -7,6 +7,8 @@ import { readBlobAsDataUrl } from "../../tools";
 
 import { getCameraFocusPositionFor } from "../../camera/focus";
 
+import { forceCompileAllSceneMaterials } from "../../scene/materials";
+
 RegisterSceneLoaderPlugin(new AssimpJSLoader(false));
 
 let engine: Engine;
@@ -33,7 +35,6 @@ export async function getPreview(absolutePath: string, rootUrl: string, serializ
 			createSkybox: false,
 			enableGroundShadow: true,
 			enableGroundMirror: true,
-			environmentTexture: scene.environmentTexture!,
 		});
 
 		if (helper?.ground) {
@@ -48,6 +49,8 @@ export async function getPreview(absolutePath: string, rootUrl: string, serializ
 
 	const container = await LoadAssetContainerAsync(absolutePath, scene);
 	container.addAllToScene();
+
+	await forceCompileAllSceneMaterials(scene);
 
 	return new Promise<string>((resolve) => {
 		scene.executeWhenReady(async () => {
