@@ -2,6 +2,8 @@ export type VisibleInInspectorDecoratorObject = {
 	label?: string;
 	propertyKey: string;
 	configuration: VisibleInInspectorDecoratorConfiguration;
+
+	defaultValue?: any;
 };
 
 export type VisibleInInspectorDecoratorConfiguration = {
@@ -43,7 +45,7 @@ export function computeDefaultValuesForObject(script: any, output: VisibleInInsp
 				attachedScripts[value.propertyKey] = {
 					type: value.configuration.type,
 					description: value.configuration.description,
-					value: attachedScripts[value.propertyKey]?.value ?? false,
+					value: attachedScripts[value.propertyKey]?.value ?? value.defaultValue ?? false,
 				};
 				break;
 
@@ -51,7 +53,7 @@ export function computeDefaultValuesForObject(script: any, output: VisibleInInsp
 				attachedScripts[value.propertyKey] = {
 					type: value.configuration.type,
 					description: value.configuration.description,
-					value: attachedScripts[value.propertyKey]?.value ?? value.configuration.min ?? value.configuration.max ?? 0,
+					value: attachedScripts[value.propertyKey]?.value ?? value.defaultValue ?? value.configuration.min ?? value.configuration.max ?? 0,
 				};
 				break;
 
@@ -59,7 +61,7 @@ export function computeDefaultValuesForObject(script: any, output: VisibleInInsp
 				attachedScripts[value.propertyKey] = {
 					type: value.configuration.type,
 					description: value.configuration.description,
-					value: attachedScripts[value.propertyKey]?.value ?? "",
+					value: attachedScripts[value.propertyKey]?.value ?? value.defaultValue ?? "",
 				};
 				break;
 
@@ -68,8 +70,8 @@ export function computeDefaultValuesForObject(script: any, output: VisibleInInsp
 					type: value.configuration.type,
 					description: value.configuration.description,
 					value: [
-						attachedScripts[value.propertyKey]?.value[0] ?? value.configuration.min ?? value.configuration.max ?? 0,
-						attachedScripts[value.propertyKey]?.value[1] ?? value.configuration.min ?? value.configuration.max ?? 0,
+						attachedScripts[value.propertyKey]?.value[0] ?? value.defaultValue?.[0] ?? value.configuration.min ?? value.configuration.max ?? 0,
+						attachedScripts[value.propertyKey]?.value[1] ?? value.defaultValue?.[1] ?? value.configuration.min ?? value.configuration.max ?? 0,
 					],
 				};
 				break;
@@ -79,9 +81,9 @@ export function computeDefaultValuesForObject(script: any, output: VisibleInInsp
 					type: value.configuration.type,
 					description: value.configuration.description,
 					value: [
-						attachedScripts[value.propertyKey]?.value[0] ?? value.configuration.min ?? value.configuration.max ?? 0,
-						attachedScripts[value.propertyKey]?.value[1] ?? value.configuration.min ?? value.configuration.max ?? 0,
-						attachedScripts[value.propertyKey]?.value[2] ?? value.configuration.min ?? value.configuration.max ?? 0,
+						attachedScripts[value.propertyKey]?.value[0] ?? value.defaultValue?.[0] ?? value.configuration.min ?? value.configuration.max ?? 0,
+						attachedScripts[value.propertyKey]?.value[1] ?? value.defaultValue?.[1] ?? value.configuration.min ?? value.configuration.max ?? 0,
+						attachedScripts[value.propertyKey]?.value[2] ?? value.defaultValue?.[2] ?? value.configuration.min ?? value.configuration.max ?? 0,
 					],
 				};
 				break;
@@ -91,9 +93,9 @@ export function computeDefaultValuesForObject(script: any, output: VisibleInInsp
 					type: value.configuration.type,
 					description: value.configuration.description,
 					value: [
-						attachedScripts[value.propertyKey]?.value[0] ?? 1,
-						attachedScripts[value.propertyKey]?.value[1] ?? 1,
-						attachedScripts[value.propertyKey]?.value[2] ?? 1,
+						attachedScripts[value.propertyKey]?.value[0] ?? value.defaultValue?.[0] ?? 1,
+						attachedScripts[value.propertyKey]?.value[1] ?? value.defaultValue?.[1] ?? 1,
+						attachedScripts[value.propertyKey]?.value[2] ?? value.defaultValue?.[2] ?? 1,
 					],
 				};
 				break;
@@ -103,10 +105,10 @@ export function computeDefaultValuesForObject(script: any, output: VisibleInInsp
 					type: value.configuration.type,
 					description: value.configuration.description,
 					value: [
-						attachedScripts[value.propertyKey]?.value[0] ?? 1,
-						attachedScripts[value.propertyKey]?.value[1] ?? 1,
-						attachedScripts[value.propertyKey]?.value[2] ?? 1,
-						attachedScripts[value.propertyKey]?.value[3] ?? 1,
+						attachedScripts[value.propertyKey]?.value[0] ?? value.defaultValue?.[0] ?? 1,
+						attachedScripts[value.propertyKey]?.value[1] ?? value.defaultValue?.[1] ?? 1,
+						attachedScripts[value.propertyKey]?.value[2] ?? value.defaultValue?.[2] ?? 1,
+						attachedScripts[value.propertyKey]?.value[3] ?? value.defaultValue?.[3] ?? 1,
 					],
 				};
 				break;
@@ -115,7 +117,7 @@ export function computeDefaultValuesForObject(script: any, output: VisibleInInsp
 				attachedScripts[value.propertyKey] = {
 					type: value.configuration.type,
 					description: value.configuration.description,
-					value: attachedScripts[value.propertyKey]?.value ?? 0,
+					value: attachedScripts[value.propertyKey]?.value ?? value.defaultValue ?? 0,
 				};
 				break;
 
