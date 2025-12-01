@@ -39,7 +39,7 @@ import { isAnyParticleSystem } from "../../../tools/guards/particles";
 import { isScene, isSceneLinkNode } from "../../../tools/guards/scene";
 import { cloneNode, ICloneNodeOptions } from "../../../tools/node/clone";
 import { isSprite, isSpriteMapNode } from "../../../tools/guards/sprites";
-import { isAbstractMesh, isMesh, isNode } from "../../../tools/guards/nodes";
+import { isAbstractMesh, isCamera, isMesh, isNode } from "../../../tools/guards/nodes";
 import { isNodeLocked, isNodeSerializable, isNodeVisibleInGraph, setNodeLocked, setNodeSerializable } from "../../../tools/node/metadata";
 
 import { addGPUParticleSystem, addParticleSystem } from "../../../project/add/particles";
@@ -191,36 +191,10 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
 							{!isScene(this.props.object) && !isSound(this.props.object) && !isSprite(this.props.object) && !isAnyParticleSystem(this.props.object) && (
 								<>
 									<ContextMenuSeparator />
-
-									<ContextMenuCheckboxItem
-										checked={isNodeLocked(this.props.object)}
-										onClick={() => {
-											const locked = !isNodeLocked(this.props.object);
-
-											this.props.editor.layout.graph.getSelectedNodes().forEach((node) => {
-												if (isNode(node.nodeData)) {
-													setNodeLocked(node.nodeData, locked);
-												}
-											});
-											this.props.editor.layout.graph.refresh();
-										}}
-									>
+									<ContextMenuCheckboxItem checked={isNodeLocked(this.props.object)} onClick={() => this._handleSetNodeLocked()}>
 										Locked
 									</ContextMenuCheckboxItem>
-
-									<ContextMenuCheckboxItem
-										checked={!isNodeSerializable(this.props.object)}
-										onClick={() => {
-											const serializable = !isNodeSerializable(this.props.object);
-
-											this.props.editor.layout.graph.getSelectedNodes().forEach((node) => {
-												if (isNode(node.nodeData)) {
-													setNodeSerializable(node.nodeData, serializable);
-												}
-											});
-											this.props.editor.layout.graph.refresh();
-										}}
-									>
+									<ContextMenuCheckboxItem checked={!isNodeSerializable(this.props.object)} onClick={() => this._handleSetNodeSerializable()}>
 										Do not serialize
 									</ContextMenuCheckboxItem>
 								</>
@@ -267,6 +241,36 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
 				)}
 			</>
 		);
+	}
+
+	private _handleSetNodeLocked(): void {
+		const locked = !isNodeLocked(this.props.object);
+
+		this.props.editor.layout.graph.getSelectedNodes().forEach((node) => {
+			if (isNode(node.nodeData)) {
+				setNodeLocked(node.nodeData, locked);
+
+				if (isCamera(node.nodeData) && this.props.editor.layout.preview.scene.activeCamera === node.nodeData) {
+					if (locked) {
+						node.nodeData.detachControl();
+					} else {
+						node.nodeData.attachControl(true);
+					}
+				}
+			}
+		});
+		this.props.editor.layout.graph.refresh();
+	}
+
+	private _handleSetNodeSerializable(): void {
+		const serializable = !isNodeSerializable(this.props.object);
+
+		this.props.editor.layout.graph.getSelectedNodes().forEach((node) => {
+			if (isNode(node.nodeData)) {
+				setNodeSerializable(node.nodeData, serializable);
+			}
+		});
+		this.props.editor.layout.graph.refresh();
 	}
 
 	private _createMeshInstance(mesh: Mesh): void {
