@@ -9,14 +9,19 @@ import { getCameraFocusPositionFor } from "../../camera/focus";
 
 import { forceCompileAllSceneMaterials } from "../../scene/materials";
 
-RegisterSceneLoaderPlugin(new AssimpJSLoader(false));
+const assimpLoader = new AssimpJSLoader(false);
+RegisterSceneLoaderPlugin(assimpLoader);
 
 let engine: Engine;
 let scene: Scene;
 let camera: FreeCamera;
 let environmentTexture: CubeTexture;
 
-export async function getPreview(absolutePath: string, rootUrl: string, serializedEnvironmentTexture?: any) {
+export async function getPreview(absolutePath: string, rootUrl: string, appPath: string | null, serializedEnvironmentTexture?: any) {
+	if (appPath) {
+		assimpLoader.appPath = appPath;
+	}
+
 	if (!engine) {
 		engine = new Engine(new OffscreenCanvas(256, 256), true, {
 			antialias: true,

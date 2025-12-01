@@ -70,6 +70,7 @@ export async function computeOrGetThumbnail(editor: Editor, options: IComputeThu
 	const thumbnail = await getAssetThumbnailBase64(options.absolutePath, {
 		rootUrl,
 		type: options.type,
+		appPath: editor.path,
 		serializedEnvironmentTexture: editor.layout.preview.scene.environmentTexture?.serialize(),
 	});
 
@@ -128,6 +129,10 @@ export interface IThumbnailOptions {
 	 * The root URL for the assets.
 	 */
 	rootUrl: string;
+	/**
+	 * Defines the optional app path to help locate dependencies such as AssimpJS.
+	 */
+	appPath: string | null;
 	/**
 	 * The serialized environment texture for the thumbnail to help rendering materials such as PBR.
 	 */
