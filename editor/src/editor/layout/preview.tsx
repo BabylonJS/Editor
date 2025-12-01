@@ -1076,7 +1076,9 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		this.scene.activeCamera?.detachControl();
 
 		this.scene.activeCamera = camera;
-		this.scene.activeCamera?.attachControl(true);
+		if (!isNodeLocked(camera)) {
+			this.scene.activeCamera?.attachControl(true);
+		}
 
 		disposeSSAO2RenderingPipeline();
 		disposeVLSPostProcess(this.props.editor);
