@@ -419,6 +419,7 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 							case "keymap":
 								return (
 									<EditorInspectorKeyField
+										key={value.propertyKey}
 										value={props.script[scriptValues][value.propertyKey]?.value?.toString() ?? ""}
 										label={value.label ?? value.propertyKey}
 										onChange={(v) => {

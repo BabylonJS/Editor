@@ -65,6 +65,39 @@ function extract(outputAbsolutePath: string) {
 	try {
 		const output = require(outputAbsolutePath) as any;
 		inspectorProperties = output.default?._VisibleInInspector ?? null;
+
+		try {
+			function createMock(recorder = {}) {
+				return new Proxy(function () {}, {
+					get(_target, prop) {
+						if (!(prop in recorder)) {
+							recorder[prop] = createMock({});
+						}
+						return recorder[prop];
+					},
+					set(_target, prop, value) {
+						recorder[prop] = value;
+						return true;
+					},
+					apply() {
+						return createMock({});
+					},
+					construct() {
+						return createMock({});
+					},
+				});
+			}
+
+			const mock = createMock();
+			const instance = new output.default(mock);
+
+			inspectorProperties?.forEach((value) => {
+				const defaultValue = instance[value.propertyKey];
+				value.defaultValue = defaultValue?.asArray?.() ?? defaultValue;
+			});
+		} catch (e) {
+			// Catch silently.
+		}
 	} catch (e) {
 		// Catch silently.
 	}
