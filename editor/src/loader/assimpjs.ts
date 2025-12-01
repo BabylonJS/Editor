@@ -159,12 +159,14 @@ export class AssimpJSLoader implements ISceneLoaderPluginAsync {
 		parseAnimations(runtime);
 	}
 
+	public appPath: string = "";
+
 	private _assimpjs: any;
 	private async _locallyLoadFile(absolutePath: string, data: any): Promise<IAssimpJSRootData[]> {
 		if (!this._assimpjs) {
 			const assimpjs = require("assimpjs");
 			const nodeModules = process.env.DEBUG ? "../node_modules" : "node_modules";
-			const wasmPath = join(__dirname, "../../../", nodeModules, "assimpjs/dist");
+			const wasmPath = join(this.appPath, nodeModules, "assimpjs/dist");
 
 			this._assimpjs = await assimpjs({
 				locateFile: (file) => {
