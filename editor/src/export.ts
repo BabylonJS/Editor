@@ -4,6 +4,7 @@ export { EditorLayout } from "./editor/layout";
 export { EditorGraph } from "./editor/layout/graph";
 export { EditorToolbar } from "./editor/layout/toolbar";
 export { EditorConsole } from "./editor/layout/console";
+export { EditorTerminal } from "./editor/layout/terminal";
 
 export { EditorPreview } from "./editor/layout/preview";
 export * from "./editor/layout/preview/import/import";
