@@ -16,6 +16,10 @@
 			"types": "./declaration/src/index.d.ts",
 			"import": "./build/src/index.js",
 			"require": "./build/index.node.js"
+		},
+		"./*": {
+			"types": "./declaration/src/*.d.ts",
+			"import": "./build/src/*.js"
 		}
 	},
 	"typings": "declaration/src/index.d.ts",
