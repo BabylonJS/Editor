@@ -9,9 +9,11 @@ import { Fade } from "react-awesome-reveal";
 import { useEffect, useRef, useState } from "react";
 
 import { GiBookmarklet } from "react-icons/gi";
-import { FaToolbox, FaYoutube } from "react-icons/fa6";
+import { FaCirclePlay, FaToolbox, FaYoutube } from "react-icons/fa6";
 import { IoLogoGithub, IoSpeedometer } from "react-icons/io5";
 import { IoMdCloudDownload, IoMdPlayCircle } from "react-icons/io";
+
+import isMobile from "is-mobile";
 
 import { AppleIcon } from "@/components/icons/apple";
 import { LinuxIcon } from "@/components/icons/linux";
@@ -31,9 +33,11 @@ export default function HomePage() {
 	const [section2Visible, setSection2Visible] = useState(false);
 	const [section3Visible, setSection3Visible] = useState(false);
 
+	const [mobile, setMobile] = useState(true);
+
 	useEffect(() => {
 		updateScrollRatio();
-
+		setMobile(isMobile());
 		// window.scrollTo({ top: 0, behavior: "instant" });
 	}, []);
 
@@ -274,7 +278,7 @@ export default function HomePage() {
 
 									<Link
 										target="_blank"
-										href="https://youtu.be/vg5E8CY2F5w?si=-rEoBhdAmq-Opz9K"
+										href={mobile ? "https://youtu.be/vg5E8CY2F5w?si=-rEoBhdAmq-Opz9K" : "https://editor.babylonjs.com/experiments/mansion"}
 										className={`
 											absolute top-0 left-0 flex flex-col justify-center items-center w-full h-full
 											opacity-0 group-hover:opacity-100
@@ -299,14 +303,27 @@ export default function HomePage() {
 								</div>
 							</Fade>
 
-							<Fade triggerOnce delay={450}>
-								<Link target="_blank" href="https://youtu.be/vg5E8CY2F5w?si=gWJ6o5-h3P8cyTuD">
-									<button className="flex items-center gap-2 text-black bg-neutral-50 rounded-full px-5 py-2">
-										<FaYoutube className="w-6 h-6" />
-										Watch on Youtube
-									</button>
-								</Link>
-							</Fade>
+							<div className="flex items-center gap-5">
+								{!mobile && (
+									<Fade triggerOnce delay={450}>
+										<Link target="_blank" href="https://editor.babylonjs.com/experiments/mansion">
+											<button className="flex items-center gap-2 text-black bg-neutral-50 rounded-full px-5 py-2">
+												<FaCirclePlay className="w-6 h-6" />
+												Run experiment
+											</button>
+										</Link>
+									</Fade>
+								)}
+
+								<Fade triggerOnce delay={450}>
+									<Link target="_blank" href="https://youtu.be/vg5E8CY2F5w?si=gWJ6o5-h3P8cyTuD">
+										<button className={`flex items-center gap-2 ${mobile ? "text-black bg-neutral-50" : "text-white bg-black"} rounded-full px-5 py-2`}>
+											<FaYoutube className="w-6 h-6" />
+											Watch on Youtube
+										</button>
+									</Link>
+								</Fade>
+							</div>
 						</div>
 					</div>
 
@@ -335,7 +352,7 @@ export default function HomePage() {
 						</Fade>
 
 						<Fade triggerOnce className="flex justify-center items-center w-full max-w-[75vw] mx-auto bg-black">
-							<video className="w-full h-full object-contain" autoPlay muted playsInline loop>
+							<video className="w-full h-full object-contain scale-[1.35] pt-2 lg:scale-100 lg:pt-0" autoPlay muted playsInline loop>
 								<source src="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/bjs_speedesign.mp4" type="video/mp4" />
 							</video>
 						</Fade>
