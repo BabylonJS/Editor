@@ -40,7 +40,7 @@ async function compile(srcAbsolutePath: string, outputAbsolutePath: string) {
 			".ts": "ts",
 			".node": "file",
 		},
-		external: ["sharp", "electron"],
+		external: ["sharp", "electron", "@recast-navigation/core", "@recast-navigation/generators", "@babylonjs/addons"],
 		keepNames: true,
 		plugins: [replaceImportMetaDirname],
 	};
