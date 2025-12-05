@@ -2,7 +2,7 @@ import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 
 import { CreateNavigationPluginAsync } from "@babylonjs/addons";
 
-import { IScriptAssetParserParameters } from "../../preload";
+import { IScriptAssetParserParameters, registerScriptAssetParser } from "../../preload";
 
 export async function preloadNavMeshScriptAsset(parameters: IScriptAssetParserParameters) {
 	const [configResponse, navmeshResponse, tilesResponse] = await Promise.all([
@@ -37,3 +37,5 @@ export async function preloadNavMeshScriptAsset(parameters: IScriptAssetParserPa
 
 	return recast;
 }
+
+registerScriptAssetParser("navmesh", preloadNavMeshScriptAsset);
