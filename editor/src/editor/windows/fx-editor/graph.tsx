@@ -17,6 +17,7 @@ import {
 
 export interface IFXEditorGraphProps {
 	filePath: string | null;
+	onNodeSelected?: (nodeId: string | number | null) => void;
 }
 
 export interface IFXParticleNode {
@@ -26,6 +27,7 @@ export interface IFXParticleNode {
 
 export interface IFXEditorGraphState {
 	nodes: TreeNodeInfo[];
+	selectedNodeId: string | number | null;
 }
 
 export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraphState> {
@@ -34,6 +36,7 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 
 		this.state = {
 			nodes: [],
+			selectedNodeId: null,
 		};
 	}
 
@@ -124,8 +127,10 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 	}
 
 	private _handleNodeClicked(node: TreeNodeInfo): void {
-		const nodes = this._updateNodeSelection(this.state.nodes, node.id as string | number);
-		this.setState({ nodes });
+		const selectedId = node.id as string | number;
+		const nodes = this._updateNodeSelection(this.state.nodes, selectedId);
+		this.setState({ nodes, selectedNodeId: selectedId });
+		this.props.onNodeSelected?.(selectedId);
 	}
 
 
@@ -204,8 +209,17 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 				});
 		};
 
+		const deletedId = node.id!;
+		const newNodes = deleteNodeById(this.state.nodes, deletedId);
+		const newSelectedNodeId = this.state.selectedNodeId === deletedId ? null : this.state.selectedNodeId;
+
 		this.setState({
-			nodes: deleteNodeById(this.state.nodes, node.id!),
+			nodes: newNodes,
+			selectedNodeId: newSelectedNodeId,
 		});
+
+		if (this.state.selectedNodeId === deletedId) {
+			this.props.onNodeSelected?.(null);
+		}
 	}
 }

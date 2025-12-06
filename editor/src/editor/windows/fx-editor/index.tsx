@@ -10,8 +10,11 @@ import { Toaster } from "../../../ui/shadcn/ui/sonner";
 import { FXEditorLayout } from "./layout";
 import { FXEditorToolbar } from "./toolbar";
 
+import { projectConfiguration, onProjectConfigurationChangedObservable, IProjectConfiguration } from "../../../project/configuration";
+
 export interface IFXEditorWindowProps {
 	filePath?: string;
+	projectConfiguration?: IProjectConfiguration;
 }
 
 export interface IFXEditorWindowState {
@@ -46,6 +49,13 @@ export default class FXEditorWindow extends Component<IFXEditorWindowProps, IFXE
 	public async componentDidMount(): Promise<void> {
 		ipcRenderer.on("save", () => this.save());
 		ipcRenderer.on("editor:close-window", () => this.close());
+
+		// Set project configuration if provided
+		if (this.props.projectConfiguration) {
+			projectConfiguration.path = this.props.projectConfiguration.path;
+			projectConfiguration.compressedTexturesEnabled = this.props.projectConfiguration.compressedTexturesEnabled;
+			onProjectConfigurationChangedObservable.notifyObservers(projectConfiguration);
+		}
 	}
 
 	public close(): void {
