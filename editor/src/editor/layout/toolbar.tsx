@@ -15,6 +15,7 @@ import { ToolbarComponent } from "../../ui/toolbar";
 import { saveProject } from "../../project/save/save";
 import { startProjectDevProcess } from "../../project/run";
 import { exportProject } from "../../project/export/export";
+import { projectConfiguration } from "../../project/configuration";
 
 import { Editor } from "../main";
 import { getNodeCommands } from "../dialogs/command-palette/node";
@@ -266,6 +267,8 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 	}
 
 	private _handleOpenFXEditor(): void {
-		ipcRenderer.send("window:open", "build/src/editor/windows/fx-editor", {});
+		ipcRenderer.send("window:open", "build/src/editor/windows/fx-editor", {
+			projectConfiguration: { ...projectConfiguration },
+		});
 	}
 }

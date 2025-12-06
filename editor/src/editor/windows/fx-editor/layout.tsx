@@ -97,13 +97,16 @@ export interface IFXEditorLayoutProps {
 	filePath: string | null;
 }
 
-export class FXEditorLayout extends Component<IFXEditorLayoutProps> {
+export interface IFXEditorLayoutState {
+	selectedNodeId: string | number | null;
+}
+
+export class FXEditorLayout extends Component<IFXEditorLayoutProps, IFXEditorLayoutState> {
 	public preview: FXEditorPreview;
 	public graph: FXEditorGraph;
 	public animation: FXEditorAnimation;
 	public properties: FXEditorProperties;
 
-	private _layoutRef: Layout | null = null;
 	private _model: Model = Model.fromJson(layoutModel as any);
 
 	private _components: Record<string, React.ReactNode> = {};
@@ -111,18 +114,41 @@ export class FXEditorLayout extends Component<IFXEditorLayoutProps> {
 	public constructor(props: IFXEditorLayoutProps) {
 		super(props);
 
+		this.state = {
+			selectedNodeId: null,
+		};
+	}
+
+	public componentDidMount(): void {
+		this._updateComponents();
+	}
+
+	public componentDidUpdate(): void {
+		this._updateComponents();
+	}
+
+	private _handleNodeSelected = (nodeId: string | number | null): void => {
+		this.setState({ selectedNodeId: nodeId }, () => {
+			// Force update properties component after state change
+			if (this.properties) {
+				this.properties.forceUpdate();
+			}
+		});
+	};
+
+	private _updateComponents(): void {
 		this._components = {
 			preview: <FXEditorPreview ref={(r) => (this.preview = r!)} filePath={this.props.filePath} />,
-			graph: <FXEditorGraph ref={(r) => (this.graph = r!)} filePath={this.props.filePath} />,
+			graph: <FXEditorGraph ref={(r) => (this.graph = r!)} filePath={this.props.filePath} onNodeSelected={this._handleNodeSelected} />,
 			animation: <FXEditorAnimation ref={(r) => (this.animation = r!)} filePath={this.props.filePath} />,
-			properties: <FXEditorProperties ref={(r) => (this.properties = r!)} filePath={this.props.filePath} />,
+			properties: <FXEditorProperties key={this.state.selectedNodeId || "none"} ref={(r) => (this.properties = r!)} filePath={this.props.filePath} selectedNodeId={this.state.selectedNodeId} scene={this.preview?.scene || undefined} />,
 		};
 	}
 
 	public render(): ReactNode {
 		return (
 			<div className="relative w-full h-full">
-				<Layout model={this._model} ref={(r) => (this._layoutRef = r)} factory={(n) => this._layoutFactory(n)} />
+				<Layout model={this._model} factory={(n) => this._layoutFactory(n)} />
 			</div>
 		);
 	}
