@@ -54,17 +54,11 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 					</div>
 				)}
 
-				<div
-					className="flex-1"
-					style={{ minHeight: "80px" }}
-					onDragOver={(ev) => ev.preventDefault()}
-				>
+				<div className="flex-1" style={{ minHeight: "80px" }} onDragOver={(ev) => ev.preventDefault()}>
 					<ContextMenu>
 						<ContextMenuTrigger className="w-full h-full">
 							<div className="w-full h-full flex items-center justify-center">
-								{this.state.nodes.length === 0 && (
-									<div className="p-4 text-muted-foreground">No particles. Right-click to add.</div>
-								)}
+								{this.state.nodes.length === 0 && <div className="p-4 text-muted-foreground">No particles. Right-click to add.</div>}
 							</div>
 						</ContextMenuTrigger>
 						<ContextMenuContent>
@@ -133,7 +127,6 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 		this.props.onNodeSelected?.(selectedId);
 	}
 
-
 	private _updateNodeSelection(nodes: TreeNodeInfo[], selectedId: string | number): TreeNodeInfo[] {
 		return nodes.map((n) => {
 			const nodeName = this._getNodeName(n);
@@ -166,10 +159,7 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 						</ContextMenuSubContent>
 					</ContextMenuSub>
 					<ContextMenuSeparator />
-					<ContextMenuItem
-						className="flex items-center gap-2 !text-red-400"
-						onClick={() => this._handleDeleteNode(node)}
-					>
+					<ContextMenuItem className="flex items-center gap-2 !text-red-400" onClick={() => this._handleDeleteNode(node)}>
 						<AiOutlineClose className="w-5 h-5" fill="rgb(248, 113, 113)" /> Delete
 					</ContextMenuItem>
 				</ContextMenuContent>

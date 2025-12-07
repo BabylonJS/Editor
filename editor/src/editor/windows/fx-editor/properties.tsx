@@ -65,5 +65,4 @@ export class FXEditorProperties extends Component<IFXEditorPropertiesProps, IFXE
 			</div>
 		);
 	}
-
 }

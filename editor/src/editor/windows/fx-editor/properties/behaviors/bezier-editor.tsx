@@ -273,11 +273,15 @@ export class BezierEditor extends Component<IBezierEditorProps, IBezierEditorSta
 
 		const isHovered = (point: "p0" | "p1" | "p2" | "p3") => this.state.hoveredPoint === point || this.state.dragPoint === point;
 		const getPointRadius = (point: "p0" | "p1" | "p2" | "p3") => {
-			if (point === "p0" || point === "p3") return isHovered(point) ? 7 : 5;
+			if (point === "p0" || point === "p3") {
+				return isHovered(point) ? 7 : 5;
+			}
 			return isHovered(point) ? 6 : 4;
 		};
 		const getPointColor = (point: "p0" | "p1" | "p2" | "p3") => {
-			if (point === "p0" || point === "p3") return isHovered(point) ? "#3b82f6" : "#2563eb";
+			if (point === "p0" || point === "p3") {
+				return isHovered(point) ? "#3b82f6" : "#2563eb"
+			};
 			return isHovered(point) ? "#8b5cf6" : "#7c3aed";
 		};
 
@@ -315,9 +319,7 @@ export class BezierEditor extends Component<IBezierEditorProps, IBezierEditorSta
 					return (
 						<g key={point}>
 							{/* Outer glow when hovered */}
-							{isHovered(point) && (
-								<circle cx={x} cy={y} r={radius + 4} fill={color} opacity="0.2" className="transition-all duration-200" />
-							)}
+							{isHovered(point) && <circle cx={x} cy={y} r={radius + 4} fill={color} opacity="0.2" className="transition-all duration-200" />}
 							{/* Point circle */}
 							<circle
 								cx={x}
@@ -333,15 +335,7 @@ export class BezierEditor extends Component<IBezierEditorProps, IBezierEditorSta
 							/>
 							{/* Value label */}
 							{isHovered(point) && (
-								<text
-									x={x}
-									y={y - 15}
-									textAnchor="middle"
-									fill="currentColor"
-									fontSize="11"
-									fontWeight="600"
-									className="pointer-events-none select-none"
-								>
+								<text x={x} y={y - 15} textAnchor="middle" fill="currentColor" fontSize="11" fontWeight="600" className="pointer-events-none select-none">
 									{value.toFixed(2)}
 								</text>
 							)}

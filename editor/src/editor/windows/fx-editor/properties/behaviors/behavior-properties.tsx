@@ -87,21 +87,12 @@ export function BehaviorProperties(props: IBehaviorPropertiesProps): ReactNode {
 
 				if (prop.type === "enum") {
 					if (behavior[prop.name] === undefined) {
-						behavior[prop.name] = prop.default !== undefined ? prop.default : prop.enumItems?.[0]?.value ?? 0;
+						behavior[prop.name] = prop.default !== undefined ? prop.default : (prop.enumItems?.[0]?.value ?? 0);
 					}
 					if (!prop.enumItems || prop.enumItems.length === 0) {
 						return null;
 					}
-					return (
-						<EditorInspectorListField
-							key={prop.name}
-							object={behavior}
-							property={prop.name}
-							label={prop.label}
-							items={prop.enumItems}
-							onChange={onChange}
-						/>
-					);
+					return <EditorInspectorListField key={prop.name} object={behavior} property={prop.name} label={prop.label} items={prop.enumItems} onChange={onChange} />;
 				}
 
 				if (prop.type === "colorFunction") {
@@ -112,14 +103,7 @@ export function BehaviorProperties(props: IBehaviorPropertiesProps): ReactNode {
 							data: {},
 						};
 					}
-					return (
-						<ColorFunctionEditor
-							key={prop.name}
-							value={behavior[prop.name]}
-							onChange={onChange}
-							label={prop.label}
-						/>
-					);
+					return <ColorFunctionEditor key={prop.name} value={behavior[prop.name]} onChange={onChange} label={prop.label} />;
 				}
 
 				if (prop.type === "function") {
@@ -130,15 +114,7 @@ export function BehaviorProperties(props: IBehaviorPropertiesProps): ReactNode {
 							data: {},
 						};
 					}
-					return (
-						<FunctionEditor
-							key={prop.name}
-							value={behavior[prop.name]}
-							onChange={onChange}
-							availableTypes={prop.functionTypes}
-							label={prop.label}
-						/>
-					);
+					return <FunctionEditor key={prop.name} value={behavior[prop.name]} onChange={onChange} availableTypes={prop.functionTypes} label={prop.label} />;
 				}
 
 				return null;
@@ -146,4 +122,3 @@ export function BehaviorProperties(props: IBehaviorPropertiesProps): ReactNode {
 		</>
 	);
 }
-

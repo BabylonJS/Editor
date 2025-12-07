@@ -92,4 +92,3 @@ export default class FXEditorWindow extends Component<IFXEditorWindowProps, IFXE
 		toast.success("FX imported");
 	}
 }
-

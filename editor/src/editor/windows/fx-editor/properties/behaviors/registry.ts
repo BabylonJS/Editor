@@ -346,4 +346,3 @@ export function createDefaultBehaviorData(type: string): any {
 	}
 	return data;
 }
-

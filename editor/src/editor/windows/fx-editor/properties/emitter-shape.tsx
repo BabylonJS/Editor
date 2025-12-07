@@ -141,9 +141,7 @@ export class FXEditorEmitterShapeProperties extends Component<IFXEditorEmitterSh
 						this.state.meshDragOver ? "bg-muted-foreground/75 dark:bg-muted-foreground/20" : "bg-muted-foreground/10 dark:bg-muted-foreground/5"
 					} transition-all duration-300 ease-in-out`}
 				>
-					<div className="flex-1 text-center text-ellipsis overflow-hidden whitespace-nowrap">
-						{particleData.emitterShape.meshPath || "Drop mesh file here"}
-					</div>
+					<div className="flex-1 text-center text-ellipsis overflow-hidden whitespace-nowrap">{particleData.emitterShape.meshPath || "Drop mesh file here"}</div>
 					{particleData.emitterShape.meshPath && (
 						<Button
 							variant="ghost"
@@ -208,4 +206,3 @@ export class FXEditorEmitterShapeProperties extends Component<IFXEditorEmitterSh
 		this.setState({ meshDragOver: false });
 	};
 }
-

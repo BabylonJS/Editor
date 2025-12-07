@@ -47,9 +47,7 @@ export class FXEditorToolbar extends Component<IFXEditorToolbarProps> {
 					<div className="flex items-center gap-1 font-semibold text-lg select-none">
 						FX Editor
 						{this.props.fxEditor.state.filePath && (
-							<div className="text-sm font-thin">
-								(...{this.props.fxEditor.state.filePath.substring(this.props.fxEditor.state.filePath.length - 30)})
-							</div>
+							<div className="text-sm font-thin">(...{this.props.fxEditor.state.filePath.substring(this.props.fxEditor.state.filePath.length - 30)})</div>
 						)}
 					</div>
 				</div>
@@ -106,4 +104,3 @@ export class FXEditorToolbar extends Component<IFXEditorToolbarProps> {
 		this.props.fxEditor.importFile(file);
 	}
 }
-

@@ -35,27 +35,15 @@ export class FXEditorPreview extends Component<IFXEditorPreviewProps, IFXEditorP
 	public render(): ReactNode {
 		return (
 			<div className="relative w-full h-full">
-				<canvas
-					ref={(r) => this._onGotCanvasRef(r!)}
-					className="w-full h-full outline-none"
-				/>
+				<canvas ref={(r) => this._onGotCanvasRef(r!)} className="w-full h-full outline-none" />
 
 				{/* Play/Stop/Restart buttons */}
 				<div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 flex gap-2">
 					<TooltipProvider>
 						<Tooltip>
 							<TooltipTrigger asChild>
-								<Button
-									variant="secondary"
-									size="icon"
-									onClick={() => this._handlePlayStop()}
-									className="w-10 h-10"
-								>
-									{this.state.playing ? (
-										<IoStop className="w-5 h-5" />
-									) : (
-										<IoPlay className="w-5 h-5" />
-									)}
+								<Button variant="secondary" size="icon" onClick={() => this._handlePlayStop()} className="w-10 h-10">
+									{this.state.playing ? <IoStop className="w-5 h-5" /> : <IoPlay className="w-5 h-5" />}
 								</Button>
 							</TooltipTrigger>
 							<TooltipContent>{this.state.playing ? "Stop" : "Play"}</TooltipContent>
@@ -64,12 +52,7 @@ export class FXEditorPreview extends Component<IFXEditorPreviewProps, IFXEditorP
 						{this.state.playing && (
 							<Tooltip>
 								<TooltipTrigger asChild>
-									<Button
-										variant="secondary"
-										size="icon"
-										onClick={() => this._handleRestart()}
-										className="w-10 h-10"
-									>
+									<Button variant="secondary" size="icon" onClick={() => this._handleRestart()} className="w-10 h-10">
 										<IoRefresh className="w-5 h-5" />
 									</Button>
 								</TooltipTrigger>
@@ -185,4 +168,3 @@ export class FXEditorPreview extends Component<IFXEditorPreviewProps, IFXEditorP
 		});
 	}
 }
-
