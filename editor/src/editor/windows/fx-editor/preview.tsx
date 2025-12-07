@@ -109,7 +109,7 @@ export class FXEditorPreview extends Component<IFXEditorPreviewProps, IFXEditorP
 
 		this._canvasRef = canvas;
 
-		this.engine = new Engine(canvas, true, {
+		this.engine = new Engine(this._canvasRef, true, {
 			antialias: true,
 			adaptToDeviceRatio: true,
 		});

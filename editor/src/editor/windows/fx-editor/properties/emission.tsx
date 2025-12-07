@@ -27,11 +27,8 @@ export function FXEditorEmissionProperties(props: IFXEditorEmissionPropertiesPro
 			<EditorInspectorNumberField object={particleData.emission} property="emitOverTime" label="Emit Over Time" min={0} step={0.1} />
 			<EditorInspectorNumberField object={particleData.emission} property="emitOverDistance" label="Emit Over Distance" min={0} step={0.1} />
 
-			<EditorInspectorSectionField
-				title={
-					<div className="flex items-center justify-between w-full">
-						<span>Bursts</span>
-						<DropdownMenu>
+			<EditorInspectorSectionField title="Bursts">
+				<DropdownMenu>
 							<DropdownMenuTrigger asChild>
 								<Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={(e) => e.stopPropagation()}>
 									<AiOutlinePlus className="w-4 h-4" />
@@ -54,9 +51,6 @@ export function FXEditorEmissionProperties(props: IFXEditorEmissionPropertiesPro
 								</DropdownMenuItem>
 							</DropdownMenuContent>
 						</DropdownMenu>
-					</div>
-				}
-			>
 				{particleData.bursts.map((burst, index) => (
 					<EditorInspectorSectionField key={index} title={`Burst ${index + 1}`}>
 						<EditorInspectorNumberField object={burst} property="time" label="Time" min={0} step={0.1} />

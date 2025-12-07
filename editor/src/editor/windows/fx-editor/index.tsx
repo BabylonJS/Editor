@@ -87,7 +87,7 @@ export default class FXEditorWindow extends Component<IFXEditorWindowProps, IFXE
 		await this.save();
 	}
 
-	public async importFile(filePath: string): Promise<void> {
+	public async importFile(_filePath: string): Promise<void> {
 		// TODO: Import file data into current editor
 		toast.success("FX imported");
 	}
