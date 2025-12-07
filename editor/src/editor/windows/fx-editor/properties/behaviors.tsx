@@ -7,6 +7,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
 
 import { IFXParticleData } from "./types";
+import { BehaviorRegistry, createDefaultBehaviorData, getBehaviorDefinition } from "./behaviors/registry";
+import { BehaviorProperties } from "./behaviors/behavior-properties";
 
 export interface IFXEditorBehaviorsPropertiesProps {
 	particleData: IFXParticleData;
@@ -18,22 +20,27 @@ export function FXEditorBehaviorsProperties(props: IFXEditorBehaviorsPropertiesP
 
 	return (
 		<>
-			{particleData.behaviors.map((behavior, index) => (
-				<EditorInspectorSectionField key={index} title={behavior.type}>
-					{/* TODO: Add behavior-specific properties */}
-					<Button
-						variant="destructive"
-						size="sm"
-						onClick={() => {
-							particleData.behaviors.splice(index, 1);
-							onChange();
-						}}
-						className="mt-2"
-					>
-						<AiOutlineClose className="w-4 h-4" /> Remove
-					</Button>
-				</EditorInspectorSectionField>
-			))}
+			{particleData.behaviors.map((behavior, index) => {
+				const definition = getBehaviorDefinition(behavior.type);
+				const title = definition?.label || behavior.type;
+
+				return (
+					<EditorInspectorSectionField key={index} title={title}>
+						<BehaviorProperties behavior={behavior} onChange={onChange} />
+						<Button
+							variant="destructive"
+							size="sm"
+							onClick={() => {
+								particleData.behaviors.splice(index, 1);
+								onChange();
+							}}
+							className="mt-2"
+						>
+							<AiOutlineClose className="w-4 h-4" /> Remove
+						</Button>
+					</EditorInspectorSectionField>
+				);
+			})}
 		</>
 	);
 }
@@ -49,158 +56,18 @@ export function FXEditorBehaviorsDropdown(props: IFXEditorBehaviorsPropertiesPro
 				</Button>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent>
-				<DropdownMenuItem
-					onClick={() => {
-						particleData.behaviors.push({ type: "ApplyForce" });
-						onChange();
-					}}
-				>
-					ApplyForce
-				</DropdownMenuItem>
-				<DropdownMenuItem
-					onClick={() => {
-						particleData.behaviors.push({ type: "Noise" });
-						onChange();
-					}}
-				>
-					Noise
-				</DropdownMenuItem>
-				<DropdownMenuItem
-					onClick={() => {
-						particleData.behaviors.push({ type: "TurbulenceField" });
-						onChange();
-					}}
-				>
-					TurbulenceField
-				</DropdownMenuItem>
-				<DropdownMenuItem
-					onClick={() => {
-						particleData.behaviors.push({ type: "GravityForce" });
-						onChange();
-					}}
-				>
-					GravityForce
-				</DropdownMenuItem>
-				<DropdownMenuItem
-					onClick={() => {
-						particleData.behaviors.push({ type: "ColorOverLife" });
-						onChange();
-					}}
-				>
-					ColorOverLife
-				</DropdownMenuItem>
-				<DropdownMenuItem
-					onClick={() => {
-						particleData.behaviors.push({ type: "RotationOverLife" });
-						onChange();
-					}}
-				>
-					RotationOverLife
-				</DropdownMenuItem>
-				<DropdownMenuItem
-					onClick={() => {
-						particleData.behaviors.push({ type: "Rotation3DOverLife" });
-						onChange();
-					}}
-				>
-					Rotation3DOverLife
-				</DropdownMenuItem>
-				<DropdownMenuItem
-					onClick={() => {
-						particleData.behaviors.push({ type: "SizeOverLife" });
-						onChange();
-					}}
-				>
-					SizeOverLife
-				</DropdownMenuItem>
-				<DropdownMenuItem
-					onClick={() => {
-						particleData.behaviors.push({ type: "ColorBySpeed" });
-						onChange();
-					}}
-				>
-					ColorBySpeed
-				</DropdownMenuItem>
-				<DropdownMenuItem
-					onClick={() => {
-						particleData.behaviors.push({ type: "RotationBySpeed" });
-						onChange();
-					}}
-				>
-					RotationBySpeed
-				</DropdownMenuItem>
-				<DropdownMenuItem
-					onClick={() => {
-						particleData.behaviors.push({ type: "SizeBySpeed" });
-						onChange();
-					}}
-				>
-					SizeBySpeed
-				</DropdownMenuItem>
-				<DropdownMenuItem
-					onClick={() => {
-						particleData.behaviors.push({ type: "SpeedOverLife" });
-						onChange();
-					}}
-				>
-					SpeedOverLife
-				</DropdownMenuItem>
-				<DropdownMenuItem
-					onClick={() => {
-						particleData.behaviors.push({ type: "FrameOverLife" });
-						onChange();
-					}}
-				>
-					FrameOverLife
-				</DropdownMenuItem>
-				<DropdownMenuItem
-					onClick={() => {
-						particleData.behaviors.push({ type: "ForceOverLife" });
-						onChange();
-					}}
-				>
-					ForceOverLife
-				</DropdownMenuItem>
-				<DropdownMenuItem
-					onClick={() => {
-						particleData.behaviors.push({ type: "OrbitOverLife" });
-						onChange();
-					}}
-				>
-					OrbitOverLife
-				</DropdownMenuItem>
-				<DropdownMenuItem
-					onClick={() => {
-						particleData.behaviors.push({ type: "WidthOverLength" });
-						onChange();
-					}}
-				>
-					WidthOverLength
-				</DropdownMenuItem>
-				<DropdownMenuItem
-					onClick={() => {
-						particleData.behaviors.push({ type: "ChangeEmitDirection" });
-						onChange();
-					}}
-				>
-					ChangeEmitDirection
-				</DropdownMenuItem>
-				<DropdownMenuItem
-					onClick={() => {
-						particleData.behaviors.push({ type: "EmitSubParticleSystem" });
-						onChange();
-					}}
-				>
-					EmitSubParticleSystem
-				</DropdownMenuItem>
-				<DropdownMenuItem
-					onClick={() => {
-						particleData.behaviors.push({ type: "LimitSpeedOverLife" });
-						onChange();
-					}}
-				>
-					LimitSpeedOverLife
-				</DropdownMenuItem>
+				{Object.values(BehaviorRegistry).map((definition) => (
+					<DropdownMenuItem
+						key={definition.type}
+						onClick={() => {
+							const behaviorData = createDefaultBehaviorData(definition.type);
+							particleData.behaviors.push(behaviorData);
+							onChange();
+						}}
+					>
+						{definition.label}
+					</DropdownMenuItem>
+				))}
 			</DropdownMenuContent>
 		</DropdownMenu>
 	);

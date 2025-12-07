@@ -1,5 +1,4 @@
 import { Component, ReactNode, DragEvent } from "react";
-import { Vector3 } from "babylonjs";
 import { extname } from "path/posix";
 
 import { EditorInspectorNumberField } from "../../../layout/inspector/fields/number";

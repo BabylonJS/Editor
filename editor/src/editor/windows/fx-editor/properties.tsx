@@ -58,14 +58,8 @@ export class FXEditorProperties extends Component<IFXEditorPropertiesProps, IFXE
 					<FXEditorParticleInitializationProperties particleData={particleData} />
 				</EditorInspectorSectionField>
 
-				<EditorInspectorSectionField
-					title={
-						<div className="flex items-center justify-between w-full">
-							<span>Behaviors</span>
-							<FXEditorBehaviorsDropdown particleData={particleData} onChange={() => this.forceUpdate()} />
-						</div>
-					}
-				>
+				<EditorInspectorSectionField title="Behaviors">
+					<FXEditorBehaviorsDropdown particleData={particleData} onChange={() => this.forceUpdate()} />
 					<FXEditorBehaviorsProperties particleData={particleData} onChange={() => this.forceUpdate()} />
 				</EditorInspectorSectionField>
 			</div>
