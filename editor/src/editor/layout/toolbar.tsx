@@ -206,9 +206,7 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 					<MenubarMenu>
 						<MenubarTrigger>Window</MenubarTrigger>
 						<MenubarContent className="border-black/50">
-							<MenubarItem onClick={() => this._handleOpenFXEditor()}>
-								FX Editor...
-							</MenubarItem>
+							<MenubarItem onClick={() => this._handleOpenFXEditor()}>FX Editor...</MenubarItem>
 
 							<MenubarSeparator />
 

@@ -276,4 +276,3 @@ function GradientEditor(props: IGradientEditorProps): ReactNode {
 		</div>
 	);
 }
-

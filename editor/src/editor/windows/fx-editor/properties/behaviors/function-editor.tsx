@@ -69,13 +69,7 @@ export function FunctionEditor(props: IFunctionEditorProps): ReactNode {
 			{functionType === "ConstantValue" && (
 				<>
 					{value.data.value === undefined && (value.data.value = 1.0)}
-					<EditorInspectorNumberField
-						object={value.data}
-						property="value"
-						label={label ? "Value" : ""}
-						step={0.1}
-						onChange={onChange}
-					/>
+					<EditorInspectorNumberField object={value.data} property="value" label={label ? "Value" : ""} step={0.1} onChange={onChange} />
 				</>
 			)}
 
@@ -86,22 +80,8 @@ export function FunctionEditor(props: IFunctionEditorProps): ReactNode {
 					<EditorInspectorBlockField>
 						<div className="px-2">{label ? "Range" : ""}</div>
 						<div className="flex items-center">
-							<EditorInspectorNumberField
-								grayLabel
-								object={value.data}
-								property="min"
-								label="Min"
-								step={0.1}
-								onChange={onChange}
-							/>
-							<EditorInspectorNumberField
-								grayLabel
-								object={value.data}
-								property="max"
-								label="Max"
-								step={0.1}
-								onChange={onChange}
-							/>
+							<EditorInspectorNumberField grayLabel object={value.data} property="min" label="Min" step={0.1} onChange={onChange} />
+							<EditorInspectorNumberField grayLabel object={value.data} property="max" label="Max" step={0.1} onChange={onChange} />
 						</div>
 					</EditorInspectorBlockField>
 				</>
@@ -148,4 +128,3 @@ export function FunctionEditor(props: IFunctionEditorProps): ReactNode {
 		</>
 	);
 }
-

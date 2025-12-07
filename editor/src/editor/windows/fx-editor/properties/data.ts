@@ -76,4 +76,3 @@ export function getOrCreateParticleData(nodeId: string | number): IFXParticleDat
 	}
 	return particleDataMap.get(nodeId)!;
 }
-

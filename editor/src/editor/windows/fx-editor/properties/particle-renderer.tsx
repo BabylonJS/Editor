@@ -115,15 +115,7 @@ export class FXEditorParticleRendererProperties extends Component<IFXEditorParti
 			return null;
 		}
 
-		return (
-			<EditorInspectorTextureField
-				object={particleData.particleRenderer}
-				property="texture"
-				title="Texture"
-				scene={scene}
-				onChange={() => this.props.onChange()}
-			/>
-		);
+		return <EditorInspectorTextureField object={particleData.particleRenderer} property="texture" title="Texture" scene={scene} onChange={() => this.props.onChange()} />;
 	}
 
 	private _getRenderModeSpecificProperties(renderMode: string): ReactNode {
@@ -149,9 +141,7 @@ export class FXEditorParticleRendererProperties extends Component<IFXEditorParti
 						this.state.meshDragOver ? "bg-muted-foreground/75 dark:bg-muted-foreground/20" : "bg-muted-foreground/10 dark:bg-muted-foreground/5"
 					} transition-all duration-300 ease-in-out`}
 				>
-					<div className="flex-1 text-center text-ellipsis overflow-hidden whitespace-nowrap">
-						{particleData.particleRenderer.meshPath || "Drop mesh file here"}
-					</div>
+					<div className="flex-1 text-center text-ellipsis overflow-hidden whitespace-nowrap">{particleData.particleRenderer.meshPath || "Drop mesh file here"}</div>
 					{particleData.particleRenderer.meshPath && (
 						<Button
 							variant="ghost"
@@ -216,4 +206,3 @@ export class FXEditorParticleRendererProperties extends Component<IFXEditorParti
 		this.setState({ meshDragOver: false });
 	};
 }
-

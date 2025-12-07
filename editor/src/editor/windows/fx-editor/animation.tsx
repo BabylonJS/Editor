@@ -14,4 +14,3 @@ export class FXEditorAnimation extends Component<IFXEditorAnimationProps> {
 		);
 	}
 }
-

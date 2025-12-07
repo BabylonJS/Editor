@@ -29,28 +29,28 @@ export function FXEditorEmissionProperties(props: IFXEditorEmissionPropertiesPro
 
 			<EditorInspectorSectionField title="Bursts">
 				<DropdownMenu>
-							<DropdownMenuTrigger asChild>
-								<Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={(e) => e.stopPropagation()}>
-									<AiOutlinePlus className="w-4 h-4" />
-								</Button>
-							</DropdownMenuTrigger>
-							<DropdownMenuContent>
-								<DropdownMenuItem
-									onClick={() => {
-										particleData.bursts.push({
-											time: 0,
-											count: 10,
-											cycle: 1,
-											interval: 1,
-											probability: 1.0,
-										});
-										onChange();
-									}}
-								>
-									Add Burst
-								</DropdownMenuItem>
-							</DropdownMenuContent>
-						</DropdownMenu>
+					<DropdownMenuTrigger asChild>
+						<Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={(e) => e.stopPropagation()}>
+							<AiOutlinePlus className="w-4 h-4" />
+						</Button>
+					</DropdownMenuTrigger>
+					<DropdownMenuContent>
+						<DropdownMenuItem
+							onClick={() => {
+								particleData.bursts.push({
+									time: 0,
+									count: 10,
+									cycle: 1,
+									interval: 1,
+									probability: 1.0,
+								});
+								onChange();
+							}}
+						>
+							Add Burst
+						</DropdownMenuItem>
+					</DropdownMenuContent>
+				</DropdownMenu>
 				{particleData.bursts.map((burst, index) => (
 					<EditorInspectorSectionField key={index} title={`Burst ${index + 1}`}>
 						<EditorInspectorNumberField object={burst} property="time" label="Time" min={0} step={0.1} />
@@ -75,4 +75,3 @@ export function FXEditorEmissionProperties(props: IFXEditorEmissionPropertiesPro
 		</>
 	);
 }
-

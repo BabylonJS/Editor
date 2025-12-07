@@ -72,4 +72,3 @@ export function FXEditorBehaviorsDropdown(props: IFXEditorBehaviorsPropertiesPro
 		</DropdownMenu>
 	);
 }
-

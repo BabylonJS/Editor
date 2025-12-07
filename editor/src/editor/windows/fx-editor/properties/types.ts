@@ -59,4 +59,3 @@ export interface IFXParticleData {
 		[key: string]: any;
 	}>;
 }
-

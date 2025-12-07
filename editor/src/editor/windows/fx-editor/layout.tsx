@@ -141,7 +141,15 @@ export class FXEditorLayout extends Component<IFXEditorLayoutProps, IFXEditorLay
 			preview: <FXEditorPreview ref={(r) => (this.preview = r!)} filePath={this.props.filePath} />,
 			graph: <FXEditorGraph ref={(r) => (this.graph = r!)} filePath={this.props.filePath} onNodeSelected={this._handleNodeSelected} />,
 			animation: <FXEditorAnimation ref={(r) => (this.animation = r!)} filePath={this.props.filePath} />,
-			properties: <FXEditorProperties key={this.state.selectedNodeId || "none"} ref={(r) => (this.properties = r!)} filePath={this.props.filePath} selectedNodeId={this.state.selectedNodeId} scene={this.preview?.scene || undefined} />,
+			properties: (
+				<FXEditorProperties
+					key={this.state.selectedNodeId || "none"}
+					ref={(r) => (this.properties = r!)}
+					filePath={this.props.filePath}
+					selectedNodeId={this.state.selectedNodeId}
+					scene={this.preview?.scene || undefined}
+				/>
+			),
 		};
 	}
 
@@ -171,4 +179,3 @@ export class FXEditorLayout extends Component<IFXEditorLayoutProps, IFXEditorLay
 		return component;
 	}
 }
-
