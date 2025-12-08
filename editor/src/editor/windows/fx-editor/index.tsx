@@ -22,6 +22,8 @@ export interface IFXEditorWindowState {
 }
 
 export default class FXEditorWindow extends Component<IFXEditorWindowProps, IFXEditorWindowState> {
+	private layout: FXEditorLayout | null = null;
+
 	public constructor(props: IFXEditorWindowProps) {
 		super(props);
 
@@ -37,7 +39,7 @@ export default class FXEditorWindow extends Component<IFXEditorWindowProps, IFXE
 					<FXEditorToolbar fxEditor={this} />
 
 					<div className="w-full h-full overflow-hidden">
-						<FXEditorLayout filePath={this.state.filePath || ""} />
+						<FXEditorLayout ref={(r) => (this.layout = r)} filePath={this.state.filePath || ""} />
 					</div>
 				</div>
 
@@ -87,8 +89,18 @@ export default class FXEditorWindow extends Component<IFXEditorWindowProps, IFXE
 		await this.save();
 	}
 
-	public async importFile(_filePath: string): Promise<void> {
-		// TODO: Import file data into current editor
-		toast.success("FX imported");
+	public async importFile(filePath: string): Promise<void> {
+		try {
+			// Get graph component reference from layout
+			if (this.layout && this.layout.graph) {
+				await this.layout.graph.loadFromFile(filePath);
+				toast.success("FX imported");
+			} else {
+				toast.error("Failed to import FX: Graph not available");
+			}
+		} catch (error) {
+			console.error("Failed to import FX:", error);
+			toast.error("Failed to import FX");
+		}
 	}
 }

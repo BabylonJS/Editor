@@ -10,6 +10,7 @@ import { IoPlay, IoStop, IoRefresh } from "react-icons/io5";
 
 export interface IFXEditorPreviewProps {
 	filePath: string | null;
+	onSceneReady?: (scene: Scene) => void;
 }
 
 export interface IFXEditorPreviewState {
@@ -145,6 +146,9 @@ export class FXEditorPreview extends Component<IFXEditorPreviewProps, IFXEditorP
 		window.addEventListener("resize", () => {
 			this.engine?.resize();
 		});
+
+		// Notify parent that scene is ready
+		this.props.onSceneReady?.(this.scene);
 
 		this.forceUpdate();
 	}

@@ -1,6 +1,17 @@
 import { Vector3, Color4 } from "babylonjs";
 
+export interface IFXGroupData {
+	id: string;
+	name: string;
+	visibility: boolean;
+	position: Vector3;
+	rotation: Vector3;
+	scale: Vector3;
+	type: "group";
+}
+
 export interface IFXParticleData {
+	type: "particle";
 	id: string;
 	name: string;
 	visibility: boolean;
@@ -15,7 +26,7 @@ export interface IFXParticleData {
 		renderMode: string;
 		worldSpace: boolean;
 		material: any;
-		type: string;
+		materialType: string; // MeshBasicMaterial or MeshStandardMaterial
 		transparent: boolean;
 		opacity: number;
 		side: string;
@@ -41,6 +52,7 @@ export interface IFXParticleData {
 		emitOverDistance: number;
 	};
 	bursts: Array<{
+		id?: string;
 		time: number;
 		count: number;
 		cycle: number;
@@ -48,14 +60,31 @@ export interface IFXParticleData {
 		probability: number;
 	}>;
 	particleInitialization: {
-		startLife: { min: number; max: number };
-		startSize: { min: number; max: number };
-		startSpeed: { min: number; max: number };
-		startColor: Color4;
-		startRotation: { min: number; max: number };
+		startLife: any; // Function: ConstantValue | IntervalValue | PiecewiseBezier
+		startSize: any; // Function: ConstantValue | IntervalValue | PiecewiseBezier
+		startSpeed: any; // Function: ConstantValue | IntervalValue | PiecewiseBezier
+		startColor: any; // ColorFunction: ConstantColor | ColorRange | Gradient | RandomColor | RandomColorBetweenGradient
+		startRotation: any; // Function: ConstantValue | IntervalValue | PiecewiseBezier
 	};
 	behaviors: Array<{
+		id?: string;
 		type: string;
 		[key: string]: any;
 	}>;
+}
+
+export type IFXNodeData = IFXParticleData | IFXGroupData;
+
+/**
+ * Type guard to check if node data is a group
+ */
+export function isGroupData(data: IFXNodeData): data is IFXGroupData {
+	return data.type === "group";
+}
+
+/**
+ * Type guard to check if node data is a particle
+ */
+export function isParticleData(data: IFXNodeData): data is IFXParticleData {
+	return data.type === "particle";
 }

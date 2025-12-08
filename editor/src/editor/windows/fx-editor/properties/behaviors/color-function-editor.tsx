@@ -10,7 +10,7 @@ import { Button } from "../../../../../ui/shadcn/ui/button";
 import { AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
 import { Slider } from "../../../../../ui/shadcn/ui/slider";
 
-export type ColorFunctionType = "ConstantColor" | "ColorRange" | "Gradient" | "RandomColorBetweenGradient";
+export type ColorFunctionType = "ConstantColor" | "ColorRange" | "Gradient" | "RandomColor" | "RandomColorBetweenGradient";
 
 export interface IColorFunctionEditorProps {
 	value: any;
@@ -38,6 +38,7 @@ export function ColorFunctionEditor(props: IColorFunctionEditorProps): ReactNode
 		{ text: "Color", value: "ConstantColor" },
 		{ text: "Color Range", value: "ColorRange" },
 		{ text: "Gradient", value: "Gradient" },
+		{ text: "Random Color", value: "RandomColor" },
 		{ text: "Random Between Gradient", value: "RandomColorBetweenGradient" },
 	];
 
@@ -66,6 +67,9 @@ export function ColorFunctionEditor(props: IColorFunctionEditorProps): ReactNode
 							{ value: 1, position: 0 },
 							{ value: 1, position: 1 },
 						];
+					} else if (newType === "RandomColor") {
+						value.data.colorA = new Color4(0, 0, 0, 1);
+						value.data.colorB = new Color4(1, 1, 1, 1);
 					} else if (newType === "RandomColorBetweenGradient") {
 						value.data.gradient1 = {
 							colorKeys: [
@@ -109,6 +113,15 @@ export function ColorFunctionEditor(props: IColorFunctionEditorProps): ReactNode
 			)}
 
 			{functionType === "Gradient" && <GradientEditor value={value.data} onChange={onChange} />}
+
+			{functionType === "RandomColor" && (
+				<>
+					{!value.data.colorA && (value.data.colorA = new Color4(0, 0, 0, 1))}
+					{!value.data.colorB && (value.data.colorB = new Color4(1, 1, 1, 1))}
+					<EditorInspectorColorField object={value.data} property="colorA" label="Color A" onChange={onChange} />
+					<EditorInspectorColorField object={value.data} property="colorB" label="Color B" onChange={onChange} />
+				</>
+			)}
 
 			{functionType === "RandomColorBetweenGradient" && (
 				<>

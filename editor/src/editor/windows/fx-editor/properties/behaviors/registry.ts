@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 
 export type FunctionType = "ConstantValue" | "IntervalValue" | "PiecewiseBezier" | "Vector3Function";
-export type ColorFunctionType = "ConstantColor" | "ColorRange" | "Gradient" | "RandomColorBetweenGradient";
+export type ColorFunctionType = "ConstantColor" | "ColorRange" | "Gradient" | "RandomColor" | "RandomColorBetweenGradient";
 
 export interface IBehaviorProperty {
 	name: string;
@@ -264,7 +264,15 @@ export const BehaviorRegistry: { [key: string]: IBehaviorDefinition } = {
 	ChangeEmitDirection: {
 		type: "ChangeEmitDirection",
 		label: "Change Emit Direction",
-		properties: [{ name: "angle", type: "number", label: "Angle", default: 0.0 }],
+		properties: [
+			{
+				name: "angle",
+				type: "function",
+				label: "Angle",
+				default: 0.0,
+				functionTypes: ["ConstantValue", "IntervalValue"],
+			},
+		],
 	},
 	EmitSubParticleSystem: {
 		type: "EmitSubParticleSystem",
