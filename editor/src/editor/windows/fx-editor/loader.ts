@@ -279,18 +279,72 @@ export async function convertThreeJSJSONToFXEditor(filePath: string): Promise<IC
 
 /**
  * Decomposes a 4x4 transformation matrix into position, rotation (Euler angles), and scale
+ * Three.js uses column-major matrices and XYZ order for Euler angles
  */
 function _decomposeMatrix(matrixArray: number[]): { position: Vector3; rotation: Vector3; scale: Vector3 } {
 	const position = Vector3.Zero();
 	const rotationQuat = Quaternion.Identity();
 	const scaling = Vector3.Zero();
 
-	const matrix = Matrix.FromArray(matrixArray);
-	matrix.decompose(scaling, rotationQuat, position);
+	console.log("[_decomposeMatrix] Input matrix (column-major):", matrixArray);
 
-	// Convert Quaternion to Euler angles (in degrees)
-	const rotation = rotationQuat.toEulerAngles();
-	rotation.scaleInPlace(180 / Math.PI); // Convert radians to degrees
+	// Three.js matrices are stored in column-major order
+	// Try without transposing first - Matrix.FromArray might handle it correctly
+	// If this doesn't work, we'll transpose
+	const matrix = Matrix.FromArray(matrixArray);
+	console.log("[_decomposeMatrix] Matrix after FromArray:", matrix.m);
+	
+	matrix.decompose(scaling, rotationQuat, position);
+	
+	console.log("[_decomposeMatrix] Decomposed values:");
+	console.log("  Position:", position.x, position.y, position.z);
+	console.log("  Scale:", scaling.x, scaling.y, scaling.z);
+	console.log("  Quaternion:", rotationQuat.x, rotationQuat.y, rotationQuat.z, rotationQuat.w);
+
+	// Babylon.js toEulerAngles() returns angles in YXZ order (yaw-pitch-roll)
+	// Three.js uses XYZ order (roll-pitch-yaw)
+	// We'll use Babylon's method and then convert the order
+	const eulerYXZ = rotationQuat.toEulerAngles();
+	console.log("[_decomposeMatrix] Babylon YXZ Euler (rad):", eulerYXZ.x, eulerYXZ.y, eulerYXZ.z);
+	console.log("[_decomposeMatrix] Babylon YXZ Euler (deg):", eulerYXZ.x * 180 / Math.PI, eulerYXZ.y * 180 / Math.PI, eulerYXZ.z * 180 / Math.PI);
+	
+	// Convert from YXZ to XYZ order
+	// YXZ: first Y (yaw), then X (pitch), then Z (roll)
+	// XYZ: first X (roll), then Y (pitch), then Z (yaw)
+	// We need to recompute from quaternion using XYZ order
+	const qx = rotationQuat.x;
+	const qy = rotationQuat.y;
+	const qz = rotationQuat.z;
+	const qw = rotationQuat.w;
+
+	// XYZ order Euler angles from quaternion
+	// Roll (X)
+	const sinr_cosp = 2 * (qw * qx + qy * qz);
+	const cosr_cosp = 1 - 2 * (qx * qx + qy * qy);
+	const roll = Math.atan2(sinr_cosp, cosr_cosp);
+
+	// Pitch (Y)
+	const sinp = 2 * (qw * qy - qz * qx);
+	let pitch: number;
+	if (Math.abs(sinp) >= 1) {
+		pitch = Math.sign(sinp) * Math.PI / 2;
+	} else {
+		pitch = Math.asin(sinp);
+	}
+
+	// Yaw (Z)
+	const siny_cosp = 2 * (qw * qz + qx * qy);
+	const cosy_cosp = 1 - 2 * (qy * qy + qz * qz);
+	const yaw = Math.atan2(siny_cosp, cosy_cosp);
+
+	console.log("[_decomposeMatrix] XYZ Euler (rad):", roll, pitch, yaw);
+
+	// Store rotation in RADIANS (not degrees) because EditorInspectorNumberField with asDegrees expects radians
+	// The component will automatically convert radians to degrees for display
+	const rotation = new Vector3(roll, pitch, yaw);
+
+	console.log("[_decomposeMatrix] Final rotation (rad):", rotation.x, rotation.y, rotation.z);
+	console.log("[_decomposeMatrix] Final rotation (deg for reference):", rotation.x * 180 / Math.PI, rotation.y * 180 / Math.PI, rotation.z * 180 / Math.PI);
 
 	return {
 		position,
@@ -379,6 +433,7 @@ function _convertObject(
 
 		// Extract position, rotation, scale from matrix if available
 		if (obj.matrix && obj.matrix.length >= 16) {
+			console.log("[_convertObject] Group matrix:", obj.name);
 			const { position, rotation, scale } = _decomposeMatrix(obj.matrix);
 			groupData.position = position;
 			groupData.rotation = rotation;

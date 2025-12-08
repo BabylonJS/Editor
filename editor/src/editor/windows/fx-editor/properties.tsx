@@ -29,8 +29,27 @@ export class FXEditorProperties extends Component<IFXEditorPropertiesProps, IFXE
 		this.state = {};
 	}
 
+	public componentDidUpdate(prevProps: IFXEditorPropertiesProps): void {
+		// Force update when selectedNodeId changes to ensure we show the correct node's properties
+		if (prevProps.selectedNodeId !== this.props.selectedNodeId) {
+			// Use setTimeout to ensure the update happens after flexlayout-react processes the change
+			setTimeout(() => {
+				this.forceUpdate();
+			}, 0);
+		}
+	}
+
+	public componentDidMount(): void {
+		// Force update on mount if a node is already selected
+		if (this.props.selectedNodeId) {
+			this.forceUpdate();
+		}
+	}
+
 	public render(): ReactNode {
-		if (!this.props.selectedNodeId) {
+		const nodeId = this.props.selectedNodeId;
+		
+		if (!nodeId) {
 			return (
 				<div className="flex items-center justify-center w-full h-full bg-tertiary">
 					<p className="text-tertiary-foreground">No particle selected</p>
@@ -38,8 +57,7 @@ export class FXEditorProperties extends Component<IFXEditorPropertiesProps, IFXE
 			);
 		}
 
-		// Check if this is a group by checking if group data exists
-		const nodeId = this.props.selectedNodeId;
+		// Always get fresh data from graph, don't rely on cached values
 		const isGroup = this.props.isGroupNode(nodeId);
 
 		if (isGroup) {

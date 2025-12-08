@@ -109,6 +109,7 @@ export interface IFXEditorLayoutProps {
 export interface IFXEditorLayoutState {
 	selectedNodeId: string | number | null;
 	resources: any[];
+	propertiesKey: number;
 }
 
 export class FXEditorLayout extends Component<IFXEditorLayoutProps, IFXEditorLayoutState> {
@@ -128,6 +129,7 @@ export class FXEditorLayout extends Component<IFXEditorLayoutProps, IFXEditorLay
 		this.state = {
 			selectedNodeId: null,
 			resources: [],
+			propertiesKey: 0,
 		};
 	}
 
@@ -140,12 +142,22 @@ export class FXEditorLayout extends Component<IFXEditorLayoutProps, IFXEditorLay
 	}
 
 	private _handleNodeSelected = (nodeId: string | number | null): void => {
-		this.setState({ selectedNodeId: nodeId }, () => {
-			// Force update properties component after state change
-			if (this.properties) {
-				this.properties.forceUpdate();
+		this.setState(
+			(prevState) => ({
+				selectedNodeId: nodeId,
+				propertiesKey: prevState.propertiesKey + 1, // Increment key to force component recreation
+			}),
+			() => {
+				// Update components immediately after state change
+				this._updateComponents();
+				// Force update properties component after state change
+				if (this.properties) {
+					this.properties.forceUpdate();
+				}
+				// Force update layout to ensure flexlayout-react sees the new component
+				this.forceUpdate();
 			}
-		});
+		);
 	};
 
 	private _updateComponents(): void {
@@ -182,7 +194,7 @@ export class FXEditorLayout extends Component<IFXEditorLayoutProps, IFXEditorLay
 			animation: <FXEditorAnimation ref={(r) => (this.animation = r!)} filePath={this.props.filePath} />,
 			properties: (
 				<FXEditorProperties
-					key={this.state.selectedNodeId || "none"}
+					key={`properties-${this.state.selectedNodeId || "none"}-${this.state.propertiesKey}`}
 					ref={(r) => (this.properties = r!)}
 					filePath={this.props.filePath}
 					selectedNodeId={this.state.selectedNodeId}
@@ -213,6 +225,12 @@ export class FXEditorLayout extends Component<IFXEditorLayoutProps, IFXEditorLay
 		const componentName = node.getComponent();
 		if (!componentName) {
 			return <div>Error, see console...</div>;
+		}
+
+		// Always update components before returning, especially for properties tab
+		// This ensures flexlayout-react gets the latest component with updated props
+		if (componentName === "properties") {
+			this._updateComponents();
 		}
 
 		const component = this._components[componentName];
