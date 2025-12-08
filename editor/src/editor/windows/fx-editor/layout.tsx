@@ -7,6 +7,7 @@ import { FXEditorPreview } from "./preview";
 import { FXEditorGraph } from "./graph";
 import { FXEditorAnimation } from "./animation";
 import { FXEditorProperties } from "./properties";
+import { FXEditorResources } from "./resources";
 
 const layoutModel: IJsonModel = {
 	global: {
@@ -71,6 +72,14 @@ const layoutModel: IJsonModel = {
 								enableClose: false,
 								enableRenderOnDemand: false,
 							},
+							{
+								type: "tab",
+								id: "resources",
+								name: "Resources",
+								component: "resources",
+								enableClose: false,
+								enableRenderOnDemand: false,
+							},
 						],
 					},
 					{
@@ -99,6 +108,7 @@ export interface IFXEditorLayoutProps {
 
 export interface IFXEditorLayoutState {
 	selectedNodeId: string | number | null;
+	resources: any[];
 }
 
 export class FXEditorLayout extends Component<IFXEditorLayoutProps, IFXEditorLayoutState> {
@@ -106,6 +116,7 @@ export class FXEditorLayout extends Component<IFXEditorLayoutProps, IFXEditorLay
 	public graph: FXEditorGraph;
 	public animation: FXEditorAnimation;
 	public properties: FXEditorProperties;
+	public resources: FXEditorResources;
 
 	private _model: Model = Model.fromJson(layoutModel as any);
 
@@ -116,6 +127,7 @@ export class FXEditorLayout extends Component<IFXEditorLayoutProps, IFXEditorLay
 
 		this.state = {
 			selectedNodeId: null,
+			resources: [],
 		};
 	}
 
@@ -138,8 +150,35 @@ export class FXEditorLayout extends Component<IFXEditorLayoutProps, IFXEditorLay
 
 	private _updateComponents(): void {
 		this._components = {
-			preview: <FXEditorPreview ref={(r) => (this.preview = r!)} filePath={this.props.filePath} />,
-			graph: <FXEditorGraph ref={(r) => (this.graph = r!)} filePath={this.props.filePath} onNodeSelected={this._handleNodeSelected} />,
+			preview: (
+				<FXEditorPreview
+					ref={(r) => (this.preview = r!)}
+					filePath={this.props.filePath}
+					onSceneReady={(scene) => {
+						// Update graph when scene is ready
+						if (this.graph) {
+							this.graph.forceUpdate();
+						}
+					}}
+				/>
+			),
+			graph: (
+				<FXEditorGraph
+					ref={(r) => (this.graph = r!)}
+					filePath={this.props.filePath}
+					onNodeSelected={this._handleNodeSelected}
+					scene={this.preview?.scene || undefined}
+					onResourcesLoaded={(resources) => {
+						this.setState({ resources });
+					}}
+				/>
+			),
+			resources: (
+				<FXEditorResources
+					ref={(r) => (this.resources = r!)}
+					resources={this.state.resources}
+				/>
+			),
 			animation: <FXEditorAnimation ref={(r) => (this.animation = r!)} filePath={this.props.filePath} />,
 			properties: (
 				<FXEditorProperties
@@ -148,6 +187,15 @@ export class FXEditorLayout extends Component<IFXEditorLayoutProps, IFXEditorLay
 					filePath={this.props.filePath}
 					selectedNodeId={this.state.selectedNodeId}
 					scene={this.preview?.scene || undefined}
+					onNameChanged={() => {
+						// Update graph node names when name changes
+						if (this.graph) {
+							this.graph.updateNodeNames();
+						}
+					}}
+					getOrCreateParticleData={(nodeId) => this.graph?.getOrCreateParticleData(nodeId)!}
+					getOrCreateGroupData={(nodeId) => this.graph?.getOrCreateGroupData(nodeId)!}
+					isGroupNode={(nodeId) => this.graph?.isGroupNode(nodeId) ?? false}
 				/>
 			),
 		};

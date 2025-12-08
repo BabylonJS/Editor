@@ -55,13 +55,13 @@ export class FXEditorParticleRendererProperties extends Component<IFXEditorParti
 				{/* TODO: Material field */}
 				<EditorInspectorListField
 					object={particleData.particleRenderer}
-					property="type"
-					label="Type"
+					property="materialType"
+					label="Material"
 					items={[
-						{ text: "Standard", value: "Standard" },
-						{ text: "Additive", value: "Additive" },
-						{ text: "Multiply", value: "Multiply" },
+						{ text: "MeshBasicMaterial", value: "MeshBasicMaterial" },
+						{ text: "MeshStandardMaterial", value: "MeshStandardMaterial" },
 					]}
+					onChange={() => this.props.onChange()}
 				/>
 				<EditorInspectorSwitchField object={particleData.particleRenderer} property="transparent" label="Transparent" />
 				<EditorInspectorNumberField object={particleData.particleRenderer} property="opacity" label="Opacity" min={0} max={1} step={0.01} />

@@ -8,14 +8,20 @@ import { IFXParticleData } from "./types";
 
 export interface IFXEditorObjectPropertiesProps {
 	particleData: IFXParticleData;
+	onChange?: () => void;
 }
 
 export function FXEditorObjectProperties(props: IFXEditorObjectPropertiesProps): ReactNode {
-	const { particleData } = props;
+	const { particleData, onChange } = props;
 
 	return (
 		<>
-			<EditorInspectorStringField object={particleData} property="name" label="Name" />
+			<EditorInspectorStringField 
+				object={particleData} 
+				property="name" 
+				label="Name" 
+				onChange={onChange}
+			/>
 			<EditorInspectorSwitchField object={particleData} property="visibility" label="Visibility" />
 			<EditorInspectorVectorField object={particleData} property="position" label="Position" />
 			<EditorInspectorVectorField object={particleData} property="rotation" label="Rotation" asDegrees />

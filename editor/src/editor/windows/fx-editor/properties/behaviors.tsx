@@ -4,7 +4,8 @@ import { EditorInspectorSectionField } from "../../../layout/inspector/fields/se
 
 import { Button } from "../../../../ui/shadcn/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../../../ui/shadcn/ui/dropdown-menu";
-import { AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
+import { HiOutlineTrash } from "react-icons/hi2";
+import { IoAddSharp } from "react-icons/io5";
 
 import { IFXParticleData } from "./types";
 import { BehaviorRegistry, createDefaultBehaviorData, getBehaviorDefinition } from "./behaviors/registry";
@@ -25,50 +26,53 @@ export function FXEditorBehaviorsProperties(props: IFXEditorBehaviorsPropertiesP
 				const title = definition?.label || behavior.type;
 
 				return (
-					<EditorInspectorSectionField key={index} title={title}>
+					<EditorInspectorSectionField
+						key={behavior.id || `behavior-${index}`}
+						title={
+							<div className="flex items-center justify-between w-full">
+								<span>{title}</span>
+								<Button
+									variant="ghost"
+									className="p-2 text-destructive hover:text-destructive hover:bg-destructive/10 transition-colors"
+									onClick={(e) => {
+										e.stopPropagation();
+										particleData.behaviors.splice(index, 1);
+										onChange();
+									}}
+								>
+									<HiOutlineTrash className="w-4 h-4" />
+								</Button>
+							</div>
+						}
+					>
 						<BehaviorProperties behavior={behavior} onChange={onChange} />
-						<Button
-							variant="destructive"
-							size="sm"
-							onClick={() => {
-								particleData.behaviors.splice(index, 1);
-								onChange();
-							}}
-							className="mt-2"
-						>
-							<AiOutlineClose className="w-4 h-4" /> Remove
-						</Button>
 					</EditorInspectorSectionField>
 				);
 			})}
+
+			<DropdownMenu>
+				<DropdownMenuTrigger asChild>
+					<Button variant="secondary" className="flex items-center gap-2 w-full">
+						<IoAddSharp className="w-6 h-6" /> Add
+					</Button>
+				</DropdownMenuTrigger>
+				<DropdownMenuContent>
+					{Object.values(BehaviorRegistry).map((definition) => (
+						<DropdownMenuItem
+							key={definition.type}
+							onClick={() => {
+								const behaviorData = createDefaultBehaviorData(definition.type);
+								behaviorData.id = `behavior-${Date.now()}-${Math.random()}`;
+								particleData.behaviors.push(behaviorData);
+								onChange();
+							}}
+						>
+							{definition.label}
+						</DropdownMenuItem>
+					))}
+				</DropdownMenuContent>
+			</DropdownMenu>
 		</>
 	);
 }
 
-export function FXEditorBehaviorsDropdown(props: IFXEditorBehaviorsPropertiesProps): ReactNode {
-	const { particleData, onChange } = props;
-
-	return (
-		<DropdownMenu>
-			<DropdownMenuTrigger asChild>
-				<Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={(e) => e.stopPropagation()}>
-					<AiOutlinePlus className="w-4 h-4" />
-				</Button>
-			</DropdownMenuTrigger>
-			<DropdownMenuContent>
-				{Object.values(BehaviorRegistry).map((definition) => (
-					<DropdownMenuItem
-						key={definition.type}
-						onClick={() => {
-							const behaviorData = createDefaultBehaviorData(definition.type);
-							particleData.behaviors.push(behaviorData);
-							onChange();
-						}}
-					>
-						{definition.label}
-					</DropdownMenuItem>
-				))}
-			</DropdownMenuContent>
-		</DropdownMenu>
-	);
-}

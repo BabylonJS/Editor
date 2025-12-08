@@ -8,13 +8,17 @@ import { FXEditorEmitterShapeProperties } from "./properties/emitter-shape";
 import { FXEditorParticleRendererProperties } from "./properties/particle-renderer";
 import { FXEditorEmissionProperties } from "./properties/emission";
 import { FXEditorParticleInitializationProperties } from "./properties/particle-initialization";
-import { FXEditorBehaviorsProperties, FXEditorBehaviorsDropdown } from "./properties/behaviors";
-import { getOrCreateParticleData } from "./properties/data";
+import { FXEditorBehaviorsProperties } from "./properties/behaviors";
+import { IFXParticleData, IFXGroupData } from "./properties/types";
 
 export interface IFXEditorPropertiesProps {
 	filePath: string | null;
 	selectedNodeId: string | number | null;
 	scene?: Scene;
+	onNameChanged?: () => void;
+	getOrCreateParticleData: (nodeId: string | number) => IFXParticleData;
+	getOrCreateGroupData: (nodeId: string | number) => IFXGroupData;
+	isGroupNode: (nodeId: string | number) => boolean;
 }
 
 export interface IFXEditorPropertiesState {}
@@ -34,12 +38,51 @@ export class FXEditorProperties extends Component<IFXEditorPropertiesProps, IFXE
 			);
 		}
 
-		const particleData = getOrCreateParticleData(this.props.selectedNodeId);
+		// Check if this is a group by checking if group data exists
+		const nodeId = this.props.selectedNodeId;
+		const isGroup = this.props.isGroupNode(nodeId);
+
+		if (isGroup) {
+			// For groups, show only Object properties
+			const groupData = this.props.getOrCreateGroupData(nodeId);
+			// Convert group data to particle data format for Object properties component
+			const groupDataAsParticle = {
+				id: groupData.id,
+				name: groupData.name,
+				visibility: groupData.visibility,
+				position: groupData.position,
+				rotation: groupData.rotation,
+				scale: groupData.scale,
+			} as any;
+
+			return (
+				<div className="flex flex-col gap-2 w-full h-full p-2 overflow-auto">
+					<EditorInspectorSectionField title="Object">
+						<FXEditorObjectProperties 
+							particleData={groupDataAsParticle} 
+							onChange={() => {
+								this.forceUpdate();
+								this.props.onNameChanged?.();
+							}}
+						/>
+					</EditorInspectorSectionField>
+				</div>
+			);
+		}
+
+		// For particles, show all properties
+		const particleData = this.props.getOrCreateParticleData(nodeId);
 
 		return (
 			<div className="flex flex-col gap-2 w-full h-full p-2 overflow-auto">
 				<EditorInspectorSectionField title="Object">
-					<FXEditorObjectProperties particleData={particleData} />
+					<FXEditorObjectProperties 
+						particleData={particleData} 
+						onChange={() => {
+							this.forceUpdate();
+							this.props.onNameChanged?.();
+						}}
+					/>
 				</EditorInspectorSectionField>
 
 				<EditorInspectorSectionField title="Emitter Shape">
@@ -55,11 +98,10 @@ export class FXEditorProperties extends Component<IFXEditorPropertiesProps, IFXE
 				</EditorInspectorSectionField>
 
 				<EditorInspectorSectionField title="Particle Initialization">
-					<FXEditorParticleInitializationProperties particleData={particleData} />
+					<FXEditorParticleInitializationProperties particleData={particleData} onChange={() => this.forceUpdate()} />
 				</EditorInspectorSectionField>
 
 				<EditorInspectorSectionField title="Behaviors">
-					<FXEditorBehaviorsDropdown particleData={particleData} onChange={() => this.forceUpdate()} />
 					<FXEditorBehaviorsProperties particleData={particleData} onChange={() => this.forceUpdate()} />
 				</EditorInspectorSectionField>
 			</div>
