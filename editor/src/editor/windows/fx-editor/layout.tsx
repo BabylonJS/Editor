@@ -8,6 +8,7 @@ import { FXEditorGraph } from "./graph";
 import { FXEditorAnimation } from "./animation";
 import { FXEditorProperties } from "./properties";
 import { FXEditorResources } from "./resources";
+import { IFXEditor } from ".";
 
 const layoutModel: IJsonModel = {
 	global: {
@@ -104,6 +105,7 @@ const layoutModel: IJsonModel = {
 
 export interface IFXEditorLayoutProps {
 	filePath: string | null;
+	editor: IFXEditor;
 }
 
 export interface IFXEditorLayoutState {
@@ -113,11 +115,6 @@ export interface IFXEditorLayoutState {
 }
 
 export class FXEditorLayout extends Component<IFXEditorLayoutProps, IFXEditorLayoutState> {
-	public preview: FXEditorPreview;
-	public graph: FXEditorGraph;
-	public animation: FXEditorAnimation;
-	public properties: FXEditorProperties;
-	public resources: FXEditorResources;
 
 	private _model: Model = Model.fromJson(layoutModel as any);
 
@@ -151,8 +148,8 @@ export class FXEditorLayout extends Component<IFXEditorLayoutProps, IFXEditorLay
 				// Update components immediately after state change
 				this._updateComponents();
 				// Force update properties component after state change
-				if (this.properties) {
-					this.properties.forceUpdate();
+				if (this.props.editor.properties) {
+					this.props.editor.properties.forceUpdate();
 				}
 				// Force update layout to ensure flexlayout-react sees the new component
 				this.forceUpdate();
@@ -164,22 +161,22 @@ export class FXEditorLayout extends Component<IFXEditorLayoutProps, IFXEditorLay
 		this._components = {
 			preview: (
 				<FXEditorPreview
-					ref={(r) => (this.preview = r!)}
+					ref={(r) => (this.props.editor.preview = r!)}
 					filePath={this.props.filePath}
 					onSceneReady={(scene) => {
 						// Update graph when scene is ready
-						if (this.graph) {
-							this.graph.forceUpdate();
+						if (this.props.editor.graph) {
+							this.props.editor.graph.forceUpdate();
 						}
 					}}
 				/>
 			),
 			graph: (
 				<FXEditorGraph
-					ref={(r) => (this.graph = r!)}
+					ref={(r) => (this.props.editor.graph = r!)}
 					filePath={this.props.filePath}
 					onNodeSelected={this._handleNodeSelected}
-					scene={this.preview?.scene || undefined}
+					editor={this.props.editor}
 					onResourcesLoaded={(resources) => {
 						this.setState({ resources });
 					}}
@@ -187,27 +184,27 @@ export class FXEditorLayout extends Component<IFXEditorLayoutProps, IFXEditorLay
 			),
 			resources: (
 				<FXEditorResources
-					ref={(r) => (this.resources = r!)}
+					ref={(r) => (this.props.editor.resources = r!)}
 					resources={this.state.resources}
 				/>
 			),
-			animation: <FXEditorAnimation ref={(r) => (this.animation = r!)} filePath={this.props.filePath} />,
+			animation: <FXEditorAnimation ref={(r) => (this.props.editor.animation = r!)} filePath={this.props.filePath} editor={this.props.editor} />,
 			properties: (
 				<FXEditorProperties
 					key={`properties-${this.state.selectedNodeId || "none"}-${this.state.propertiesKey}`}
-					ref={(r) => (this.properties = r!)}
+					ref={(r) => (this.props.editor.properties = r!)}
 					filePath={this.props.filePath}
 					selectedNodeId={this.state.selectedNodeId}
-					scene={this.preview?.scene || undefined}
+					editor={this.props.editor}
 					onNameChanged={() => {
 						// Update graph node names when name changes
-						if (this.graph) {
-							this.graph.updateNodeNames();
+						if (this.props.editor.graph) {
+							this.props.editor.graph.updateNodeNames();
 						}
 					}}
-					getOrCreateParticleData={(nodeId) => this.graph?.getOrCreateParticleData(nodeId)!}
-					getOrCreateGroupData={(nodeId) => this.graph?.getOrCreateGroupData(nodeId)!}
-					isGroupNode={(nodeId) => this.graph?.isGroupNode(nodeId) ?? false}
+					getOrCreateParticleData={(nodeId) => this.props.editor.graph?.getOrCreateParticleData(nodeId)!}
+					getOrCreateGroupData={(nodeId) => this.props.editor.graph?.getOrCreateGroupData(nodeId)!}
+					isGroupNode={(nodeId) => this.props.editor.graph?.isGroupNode(nodeId) ?? false}
 				/>
 			),
 		};
@@ -239,7 +236,7 @@ export class FXEditorLayout extends Component<IFXEditorLayoutProps, IFXEditorLay
 		}
 
 		node.setEventListener("resize", () => {
-			waitNextAnimationFrame().then(() => this.preview?.resize());
+			waitNextAnimationFrame().then(() => this.props.editor.preview?.resize());
 		});
 
 		return component;

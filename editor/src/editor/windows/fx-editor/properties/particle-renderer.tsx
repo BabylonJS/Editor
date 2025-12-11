@@ -14,10 +14,11 @@ import { AiOutlineClose } from "react-icons/ai";
 import { getProjectAssetsRootUrl } from "../../../../project/configuration";
 
 import { IFXParticleData } from "./types";
+import { IFXEditor } from "..";
 
 export interface IFXEditorParticleRendererPropertiesProps {
 	particleData: IFXParticleData;
-	scene?: Scene;
+	editor: IFXEditor;
 	onChange: () => void;
 }
 
@@ -109,13 +110,13 @@ export class FXEditorParticleRendererProperties extends Component<IFXEditorParti
 	}
 
 	private _getTextureField(): ReactNode {
-		const { particleData, scene } = this.props;
+		const { particleData, editor } = this.props;
 
-		if (!scene) {
+		if (!editor.preview?.scene) {
 			return null;
 		}
 
-		return <EditorInspectorTextureField object={particleData.particleRenderer} property="texture" title="Texture" scene={scene} onChange={() => this.props.onChange()} />;
+		return <EditorInspectorTextureField object={particleData.particleRenderer} property="texture" title="Texture" scene={editor.preview!.scene} onChange={() => this.props.onChange()} />;
 	}
 
 	private _getRenderModeSpecificProperties(renderMode: string): ReactNode {

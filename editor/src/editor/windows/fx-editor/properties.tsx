@@ -10,11 +10,12 @@ import { FXEditorEmissionProperties } from "./properties/emission";
 import { FXEditorParticleInitializationProperties } from "./properties/particle-initialization";
 import { FXEditorBehaviorsProperties } from "./properties/behaviors";
 import { IFXParticleData, IFXGroupData } from "./properties/types";
+import { IFXEditor } from ".";
 
 export interface IFXEditorPropertiesProps {
 	filePath: string | null;
 	selectedNodeId: string | number | null;
-	scene?: Scene;
+	editor: IFXEditor;
 	onNameChanged?: () => void;
 	getOrCreateParticleData: (nodeId: string | number) => IFXParticleData;
 	getOrCreateGroupData: (nodeId: string | number) => IFXGroupData;
@@ -108,7 +109,7 @@ export class FXEditorProperties extends Component<IFXEditorPropertiesProps, IFXE
 				</EditorInspectorSectionField>
 
 				<EditorInspectorSectionField title="Particle Renderer">
-					<FXEditorParticleRendererProperties particleData={particleData} scene={this.props.scene} onChange={() => this.forceUpdate()} />
+					<FXEditorParticleRendererProperties particleData={particleData} editor={this.props.editor} onChange={() => this.forceUpdate()} />
 				</EditorInspectorSectionField>
 
 				<EditorInspectorSectionField title="Emission">

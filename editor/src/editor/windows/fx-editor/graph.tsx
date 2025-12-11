@@ -1,9 +1,9 @@
 import { Component, ReactNode } from "react";
 import { Tree, TreeNodeInfo } from "@blueprintjs/core";
-import { Scene, AbstractMesh, ParticleSystem, SolidParticleSystem, Vector3, Color4, StandardMaterial, PBRMaterial, Texture, Color3 } from "babylonjs";
-import { createParticleSystemFromData, createGroupMesh } from "./particle-generator";
+import { Scene, AbstractMesh, ParticleSystem, SolidParticleSystem, Vector3, Color4, ParticleSystemSet } from "babylonjs";
 import { IFXParticleData, IFXGroupData, IFXNodeData, isGroupData, isParticleData } from "./properties/types";
-import { IConvertedNode, convertThreeJSJSONToFXEditor, IConvertedData } from "./loader";
+import { IConvertedNode, convertThreeJSJSONToFXEditor } from "./loader";
+import { ThreeJSParticleLoader } from "./threeJSParticleLoader";
 
 import { AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
 import { IoSparklesSharp } from "react-icons/io5";
@@ -19,18 +19,19 @@ import {
 	ContextMenuSubTrigger,
 	ContextMenuSubContent,
 } from "../../../ui/shadcn/ui/context-menu";
+import { FXEditorPreview } from "./preview";
+import { IFXEditor } from ".";
 
 // Maps to track created particle systems and meshes
 const createdParticleSystemsMap = new Map<string | number, ParticleSystem | SolidParticleSystem>();
 const createdMeshesMap = new Map<string | number, AbstractMesh>();
-const createdMaterialsMap = new Map<string, StandardMaterial | PBRMaterial>();
-const createdTexturesMap = new Map<string, Texture>();
+const particleSystemSetsMap = new Map<string | number, ParticleSystemSet>();
 
 export interface IFXEditorGraphProps {
 	filePath: string | null;
 	onNodeSelected?: (nodeId: string | number | null) => void;
 	onResourcesLoaded?: (resources: IConvertedNode[]) => void;
-	scene?: Scene;
+	editor: IFXEditor;
 }
 
 export interface IFXEditorGraphState {
@@ -247,163 +248,66 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 	}
 
 	public componentDidMount(): void {
-		this._syncParticlesWithScene();
+
 	}
 
 	public componentDidUpdate(prevProps: IFXEditorGraphProps): void {
-		if (prevProps.scene !== this.props.scene) {
-			this._syncParticlesWithScene();
-		}
+
 	}
 
 	/**
-	 * Loads nodes from converted Three.js JSON data
+	 * Loads nodes from converted Three.js JSON data using ThreeJSParticleLoader
 	 */
 	public async loadFromFile(filePath: string): Promise<void> {
 		try {
-			const convertedData = await convertThreeJSJSONToFXEditor(filePath);
-			const { nodes, resources, materials, textures } = convertedData;
-			
-			// Create materials and textures if scene is available
-			if (this.props.scene) {
-				await this._createMaterialsAndTextures(materials, textures, filePath);
+			if (!this.props.editor.preview?.scene) {
+				console.error("Scene is not available");
+				return;
 			}
-			
-			// Filter out resource nodes (texture, geometry) - they will be shown in Resources tab
-			const particleNodes = nodes.filter((n) => n.type === "particle" || n.type === "group");
-			const treeNodes = this._convertToTreeNodeInfo(particleNodes, null);
-			this.setState({ nodes: treeNodes }, () => {
-				this._syncParticlesWithScene();
+
+			// Use ThreeJSParticleLoader to load and create particle systems
+			const dirname = require("path").dirname(filePath);
+			const particleSystemSet = await ThreeJSParticleLoader.LoadAsync(filePath, this.props.editor.preview!.scene, dirname + "/");
+
+			// Store particle system set
+			const setId = `set-${Date.now()}`;
+			particleSystemSetsMap.set(setId, particleSystemSet);
+
+			// Map particle systems to our tracking map and START them
+			particleSystemSet.systems.forEach((ps, index) => {
+				if (ps instanceof ParticleSystem) {
+					const nodeId = `particle-${setId}-${index}`;
+					createdParticleSystemsMap.set(nodeId, ps);
+					// Start the particle system
+					if (!ps.isStarted()) {
+						ps.start();
+					}
+				} else if (ps instanceof SolidParticleSystem) {
+					const nodeId = `particle-${setId}-${index}`;
+					createdParticleSystemsMap.set(nodeId, ps);
+					// For SPS, call setParticles to update them
+					ps.setParticles();
+				}
 			});
+
+			// // Also convert to our node structure for tree view
+			// const convertedData = await convertThreeJSJSONToFXEditor(filePath);
+			// const { nodes, resources } = convertedData;
+
+			// // Filter out resource nodes (texture, geometry) - they will be shown in Resources tab
+			// const particleNodes = nodes.filter((n) => n.type === "particle" || n.type === "group");
+			// const treeNodes = this._convertToTreeNodeInfo(particleNodes, null);
+			// this.setState({ nodes: treeNodes });
+
 			// Notify parent about loaded resources
-			if (this.props.onResourcesLoaded) {
-				this.props.onResourcesLoaded(resources);
-			}
+			// if (this.props.onResourcesLoaded) {
+			// 	this.props.onResourcesLoaded(resources);
+			// }
 		} catch (error) {
 			console.error("Failed to load FX file:", error);
 		}
 	}
 
-	/**
-	 * Creates materials and textures from converted data
-	 */
-	private async _createMaterialsAndTextures(
-		materials: IConvertedData["materials"],
-		textures: IConvertedData["textures"],
-		filePath: string
-	): Promise<void> {
-		if (!this.props.scene) {
-			return;
-		}
-
-		const scene = this.props.scene;
-		const dirname = require("path").dirname(filePath);
-
-		// Clear existing materials and textures
-		createdMaterialsMap.forEach((mat) => mat.dispose());
-		createdMaterialsMap.clear();
-		createdTexturesMap.forEach((tex) => tex.dispose());
-		createdTexturesMap.clear();
-
-		// Create textures first
-		for (const textureData of textures) {
-			if (!textureData.imageUrl) {
-				continue;
-			}
-
-			try {
-				// Resolve texture path relative to JSON file
-				const texturePath = require("path").isAbsolute(textureData.imageUrl)
-					? textureData.imageUrl
-					: require("path").join(dirname, textureData.imageUrl);
-
-				const texture = new Texture(texturePath, scene);
-				texture.name = textureData.name || textureData.uuid;
-				createdTexturesMap.set(textureData.uuid, texture);
-			} catch (error) {
-				console.warn(`Failed to load texture ${textureData.uuid}:`, error);
-			}
-		}
-
-		// Create materials
-		for (const materialData of materials) {
-			try {
-				let material: StandardMaterial | PBRMaterial;
-
-				if (materialData.type === "MeshBasicMaterial") {
-					material = new StandardMaterial(`Material_${materialData.uuid}`, scene);
-				} else {
-					// MeshStandardMaterial -> PBRMaterial
-					material = new PBRMaterial(`Material_${materialData.uuid}`, scene);
-				}
-
-				// Convert color from hex number (0xRRGGBB) to Color3
-				if (materialData.color !== undefined) {
-					const r = ((materialData.color >> 16) & 0xff) / 255;
-					const g = ((materialData.color >> 8) & 0xff) / 255;
-					const b = (materialData.color & 0xff) / 255;
-					
-					if (material instanceof StandardMaterial) {
-						material.diffuseColor = new Color3(r, g, b);
-					} else if (material instanceof PBRMaterial) {
-						material.albedoColor = new Color3(r, g, b);
-					}
-				}
-
-				// Apply texture
-				if (materialData.map) {
-					const texture = createdTexturesMap.get(materialData.map);
-					if (texture) {
-						if (material instanceof StandardMaterial) {
-							material.diffuseTexture = texture;
-						} else if (material instanceof PBRMaterial) {
-							material.albedoTexture = texture;
-						}
-					}
-				}
-
-				// Apply transparency
-				if (materialData.transparent !== undefined) {
-					material.alpha = materialData.transparent ? (materialData.opacity ?? 1.0) : 1.0;
-				} else if (materialData.opacity !== undefined) {
-					material.alpha = materialData.opacity;
-				}
-
-				// Apply side (0 = Front, 1 = Back, 2 = Double)
-				if (materialData.side !== undefined) {
-					if (materialData.side === 0) {
-						material.sideOrientation = 1; // Front
-					} else if (materialData.side === 1) {
-						material.sideOrientation = 2; // Back
-					} else {
-						material.sideOrientation = 0; // Double
-					}
-				}
-
-				// Apply depth write
-				if (materialData.depthWrite !== undefined) {
-					material.disableDepthWrite = !materialData.depthWrite;
-				}
-
-				// Apply blending (0 = No, 1 = Normal, 2 = Additive, 3 = Multiply, etc.)
-				if (materialData.blending !== undefined) {
-					// Three.js blending modes: 0 = No, 1 = Normal, 2 = Additive, 3 = Multiply
-					// Babylon.js: use alpha blending for additive, multiply for multiply
-					if (materialData.blending === 2) {
-						// Additive blending
-						material.alphaMode = 2; // ALPHA_ADD
-					} else if (materialData.blending === 3) {
-						// Multiply blending
-						material.alphaMode = 3; // ALPHA_MULTIPLY
-					}
-				}
-
-				createdMaterialsMap.set(materialData.uuid, material);
-			} catch (error) {
-				console.warn(`Failed to create material ${materialData.uuid}:`, error);
-			}
-		}
-	}
 
 	/**
 	 * Updates node names in the graph (called when name changes in properties)
@@ -469,89 +373,6 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 		});
 	}
 
-	/**
-	 * Syncs particle systems with the scene based on graph nodes
-	 */
-	private _syncParticlesWithScene(): void {
-		if (!this.props.scene) {
-			return;
-		}
-
-		// Clear existing particle systems
-		createdParticleSystemsMap.forEach((ps) => {
-			if (ps.dispose) {
-				ps.dispose();
-			}
-		});
-		createdParticleSystemsMap.clear();
-
-		createdMeshesMap.forEach((mesh) => {
-			mesh.dispose();
-		});
-		createdMeshesMap.clear();
-
-		// Create particle systems from graph nodes
-		this._createParticlesFromNodes(this.state.nodes, this.props.scene, null);
-	}
-
-	/**
-	 * Recursively creates particle systems from graph nodes
-	 */
-	private _createParticlesFromNodes(nodes: TreeNodeInfo[], scene: Scene, parentMesh: AbstractMesh | null): void {
-		for (const node of nodes) {
-			const nodeData = node.nodeData as IFXNodeData | undefined;
-			if (!nodeData) {
-				continue;
-			}
-
-			if (isGroupData(nodeData)) {
-				// Create group mesh (empty mesh)
-				const groupMesh = createGroupMesh(scene, nodeData.name, nodeData.position, nodeData.rotation, nodeData.scale);
-				groupMesh.setEnabled(nodeData.visibility);
-
-				if (parentMesh) {
-					groupMesh.parent = parentMesh;
-				}
-
-				createdMeshesMap.set(nodeData.id, groupMesh);
-
-				// Recursively create children
-				if (node.childNodes) {
-					this._createParticlesFromNodes(node.childNodes, scene, groupMesh);
-				}
-			} else if (isParticleData(nodeData)) {
-				// Apply material and texture to particle data if available
-				if (nodeData.particleRenderer.material?.uuid) {
-					const material = createdMaterialsMap.get(nodeData.particleRenderer.material.uuid);
-					if (material) {
-						// Material is already created, we can use it
-						// Note: ParticleSystem doesn't directly use materials, but we can apply texture
-					}
-				}
-
-				// Apply texture if available
-				if (nodeData.particleRenderer.texture?.uuid) {
-					const texture = createdTexturesMap.get(nodeData.particleRenderer.texture.uuid);
-					if (texture) {
-						nodeData.particleRenderer.texture = texture;
-					}
-				}
-
-				// Create particle system
-				const emitter = parentMesh || undefined;
-				const particleSystem = createParticleSystemFromData(scene, nodeData, emitter);
-
-				if (particleSystem) {
-					createdParticleSystemsMap.set(nodeData.id, particleSystem);
-				}
-
-				// Recursively create children (particles can have children too)
-				if (node.childNodes) {
-					this._createParticlesFromNodes(node.childNodes, scene, emitter || null);
-				}
-			}
-		}
-	}
 
 	public render(): ReactNode {
 		return (
@@ -706,24 +527,6 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 			hasCaret: false,
 			nodeData: particleData,
 		};
-
-		if (parentId) {
-			// Add to parent's children
-			const nodes = this._addNodeToParent(this.state.nodes, parentId, newNode);
-			this.setState({ nodes }, () => {
-				this._syncParticlesWithScene();
-			});
-		} else {
-			// Add to root
-			this.setState(
-				{
-					nodes: [...this.state.nodes, newNode],
-				},
-				() => {
-					this._syncParticlesWithScene();
-				}
-			);
-		}
 	}
 
 	private _handleAddGroup(parentId?: string | number): void {
@@ -740,24 +543,6 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 			hasCaret: true,
 			nodeData: groupData,
 		};
-
-		if (parentId) {
-			// Add to parent's children
-			const nodes = this._addNodeToParent(this.state.nodes, parentId, newNode);
-			this.setState({ nodes }, () => {
-				this._syncParticlesWithScene();
-			});
-		} else {
-			// Add to root
-			this.setState(
-				{
-					nodes: [...this.state.nodes, newNode],
-				},
-				() => {
-					this._syncParticlesWithScene();
-				}
-			);
-		}
 	}
 
 	private _handleAddParticlesToNode(node: TreeNodeInfo): void {
@@ -828,15 +613,6 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 		const newNodes = deleteNodeById(this.state.nodes, deletedId);
 		const newSelectedNodeId = this.state.selectedNodeId === deletedId ? null : this.state.selectedNodeId;
 
-		this.setState(
-			{
-				nodes: newNodes,
-				selectedNodeId: newSelectedNodeId,
-			},
-			() => {
-				this._syncParticlesWithScene();
-			}
-		);
 
 		if (this.state.selectedNodeId === deletedId) {
 			this.props.onNodeSelected?.(null);
