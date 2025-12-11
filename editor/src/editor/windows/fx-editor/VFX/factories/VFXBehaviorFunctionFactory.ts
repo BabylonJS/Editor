@@ -1,6 +1,6 @@
-import type { Particle } from "../../particle";
-import type { SolidParticle } from "../../solidParticle";
-import type { ParticleSystem } from "../../particleSystem";
+import type { Particle } from "@babylonjs/core/Particles/particle";
+import type { SolidParticle } from "@babylonjs/core/Particles/solidParticle";
+import type { ParticleSystem } from "@babylonjs/core/Particles/particleSystem";
 import type {
     VFXBehavior,
     VFXColorBySpeedBehavior,
@@ -163,7 +163,7 @@ export class VFXBehaviorFunctionFactory {
         return functions;
     }
 
-    public static createSystemFunctions(behaviors: VFXBehavior[], valueParser: VFXValueParser): VFXSystemBehaviorFunction[] {
+    public static createSystemFunctions(behaviors: VFXBehavior[], _valueParser: VFXValueParser): VFXSystemBehaviorFunction[] {
         const functions: VFXSystemBehaviorFunction[] = [];
 
         for (const behavior of behaviors) {

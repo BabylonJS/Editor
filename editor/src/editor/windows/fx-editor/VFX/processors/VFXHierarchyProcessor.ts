@@ -1,6 +1,6 @@
-import type { Nullable } from "../../../types";
-import { Vector3, Quaternion } from "../../../Maths/math.vector";
-import { TransformNode } from "../../../Meshes/transformNode";
+import type { Nullable } from "@babylonjs/core/types";
+import { Vector3, Quaternion } from "@babylonjs/core/Maths/math.vector";
+import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { VFXParticleSystem } from "../systems/VFXParticleSystem";
 import { VFXSolidParticleSystem } from "../systems/VFXSolidParticleSystem";
 import type { VFXParseContext } from "../types/context";
@@ -263,7 +263,7 @@ export class VFXHierarchyProcessor {
      * For SPS, transformations are applied in initParticles (after buildMesh)
      * For ParticleSystem, we need to find and update the emitter mesh
      */
-    private _applyVFXTransformToEmitter(vfxEmitter: VFXEmitter, currentGroup: Nullable<TransformNode>, depth: number, options?: VFXLoaderOptions): void {
+    private _applyVFXTransformToEmitter(vfxEmitter: VFXEmitter, _currentGroup: Nullable<TransformNode>, depth: number, options?: VFXLoaderOptions): void {
         const indent = "  ".repeat(depth);
         const emitterName = vfxEmitter.name;
 

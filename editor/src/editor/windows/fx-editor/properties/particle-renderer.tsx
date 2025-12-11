@@ -1,5 +1,4 @@
 import { Component, ReactNode, DragEvent } from "react";
-import { Scene } from "babylonjs";
 import { extname } from "path/posix";
 
 import { EditorInspectorSectionField } from "../../../layout/inspector/fields/section";

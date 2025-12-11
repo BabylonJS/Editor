@@ -1,11 +1,11 @@
-import type { Nullable } from "../../../types";
-import { Vector3, Matrix, Quaternion } from "../../../Maths/math.vector";
-import { Color4 } from "../../../Maths/math.color";
-import { ParticleSystem } from "../../particleSystem";
-import { SolidParticleSystem } from "../../solidParticleSystem";
-import { CreatePlane } from "../../../Meshes/Builders/planeBuilder";
-import { Mesh } from "../../../Meshes/mesh";
-import { Constants } from "../../../Engines/constants";
+import type { Nullable } from "@babylonjs/core/types";
+import { Vector3, Matrix, Quaternion } from "@babylonjs/core/Maths/math.vector";
+import { Color4 } from "@babylonjs/core/Maths/math.color";
+import { ParticleSystem } from "@babylonjs/core/Particles/particleSystem";
+import { SolidParticleSystem } from "@babylonjs/core/Particles/solidParticleSystem";
+import { CreatePlane } from "@babylonjs/core/Meshes/Builders/planeBuilder";
+import { Mesh } from "@babylonjs/core/Meshes/mesh";
+import { Constants } from "@babylonjs/core/Engines/constants";
 import type { VFXEmitterData } from "../types/emitter";
 import type { VFXParseContext } from "../types/context";
 import type { VFXLoaderOptions } from "../types/loader";
@@ -508,7 +508,7 @@ export class VFXEmitterFactory {
         bursts: import("../types/emitterConfig").VFXEmissionBurst[],
         baseEmitRate: number,
         duration: number,
-        options?: VFXLoaderOptions
+        _options?: VFXLoaderOptions
     ): void {
         for (const burst of bursts) {
             if (burst.time !== undefined && burst.count !== undefined) {

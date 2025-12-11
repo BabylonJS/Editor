@@ -1,6 +1,5 @@
 import { Component, ReactNode } from "react";
 import { Tree, TreeNodeInfo } from "@blueprintjs/core";
-import { IConvertedNode } from "./loader";
 
 import { IoImageOutline, IoCubeOutline } from "react-icons/io5";
 
@@ -12,7 +11,7 @@ import {
 } from "../../../ui/shadcn/ui/context-menu";
 
 export interface IFXEditorResourcesProps {
-	resources: IConvertedNode[];
+	resources: any[];
 }
 
 export interface IFXEditorResourcesState {
@@ -36,7 +35,7 @@ export class FXEditorResources extends Component<IFXEditorResourcesProps, IFXEdi
 		}
 	}
 
-	private _convertToTreeNodeInfo(resources: IConvertedNode[]): TreeNodeInfo[] {
+	private _convertToTreeNodeInfo(resources: any[]): TreeNodeInfo[] {
 		return resources.map((resource) => {
 			const icon = resource.type === "texture" ? (
 				<IoImageOutline className="w-4 h-4" />

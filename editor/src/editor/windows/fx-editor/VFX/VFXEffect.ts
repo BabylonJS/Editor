@@ -1,4 +1,4 @@
-import type { Scene } from "@babylonjs/core/scene";
+import type { Scene } from "@babylonjs/core";
 import { Tools } from "@babylonjs/core/Misc/tools";
 import type { IDisposable } from "@babylonjs/core/scene";
 import type { QuarksVFXJSON } from "./types/quarksTypes";

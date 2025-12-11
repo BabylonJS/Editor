@@ -1,16 +1,16 @@
-import type { Nullable } from "../../../types";
-import { Color3 } from "../../../Maths/math.color";
-import { Texture } from "../../../Materials/Textures/texture";
-import { PBRMaterial } from "../../../Materials/PBR/pbrMaterial";
-import { Material } from "../../../Materials/material";
-import { Constants } from "../../../Engines/constants";
-import { Tools } from "../../../Misc/tools";
+import type { Nullable } from "@babylonjs/core/types";
+import { Color3 } from "@babylonjs/core/Maths/math.color";
+import { Texture } from "@babylonjs/core/Materials/Textures/texture";
+import { PBRMaterial } from "@babylonjs/core/Materials/PBR/pbrMaterial";
+import { Material } from "@babylonjs/core/Materials/material";
+import { Constants } from "@babylonjs/core/Engines/constants";
+import { Tools } from "@babylonjs/core/Misc/tools";
 import type { IVFXMaterialFactory } from "../types/factories";
 import type { VFXParseContext } from "../types/context";
 import type { VFXLoaderOptions } from "../types/loader";
 import { VFXLogger } from "../loggers/VFXLogger";
 import type { QuarksTexture } from "../types/quarksTypes";
-import type { Scene } from "../../../scene";
+import type { Scene } from "@babylonjs/core/scene";
 
 /**
  * Factory for creating materials and textures from Three.js JSON data
@@ -83,7 +83,7 @@ export class VFXMaterialFactory implements IVFXMaterialFactory {
     /**
      * Helper method to create texture from texture data
      */
-    private _createTextureFromData(textureUrl: string, texture: QuarksTexture, scene: Scene, options?: VFXLoaderOptions): Texture {
+    private _createTextureFromData(textureUrl: string, texture: QuarksTexture, scene: Scene, _options?: VFXLoaderOptions): Texture {
         // Determine sampling mode from texture filters
         let samplingMode = Texture.TRILINEAR_SAMPLINGMODE; // Default
         if (texture.minFilter !== undefined) {
@@ -184,7 +184,7 @@ export class VFXMaterialFactory implements IVFXMaterialFactory {
             return null;
         }
 
-        const imageInfo = [];
+        const imageInfo: string[] = [];
         if (image.url) {
             const urlParts = image.url.split("/");
             let filename = urlParts[urlParts.length - 1] || image.url;

@@ -1,4 +1,4 @@
-import type { ParticleSystem } from "../../particleSystem";
+import type { ParticleSystem } from "@babylonjs/core/Particles/particleSystem";
 import type { VFXLimitSpeedOverLifeBehavior } from "../types/behaviors";
 import { extractNumberFromValue } from "./utils";
 import { VFXValueParser } from "../parsers/VFXValueParser";

@@ -1,4 +1,4 @@
-import type { Scene } from "../../../scene";
+import type { Scene } from "@babylonjs/core/scene";
 import type { QuarksVFXJSON } from "../types/quarksTypes";
 import type { VFXLoaderOptions } from "../types/loader";
 import type { VFXParseContext } from "../types/context";
@@ -9,7 +9,7 @@ import { VFXGeometryFactory } from "../factories/VFXGeometryFactory";
 import { VFXEmitterFactory } from "../factories/VFXEmitterFactory";
 import { VFXHierarchyProcessor } from "../processors/VFXHierarchyProcessor";
 import { VFXDataConverter } from "./VFXDataConverter";
-import { TransformNode } from "../../../Meshes/transformNode";
+import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { VFXParticleSystem } from "../systems/VFXParticleSystem";
 import { VFXSolidParticleSystem } from "../systems/VFXSolidParticleSystem";
 

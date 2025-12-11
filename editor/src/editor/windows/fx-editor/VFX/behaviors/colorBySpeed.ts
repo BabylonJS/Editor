@@ -1,22 +1,15 @@
-import type { Particle } from "../../particle";
-import type { SolidParticle } from "../../solidParticle";
+import type { SolidParticle } from "@babylonjs/core/Particles/solidParticle";
+import type { Particle } from "@babylonjs/core/Particles/particle";
 import type { VFXColorBySpeedBehavior } from "../types/behaviors";
 import { interpolateColorKeys } from "./utils";
 import { VFXValueParser } from "../parsers/VFXValueParser";
-import type { Color4 } from "../../../Maths/math.color";
 
-/**
- * Extended Particle interface for custom behaviors
- */
-interface ExtendedParticle extends Particle {
-    startSpeed?: number;
-    startColor?: Color4;
-}
+
 
 /**
  * Apply ColorBySpeed behavior to Particle
  */
-export function applyColorBySpeedPS(particle: ExtendedParticle, behavior: VFXColorBySpeedBehavior, currentSpeed: number, valueParser: VFXValueParser): void {
+export function applyColorBySpeedPS(particle: Particle, behavior: VFXColorBySpeedBehavior, currentSpeed: number, valueParser: VFXValueParser): void {
     if (!behavior.color || !behavior.color.keys || !particle.color) {
         return;
     }
@@ -27,7 +20,7 @@ export function applyColorBySpeedPS(particle: ExtendedParticle, behavior: VFXCol
     const speedRatio = Math.max(0, Math.min(1, (currentSpeed - minSpeed) / (maxSpeed - minSpeed || 1)));
 
     const interpolatedColor = interpolateColorKeys(colorKeys, speedRatio);
-    const startColor = particle.startColor || particle.initialColor;
+    const startColor = particle.initialColor;
 
     if (startColor) {
         // Multiply with startColor (matching three.quarks behavior)

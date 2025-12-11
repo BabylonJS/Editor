@@ -1,8 +1,8 @@
-import type { Nullable } from "../../../types";
-import type { Scene } from "../../../scene";
-import { Mesh } from "../../../Meshes/mesh";
-import { VertexData } from "../../../Meshes/mesh.vertexData";
-import { CreatePlane } from "../../../Meshes/Builders/planeBuilder";
+import type { Nullable } from "@babylonjs/core/types";
+import { Scene } from "@babylonjs/core/scene";
+import { Mesh } from "@babylonjs/core/Meshes/mesh";
+import { VertexData } from "@babylonjs/core/Meshes/mesh.vertexData";
+import { CreatePlane } from "@babylonjs/core/Meshes/Builders/planeBuilder";
 import type { IVFXGeometryFactory } from "../types/factories";
 import type { VFXParseContext } from "../types/context";
 import type { VFXLoaderOptions } from "../types/loader";

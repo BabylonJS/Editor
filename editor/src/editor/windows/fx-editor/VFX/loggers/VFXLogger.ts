@@ -1,4 +1,4 @@
-import { Logger } from "../../../Misc/logger";
+import { Logger } from "@babylonjs/core/Misc/logger";
 import type { VFXLoaderOptions } from "../types";
 
 /**
@@ -32,7 +32,7 @@ export class VFXLogger {
     /**
      * Log an error
      */
-    public error(message: string, options?: VFXLoaderOptions): void {
+    public error(message: string, _options?: VFXLoaderOptions): void {
         Logger.Error(`${this._prefix} ${message}`);
     }
 }

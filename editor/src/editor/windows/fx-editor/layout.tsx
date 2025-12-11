@@ -163,7 +163,7 @@ export class FXEditorLayout extends Component<IFXEditorLayoutProps, IFXEditorLay
 				<FXEditorPreview
 					ref={(r) => (this.props.editor.preview = r!)}
 					filePath={this.props.filePath}
-					onSceneReady={(scene) => {
+					onSceneReady={() => {
 						// Update graph when scene is ready
 						if (this.props.editor.graph) {
 							this.props.editor.graph.forceUpdate();
@@ -177,9 +177,9 @@ export class FXEditorLayout extends Component<IFXEditorLayoutProps, IFXEditorLay
 					filePath={this.props.filePath}
 					onNodeSelected={this._handleNodeSelected}
 					editor={this.props.editor}
-					onResourcesLoaded={(resources) => {
-						this.setState({ resources });
-					}}
+					// onResourcesLoaded={(resources) => {
+					// 	this.setState({ resources });
+					// }}
 				/>
 			),
 			resources: (

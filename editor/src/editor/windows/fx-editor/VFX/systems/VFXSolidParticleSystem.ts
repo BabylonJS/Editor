@@ -1,8 +1,8 @@
-import { Vector3, Quaternion, Matrix } from "../../../Maths/math.vector";
-import { Color4 } from "../../../Maths/math.color";
-import { SolidParticleSystem } from "../../solidParticleSystem";
-import { SolidParticle } from "../../solidParticle";
-import type { TransformNode } from "../../../Meshes/transformNode";
+import { Vector3, Quaternion, Matrix } from "@babylonjs/core/Maths/math.vector";
+import { Color4 } from "@babylonjs/core/Maths/math.color";
+import { SolidParticleSystem } from "@babylonjs/core/Particles/solidParticleSystem";
+import { SolidParticle } from "@babylonjs/core/Particles/solidParticle";
+import type { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import type { VFXParticleEmitterConfig, VFXEmissionBurst } from "../types/emitterConfig";
 import type { VFXValueParser } from "../parsers/VFXValueParser";
 import { VFXLogger } from "../loggers/VFXLogger";
@@ -259,6 +259,7 @@ export class VFXSolidParticleSystem extends SolidParticleSystem {
     }
 
     private _initializeEmitterShape(particle: SolidParticle, emissionState: EmissionState): void {
+        console.log("initializeEmitterShape", particle, emissionState);
         const config = this._config;
         const startSpeed = particle.props?.startSpeed ?? 0;
 
