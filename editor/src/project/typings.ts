@@ -37,4 +37,4 @@ export interface IEditorProjectPlugin {
 
 export type EditorProjectPackageManager = "npm" | "yarn" | "pnpm" | "bun";
 
-export type EditorProjectTemplate = "nextjs" | "solidjs" | "vanillajs";
+export type EditorProjectTemplate = "nextjs" | "solidjs" | "vanillajs" | "electron";

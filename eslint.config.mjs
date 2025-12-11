@@ -4,7 +4,7 @@ import typeScriptPlugin from "@typescript-eslint/eslint-plugin";
 
 export default defineConfig([
 	{
-		files: ["**/src/**/*.{ts,tsx}"],
+		files: ["**/src/**/*.{ts,mts,tsx}"],
 		ignores: ["./editor/src/ui/shadcn/**/*.{ts,tsx}", "./templates/**/src/scripts.ts", "./website/src/scripts.ts"],
 		languageOptions: {
 			ecmaVersion: "latest",

@@ -1,8 +1,9 @@
 {
-    "name": "babylonjs-editor-templates",
-    "version": "0.1.0",
-    "private": true,
-    "scripts": {
-        "build": "yarn workspace babylonjs-editor-nextjs-template build && yarn workspace babylonjs-editor-solidjs-template build && yarn workspace babylonjs-editor-vanillajs-template build"
-    }
+	"name": "babylonjs-editor-templates",
+	"version": "0.1.0",
+	"private": true,
+	"scripts": {
+		"clean": "rimraf nextjs/.next solidjs/dist vanillajs/dist electron/dist electron/electron-packages",
+		"build": "yarn workspace babylonjs-editor-nextjs-template build && yarn workspace babylonjs-editor-solidjs-template build && yarn workspace babylonjs-editor-vanillajs-template build && yarn workspace babylonjs-editor-electron-template build"
+	}
 }

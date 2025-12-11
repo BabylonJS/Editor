@@ -155,6 +155,10 @@ export default function HomePage() {
 										,{" "}
 										<Link target="_blank" href="https://www.solidjs.com" className="underline underline-offset-4">
 											SolidJS
+										</Link>
+										,{" "}
+										<Link target="_blank" href="https://www.electronjs.org/" className="underline underline-offset-4">
+											Electron
 										</Link>{" "}
 										and Vanilla templates, allowing you to bypass the tedious setup process and dive straight into building your project.
 										<br />

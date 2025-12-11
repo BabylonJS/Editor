@@ -1,0 +1,13 @@
+{
+	"compilerOptions": {
+		"target": "ESNext",
+		"module": "ESNext",
+		"moduleResolution": "bundler",
+		"allowSyntheticDefaultImports": true,
+		"esModuleInterop": true,
+		"types": ["vite/client"],
+		"noEmit": true,
+		"isolatedModules": true,
+		"experimentalDecorators": true
+	}
+}
