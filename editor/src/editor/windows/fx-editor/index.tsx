@@ -11,6 +11,11 @@ import { FXEditorLayout } from "./layout";
 import { FXEditorToolbar } from "./toolbar";
 
 import { projectConfiguration, onProjectConfigurationChangedObservable, IProjectConfiguration } from "../../../project/configuration";
+import { FXEditorAnimation } from "./animation";
+import { FXEditorGraph } from "./graph";
+import { FXEditorPreview } from "./preview";
+import { FXEditorProperties } from "./properties";
+import { FXEditorResources } from "./resources";
 
 export interface IFXEditorWindowProps {
 	filePath?: string;
@@ -21,8 +26,23 @@ export interface IFXEditorWindowState {
 	filePath: string | null;
 }
 
+export interface IFXEditor {
+	layout: FXEditorLayout | null;
+	preview: FXEditorPreview | null;
+	graph: FXEditorGraph | null;
+	animation: FXEditorAnimation | null;
+	properties: FXEditorProperties | null;
+	resources: FXEditorResources | null;
+}
 export default class FXEditorWindow extends Component<IFXEditorWindowProps, IFXEditorWindowState> {
-	private layout: FXEditorLayout | null = null;
+	public editor: IFXEditor = {
+		layout: null,
+		preview: null,
+		graph: null,
+		animation: null,
+		properties: null,
+		resources: null,
+	}
 
 	public constructor(props: IFXEditorWindowProps) {
 		super(props);
@@ -39,7 +59,7 @@ export default class FXEditorWindow extends Component<IFXEditorWindowProps, IFXE
 					<FXEditorToolbar fxEditor={this} />
 
 					<div className="w-full h-full overflow-hidden">
-						<FXEditorLayout ref={(r) => (this.layout = r)} filePath={this.state.filePath || ""} />
+						<FXEditorLayout ref={(r) => (this.editor.layout = r)} filePath={this.state.filePath || ""} editor={this.editor} />
 					</div>
 				</div>
 
@@ -92,8 +112,8 @@ export default class FXEditorWindow extends Component<IFXEditorWindowProps, IFXE
 	public async importFile(filePath: string): Promise<void> {
 		try {
 			// Get graph component reference from layout
-			if (this.layout && this.layout.graph) {
-				await this.layout.graph.loadFromFile(filePath);
+			if (this.editor.graph) {
+				await this.editor.graph.loadFromFile(filePath);
 				toast.success("FX imported");
 			} else {
 				toast.error("Failed to import FX: Graph not available");

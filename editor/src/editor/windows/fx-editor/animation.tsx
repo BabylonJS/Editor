@@ -1,7 +1,9 @@
 import { Component, ReactNode } from "react";
+import { IFXEditor } from ".";
 
 export interface IFXEditorAnimationProps {
 	filePath: string | null;
+	editor: IFXEditor;
 }
 
 export class FXEditorAnimation extends Component<IFXEditorAnimationProps> {

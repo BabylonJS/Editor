@@ -1,4 +1,4 @@
-import { Vector3, Color4, Matrix, Quaternion } from "babylonjs";
+import { Vector3, Matrix, Quaternion, Color4 } from "babylonjs";
 import { readJSON } from "fs-extra";
 import { IFXParticleData, IFXGroupData } from "./properties/types";
 
@@ -188,22 +188,38 @@ export interface IConvertedData {
 		image?: string;
 		imageUrl?: string;
 	}>;
+	geometries: Array<{
+		uuid: string;
+		type: string;
+		name?: string;
+		data?: any;
+		[name: string]: any;
+	}>;
+	images: Array<{
+		uuid: string;
+		url?: string;
+		name?: string;
+		data?: string;
+		format?: string;
+	}>;
 }
 
 /**
- * Converts a Three.js JSON file (from quarks) to FX editor format
+ * Converts a Three.js JSON file to FX editor node structure for UI tree view
+ * Note: Actual particle systems are created by ThreeJSParticleLoader
  */
 export async function convertThreeJSJSONToFXEditor(filePath: string): Promise<IConvertedData> {
 	const json: IThreeJSJSON = await readJSON(filePath);
 
 	if (!json.object) {
-		return { nodes: [], resources: [], materials: [], textures: [] };
+		return { nodes: [], resources: [], materials: [], textures: [], geometries: [], images: [] };
 	}
 
 	const convertedNodes: IConvertedNode[] = [];
 	const usedResources = new Set<string>(); // Track used texture and geometry UUIDs
 	
-	_convertObject(json.object, null, convertedNodes, json, usedResources);
+	// Simple conversion - just create node structure for tree view
+	_convertObjectToNodes(json.object, null, convertedNodes, json, usedResources);
 
 	// Add resource nodes for textures and geometries
 	const resourceNodes: IConvertedNode[] = [];
@@ -228,9 +244,24 @@ export async function convertThreeJSJSONToFXEditor(filePath: string): Promise<IC
 		});
 	}
 
-	// Extract textures data
+	// Extract textures and images data
 	const texturesData: IConvertedData["textures"] = [];
-	if (json.textures && json.images) {
+	const imagesData: IConvertedData["images"] = [];
+	
+	// Store all images first
+	if (json.images) {
+		json.images.forEach((image) => {
+			imagesData.push({
+				uuid: image.uuid,
+				url: image.url,
+				name: image.name,
+				data: image.data,
+				format: image.format,
+			});
+		});
+	}
+
+	if (json.textures) {
 		json.textures.forEach((texture) => {
 			if (usedResources.has(texture.uuid)) {
 				const image = json.images?.find((img) => img.uuid === texture.image);
@@ -257,10 +288,19 @@ export async function convertThreeJSJSONToFXEditor(filePath: string): Promise<IC
 		});
 	}
 
-	// Add geometries
+	// Extract geometries data
+	const geometriesData: IConvertedData["geometries"] = [];
 	if (json.geometries) {
 		json.geometries.forEach((geometry) => {
 			if (usedResources.has(geometry.uuid)) {
+				geometriesData.push({
+					uuid: geometry.uuid,
+					type: geometry.type || "BufferGeometry",
+					name: geometry.name,
+					data: geometry.data || geometry,
+					...geometry,
+				});
+
 				resourceNodes.push({
 					id: `geometry-${geometry.uuid}`,
 					name: geometry.name || `Geometry ${geometry.uuid.substring(0, 8)}`,
@@ -274,7 +314,14 @@ export async function convertThreeJSJSONToFXEditor(filePath: string): Promise<IC
 		});
 	}
 
-	return { nodes: convertedNodes, resources: resourceNodes, materials: materialsData, textures: texturesData };
+	return { 
+		nodes: convertedNodes, 
+		resources: resourceNodes, 
+		materials: materialsData, 
+		textures: texturesData,
+		geometries: geometriesData,
+		images: imagesData,
+	};
 }
 
 /**
@@ -354,9 +401,9 @@ function _decomposeMatrix(matrixArray: number[]): { position: Vector3; rotation:
 }
 
 /**
- * Recursively converts Three.js objects to FX editor nodes
+ * Recursively converts Three.js objects to FX editor nodes (simplified - only for UI tree)
  */
-function _convertObject(
+function _convertObjectToNodes(
 	obj: IThreeJSObject,
 	parentId: string | null,
 	convertedNodes: IConvertedNode[],
@@ -364,54 +411,83 @@ function _convertObject(
 	usedResources: Set<string>
 ): void {
 	if (obj.type === "ParticleEmitter" && obj.ps) {
-		// Convert particle emitter
+		// Create simple particle node for tree view
 		const nodeId = `particle-${obj.uuid || Date.now()}-${Math.random()}`;
-		const particleData = _convertParticleSystem(obj.ps, obj.name || "Particle", json);
-		particleData.id = nodeId;
-		particleData.name = obj.name || "Particle";
-
-		// Extract position, rotation, scale from matrix if available
-		if (obj.matrix && obj.matrix.length >= 16) {
-			const { position, rotation, scale } = _decomposeMatrix(obj.matrix);
-			particleData.position = position;
-			particleData.rotation = rotation;
-			particleData.scale = scale;
-		}
-
+		
 		const node: IConvertedNode = {
 			id: nodeId,
 			name: obj.name || "Particle",
 			type: "particle",
 			parentId: parentId || undefined,
-			particleData,
+			// Store minimal particle data - actual creation is done by ThreeJSParticleLoader
+			particleData: {
+				type: "particle",
+				id: nodeId,
+				name: obj.name || "Particle",
+				visibility: obj.visible !== false,
+				position: new Vector3(0, 0, 0),
+				rotation: new Vector3(0, 0, 0),
+				scale: new Vector3(1, 1, 1),
+				emitterShape: { shape: "Box" },
+				particleRenderer: {
+					renderMode: "Billboard",
+					worldSpace: false,
+					material: null,
+					materialType: "MeshStandardMaterial",
+					transparent: true,
+					opacity: 1.0,
+					side: "Double",
+					blending: "Add",
+					color: new Color4(1, 1, 1, 1),
+					renderOrder: 0,
+					uvTile: { column: 1, row: 1, startTileIndex: 0, blendTiles: false },
+					texture: null,
+					meshPath: null,
+					softParticles: false,
+				},
+				emission: { looping: true, duration: 5, prewarm: false, onlyUsedByOtherSystem: false, emitOverTime: 10, emitOverDistance: 0 },
+				bursts: [],
+				particleInitialization: {
+					startLife: { functionType: "IntervalValue", data: { min: 1, max: 2 } },
+					startSize: { functionType: "IntervalValue", data: { min: 0.1, max: 0.2 } },
+					startSpeed: { functionType: "IntervalValue", data: { min: 1, max: 2 } },
+					startColor: { colorFunctionType: "ConstantColor", data: { color: { r: 1, g: 1, b: 1, a: 1 } } },
+					startRotation: { functionType: "IntervalValue", data: { min: 0, max: 360 } },
+				},
+				behaviors: [],
+			},
 		};
 
-		// Track used resources
-		if (particleData.particleRenderer.texture?.uuid) {
-			usedResources.add(particleData.particleRenderer.texture.uuid);
+		// Extract position, rotation, scale from matrix if available
+		if (obj.matrix && obj.matrix.length >= 16) {
+			const { position, rotation, scale } = _decomposeMatrix(obj.matrix);
+			if (node.particleData) {
+				node.particleData.position = position;
+				node.particleData.rotation = rotation;
+				node.particleData.scale = scale;
+			}
 		}
-		if (particleData.particleRenderer.material?.uuid) {
-			usedResources.add(particleData.particleRenderer.material.uuid);
-			// Also track texture from material
-			if (json.materials) {
-				const material = json.materials.find((m) => m.uuid === particleData.particleRenderer.material?.uuid);
+
+		// Track used resources
+		if (obj.ps) {
+			const ps = obj.ps;
+			if (ps.material && json.materials) {
+				usedResources.add(ps.material);
+				const material = json.materials.find((m) => m.uuid === ps.material);
 				if (material?.map && json.textures) {
 					usedResources.add(material.map);
 				}
 			}
-		}
-		if (particleData.particleRenderer.meshPath) {
-			usedResources.add(particleData.particleRenderer.meshPath);
-		}
-		if (particleData.emitterShape.meshPath) {
-			usedResources.add(particleData.emitterShape.meshPath);
+			if (ps.instancingGeometry) {
+				usedResources.add(ps.instancingGeometry);
+			}
 		}
 
 		// Process children
 		if (obj.children) {
 			node.children = [];
 			obj.children.forEach((child) => {
-				_convertObject(child, nodeId, node.children!, json, usedResources);
+				_convertObjectToNodes(child, nodeId, node.children!, json, usedResources);
 			});
 		}
 
@@ -420,12 +496,11 @@ function _convertObject(
 		// Convert group
 		const nodeId = `group-${obj.uuid || Date.now()}-${Math.random()}`;
 		
-		// Create group data with default values
 		const groupData: IFXGroupData = {
 			type: "group",
 			id: nodeId,
 			name: obj.name || "Group",
-			visibility: obj.visible !== false, // Three.js uses 'visible' property
+			visibility: obj.visible !== false,
 			position: new Vector3(0, 0, 0),
 			rotation: new Vector3(0, 0, 0),
 			scale: new Vector3(1, 1, 1),
@@ -433,7 +508,6 @@ function _convertObject(
 
 		// Extract position, rotation, scale from matrix if available
 		if (obj.matrix && obj.matrix.length >= 16) {
-			console.log("[_convertObject] Group matrix:", obj.name);
 			const { position, rotation, scale } = _decomposeMatrix(obj.matrix);
 			groupData.position = position;
 			groupData.rotation = rotation;
@@ -452,7 +526,7 @@ function _convertObject(
 		// Process children
 		if (obj.children) {
 			obj.children.forEach((child) => {
-				_convertObject(child, nodeId, node.children!, json, usedResources);
+				_convertObjectToNodes(child, nodeId, node.children!, json, usedResources);
 			});
 		}
 
@@ -460,538 +534,10 @@ function _convertObject(
 	} else if (obj.children) {
 		// Process children of other object types
 		obj.children.forEach((child) => {
-			_convertObject(child, parentId, convertedNodes, json, usedResources);
+			_convertObjectToNodes(child, parentId, convertedNodes, json, usedResources);
 		});
 	}
 }
 
-/**
- * Converts a quarks particle system to FX editor particle data
- */
-function _convertParticleSystem(ps: IQuarksParticleSystem, name: string, json: IThreeJSJSON): IFXParticleData {
-	// Convert emitter shape
-	const emitterShape = _convertEmitterShape(ps.shape);
-
-	// Convert particle renderer
-	const particleRenderer = _convertParticleRenderer(ps, json);
-
-	// Convert emission
-	const emission = {
-		looping: ps.looping ?? true,
-		duration: ps.duration ?? 5.0,
-		prewarm: ps.prewarm ?? false,
-		onlyUsedByOtherSystem: ps.onlyUsedByOther ?? false,
-		emitOverTime: _extractConstantValue(ps.emissionOverTime) ?? 10,
-		emitOverDistance: _extractConstantValue(ps.emissionOverDistance) ?? 0,
-	};
-
-	// Convert bursts
-	const bursts = (ps.emissionBursts || []).map((burst, index) => ({
-		id: `burst-${Date.now()}-${index}`,
-		time: burst.time ?? 0,
-		count: _extractConstantValue(burst.count) ?? 1,
-		cycle: burst.cycle ?? 1,
-		interval: burst.interval ?? 0,
-		probability: burst.probability ?? 1.0,
-	}));
-
-	// Convert particle initialization
-	const particleInitialization = {
-		startLife: _convertQuarksValueToFunction(ps.startLife) ?? {
-			functionType: "IntervalValue",
-			data: { min: 1.0, max: 2.0 },
-		},
-		startSize: _convertQuarksValueToFunction(ps.startSize) ?? {
-			functionType: "IntervalValue",
-			data: { min: 0.1, max: 0.2 },
-		},
-		startSpeed: _convertQuarksValueToFunction(ps.startSpeed) ?? {
-			functionType: "IntervalValue",
-			data: { min: 1.0, max: 2.0 },
-		},
-		startColor: _convertQuarksColorToColorFunction(ps.startColor) ?? {
-			colorFunctionType: "ConstantColor",
-			data: { color: new Color4(1, 1, 1, 1) },
-		},
-		startRotation: _convertQuarksValueToFunction(ps.startRotation) ?? {
-			functionType: "IntervalValue",
-			data: { min: 0, max: 360 },
-		},
-	};
-
-	// Convert behaviors
-	const behaviors = (ps.behaviors || []).map((behavior, index) => ({
-		id: `behavior-${Date.now()}-${index}`,
-		type: _convertBehaviorType(behavior.type),
-		..._convertBehavior(behavior),
-	}));
-
-	return {
-		type: "particle",
-		id: "",
-		name,
-		visibility: true,
-		position: new Vector3(0, 0, 0),
-		rotation: new Vector3(0, 0, 0),
-		scale: new Vector3(1, 1, 1),
-		emitterShape,
-		particleRenderer,
-		emission,
-		bursts,
-		particleInitialization,
-		behaviors,
-	};
-}
-
-/**
- * Converts quarks emitter shape to FX editor format
- */
-function _convertEmitterShape(shape?: IQuarksShape): IFXParticleData["emitterShape"] {
-	if (!shape) {
-		return { shape: "Box" };
-	}
-
-	const shapeType = shape.type?.toLowerCase() || "box";
-
-	switch (shapeType) {
-		case "cone":
-			return {
-				shape: "Cone",
-				radius: shape.radius ?? 1.0,
-				angle: shape.angle ?? 0.785398,
-				radiusRange: shape.thickness ?? 0.0,
-				heightRange: 0.0,
-				emitFromSpawnPointOnly: shape.mode === 1,
-			};
-
-		case "box":
-			return {
-				shape: "Box",
-				direction1: new Vector3(0, 1, 0),
-				direction2: new Vector3(0, 1, 0),
-				minEmitBox: new Vector3(
-					-(shape.boxWidth ?? shape.width ?? 1.0) / 2,
-					-(shape.boxHeight ?? shape.height ?? 1.0) / 2,
-					-(shape.boxDepth ?? shape.depth ?? 1.0) / 2
-				),
-				maxEmitBox: new Vector3(
-					(shape.boxWidth ?? shape.width ?? 1.0) / 2,
-					(shape.boxHeight ?? shape.height ?? 1.0) / 2,
-					(shape.boxDepth ?? shape.depth ?? 1.0) / 2
-				),
-			};
-
-		case "sphere":
-			return {
-				shape: "Sphere",
-				radius: shape.radius ?? 1.0,
-			};
-
-		case "hemisphere":
-		case "hemispheric":
-			return {
-				shape: "Hemispheric",
-				radius: shape.radius ?? 1.0,
-			};
-
-		case "cylinder":
-			return {
-				shape: "Cylinder",
-				radius: shape.radius ?? 1.0,
-				height: shape.height ?? 1.0,
-				directionRandomizer: 0.0,
-			};
-
-		case "point":
-			return {
-				shape: "Point",
-			};
-
-		default:
-			return { shape: "Box" };
-	}
-}
-
-/**
- * Converts quarks particle renderer to FX editor format
- */
-function _convertParticleRenderer(ps: IQuarksParticleSystem, json: IThreeJSJSON): IFXParticleData["particleRenderer"] {
-	// Convert render mode
-	const renderModeMap: Record<number, string> = {
-		0: "Billboard",
-		1: "Stretched Billboard",
-		2: "Mesh",
-		3: "Trail",
-	};
-	const renderMode = renderModeMap[ps.renderMode ?? 0] || "Billboard";
-
-	// Extract texture from material if available
-	let texture: any = null;
-	if (ps.material && json.materials) {
-		const material = json.materials.find((m) => m.uuid === ps.material);
-		if (material && material.map && json.textures) {
-			const textureData = json.textures.find((t) => t.uuid === material.map);
-			if (textureData && textureData.image && json.images) {
-				const image = json.images.find((img) => img.uuid === textureData.image);
-				// Store image path or data for later processing
-				texture = {
-					uuid: textureData.uuid,
-					image: image,
-				};
-			}
-		}
-	}
-
-	// Extract start tile index
-	const startTileIndex = _extractConstantValue(ps.startTileIndex) ?? 0;
-
-	// Extract material type from material if available
-	// In quarks, materials can be MeshBasicMaterial or MeshStandardMaterial
-	let materialType = "MeshStandardMaterial"; // Default
-	if (ps.material && json.materials) {
-		const material = json.materials.find((m) => m.uuid === ps.material);
-		if (material && material.type) {
-			// Map quarks material types to our format
-			const materialTypeMap: Record<string, string> = {
-				MeshBasicMaterial: "MeshBasicMaterial",
-				MeshStandardMaterial: "MeshStandardMaterial",
-				// Fallback for other material types
-				"MeshLambertMaterial": "MeshStandardMaterial",
-				"MeshPhongMaterial": "MeshStandardMaterial",
-			};
-			materialType = materialTypeMap[material.type] || "MeshStandardMaterial";
-		}
-	}
-
-	return {
-		renderMode,
-		worldSpace: ps.worldSpace ?? false,
-		material: ps.material ? { uuid: ps.material } : null,
-		materialType,
-		transparent: true,
-		opacity: 1.0,
-		side: "Double",
-		blending: "Add",
-		color: new Color4(1, 1, 1, 1),
-		renderOrder: ps.renderOrder ?? 0,
-		uvTile: {
-			column: ps.uTileCount ?? 1,
-			row: ps.vTileCount ?? 1,
-			startTileIndex,
-			blendTiles: ps.blendTiles ?? false,
-		},
-		texture,
-		meshPath: ps.instancingGeometry || null, // Store geometry UUID for now
-		softParticles: ps.softParticles ?? false,
-	};
-}
-
-/**
- * Converts quarks behavior to FX editor format
- */
-function _convertBehavior(behavior: IQuarksBehavior): any {
-	const converted: any = {};
-
-	switch (behavior.type) {
-		case "ForceOverLife":
-			const x = _convertQuarksValueToFunction(behavior.x) || {
-				functionType: "ConstantValue",
-				data: { value: 0 },
-			};
-			const y = _convertQuarksValueToFunction(behavior.y) || {
-				functionType: "ConstantValue",
-				data: { value: 0 },
-			};
-			const z = _convertQuarksValueToFunction(behavior.z) || {
-				functionType: "ConstantValue",
-				data: { value: 0 },
-			};
-			return {
-				force: {
-					functionType: "Vector3Function",
-					data: {
-						x,
-						y,
-						z,
-					},
-				},
-			};
-
-		case "SizeOverLife":
-			// Convert size value using _convertQuarksValueToFunction
-			const sizeFunction = _convertQuarksValueToFunction(behavior.size) || {
-				functionType: "ConstantValue",
-				data: { value: 1 },
-			};
-			return {
-				size: sizeFunction,
-			};
-
-		case "RotationOverLife":
-			const angularVelocity = _convertQuarksValueToFunction(behavior.angularVelocity) || {
-				functionType: "IntervalValue",
-				data: { min: 0, max: 0 },
-			};
-			return {
-				angularVelocity,
-			};
-
-		case "ColorOverLife":
-			// Convert color function from quarks format to our format
-			const colorFunction = _convertQuarksColorToColorFunction(behavior.color) || {
-				colorFunctionType: "ConstantColor",
-				data: { color: new Color4(1, 1, 1, 1) },
-			};
-			return {
-				color: colorFunction,
-			};
-
-		case "ColorBySpeed":
-			// Convert color function from quarks format to our format
-			const colorBySpeedFunction = _convertQuarksColorToColorFunction(behavior.color) || {
-				colorFunctionType: "ConstantColor",
-				data: { color: new Color4(1, 1, 1, 1) },
-			};
-			return {
-				color: colorBySpeedFunction,
-			};
-
-		case "ApplyForce":
-			const magnitude = _convertQuarksValueToFunction(behavior.magnitude) || {
-				functionType: "ConstantValue",
-				data: { value: 1 },
-			};
-			return {
-				magnitude,
-				direction: behavior.direction
-					? new Vector3(behavior.direction.x || 0, behavior.direction.y || 0, behavior.direction.z || 0)
-					: new Vector3(0, 1, 0),
-			};
-
-		case "Noise":
-			const frequency = _convertQuarksValueToFunction(behavior.frequency) || {
-				functionType: "ConstantValue",
-				data: { value: 1 },
-			};
-			const power = _convertQuarksValueToFunction(behavior.power) || {
-				functionType: "ConstantValue",
-				data: { value: 1 },
-			};
-			const positionAmount = _convertQuarksValueToFunction(behavior.positionAmount) || {
-				functionType: "ConstantValue",
-				data: { value: 1 },
-			};
-			const rotationAmount = _convertQuarksValueToFunction(behavior.rotationAmount) || {
-				functionType: "ConstantValue",
-				data: { value: 1 },
-			};
-			return {
-				frequency,
-				power,
-				positionAmount,
-				rotationAmount,
-			};
-
-		case "GravityForce":
-			const gravity = _convertQuarksValueToFunction(behavior.gravity) || {
-				functionType: "ConstantValue",
-				data: { value: -9.81 },
-			};
-			return {
-				gravity,
-			};
-
-		case "TurbulenceField":
-			const strength = _convertQuarksValueToFunction(behavior.strength) || {
-				functionType: "ConstantValue",
-				data: { value: 1 },
-			};
-			const size = _convertQuarksValueToFunction(behavior.size) || {
-				functionType: "ConstantValue",
-				data: { value: 1 },
-			};
-			return {
-				strength,
-				size,
-			};
-
-		default:
-			// Copy all properties as-is for unknown behaviors
-			Object.keys(behavior).forEach((key) => {
-				if (key !== "type") {
-					converted[key] = behavior[key];
-				}
-			});
-			return converted;
-	}
-}
-
-/**
- * Converts quarks behavior type name to FX editor format
- */
-function _convertBehaviorType(quarksType: string): string {
-	const typeMap: Record<string, string> = {
-		ForceOverLife: "ForceOverLife",
-		SizeOverLife: "SizeOverLife",
-		RotationOverLife: "RotationOverLife",
-		ColorOverLife: "ColorOverLife",
-		ColorBySpeed: "ColorBySpeed",
-		ApplyForce: "ApplyForce",
-		Noise: "Noise",
-		GravityForce: "GravityForce",
-		TurbulenceField: "TurbulenceField",
-	};
-
-	return typeMap[quarksType] || quarksType;
-}
-
-/**
- * Converts quarks value to function format
- */
-function _convertQuarksValueToFunction(value?: IQuarksValue): any | null {
-	if (!value) {
-		return null;
-	}
-
-	if (value.type === "ConstantValue" && value.value !== undefined) {
-		return {
-			functionType: "ConstantValue",
-			data: { value: value.value },
-		};
-	}
-
-	if (value.type === "IntervalValue" && value.a !== undefined && value.b !== undefined) {
-		return {
-			functionType: "IntervalValue",
-			data: { min: value.a, max: value.b },
-		};
-	}
-
-	if (value.type === "PiecewiseBezier" && value.functions && value.functions.length > 0) {
-		// Use the first function segment
-		const firstSegment = value.functions[0];
-		return {
-			functionType: "PiecewiseBezier",
-			data: {
-				function: firstSegment.function || { p0: 0, p1: 1.0 / 3, p2: (1.0 / 3) * 2, p3: 1 },
-			},
-		};
-	}
-
-	return null;
-}
-
-/**
- * Converts quarks color to color function format
- */
-function _convertQuarksColorToColorFunction(color?: IQuarksColor): any | null {
-	if (!color) {
-		return null;
-	}
-
-	if (color.type === "ConstantColor" && color.color && typeof color.color === "object" && "r" in color.color) {
-		const colorObj = color.color as { r: number; g: number; b: number; a?: number };
-		return {
-			colorFunctionType: "ConstantColor",
-			data: {
-				color: new Color4(colorObj.r ?? 1, colorObj.g ?? 1, colorObj.b ?? 1, colorObj.a ?? 1),
-			},
-		};
-	}
-
-	if (color.type === "ColorRange" && color.color1 && color.color2) {
-		return {
-			colorFunctionType: "ColorRange",
-			data: {
-				colorA: new Color4(color.color1.r ?? 0, color.color1.g ?? 0, color.color1.b ?? 0, color.color1.a ?? 1),
-				colorB: new Color4(color.color2.r ?? 1, color.color2.g ?? 1, color.color2.b ?? 1, color.color2.a ?? 1),
-			},
-		};
-	}
-
-	if (color.type === "Gradient") {
-		// Convert quarks Gradient to our Gradient format
-		// Gradient has color and alpha as CLinearFunction objects with keys
-		const colorKeys: any[] = [];
-		const alphaKeys: any[] = [];
-
-		// Extract color keys from color.color.keys (CLinearFunction)
-		if (color.color && typeof color.color === "object" && "keys" in color.color && Array.isArray(color.color.keys)) {
-			colorKeys.push(
-				...color.color.keys.map((key: any) => {
-					if (typeof key.value === "object" && key.value.r !== undefined) {
-						return {
-							color: new Vector3(key.value.r ?? 0, key.value.g ?? 0, key.value.b ?? 0),
-							position: key.pos ?? 0,
-						};
-					}
-					return {
-						color: new Vector3(0, 0, 0),
-						position: key.pos ?? 0,
-					};
-				})
-			);
-		}
-
-		// Extract alpha keys from color.alpha.keys (CLinearFunction)
-		if (color.alpha && typeof color.alpha === "object" && "keys" in color.alpha && Array.isArray(color.alpha.keys)) {
-			alphaKeys.push(
-				...color.alpha.keys.map((key: any) => ({
-					value: typeof key.value === "number" ? key.value : 1,
-					position: key.pos ?? 0,
-				}))
-			);
-		}
-
-		// Fallback to default if no keys found
-		if (colorKeys.length === 0) {
-			colorKeys.push(
-				{ color: new Vector3(0, 0, 0), position: 0 },
-				{ color: new Vector3(1, 1, 1), position: 1 }
-			);
-		}
-		if (alphaKeys.length === 0) {
-			alphaKeys.push(
-				{ value: 1, position: 0 },
-				{ value: 1, position: 1 }
-			);
-		}
-
-		const convertedGradient: any = {
-			colorFunctionType: "Gradient",
-			data: {
-				colorKeys,
-				alphaKeys,
-			},
-		};
-		return convertedGradient;
-	}
-
-	// RandomColor - similar to ColorRange but selects random from range
-	if (color.type === "RandomColor" && color.color1 && color.color2) {
-		return {
-			colorFunctionType: "RandomColor",
-			data: {
-				colorA: new Color4(color.color1.r ?? 0, color.color1.g ?? 0, color.color1.b ?? 0, color.color1.a ?? 1),
-				colorB: new Color4(color.color2.r ?? 1, color.color2.g ?? 1, color.color2.b ?? 1, color.color2.a ?? 1),
-			},
-		};
-	}
-
-	return null;
-}
-
-/**
- * Extracts constant value from quarks value
- */
-function _extractConstantValue(value?: IQuarksValue): number | null {
-	if (!value) {
-		return null;
-	}
-	if (value.type === "ConstantValue" && value.value !== undefined) {
-		return value.value;
-	}
-	return null;
-}
 
 
