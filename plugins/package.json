@@ -1,0 +1,9 @@
+{
+	"name": "babylonjs-editor-plugins",
+	"version": "0.1.0",
+	"private": true,
+	"scripts": {
+		"clean": "rimraf quixel/build quixel/declaration fab/build fab/declaration",
+		"build": "yarn workspace babylonjs-editor-quixel-plugin build && yarn workspace babylonjs-editor-fab-plugin build"
+	}
+}

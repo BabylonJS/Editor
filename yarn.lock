@@ -3798,6 +3798,11 @@ babylonjs-procedural-textures@8.41.0:
   dependencies:
     babylonjs "^8.41.0"
 
+babylonjs@8.39.0:
+  version "8.39.0"
+  resolved "https://registry.yarnpkg.com/babylonjs/-/babylonjs-8.39.0.tgz#da21410ca73b2adb74d9013785ef0c5e056dd186"
+  integrity sha512-UloO6zu3x6zEbLB7JkdgasJQd2MIJjHK88s2lk3hBHjPaaqmRTvSG0m5/6FL0m1XCwiNMWU1X5qk3PfkmNbWZQ==
+
 babylonjs@8.41.0, babylonjs@^8.41.0:
   version "8.41.0"
   resolved "https://registry.yarnpkg.com/babylonjs/-/babylonjs-8.41.0.tgz#e25a1a6f3f88c6f1e09001b7874d8cc97f071e76"
@@ -5641,7 +5646,7 @@ fs-constants@^1.0.0:
   resolved "https://registry.yarnpkg.com/fs-constants/-/fs-constants-1.0.0.tgz#6be0de9be998ce16af8afc24497b9ee9b7ccd9ad"
   integrity sha512-y6OAwoSIf7FyjMIv94u+b5rdheZEjzR63GTyZJm5qh4Bi+2YgwLCcI/fPFZkL5PSixOt6ZNKm+w+Hfp/Bciwow==
 
-fs-extra@11.2.0, fs-extra@^11.1.1, fs-extra@^11.2.0:
+fs-extra@11.2.0, fs-extra@^11.1.1:
   version "11.2.0"
   resolved "https://registry.yarnpkg.com/fs-extra/-/fs-extra-11.2.0.tgz#e70e17dfad64232287d01929399e0ea7c86b0e5b"
   integrity sha512-PmDi3uwK5nFuXh7XDTlVnS17xJS7vW36is2+w3xcv8SVxiB4NyATf4ctkVY5bkSjX0Y4nbvZCq1/EjtEyr9ktw==
