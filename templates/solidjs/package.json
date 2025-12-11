@@ -20,11 +20,11 @@
 		"@types/node": "^22"
 	},
 	"dependencies": {
-		"@babylonjs/addons": "8.39.0",
-		"@babylonjs/core": "8.39.0",
-		"@babylonjs/gui": "8.39.0",
+		"@babylonjs/addons": "8.41.0",
+		"@babylonjs/core": "8.41.0",
+		"@babylonjs/gui": "8.41.0",
 		"@babylonjs/havok": "1.3.10",
-		"@babylonjs/materials": "8.39.0",
+		"@babylonjs/materials": "8.41.0",
 		"@solidjs/router": "^0.15.3",
 		"babylonjs-editor-tools": "latest",
 		"solid-js": "^1.9.5"
