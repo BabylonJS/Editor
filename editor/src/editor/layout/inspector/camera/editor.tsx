@@ -1,8 +1,10 @@
 import { Component, ReactNode } from "react";
 
-import { EditorCamera } from "../../../nodes/camera";
+import { isEditorCamera } from "../../../../tools/guards/nodes";
 
 import { Button } from "../../../../ui/shadcn/ui/button";
+
+import { EditorCamera } from "../../../nodes/camera";
 
 import { IEditorInspectorImplementationProps } from "../inspector";
 
@@ -18,7 +20,7 @@ export class EditorCameraInspector extends Component<IEditorInspectorImplementat
 	 * @returns true if the object is supported by this inspector.
 	 */
 	public static IsSupported(object: any): boolean {
-		return object?.getClassName?.() === "EditorCamera";
+		return isEditorCamera(object);
 	}
 
 	public render(): ReactNode {

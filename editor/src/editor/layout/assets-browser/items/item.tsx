@@ -18,7 +18,7 @@ import { GiCeilingLight } from "react-icons/gi";
 import { GrStatusUnknown } from "react-icons/gr";
 import { BsFiletypeMp3, BsFiletypeWav } from "react-icons/bs";
 import { AiFillFileMarkdown, AiOutlineClose } from "react-icons/ai";
-import { SiBabylondotjs, SiDotenv, SiJavascript, SiTypescript } from "react-icons/si";
+import { SiBabylondotjs, SiBlender, SiDotenv, SiJavascript, SiTypescript } from "react-icons/si";
 
 import { FolderIcon } from "@heroicons/react/20/solid";
 
@@ -499,6 +499,9 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 
 			case ".exr":
 				return <EXRIcon size="64px" />;
+
+			case ".blend":
+				return <SiBlender size="64px" />;
 
 			default:
 				return null;

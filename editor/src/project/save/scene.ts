@@ -29,11 +29,15 @@ import { iblShadowsRenderingPipelineCameraConfigurations } from "../../editor/re
 import { writeBinaryGeometry } from "../tools/geometry";
 import { writeBinaryMorphTarget } from "../tools/morph-target";
 
+import { showSaveSceneProgressDialog } from "./dialog";
+
 export async function saveScene(editor: Editor, projectPath: string, scenePath: string): Promise<void> {
 	const fStat = await stat(scenePath);
 	if (!fStat.isDirectory()) {
 		return editor.layout.console.error("The scene path is not a directory.");
 	}
+
+	const dialog = await showSaveSceneProgressDialog(editor, "Saving scene...");
 
 	const relativeScenePath = scenePath.replace(join(projectPath, "/"), "");
 
@@ -58,13 +62,31 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 	]);
 
 	const scene = editor.layout.preview.scene;
+	const meshesToSave = scene.meshes.filter((mesh) => {
+		if ((!isMesh(mesh) && !isCollisionMesh(mesh)) || mesh._masterMesh || isFromSceneLink(mesh) || !isNodeVisibleInGraph(mesh)) {
+			return false;
+		}
+
+		return true;
+	});
+
+	const progressStep =
+		100 /
+		(meshesToSave.length +
+			scene.transformNodes.length +
+			scene.lights.length +
+			scene.cameras.length +
+			scene.particleSystems.length +
+			scene.skeletons.length +
+			scene.morphTargetManagers.length +
+			scene.animationGroups.length);
 
 	const savedFiles: string[] = [];
 	const savedGeometryIds: string[] = [];
 
 	// Write geometries and meshes
 	await Promise.all(
-		scene.meshes.map(async (mesh) => {
+		meshesToSave.map(async (mesh) => {
 			if ((!isMesh(mesh) && !isCollisionMesh(mesh)) || mesh._masterMesh || isFromSceneLink(mesh) || !isNodeVisibleInGraph(mesh)) {
 				return;
 			}
@@ -233,6 +255,8 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 						}
 					})
 			);
+
+			dialog.step(progressStep);
 		})
 	);
 
@@ -255,6 +279,8 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 			} finally {
 				savedFiles.push(skeletonPath);
 			}
+
+			dialog.step(progressStep);
 		})
 	);
 
@@ -302,6 +328,8 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 			} finally {
 				savedFiles.push(morphTargetManagerPath);
 			}
+
+			dialog.step(progressStep);
 		})
 	);
 
@@ -330,6 +358,8 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 			} finally {
 				savedFiles.push(transformNodePath);
 			}
+
+			dialog.step(progressStep);
 		})
 	);
 
@@ -376,6 +406,8 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 					savedFiles.push(shadowGeneratorPath);
 				}
 			}
+
+			dialog.step(progressStep);
 		})
 	);
 
@@ -404,6 +436,8 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 			} finally {
 				savedFiles.push(cameraPath);
 			}
+
+			dialog.step(progressStep);
 		})
 	);
 
@@ -425,6 +459,8 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 			} finally {
 				savedFiles.push(sceneLinkPath);
 			}
+
+			dialog.step(progressStep);
 		})
 	);
 
@@ -536,6 +572,8 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 			} finally {
 				savedFiles.push(particleSystemPath);
 			}
+
+			dialog.step(progressStep);
 		})
 	);
 
@@ -558,6 +596,8 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 			} finally {
 				savedFiles.push(animationGroupPath);
 			}
+
+			dialog.step(progressStep);
 		})
 	);
 
@@ -586,6 +626,8 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 			} finally {
 				savedFiles.push(spriteMapPath);
 			}
+
+			dialog.step(progressStep);
 		})
 	);
 
@@ -614,6 +656,8 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 			} finally {
 				savedFiles.push(spriteManagerPath);
 			}
+
+			dialog.step(progressStep);
 		})
 	);
 
@@ -675,6 +719,8 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 	} finally {
 		savedFiles.push(configPath);
 	}
+
+	dialog.dispose();
 
 	// Remove old files
 	const files = await normalizedGlob(join(scenePath, "/**"), {

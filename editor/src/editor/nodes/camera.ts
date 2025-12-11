@@ -16,6 +16,10 @@ export class EditorCamera extends FreeCamera {
 	private _savedSpeed: number | null = null;
 	private _panInput: EditorFreeCameraPanInput;
 
+	private _isAttached: boolean = false;
+	private _isControlDown: boolean = false;
+	private _noPreventDefault: boolean | undefined = undefined;
+
 	private _keyboardUpListener: (ev: KeyboardEvent) => void;
 	private _keyboardDownListener: (ev: KeyboardEvent) => void;
 
@@ -37,6 +41,11 @@ export class EditorCamera extends FreeCamera {
 		window.addEventListener(
 			"keydown",
 			(this._keyboardDownListener = (ev) => {
+				if ((ev.ctrlKey || ev.metaKey) && !this._isControlDown && this._isAttached) {
+					this._isControlDown = true;
+					return super.detachControl();
+				}
+
 				if (ev.key !== "Shift" || isDomTextInputFocused()) {
 					return;
 				}
@@ -51,11 +60,12 @@ export class EditorCamera extends FreeCamera {
 		window.addEventListener(
 			"keyup",
 			(this._keyboardUpListener = (ev) => {
-				if (ev.key !== "Shift") {
-					return;
+				if (!ev.ctrlKey && !ev.metaKey && this._isControlDown && this._isAttached) {
+					this._isControlDown = false;
+					return super.attachControl(this._noPreventDefault);
 				}
 
-				if (this._savedSpeed !== null) {
+				if (ev.key === "Shift" && this._savedSpeed !== null) {
 					this.speed = this._savedSpeed;
 					this._savedSpeed = null;
 				}
@@ -67,12 +77,20 @@ export class EditorCamera extends FreeCamera {
 	 * Override attachControl to ensure pan input is attached
 	 */
 	public attachControl(noPreventDefault?: boolean): void {
+		this._isAttached = true;
+		this._noPreventDefault = noPreventDefault;
+
 		super.attachControl(noPreventDefault);
 
 		// Add pan input after camera is attached
 		if (this._panInput && !this.inputs.attached.editorPan) {
 			this.inputs.add(this._panInput);
 		}
+	}
+
+	public detachControl(): void {
+		this._isAttached = false;
+		super.detachControl();
 	}
 
 	/**

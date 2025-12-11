@@ -3,96 +3,15 @@ import { Scene } from "@babylonjs/core/scene";
 import { Observer } from "@babylonjs/core/Misc/observable";
 import { PointerInfo } from "@babylonjs/core/Events/pointerEvents";
 import { KeyboardInfo } from "@babylonjs/core/Events/keyboardEvents";
-import { LoadAssetContainerAsync } from "@babylonjs/core/Loading/sceneLoader";
-import { SceneLoaderFlags } from "@babylonjs/core/Loading/sceneLoaderFlags";
 import { IParticleSystem } from "@babylonjs/core/Particles/IParticleSystem";
 
-import { IScript } from "../script";
+import { IScript } from "../../script";
 
-import { applyDecorators } from "../decorators/apply";
+import { applyDecorators } from "../../decorators/apply";
 
-import { isAnyParticleSystem, isMesh, isNode, isScene } from "../tools/guards";
+import { isAnyParticleSystem, isNode, isScene } from "../../tools/guards";
 
-import { ScriptMap } from "./loader";
-
-/**
- * Defines the cache of all
- */
-export const scriptAssetsCache = new Map<string, any>();
-
-/**
- * @internal
- */
-export async function _preloadScriptsAssets(rootUrl: string, scene: Scene) {
-	const nodes = [scene, ...scene.transformNodes, ...scene.meshes, ...scene.lights, ...scene.cameras];
-
-	const scripts = nodes
-		.filter((node) => node.metadata?.scripts?.length)
-		.map((node) => node.metadata.scripts)
-		.flat();
-
-	scripts.forEach((script) => {
-		if (!script.values) {
-			return;
-		}
-
-		for (const key in script.values) {
-			if (!script.values.hasOwnProperty(key)) {
-				continue;
-			}
-
-			const obj = script.values[key];
-			if (obj.type === "asset" && obj.value) {
-				scriptAssetsCache.set(obj.value, null);
-			}
-		}
-	});
-
-	const promises: Promise<void>[] = [];
-
-	scriptAssetsCache.forEach((_, key) => {
-		if (scriptAssetsCache.get(key)) {
-			return;
-		}
-
-		promises.push(
-			new Promise<void>(async (resolve) => {
-				try {
-					const extension = key.split(".").pop();
-					if (extension === "scene") {
-						const filename = key.split("/").pop()!;
-						const sceneFilename = filename.replace(".scene", ".babylon");
-
-						// Load asset container
-						const container = await LoadAssetContainerAsync(`${rootUrl}${sceneFilename}`, scene, {
-							pluginExtension: ".babylon",
-						});
-
-						// Ensure all meshes perform their delay state check
-						if (SceneLoaderFlags.ForceFullSceneLoadingForIncremental) {
-							scene.meshes.forEach((m) => isMesh(m) && m._checkDelayState());
-						}
-
-						container.addAllToScene();
-
-						scriptAssetsCache.set(key, container);
-					} else {
-						const response = await fetch(`${rootUrl}${key}`);
-						const data = await response.json();
-
-						scriptAssetsCache.set(key, data);
-					}
-				} catch (e) {
-					console.error(e);
-				}
-
-				resolve();
-			})
-		);
-	});
-
-	await Promise.all(promises);
-}
+import { ScriptMap } from "../loader";
 
 /**
  * @internal
@@ -102,7 +21,7 @@ export function _applyScriptsForObject(scene: Scene, object: any, scriptsMap: Sc
 		return;
 	}
 
-	object.metadata.scripts?.forEach(async (script) => {
+	object.metadata.scripts?.forEach((script) => {
 		if (!script.enabled) {
 			return;
 		}
@@ -219,7 +138,8 @@ export function _registerScriptInstance(object: any, scriptInstance: IScript, ke
 
 	if (isNode(object) || isAnyParticleSystem(object) || isScene(object)) {
 		object.onDisposeObservable.addOnce((() => {
-			scriptsDictionary.get(object)?.forEach((s) => {
+			const scripts = scriptsDictionary.get(object)?.slice();
+			scripts?.forEach((s) => {
 				_removeRegisteredScriptInstance(object, s);
 			});
 

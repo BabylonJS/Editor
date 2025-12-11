@@ -1,62 +1,57 @@
 {
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "name": "Electron With Devtools",
-            "type": "node",
-            "request": "launch",
-            "cwd": "${workspaceFolder}/editor",
-            "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron",
-            "sourceMaps": true,
-            "windows": {
-                "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron.cmd"
-            },
-            "env": {
-                "EDITOR_TOOLS_URL": "http://localhost:3000"
-            },
-            "args": [
-                ".",
-                // "${workspaceFolder}/template/project.bjseditor"
-            ],
-            "outFiles": [
-                "${workspaceFolder}/editor/build/**/*.js"
-            ],
-            "outputCapture": "std",
-        },
-        {
-            "name": "Website",
-            "type": "node-terminal",
-            "cwd": "${workspaceFolder}/website",
-            "request": "launch",
-            "command": "yarn dev -p 3000"
-        },
-        {
-            "name": "Debug Tools Tests",
-            "type": "node-terminal",
-            "cwd": "${workspaceFolder}/tools",
-            "request": "launch",
-            "command": "yarn test --watch"
-        },
-        {
-            "name": "Debug Editor Tests",
-            "type": "node-terminal",
-            "cwd": "${workspaceFolder}/editor",
-            "request": "launch",
-            "command": "yarn test --watch"
-        }
-    ],
-    "compounds": [
-        {
-            "name": "Debug Editor & Website",
-            "configurations": [
-                "Electron With Devtools",
-                "Website"
-            ],
-            "stopAll": true,
-            "presentation": {
-                "group": "Editor",
-                "order": 1
-            }
-        }
-    ]
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "Electron With Devtools",
+			"type": "node",
+			"request": "launch",
+			"cwd": "${workspaceFolder}/editor",
+			"runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron",
+			"sourceMaps": true,
+			"windows": {
+				"runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron.cmd"
+			},
+			"env": {
+				"EDITOR_TOOLS_URL": "http://localhost:3000"
+			},
+			"args": [
+				"."
+				// "${workspaceFolder}/template/project.bjseditor"
+			],
+			"outFiles": ["${workspaceFolder}/editor/build/**/*.js"],
+			"outputCapture": "std"
+		},
+		{
+			"name": "Website",
+			"type": "node-terminal",
+			"cwd": "${workspaceFolder}/website",
+			"request": "launch",
+			"command": "yarn dev -p 3000"
+		},
+		{
+			"name": "Debug Tools Tests",
+			"type": "node-terminal",
+			"cwd": "${workspaceFolder}/tools",
+			"request": "launch",
+			"command": "yarn watch-test"
+		},
+		{
+			"name": "Debug Editor Tests",
+			"type": "node-terminal",
+			"cwd": "${workspaceFolder}/editor",
+			"request": "launch",
+			"command": "yarn watch-test"
+		}
+	],
+	"compounds": [
+		{
+			"name": "Debug Editor & Website",
+			"configurations": ["Electron With Devtools", "Website"],
+			"stopAll": true,
+			"presentation": {
+				"group": "Editor",
+				"order": 1
+			}
+		}
+	]
 }

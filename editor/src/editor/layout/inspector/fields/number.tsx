@@ -31,8 +31,9 @@ export interface IEditorInspectorNumberFieldProps extends IEditorInspectorFieldP
 
 export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldProps) {
 	const [shiftDown, setShiftDown] = useState(false);
-
 	const [pointerOver, setPointerOver] = useState(false);
+
+	const [warning, setWarning] = useState(false);
 
 	const step = props.step ?? 0.01;
 	const digitCount = props.step?.toString().split(".")[1]?.length ?? 2;
@@ -143,21 +144,21 @@ export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldPro
 					try {
 						float = mexp.eval(ev.currentTarget.value);
 					} catch (e) {
-						console.warn("Error parsing value", ev.currentTarget.value, e);
+						// Catch silently.
 					}
 
 					if (!isNaN(float)) {
 						float = getFinalValueOf(float);
 
 						if (props.min !== undefined && float < props.min) {
-							float = props.min;
-							setValue(getMinMaxValueOf(props.min).toFixed(digitCount));
+							return setWarning(true);
 						}
 
 						if (props.max !== undefined && float > props.max) {
-							float = props.max;
-							setValue(getMinMaxValueOf(props.max).toFixed(digitCount));
+							return setWarning(true);
 						}
+
+						setWarning(false);
 
 						setInspectorEffectivePropertyValue(props.object, props.property, float);
 						props.onChange?.(float);
@@ -165,19 +166,41 @@ export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldPro
 				}}
 				style={{
 					cursor: "ew-resize",
-					background: hasMinMax
-						? `linear-gradient(to right, hsl(var(--muted-foreground) / 0.5) ${ratio}%, hsl(var(--muted-foreground) / 0.1) ${ratio}%, hsl(var(--muted-foreground) / 0.1) 100%)`
-						: undefined,
+					background:
+						hasMinMax && !warning
+							? `linear-gradient(to right, hsl(var(--muted-foreground) / 0.5) ${ratio}%, hsl(var(--muted-foreground) / 0.1) ${ratio}%, hsl(var(--muted-foreground) / 0.1) 100%)`
+							: undefined,
 				}}
 				className={`
-					px-5 py-2 rounded-lg bg-muted-foreground/10 outline-none
+					px-5 py-2 rounded-lg bg-muted-foreground/10 outline-none ring-yellow-500
+					${warning ? "ring-2 bg-background" : "ring-0"}
 					${props.label ? "w-2/3" : "w-full"}
+					transition-all duration-300 ease-in-out
 				`}
 				onKeyUp={(ev) => ev.key === "Enter" && ev.currentTarget.blur()}
 				onBlur={(ev) => {
 					if (ev.currentTarget.value !== oldValue) {
-						let oldValueFloat = parseFloat(oldValue);
 						let newValueFloat = parseFloat(ev.currentTarget.value);
+						try {
+							newValueFloat = mexp.eval(ev.currentTarget.value);
+						} catch (e) {
+							// Catch silently.
+						}
+
+						if (props.min !== undefined && newValueFloat < props.min) {
+							return setWarning(true);
+						}
+
+						if (props.max !== undefined && newValueFloat > props.max) {
+							return setWarning(true);
+						}
+
+						let oldValueFloat = parseFloat(oldValue);
+						try {
+							oldValueFloat = mexp.eval(oldValue);
+						} catch (e) {
+							// Catch silently.
+						}
 
 						if (!isNaN(oldValueFloat) && !isNaN(newValueFloat)) {
 							if (props.asDegrees) {
@@ -249,6 +272,7 @@ export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldPro
 								v = getMinMaxValueOf(props.max);
 							}
 
+							setWarning(false);
 							setValue(v.toFixed(digitCount));
 
 							setInspectorEffectivePropertyValue(props.object, props.property, finalValue);

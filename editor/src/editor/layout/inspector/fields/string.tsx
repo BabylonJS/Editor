@@ -68,7 +68,7 @@ export function EditorInspectorStringField(props: IEditorInspectorStringFieldPro
 					onChange={(ev) => handleChange(ev.currentTarget.value)}
 					onKeyUp={(ev) => ev.key === "Enter" && ev.currentTarget.blur()}
 					onBlur={(ev) => handleBlur(ev.currentTarget.value)}
-					className="px-5 py-2 rounded-lg bg-black/50 text-white/75 outline-none w-2/3"
+					className="px-5 py-2 rounded-lg bg-muted-foreground/10 outline-none w-2/3"
 				/>
 			)}
 

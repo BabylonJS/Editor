@@ -53,7 +53,7 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
 
 	private _layoutRef: Layout | null = null;
 	private _model: Model = Model.fromJson(layoutModel as any);
-	private _components: Record<string, React.ReactNode> = {
+	private _components: Record<string, ReactNode> = {
 		console: <EditorConsole editor={this.props.editor} ref={(r) => (this.console = r!)} />,
 		preview: <EditorPreview editor={this.props.editor} ref={(r) => (this.preview = r!)} />,
 		inspector: <EditorInspector editor={this.props.editor} ref={(r) => (this.inspector = r!)} />,
@@ -142,7 +142,7 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
 	 * @param title defines the title of the tab.
 	 * @param component defines the reference to the React component to draw in.
 	 */
-	public addLayoutTab(title: string, component: React.ReactNode): void {
+	public addLayoutTab(title: string, component: ReactNode): void {
 		const id = Tools.RandomId();
 
 		this._components[id] = component;

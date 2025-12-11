@@ -36,8 +36,20 @@ Module["_load"] = function (request: string, parent: typeof Module, isMain: bool
 		return originalLoad(resolveFilename("babylonjs-procedural-textures", module, false), parent, isMain);
 	}
 
+	if (request.startsWith("babylonjs-addons")) {
+		return originalLoad(resolveFilename("babylonjs-addons", module, false), parent, isMain);
+	}
+
 	if (request.startsWith("babylonjs")) {
 		return originalLoad(resolveFilename("babylonjs", module, false), parent, isMain);
+	}
+
+	if (request.startsWith("@recast-navigation/core")) {
+		return originalLoad(join(__dirname.replace(/\\/g, "/"), "../../recast-core.js"), parent, isMain);
+	}
+
+	if (request.startsWith("@recast-navigation/generators")) {
+		return originalLoad(join(__dirname.replace(/\\/g, "/"), "../../recast-generators.js"), parent, isMain);
 	}
 
 	return originalLoad(request, parent, isMain);

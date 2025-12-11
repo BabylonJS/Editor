@@ -1,3 +1,5 @@
+import { describe, beforeEach, test, expect } from "vitest";
+
 import { guiFromAsset } from "../../src/decorators/gui";
 import { ISceneDecoratorData } from "../../src/decorators/apply";
 

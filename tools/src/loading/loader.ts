@@ -13,7 +13,9 @@ import { applyRenderingConfigurationForCamera } from "../rendering/tools";
 
 import { configurePhysicsAggregate } from "./physics";
 import { applyRenderingConfigurations } from "./rendering";
-import { _applyScriptsForObject, _preloadScriptsAssets } from "./script";
+
+import { _applyScriptsForObject } from "./script/apply";
+import { _preloadScriptsAssets } from "./script/preload";
 
 import { registerAudioParser } from "./sound";
 import { registerTextureParser } from "./texture";
@@ -132,7 +134,7 @@ export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scen
 	}
 
 	if (!options?.skipAssetsPreload) {
-		await _preloadScriptsAssets(rootUrl, scene);
+		await _preloadScriptsAssets(rootUrl, scene, scriptsMap);
 	}
 
 	options?.onProgress?.(1);

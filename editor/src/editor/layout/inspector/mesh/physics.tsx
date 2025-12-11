@@ -4,11 +4,11 @@ import { Component, ReactNode } from "react";
 
 import { Divider } from "@blueprintjs/core";
 
-import { AbstractMesh, PhysicsAggregate, PhysicsShape, PhysicsShapeType, PhysicsMotionType, PhysicsMassProperties } from "babylonjs";
+import { AbstractMesh, PhysicsAggregate, PhysicsShape, PhysicsShapeType, PhysicsMotionType, PhysicsMassProperties, Mesh } from "babylonjs";
 
-import { isMesh } from "../../../../tools/guards/nodes";
 import { registerUndoRedo } from "../../../../tools/undoredo";
 import { getPhysicsShapeForMesh } from "../../../../tools/physics/shape";
+import { isInstancedMesh, isMesh } from "../../../../tools/guards/nodes";
 
 import { EditorInspectorSwitchField } from "../fields/switch";
 import { EditorInspectorNumberField } from "../fields/number";
@@ -138,11 +138,18 @@ export class EditorMeshPhysicsInspector extends Component<IEditorMeshPhysicsInsp
 		];
 
 		const configureShape = (value: PhysicsShapeType) => {
+			let mesh: Mesh | undefined = undefined;
+			if (isInstancedMesh(this.props.mesh)) {
+				mesh = this.props.mesh.sourceMesh;
+			} else if (isMesh(this.props.mesh)) {
+				mesh = this.props.mesh;
+			}
+
 			aggregate.shape = new PhysicsShape(
 				{
 					type: value,
 					parameters: {
-						mesh: value === PhysicsShapeType.MESH && isMesh(this.props.mesh) ? this.props.mesh : undefined,
+						mesh: value === PhysicsShapeType.MESH ? mesh : undefined,
 					},
 				},
 				this.props.mesh.getScene()

@@ -50,6 +50,7 @@ import { isDomTextInputFocused } from "../../tools/dom";
 import { isNodeLocked } from "../../tools/node/metadata";
 import { registerUndoRedo } from "../../tools/undoredo";
 import { initializeHavok } from "../../tools/physics/init";
+import { initializeRecast } from "../../tools/recast/init";
 import { isAnyParticleSystem } from "../../tools/guards/particles";
 import { onTextureAddedObservable } from "../../tools/observables";
 import { getCameraFocusPositionFor } from "../../tools/camera/focus";
@@ -480,7 +481,8 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		this._workingCanvas ??= document.createElement("canvas");
 
 		await waitUntil(() => this.props.editor.path);
-		await initializeHavok(this.props.editor.path!);
+
+		await Promise.all([await initializeRecast(this.props.editor), await initializeHavok(this.props.editor.path!)]);
 
 		SceneLoaderFlags.ShowLoadingScreen = false;
 
@@ -1074,7 +1076,9 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		this.scene.activeCamera?.detachControl();
 
 		this.scene.activeCamera = camera;
-		this.scene.activeCamera?.attachControl(true);
+		if (!isNodeLocked(camera)) {
+			this.scene.activeCamera?.attachControl(true);
+		}
 
 		disposeSSAO2RenderingPipeline();
 		disposeVLSPostProcess(this.props.editor);

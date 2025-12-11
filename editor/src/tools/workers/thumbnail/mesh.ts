@@ -1,18 +1,27 @@
 import "babylonjs-loaders";
-import { Engine, Scene, FreeCamera, Vector3, CubeTexture, LoadAssetContainerAsync } from "babylonjs";
+import { Engine, Scene, FreeCamera, Vector3, CubeTexture, LoadAssetContainerAsync, RegisterSceneLoaderPlugin } from "babylonjs";
 
-// TODO: update assimp to work in a worker. Fbx etc. is not the most used format in web, can be delayed.
-// import "../../../loader/assimpjs";
+import { AssimpJSLoader } from "../../../loader/assimpjs";
 
 import { readBlobAsDataUrl } from "../../tools";
+
 import { getCameraFocusPositionFor } from "../../camera/focus";
+
+import { forceCompileAllSceneMaterials } from "../../scene/materials";
+
+const assimpLoader = new AssimpJSLoader(false);
+RegisterSceneLoaderPlugin(assimpLoader);
 
 let engine: Engine;
 let scene: Scene;
 let camera: FreeCamera;
 let environmentTexture: CubeTexture;
 
-export async function getPreview(absolutePath: string, rootUrl: string, serializedEnvironmentTexture?: any) {
+export async function getPreview(absolutePath: string, rootUrl: string, appPath: string | null, serializedEnvironmentTexture?: any) {
+	if (appPath) {
+		assimpLoader.appPath = appPath;
+	}
+
 	if (!engine) {
 		engine = new Engine(new OffscreenCanvas(256, 256), true, {
 			antialias: true,
@@ -31,7 +40,6 @@ export async function getPreview(absolutePath: string, rootUrl: string, serializ
 			createSkybox: false,
 			enableGroundShadow: true,
 			enableGroundMirror: true,
-			environmentTexture: scene.environmentTexture!,
 		});
 
 		if (helper?.ground) {
@@ -46,6 +54,8 @@ export async function getPreview(absolutePath: string, rootUrl: string, serializ
 
 	const container = await LoadAssetContainerAsync(absolutePath, scene);
 	container.addAllToScene();
+
+	await forceCompileAllSceneMaterials(scene);
 
 	return new Promise<string>((resolve) => {
 		scene.executeWhenReady(async () => {
