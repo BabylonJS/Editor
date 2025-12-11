@@ -20,6 +20,7 @@ function build({ x64, arm64 } = options) {
 		config: {
 			publish: {
 				provider: "generic",
+				publisherName: "cesharpe",
 				url: `https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/updates/${platform() === "darwin" && architecture === "x64" ? "x64/" : ""}`,
 			},
 			mac:
