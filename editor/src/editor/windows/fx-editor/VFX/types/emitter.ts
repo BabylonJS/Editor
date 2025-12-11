@@ -1,6 +1,6 @@
-import type { Nullable } from "../../../types";
-import type { TransformNode } from "../../../Meshes/transformNode";
-import type { Vector3 } from "../../../Maths/math.vector";
+import type { Nullable } from "@babylonjs/core/types";
+import type { TransformNode } from "@babylonjs/core/Meshes/transformNode";
+import type { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import type { VFXParticleEmitterConfig } from "./emitterConfig";
 import type { VFXEmitter } from "./hierarchy";
 

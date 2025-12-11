@@ -1,9 +1,10 @@
 import { Component, ReactNode } from "react";
 import { Tree, TreeNodeInfo } from "@blueprintjs/core";
-import { Scene, AbstractMesh, ParticleSystem, SolidParticleSystem, Vector3, Color4, ParticleSystemSet } from "babylonjs";
+import { Scene, 
+	
+	// AbstractMesh,
+	 Vector3, Color4 } from "@babylonjs/core";
 import { IFXParticleData, IFXGroupData, IFXNodeData, isGroupData, isParticleData } from "./properties/types";
-import { IConvertedNode, convertThreeJSJSONToFXEditor } from "./loader";
-import { ThreeJSParticleLoader } from "./threeJSParticleLoader";
 
 import { AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
 import { IoSparklesSharp } from "react-icons/io5";
@@ -19,18 +20,12 @@ import {
 	ContextMenuSubTrigger,
 	ContextMenuSubContent,
 } from "../../../ui/shadcn/ui/context-menu";
-import { FXEditorPreview } from "./preview";
 import { IFXEditor } from ".";
-
-// Maps to track created particle systems and meshes
-const createdParticleSystemsMap = new Map<string | number, ParticleSystem | SolidParticleSystem>();
-const createdMeshesMap = new Map<string | number, AbstractMesh>();
-const particleSystemSetsMap = new Map<string | number, ParticleSystemSet>();
+import { VFXEffect } from "./VFX";
 
 export interface IFXEditorGraphProps {
 	filePath: string | null;
 	onNodeSelected?: (nodeId: string | number | null) => void;
-	onResourcesLoaded?: (resources: IConvertedNode[]) => void;
 	editor: IFXEditor;
 }
 
@@ -114,18 +109,18 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 			return existing;
 		}
 
-		const newData: IFXParticleData = {
+		const newData: any = {
 			type: "particle",
 			id: String(nodeId),
 			name: "Particle",
 			visibility: true,
-			position: new Vector3(0, 0, 0),
-			rotation: new Vector3(0, 0, 0),
-			scale: new Vector3(1, 1, 1),
+			position: Vector3.Zero(),
+			rotation: Vector3.Zero(),
+			scale: Vector3.One(),
 			emitterShape: {
 				shape: "Box",
-				direction1: new Vector3(0, 1, 0),
-				direction2: new Vector3(0, 1, 0),
+				direction1: Vector3.Up(),
+				direction2: Vector3.Up(),
 				minEmitBox: new Vector3(-0.5, -0.5, -0.5),
 				maxEmitBox: new Vector3(0.5, 0.5, 0.5),
 				radius: 1.0,
@@ -215,7 +210,7 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 			return existing;
 		}
 
-		const newData: IFXGroupData = {
+		const newData: any = {
 			type: "group",
 			id: String(nodeId),
 			name: "Group",
@@ -251,7 +246,7 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 
 	}
 
-	public componentDidUpdate(prevProps: IFXEditorGraphProps): void {
+	public componentDidUpdate(_prevProps: IFXEditorGraphProps): void {
 
 	}
 
@@ -267,42 +262,11 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 
 			// Use ThreeJSParticleLoader to load and create particle systems
 			const dirname = require("path").dirname(filePath);
-			const particleSystemSet = await ThreeJSParticleLoader.LoadAsync(filePath, this.props.editor.preview!.scene, dirname + "/");
+			const vfxEffect = await VFXEffect.LoadAsync(filePath, this.props.editor.preview!.scene as unknown as Scene, dirname + "/");
 
-			// Store particle system set
-			const setId = `set-${Date.now()}`;
-			particleSystemSetsMap.set(setId, particleSystemSet);
-
-			// Map particle systems to our tracking map and START them
-			particleSystemSet.systems.forEach((ps, index) => {
-				if (ps instanceof ParticleSystem) {
-					const nodeId = `particle-${setId}-${index}`;
-					createdParticleSystemsMap.set(nodeId, ps);
-					// Start the particle system
-					if (!ps.isStarted()) {
-						ps.start();
-					}
-				} else if (ps instanceof SolidParticleSystem) {
-					const nodeId = `particle-${setId}-${index}`;
-					createdParticleSystemsMap.set(nodeId, ps);
-					// For SPS, call setParticles to update them
-					ps.setParticles();
-				}
+			vfxEffect.systems.forEach((system) => {
+				system.start();
 			});
-
-			// // Also convert to our node structure for tree view
-			// const convertedData = await convertThreeJSJSONToFXEditor(filePath);
-			// const { nodes, resources } = convertedData;
-
-			// // Filter out resource nodes (texture, geometry) - they will be shown in Resources tab
-			// const particleNodes = nodes.filter((n) => n.type === "particle" || n.type === "group");
-			// const treeNodes = this._convertToTreeNodeInfo(particleNodes, null);
-			// this.setState({ nodes: treeNodes });
-
-			// Notify parent about loaded resources
-			// if (this.props.onResourcesLoaded) {
-			// 	this.props.onResourcesLoaded(resources);
-			// }
 		} catch (error) {
 			console.error("Failed to load FX file:", error);
 		}
@@ -320,10 +284,10 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 	/**
 	 * Converts converted nodes to TreeNodeInfo format
 	 */
-	private _convertToTreeNodeInfo(convertedNodes: IConvertedNode[], _parentId: string | null): TreeNodeInfo[] {
+	private _convertToTreeNodeInfo(convertedNodes: any[], _parentId: string | null): TreeNodeInfo[] {
 		return convertedNodes.map((node) => {
 			// Create node data based on type (only particle and group nodes should be here)
-			let nodeData: IFXNodeData;
+			let nodeData: any;
 			if (node.type === "particle" && node.particleData) {
 				nodeData = { ...node.particleData, type: "particle" };
 			} else if (node.type === "group" && node.groupData) {
@@ -336,9 +300,9 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 					id: node.id,
 					name: node.name, // Use original name from JSON
 					visibility: true,
-					position: new Vector3(0, 0, 0),
-					rotation: new Vector3(0, 0, 0),
-					scale: new Vector3(1, 1, 1),
+					position: Vector3.Zero(),
+					rotation: Vector3.Zero(),
+					scale: Vector3.One(),
 				};
 			}
 
@@ -513,36 +477,36 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 		);
 	}
 
-	private _handleAddParticles(parentId?: string | number): void {
-		const nodeId = `particle-${Date.now()}`;
-		const particleData = this.getOrCreateParticleData(nodeId);
+	private _handleAddParticles(_parentId?: string | number): void {
+		// const _nodeId = `particle-${Date.now()}`;
+		// const particleData = this.getOrCreateParticleData(nodeId);
 
-		const newNode: TreeNodeInfo = {
-			id: nodeId,
-			label: this._getNodeLabelComponent({ id: nodeId, nodeData: particleData } as any, particleData.name),
-			icon: <IoSparklesSharp className="w-4 h-4" />,
-			isExpanded: false,
-			childNodes: undefined,
-			isSelected: false,
-			hasCaret: false,
-			nodeData: particleData,
-		};
+		// const newNode: TreeNodeInfo = {
+		// 	id: nodeId,
+		// 	label: this._getNodeLabelComponent({ id: nodeId, nodeData: particleData } as any, particleData.name),
+		// 	icon: <IoSparklesSharp className="w-4 h-4" />,
+		// 	isExpanded: false,
+		// 	childNodes: undefined,
+		// 	isSelected: false,
+		// 	hasCaret: false,
+		// 	nodeData: particleData,
+		// };
 	}
 
-	private _handleAddGroup(parentId?: string | number): void {
-		const nodeId = `group-${Date.now()}`;
-		const groupData = this.getOrCreateGroupData(nodeId);
+	private _handleAddGroup(_parentId?: string | number): void {
+		// const _nodeId = `group-${Date.now()}`;
+		// const groupData = this.getOrCreateGroupData(nodeId);
 
-		const newNode: TreeNodeInfo = {
-			id: nodeId,
-			label: this._getNodeLabelComponent({ id: nodeId, nodeData: groupData } as any, groupData.name),
-			icon: <HiOutlineFolder className="w-4 h-4" />,
-			isExpanded: true,
-			childNodes: [],
-			isSelected: false,
-			hasCaret: true,
-			nodeData: groupData,
-		};
+		// const newNode: TreeNodeInfo = {
+		// 	id: nodeId,
+		// 	label: this._getNodeLabelComponent({ id: nodeId, nodeData: groupData } as any, groupData.name),
+		// 	icon: <HiOutlineFolder className="w-4 h-4" />,
+		// 	isExpanded: true,
+		// 	childNodes: [],
+		// 	isSelected: false,
+		// 	hasCaret: true,
+		// 	nodeData: groupData,
+		// };
 	}
 
 	private _handleAddParticlesToNode(node: TreeNodeInfo): void {
@@ -594,24 +558,24 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 		const deletedId = node.id!;
 
 		// Dispose particle system or mesh
-		const particleSystem = createdParticleSystemsMap.get(deletedId);
-		if (particleSystem) {
-			if (particleSystem.dispose) {
-				particleSystem.dispose();
-			}
-			createdParticleSystemsMap.delete(deletedId);
-		}
+		// const particleSystem = createdParticleSystemsMap.get(deletedId);
+		// if (particleSystem) {
+		// 	if (particleSystem.dispose) {
+		// 		particleSystem.dispose();
+		// 	}
+		// 	createdParticleSystemsMap.delete(deletedId);
+		// }
 
-		const mesh = createdMeshesMap.get(deletedId);
-		if (mesh) {
-			mesh.dispose();
-			createdMeshesMap.delete(deletedId);
-		}
+		// const mesh = createdMeshesMap.get(deletedId);
+		// if (mesh) {
+		// 	mesh.dispose();
+		// 	createdMeshesMap.delete(deletedId);
+		// }
 
 		// Node data is removed automatically when node is deleted from tree
 
-		const newNodes = deleteNodeById(this.state.nodes, deletedId);
-		const newSelectedNodeId = this.state.selectedNodeId === deletedId ? null : this.state.selectedNodeId;
+		// const newNodes = deleteNodeById(this.state.nodes, deletedId);
+		// const newSelectedNodeId = this.state.selectedNodeId === deletedId ? null : this.state.selectedNodeId;
 
 
 		if (this.state.selectedNodeId === deletedId) {

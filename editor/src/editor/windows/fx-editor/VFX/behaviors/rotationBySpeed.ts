@@ -1,6 +1,6 @@
-import type { Particle } from "../../particle";
-import type { SolidParticle } from "../../solidParticle";
-import type { ParticleSystem } from "../../particleSystem";
+import type { Particle } from "@babylonjs/core/Particles/particle";
+import type { SolidParticle } from "@babylonjs/core/Particles/solidParticle";
+import type { ParticleSystem } from "@babylonjs/core/Particles/particleSystem";
 import type { VFXRotationBySpeedBehavior } from "../types/behaviors";
 import { extractNumberFromValue, interpolateGradientKeys } from "./utils";
 import { VFXValueParser } from "../parsers/VFXValueParser";
@@ -15,7 +15,7 @@ interface ExtendedParticle extends Particle {
 /**
  * Apply RotationBySpeed behavior to Particle
  */
-export function applyRotationBySpeedPS(particle: ExtendedParticle, behavior: VFXRotationBySpeedBehavior, currentSpeed: number, particleSystem: ParticleSystem, valueParser: VFXValueParser): void {
+export function applyRotationBySpeedPS(particle: ExtendedParticle, behavior: VFXRotationBySpeedBehavior, currentSpeed: number, _particleSystem: ParticleSystem, valueParser: VFXValueParser): void {
     if (!behavior.angularVelocity) {
         return;
     }

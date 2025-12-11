@@ -1,5 +1,5 @@
-import { Vector3 } from "../../../Maths/math.vector";
-import type { ParticleSystem } from "../../particleSystem";
+import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import type { ParticleSystem } from "@babylonjs/core/Particles/particleSystem";
 import type { VFXForceOverLifeBehavior, VFXGravityForceBehavior } from "../types/behaviors";
 import { VFXValueParser } from "../parsers/VFXValueParser";
 

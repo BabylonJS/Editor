@@ -1,5 +1,4 @@
 import { Component, ReactNode } from "react";
-import { Scene } from "babylonjs";
 
 import { EditorInspectorSectionField } from "../../layout/inspector/fields/section";
 

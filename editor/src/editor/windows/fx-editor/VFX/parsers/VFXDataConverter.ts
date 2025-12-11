@@ -1,4 +1,4 @@
-import { Vector3, Matrix, Quaternion } from "../../../Maths/math.vector";
+import { Vector3, Matrix, Quaternion } from "@babylonjs/core/Maths/math.vector";
 import type { VFXLoaderOptions } from "../types/loader";
 import type { QuarksVFXJSON } from "../types/quarksTypes";
 import type {
@@ -153,7 +153,7 @@ export class VFXDataConverter {
      * Convert transform from Quarks/Three.js (right-handed) to Babylon.js VFX (left-handed)
      * This is the ONLY place where handedness conversion happens
      */
-    private _convertTransform(matrixArray?: number[], positionArray?: number[], rotationArray?: number[], scaleArray?: number[], options?: VFXLoaderOptions): VFXTransform {
+    private _convertTransform(matrixArray?: number[], positionArray?: number[], rotationArray?: number[], scaleArray?: number[], _options?: VFXLoaderOptions): VFXTransform {
         const position = Vector3.Zero();
         const rotation = Quaternion.Identity();
         const scale = Vector3.One();
