@@ -18,6 +18,7 @@
 		"templates/nextjs",
 		"templates/solidjs",
 		"templates/vanillajs",
+		"templates/electron",
 		"quixel",
 		"website"
 	],
@@ -37,12 +38,12 @@
 		"build-all": "yarn build && yarn build-templates && yarn build-website",
 		"start": "yarn workspace babylonjs-editor start",
 		"package": "yarn clean && yarn clean:node_modules && yarn && yarn lint && yarn build-all && yarn test && node build.mjs",
-		"clean": "rimraf editor/build editor/declaration editor/electron-packages editor/coverage quixel/build quixel/declaration tools/build tools/declaration tools/coverage templates/nextjs/.next templates/solidjs/dist templates/vanillajs/dist website/.next",
+		"clean": "rimraf editor/build editor/declaration editor/electron-packages editor/coverage quixel/build quixel/declaration tools/build tools/declaration tools/coverage website/.next && yarn workspace babylonjs-editor-templates clean",
 		"clean:node_modules": "rm -rf editor/node_modules tools/node_modules quixel/node_modules templates/**/node_modules website/node_modules node_modules",
 		"test": "yarn workspace babylonjs-editor-tools test && yarn workspace babylonjs-editor test",
 		"coverage": "yarn workspace babylonjs-editor-tools coverage && yarn workspace babylonjs-editor coverage",
 		"format": "prettier --write \"editor/src/**/*.{ts,tsx,js,json}\" \"tools/src/**/*.{ts,tsx,js,json}\" \"quixel/src/**/*.{ts,tsx,js,json}\" \"website/src/**/*.{ts,tsx,js,json}\"",
-		"format-check": "prettier --check \"editor/src/**/*.{ts,tsx,js,json}\" \"tools/src/**/*.{ts,tsx,js,json}\" \"quixel/src/**/*.{ts,tsx,js,json}\" \"website/src/**/*.{ts,tsx,js,json}\"",
+		"format-check": "prettier --check \"editor/src/**/*.{ts,mts,tsx,js,json}\" \"tools/src/**/*.{ts,mts,tsx,js,json}\" \"quixel/src/**/*.{ts,mts,tsx,js,json}\" \"website/src/**/*.{ts,mts,tsx,js,json}\"",
 		"lint-editor": "cross-env NODE_OPTIONS='--max-old-space-size=8192' eslint --cache --no-warn-ignored ./editor/src/**",
 		"lint-tools": "cross-env NODE_OPTIONS='--max-old-space-size=8192' eslint --cache --no-warn-ignored ./tools/src/**",
 		"lint-quixel": "cross-env NODE_OPTIONS='--max-old-space-size=8192' eslint --cache --no-warn-ignored ./quixel/src/**",
@@ -69,5 +70,6 @@
 		"braces": "3.0.3",
 		"node-abi": "4.14.0",
 		"wrap-ansi": "7.0.0"
-	}
+	},
+	"packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }

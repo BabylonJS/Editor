@@ -1,22 +1,27 @@
 {
-	"name": "babylonjs-editor-vanillajs-template",
+	"name": "babylonjs-editor-electron-template",
 	"version": "0.1.0",
 	"description": "",
 	"type": "module",
 	"private": true,
+	"main": "dist/main.mjs",
 	"scripts": {
-		"start": "vite",
-		"dev": "vite",
-		"build": "vite build",
-		"serve": "vite preview"
+		"dev": "DEV=1 concurrently \"vite\" \"tsc-watch -p tsconfig-electron.json --onSuccess \\\"electron .\\\"\"",
+		"build": "vite build && tsc -p tsconfig-electron.json",
+		"start": "electron .",
+		"package": "node build.mjs"
 	},
 	"license": "MIT",
 	"devDependencies": {
 		"@tailwindcss/vite": "^4.0.7",
+		"@types/node": "^22",
+		"concurrently": "9.2.0",
+		"electron": "37.6.0",
+		"electron-builder": "26.0.12",
 		"tailwindcss": "^4.0.7",
+		"tsc-watch": "7.2.0",
 		"typescript": "^5.7.2",
-		"vite": "^6.4.1",
-		"@types/node": "^22"
+		"vite": "^6.4.1"
 	},
 	"dependencies": {
 		"@babylonjs/addons": "8.41.0",
