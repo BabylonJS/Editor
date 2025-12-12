@@ -1,6 +1,6 @@
 import { Component, ReactNode } from "react";
-import { Scene, Engine, ArcRotateCamera, DirectionalLight, Vector3, Color3, Color4, MeshBuilder } from "@babylonjs/core";
-import { GridMaterial } from "@babylonjs/materials";
+import { Scene, Engine, ArcRotateCamera, DirectionalLight, Vector3, Color3, Color4, MeshBuilder } from "babylonjs";
+import { GridMaterial } from "babylonjs-materials";
 
 import { Button } from "../../../ui/shadcn/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../../ui/shadcn/ui/tooltip";

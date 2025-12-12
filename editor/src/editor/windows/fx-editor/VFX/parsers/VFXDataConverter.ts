@@ -1,4 +1,4 @@
-import { Vector3, Matrix, Quaternion } from "@babylonjs/core/Maths/math.vector";
+import { Vector3, Matrix, Quaternion } from "babylonjs";
 import type { VFXLoaderOptions } from "../types/loader";
 import type { QuarksVFXJSON } from "../types/quarksTypes";
 import type {

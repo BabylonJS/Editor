@@ -1,12 +1,6 @@
 import { Component, ReactNode } from "react";
 import { Tree, TreeNodeInfo } from "@blueprintjs/core";
-import {
-	Scene,
-
-	// AbstractMesh,
-	Vector3,
-	Color4,
-} from "@babylonjs/core";
+import { Scene, Vector3, Color4 } from "babylonjs";
 import { IFXParticleData, IFXGroupData, IFXNodeData, isGroupData, isParticleData } from "./properties/types";
 
 import { AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
@@ -261,7 +255,7 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 
 			// Use ThreeJSParticleLoader to load and create particle systems
 			const dirname = require("path").dirname(filePath);
-			const vfxEffect = await VFXEffect.LoadAsync(filePath, this.props.editor.preview!.scene as unknown as Scene, dirname + "/");
+			const vfxEffect = await VFXEffect.LoadAsync(filePath, this.props.editor.preview!.scene, dirname + "/");
 
 			vfxEffect.systems.forEach((system) => {
 				system.start();

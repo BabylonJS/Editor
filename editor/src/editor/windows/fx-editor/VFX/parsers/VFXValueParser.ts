@@ -1,5 +1,4 @@
-import { Color4 } from "@babylonjs/core/Maths/math.color";
-import { ColorGradient } from "@babylonjs/core/Misc/gradients";
+import { Color4, ColorGradient } from "babylonjs";
 import type { IVFXValueParser } from "../types/factories";
 import type { VFXValue } from "../types/values";
 import type { VFXColor } from "../types/colors";

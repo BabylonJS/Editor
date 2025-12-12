@@ -1,6 +1,4 @@
-import type { Particle } from "@babylonjs/core/Particles/particle";
-import type { SolidParticle } from "@babylonjs/core/Particles/solidParticle";
-import type { ParticleSystem } from "@babylonjs/core/Particles/particleSystem";
+import { Particle, SolidParticle, ParticleSystem } from "babylonjs";
 import type {
 	VFXBehavior,
 	VFXColorBySpeedBehavior,

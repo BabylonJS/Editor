@@ -1,8 +1,6 @@
-import { Color4 } from "@babylonjs/core/Maths/math.color";
-import type { SolidParticle } from "@babylonjs/core/Particles/solidParticle";
+import { Color4, ParticleSystem, SolidParticle } from "babylonjs";
 import type { VFXColorOverLifeBehavior } from "../types/behaviors";
 import { extractColorFromValue, extractAlphaFromValue, interpolateColorKeys, interpolateGradientKeys } from "./utils";
-import { ParticleSystem } from "@babylonjs/core/Particles/particleSystem";
 
 /**
  * Apply ColorOverLife behavior to ParticleSystem

@@ -1,5 +1,4 @@
-import type { ParticleSystem } from "@babylonjs/core/Particles/particleSystem";
-import type { SolidParticle } from "@babylonjs/core/Particles/solidParticle";
+import type { ParticleSystem, SolidParticle } from "babylonjs";
 import type { VFXRotationOverLifeBehavior } from "../types/behaviors";
 import { VFXValueParser } from "../parsers/VFXValueParser";
 
