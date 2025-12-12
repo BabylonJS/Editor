@@ -1,6 +1,6 @@
 import { Component, ReactNode } from "react";
 import { Tree, TreeNodeInfo } from "@blueprintjs/core";
-import { Scene, Vector3, Color4 } from "babylonjs";
+import { Vector3, Color4 } from "babylonjs";
 import { IFXParticleData, IFXGroupData, IFXNodeData, isGroupData, isParticleData } from "./properties/types";
 
 import { AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
@@ -18,7 +18,7 @@ import {
 	ContextMenuSubContent,
 } from "../../../ui/shadcn/ui/context-menu";
 import { IFXEditor } from ".";
-import { VFXEffect } from "./VFX";
+import { VFXEffect, type VFXEffectNode } from "./VFX";
 
 export interface IFXEditorGraphProps {
 	filePath: string | null;
@@ -244,7 +244,7 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 	public componentDidUpdate(_prevProps: IFXEditorGraphProps): void {}
 
 	/**
-	 * Loads nodes from converted Three.js JSON data using ThreeJSParticleLoader
+	 * Loads nodes from converted Three.js JSON data using VFXEffect
 	 */
 	public async loadFromFile(filePath: string): Promise<void> {
 		try {
@@ -253,16 +253,66 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 				return;
 			}
 
-			// Use ThreeJSParticleLoader to load and create particle systems
+			// Load VFX effect
 			const dirname = require("path").dirname(filePath);
 			const vfxEffect = await VFXEffect.LoadAsync(filePath, this.props.editor.preview!.scene, dirname + "/");
 
-			vfxEffect.systems.forEach((system) => {
-				system.start();
-			});
+			// Build tree from VFXEffect hierarchy
+			const nodes = vfxEffect.root ? [this._convertVFXNodeToTreeNode(vfxEffect.root)] : [];
+
+			this.setState({ nodes, selectedNodeId: null });
+
+			// Start systems
+			vfxEffect.start();
 		} catch (error) {
 			console.error("Failed to load FX file:", error);
 		}
+	}
+
+	/**
+	 * Converts VFXEffectNode to TreeNodeInfo recursively
+	 */
+	private _convertVFXNodeToTreeNode(vfxNode: VFXEffectNode): TreeNodeInfo {
+		const nodeId = vfxNode.uuid || vfxNode.name;
+		let nodeData: IFXNodeData;
+
+		if (vfxNode.type === "particle" && vfxNode.system) {
+			// Particle system node
+			nodeData = {
+				type: "particle",
+				id: nodeId,
+				name: vfxNode.name,
+				system: vfxNode.system,
+			} as any;
+		} else if (vfxNode.type === "group" && vfxNode.group) {
+			// Group node
+			nodeData = {
+				type: "group",
+				id: nodeId,
+				name: vfxNode.name,
+				transformNode: vfxNode.group,
+			} as any;
+		} else {
+			// Fallback
+			nodeData = {
+				type: "group",
+				id: nodeId,
+				name: vfxNode.name,
+			} as any;
+		}
+
+		const childNodes = vfxNode.children.length > 0 ? vfxNode.children.map((child) => this._convertVFXNodeToTreeNode(child)) : undefined;
+
+		return {
+			id: nodeId,
+			label: this._getNodeLabelComponent({ id: nodeId, nodeData } as any, vfxNode.name),
+			icon: vfxNode.type === "particle" ? <IoSparklesSharp className="w-4 h-4" /> : <HiOutlineFolder className="w-4 h-4" />,
+			isExpanded: vfxNode.type === "group",
+			childNodes,
+			isSelected: false,
+			hasCaret: vfxNode.type === "group" || (childNodes && childNodes.length > 0),
+			nodeData,
+		};
 	}
 
 	/**

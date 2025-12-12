@@ -11,3 +11,4 @@ export * from "./systems/VFXSolidParticleSystem";
 export * from "./systems/VFXParticleSystem";
 export * from "./loggers/VFXLogger";
 export * from "./VFXEffect";
+export type { VFXEffectNode } from "./VFXEffect";
