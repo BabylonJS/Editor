@@ -9,6 +9,7 @@ import type { VFXColor } from "../types/colors";
 import type { VFXValue } from "../types/values";
 import type { VFXRotation } from "../types/rotations";
 import { VFXSolidParticleSystemBehaviorFactory } from "../factories/VFXSolidParticleSystemBehaviorFactory";
+import { VFXSolidParticleSystemEmitterFactory } from "../factories/VFXSolidParticleSystemEmitterFactory";
 import { VFXValueUtils } from "../utils/valueParser";
 
 /**
@@ -34,6 +35,7 @@ export class VFXSolidParticleSystem extends SolidParticleSystem {
 	private _emissionState: EmissionState;
 	private _behaviors: VFXPerSolidParticleBehaviorFunction[];
 	private _behaviorFactory: VFXSolidParticleSystemBehaviorFactory;
+	private _emitterFactory: VFXSolidParticleSystemEmitterFactory;
 	private _parent: TransformNode | null;
 	private _vfxTransform: { position: Vector3; rotation: Quaternion; scale: Vector3 } | null;
 	private _logger: VFXLogger | null;
@@ -139,6 +141,7 @@ export class VFXSolidParticleSystem extends SolidParticleSystem {
 		this._name = name;
 		this._behaviors = [];
 		this._behaviorFactory = new VFXSolidParticleSystemBehaviorFactory();
+		this._emitterFactory = new VFXSolidParticleSystemEmitterFactory();
 
 		// Initialize properties from initialConfig
 		this.isLooping = initialConfig.looping !== false;
@@ -302,77 +305,12 @@ export class VFXSolidParticleSystem extends SolidParticleSystem {
 		}
 	}
 
-	private _initializeSphereShape(particle: SolidParticle, radius: number, arc: number, thickness: number, startSpeed: number): void {
-		const u = Math.random();
-		const v = Math.random();
-		const rand = 1 - thickness + Math.random() * thickness;
-		const theta = u * arc;
-		const phi = Math.acos(2.0 * v - 1.0);
-		const sinTheta = Math.sin(theta);
-		const cosTheta = Math.cos(theta);
-		const sinPhi = Math.sin(phi);
-		const cosPhi = Math.cos(phi);
-
-		particle.position.set(sinPhi * cosTheta, sinPhi * sinTheta, cosPhi);
-		particle.velocity.copyFrom(particle.position);
-		particle.velocity.scaleInPlace(startSpeed);
-		particle.position.scaleInPlace(radius * rand);
-	}
-
-	private _initializeConeShape(particle: SolidParticle, radius: number, arc: number, thickness: number, angle: number, startSpeed: number): void {
-		const u = Math.random();
-		const rand = 1 - thickness + Math.random() * thickness;
-		const theta = u * arc;
-		const r = Math.sqrt(rand);
-		const sinTheta = Math.sin(theta);
-		const cosTheta = Math.cos(theta);
-
-		particle.position.set(r * cosTheta, r * sinTheta, 0);
-		const coneAngle = angle * r;
-		particle.velocity.set(0, 0, Math.cos(coneAngle));
-		particle.velocity.addInPlace(particle.position.scale(Math.sin(coneAngle)));
-		particle.velocity.scaleInPlace(startSpeed);
-		particle.position.scaleInPlace(radius);
-	}
-
-	private _initializePointShape(particle: SolidParticle, startSpeed: number): void {
-		const theta = Math.random() * Math.PI * 2;
-		const phi = Math.acos(2.0 * Math.random() - 1.0);
-		const direction = new Vector3(Math.sin(phi) * Math.cos(theta), Math.sin(phi) * Math.sin(theta), Math.cos(phi));
-		particle.position.setAll(0);
-		particle.velocity.copyFrom(direction);
-		particle.velocity.scaleInPlace(startSpeed);
-	}
-
-	private _initializeDefaultShape(particle: SolidParticle, startSpeed: number): void {
-		particle.position.setAll(0);
-		particle.velocity.set(0, 1, 0);
-		particle.velocity.scaleInPlace(startSpeed);
-	}
-
+	/**
+	 * Initialize emitter shape for particle using factory
+	 */
 	private _initializeEmitterShape(particle: SolidParticle): void {
 		const startSpeed = particle.props?.startSpeed ?? 0;
-
-		if (!this.shape) {
-			this._initializeDefaultShape(particle, startSpeed);
-			return;
-		}
-
-		const shapeType = this.shape.type?.toLowerCase();
-		const radius = this.shape.radius ?? 1;
-		const arc = this.shape.arc ?? Math.PI * 2;
-		const thickness = this.shape.thickness ?? 1;
-		const angle = this.shape.angle ?? Math.PI / 6;
-
-		if (shapeType === "sphere") {
-			this._initializeSphereShape(particle, radius, arc, thickness, startSpeed);
-		} else if (shapeType === "cone") {
-			this._initializeConeShape(particle, radius, arc, thickness, angle, startSpeed);
-		} else if (shapeType === "point") {
-			this._initializePointShape(particle, startSpeed);
-		} else {
-			this._initializeDefaultShape(particle, startSpeed);
-		}
+		this._emitterFactory.initializeParticle(particle, this.shape, startSpeed);
 	}
 
 	private _getEmitterMatrix(): Matrix {

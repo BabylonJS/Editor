@@ -1,6 +1,7 @@
-import { Color4 } from "babylonjs";
+import { Color4, ColorGradient } from "babylonjs";
 import type { VFXValue } from "../types/values";
 import type { VFXColor } from "../types/colors";
+import type { VFXGradientKey } from "../types/gradients";
 
 /**
  * Static utility functions for parsing VFX values
@@ -134,5 +135,51 @@ export class VFXValueUtils {
 
 		return mt3 * p0 + 3 * mt2 * segmentT * p1 + 3 * mt * t2 * p2 + t3 * p3;
 	}
-}
 
+	/**
+	 * Parse gradient color keys
+	 */
+	public static parseGradientColorKeys(keys: VFXGradientKey[]): ColorGradient[] {
+		const gradients: ColorGradient[] = [];
+		for (const key of keys) {
+			const pos = key.pos ?? key.time ?? 0;
+			if (key.value !== undefined && pos !== undefined) {
+				let color4: Color4;
+				if (typeof key.value === "number") {
+					// Single number - grayscale
+					color4 = new Color4(key.value, key.value, key.value, 1);
+				} else if (Array.isArray(key.value)) {
+					// Array format [r, g, b, a?]
+					color4 = new Color4(key.value[0] || 0, key.value[1] || 0, key.value[2] || 0, key.value[3] !== undefined ? key.value[3] : 1);
+				} else {
+					// Object format { r, g, b, a? }
+					color4 = new Color4(key.value.r || 0, key.value.g || 0, key.value.b || 0, key.value.a !== undefined ? key.value.a : 1);
+				}
+				gradients.push(new ColorGradient(pos, color4));
+			}
+		}
+		return gradients;
+	}
+
+	/**
+	 * Parse gradient alpha keys
+	 */
+	public static parseGradientAlphaKeys(keys: VFXGradientKey[]): { gradient: number; factor: number }[] {
+		const gradients: { gradient: number; factor: number }[] = [];
+		for (const key of keys) {
+			const pos = key.pos ?? key.time ?? 0;
+			if (key.value !== undefined && pos !== undefined) {
+				let factor: number;
+				if (typeof key.value === "number") {
+					factor = key.value;
+				} else if (Array.isArray(key.value)) {
+					factor = key.value[3] !== undefined ? key.value[3] : 1;
+				} else {
+					factor = key.value.a !== undefined ? key.value.a : 1;
+				}
+				gradients.push({ gradient: pos, factor });
+			}
+		}
+		return gradients;
+	}
+}
