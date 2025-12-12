@@ -196,9 +196,7 @@ export class FXEditorLayout extends Component<IFXEditorLayoutProps, IFXEditorLay
 							this.props.editor.graph.updateNodeNames();
 						}
 					}}
-					getOrCreateParticleData={(nodeId) => this.props.editor.graph?.getOrCreateParticleData(nodeId)!}
-					getOrCreateGroupData={(nodeId) => this.props.editor.graph?.getOrCreateGroupData(nodeId)!}
-					isGroupNode={(nodeId) => this.props.editor.graph?.isGroupNode(nodeId) ?? false}
+					getNodeData={(nodeId) => this.props.editor.graph?.getNodeData(nodeId) || null}
 				/>
 			),
 		};

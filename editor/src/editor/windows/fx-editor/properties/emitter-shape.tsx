@@ -1,208 +1,56 @@
-import { Component, ReactNode, DragEvent } from "react";
-import { extname } from "path/posix";
+import { Component, ReactNode } from "react";
 
-import { EditorInspectorNumberField } from "../../../layout/inspector/fields/number";
 import { EditorInspectorVectorField } from "../../../layout/inspector/fields/vector";
-import { EditorInspectorSwitchField } from "../../../layout/inspector/fields/switch";
-import { EditorInspectorListField } from "../../../layout/inspector/fields/list";
-import { EditorInspectorBlockField } from "../../../layout/inspector/fields/block";
 
-import { Button } from "../../../../ui/shadcn/ui/button";
-import { AiOutlineClose } from "react-icons/ai";
-import { getProjectAssetsRootUrl } from "../../../../project/configuration";
-
-import { IFXParticleData } from "./types";
+import type { VFXEffectNode } from "../VFX";
+import { VFXParticleSystem, VFXSolidParticleSystem } from "../VFX";
 
 export interface IFXEditorEmitterShapePropertiesProps {
-	particleData: IFXParticleData;
+	nodeData: VFXEffectNode;
 	onChange: () => void;
 }
 
-export interface IFXEditorEmitterShapePropertiesState {
-	meshDragOver: boolean;
-}
-
-export class FXEditorEmitterShapeProperties extends Component<IFXEditorEmitterShapePropertiesProps, IFXEditorEmitterShapePropertiesState> {
-	public constructor(props: IFXEditorEmitterShapePropertiesProps) {
-		super(props);
-		this.state = {
-			meshDragOver: false,
-		};
-	}
-
+export class FXEditorEmitterShapeProperties extends Component<IFXEditorEmitterShapePropertiesProps> {
 	public render(): ReactNode {
-		const { particleData } = this.props;
-		const shape = particleData.emitterShape.shape;
+		const { nodeData } = this.props;
 
-		return (
-			<>
-				<EditorInspectorListField
-					object={particleData.emitterShape}
-					property="shape"
-					label="Shape"
-					items={[
-						{ text: "Box", value: "Box" },
-						{ text: "Cone", value: "Cone" },
-						{ text: "Sphere", value: "Sphere" },
-						{ text: "Cylinder", value: "Cylinder" },
-						{ text: "Point", value: "Point" },
-						{ text: "Hemispheric", value: "Hemispheric" },
-						{ text: "Mesh", value: "Mesh" },
-					]}
-					onChange={() => this.props.onChange()}
-				/>
-				{this._getShapeProperties(shape)}
-			</>
-		);
-	}
+		if (nodeData.type !== "particle" || !nodeData.system) {
+			return null;
+		}
 
-	private _getShapeProperties(shape: string): ReactNode {
-		const { particleData } = this.props;
+		const system = nodeData.system;
 
-		if (shape === "Box") {
+		// For VFXSolidParticleSystem, emitter shape is in config
+		if (system instanceof VFXSolidParticleSystem) {
+			const config = system.config;
 			return (
 				<>
-					<EditorInspectorBlockField>
-						<div className="px-2">Direction</div>
-						<EditorInspectorVectorField grayLabel object={particleData.emitterShape} property="direction1" label="Min" />
-						<EditorInspectorVectorField grayLabel object={particleData.emitterShape} property="direction2" label="Max" />
-					</EditorInspectorBlockField>
-					<EditorInspectorBlockField>
-						<div className="px-2">Emit Box</div>
-						<EditorInspectorVectorField grayLabel object={particleData.emitterShape} property="minEmitBox" label="Min" />
-						<EditorInspectorVectorField grayLabel object={particleData.emitterShape} property="maxEmitBox" label="Max" />
-					</EditorInspectorBlockField>
+					<div className="px-2 text-sm text-muted-foreground">Emitter shape: {config.shape?.type || "Default"}</div>
+					{/* TODO: Add shape-specific property editors based on config.shape.type */}
 				</>
 			);
 		}
 
-		if (shape === "Cone") {
+		// For VFXParticleSystem, emitter is a separate object
+		if (system instanceof VFXParticleSystem) {
+			const emitter = (system as any).emitter;
+
+			if (!emitter) {
+				return <div className="px-2 text-muted-foreground">No emitter found. Emitter shape properties are set during system creation.</div>;
+			}
+
+			// Show basic emitter properties
 			return (
 				<>
-					<EditorInspectorNumberField object={particleData.emitterShape} property="radius" label="Radius" min={0} step={0.1} />
-					<EditorInspectorNumberField object={particleData.emitterShape} property="angle" label="Angle" asDegrees min={0} step={1} />
-					<EditorInspectorNumberField object={particleData.emitterShape} property="radiusRange" label="Radius Range" min={0} max={1} step={0.01} />
-					<EditorInspectorNumberField object={particleData.emitterShape} property="heightRange" label="Height Range" min={0} max={1} step={0.01} />
-					<EditorInspectorSwitchField object={particleData.emitterShape} property="emitFromSpawnPointOnly" label="Emit From Spawn Point Only" />
+					<div className="px-2 text-sm text-muted-foreground">Emitter: {emitter.name || emitter.constructor.name}</div>
+					{emitter.position && <EditorInspectorVectorField object={emitter} property="position" label="Position" onChange={this.props.onChange} />}
+					{emitter.rotationQuaternion && <EditorInspectorVectorField object={emitter} property="rotation" label="Rotation" asDegrees onChange={this.props.onChange} />}
+					{emitter.scaling && <EditorInspectorVectorField object={emitter} property="scaling" label="Scale" onChange={this.props.onChange} />}
+					{/* TODO: Add shape-specific properties based on emitter type (BoxEmitter, ConeEmitter, etc.) */}
 				</>
 			);
 		}
 
-		if (shape === "Sphere") {
-			return (
-				<>
-					<EditorInspectorNumberField object={particleData.emitterShape} property="radius" label="Radius" min={0} step={0.1} />
-					<EditorInspectorNumberField object={particleData.emitterShape} property="radiusRange" label="Radius Range" min={0} max={1} step={0.01} />
-					<EditorInspectorNumberField object={particleData.emitterShape} property="directionRandomizer" label="Direction Randomizer" min={0} max={1} step={0.01} />
-				</>
-			);
-		}
-
-		if (shape === "Cylinder") {
-			return (
-				<>
-					<EditorInspectorNumberField object={particleData.emitterShape} property="radius" label="Radius" min={0} step={0.1} />
-					<EditorInspectorNumberField object={particleData.emitterShape} property="height" label="Height" min={0} step={0.1} />
-					<EditorInspectorNumberField object={particleData.emitterShape} property="radiusRange" label="Radius Range" min={0} max={1} step={0.01} />
-					<EditorInspectorNumberField object={particleData.emitterShape} property="directionRandomizer" label="Direction Randomizer" min={0} max={1} step={0.01} />
-				</>
-			);
-		}
-
-		if (shape === "Hemispheric") {
-			return (
-				<>
-					<EditorInspectorNumberField object={particleData.emitterShape} property="radius" label="Radius" min={0} step={0.1} />
-					<EditorInspectorNumberField object={particleData.emitterShape} property="radiusRange" label="Radius Range" min={0} max={1} step={0.01} />
-					<EditorInspectorNumberField object={particleData.emitterShape} property="directionRandomizer" label="Direction Randomizer" min={0} max={1} step={0.01} />
-				</>
-			);
-		}
-
-		if (shape === "Mesh") {
-			return this._getMeshEmitterField();
-		}
-
-		// Point - no properties
 		return null;
 	}
-
-	private _getMeshEmitterField(): ReactNode {
-		const { particleData } = this.props;
-
-		return (
-			<div className="flex gap-2 items-center px-2">
-				<div className="w-1/3">Mesh</div>
-				<div
-					onDrop={(ev) => this._handleMeshEmitterDrop(ev)}
-					onDragOver={this._handleMeshDragOver}
-					onDragLeave={this._handleMeshDragLeave}
-					className={`flex items-center px-5 py-2 rounded-lg w-2/3 ${
-						this.state.meshDragOver ? "bg-muted-foreground/75 dark:bg-muted-foreground/20" : "bg-muted-foreground/10 dark:bg-muted-foreground/5"
-					} transition-all duration-300 ease-in-out`}
-				>
-					<div className="flex-1 text-center text-ellipsis overflow-hidden whitespace-nowrap">{particleData.emitterShape.meshPath || "Drop mesh file here"}</div>
-					{particleData.emitterShape.meshPath && (
-						<Button
-							variant="ghost"
-							size="sm"
-							className="w-6 h-6 p-0"
-							onClick={() => {
-								particleData.emitterShape.meshPath = null;
-								this.props.onChange();
-							}}
-						>
-							<AiOutlineClose className="w-4 h-4" />
-						</Button>
-					)}
-				</div>
-			</div>
-		);
-	}
-
-	private _handleMeshEmitterDrop = (ev: DragEvent<HTMLDivElement>): void => {
-		ev.preventDefault();
-		ev.stopPropagation();
-		this.setState({ meshDragOver: false });
-
-		try {
-			const data = JSON.parse(ev.dataTransfer.getData("assets")) as string[];
-			if (!data || !data.length) {
-				return;
-			}
-
-			const absolutePath = data[0];
-			const extension = extname(absolutePath).toLowerCase();
-
-			const meshExtensions = [".x", ".b3d", ".dae", ".glb", ".gltf", ".fbx", ".stl", ".lwo", ".dxf", ".obj", ".3ds", ".ms3d", ".blend", ".babylon"];
-			if (!meshExtensions.includes(extension)) {
-				return;
-			}
-
-			const rootUrl = getProjectAssetsRootUrl();
-			if (!rootUrl) {
-				return;
-			}
-
-			const relativePath = absolutePath.replace(rootUrl, "");
-			this.props.particleData.emitterShape.meshPath = relativePath;
-			this.props.onChange();
-		} catch (e) {
-			console.error("Failed to handle mesh emitter drop", e);
-		}
-	};
-
-	private _handleMeshDragOver = (ev: DragEvent<HTMLDivElement>): void => {
-		ev.preventDefault();
-		ev.stopPropagation();
-		if (ev.dataTransfer.types.includes("assets")) {
-			this.setState({ meshDragOver: true });
-		}
-	};
-
-	private _handleMeshDragLeave = (ev: DragEvent<HTMLDivElement>): void => {
-		ev.preventDefault();
-		ev.stopPropagation();
-		this.setState({ meshDragOver: false });
-	};
 }

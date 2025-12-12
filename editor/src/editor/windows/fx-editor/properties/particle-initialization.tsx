@@ -1,64 +1,75 @@
 import { ReactNode } from "react";
-import { Color4 } from "babylonjs";
 
-import { IFXParticleData } from "./types";
-import { FunctionEditor } from "./behaviors/function-editor";
-import { ColorFunctionEditor } from "./behaviors/color-function-editor";
+import { EditorInspectorBlockField } from "../../../layout/inspector/fields/block";
+import { EditorInspectorNumberField } from "../../../layout/inspector/fields/number";
+import { EditorInspectorColorField } from "../../../layout/inspector/fields/color";
+
+import type { VFXEffectNode } from "../VFX";
+import { VFXParticleSystem, VFXSolidParticleSystem } from "../VFX";
 
 export interface IFXEditorParticleInitializationPropertiesProps {
-	particleData: IFXParticleData;
+	nodeData: VFXEffectNode;
 	onChange?: () => void;
 }
 
 export function FXEditorParticleInitializationProperties(props: IFXEditorParticleInitializationPropertiesProps): ReactNode {
-	const { particleData } = props;
+	const { nodeData } = props;
 	const onChange = props.onChange || (() => {});
 
-	// Initialize function values if not set
-	const init = particleData.particleInitialization;
-
-	if (!init.startLife || !init.startLife.functionType) {
-		init.startLife = {
-			functionType: "IntervalValue",
-			data: { min: 1.0, max: 2.0 },
-		};
+	if (nodeData.type !== "particle" || !nodeData.system) {
+		return null;
 	}
 
-	if (!init.startSize || !init.startSize.functionType) {
-		init.startSize = {
-			functionType: "IntervalValue",
-			data: { min: 0.1, max: 0.2 },
-		};
+	const system = nodeData.system;
+
+	// For VFXParticleSystem, show initialization properties
+	if (system instanceof VFXParticleSystem) {
+		return (
+			<>
+				<EditorInspectorBlockField>
+					<div className="px-2">Life Time</div>
+					<div className="flex items-center">
+						<EditorInspectorNumberField grayLabel object={system} property="minLifeTime" label="Min" min={0} step={0.1} onChange={onChange} />
+						<EditorInspectorNumberField grayLabel object={system} property="maxLifeTime" label="Max" min={0} step={0.1} onChange={onChange} />
+					</div>
+				</EditorInspectorBlockField>
+				<EditorInspectorBlockField>
+					<div className="px-2">Size</div>
+					<div className="flex items-center">
+						<EditorInspectorNumberField grayLabel object={system} property="minSize" label="Min" min={0} step={0.01} onChange={onChange} />
+						<EditorInspectorNumberField grayLabel object={system} property="maxSize" label="Max" min={0} step={0.01} onChange={onChange} />
+					</div>
+				</EditorInspectorBlockField>
+				<EditorInspectorBlockField>
+					<div className="px-2">Speed (Emit Power)</div>
+					<div className="flex items-center">
+						<EditorInspectorNumberField grayLabel object={system} property="minEmitPower" label="Min" min={0} step={0.1} onChange={onChange} />
+						<EditorInspectorNumberField grayLabel object={system} property="maxEmitPower" label="Max" min={0} step={0.1} onChange={onChange} />
+					</div>
+				</EditorInspectorBlockField>
+				<EditorInspectorColorField object={system} property="color1" label="Start Color" onChange={onChange} />
+				{system instanceof VFXParticleSystem && system.startColor && (
+					<EditorInspectorColorField object={system} property="startColor" label="Start Color (VFX)" onChange={onChange} />
+				)}
+				{/* TODO: Add rotation properties */}
+			</>
+		);
 	}
 
-	if (!init.startSpeed || !init.startSpeed.functionType) {
-		init.startSpeed = {
-			functionType: "IntervalValue",
-			data: { min: 1.0, max: 2.0 },
-		};
+	// For VFXSolidParticleSystem, initialization properties are in config (VFXValue format)
+	// TODO: Add proper editors for VFXValue (ConstantValue, IntervalValue, etc.)
+	if (system instanceof VFXSolidParticleSystem) {
+		const config = system.config;
+		// For now, show that properties exist but need proper VFXValue editors
+		return (
+			<>
+				<div className="px-2 text-sm text-muted-foreground">
+					Initialization properties are stored in config as VFXValue. Full editor support coming soon.
+				</div>
+				{/* TODO: Add VFXValue editors for startLife, startSize, startSpeed, startColor */}
+			</>
+		);
 	}
 
-	if (!init.startColor || !init.startColor.colorFunctionType) {
-		init.startColor = {
-			colorFunctionType: "ConstantColor",
-			data: { color: new Color4(1, 1, 1, 1) },
-		};
-	}
-
-	if (!init.startRotation || !init.startRotation.functionType) {
-		init.startRotation = {
-			functionType: "IntervalValue",
-			data: { min: 0, max: 360 },
-		};
-	}
-
-	return (
-		<>
-			<FunctionEditor value={init.startLife} onChange={onChange} availableTypes={["ConstantValue", "IntervalValue", "PiecewiseBezier"]} label="Start Life" />
-			<FunctionEditor value={init.startSize} onChange={onChange} availableTypes={["ConstantValue", "IntervalValue", "PiecewiseBezier"]} label="Start Size" />
-			<FunctionEditor value={init.startSpeed} onChange={onChange} availableTypes={["ConstantValue", "IntervalValue", "PiecewiseBezier"]} label="Start Speed" />
-			<ColorFunctionEditor value={init.startColor} onChange={onChange} label="Start Color" />
-			<FunctionEditor value={init.startRotation} onChange={onChange} availableTypes={["ConstantValue", "IntervalValue", "PiecewiseBezier"]} label="Start Rotation" />
-		</>
-	);
+	return null;
 }

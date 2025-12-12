@@ -37,6 +37,67 @@ export class VFXSolidParticleSystem extends SolidParticleSystem {
 	private _duration: number;
 	private _looping: boolean;
 	private _emitEnded: boolean;
+
+	// Public properties for editor access
+	public get duration(): number {
+		return this._duration;
+	}
+	public set duration(value: number) {
+		this._duration = value;
+		if (this._config) {
+			this._config.duration = value;
+		}
+	}
+
+	public get isLooping(): boolean {
+		return this._looping;
+	}
+	public set isLooping(value: boolean) {
+		this._looping = value;
+		if (this._config) {
+			this._config.looping = value;
+		}
+	}
+
+	public get looping(): boolean {
+		return this._looping;
+	}
+	public set looping(value: boolean) {
+		this._looping = value;
+		if (this._config) {
+			this._config.looping = value;
+		}
+	}
+
+	public get emitRate(): number {
+		if (!this._config || !this._config.emissionOverTime) {
+			return 10; // Default
+		}
+		return this._valueParser.parseConstantValue(this._config.emissionOverTime);
+	}
+	public set emitRate(value: number) {
+		if (this._config) {
+			this._config.emissionOverTime = { type: "ConstantValue", value };
+		}
+	}
+
+	public get targetStopDuration(): number {
+		return this._duration;
+	}
+	public set targetStopDuration(value: number) {
+		this.duration = value;
+	}
+
+	public get config(): VFXParticleEmitterConfig {
+		return this._config;
+	}
+
+	public get behaviors(): VFXPerSolidParticleBehaviorFunction[] {
+		return this._perParticleBehaviors;
+	}
+	public set behaviors(value: VFXPerSolidParticleBehaviorFunction[]) {
+		this._perParticleBehaviors = value;
+	}
 	private _normalMatrix: Matrix;
 	private _tempVec: Vector3;
 	private _tempVec2: Vector3;

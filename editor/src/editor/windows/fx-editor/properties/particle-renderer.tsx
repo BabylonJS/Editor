@@ -1,22 +1,18 @@
-import { Component, ReactNode, DragEvent } from "react";
-import { extname } from "path/posix";
+import { Component, ReactNode } from "react";
 
 import { EditorInspectorSectionField } from "../../../layout/inspector/fields/section";
 import { EditorInspectorNumberField } from "../../../layout/inspector/fields/number";
-import { EditorInspectorColorField } from "../../../layout/inspector/fields/color";
 import { EditorInspectorSwitchField } from "../../../layout/inspector/fields/switch";
 import { EditorInspectorListField } from "../../../layout/inspector/fields/list";
 import { EditorInspectorTextureField } from "../../../layout/inspector/fields/texture";
 
-import { Button } from "../../../../ui/shadcn/ui/button";
-import { AiOutlineClose } from "react-icons/ai";
-import { getProjectAssetsRootUrl } from "../../../../project/configuration";
-
-import { IFXParticleData } from "./types";
+import { ParticleSystem, SolidParticleSystem } from "babylonjs";
+import type { VFXEffectNode } from "../VFX";
+import { VFXParticleSystem, VFXSolidParticleSystem } from "../VFX";
 import { IFXEditor } from "..";
 
 export interface IFXEditorParticleRendererPropertiesProps {
-	particleData: IFXParticleData;
+	nodeData: VFXEffectNode;
 	editor: IFXEditor;
 	onChange: () => void;
 }
@@ -34,96 +30,110 @@ export class FXEditorParticleRendererProperties extends Component<IFXEditorParti
 	}
 
 	public render(): ReactNode {
-		const { particleData } = this.props;
-		const renderMode = particleData.particleRenderer.renderMode;
+		const { nodeData } = this.props;
+
+		if (nodeData.type !== "particle" || !nodeData.system) {
+			return null;
+		}
+
+		const system = nodeData.system;
+		const isVFXSolidParticleSystem = system instanceof VFXSolidParticleSystem;
+		const isVFXParticleSystem = system instanceof VFXParticleSystem;
 
 		return (
 			<>
-				<EditorInspectorListField
-					object={particleData.particleRenderer}
-					property="renderMode"
-					label="RenderMode"
-					items={[
-						{ text: "Billboard", value: "Billboard" },
-						{ text: "Stretched Billboard", value: "StretchedBillboard" },
-						{ text: "Mesh", value: "Mesh" },
-						{ text: "Trail", value: "Trail" },
-					]}
-					onChange={() => this.props.onChange()}
-				/>
-				<EditorInspectorSwitchField object={particleData.particleRenderer} property="worldSpace" label="World Space" />
-				{/* TODO: Material field */}
-				<EditorInspectorListField
-					object={particleData.particleRenderer}
-					property="materialType"
-					label="Material"
-					items={[
-						{ text: "MeshBasicMaterial", value: "MeshBasicMaterial" },
-						{ text: "MeshStandardMaterial", value: "MeshStandardMaterial" },
-					]}
-					onChange={() => this.props.onChange()}
-				/>
-				<EditorInspectorSwitchField object={particleData.particleRenderer} property="transparent" label="Transparent" />
-				<EditorInspectorNumberField object={particleData.particleRenderer} property="opacity" label="Opacity" min={0} max={1} step={0.01} />
-				<EditorInspectorListField
-					object={particleData.particleRenderer}
-					property="side"
-					label="Side"
-					items={[
-						{ text: "Front", value: "Front" },
-						{ text: "Back", value: "Back" },
-						{ text: "Double", value: "Double" },
-					]}
-				/>
-				<EditorInspectorListField
-					object={particleData.particleRenderer}
-					property="blending"
-					label="Blending"
-					items={[
-						{ text: "Add", value: "Add" },
-						{ text: "Multiply", value: "Multiply" },
-						{ text: "Standard", value: "Standard" },
-					]}
-				/>
-				<EditorInspectorColorField object={particleData.particleRenderer} property="color" label="Color" />
-				<EditorInspectorNumberField object={particleData.particleRenderer} property="renderOrder" label="RenderOrder" step={1} />
-				{this._getUVTileSection()}
+				{isVFXParticleSystem && (
+					<>
+						<EditorInspectorListField
+							object={system}
+							property="billboardMode"
+							label="Billboard Mode"
+							items={[
+								{ text: "All", value: ParticleSystem.BILLBOARDMODE_ALL },
+								{ text: "Y", value: ParticleSystem.BILLBOARDMODE_Y },
+								{ text: "Stretched", value: ParticleSystem.BILLBOARDMODE_STRETCHED },
+								{ text: "Stretched Local", value: ParticleSystem.BILLBOARDMODE_STRETCHED_LOCAL },
+							]}
+							onChange={() => this.props.onChange()}
+						/>
+						<EditorInspectorSwitchField object={system} property="isLocal" label="World Space" onChange={() => this.props.onChange()} />
+					</>
+				)}
+				{isVFXSolidParticleSystem && (
+					<>
+						<div className="px-2 text-sm text-muted-foreground">Render Mode: Mesh</div>
+						{/* For VFXSolidParticleSystem, material properties are on mesh.material */}
+					</>
+				)}
 				{this._getTextureField()}
-				{this._getRenderModeSpecificProperties(renderMode)}
-				<EditorInspectorSwitchField object={particleData.particleRenderer} property="softParticles" label="Soft Particles" />
+				{isVFXParticleSystem && (
+					<>
+						<EditorInspectorListField
+							object={system}
+							property="blendMode"
+							label="Blend Mode"
+							items={[
+								{ text: "Add", value: ParticleSystem.BLENDMODE_ADD },
+								{ text: "Multiply", value: ParticleSystem.BLENDMODE_MULTIPLY },
+								{ text: "Multiply Add", value: ParticleSystem.BLENDMODE_MULTIPLYADD },
+								{ text: "One-one", value: ParticleSystem.BLENDMODE_ONEONE },
+								{ text: "Standard", value: ParticleSystem.BLENDMODE_STANDARD },
+							]}
+							onChange={() => this.props.onChange()}
+						/>
+						{this._getUVTileSection()}
+						<EditorInspectorSwitchField object={system} property="softParticles" label="Soft Particles" />
+					</>
+				)}
+				{isVFXSolidParticleSystem && this._getRenderModeSpecificProperties("Mesh")}
 			</>
 		);
 	}
 
 	private _getUVTileSection(): ReactNode {
-		const { particleData } = this.props;
+		const { nodeData } = this.props;
+
+		if (nodeData.type !== "particle" || !nodeData.system || !(nodeData.system instanceof VFXParticleSystem)) {
+			return null;
+		}
+
+		const system = nodeData.system as VFXParticleSystem;
 
 		return (
 			<EditorInspectorSectionField title="UV Tile">
-				<EditorInspectorNumberField object={particleData.particleRenderer.uvTile} property="column" label="Column" min={1} step={1} />
-				<EditorInspectorNumberField object={particleData.particleRenderer.uvTile} property="row" label="Row" min={1} step={1} />
-				<EditorInspectorNumberField object={particleData.particleRenderer.uvTile} property="startTileIndex" label="Start Tile Index" min={0} step={1} />
-				<EditorInspectorSwitchField object={particleData.particleRenderer.uvTile} property="blendTiles" label="Blend Tiles" />
+				<EditorInspectorNumberField object={system} property="uTileCount" label="U Tile Count" min={1} step={1} />
+				<EditorInspectorNumberField object={system} property="vTileCount" label="V Tile Count" min={1} step={1} />
+				{/* TODO: Add startTileIndex and blendTiles if available */}
 			</EditorInspectorSectionField>
 		);
 	}
 
 	private _getTextureField(): ReactNode {
-		const { particleData, editor } = this.props;
+		const { nodeData, editor } = this.props;
 
-		if (!editor.preview?.scene) {
+		if (nodeData.type !== "particle" || !nodeData.system || !editor.preview?.scene) {
 			return null;
 		}
 
-		return (
-			<EditorInspectorTextureField
-				object={particleData.particleRenderer}
-				property="texture"
-				title="Texture"
-				scene={editor.preview!.scene}
-				onChange={() => this.props.onChange()}
-			/>
-		);
+		const system = nodeData.system;
+
+		// For VFXParticleSystem, use particleTexture
+		if (system instanceof VFXParticleSystem) {
+			return <EditorInspectorTextureField object={system} property="particleTexture" title="Texture" scene={editor.preview.scene} onChange={() => this.props.onChange()} />;
+		}
+
+		// For VFXSolidParticleSystem, texture is on the mesh material
+		if (system instanceof VFXSolidParticleSystem && system.mesh && system.mesh.material) {
+			const material = system.mesh.material;
+			// Check if material has diffuseTexture or other texture properties
+			if ((material as any).diffuseTexture) {
+				return (
+					<EditorInspectorTextureField object={material} property="diffuseTexture" title="Texture" scene={editor.preview.scene} onChange={() => this.props.onChange()} />
+				);
+			}
+		}
+
+		return null;
 	}
 
 	private _getRenderModeSpecificProperties(renderMode: string): ReactNode {
@@ -136,81 +146,20 @@ export class FXEditorParticleRendererProperties extends Component<IFXEditorParti
 	}
 
 	private _getMeshField(): ReactNode {
-		const { particleData } = this.props;
+		const { nodeData } = this.props;
+
+		if (nodeData.type !== "particle" || !nodeData.system || !(nodeData.system instanceof VFXSolidParticleSystem)) {
+			return null;
+		}
+
+		const system = nodeData.system as VFXSolidParticleSystem;
+		const mesh = system.mesh;
 
 		return (
 			<div className="flex gap-2 items-center px-2">
 				<div className="w-1/3">Mesh</div>
-				<div
-					onDrop={(ev) => this._handleMeshDrop(ev)}
-					onDragOver={this._handleMeshDragOver}
-					onDragLeave={this._handleMeshDragLeave}
-					className={`flex items-center px-5 py-2 rounded-lg w-2/3 ${
-						this.state.meshDragOver ? "bg-muted-foreground/75 dark:bg-muted-foreground/20" : "bg-muted-foreground/10 dark:bg-muted-foreground/5"
-					} transition-all duration-300 ease-in-out`}
-				>
-					<div className="flex-1 text-center text-ellipsis overflow-hidden whitespace-nowrap">{particleData.particleRenderer.meshPath || "Drop mesh file here"}</div>
-					{particleData.particleRenderer.meshPath && (
-						<Button
-							variant="ghost"
-							size="sm"
-							className="w-6 h-6 p-0"
-							onClick={() => {
-								particleData.particleRenderer.meshPath = null;
-								this.props.onChange();
-							}}
-						>
-							<AiOutlineClose className="w-4 h-4" />
-						</Button>
-					)}
-				</div>
+				<div className="w-2/3 px-2">{mesh ? <div className="text-sm">{mesh.name}</div> : <div className="text-sm text-muted-foreground">No mesh</div>}</div>
 			</div>
 		);
 	}
-
-	private _handleMeshDrop = (ev: DragEvent<HTMLDivElement>): void => {
-		ev.preventDefault();
-		ev.stopPropagation();
-		this.setState({ meshDragOver: false });
-
-		try {
-			const data = JSON.parse(ev.dataTransfer.getData("assets")) as string[];
-			if (!data || !data.length) {
-				return;
-			}
-
-			const absolutePath = data[0];
-			const extension = extname(absolutePath).toLowerCase();
-
-			const meshExtensions = [".x", ".b3d", ".dae", ".glb", ".gltf", ".fbx", ".stl", ".lwo", ".dxf", ".obj", ".3ds", ".ms3d", ".blend", ".babylon"];
-			if (!meshExtensions.includes(extension)) {
-				return;
-			}
-
-			const rootUrl = getProjectAssetsRootUrl();
-			if (!rootUrl) {
-				return;
-			}
-
-			const relativePath = absolutePath.replace(rootUrl, "");
-			this.props.particleData.particleRenderer.meshPath = relativePath;
-			this.props.onChange();
-		} catch (e) {
-			console.error("Failed to handle mesh drop", e);
-		}
-	};
-
-	private _handleMeshDragOver = (ev: DragEvent<HTMLDivElement>): void => {
-		ev.preventDefault();
-		ev.stopPropagation();
-		if (ev.dataTransfer.types.includes("assets")) {
-			this.setState({ meshDragOver: true });
-		}
-	};
-
-	private _handleMeshDragLeave = (ev: DragEvent<HTMLDivElement>): void => {
-		ev.preventDefault();
-		ev.stopPropagation();
-		this.setState({ meshDragOver: false });
-	};
 }
