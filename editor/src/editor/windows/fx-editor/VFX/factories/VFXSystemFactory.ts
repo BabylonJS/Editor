@@ -1,11 +1,12 @@
-import { Nullable, Vector3, TransformNode } from "babylonjs";
+import { Nullable, Vector3, TransformNode, Mesh, CreatePlane, Color4, Matrix, Constants, Texture } from "babylonjs";
 import { VFXParticleSystem } from "../systems/VFXParticleSystem";
 import { VFXSolidParticleSystem } from "../systems/VFXSolidParticleSystem";
 import type { VFXParseContext } from "../types/context";
-import type { VFXEmitterData } from "../types/emitter";
 import type { VFXData, VFXGroup, VFXEmitter, VFXTransform } from "../types/hierarchy";
 import { VFXLogger } from "../loggers/VFXLogger";
-import type { IVFXEmitterFactory } from "../types/factories";
+import { VFXValueUtils } from "../utils/valueParser";
+import type { IVFXMaterialFactory, IVFXGeometryFactory } from "../types/factories";
+import type { VFXParticleEmitterConfig } from "../types/emitterConfig";
 
 /**
  * Factory for creating particle systems from VFX data
@@ -14,12 +15,14 @@ import type { IVFXEmitterFactory } from "../types/factories";
 export class VFXSystemFactory {
 	private _logger: VFXLogger;
 	private _context: VFXParseContext;
-	private _emitterFactory: IVFXEmitterFactory;
+	private _materialFactory: IVFXMaterialFactory;
+	private _geometryFactory: IVFXGeometryFactory;
 
-	constructor(context: VFXParseContext, emitterFactory: IVFXEmitterFactory) {
+	constructor(context: VFXParseContext, materialFactory: IVFXMaterialFactory, geometryFactory: IVFXGeometryFactory) {
 		this._context = context;
 		this._logger = new VFXLogger("[VFXSystemFactory]");
-		this._emitterFactory = emitterFactory;
+		this._materialFactory = materialFactory;
+		this._geometryFactory = geometryFactory;
 	}
 
 	/**
@@ -127,8 +130,21 @@ export class VFXSystemFactory {
 		this._logEmitterProcessing(vfxEmitter, parentGroup, depth);
 		this._logEmitterConfig(vfxEmitter, depth);
 
-		const emitterData = this._buildEmitterData(vfxEmitter, parentGroup, depth);
-		const particleSystem = this._emitterFactory.createEmitter(emitterData) as VFXParticleSystem | VFXSolidParticleSystem | null;
+		const cumulativeScale = this._calculateCumulativeScale(parentGroup);
+		this._logCumulativeScale(cumulativeScale, depth);
+
+		// Use systemType from emitter (determined during conversion)
+		const systemType = vfxEmitter.systemType || "base";
+		const { options } = this._context;
+		this._logger.log(`Using ${systemType === "solid" ? "SolidParticleSystem" : "ParticleSystem"}`, options);
+
+		let particleSystem: VFXParticleSystem | VFXSolidParticleSystem | null = null;
+
+		if (systemType === "solid") {
+			particleSystem = this._createSolidParticleSystem(vfxEmitter, parentGroup, cumulativeScale, depth);
+		} else {
+			particleSystem = this._createParticleSystemInstance(vfxEmitter, parentGroup, cumulativeScale, depth);
+		}
 
 		if (!particleSystem) {
 			this._logWarning(`Failed to create particle system for emitter: ${vfxEmitter.name}`);
@@ -159,20 +175,212 @@ export class VFXSystemFactory {
 	}
 
 	/**
-	 * Build emitter data structure for factory
+	 * Create a ParticleSystem instance
 	 */
-	private _buildEmitterData(vfxEmitter: VFXEmitter, parentGroup: Nullable<TransformNode>, depth: number): VFXEmitterData {
-		const cumulativeScale = this._calculateCumulativeScale(parentGroup);
-		this._logCumulativeScale(cumulativeScale, depth);
+	private _createParticleSystemInstance(vfxEmitter: VFXEmitter, _parentGroup: Nullable<TransformNode>, cumulativeScale: Vector3, _depth: number): Nullable<VFXParticleSystem> {
+		const { name, config } = vfxEmitter;
+		const { options, scene } = this._context;
 
-		return {
-			name: vfxEmitter.name,
-			config: vfxEmitter.config,
-			materialId: vfxEmitter.materialId,
+		this._logger.log(`Creating ParticleSystem: ${name}`, options);
+
+		// Parse values for capacity calculation
+		const emissionRate = config.emissionOverTime !== undefined ? VFXValueUtils.parseConstantValue(config.emissionOverTime) : 10;
+		const duration = config.duration || 5;
+		const capacity = Math.ceil(emissionRate * duration * 2);
+		const speed = config.startSpeed !== undefined ? VFXValueUtils.parseIntervalValue(config.startSpeed) : { min: 1, max: 1 };
+		const size = config.startSize !== undefined ? VFXValueUtils.parseIntervalValue(config.startSize) : { min: 1, max: 1 };
+		const startColor = config.startColor !== undefined ? VFXValueUtils.parseConstantColor(config.startColor) : new Color4(1, 1, 1, 1);
+		const avgStartSpeed = (speed.min + speed.max) / 2;
+		const avgStartSize = (size.min + size.max) / 2;
+
+		// Create instance
+		const particleSystem = new VFXParticleSystem(name, capacity, scene, avgStartSpeed, avgStartSize, startColor);
+
+		// Get texture and blend mode
+		const texture: Texture | undefined = vfxEmitter.materialId ? this._materialFactory.createTexture(vfxEmitter.materialId) || undefined : undefined;
+		const blendMode = vfxEmitter.materialId ? this._getBlendModeFromMaterial(vfxEmitter.materialId) : undefined;
+
+		// Extract rotation matrix from emitter matrix if available
+		const rotationMatrix = vfxEmitter.matrix ? this._extractRotationMatrix(vfxEmitter.matrix) : null;
+
+		// Configure from config
+		particleSystem.configureFromConfig(config, {
+			texture,
+			blendMode,
+			emitterShape: {
+				shape: config.shape,
+				cumulativeScale,
+				rotationMatrix,
+			},
+		});
+
+		this._logger.log(`ParticleSystem created: ${name}`, options);
+		return particleSystem;
+	}
+
+	/**
+	 * Create a SolidParticleSystem instance
+	 */
+	private _createSolidParticleSystem(vfxEmitter: VFXEmitter, parentGroup: Nullable<TransformNode>, _cumulativeScale: Vector3, _depth: number): Nullable<VFXSolidParticleSystem> {
+		const { name, config } = vfxEmitter;
+		const { options, scene } = this._context;
+
+		this._logger.log(`Creating SolidParticleSystem: ${name}`, options);
+
+		// Calculate capacity
+		const emissionRate = config.emissionOverTime !== undefined ? VFXValueUtils.parseConstantValue(config.emissionOverTime) : 10;
+		const particleLifetime = config.duration || 5;
+		const isLooping = config.looping !== false;
+		const capacity = isLooping ? Math.max(Math.ceil(emissionRate * particleLifetime), 1) : Math.ceil(emissionRate * particleLifetime * 2);
+
+		this._logger.log(`  Capacity: ${capacity} (looping: ${isLooping})`, options);
+
+		// Get VFX transform
+		const vfxTransform = vfxEmitter.transform || null;
+
+		// Create SPS instance
+		const sps = new VFXSolidParticleSystem(name, scene, config, {
+			updatable: true,
+			isPickable: false,
+			enableDepthSort: false,
+			particleIntersection: false,
+			useModelMaterial: true,
 			parentGroup,
-			cumulativeScale,
-			vfxEmitter,
+			vfxTransform,
+			logger: this._logger,
+			loaderOptions: options,
+		});
+
+		// Set parent after creation (will apply to mesh)
+		if (parentGroup) {
+			sps.parent = parentGroup;
+		}
+
+		// Create or load particle mesh
+		const particleMesh = this._createOrLoadParticleMesh(name, config, vfxEmitter.materialId);
+		if (!particleMesh) {
+			return null;
+		}
+
+		// Initialize mesh in SPS
+		sps.initializeMesh(particleMesh, capacity);
+
+		// Apply behaviors
+		if (config.behaviors && Array.isArray(config.behaviors) && config.behaviors.length > 0) {
+			sps.behaviorConfigs.length = 0;
+			sps.behaviorConfigs.push(...config.behaviors);
+		}
+
+		// Dispose temporary mesh
+		particleMesh.dispose();
+
+		this._logger.log(`SolidParticleSystem created: ${name}`, options);
+		return sps;
+	}
+
+	/**
+	 * Gets blend mode from material blending value
+	 */
+	private _getBlendModeFromMaterial(materialId: string): number | undefined {
+		const { jsonData } = this._context;
+		const material = jsonData.materials?.find((m: any) => m.uuid === materialId);
+
+		if (material?.blending === undefined) {
+			return undefined;
+		}
+
+		const blendModeMap: Record<number, number> = {
+			0: Constants.ALPHA_DISABLE, // NoBlending
+			1: Constants.ALPHA_COMBINE, // NormalBlending
+			2: Constants.ALPHA_ADD, // AdditiveBlending
 		};
+
+		return blendModeMap[material.blending];
+	}
+
+	/**
+	 * Creates or loads particle mesh for SPS
+	 */
+	private _createOrLoadParticleMesh(name: string, config: VFXParticleEmitterConfig, materialId: string | undefined): Nullable<Mesh> {
+		const { scene, options } = this._context;
+		let particleMesh = this._loadParticleGeometry(config, materialId, name);
+
+		if (!particleMesh) {
+			particleMesh = this._createDefaultPlaneMesh(name, scene);
+			this._applyMaterialToMesh(particleMesh, materialId, name);
+		} else {
+			this._ensureMaterialApplied(particleMesh, materialId, name);
+		}
+
+		if (!particleMesh) {
+			this._logger.warn(`  Cannot add shape to SPS: particleMesh is null`, options);
+		}
+
+		return particleMesh;
+	}
+
+	/**
+	 * Loads particle geometry if specified
+	 */
+	private _loadParticleGeometry(config: VFXParticleEmitterConfig, materialId: string | undefined, name: string): Nullable<Mesh> {
+		const { options } = this._context;
+
+		if (!config.instancingGeometry) {
+			return null;
+		}
+
+		this._logger.log(`  Loading geometry: ${config.instancingGeometry}`, options);
+		const mesh = this._geometryFactory.createMesh(config.instancingGeometry, materialId, name + "_shape");
+		if (!mesh) {
+			this._logger.warn(`  Failed to load geometry ${config.instancingGeometry}, will create default plane`, options);
+		}
+
+		return mesh;
+	}
+
+	/**
+	 * Creates default plane mesh
+	 */
+	private _createDefaultPlaneMesh(name: string, scene: any): Mesh {
+		const { options } = this._context;
+		this._logger.log(`  Creating default plane geometry`, options);
+		return CreatePlane(name + "_shape", { width: 1, height: 1 }, scene);
+	}
+
+	/**
+	 * Applies material to mesh
+	 */
+	private _applyMaterialToMesh(mesh: Mesh | null, materialId: string | undefined, name: string): void {
+		if (!mesh || !materialId) {
+			return;
+		}
+
+		const material = this._materialFactory.createMaterial(materialId, name);
+		if (material) {
+			mesh.material = material;
+		}
+	}
+
+	/**
+	 * Ensures material is applied to mesh if missing
+	 */
+	private _ensureMaterialApplied(mesh: Mesh, materialId: string | undefined, name: string): void {
+		if (materialId && !mesh.material) {
+			this._applyMaterialToMesh(mesh, materialId, name);
+		}
+	}
+
+	/**
+	 * Extracts rotation matrix from Three.js matrix array
+	 */
+	private _extractRotationMatrix(matrix: number[] | undefined): Matrix | null {
+		if (!matrix || matrix.length < 16) {
+			return null;
+		}
+
+		const mat = Matrix.FromArray(matrix);
+		mat.transpose();
+		return mat.getRotationMatrix();
 	}
 
 	/**
