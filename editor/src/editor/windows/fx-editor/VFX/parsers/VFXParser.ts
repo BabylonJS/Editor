@@ -3,7 +3,6 @@ import type { QuarksVFXJSON } from "../types/quarksTypes";
 import type { VFXLoaderOptions } from "../types/loader";
 import type { VFXParseContext } from "../types/context";
 import { VFXLogger } from "../loggers/VFXLogger";
-import { VFXValueParser } from "./VFXValueParser";
 import { VFXMaterialFactory } from "../factories/VFXMaterialFactory";
 import { VFXGeometryFactory } from "../factories/VFXGeometryFactory";
 import { VFXEmitterFactory } from "../factories/VFXEmitterFactory";
@@ -19,7 +18,6 @@ import { VFXSolidParticleSystem } from "../systems/VFXSolidParticleSystem";
 export class VFXParser {
 	private _context: VFXParseContext;
 	private _logger: VFXLogger;
-	private _valueParser: VFXValueParser;
 	private _materialFactory: VFXMaterialFactory;
 	private _geometryFactory: VFXGeometryFactory;
 	private _emitterFactory: VFXEmitterFactory;
@@ -36,10 +34,9 @@ export class VFXParser {
 		};
 
 		this._logger = new VFXLogger("[VFXParser]");
-		this._valueParser = new VFXValueParser();
 		this._materialFactory = new VFXMaterialFactory(this._context);
 		this._geometryFactory = new VFXGeometryFactory(this._context, this._materialFactory);
-		this._emitterFactory = new VFXEmitterFactory(this._context, this._valueParser, this._materialFactory, this._geometryFactory);
+		this._emitterFactory = new VFXEmitterFactory(this._context, this._materialFactory, this._geometryFactory);
 		this._systemFactory = new VFXSystemFactory(this._context, this._emitterFactory);
 	}
 
@@ -97,13 +94,6 @@ export class VFXParser {
 	 */
 	public getContext(): VFXParseContext {
 		return this._context;
-	}
-
-	/**
-	 * Get the value parser
-	 */
-	public getValueParser(): VFXValueParser {
-		return this._valueParser;
 	}
 
 	/**

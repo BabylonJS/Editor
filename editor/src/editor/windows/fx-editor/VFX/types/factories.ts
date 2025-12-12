@@ -1,7 +1,4 @@
-import { Nullable, Mesh, ParticleSystem, SolidParticleSystem, PBRMaterial, Color4, Texture, ColorGradient } from "babylonjs";
-import type { VFXValue } from "./values";
-import type { VFXColor } from "./colors";
-import type { VFXGradientKey } from "./gradients";
+import { Nullable, Mesh, ParticleSystem, SolidParticleSystem, PBRMaterial, Texture } from "babylonjs";
 import type { VFXEmitterData } from "./emitter";
 
 /**
@@ -18,12 +15,4 @@ export interface IVFXGeometryFactory {
 
 export interface IVFXEmitterFactory {
 	createEmitter(emitterData: VFXEmitterData): Nullable<ParticleSystem | SolidParticleSystem>;
-}
-
-export interface IVFXValueParser {
-	parseConstantValue(value: VFXValue): number;
-	parseIntervalValue(value: VFXValue): { min: number; max: number };
-	parseConstantColor(value: VFXColor): Color4;
-	parseGradientColorKeys(keys: VFXGradientKey[]): ColorGradient[];
-	parseGradientAlphaKeys(keys: VFXGradientKey[]): { gradient: number; factor: number }[];
 }

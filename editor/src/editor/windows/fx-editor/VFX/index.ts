@@ -1,6 +1,5 @@
 export * from "./types";
 export * from "./parsers/VFXParser";
-export * from "./parsers/VFXValueParser";
 export * from "./parsers/VFXDataConverter";
 export * from "./factories/VFXMaterialFactory";
 export * from "./factories/VFXGeometryFactory";

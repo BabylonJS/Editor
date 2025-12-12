@@ -1,4 +1,4 @@
-import { Color4, ParticleSystem, Scene } from "babylonjs";
+import { Color4, ParticleSystem, Scene, Vector3, Matrix, Texture } from "babylonjs";
 import type { VFXPerParticleBehaviorFunction } from "../types/VFXBehaviorFunction";
 import type {
 	VFXBehavior,
@@ -11,7 +11,11 @@ import type {
 	VFXFrameOverLifeBehavior,
 	VFXLimitSpeedOverLifeBehavior,
 } from "../types/behaviors";
+import type { VFXShape } from "../types/shapes";
+import type { VFXParticleEmitterConfig, VFXEmissionBurst } from "../types/emitterConfig";
 import { VFXParticleSystemBehaviorFactory } from "../factories/VFXParticleSystemBehaviorFactory";
+import { VFXParticleSystemEmitterFactory } from "../factories/VFXParticleSystemEmitterFactory";
+import { VFXValueUtils } from "../utils/valueParser";
 import {
 	applyColorOverLifePS,
 	applySizeOverLifePS,
@@ -33,15 +37,24 @@ export class VFXParticleSystem extends ParticleSystem {
 	public startColor: Color4;
 	private _behaviors: VFXPerParticleBehaviorFunction[];
 	private _behaviorFactory: VFXParticleSystemBehaviorFactory;
+	private _emitterFactory: VFXParticleSystemEmitterFactory;
 	public readonly behaviorConfigs: VFXBehavior[];
 
 	constructor(name: string, capacity: number, scene: Scene, _avgStartSpeed: number, _avgStartSize: number, _startColor: Color4) {
 		super(name, capacity, scene);
 		this._behaviors = [];
 		this._behaviorFactory = new VFXParticleSystemBehaviorFactory(this);
+		this._emitterFactory = new VFXParticleSystemEmitterFactory(this);
 
 		// Create proxy array that updates functions when modified
 		this.behaviorConfigs = this._createBehaviorConfigsProxy([]);
+	}
+
+	/**
+	 * Create emitter shape based on VFX shape configuration
+	 */
+	public createEmitterShape(shape: VFXShape | undefined, cumulativeScale: Vector3, rotationMatrix: Matrix | null): void {
+		this._emitterFactory.createEmitter(shape, cumulativeScale, rotationMatrix);
 	}
 
 	/**
@@ -174,6 +187,158 @@ export class VFXParticleSystem extends ParticleSystem {
 					applyLimitSpeedOverLifePS(this, behavior as VFXLimitSpeedOverLifeBehavior);
 					break;
 			}
+		}
+	}
+
+	/**
+	 * Configure particle system from VFX config
+	 * This method applies all configuration from VFXParticleEmitterConfig
+	 */
+	public configureFromConfig(
+		config: VFXParticleEmitterConfig,
+		options?: {
+			texture?: Texture;
+			blendMode?: number;
+			emitterShape?: { shape: VFXShape | undefined; cumulativeScale: Vector3; rotationMatrix: Matrix | null };
+		}
+	): void {
+		// Parse values
+		const emissionRate = config.emissionOverTime !== undefined ? VFXValueUtils.parseConstantValue(config.emissionOverTime) : 10;
+		const duration = config.duration || 5;
+		const lifeTime = config.startLife !== undefined ? VFXValueUtils.parseIntervalValue(config.startLife) : { min: 1, max: 1 };
+		const speed = config.startSpeed !== undefined ? VFXValueUtils.parseIntervalValue(config.startSpeed) : { min: 1, max: 1 };
+		const size = config.startSize !== undefined ? VFXValueUtils.parseIntervalValue(config.startSize) : { min: 1, max: 1 };
+		const startColor = config.startColor !== undefined ? VFXValueUtils.parseConstantColor(config.startColor) : new Color4(1, 1, 1, 1);
+
+		// Configure basic properties
+		this.targetStopDuration = duration;
+		this.emitRate = emissionRate;
+		this.manualEmitCount = -1;
+		this.minLifeTime = lifeTime.min;
+		this.maxLifeTime = lifeTime.max;
+		this.minEmitPower = speed.min;
+		this.maxEmitPower = speed.max;
+		this.minSize = size.min;
+		this.maxSize = size.max;
+		this.color1 = startColor;
+		this.color2 = startColor;
+		this.colorDead = new Color4(startColor.r, startColor.g, startColor.b, 0);
+
+		// Configure rotation
+		if (config.startRotation) {
+			if (this._isEulerRotation(config.startRotation)) {
+				if (config.startRotation.angleZ !== undefined) {
+					const angleZ = VFXValueUtils.parseIntervalValue(config.startRotation.angleZ);
+					this.minInitialRotation = angleZ.min;
+					this.maxInitialRotation = angleZ.max;
+				}
+			} else {
+				const rotation = VFXValueUtils.parseIntervalValue(config.startRotation as any);
+				this.minInitialRotation = rotation.min;
+				this.maxInitialRotation = rotation.max;
+			}
+		}
+
+		// Configure sprite tiles
+		if (config.uTileCount !== undefined && config.vTileCount !== undefined) {
+			if (config.uTileCount > 1 || config.vTileCount > 1) {
+				this.isAnimationSheetEnabled = true;
+				this.spriteCellWidth = config.uTileCount;
+				this.spriteCellHeight = config.vTileCount;
+
+				if (config.startTileIndex !== undefined) {
+					const startTile = VFXValueUtils.parseConstantValue(config.startTileIndex);
+					this.startSpriteCellID = Math.floor(startTile);
+					this.endSpriteCellID = Math.floor(startTile);
+				}
+			}
+		}
+
+		// Configure rendering
+		if (config.renderOrder !== undefined) {
+			this.renderingGroupId = config.renderOrder;
+		}
+		if (config.layers !== undefined) {
+			this.layerMask = config.layers;
+		}
+
+		// Apply texture and blend mode
+		if (options?.texture) {
+			this.particleTexture = options.texture;
+		}
+		if (options?.blendMode !== undefined) {
+			this.blendMode = options.blendMode;
+		}
+
+		// Apply emission bursts
+		if (config.emissionBursts && Array.isArray(config.emissionBursts) && config.emissionBursts.length > 0) {
+			this._applyEmissionBursts(config.emissionBursts, emissionRate, duration);
+		}
+
+		// Apply behaviors
+		if (config.behaviors && Array.isArray(config.behaviors) && config.behaviors.length > 0) {
+			this.behaviorConfigs.length = 0;
+			this.behaviorConfigs.push(...config.behaviors);
+		}
+
+		// Configure world space
+		if (config.worldSpace !== undefined) {
+			this.isLocal = !config.worldSpace;
+		}
+
+		// Configure looping
+		if (config.looping !== undefined) {
+			this.targetStopDuration = config.looping ? 0 : duration;
+		}
+
+		// Configure render mode
+		if (config.renderMode !== undefined) {
+			if (config.renderMode === 0) {
+				this.isBillboardBased = true;
+			} else if (config.renderMode === 1) {
+				this.billboardMode = ParticleSystem.BILLBOARDMODE_STRETCHED;
+			}
+		}
+
+		// Configure auto destroy
+		if (config.autoDestroy !== undefined) {
+			this.disposeOnStop = config.autoDestroy;
+		}
+
+		// Set emitter shape
+		if (options?.emitterShape) {
+			this.createEmitterShape(options.emitterShape.shape, options.emitterShape.cumulativeScale, options.emitterShape.rotationMatrix);
+		}
+	}
+
+	/**
+	 * Check if rotation is Euler type
+	 */
+	private _isEulerRotation(rotation: any): rotation is { type: "Euler"; angleZ?: any } {
+		return typeof rotation === "object" && rotation !== null && "type" in rotation && rotation.type === "Euler";
+	}
+
+	/**
+	 * Apply emission bursts via emit rate gradients
+	 */
+	private _applyEmissionBursts(bursts: VFXEmissionBurst[], baseEmitRate: number, duration: number): void {
+		for (const burst of bursts) {
+			if (burst.time === undefined || burst.count === undefined) {
+				continue;
+			}
+
+			const burstTime = VFXValueUtils.parseConstantValue(burst.time);
+			const burstCount = VFXValueUtils.parseConstantValue(burst.count);
+			const timeRatio = Math.min(Math.max(burstTime / duration, 0), 1);
+			const windowSize = 0.02;
+			const burstEmitRate = burstCount / windowSize;
+
+			const beforeTime = Math.max(0, timeRatio - windowSize);
+			const afterTime = Math.min(1, timeRatio + windowSize);
+
+			this.addEmitRateGradient(beforeTime, baseEmitRate);
+			this.addEmitRateGradient(timeRatio, burstEmitRate);
+			this.addEmitRateGradient(afterTime, baseEmitRate);
 		}
 	}
 }

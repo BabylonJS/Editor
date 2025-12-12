@@ -4,7 +4,7 @@ import type { VFXLoaderOptions } from "./types/loader";
 import { VFXParser } from "./parsers/VFXParser";
 import type { VFXParticleSystem } from "./systems/VFXParticleSystem";
 import type { VFXSolidParticleSystem } from "./systems/VFXSolidParticleSystem";
-import type { VFXGroup, VFXEmitter } from "./types/hierarchy";
+import type { VFXGroup, VFXEmitter, VFXData } from "./types/hierarchy";
 
 /**
  * VFX Effect Node - represents either a particle system or a group
@@ -95,10 +95,14 @@ export class VFXEffect implements IDisposable {
 		const parser = new VFXParser(scene, rootUrl, jsonData, options);
 		const particleSystems = parser.parse();
 		const context = parser.getContext();
+		const vfxData = context.vfxData;
+		const groupNodesMap = context.groupNodesMap;
 
 		const effect = new VFXEffect();
 		effect.systems.push(...particleSystems);
-		effect._buildHierarchy(context, particleSystems);
+		if (vfxData && groupNodesMap) {
+			effect._buildHierarchy(vfxData, groupNodesMap, particleSystems);
+		}
 
 		return effect;
 	}
@@ -115,24 +119,26 @@ export class VFXEffect implements IDisposable {
 			const parser = new VFXParser(scene, rootUrl, jsonData, options);
 			const particleSystems = parser.parse();
 			const context = parser.getContext();
+			const vfxData = context.vfxData;
+			const groupNodesMap = context.groupNodesMap;
 
 			this.systems.push(...particleSystems);
-			this._buildHierarchy(context, particleSystems);
+			if (vfxData && groupNodesMap) {
+				this._buildHierarchy(vfxData, groupNodesMap, particleSystems);
+			}
 		}
 	}
 
 	/**
-	 * Build hierarchy from parser context
+	 * Build hierarchy from VFX data and group nodes map
 	 */
-	private _buildHierarchy(context: any, systems: (VFXParticleSystem | VFXSolidParticleSystem)[]): void {
-		// Build hierarchy from vfxData if available
-		const vfxData = context.vfxData;
+	private _buildHierarchy(vfxData: VFXData, groupNodesMap: Map<string, TransformNode>, systems: (VFXParticleSystem | VFXSolidParticleSystem)[]): void {
 		if (!vfxData || !vfxData.root) {
 			return;
 		}
 
 		// Create nodes from hierarchy
-		const rootNode = this._buildNodeFromHierarchy(vfxData.root, null, context.groupNodesMap, systems);
+		const rootNode = this._buildNodeFromHierarchy(vfxData.root, null, groupNodesMap, systems);
 		// Store root (we can't assign to readonly, so we'll use a workaround)
 		(this as any).root = rootNode;
 	}
