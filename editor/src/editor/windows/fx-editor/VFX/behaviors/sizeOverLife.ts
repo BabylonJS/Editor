@@ -30,11 +30,15 @@ export function applySizeOverLifePS(particleSystem: ParticleSystem, behavior: VF
 
 /**
  * Apply SizeOverLife behavior to SolidParticle
+ * Gets lifeRatio from particle (age / lifeTime)
  */
-export function applySizeOverLifeSPS(particle: SolidParticle, behavior: VFXSizeOverLifeBehavior, lifeRatio: number): void {
-	if (!behavior.size) {
+export function applySizeOverLifeSPS(particle: SolidParticle, behavior: VFXSizeOverLifeBehavior): void {
+	if (!behavior.size || particle.lifeTime <= 0) {
 		return;
 	}
+
+	// Get lifeRatio from particle
+	const lifeRatio = particle.age / particle.lifeTime;
 
 	let sizeMultiplier = 1;
 

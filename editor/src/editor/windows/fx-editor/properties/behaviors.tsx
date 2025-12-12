@@ -8,6 +8,7 @@ import { HiOutlineTrash } from "react-icons/hi2";
 import { IoAddSharp } from "react-icons/io5";
 
 import type { VFXEffectNode } from "../VFX";
+import { VFXParticleSystem, VFXSolidParticleSystem } from "../VFX";
 import { BehaviorRegistry, createDefaultBehaviorData, getBehaviorDefinition } from "./behaviors/registry";
 import { BehaviorProperties } from "./behaviors/behavior-properties";
 
@@ -24,25 +25,81 @@ export function FXEditorBehaviorsProperties(props: IFXEditorBehaviorsPropertiesP
 	}
 
 	const system = nodeData.system;
-	// Get behaviors from system (system.behaviors for VFXParticleSystem)
-	const behaviors: any[] = (system as any).behaviors || [];
+
+	// Get behavior configurations from system
+	let behaviorConfigs: any[] = [];
+	if (system instanceof VFXParticleSystem) {
+		behaviorConfigs = system.behaviorConfigs || [];
+	} else if (system instanceof VFXSolidParticleSystem) {
+		behaviorConfigs = system.behaviorConfigs || [];
+	}
+
+	const handleAddBehavior = (behaviorType: string): void => {
+		const newBehavior = createDefaultBehaviorData(behaviorType);
+		newBehavior.id = `behavior-${Date.now()}-${Math.random()}`;
+
+		// Directly modify the array - proxy will automatically update functions
+		behaviorConfigs.push(newBehavior);
+		onChange();
+	};
+
+	const handleRemoveBehavior = (index: number): void => {
+		// Directly modify the array - proxy will automatically update functions
+		behaviorConfigs.splice(index, 1);
+		onChange();
+	};
+
+	const handleBehaviorChange = (): void => {
+		// When behavior properties change, the proxy automatically detects it
+		// and updates the behavior functions. We just need to trigger UI update.
+		onChange();
+	};
 
 	return (
 		<>
-			{behaviors.length === 0 && <div className="px-2 text-muted-foreground">No behaviors. Behaviors are applied as functions to particles.</div>}
-			{behaviors.map((behavior, index) => {
-				// Behaviors are functions, not objects with properties
-				// We can show function name or type if available
-				const behaviorName = behavior.name || `Behavior ${index + 1}`;
+			{behaviorConfigs.length === 0 && <div className="px-2 text-muted-foreground">No behaviors. Click "Add Behavior" to add one.</div>}
+			{behaviorConfigs.map((behavior, index) => {
+				const definition = getBehaviorDefinition(behavior.type);
+				const title = definition?.label || behavior.type || `Behavior ${index + 1}`;
 
 				return (
-					<EditorInspectorSectionField key={`behavior-${index}`} title={behaviorName}>
-						<div className="px-2 text-sm text-muted-foreground">Behavior function (editing not yet supported)</div>
+					<EditorInspectorSectionField
+						key={behavior.id || `behavior-${index}`}
+						title={
+							<div className="flex items-center justify-between w-full">
+								<span>{title}</span>
+								<Button
+									variant="ghost"
+									className="p-2 text-destructive hover:text-destructive hover:bg-destructive/10 transition-colors"
+									onClick={(e) => {
+										e.stopPropagation();
+										handleRemoveBehavior(index);
+									}}
+								>
+									<HiOutlineTrash className="w-4 h-4" />
+								</Button>
+							</div>
+						}
+					>
+						<BehaviorProperties behavior={behavior} onChange={handleBehaviorChange} />
 					</EditorInspectorSectionField>
 				);
 			})}
 
-			{/* TODO: Add ability to add/remove behaviors */}
+			<DropdownMenu>
+				<DropdownMenuTrigger asChild>
+					<Button variant="secondary" className="flex items-center gap-2 w-full">
+						<IoAddSharp className="w-6 h-6" /> Add Behavior
+					</Button>
+				</DropdownMenuTrigger>
+				<DropdownMenuContent>
+					{Object.values(BehaviorRegistry).map((definition) => (
+						<DropdownMenuItem key={definition.type} onClick={() => handleAddBehavior(definition.type)}>
+							{definition.label}
+						</DropdownMenuItem>
+					))}
+				</DropdownMenuContent>
+			</DropdownMenu>
 		</>
 	);
 }

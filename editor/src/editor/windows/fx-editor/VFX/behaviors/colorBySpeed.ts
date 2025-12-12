@@ -1,19 +1,23 @@
-import { SolidParticle, Particle } from "babylonjs";
+import { SolidParticle, Particle, Vector3 } from "babylonjs";
 import type { VFXColorBySpeedBehavior } from "../types/behaviors";
 import { interpolateColorKeys } from "./utils";
-import { VFXValueParser } from "../parsers/VFXValueParser";
+import { VFXValueUtils } from "../utils/valueParser";
 
 /**
  * Apply ColorBySpeed behavior to Particle
+ * Gets currentSpeed from particle.velocity magnitude
  */
-export function applyColorBySpeedPS(particle: Particle, behavior: VFXColorBySpeedBehavior, currentSpeed: number, valueParser: VFXValueParser): void {
-	if (!behavior.color || !behavior.color.keys || !particle.color) {
+export function applyColorBySpeedPS(particle: Particle, behavior: VFXColorBySpeedBehavior): void {
+	if (!behavior.color || !behavior.color.keys || !particle.color || !particle.direction) {
 		return;
 	}
 
+	// Get current speed from particle velocity/direction
+	const currentSpeed = Vector3.Distance(Vector3.Zero(), particle.direction);
+
 	const colorKeys = behavior.color.keys;
-	const minSpeed = behavior.minSpeed !== undefined ? valueParser.parseConstantValue(behavior.minSpeed) : 0;
-	const maxSpeed = behavior.maxSpeed !== undefined ? valueParser.parseConstantValue(behavior.maxSpeed) : 1;
+	const minSpeed = behavior.minSpeed !== undefined ? VFXValueUtils.parseConstantValue(behavior.minSpeed) : 0;
+	const maxSpeed = behavior.maxSpeed !== undefined ? VFXValueUtils.parseConstantValue(behavior.maxSpeed) : 1;
 	const speedRatio = Math.max(0, Math.min(1, (currentSpeed - minSpeed) / (maxSpeed - minSpeed || 1)));
 
 	const interpolatedColor = interpolateColorKeys(colorKeys, speedRatio);
@@ -34,15 +38,19 @@ export function applyColorBySpeedPS(particle: Particle, behavior: VFXColorBySpee
 
 /**
  * Apply ColorBySpeed behavior to SolidParticle
+ * Gets currentSpeed from particle.velocity magnitude
  */
-export function applyColorBySpeedSPS(particle: SolidParticle, behavior: VFXColorBySpeedBehavior, currentSpeed: number, valueParser: VFXValueParser): void {
+export function applyColorBySpeedSPS(particle: SolidParticle, behavior: VFXColorBySpeedBehavior): void {
 	if (!behavior.color || !behavior.color.keys || !particle.color) {
 		return;
 	}
 
+	// Get current speed from particle velocity
+	const currentSpeed = Math.sqrt(particle.velocity.x * particle.velocity.x + particle.velocity.y * particle.velocity.y + particle.velocity.z * particle.velocity.z);
+
 	const colorKeys = behavior.color.keys;
-	const minSpeed = behavior.minSpeed !== undefined ? valueParser.parseConstantValue(behavior.minSpeed) : 0;
-	const maxSpeed = behavior.maxSpeed !== undefined ? valueParser.parseConstantValue(behavior.maxSpeed) : 1;
+	const minSpeed = behavior.minSpeed !== undefined ? VFXValueUtils.parseConstantValue(behavior.minSpeed) : 0;
+	const maxSpeed = behavior.maxSpeed !== undefined ? VFXValueUtils.parseConstantValue(behavior.maxSpeed) : 1;
 	const speedRatio = Math.max(0, Math.min(1, (currentSpeed - minSpeed) / (maxSpeed - minSpeed || 1)));
 
 	const interpolatedColor = interpolateColorKeys(colorKeys, speedRatio);

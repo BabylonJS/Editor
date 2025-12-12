@@ -1,28 +1,22 @@
-import { Particle, ParticleSystem, SolidParticle } from "babylonjs";
+import { Particle, SolidParticle, Vector3 } from "babylonjs";
 import type { VFXRotationBySpeedBehavior } from "../types/behaviors";
 import { extractNumberFromValue, interpolateGradientKeys } from "./utils";
-import { VFXValueParser } from "../parsers/VFXValueParser";
-
-/**
- * Extended Particle interface for custom behaviors
- */
-interface ExtendedParticle extends Particle {
-	startSpeed?: number;
-}
+import { VFXValueUtils } from "../utils/valueParser";
 
 /**
  * Apply RotationBySpeed behavior to Particle
+ * Gets currentSpeed from particle.direction magnitude and updateSpeed from system
  */
-export function applyRotationBySpeedPS(
-	particle: ExtendedParticle,
-	behavior: VFXRotationBySpeedBehavior,
-	currentSpeed: number,
-	_particleSystem: ParticleSystem,
-	valueParser: VFXValueParser
-): void {
-	if (!behavior.angularVelocity) {
+export function applyRotationBySpeedPS(particle: Particle, behavior: VFXRotationBySpeedBehavior): void {
+	if (!behavior.angularVelocity || !particle.direction) {
 		return;
 	}
+
+	// Get current speed from particle velocity/direction
+	const currentSpeed = Vector3.Distance(Vector3.Zero(), particle.direction);
+
+	// Get updateSpeed from system (stored in particle or use default)
+	const updateSpeed = (particle as any).particleSystem?.updateSpeed ?? 0.016;
 
 	// angularVelocity can be VFXValue (constant/interval) or object with keys
 	let angularSpeed = 0;
@@ -33,31 +27,32 @@ export function applyRotationBySpeedPS(
 		Array.isArray(behavior.angularVelocity.keys) &&
 		behavior.angularVelocity.keys.length > 0
 	) {
-		const minSpeed = behavior.minSpeed !== undefined ? valueParser.parseConstantValue(behavior.minSpeed) : 0;
-		const maxSpeed = behavior.maxSpeed !== undefined ? valueParser.parseConstantValue(behavior.maxSpeed) : 1;
+		const minSpeed = behavior.minSpeed !== undefined ? VFXValueUtils.parseConstantValue(behavior.minSpeed) : 0;
+		const maxSpeed = behavior.maxSpeed !== undefined ? VFXValueUtils.parseConstantValue(behavior.maxSpeed) : 1;
 		const speedRatio = Math.max(0, Math.min(1, (currentSpeed - minSpeed) / (maxSpeed - minSpeed || 1)));
 		angularSpeed = interpolateGradientKeys(behavior.angularVelocity.keys, speedRatio, extractNumberFromValue);
 	} else {
-		const angularVel = valueParser.parseIntervalValue(behavior.angularVelocity);
+		const angularVel = VFXValueUtils.parseIntervalValue(behavior.angularVelocity);
 		angularSpeed = angularVel.min + (angularVel.max - angularVel.min) * 0.5; // Use middle value
 	}
 
-	particle.angle += angularSpeed * 0.016; // Assuming ~60fps
+	particle.angle += angularSpeed * updateSpeed;
 }
 
 /**
  * Apply RotationBySpeed behavior to SolidParticle
+ * Gets currentSpeed from particle.velocity magnitude and updateSpeed from system
  */
-export function applyRotationBySpeedSPS(
-	particle: SolidParticle,
-	behavior: VFXRotationBySpeedBehavior,
-	currentSpeed: number,
-	valueParser: VFXValueParser,
-	updateSpeed: number = 0.016
-): void {
+export function applyRotationBySpeedSPS(particle: SolidParticle, behavior: VFXRotationBySpeedBehavior): void {
 	if (!behavior.angularVelocity) {
 		return;
 	}
+
+	// Get current speed from particle velocity
+	const currentSpeed = Math.sqrt(particle.velocity.x * particle.velocity.x + particle.velocity.y * particle.velocity.y + particle.velocity.z * particle.velocity.z);
+
+	// Get updateSpeed from system (stored in particle.props or use default)
+	const updateSpeed = (particle as any).system?.updateSpeed ?? 0.016;
 
 	// angularVelocity can be VFXValue (constant/interval) or object with keys
 	let angularSpeed = 0;
@@ -68,12 +63,12 @@ export function applyRotationBySpeedSPS(
 		Array.isArray(behavior.angularVelocity.keys) &&
 		behavior.angularVelocity.keys.length > 0
 	) {
-		const minSpeed = behavior.minSpeed !== undefined ? valueParser.parseConstantValue(behavior.minSpeed) : 0;
-		const maxSpeed = behavior.maxSpeed !== undefined ? valueParser.parseConstantValue(behavior.maxSpeed) : 1;
+		const minSpeed = behavior.minSpeed !== undefined ? VFXValueUtils.parseConstantValue(behavior.minSpeed) : 0;
+		const maxSpeed = behavior.maxSpeed !== undefined ? VFXValueUtils.parseConstantValue(behavior.maxSpeed) : 1;
 		const speedRatio = Math.max(0, Math.min(1, (currentSpeed - minSpeed) / (maxSpeed - minSpeed || 1)));
 		angularSpeed = interpolateGradientKeys(behavior.angularVelocity.keys, speedRatio, extractNumberFromValue);
 	} else {
-		const angularVel = valueParser.parseIntervalValue(behavior.angularVelocity);
+		const angularVel = VFXValueUtils.parseIntervalValue(behavior.angularVelocity);
 		angularSpeed = angularVel.min + (angularVel.max - angularVel.min) * 0.5; // Use middle value
 	}
 

@@ -1,45 +1,45 @@
-import type { Particle, SolidParticle } from "babylonjs";
+import { Particle, SolidParticle, Vector3 } from "babylonjs";
 import type { VFXSizeBySpeedBehavior } from "../types/behaviors";
 import { extractNumberFromValue, interpolateGradientKeys } from "./utils";
-import { VFXValueParser } from "../parsers/VFXValueParser";
-
-/**
- * Extended Particle interface for custom behaviors
- */
-interface ExtendedParticle extends Particle {
-	startSpeed?: number;
-	startSize?: number;
-}
+import { VFXValueUtils } from "../utils/valueParser";
 
 /**
  * Apply SizeBySpeed behavior to Particle
+ * Gets currentSpeed from particle.direction magnitude
  */
-export function applySizeBySpeedPS(particle: ExtendedParticle, behavior: VFXSizeBySpeedBehavior, currentSpeed: number, valueParser: VFXValueParser): void {
-	if (!behavior.size || !behavior.size.keys) {
+export function applySizeBySpeedPS(particle: Particle, behavior: VFXSizeBySpeedBehavior): void {
+	if (!behavior.size || !behavior.size.keys || !particle.direction) {
 		return;
 	}
 
+	// Get current speed from particle velocity/direction
+	const currentSpeed = Vector3.Distance(Vector3.Zero(), particle.direction);
+
 	const sizeKeys = behavior.size.keys;
-	const minSpeed = behavior.minSpeed !== undefined ? valueParser.parseConstantValue(behavior.minSpeed) : 0;
-	const maxSpeed = behavior.maxSpeed !== undefined ? valueParser.parseConstantValue(behavior.maxSpeed) : 1;
+	const minSpeed = behavior.minSpeed !== undefined ? VFXValueUtils.parseConstantValue(behavior.minSpeed) : 0;
+	const maxSpeed = behavior.maxSpeed !== undefined ? VFXValueUtils.parseConstantValue(behavior.maxSpeed) : 1;
 	const speedRatio = Math.max(0, Math.min(1, (currentSpeed - minSpeed) / (maxSpeed - minSpeed || 1)));
 
 	const sizeMultiplier = interpolateGradientKeys(sizeKeys, speedRatio, extractNumberFromValue);
-	const startSize = particle.startSize || particle.size || 1;
+	const startSize = particle.size || 1;
 	particle.size = startSize * sizeMultiplier;
 }
 
 /**
  * Apply SizeBySpeed behavior to SolidParticle
+ * Gets currentSpeed from particle.velocity magnitude
  */
-export function applySizeBySpeedSPS(particle: SolidParticle, behavior: VFXSizeBySpeedBehavior, currentSpeed: number, valueParser: VFXValueParser): void {
+export function applySizeBySpeedSPS(particle: SolidParticle, behavior: VFXSizeBySpeedBehavior): void {
 	if (!behavior.size || !behavior.size.keys) {
 		return;
 	}
 
+	// Get current speed from particle velocity
+	const currentSpeed = Math.sqrt(particle.velocity.x * particle.velocity.x + particle.velocity.y * particle.velocity.y + particle.velocity.z * particle.velocity.z);
+
 	const sizeKeys = behavior.size.keys;
-	const minSpeed = behavior.minSpeed !== undefined ? valueParser.parseConstantValue(behavior.minSpeed) : 0;
-	const maxSpeed = behavior.maxSpeed !== undefined ? valueParser.parseConstantValue(behavior.maxSpeed) : 1;
+	const minSpeed = behavior.minSpeed !== undefined ? VFXValueUtils.parseConstantValue(behavior.minSpeed) : 0;
+	const maxSpeed = behavior.maxSpeed !== undefined ? VFXValueUtils.parseConstantValue(behavior.maxSpeed) : 1;
 	const speedRatio = Math.max(0, Math.min(1, (currentSpeed - minSpeed) / (maxSpeed - minSpeed || 1)));
 
 	const sizeMultiplier = interpolateGradientKeys(sizeKeys, speedRatio, extractNumberFromValue);

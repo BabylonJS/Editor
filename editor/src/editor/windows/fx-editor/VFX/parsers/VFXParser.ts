@@ -7,7 +7,7 @@ import { VFXValueParser } from "./VFXValueParser";
 import { VFXMaterialFactory } from "../factories/VFXMaterialFactory";
 import { VFXGeometryFactory } from "../factories/VFXGeometryFactory";
 import { VFXEmitterFactory } from "../factories/VFXEmitterFactory";
-import { VFXHierarchyProcessor } from "../processors/VFXHierarchyProcessor";
+import { VFXSystemFactory } from "../factories/VFXSystemFactory";
 import { VFXDataConverter } from "./VFXDataConverter";
 import { VFXParticleSystem } from "../systems/VFXParticleSystem";
 import { VFXSolidParticleSystem } from "../systems/VFXSolidParticleSystem";
@@ -23,7 +23,7 @@ export class VFXParser {
 	private _materialFactory: VFXMaterialFactory;
 	private _geometryFactory: VFXGeometryFactory;
 	private _emitterFactory: VFXEmitterFactory;
-	private _hierarchyProcessor: VFXHierarchyProcessor;
+	private _systemFactory: VFXSystemFactory;
 
 	constructor(scene: Scene, rootUrl: string, jsonData: QuarksVFXJSON, options?: VFXLoaderOptions) {
 		const opts = options || {};
@@ -40,7 +40,7 @@ export class VFXParser {
 		this._materialFactory = new VFXMaterialFactory(this._context);
 		this._geometryFactory = new VFXGeometryFactory(this._context, this._materialFactory);
 		this._emitterFactory = new VFXEmitterFactory(this._context, this._valueParser, this._materialFactory, this._geometryFactory);
-		this._hierarchyProcessor = new VFXHierarchyProcessor(this._context, this._emitterFactory);
+		this._systemFactory = new VFXSystemFactory(this._context, this._emitterFactory);
 	}
 
 	/**
@@ -57,7 +57,7 @@ export class VFXParser {
 		const dataConverter = new VFXDataConverter(options);
 		const vfxData = dataConverter.convert(jsonData);
 		this._context.vfxData = vfxData;
-		const particleSystems = this._hierarchyProcessor.processHierarchy(vfxData);
+		const particleSystems = this._systemFactory.createSystems(vfxData);
 
 		this._logger.log(`=== Parsing complete. Created ${particleSystems.length} particle system(s) ===`, options);
 		return particleSystems;

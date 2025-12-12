@@ -1,12 +1,12 @@
 import { SolidParticle, ParticleSystem } from "babylonjs";
 import type { VFXSpeedOverLifeBehavior } from "../types/behaviors";
 import { extractNumberFromValue, interpolateGradientKeys } from "./utils";
-import { VFXValueParser } from "../parsers/VFXValueParser";
+import { VFXValueUtils } from "../utils/valueParser";
 
 /**
  * Apply SpeedOverLife behavior to ParticleSystem
  */
-export function applySpeedOverLifePS(particleSystem: ParticleSystem, behavior: VFXSpeedOverLifeBehavior, valueParser: VFXValueParser): void {
+export function applySpeedOverLifePS(particleSystem: ParticleSystem, behavior: VFXSpeedOverLifeBehavior): void {
 	if (behavior.speed) {
 		if (typeof behavior.speed === "object" && behavior.speed !== null && "keys" in behavior.speed && behavior.speed.keys && Array.isArray(behavior.speed.keys)) {
 			for (const key of behavior.speed.keys) {
@@ -35,7 +35,7 @@ export function applySpeedOverLifePS(particleSystem: ParticleSystem, behavior: V
 				}
 			}
 		} else if (typeof behavior.speed === "number" || (typeof behavior.speed === "object" && behavior.speed !== null && "type" in behavior.speed)) {
-			const speedValue = valueParser.parseIntervalValue(behavior.speed);
+			const speedValue = VFXValueUtils.parseIntervalValue(behavior.speed);
 			particleSystem.addVelocityGradient(0, speedValue.min);
 			particleSystem.addVelocityGradient(1, speedValue.max);
 		}
@@ -44,11 +44,15 @@ export function applySpeedOverLifePS(particleSystem: ParticleSystem, behavior: V
 
 /**
  * Apply SpeedOverLife behavior to SolidParticle
+ * Gets lifeRatio from particle (age / lifeTime)
  */
-export function applySpeedOverLifeSPS(particle: SolidParticle, behavior: VFXSpeedOverLifeBehavior, lifeRatio: number, valueParser: VFXValueParser): void {
-	if (!behavior.speed) {
+export function applySpeedOverLifeSPS(particle: SolidParticle, behavior: VFXSpeedOverLifeBehavior): void {
+	if (!behavior.speed || particle.lifeTime <= 0) {
 		return;
 	}
+
+	// Get lifeRatio from particle
+	const lifeRatio = particle.age / particle.lifeTime;
 
 	let speedMultiplier = 1;
 
@@ -70,7 +74,7 @@ export function applySpeedOverLifeSPS(particle: SolidParticle, behavior: VFXSpee
 			speedMultiplier = startSpeed + (endSpeed - startSpeed) * t;
 		}
 	} else if (typeof behavior.speed === "number" || (typeof behavior.speed === "object" && behavior.speed !== null && "type" in behavior.speed)) {
-		const speedValue = valueParser.parseIntervalValue(behavior.speed);
+		const speedValue = VFXValueUtils.parseIntervalValue(behavior.speed);
 		speedMultiplier = speedValue.min + (speedValue.max - speedValue.min) * lifeRatio;
 	}
 

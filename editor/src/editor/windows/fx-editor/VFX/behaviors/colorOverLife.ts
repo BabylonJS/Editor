@@ -39,11 +39,15 @@ export function applyColorOverLifePS(particleSystem: ParticleSystem, behavior: V
 
 /**
  * Apply ColorOverLife behavior to SolidParticle
+ * Gets lifeRatio from particle (age / lifeTime)
  */
-export function applyColorOverLifeSPS(particle: SolidParticle, behavior: VFXColorOverLifeBehavior, lifeRatio: number): void {
-	if (!behavior.color || !particle.color) {
+export function applyColorOverLifeSPS(particle: SolidParticle, behavior: VFXColorOverLifeBehavior): void {
+	if (!behavior.color || !particle.color || particle.lifeTime <= 0) {
 		return;
 	}
+
+	// Get lifeRatio from particle
+	const lifeRatio = particle.age / particle.lifeTime;
 
 	const colorKeys = behavior.color.color?.keys ?? behavior.color.keys;
 	if (!colorKeys || !Array.isArray(colorKeys)) {

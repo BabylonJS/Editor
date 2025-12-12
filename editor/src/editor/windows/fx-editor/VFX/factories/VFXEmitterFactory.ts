@@ -6,17 +6,6 @@ import { VFXValueParser } from "../parsers/VFXValueParser";
 import type { IVFXMaterialFactory, IVFXGeometryFactory } from "../types/factories";
 import { VFXSolidParticleSystem } from "../systems/VFXSolidParticleSystem";
 import { VFXParticleSystem } from "../systems/VFXParticleSystem";
-import { VFXBehaviorFunctionFactory } from "./VFXBehaviorFunctionFactory";
-import {
-	applyColorOverLifePS,
-	applySizeOverLifePS,
-	applyRotationOverLifePS,
-	applyForceOverLifePS,
-	applyGravityForcePS,
-	applySpeedOverLifePS,
-	applyFrameOverLifePS,
-	applyLimitSpeedOverLifePS,
-} from "../behaviors";
 import type { VFXBehavior, VFXEmissionBurst } from "../types";
 import type { VFXParticleEmitterConfig } from "../types/emitterConfig";
 
@@ -57,14 +46,13 @@ export class VFXEmitterFactory {
 	 * Create a particle emitter from emitter data
 	 */
 	public createEmitter(emitterData: VFXEmitterData): Nullable<ParticleSystem | SolidParticleSystem> {
-		const { config } = emitterData;
 		const { options } = this._context;
 
-		// Check if we need SolidParticleSystem (mesh-based particles)
-		const useSolidParticles = config.renderMode === 2;
-		this._logger.log(`Using ${useSolidParticles ? "SolidParticleSystem" : "ParticleSystem"}`, options);
+		// Use systemType from emitter data (determined during conversion)
+		const systemType = emitterData.vfxEmitter?.systemType || "base";
+		this._logger.log(`Using ${systemType === "solid" ? "SolidParticleSystem" : "ParticleSystem"}`, options);
 
-		if (useSolidParticles) {
+		if (systemType === "solid") {
 			return this._createSolidParticleSystem(emitterData);
 		} else {
 			return this._createParticleSystem(emitterData);
@@ -153,7 +141,7 @@ export class VFXEmitterFactory {
 	 */
 	private _createParticleSystemInstance(name: string, values: ParsedParticleValues): VFXParticleSystem {
 		const { scene } = this._context;
-		return new VFXParticleSystem(name, values.capacity, scene, this._valueParser, values.avgStartSpeed, values.avgStartSize, values.startColor);
+		return new VFXParticleSystem(name, values.capacity, scene, values.avgStartSpeed, values.avgStartSize, values.startColor);
 	}
 
 	/**
@@ -380,7 +368,7 @@ export class VFXEmitterFactory {
 
 		this._addShapeToSPS(sps, particleMesh, capacity);
 		this._configureSPSBillboard(sps, config);
-		this._applyBehaviorsIfNeededSPS(sps, config.behaviors);
+		this._applyBehaviors(sps, config.behaviors || []);
 
 		particleMesh.dispose();
 
@@ -426,7 +414,7 @@ export class VFXEmitterFactory {
 		vfxTransform: { position: Vector3; rotation: Quaternion; scale: Vector3 } | null
 	): VFXSolidParticleSystem {
 		const { scene, options } = this._context;
-		return new VFXSolidParticleSystem(name, scene, config, this._valueParser, {
+		const sps = new VFXSolidParticleSystem(name, scene, config, {
 			updatable: true,
 			isPickable: false,
 			enableDepthSort: false,
@@ -437,6 +425,11 @@ export class VFXEmitterFactory {
 			logger: this._logger,
 			loaderOptions: options,
 		});
+		// Set parent after creation (will apply to mesh)
+		if (emitterData.parentGroup) {
+			sps.parent = emitterData.parentGroup;
+		}
+		return sps;
 	}
 
 	/**
@@ -526,18 +519,6 @@ export class VFXEmitterFactory {
 	private _configureSPSBillboard(sps: SolidParticleSystem, config: VFXParticleEmitterConfig): void {
 		if (config.renderMode === 0 || config.renderMode === 1) {
 			sps.billboard = true;
-		}
-	}
-
-	/**
-	 * Applies behaviors to SPS if configured
-	 */
-	private _applyBehaviorsIfNeededSPS(sps: SolidParticleSystem, behaviors: VFXBehavior[] | undefined): void {
-		const { options } = this._context;
-
-		if (behaviors && Array.isArray(behaviors) && behaviors.length > 0) {
-			this._applyBehaviorsToSPS(sps, behaviors);
-			this._logger.log(`  Set SPS behaviors (${behaviors.length})`, options);
 		}
 	}
 
@@ -750,68 +731,13 @@ export class VFXEmitterFactory {
 
 	/**
 	 * Apply behaviors to ParticleSystem
+	 * Simply sets behaviorConfigs - the system will apply them automatically via proxy
 	 */
-	private _applyBehaviorsToPS(particleSystem: ParticleSystem, behaviors: VFXBehavior[]): void {
-		const vfxPS = particleSystem as any as VFXParticleSystem;
-		if (!vfxPS || typeof vfxPS.setPerParticleBehaviors !== "function") {
+	private _applyBehaviors(particleSystem: VFXParticleSystem | VFXSolidParticleSystem, behaviors: VFXBehavior[]): void {
+		if (!particleSystem || !particleSystem.behaviorConfigs) {
 			return;
 		}
-
-		this._applySystemLevelBehaviors(particleSystem, behaviors);
-
-		const perParticleFunctions = VFXBehaviorFunctionFactory.createPerParticleFunctionsPS(behaviors, this._valueParser, particleSystem);
-		vfxPS.setPerParticleBehaviors(perParticleFunctions);
-	}
-
-	/**
-	 * Applies system-level behaviors (gradients, etc.)
-	 */
-	private _applySystemLevelBehaviors(particleSystem: ParticleSystem, behaviors: VFXBehavior[]): void {
-		const { options } = this._context;
-		const valueParser = this._valueParser;
-
-		for (const behavior of behaviors) {
-			if (!behavior.type) {
-				this._logger.warn(`Behavior missing type: ${JSON.stringify(behavior)}`, options);
-				continue;
-			}
-
-			this._logger.log(`  Processing behavior: ${behavior.type}`, options);
-			this._applyBehaviorToPS(particleSystem, behavior, valueParser);
-		}
-	}
-
-	/**
-	 * Applies a single behavior to ParticleSystem
-	 */
-	private _applyBehaviorToPS(particleSystem: ParticleSystem, behavior: VFXBehavior, valueParser: VFXValueParser): void {
-		const behaviorHandlers: Record<string, (ps: ParticleSystem, b: VFXBehavior, vp: VFXValueParser) => void> = {
-			ColorOverLife: (ps, b) => applyColorOverLifePS(ps, b as any),
-			SizeOverLife: (ps, b) => applySizeOverLifePS(ps, b as any),
-			RotationOverLife: (ps, b, vp) => applyRotationOverLifePS(ps, b as any, vp),
-			Rotation3DOverLife: (ps, b, vp) => applyRotationOverLifePS(ps, b as any, vp),
-			ForceOverLife: (ps, b, vp) => applyForceOverLifePS(ps, b as any, vp),
-			ApplyForce: (ps, b, vp) => applyForceOverLifePS(ps, b as any, vp),
-			GravityForce: (ps, b, vp) => applyGravityForcePS(ps, b as any, vp),
-			SpeedOverLife: (ps, b, vp) => applySpeedOverLifePS(ps, b as any, vp),
-			FrameOverLife: (ps, b, vp) => applyFrameOverLifePS(ps, b as any, vp),
-			LimitSpeedOverLife: (ps, b, vp) => applyLimitSpeedOverLifePS(ps, b as any, vp),
-		};
-
-		const handler = behaviorHandlers[behavior.type];
-		if (handler) {
-			handler(particleSystem, behavior, valueParser);
-		}
-	}
-
-	/**
-	 * Apply behaviors to SolidParticleSystem
-	 */
-	private _applyBehaviorsToSPS(sps: SolidParticleSystem, behaviors: VFXBehavior[]): void {
-		const vfxSPS = sps as any as VFXSolidParticleSystem;
-		if (vfxSPS && typeof vfxSPS.setPerParticleBehaviors === "function") {
-			const perParticleFunctions = VFXBehaviorFunctionFactory.createPerParticleFunctionsSPS(behaviors, this._valueParser);
-			vfxSPS.setPerParticleBehaviors(perParticleFunctions);
-		}
+		particleSystem.behaviorConfigs.length = 0;
+		particleSystem.behaviorConfigs.push(...(behaviors || []));
 	}
 }

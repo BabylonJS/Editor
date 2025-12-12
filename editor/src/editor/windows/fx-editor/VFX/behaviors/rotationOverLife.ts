@@ -1,13 +1,13 @@
-import type { ParticleSystem, SolidParticle } from "babylonjs";
+import { ParticleSystem, SolidParticle } from "babylonjs";
 import type { VFXRotationOverLifeBehavior } from "../types/behaviors";
-import { VFXValueParser } from "../parsers/VFXValueParser";
+import { VFXValueUtils } from "../utils/valueParser";
 
 /**
  * Apply RotationOverLife behavior to ParticleSystem
  */
-export function applyRotationOverLifePS(particleSystem: ParticleSystem, behavior: VFXRotationOverLifeBehavior, valueParser: VFXValueParser): void {
+export function applyRotationOverLifePS(particleSystem: ParticleSystem, behavior: VFXRotationOverLifeBehavior): void {
 	if (behavior.angularVelocity) {
-		const angularVel = valueParser.parseIntervalValue(behavior.angularVelocity);
+		const angularVel = VFXValueUtils.parseIntervalValue(behavior.angularVelocity);
 		particleSystem.minAngularSpeed = angularVel.min;
 		particleSystem.maxAngularSpeed = angularVel.max;
 	}
@@ -15,19 +15,20 @@ export function applyRotationOverLifePS(particleSystem: ParticleSystem, behavior
 
 /**
  * Apply RotationOverLife behavior to SolidParticle
+ * Gets lifeRatio from particle (age / lifeTime) and updateSpeed from system
  */
-export function applyRotationOverLifeSPS(
-	particle: SolidParticle,
-	behavior: VFXRotationOverLifeBehavior,
-	lifeRatio: number,
-	valueParser: VFXValueParser,
-	updateSpeed: number = 0.016
-): void {
-	if (!behavior.angularVelocity) {
+export function applyRotationOverLifeSPS(particle: SolidParticle, behavior: VFXRotationOverLifeBehavior): void {
+	if (!behavior.angularVelocity || particle.lifeTime <= 0) {
 		return;
 	}
 
-	const angularVel = valueParser.parseIntervalValue(behavior.angularVelocity);
+	// Get lifeRatio from particle
+	const lifeRatio = particle.age / particle.lifeTime;
+
+	// Get updateSpeed from system (stored in particle.props or use default)
+	const updateSpeed = (particle as any).system?.updateSpeed ?? 0.016;
+
+	const angularVel = VFXValueUtils.parseIntervalValue(behavior.angularVelocity);
 	const angularSpeed = angularVel.min + (angularVel.max - angularVel.min) * lifeRatio;
 
 	// Apply rotation around Z axis (2D rotation)
