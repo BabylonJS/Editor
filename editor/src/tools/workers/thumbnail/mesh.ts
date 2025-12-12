@@ -1,5 +1,5 @@
 import "babylonjs-loaders";
-import { Engine, Scene, FreeCamera, Vector3, CubeTexture, LoadAssetContainerAsync, RegisterSceneLoaderPlugin } from "babylonjs";
+import { Engine, Scene, FreeCamera, Vector3, CubeTexture, LoadAssetContainerAsync, RegisterSceneLoaderPlugin, Material } from "babylonjs";
 
 import { AssimpJSLoader } from "../../../loader/assimpjs";
 
@@ -17,7 +17,13 @@ let scene: Scene;
 let camera: FreeCamera;
 let environmentTexture: CubeTexture;
 
-export async function getPreview(absolutePath: string, rootUrl: string, appPath: string | null, serializedEnvironmentTexture?: any) {
+export async function getPreview(
+	absolutePath: string,
+	rootUrl: string,
+	appPath: string | null,
+	serializedEnvironmentTexture?: any,
+	serializedOverrideMaterial?: any
+): Promise<string> {
 	if (appPath) {
 		assimpLoader.appPath = appPath;
 	}
@@ -54,6 +60,13 @@ export async function getPreview(absolutePath: string, rootUrl: string, appPath:
 
 	const container = await LoadAssetContainerAsync(absolutePath, scene);
 	container.addAllToScene();
+
+	if (serializedOverrideMaterial) {
+		const overrideMaterial = Material.Parse(serializedOverrideMaterial, scene, rootUrl);
+		container.meshes.forEach((mesh) => {
+			mesh.material = overrideMaterial;
+		});
+	}
 
 	await forceCompileAllSceneMaterials(scene);
 

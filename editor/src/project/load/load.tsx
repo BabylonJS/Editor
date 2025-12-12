@@ -7,6 +7,8 @@ import { Editor } from "../../editor/main";
 
 import packageJson from "../../../package.json";
 
+import { requirePlugin } from "../../tools/plugins/require";
+
 import { EditorProjectPackageManager, IEditorProject } from "../typings";
 import { projectConfiguration } from "../configuration";
 
@@ -124,22 +126,10 @@ export async function checkDependencies(
 export async function loadProjectPlugins(editor: Editor, path: string, project: IEditorProject) {
 	for (const plugin of project.plugins) {
 		try {
-			const isLocalPlugin = await pathExists(plugin.nameOrPath);
-
-			let requireId = plugin.nameOrPath;
-			if (!isLocalPlugin) {
-				const projectDir = dirname(path);
-				requireId = join(projectDir, "node_modules", plugin.nameOrPath);
-			}
-
-			const result = require(requireId);
-			result.main(editor);
-
-			if (isLocalPlugin) {
-				editor.layout.console.log(`Loaded plugin from local drive "${result.title ?? plugin.nameOrPath}"`);
-			} else {
-				editor.layout.console.log(`Loaded plugin "${result.title ?? plugin.nameOrPath}"`);
-			}
+			await requirePlugin(editor, {
+				projectPath: path,
+				pluginNameOrPath: plugin.nameOrPath,
+			});
 		} catch (e) {
 			console.error(e);
 			editor.layout.console.error(`Failed to load plugin from project "${plugin.nameOrPath}"`);

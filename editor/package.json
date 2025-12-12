@@ -10,6 +10,7 @@
 		"url": "https://twitter.com/luaacro"
 	},
 	"scripts": {
+		"postinstall": "rimraf --glob ./node_modules/babylonjs-editor-tools",
 		"build": "tsc -p . && tailwindcss -i ./index.css -o ./build/index.css && node esbuild.mjs",
 		"watch": "concurrently -i \"tsc -p . --watch\" \"node esbuild.mjs --watch\" -c bgYellow.bold,bgBlue.bold --names editor-ts,editor-dependencies",
 		"watch-css": "tailwindcss -i ./index.css -o ./build/index.css --watch",
@@ -73,10 +74,10 @@
 		"@xterm/addon-fit": "^0.10.0",
 		"@xterm/xterm": "^5.6.0-beta.119",
 		"assimpjs": "0.0.10",
-		"axios": "^1.12.0",
+		"axios": "1.12.0",
 		"babylonjs": "8.41.0",
 		"babylonjs-addons": "8.41.0",
-		"babylonjs-editor-tools": "link:../tools",
+		"babylonjs-editor-tools": "latest",
 		"babylonjs-gui": "8.41.0",
 		"babylonjs-gui-editor": "8.41.0",
 		"babylonjs-loaders": "8.41.0",
@@ -91,6 +92,7 @@
 		"cmdk": "^1.0.0",
 		"decompress": "^4.2.1",
 		"decompress-targz": "^4.1.1",
+		"dunder-proto": "1.0.1",
 		"electron-updater": "^6.6.2",
 		"esbuild": "0.25.5",
 		"filenamify": "4.3.0",

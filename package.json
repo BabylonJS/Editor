@@ -25,12 +25,12 @@
 		"website"
 	],
 	"scripts": {
-		"postinstall": "electron-rebuild -f -w node-pty -m ./node_modules/node-pty && electron-builder install-app-deps && rimraf --glob templates/**/node_modules/babylonjs-editor-tools && node ./postinstall.mjs",
+		"postinstall": "electron-rebuild -f -w node-pty -m ./node_modules/node-pty && electron-builder install-app-deps && node ./postinstall.mjs",
 		"watch-editor": "yarn workspace babylonjs-editor watch",
 		"watch-editor-css": "yarn workspace babylonjs-editor watch-css",
 		"watch-editor-all": "yarn workspace babylonjs-editor watch-all",
 		"watch-tools": "yarn workspace babylonjs-editor-tools watch",
-		"watch-quixel": "yarn workspace babylonjs-editor-quixel-plugin watch",
+		"watch-plugins": "concurrently \"yarn workspace babylonjs-editor-quixel-plugin watch\" \"yarn workspace babylonjs-editor-fab-plugin watch\" -c bgYellow.bold,bgBlue.bold --names quixel,fab",
 		"build-editor": "yarn workspace babylonjs-editor build",
 		"build-tools": "yarn workspace babylonjs-editor-tools build",
 		"build-plugins": "yarn workspace babylonjs-editor-plugins build",
@@ -41,7 +41,7 @@
 		"start": "yarn workspace babylonjs-editor start",
 		"package": "yarn clean && yarn clean:node_modules && yarn && yarn lint && yarn build-all && yarn test && node build.mjs",
 		"clean": "rimraf editor/build editor/declaration editor/electron-packages editor/coverage tools/build tools/declaration tools/coverage website/.next && yarn workspace babylonjs-editor-plugins clean && yarn workspace babylonjs-editor-templates clean",
-		"clean:node_modules": "rm -rf editor/node_modules tools/node_modules quixel/node_modules templates/**/node_modules website/node_modules node_modules",
+		"clean:node_modules": "rm -rf editor/node_modules tools/node_modules plugins/**/node_modules templates/**/node_modules website/node_modules node_modules",
 		"test": "yarn workspace babylonjs-editor-tools test && yarn workspace babylonjs-editor test",
 		"coverage": "yarn workspace babylonjs-editor-tools coverage && yarn workspace babylonjs-editor coverage",
 		"format": "prettier --write \"editor/src/**/*.{ts,mts,tsx,js,json}\" \"tools/src/**/*.{ts,mts,tsx,js,json}\" \"plugins/**/src/**/*.{ts,mts,tsx,js,json}\" \"website/src/**/*.{ts,mts,tsx,js,json}\"",
@@ -71,7 +71,16 @@
 	"resolutions": {
 		"braces": "3.0.3",
 		"node-abi": "4.14.0",
-		"wrap-ansi": "7.0.0"
-	},
-	"packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
+		"wrap-ansi": "7.0.0",
+		"babylonjs": "8.41.0",
+		"babylonjs-addons": "8.41.0",
+		"babylonjs-gui": "8.41.0",
+		"babylonjs-gui-editor": "8.41.0",
+		"babylonjs-loaders": "8.41.0",
+		"babylonjs-materials": "8.41.0",
+		"babylonjs-node-editor": "8.41.0",
+		"babylonjs-node-particle-editor": "8.41.0",
+		"babylonjs-post-process": "8.41.0",
+		"babylonjs-procedural-textures": "8.41.0"
+	}
 }

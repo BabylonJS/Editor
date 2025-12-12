@@ -1,23 +1,31 @@
+import { readJSON } from "fs-extra";
 import { basename, join, dirname } from "path/posix";
 
 import { useEffect, useRef, useState } from "react";
 
-import { Engine, Scene, ArcRotateCamera, CubeTexture, AppendSceneAsync } from "babylonjs";
+import { Engine, Scene, ArcRotateCamera, CubeTexture, AppendSceneAsync, Material } from "babylonjs";
 
 import { showAlert } from "../../../../ui/dialog";
 import { Progress } from "../../../../ui/shadcn/ui/progress";
+
+import { isMesh } from "../../../../tools/guards/nodes";
 
 import { projectConfiguration } from "../../../../project/configuration";
 
 import { Editor } from "../../../main";
 
-export function openModelViewer(editor: Editor, absolutePath: string) {
-	showAlert(basename(absolutePath), <AssetBrowserModelViewer editor={editor} absolutePath={absolutePath} />, true);
+export interface IOpenModelViewerOptions {
+	overrideMaterialAbsolutePath?: string;
+}
+
+export function openModelViewer(editor: Editor, absolutePath: string, options?: IOpenModelViewerOptions) {
+	showAlert(basename(absolutePath), <AssetBrowserModelViewer editor={editor} absolutePath={absolutePath} options={options} />, true);
 }
 
 export interface IAssetBrowserModelViewerProps {
 	editor: Editor;
 	absolutePath: string;
+	options?: IOpenModelViewerOptions;
 }
 
 function AssetBrowserModelViewer(props: IAssetBrowserModelViewerProps) {
@@ -66,6 +74,19 @@ function AssetBrowserModelViewer(props: IAssetBrowserModelViewerProps) {
 			rootUrl,
 			onProgress: (ev) => setProgress((ev.loaded / ev.total) * 100),
 		});
+
+		if (props.options?.overrideMaterialAbsolutePath) {
+			const overrideMaterialData = await readJSON(props.options.overrideMaterialAbsolutePath, {
+				encoding: "utf-8",
+			});
+			const overrideMaterial = Material.Parse(overrideMaterialData, scene, join(dirname(projectConfiguration.path!), "/"));
+
+			scene.meshes.forEach((mesh) => {
+				if (isMesh(mesh)) {
+					mesh.material = overrideMaterial;
+				}
+			});
+		}
 
 		scene.createDefaultCameraOrLight(true, true, true);
 		scene.createDefaultEnvironment({

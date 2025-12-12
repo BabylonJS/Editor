@@ -694,6 +694,12 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 				sound["_url"] = data.url;
 				sound.id = data.id;
 				sound.uniqueId = data.uniqueId;
+
+				// TODO: due to recent change in sound parsing in Babylon.js, sounds are not
+				// automatically added to the main soundtrack. Remove this when fixed in Babylon.js or by switching to audio v2.
+				if (!scene.mainSoundTrack.soundCollection.includes(sound)) {
+					scene.mainSoundTrack.addSound(sound);
+				}
 			} catch (e) {
 				editor.layout.console.error(`Failed to load sound file "${file}": ${e.message}`);
 			}

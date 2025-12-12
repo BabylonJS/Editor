@@ -604,13 +604,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 							onClick={() => this.setBrowsePath(dirname(this.state.browsedPath!))}
 						/>
 						<Button minimal icon="arrow-right" className="transition-all duration-300" />
-						<Button
-							minimal
-							icon="refresh"
-							className="transition-all duration-300"
-							disabled={!this.state.browsedPath}
-							onClick={() => this._refreshItems(this.state.browsedPath!)}
-						/>
+						<Button minimal icon="refresh" className="transition-all duration-300" disabled={!this.state.browsedPath} onClick={() => this.refresh()} />
 
 						<Button minimal icon="import" text="Import" onClick={() => this._handleImportFiles()} />
 					</div>
