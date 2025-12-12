@@ -1,11 +1,4 @@
-import type { Nullable } from "@babylonjs/core/types";
-import type { Mesh } from "@babylonjs/core/Meshes/mesh";
-import type { ParticleSystem } from "@babylonjs/core/Particles/particleSystem";
-import type { SolidParticleSystem } from "@babylonjs/core/Particles/solidParticleSystem";
-import { PBRMaterial } from "@babylonjs/core/Materials/PBR/pbrMaterial";
-import type { Color4 } from "@babylonjs/core/Maths/math.color";
-import type { Texture } from "@babylonjs/core/Materials/Textures/texture";
-import type { ColorGradient } from "@babylonjs/core/Misc/gradients";
+import { Nullable, Mesh, ParticleSystem, SolidParticleSystem, PBRMaterial, Color4, Texture, ColorGradient } from "babylonjs";
 import type { VFXValue } from "./values";
 import type { VFXColor } from "./colors";
 import type { VFXGradientKey } from "./gradients";

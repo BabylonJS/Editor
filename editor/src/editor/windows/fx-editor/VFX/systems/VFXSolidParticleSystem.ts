@@ -1,8 +1,4 @@
-import { Vector3, Quaternion, Matrix } from "@babylonjs/core/Maths/math.vector";
-import { Color4 } from "@babylonjs/core/Maths/math.color";
-import { SolidParticleSystem } from "@babylonjs/core/Particles/solidParticleSystem";
-import { SolidParticle } from "@babylonjs/core/Particles/solidParticle";
-import type { TransformNode } from "@babylonjs/core/Meshes/transformNode";
+import { Vector3, Quaternion, Matrix, Color4, SolidParticleSystem, SolidParticle, TransformNode } from "babylonjs";
 import type { VFXParticleEmitterConfig, VFXEmissionBurst } from "../types/emitterConfig";
 import type { VFXValueParser } from "../parsers/VFXValueParser";
 import { VFXLogger } from "../loggers/VFXLogger";

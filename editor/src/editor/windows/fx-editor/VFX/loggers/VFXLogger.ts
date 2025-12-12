@@ -1,4 +1,4 @@
-import { Logger } from "@babylonjs/core/Misc/logger";
+import { Logger } from "babylonjs";
 import type { VFXLoaderOptions } from "../types";
 
 /**

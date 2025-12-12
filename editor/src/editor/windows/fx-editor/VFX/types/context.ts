@@ -1,5 +1,4 @@
-import type { Scene } from "@babylonjs/core/scene";
-import type { TransformNode } from "@babylonjs/core/Meshes/transformNode";
+import { Scene, TransformNode } from "babylonjs";
 import type { QuarksVFXJSON } from "./quarksTypes";
 import type { VFXHierarchy } from "./hierarchy";
 import type { VFXLoaderOptions } from "./loader";

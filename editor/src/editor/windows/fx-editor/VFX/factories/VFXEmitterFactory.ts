@@ -1,11 +1,4 @@
-import type { Nullable } from "@babylonjs/core/types";
-import { Vector3, Matrix, Quaternion } from "@babylonjs/core/Maths/math.vector";
-import { Color4 } from "@babylonjs/core/Maths/math.color";
-import { ParticleSystem } from "@babylonjs/core/Particles/particleSystem";
-import { SolidParticleSystem } from "@babylonjs/core/Particles/solidParticleSystem";
-import { CreatePlane } from "@babylonjs/core/Meshes/Builders/planeBuilder";
-import { Mesh } from "@babylonjs/core/Meshes/mesh";
-import { Constants } from "@babylonjs/core/Engines/constants";
+import { Mesh, CreatePlane, Nullable, Color4, Matrix, ParticleSystem, SolidParticleSystem, Constants, Vector3, Quaternion } from "babylonjs";
 import type { VFXEmitterData } from "../types/emitter";
 import type { VFXParseContext } from "../types/context";
 import type { VFXLoaderOptions } from "../types/loader";

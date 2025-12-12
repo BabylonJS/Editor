@@ -1,16 +1,9 @@
-import type { Nullable } from "@babylonjs/core/types";
-import { Color3 } from "@babylonjs/core/Maths/math.color";
-import { Texture } from "@babylonjs/core/Materials/Textures/texture";
-import { PBRMaterial } from "@babylonjs/core/Materials/PBR/pbrMaterial";
-import { Material } from "@babylonjs/core/Materials/material";
-import { Constants } from "@babylonjs/core/Engines/constants";
-import { Tools } from "@babylonjs/core/Misc/tools";
+import { Nullable, Color3, Texture, PBRMaterial, Material, Constants, Tools, Scene } from "babylonjs";
 import type { IVFXMaterialFactory } from "../types/factories";
 import type { VFXParseContext } from "../types/context";
 import type { VFXLoaderOptions } from "../types/loader";
 import { VFXLogger } from "../loggers/VFXLogger";
 import type { QuarksTexture } from "../types/quarksTypes";
-import type { Scene } from "@babylonjs/core/scene";
 
 /**
  * Factory for creating materials and textures from Three.js JSON data

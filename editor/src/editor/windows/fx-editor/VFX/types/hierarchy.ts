@@ -1,4 +1,4 @@
-import { Vector3, Quaternion } from "@babylonjs/core/Maths/math.vector";
+import { Vector3, Quaternion } from "babylonjs";
 import type { VFXParticleEmitterConfig } from "./emitterConfig";
 
 /**

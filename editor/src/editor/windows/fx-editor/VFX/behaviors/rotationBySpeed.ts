@@ -1,6 +1,4 @@
-import type { Particle } from "@babylonjs/core/Particles/particle";
-import type { SolidParticle } from "@babylonjs/core/Particles/solidParticle";
-import type { ParticleSystem } from "@babylonjs/core/Particles/particleSystem";
+import { Particle, ParticleSystem, SolidParticle } from "babylonjs";
 import type { VFXRotationBySpeedBehavior } from "../types/behaviors";
 import { extractNumberFromValue, interpolateGradientKeys } from "./utils";
 import { VFXValueParser } from "../parsers/VFXValueParser";

@@ -1,5 +1,4 @@
-import type { ParticleSystem } from "@babylonjs/core/Particles/particleSystem";
-import type { SolidParticle } from "@babylonjs/core/Particles/solidParticle";
+import { ParticleSystem, SolidParticle } from "babylonjs";
 import type { VFXSizeOverLifeBehavior } from "../types/behaviors";
 import { extractNumberFromValue, interpolateGradientKeys } from "./utils";
 

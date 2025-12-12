@@ -1,6 +1,4 @@
-import type { Nullable } from "@babylonjs/core/types";
-import { Vector3, Quaternion } from "@babylonjs/core/Maths/math.vector";
-import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
+import { Nullable, Vector3, Quaternion, TransformNode } from "babylonjs";
 import { VFXParticleSystem } from "../systems/VFXParticleSystem";
 import { VFXSolidParticleSystem } from "../systems/VFXSolidParticleSystem";
 import type { VFXParseContext } from "../types/context";
