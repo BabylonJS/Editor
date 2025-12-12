@@ -23,7 +23,7 @@ import type {
 	QuarksRotationBySpeedBehavior,
 	QuarksOrbitOverLifeBehavior,
 } from "../types/quarksTypes";
-import type { VFXTransform, VFXGroup, VFXEmitter, VFXHierarchy } from "../types/hierarchy";
+import type { VFXTransform, VFXGroup, VFXEmitter, VFXData } from "../types/hierarchy";
 import type { VFXParticleEmitterConfig } from "../types/emitterConfig";
 import type {
 	VFXBehavior,
@@ -58,7 +58,7 @@ export class VFXDataConverter {
 	/**
 	 * Convert Quarks/Three.js VFX JSON to Babylon.js VFX format
 	 */
-	public convert(quarksVFXData: QuarksVFXJSON): VFXHierarchy {
+	public convert(quarksVFXData: QuarksVFXJSON): VFXData {
 		this._logger.log("=== Converting Quarks VFX to Babylon.js VFX format ===", this._options);
 
 		const groups = new Map<string, VFXGroup>();
@@ -132,6 +132,9 @@ export class VFXDataConverter {
 			// Convert emitter config from Quarks to VFX format
 			const vfxConfig = this._convertEmitterConfig(obj.ps);
 
+			// Determine system type based on renderMode: 2 = solid, otherwise base
+			const systemType: "solid" | "base" = vfxConfig.renderMode === 2 ? "solid" : "base";
+
 			const emitter: VFXEmitter = {
 				uuid: obj.uuid || `emitter_${emitters.size}`,
 				name: obj.name || "ParticleEmitter",
@@ -139,10 +142,11 @@ export class VFXDataConverter {
 				config: vfxConfig,
 				materialId: obj.ps.material,
 				parentUuid: parentUuid || undefined,
+				systemType,
 			};
 
 			emitters.set(emitter.uuid, emitter);
-			this._logger.log(`${indent}Converted Emitter: ${emitter.name} (uuid: ${emitter.uuid})`, options);
+			this._logger.log(`${indent}Converted Emitter: ${emitter.name} (uuid: ${emitter.uuid}, systemType: ${systemType})`, options);
 			return emitter;
 		}
 

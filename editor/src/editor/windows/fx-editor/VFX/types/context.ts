@@ -1,6 +1,6 @@
 import { Scene, TransformNode } from "babylonjs";
 import type { QuarksVFXJSON } from "./quarksTypes";
-import type { VFXHierarchy } from "./hierarchy";
+import type { VFXData } from "./hierarchy";
 import type { VFXLoaderOptions } from "./loader";
 
 /**
@@ -12,5 +12,5 @@ export interface VFXParseContext {
 	jsonData: QuarksVFXJSON;
 	options: VFXLoaderOptions;
 	groupNodesMap: Map<string, TransformNode>;
-	vfxData?: VFXHierarchy;
+	vfxData?: VFXData;
 }

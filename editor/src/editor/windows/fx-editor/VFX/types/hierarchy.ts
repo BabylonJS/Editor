@@ -30,12 +30,14 @@ export interface VFXEmitter {
 	config: VFXParticleEmitterConfig;
 	materialId?: string;
 	parentUuid?: string;
+	systemType: "solid" | "base"; // Determined from renderMode: 2 = solid, otherwise base
 }
 
 /**
- * VFX hierarchy (converted from Quarks)
+ * VFX data (converted from Quarks)
+ * Contains the converted VFX structure with groups and emitters
  */
-export interface VFXHierarchy {
+export interface VFXData {
 	root: VFXGroup | VFXEmitter | null;
 	groups: Map<string, VFXGroup>;
 	emitters: Map<string, VFXEmitter>;

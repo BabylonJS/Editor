@@ -1,11 +1,11 @@
 import { ParticleSystem } from "babylonjs";
 import type { VFXFrameOverLifeBehavior } from "../types/behaviors";
-import { VFXValueParser } from "../parsers/VFXValueParser";
+import { VFXValueUtils } from "../utils/valueParser";
 
 /**
  * Apply FrameOverLife behavior to ParticleSystem
  */
-export function applyFrameOverLifePS(particleSystem: ParticleSystem, behavior: VFXFrameOverLifeBehavior, valueParser: VFXValueParser): void {
+export function applyFrameOverLifePS(particleSystem: ParticleSystem, behavior: VFXFrameOverLifeBehavior): void {
 	if (!behavior.frame) {
 		return;
 	}
@@ -28,7 +28,7 @@ export function applyFrameOverLifePS(particleSystem: ParticleSystem, behavior: V
 			particleSystem.endSpriteCellID = Math.floor(frames[frames.length - 1] || frames[0]);
 		}
 	} else if (typeof behavior.frame === "number" || (typeof behavior.frame === "object" && behavior.frame !== null && "type" in behavior.frame)) {
-		const frameValue = valueParser.parseConstantValue(behavior.frame);
+		const frameValue = VFXValueUtils.parseConstantValue(behavior.frame);
 		particleSystem.startSpriteCellID = Math.floor(frameValue);
 		particleSystem.endSpriteCellID = Math.floor(frameValue);
 	}

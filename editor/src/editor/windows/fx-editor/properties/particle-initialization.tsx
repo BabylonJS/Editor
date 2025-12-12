@@ -56,15 +56,14 @@ export function FXEditorParticleInitializationProperties(props: IFXEditorParticl
 		);
 	}
 
-	// For VFXSolidParticleSystem, initialization properties are in config (VFXValue format)
+	// For VFXSolidParticleSystem, initialization properties are VFXValue format
 	// TODO: Add proper editors for VFXValue (ConstantValue, IntervalValue, etc.)
 	if (system instanceof VFXSolidParticleSystem) {
-		const config = system.config;
 		// For now, show that properties exist but need proper VFXValue editors
 		return (
 			<>
 				<div className="px-2 text-sm text-muted-foreground">
-					Initialization properties are stored in config as VFXValue. Full editor support coming soon.
+					Initialization properties are stored as VFXValue. Full editor support coming soon.
 				</div>
 				{/* TODO: Add VFXValue editors for startLife, startSize, startSpeed, startColor */}
 			</>

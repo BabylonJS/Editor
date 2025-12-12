@@ -20,13 +20,12 @@ export class FXEditorEmitterShapeProperties extends Component<IFXEditorEmitterSh
 
 		const system = nodeData.system;
 
-		// For VFXSolidParticleSystem, emitter shape is in config
+		// For VFXSolidParticleSystem, emitter shape is a property
 		if (system instanceof VFXSolidParticleSystem) {
-			const config = system.config;
 			return (
 				<>
-					<div className="px-2 text-sm text-muted-foreground">Emitter shape: {config.shape?.type || "Default"}</div>
-					{/* TODO: Add shape-specific property editors based on config.shape.type */}
+					<div className="px-2 text-sm text-muted-foreground">Emitter shape: {system.shape?.type || "Default"}</div>
+					{/* TODO: Add shape-specific property editors based on system.shape.type */}
 				</>
 			);
 		}
