@@ -1,9 +1,12 @@
 import { Component, ReactNode } from "react";
 import { Tree, TreeNodeInfo } from "@blueprintjs/core";
-import { Scene, 
-	
+import {
+	Scene,
+
 	// AbstractMesh,
-	 Vector3, Color4 } from "@babylonjs/core";
+	Vector3,
+	Color4,
+} from "@babylonjs/core";
 import { IFXParticleData, IFXGroupData, IFXNodeData, isGroupData, isParticleData } from "./properties/types";
 
 import { AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
@@ -242,13 +245,9 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 		return data !== undefined && isGroupData(data);
 	}
 
-	public componentDidMount(): void {
+	public componentDidMount(): void {}
 
-	}
-
-	public componentDidUpdate(_prevProps: IFXEditorGraphProps): void {
-
-	}
+	public componentDidUpdate(_prevProps: IFXEditorGraphProps): void {}
 
 	/**
 	 * Loads nodes from converted Three.js JSON data using ThreeJSParticleLoader
@@ -271,7 +270,6 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 			console.error("Failed to load FX file:", error);
 		}
 	}
-
 
 	/**
 	 * Updates node names in the graph (called when name changes in properties)
@@ -336,7 +334,6 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 			};
 		});
 	}
-
 
 	public render(): ReactNode {
 		return (
@@ -480,7 +477,6 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 	private _handleAddParticles(_parentId?: string | number): void {
 		// const _nodeId = `particle-${Date.now()}`;
 		// const particleData = this.getOrCreateParticleData(nodeId);
-
 		// const newNode: TreeNodeInfo = {
 		// 	id: nodeId,
 		// 	label: this._getNodeLabelComponent({ id: nodeId, nodeData: particleData } as any, particleData.name),
@@ -496,7 +492,6 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 	private _handleAddGroup(_parentId?: string | number): void {
 		// const _nodeId = `group-${Date.now()}`;
 		// const groupData = this.getOrCreateGroupData(nodeId);
-
 		// const newNode: TreeNodeInfo = {
 		// 	id: nodeId,
 		// 	label: this._getNodeLabelComponent({ id: nodeId, nodeData: groupData } as any, groupData.name),
@@ -576,7 +571,6 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 
 		// const newNodes = deleteNodeById(this.state.nodes, deletedId);
 		// const newSelectedNodeId = this.state.selectedNodeId === deletedId ? null : this.state.selectedNodeId;
-
 
 		if (this.state.selectedNodeId === deletedId) {
 			this.props.onNodeSelected?.(null);

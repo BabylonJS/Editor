@@ -115,7 +115,15 @@ export class FXEditorParticleRendererProperties extends Component<IFXEditorParti
 			return null;
 		}
 
-		return <EditorInspectorTextureField object={particleData.particleRenderer} property="texture" title="Texture" scene={editor.preview!.scene} onChange={() => this.props.onChange()} />;
+		return (
+			<EditorInspectorTextureField
+				object={particleData.particleRenderer}
+				property="texture"
+				title="Texture"
+				scene={editor.preview!.scene}
+				onChange={() => this.props.onChange()}
+			/>
+		);
 	}
 
 	private _getRenderModeSpecificProperties(renderMode: string): ReactNode {

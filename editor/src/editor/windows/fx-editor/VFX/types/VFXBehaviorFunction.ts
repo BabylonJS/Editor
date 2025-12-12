@@ -7,12 +7,12 @@ import type { VFXValueParser } from "../parsers/VFXValueParser";
  * Context for per-particle behavior functions
  */
 export interface VFXPerParticleContext {
-    lifeRatio: number;
-    startSpeed: number;
-    startSize: number;
-    startColor: { r: number; g: number; b: number; a: number };
-    updateSpeed: number;
-    valueParser: VFXValueParser;
+	lifeRatio: number;
+	startSpeed: number;
+	startSize: number;
+	startColor: { r: number; g: number; b: number; a: number };
+	updateSpeed: number;
+	valueParser: VFXValueParser;
 }
 
 /**
@@ -29,4 +29,3 @@ export type VFXPerSolidParticleBehaviorFunction = (particle: SolidParticle, cont
  * System-level behavior function (applied once during initialization)
  */
 export type VFXSystemBehaviorFunction = (particleSystem: ParticleSystem, valueParser: VFXValueParser) => void;
-

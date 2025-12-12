@@ -280,8 +280,8 @@ export class BezierEditor extends Component<IBezierEditorProps, IBezierEditorSta
 		};
 		const getPointColor = (point: "p0" | "p1" | "p2" | "p3") => {
 			if (point === "p0" || point === "p3") {
-				return isHovered(point) ? "#3b82f6" : "#2563eb"
-			};
+				return isHovered(point) ? "#3b82f6" : "#2563eb";
+			}
 			return isHovered(point) ? "#8b5cf6" : "#7c3aed";
 		};
 

@@ -42,7 +42,7 @@ export default class FXEditorWindow extends Component<IFXEditorWindowProps, IFXE
 		animation: null,
 		properties: null,
 		resources: null,
-	}
+	};
 
 	public constructor(props: IFXEditorWindowProps) {
 		super(props);

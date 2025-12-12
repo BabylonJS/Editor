@@ -22,19 +22,19 @@ export type { VFXEulerRotation, VFXRotation } from "./rotations";
 export type { VFXGradientKey } from "./gradients";
 export type { VFXShape } from "./shapes";
 export type {
-    VFXColorOverLifeBehavior,
-    VFXSizeOverLifeBehavior,
-    VFXRotationOverLifeBehavior,
-    VFXForceOverLifeBehavior,
-    VFXGravityForceBehavior,
-    VFXSpeedOverLifeBehavior,
-    VFXFrameOverLifeBehavior,
-    VFXLimitSpeedOverLifeBehavior,
-    VFXColorBySpeedBehavior,
-    VFXSizeBySpeedBehavior,
-    VFXRotationBySpeedBehavior,
-    VFXOrbitOverLifeBehavior,
-    VFXBehavior,
+	VFXColorOverLifeBehavior,
+	VFXSizeOverLifeBehavior,
+	VFXRotationOverLifeBehavior,
+	VFXForceOverLifeBehavior,
+	VFXGravityForceBehavior,
+	VFXSpeedOverLifeBehavior,
+	VFXFrameOverLifeBehavior,
+	VFXLimitSpeedOverLifeBehavior,
+	VFXColorBySpeedBehavior,
+	VFXSizeBySpeedBehavior,
+	VFXRotationBySpeedBehavior,
+	VFXOrbitOverLifeBehavior,
+	VFXBehavior,
 } from "./behaviors";
 export type { VFXEmissionBurst, VFXParticleEmitterConfig } from "./emitterConfig";
 export type { VFXTransform, VFXGroup, VFXEmitter, VFXHierarchy } from "./hierarchy";
