@@ -1,9 +1,9 @@
-import { Scene, Mesh, VertexData, CreatePlane, Nullable } from "babylonjs";
+import { Mesh, VertexData, CreatePlane, Nullable } from "babylonjs";
 import type { IVFXGeometryFactory } from "../types/factories";
 import type { VFXParseContext } from "../types/context";
-import type { VFXLoaderOptions } from "../types/loader";
 import { VFXLogger } from "../loggers/VFXLogger";
 import { VFXMaterialFactory } from "./VFXMaterialFactory";
+import type { QuarksGeometry } from "../types/quarksTypes";
 
 /**
  * Factory for creating meshes from Three.js geometry data
@@ -23,124 +23,200 @@ export class VFXGeometryFactory implements IVFXGeometryFactory {
 	 * Create a mesh from geometry ID with material applied
 	 */
 	public createMesh(geometryId: string, materialId: string | undefined, name: string): Nullable<Mesh> {
-		const { jsonData, scene, options } = this._context;
-
+		const { options } = this._context;
 		this._logger.log(`Creating mesh from geometry ID: ${geometryId}, name: ${name}`, options);
-		if (!jsonData.geometries) {
-			this._logger.warn("No geometries data available", options);
-			return null;
-		}
 
-		// Find geometry
-		const geometryData = jsonData.geometries.find((g) => g.uuid === geometryId);
+		const geometryData = this._findGeometry(geometryId);
 		if (!geometryData) {
-			this._logger.warn(`Geometry not found: ${geometryId}`, options);
 			return null;
 		}
 
-		this._logger.log(`Found geometry: ${geometryData.name || geometryData.type || geometryId} (type: ${geometryData.type})`, options);
+		this._logGeometryInfo(geometryData, geometryId);
 
-		// Create mesh from geometry
-		const mesh = this._createMeshFromGeometry(geometryData, scene, name, options);
+		const mesh = this._createMeshFromGeometry(geometryData, name);
 		if (!mesh) {
 			this._logger.warn(`Failed to create mesh from geometry ${geometryId}`, options);
 			return null;
 		}
 
-		// Apply material if provided
-		if (materialId) {
-			const material = this._materialFactory.createMaterial(materialId, name);
-			if (material) {
-				mesh.material = material;
-				this._logger.log(`Applied material to mesh: ${name}`, options);
-			}
+		this._applyMaterial(mesh, materialId, name);
+		return mesh;
+	}
+
+	/**
+	 * Finds geometry by UUID
+	 */
+	private _findGeometry(geometryId: string): QuarksGeometry | null {
+		const { jsonData, options } = this._context;
+
+		if (!jsonData.geometries) {
+			this._logger.warn("No geometries data available", options);
+			return null;
+		}
+
+		const geometry = jsonData.geometries.find((g) => g.uuid === geometryId);
+		if (!geometry) {
+			this._logger.warn(`Geometry not found: ${geometryId}`, options);
+			return null;
+		}
+
+		return geometry;
+	}
+
+	/**
+	 * Logs geometry information
+	 */
+	private _logGeometryInfo(geometryData: QuarksGeometry, geometryId: string): void {
+		const { options } = this._context;
+		const geometryName = geometryData.type || geometryId;
+		this._logger.log(`Found geometry: ${geometryName} (type: ${geometryData.type})`, options);
+	}
+
+	/**
+	 * Applies material to mesh if provided
+	 */
+	private _applyMaterial(mesh: Mesh, materialId: string | undefined, name: string): void {
+		if (!materialId) {
+			return;
+		}
+
+		const { options } = this._context;
+		const material = this._materialFactory.createMaterial(materialId, name);
+		if (material) {
+			mesh.material = material;
+			this._logger.log(`Applied material to mesh: ${name}`, options);
+		}
+	}
+
+	/**
+	 * Creates mesh from geometry data based on type
+	 */
+	private _createMeshFromGeometry(geometryData: QuarksGeometry, name: string): Nullable<Mesh> {
+		const { options } = this._context;
+		this._logger.log(`createMeshFromGeometry: type=${geometryData.type}, name=${name}`, options);
+
+		const geometryTypeHandlers: Record<string, (data: QuarksGeometry, meshName: string) => Nullable<Mesh>> = {
+			PlaneGeometry: (data, meshName) => this._createPlaneGeometry(data, meshName),
+			BufferGeometry: (data, meshName) => this._createBufferGeometry(data, meshName),
+		};
+
+		const handler = geometryTypeHandlers[geometryData.type];
+		if (!handler) {
+			this._logger.warn(`Unsupported geometry type: ${geometryData.type}`, options);
+			return null;
+		}
+
+		return handler(geometryData, name);
+	}
+
+	/**
+	 * Creates plane geometry mesh
+	 */
+	private _createPlaneGeometry(geometryData: QuarksGeometry, name: string): Nullable<Mesh> {
+		const { scene, options } = this._context;
+		const width = this._getNumericProperty(geometryData, "width", 1);
+		const height = this._getNumericProperty(geometryData, "height", 1);
+
+		this._logger.log(`Creating PlaneGeometry: width=${width}, height=${height}`, options);
+
+		const mesh = CreatePlane(name, { width, height }, scene);
+		if (mesh) {
+			this._logger.log(`PlaneGeometry created successfully`, options);
+		} else {
+			this._logger.warn(`Failed to create PlaneGeometry`, options);
 		}
 
 		return mesh;
 	}
 
 	/**
-	 * Create a mesh from Three.js geometry data
+	 * Creates buffer geometry mesh
 	 */
-	private _createMeshFromGeometry(
-		geometryData: import("../types/quarksTypes").QuarksGeometry,
-		scene: Scene,
-		name: string = "ParticleMesh",
-		options?: VFXLoaderOptions
-	): Nullable<Mesh> {
-		if (!geometryData) {
-			this._logger.warn(`createMeshFromGeometry: geometryData is null`, options);
+	private _createBufferGeometry(geometryData: QuarksGeometry, name: string): Nullable<Mesh> {
+		const { scene, options } = this._context;
+
+		if (!geometryData.data?.attributes) {
+			this._logger.warn("BufferGeometry missing data or attributes", options);
 			return null;
 		}
 
-		this._logger.log(`createMeshFromGeometry: type=${geometryData.type}, name=${name}`, options);
-
-		// Handle PlaneGeometry
-		if (geometryData.type === "PlaneGeometry") {
-			const width = typeof geometryData.width === "number" ? geometryData.width : 1;
-			const height = typeof geometryData.height === "number" ? geometryData.height : 1;
-			this._logger.log(`  Creating PlaneGeometry: width=${width}, height=${height}`, options);
-			const mesh = CreatePlane(name, { width, height }, scene);
-			if (mesh) {
-				this._logger.log(`  PlaneGeometry created successfully`, options);
-			} else {
-				this._logger.warn(`  Failed to create PlaneGeometry`, options);
-			}
-			return mesh;
+		const vertexData = this._createVertexDataFromAttributes(geometryData);
+		if (!vertexData) {
+			return null;
 		}
 
-		// Handle BufferGeometry
-		if (geometryData.type === "BufferGeometry" && geometryData.data && geometryData.data.attributes) {
-			const attrs = geometryData.data.attributes;
-			const positions = attrs.position;
-			const normals = attrs.normal;
-			const uvs = attrs.uv;
-			const colors = attrs.color;
-			const indices = geometryData.data.index;
+		const mesh = new Mesh(name, scene);
+		vertexData.applyToMesh(mesh);
+		this._convertToLeftHanded(mesh);
 
-			if (!positions || !positions.array) {
-				return null;
-			}
+		return mesh;
+	}
 
-			const vertexData = new VertexData();
-			vertexData.positions = Array.from(positions.array);
+	/**
+	 * Creates VertexData from BufferGeometry attributes
+	 */
+	private _createVertexDataFromAttributes(geometryData: QuarksGeometry): Nullable<VertexData> {
+		const { options } = this._context;
 
-			if (normals && normals.array) {
-				vertexData.normals = Array.from(normals.array);
-			}
-
-			if (uvs && uvs.array) {
-				vertexData.uvs = Array.from(uvs.array);
-			}
-
-			if (colors && colors.array) {
-				vertexData.colors = Array.from(colors.array);
-			}
-
-			if (indices && indices.array) {
-				vertexData.indices = Array.from(indices.array);
-			} else {
-				// Generate indices if not provided
-				const vertexCount = vertexData.positions.length / 3;
-				const generatedIndices: number[] = [];
-				for (let i = 0; i < vertexCount; i++) {
-					generatedIndices.push(i);
-				}
-				vertexData.indices = generatedIndices;
-			}
-
-			const mesh = new Mesh(name, scene);
-			vertexData.applyToMesh(mesh);
-
-			// Convert from Three.js (right-handed) to Babylon.js (left-handed) coordinate system
-			// This inverts Z coordinates, flips face winding, and negates normal Z
-			if (mesh.geometry) {
-				mesh.geometry.toLeftHanded();
-			}
-
-			return mesh;
+		if (!geometryData.data?.attributes) {
+			return null;
 		}
 
-		return null;
+		const attrs = geometryData.data.attributes;
+		const positions = attrs.position;
+		if (!positions?.array) {
+			this._logger.warn("BufferGeometry missing position attribute", options);
+			return null;
+		}
+
+		const vertexData = new VertexData();
+		vertexData.positions = Array.from(positions.array);
+
+		this._applyAttribute(vertexData, attrs.normal, "normals");
+		this._applyAttribute(vertexData, attrs.uv, "uvs");
+		this._applyAttribute(vertexData, attrs.color, "colors");
+
+		const indices = geometryData.data.index;
+		if (indices?.array) {
+			vertexData.indices = Array.from(indices.array);
+		} else {
+			vertexData.indices = this._generateIndices(vertexData.positions.length);
+		}
+
+		return vertexData;
+	}
+
+	/**
+	 * Applies attribute data to VertexData if available
+	 */
+	private _applyAttribute(vertexData: VertexData, attribute: { array?: number[] } | undefined, property: "normals" | "uvs" | "colors"): void {
+		if (attribute?.array) {
+			(vertexData as any)[property] = Array.from(attribute.array);
+		}
+	}
+
+	/**
+	 * Generates sequential indices for vertices
+	 */
+	private _generateIndices(positionsLength: number): number[] {
+		const vertexCount = positionsLength / 3;
+		return Array.from({ length: vertexCount }, (_, i) => i);
+	}
+
+	/**
+	 * Converts mesh geometry from right-handed (Three.js) to left-handed (Babylon.js) coordinate system
+	 */
+	private _convertToLeftHanded(mesh: Mesh): void {
+		if (mesh.geometry) {
+			mesh.geometry.toLeftHanded();
+		}
+	}
+
+	/**
+	 * Gets numeric property from geometry data with fallback
+	 */
+	private _getNumericProperty(geometryData: QuarksGeometry, property: string, defaultValue: number): number {
+		const value = (geometryData as any)[property];
+		return typeof value === "number" ? value : defaultValue;
 	}
 }

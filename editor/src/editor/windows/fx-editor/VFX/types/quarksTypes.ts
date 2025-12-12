@@ -305,7 +305,6 @@ export interface QuarksMaterial {
 	side?: number;
 	transparent?: boolean;
 	depthWrite?: boolean;
-	[key: string]: unknown;
 }
 
 /**
@@ -325,7 +324,7 @@ export interface QuarksTexture {
 	flipY?: boolean;
 	generateMipmaps?: boolean;
 	format?: number;
-	[key: string]: unknown;
+	channel?: number;
 }
 
 /**
@@ -334,8 +333,6 @@ export interface QuarksTexture {
 export interface QuarksImage {
 	uuid: string;
 	url?: string;
-	data?: string;
-	[key: string]: unknown;
 }
 
 /**
@@ -358,7 +355,6 @@ export interface QuarksGeometry {
 			array: number[];
 		};
 	};
-	[key: string]: unknown;
 }
 
 /**
@@ -369,7 +365,6 @@ export interface QuarksVFXJSON {
 		version?: number;
 		type?: string;
 		generator?: string;
-		[key: string]: unknown;
 	};
 	geometries?: QuarksGeometry[];
 	materials?: QuarksMaterial[];

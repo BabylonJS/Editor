@@ -2,6 +2,7 @@ import { Particle, SolidParticle } from "babylonjs";
 import type { VFXOrbitOverLifeBehavior } from "../types/behaviors";
 import { extractNumberFromValue, interpolateGradientKeys } from "./utils";
 import { VFXValueParser } from "../parsers/VFXValueParser";
+import { VFXValue } from "../types";
 
 /**
  * Apply OrbitOverLife behavior to Particle
@@ -27,7 +28,7 @@ export function applyOrbitOverLifePS(particle: Particle, behavior: VFXOrbitOverL
 		radius = interpolateGradientKeys(radiusValue.keys, lifeRatio, extractNumberFromValue);
 	} else if (radiusValue !== undefined && radiusValue !== null) {
 		// Parse as VFXValue (number, VFXConstantValue, or VFXIntervalValue)
-		const parsedRadius = valueParser.parseIntervalValue(radiusValue as import("../types/values").VFXValue);
+		const parsedRadius = valueParser.parseIntervalValue(radiusValue as VFXValue);
 		radius = parsedRadius.min + (parsedRadius.max - parsedRadius.min) * lifeRatio;
 	}
 
@@ -75,7 +76,7 @@ export function applyOrbitOverLifeSPS(particle: SolidParticle, behavior: VFXOrbi
 		radius = interpolateGradientKeys(radiusValue.keys, lifeRatio, extractNumberFromValue);
 	} else if (radiusValue !== undefined && radiusValue !== null) {
 		// Parse as VFXValue (number, VFXConstantValue, or VFXIntervalValue)
-		const parsedRadius = valueParser.parseIntervalValue(radiusValue as import("../types/values").VFXValue);
+		const parsedRadius = valueParser.parseIntervalValue(radiusValue as VFXValue);
 		radius = parsedRadius.min + (parsedRadius.max - parsedRadius.min) * lifeRatio;
 	}
 

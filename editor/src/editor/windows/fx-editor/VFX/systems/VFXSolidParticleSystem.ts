@@ -255,7 +255,6 @@ export class VFXSolidParticleSystem extends SolidParticleSystem {
 	}
 
 	private _initializeEmitterShape(particle: SolidParticle, emissionState: EmissionState): void {
-		console.log("initializeEmitterShape", particle, emissionState);
 		const config = this._config;
 		const startSpeed = particle.props?.startSpeed ?? 0;
 
