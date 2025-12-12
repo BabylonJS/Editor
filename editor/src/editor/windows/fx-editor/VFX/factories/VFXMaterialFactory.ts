@@ -1,9 +1,8 @@
-import { Nullable, Color3, Texture, PBRMaterial, Material, Constants, Tools, Scene } from "babylonjs";
+import { Nullable, Color3, Texture, PBRMaterial, Material, Constants, Tools } from "babylonjs";
 import type { IVFXMaterialFactory } from "../types/factories";
 import type { VFXParseContext } from "../types/context";
-import type { VFXLoaderOptions } from "../types/loader";
 import { VFXLogger } from "../loggers/VFXLogger";
-import type { QuarksTexture } from "../types/quarksTypes";
+import type { QuarksTexture, QuarksMaterial, QuarksImage } from "../types/quarksTypes";
 
 /**
  * Factory for creating materials and textures from Three.js JSON data
@@ -21,93 +20,144 @@ export class VFXMaterialFactory implements IVFXMaterialFactory {
 	 * Create a texture from material ID (for ParticleSystem - no material needed)
 	 */
 	public createTexture(materialId: string): Nullable<Texture> {
-		const { jsonData, scene, rootUrl, options } = this._context;
+		const textureData = this._resolveTextureData(materialId);
+		if (!textureData) {
+			return null;
+		}
 
-		if (!jsonData.materials || !jsonData.textures || !jsonData.images) {
+		const { texture, image } = textureData;
+		const textureUrl = this._buildTextureUrl(image);
+		return this._createTextureFromData(textureUrl, texture);
+	}
+
+	/**
+	 * Resolves material, texture, and image data from material ID
+	 */
+	private _resolveTextureData(materialId: string): { material: QuarksMaterial; texture: QuarksTexture; image: QuarksImage } | null {
+		const { options } = this._context;
+
+		if (!this._hasRequiredData()) {
 			this._logger.warn(`Missing materials/textures/images data for material ${materialId}`, options);
 			return null;
 		}
 
-		// Find material
-		const material = jsonData.materials.find((m) => m.uuid === materialId);
+		const material = this._findMaterial(materialId);
+		if (!material || !material.map) {
+			return null;
+		}
+
+		const texture = this._findTexture(material.map);
+		if (!texture || !texture.image) {
+			return null;
+		}
+
+		const image = this._findImage(texture.image);
+		if (!image || !image.url) {
+			return null;
+		}
+
+		return { material, texture, image };
+	}
+
+	/**
+	 * Checks if required JSON data is available
+	 */
+	private _hasRequiredData(): boolean {
+		const { jsonData } = this._context;
+		return !!(jsonData.materials && jsonData.textures && jsonData.images);
+	}
+
+	/**
+	 * Finds material by UUID
+	 */
+	private _findMaterial(materialId: string): QuarksMaterial | null {
+		const { jsonData, options } = this._context;
+		const material = jsonData.materials?.find((m) => m.uuid === materialId);
 		if (!material) {
 			this._logger.warn(`Material not found: ${materialId}`, options);
 			return null;
 		}
-		if (!material.map) {
-			this._logger.warn(`Material ${materialId} has no texture map`, options);
-			return null;
-		}
-
-		// Find texture
-		const texture = jsonData.textures.find((t) => t.uuid === material.map);
-		if (!texture) {
-			this._logger.warn(`Texture not found: ${material.map}`, options);
-			return null;
-		}
-		if (!texture.image) {
-			this._logger.warn(`Texture ${material.map} has no image`, options);
-			return null;
-		}
-
-		// Find image
-		const image = jsonData.images.find((img) => img.uuid === texture.image);
-		if (!image) {
-			this._logger.warn(`Image not found: ${texture.image}`, options);
-			return null;
-		}
-
-		// Create texture URL from image data
-		let textureUrl: string;
-		if (image.url) {
-			textureUrl = Tools.GetAssetUrl(rootUrl + image.url);
-		} else if (image.data) {
-			// Base64 embedded texture
-			textureUrl = `data:image/${image.format || "png"};base64,${image.data}`;
-		} else {
-			this._logger.warn(`Image ${texture.image} has neither URL nor data`, options);
-			return null;
-		}
-
-		// Create texture using helper method
-		return this._createTextureFromData(textureUrl, texture, scene, options);
+		return material;
 	}
 
 	/**
-	 * Helper method to create texture from texture data
+	 * Finds texture by UUID
 	 */
-	private _createTextureFromData(textureUrl: string, texture: QuarksTexture, scene: Scene, _options?: VFXLoaderOptions): Texture {
-		// Determine sampling mode from texture filters
-		let samplingMode = Texture.TRILINEAR_SAMPLINGMODE; // Default
+	private _findTexture(textureId: string): QuarksTexture | null {
+		const { jsonData, options } = this._context;
+		const texture = jsonData.textures?.find((t) => t.uuid === textureId);
+		if (!texture) {
+			this._logger.warn(`Texture not found: ${textureId}`, options);
+			return null;
+		}
+		return texture;
+	}
+
+	/**
+	 * Finds image by UUID
+	 */
+	private _findImage(imageId: string): QuarksImage | null {
+		const { jsonData, options } = this._context;
+		const image = jsonData.images?.find((img) => img.uuid === imageId);
+		if (!image) {
+			this._logger.warn(`Image not found: ${imageId}`, options);
+			return null;
+		}
+		return image;
+	}
+
+	/**
+	 * Builds texture URL from image data
+	 */
+	private _buildTextureUrl(image: QuarksImage): string {
+		const { rootUrl } = this._context;
+		if (!image.url) {
+			return "";
+		}
+		const isBase64 = image.url.startsWith("data:");
+		return isBase64 ? image.url : Tools.GetAssetUrl(rootUrl + image.url);
+	}
+
+	/**
+	 * Parses sampling mode from Three.js texture filters
+	 */
+	private _parseSamplingMode(texture: QuarksTexture): number {
+		// Three.js filter constants:
+		// 1006 = LinearFilter (BILINEAR)
+		// 1007 = NearestMipmapLinearFilter
+		// 1008 = LinearMipmapLinearFilter (TRILINEAR)
+		// 1009 = LinearMipmapNearestFilter
+
 		if (texture.minFilter !== undefined) {
 			if (texture.minFilter === 1008 || texture.minFilter === 1009) {
-				samplingMode = Texture.TRILINEAR_SAMPLINGMODE;
-			} else if (texture.minFilter === 1007 || texture.minFilter === 1006) {
-				samplingMode = Texture.BILINEAR_SAMPLINGMODE;
-			} else {
-				samplingMode = Texture.NEAREST_SAMPLINGMODE;
+				return Texture.TRILINEAR_SAMPLINGMODE;
 			}
-		} else if (texture.magFilter !== undefined) {
-			if (texture.magFilter === 1006) {
-				samplingMode = Texture.BILINEAR_SAMPLINGMODE;
-			} else {
-				samplingMode = Texture.NEAREST_SAMPLINGMODE;
+			if (texture.minFilter === 1007 || texture.minFilter === 1006) {
+				return Texture.BILINEAR_SAMPLINGMODE;
 			}
+			return Texture.NEAREST_SAMPLINGMODE;
 		}
 
-		// Create texture with proper settings
-		const babylonTexture = new Texture(textureUrl, scene, {
-			noMipmap: !texture.generateMipmaps,
-			invertY: texture.flipY !== false, // Three.js flipY defaults to true
-			samplingMode: samplingMode,
-		});
+		if (texture.magFilter !== undefined) {
+			return texture.magFilter === 1006 ? Texture.BILINEAR_SAMPLINGMODE : Texture.NEAREST_SAMPLINGMODE;
+		}
 
-		// Configure texture properties from Three.js JSON
+		return Texture.TRILINEAR_SAMPLINGMODE;
+	}
+
+	/**
+	 * Applies texture properties from Three.js JSON to Babylon.js texture
+	 */
+	private _applyTextureProperties(babylonTexture: Texture, texture: QuarksTexture): void {
+		// Wrap mode: Three.js 1000=Repeat, 1001=Clamp, 1002=Mirror
 		if (texture.wrap && Array.isArray(texture.wrap)) {
-			const wrapU = texture.wrap[0] === 1000 ? Texture.WRAP_ADDRESSMODE : texture.wrap[0] === 1001 ? Texture.CLAMP_ADDRESSMODE : Texture.MIRROR_ADDRESSMODE;
-			const wrapV = texture.wrap[1] === 1000 ? Texture.WRAP_ADDRESSMODE : texture.wrap[1] === 1001 ? Texture.CLAMP_ADDRESSMODE : Texture.MIRROR_ADDRESSMODE;
-			babylonTexture.wrapU = wrapU;
-			babylonTexture.wrapV = wrapV;
+			const wrapModeMap: Record<number, number> = {
+				1000: Texture.WRAP_ADDRESSMODE,
+				1001: Texture.CLAMP_ADDRESSMODE,
+				1002: Texture.MIRROR_ADDRESSMODE,
+			};
+			babylonTexture.wrapU = wrapModeMap[texture.wrap[0]] ?? Texture.WRAP_ADDRESSMODE;
+			babylonTexture.wrapV = wrapModeMap[texture.wrap[1]] ?? Texture.WRAP_ADDRESSMODE;
 		}
 
 		if (texture.repeat && Array.isArray(texture.repeat)) {
@@ -120,14 +170,29 @@ export class VFXMaterialFactory implements IVFXMaterialFactory {
 			babylonTexture.vOffset = texture.offset[1] || 0;
 		}
 
-		if (texture.channel !== undefined && typeof texture.channel === "number") {
+		if (typeof texture.channel === "number") {
 			babylonTexture.coordinatesIndex = texture.channel;
 		}
 
 		if (texture.rotation !== undefined) {
 			babylonTexture.uAng = texture.rotation;
 		}
+	}
 
+	/**
+	 * Creates Babylon.js texture from texture data
+	 */
+	private _createTextureFromData(textureUrl: string, texture: QuarksTexture): Texture {
+		const { scene } = this._context;
+		const samplingMode = this._parseSamplingMode(texture);
+
+		const babylonTexture = new Texture(textureUrl, scene, {
+			noMipmap: !texture.generateMipmaps,
+			invertY: texture.flipY !== false,
+			samplingMode,
+		});
+
+		this._applyTextureProperties(babylonTexture, texture);
 		return babylonTexture;
 	}
 
@@ -135,225 +200,183 @@ export class VFXMaterialFactory implements IVFXMaterialFactory {
 	 * Create a material with texture from material ID
 	 */
 	public createMaterial(materialId: string, name: string): Nullable<PBRMaterial> {
-		const { jsonData, scene, rootUrl, options } = this._context;
-
+		const { options } = this._context;
 		this._logger.log(`Creating material for ID: ${materialId}, name: ${name}`, options);
-		if (!jsonData.materials || !jsonData.textures || !jsonData.images) {
-			this._logger.warn(`Missing materials/textures/images data for material ${materialId}`, options);
+
+		const textureData = this._resolveTextureData(materialId);
+		if (!textureData) {
 			return null;
 		}
 
-		// Find material
-		const material = jsonData.materials.find((m) => m.uuid === materialId);
-		if (!material) {
-			this._logger.warn(`Material not found: ${materialId}`, options);
-			return null;
-		}
-		if (!material.map) {
-			this._logger.warn(`Material ${materialId} has no texture map`, options);
-			return null;
-		}
-
+		const { material, texture, image } = textureData;
 		const materialType = material.type || "MeshStandardMaterial";
+
+		this._logMaterialInfo(material, texture, image, materialType);
+
+		const textureUrl = this._buildTextureUrl(image);
+		const babylonTexture = this._createTextureFromData(textureUrl, texture);
+		const materialColor = this._parseMaterialColor(material);
+
+		if (materialType === "MeshBasicMaterial") {
+			return this._createUnlitMaterial(name, material, babylonTexture, materialColor);
+		}
+
+		return new PBRMaterial(name + "_material", this._context.scene);
+	}
+
+	/**
+	 * Logs material, texture, and image information
+	 */
+	private _logMaterialInfo(material: QuarksMaterial, texture: QuarksTexture, image: QuarksImage, materialType: string): void {
+		const { options } = this._context;
 		this._logger.log(`Found material: type=${materialType}, uuid=${material.uuid}, transparent=${material.transparent}, blending=${material.blending}`, options);
-
-		// Find texture
-		const texture = jsonData.textures.find((t) => t.uuid === material.map);
-		if (!texture) {
-			this._logger.warn(`Texture not found: ${material.map}`, options);
-			return null;
-		}
-		if (!texture.image) {
-			this._logger.warn(`Texture ${material.map} has no image`, options);
-			return null;
-		}
-
 		this._logger.log(`Found texture: ${JSON.stringify({ uuid: texture.uuid, image: texture.image })}`, options);
 
-		// Find image
-		const image = jsonData.images.find((img) => img.uuid === texture.image);
-		if (!image) {
-			this._logger.warn(`Image not found: ${texture.image}`, options);
-			return null;
+		const imageInfo = this._formatImageInfo(image);
+		this._logger.log(`Found image: ${imageInfo}`, options);
+	}
+
+	/**
+	 * Formats image information for logging
+	 */
+	private _formatImageInfo(image: QuarksImage): string {
+		if (!image.url) {
+			return "unknown";
 		}
 
-		const imageInfo: string[] = [];
-		if (image.url) {
-			const urlParts = image.url.split("/");
-			let filename = urlParts[urlParts.length - 1] || image.url;
-			// If filename looks like base64 data (very long), truncate it
-			if (filename.length > 50) {
-				filename = filename.substring(0, 20) + "...";
-			}
-			imageInfo.push(`file: ${filename}`);
+		const urlParts = image.url.split("/");
+		let filename = urlParts[urlParts.length - 1] || image.url;
+		if (filename.length > 50) {
+			filename = filename.substring(0, 20) + "...";
 		}
-		if (image.data) {
-			imageInfo.push("embedded");
-		}
-		if (image.format) {
-			imageInfo.push(`format: ${image.format}`);
-		}
-		this._logger.log(`Found image: ${imageInfo.join(", ") || "unknown"}`, options);
+		return `file: ${filename}`;
+	}
 
-		// Create texture URL from image data
-		let textureUrl: string;
-		if (image.url) {
-			textureUrl = Tools.GetAssetUrl(rootUrl + image.url);
-			// Extract filename from URL for logging
-			const urlParts = image.url.split("/");
-			let filename = urlParts[urlParts.length - 1] || image.url;
-			// If filename looks like base64 data (very long), truncate it
-			if (filename.length > 50) {
-				filename = filename.substring(0, 20) + "...";
-			}
-			this._logger.log(`Using external texture: ${filename}`, options);
-		} else if (image.data) {
-			// Base64 embedded texture
-			textureUrl = `data:image/${image.format || "png"};base64,${image.data}`;
-			this._logger.log(`Using base64 embedded texture (format: ${image.format || "png"})`, options);
+	/**
+	 * Parses material color from Three.js format
+	 */
+	private _parseMaterialColor(material: QuarksMaterial): Color3 {
+		const { options } = this._context;
+
+		if (material.color === undefined) {
+			return new Color3(1, 1, 1);
+		}
+
+		const colorHex = this._parseColorHex(material.color);
+		const r = ((colorHex >> 16) & 0xff) / 255;
+		const g = ((colorHex >> 8) & 0xff) / 255;
+		const b = (colorHex & 0xff) / 255;
+
+		this._logger.log(`Parsed material color: R=${r.toFixed(2)}, G=${g.toFixed(2)}, B=${b.toFixed(2)}`, options);
+		return new Color3(r, g, b);
+	}
+
+	/**
+	 * Parses color hex value from various formats
+	 */
+	private _parseColorHex(color: number | string): number {
+		if (typeof color === "number") {
+			return color;
+		}
+		if (typeof color === "string") {
+			return parseInt(color.replace("#", ""), 16);
+		}
+		return 0xffffff;
+	}
+
+	/**
+	 * Creates unlit material (MeshBasicMaterial equivalent)
+	 */
+	private _createUnlitMaterial(name: string, material: QuarksMaterial, texture: Texture, color: Color3): PBRMaterial {
+		const { scene, options } = this._context;
+		const unlitMaterial = new PBRMaterial(name + "_material", scene);
+
+		unlitMaterial.unlit = true;
+		unlitMaterial.albedoColor = color;
+		unlitMaterial.albedoTexture = texture;
+
+		this._applyTransparency(unlitMaterial, material, texture);
+		this._applyDepthWrite(unlitMaterial, material);
+		this._applySideSettings(unlitMaterial, material);
+		this._applyBlendMode(unlitMaterial, material);
+
+		this._logger.log(`Using MeshBasicMaterial: PBRMaterial with unlit=true, albedoTexture`, options);
+		this._logger.log(`Material created successfully: ${name}_material`, options);
+
+		return unlitMaterial;
+	}
+
+	/**
+	 * Applies transparency settings to material
+	 */
+	private _applyTransparency(material: PBRMaterial, quarksMaterial: QuarksMaterial, texture: Texture): void {
+		const { options } = this._context;
+
+		if (quarksMaterial.transparent) {
+			material.transparencyMode = Material.MATERIAL_ALPHABLEND;
+			material.needDepthPrePass = false;
+			texture.hasAlpha = true;
+			material.useAlphaFromAlbedoTexture = true;
+			this._logger.log(`Material is transparent (transparencyMode: ALPHABLEND, alphaMode: COMBINE)`, options);
 		} else {
-			this._logger.warn(`Image ${texture.image} has neither URL nor data`, options);
-			return null;
+			material.transparencyMode = Material.MATERIAL_OPAQUE;
+			material.alpha = 1.0;
 		}
+	}
 
-		// Determine sampling mode from texture filters
-		let samplingMode = Texture.TRILINEAR_SAMPLINGMODE; // Default
-		if (texture.minFilter !== undefined) {
-			if (texture.minFilter === 1008 || texture.minFilter === 1009) {
-				samplingMode = Texture.TRILINEAR_SAMPLINGMODE;
-			} else if (texture.minFilter === 1007 || texture.minFilter === 1006) {
-				samplingMode = Texture.BILINEAR_SAMPLINGMODE;
-			} else {
-				samplingMode = Texture.NEAREST_SAMPLINGMODE;
-			}
-		} else if (texture.magFilter !== undefined) {
-			if (texture.magFilter === 1006) {
-				samplingMode = Texture.BILINEAR_SAMPLINGMODE;
-			} else {
-				samplingMode = Texture.NEAREST_SAMPLINGMODE;
-			}
-		}
+	/**
+	 * Applies depth write settings to material
+	 */
+	private _applyDepthWrite(material: PBRMaterial, quarksMaterial: QuarksMaterial): void {
+		const { options } = this._context;
 
-		// Create texture with proper settings
-		const babylonTexture = new Texture(textureUrl, scene, {
-			noMipmap: !texture.generateMipmaps,
-			invertY: texture.flipY !== false, // Three.js flipY defaults to true
-			samplingMode: samplingMode,
-		});
-
-		// Configure texture properties from Three.js JSON
-		// wrap: [1001, 1001] = WRAP_ADDRESSMODE (repeat)
-		if (texture.wrap && Array.isArray(texture.wrap)) {
-			// Three.js wrap: 1000 = RepeatWrapping, 1001 = ClampToEdgeWrapping, 1002 = MirroredRepeatWrapping
-			// Babylon.js: WRAP_ADDRESSMODE = 0, CLAMP_ADDRESSMODE = 1, MIRROR_ADDRESSMODE = 2
-			const wrapU = texture.wrap[0] === 1000 ? Texture.WRAP_ADDRESSMODE : texture.wrap[0] === 1001 ? Texture.CLAMP_ADDRESSMODE : Texture.MIRROR_ADDRESSMODE;
-			const wrapV = texture.wrap[1] === 1000 ? Texture.WRAP_ADDRESSMODE : texture.wrap[1] === 1001 ? Texture.CLAMP_ADDRESSMODE : Texture.MIRROR_ADDRESSMODE;
-			babylonTexture.wrapU = wrapU;
-			babylonTexture.wrapV = wrapV;
-		}
-
-		// repeat: [1, 1] -> uScale, vScale
-		if (texture.repeat && Array.isArray(texture.repeat)) {
-			babylonTexture.uScale = texture.repeat[0] || 1;
-			babylonTexture.vScale = texture.repeat[1] || 1;
-		}
-
-		// offset: [0, 0] -> uOffset, vOffset
-		if (texture.offset && Array.isArray(texture.offset)) {
-			babylonTexture.uOffset = texture.offset[0] || 0;
-			babylonTexture.vOffset = texture.offset[1] || 0;
-		}
-
-		// channel: 0 -> coordinatesIndex
-		if (texture.channel !== undefined && typeof texture.channel === "number") {
-			babylonTexture.coordinatesIndex = texture.channel;
-		}
-
-		// rotation: 0 -> uAng (rotation in radians)
-		if (texture.rotation !== undefined) {
-			babylonTexture.uAng = texture.rotation;
-		}
-
-		// Parse color from Three.js material (default is white 0xffffff)
-		let materialColor = new Color3(1, 1, 1);
-		if (material.color !== undefined) {
-			// Three.js color is stored as hex number (e.g., 16777215 = 0xffffff) or hex string
-			let colorHex: number;
-			if (typeof material.color === "number") {
-				colorHex = material.color;
-			} else if (typeof material.color === "string") {
-				colorHex = parseInt((material.color as string).replace("#", ""), 16);
-			} else {
-				colorHex = 0xffffff;
-			}
-			const r = ((colorHex >> 16) & 0xff) / 255;
-			const g = ((colorHex >> 8) & 0xff) / 255;
-			const b = (colorHex & 0xff) / 255;
-			materialColor = new Color3(r, g, b);
-			this._logger.log(`Parsed material color: R=${r.toFixed(2)}, G=${g.toFixed(2)}, B=${b.toFixed(2)}`, options);
-		}
-
-		// Handle different Three.js material types
-		if (materialType === "MeshBasicMaterial") {
-			// MeshBasicMaterial: Use PBRMaterial with unlit = true (equivalent to UnlitMaterial)
-			const unlitMaterial = new PBRMaterial(name + "_material", scene);
-			unlitMaterial.unlit = true;
-			unlitMaterial.albedoColor = materialColor;
-			unlitMaterial.albedoTexture = babylonTexture;
-
-			// Transparency
-			if (material.transparent !== undefined && material.transparent) {
-				unlitMaterial.transparencyMode = Material.MATERIAL_ALPHABLEND;
-				unlitMaterial.needDepthPrePass = false;
-				babylonTexture.hasAlpha = true;
-				unlitMaterial.useAlphaFromAlbedoTexture = true;
-				this._logger.log(`Material is transparent (transparencyMode: ALPHABLEND, alphaMode: COMBINE)`, options);
-			} else {
-				unlitMaterial.transparencyMode = Material.MATERIAL_OPAQUE;
-				unlitMaterial.alpha = 1.0;
-			}
-
-			// Depth write
-			if (material.depthWrite !== undefined) {
-				unlitMaterial.disableDepthWrite = !material.depthWrite;
-				this._logger.log(`Set disableDepthWrite: ${!material.depthWrite}`, options);
-			} else {
-				unlitMaterial.disableDepthWrite = true; // Default to false depthWrite = true disableDepthWrite
-			}
-
-			// Double sided
-			unlitMaterial.backFaceCulling = false;
-
-			// Side orientation
-			if (material.side !== undefined) {
-				// Three.js: 0 = FrontSide, 1 = BackSide, 2 = DoubleSide
-				// Babylon.js: 0 = Front, 1 = Back, 2 = Double
-				unlitMaterial.sideOrientation = material.side;
-				this._logger.log(`Set sideOrientation: ${material.side}`, options);
-			}
-
-			// Blend mode
-			if (material.blending !== undefined) {
-				if (material.blending === 2) {
-					// Additive blending (Three.js AdditiveBlending)
-					unlitMaterial.alphaMode = Constants.ALPHA_ADD;
-					this._logger.log("Set blend mode: ADDITIVE", options);
-				} else if (material.blending === 1) {
-					// Normal blending (Three.js NormalBlending)
-					unlitMaterial.alphaMode = Constants.ALPHA_COMBINE;
-					this._logger.log("Set blend mode: NORMAL", options);
-				} else if (material.blending === 0) {
-					// No blending (Three.js NoBlending)
-					unlitMaterial.alphaMode = Constants.ALPHA_DISABLE;
-					this._logger.log("Set blend mode: NO_BLENDING", options);
-				}
-			}
-
-			this._logger.log(`Using MeshBasicMaterial: PBRMaterial with unlit=true, albedoTexture`, options);
-			this._logger.log(`Material created successfully: ${name}_material`, options);
-			return unlitMaterial;
+		if (quarksMaterial.depthWrite !== undefined) {
+			material.disableDepthWrite = !quarksMaterial.depthWrite;
+			this._logger.log(`Set disableDepthWrite: ${!quarksMaterial.depthWrite}`, options);
 		} else {
-			return new PBRMaterial(name + "_material", scene);
+			material.disableDepthWrite = true;
+		}
+	}
+
+	/**
+	 * Applies side orientation settings to material
+	 */
+	private _applySideSettings(material: PBRMaterial, quarksMaterial: QuarksMaterial): void {
+		const { options } = this._context;
+
+		material.backFaceCulling = false;
+
+		if (quarksMaterial.side !== undefined) {
+			material.sideOrientation = quarksMaterial.side;
+			this._logger.log(`Set sideOrientation: ${quarksMaterial.side}`, options);
+		}
+	}
+
+	/**
+	 * Applies blend mode to material
+	 */
+	private _applyBlendMode(material: PBRMaterial, quarksMaterial: QuarksMaterial): void {
+		const { options } = this._context;
+
+		if (quarksMaterial.blending === undefined) {
+			return;
+		}
+
+		const blendModeMap: Record<number, number> = {
+			0: Constants.ALPHA_DISABLE, // NoBlending
+			1: Constants.ALPHA_COMBINE, // NormalBlending
+			2: Constants.ALPHA_ADD, // AdditiveBlending
+		};
+
+		const alphaMode = blendModeMap[quarksMaterial.blending];
+		if (alphaMode !== undefined) {
+			material.alphaMode = alphaMode;
+			const modeNames: Record<number, string> = {
+				0: "NO_BLENDING",
+				1: "NORMAL",
+				2: "ADDITIVE",
+			};
+			this._logger.log(`Set blend mode: ${modeNames[quarksMaterial.blending]}`, options);
 		}
 	}
 }

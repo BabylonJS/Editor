@@ -1,7 +1,6 @@
 import { Mesh, CreatePlane, Nullable, Color4, Matrix, ParticleSystem, SolidParticleSystem, Constants, Vector3, Quaternion } from "babylonjs";
 import type { VFXEmitterData } from "../types/emitter";
 import type { VFXParseContext } from "../types/context";
-import type { VFXLoaderOptions } from "../types/loader";
 import { VFXLogger } from "../loggers/VFXLogger";
 import { VFXValueParser } from "../parsers/VFXValueParser";
 import type { IVFXMaterialFactory, IVFXGeometryFactory } from "../types/factories";
@@ -18,6 +17,23 @@ import {
 	applyFrameOverLifePS,
 	applyLimitSpeedOverLifePS,
 } from "../behaviors";
+import type { VFXBehavior, VFXEmissionBurst } from "../types";
+import type { VFXParticleEmitterConfig } from "../types/emitterConfig";
+
+/**
+ * Parsed values for particle system creation
+ */
+type ParsedParticleValues = {
+	emissionRate: number;
+	duration: number;
+	capacity: number;
+	lifeTime: { min: number; max: number };
+	speed: { min: number; max: number };
+	avgStartSpeed: number;
+	size: { min: number; max: number };
+	avgStartSize: number;
+	startColor: Color4;
+};
 
 /**
  * Factory for creating particle emitters (ParticleSystem and SolidParticleSystem)
@@ -60,165 +76,288 @@ export class VFXEmitterFactory {
 	 */
 	private _createParticleSystem(emitterData: VFXEmitterData): Nullable<ParticleSystem> {
 		const { name, config } = emitterData;
-		const { scene, options } = this._context;
+		const { options } = this._context;
 
 		this._logger.log(`Creating ParticleSystem: ${name}`, options);
 
-		// Calculate capacity based on emission rate and duration
+		const parsedValues = this._parseParticleSystemValues(config);
+		const particleSystem = this._createParticleSystemInstance(name, parsedValues);
+
+		this._configureBasicProperties(particleSystem, parsedValues);
+		this._configureRotation(particleSystem, config);
+		this._configureSpriteTiles(particleSystem, config);
+		this._configureRendering(particleSystem, config);
+		this._setEmitterShape(particleSystem, config.shape, emitterData.cumulativeScale, emitterData.matrix);
+		this._applyTextureAndBlendMode(particleSystem, emitterData.materialId);
+		this._applyEmissionBurstsIfNeeded(particleSystem, config, parsedValues.emissionRate, parsedValues.duration);
+		this._applyBehaviorsIfNeeded(particleSystem, config.behaviors);
+		this._configureWorldSpace(particleSystem, config);
+		this._configureLooping(particleSystem, config, parsedValues.duration);
+		this._configureRenderMode(particleSystem, config);
+		this._configureSoftParticlesAndAutoDestroy(particleSystem, config);
+
+		this._logger.log(`ParticleSystem created: ${name}`, options);
+		return particleSystem;
+	}
+
+	/**
+	 * Parses all particle system values from config
+	 */
+	private _parseParticleSystemValues(config: VFXParticleEmitterConfig): ParsedParticleValues {
 		const emissionRate = config.emissionOverTime !== undefined ? this._valueParser.parseConstantValue(config.emissionOverTime) : 10;
 		const duration = config.duration || 5;
-		const capacity = Math.ceil(emissionRate * duration * 2); // Add some buffer
-		this._logger.log(`  Emission rate: ${emissionRate}, Duration: ${duration}, Capacity: ${capacity}`, options);
+		const capacity = Math.ceil(emissionRate * duration * 2);
 
-		// Parse life time
 		const lifeTime = config.startLife !== undefined ? this._valueParser.parseIntervalValue(config.startLife) : { min: 1, max: 1 };
-		this._logger.log(`  Life time: ${lifeTime.min} - ${lifeTime.max}`, options);
-
-		// Parse speed
 		const speed = config.startSpeed !== undefined ? this._valueParser.parseIntervalValue(config.startSpeed) : { min: 1, max: 1 };
-		const avgStartSpeed = (speed.min + speed.max) / 2;
-		this._logger.log(`  Speed: ${speed.min} - ${speed.max}`, options);
-
-		// Parse size
 		const size = config.startSize !== undefined ? this._valueParser.parseIntervalValue(config.startSize) : { min: 1, max: 1 };
-		const avgStartSize = (size.min + size.max) / 2;
-		this._logger.log(`  Size: ${size.min} - ${size.max}`, options);
-
-		// Parse start color
 		const startColor = config.startColor !== undefined ? this._valueParser.parseConstantColor(config.startColor) : new Color4(1, 1, 1, 1);
+
+		this._logParsedValues(emissionRate, duration, capacity, lifeTime, speed, size, startColor);
+
+		return {
+			emissionRate,
+			duration,
+			capacity,
+			lifeTime,
+			speed,
+			avgStartSpeed: (speed.min + speed.max) / 2,
+			size,
+			avgStartSize: (size.min + size.max) / 2,
+			startColor,
+		};
+	}
+
+	/**
+	 * Logs parsed particle system values
+	 */
+	private _logParsedValues(
+		emissionRate: number,
+		duration: number,
+		capacity: number,
+		lifeTime: { min: number; max: number },
+		speed: { min: number; max: number },
+		size: { min: number; max: number },
+		startColor: Color4
+	): void {
+		const { options } = this._context;
+		this._logger.log(`  Emission rate: ${emissionRate}, Duration: ${duration}, Capacity: ${capacity}`, options);
+		this._logger.log(`  Life time: ${lifeTime.min} - ${lifeTime.max}`, options);
+		this._logger.log(`  Speed: ${speed.min} - ${speed.max}`, options);
+		this._logger.log(`  Size: ${size.min} - ${size.max}`, options);
 		this._logger.log(`  Start color: R=${startColor.r}, G=${startColor.g}, B=${startColor.b}, A=${startColor.a}`, options);
+	}
 
-		// Create VFXParticleSystem instead of regular ParticleSystem
-		const particleSystem = new VFXParticleSystem(name, capacity, scene, this._valueParser, avgStartSpeed, avgStartSize, startColor);
+	/**
+	 * Creates ParticleSystem instance
+	 */
+	private _createParticleSystemInstance(name: string, values: ParsedParticleValues): VFXParticleSystem {
+		const { scene } = this._context;
+		return new VFXParticleSystem(name, values.capacity, scene, this._valueParser, values.avgStartSpeed, values.avgStartSize, values.startColor);
+	}
 
-		// Set basic properties
-		particleSystem.targetStopDuration = duration;
-		particleSystem.emitRate = emissionRate;
+	/**
+	 * Configures basic particle system properties
+	 */
+	private _configureBasicProperties(particleSystem: ParticleSystem, values: ParsedParticleValues): void {
+		particleSystem.targetStopDuration = values.duration;
+		particleSystem.emitRate = values.emissionRate;
 		particleSystem.manualEmitCount = -1;
 
-		// Set life time
-		particleSystem.minLifeTime = lifeTime.min;
-		particleSystem.maxLifeTime = lifeTime.max;
+		particleSystem.minLifeTime = values.lifeTime.min;
+		particleSystem.maxLifeTime = values.lifeTime.max;
 
-		// Set speed and size
-		particleSystem.minEmitPower = speed.min;
-		particleSystem.maxEmitPower = speed.max;
-		particleSystem.minSize = size.min;
-		particleSystem.maxSize = size.max;
+		particleSystem.minEmitPower = values.speed.min;
+		particleSystem.maxEmitPower = values.speed.max;
+		particleSystem.minSize = values.size.min;
+		particleSystem.maxSize = values.size.max;
 
-		// Set colors
-		particleSystem.color1 = startColor;
-		particleSystem.color2 = startColor;
-		particleSystem.colorDead = new Color4(startColor.r, startColor.g, startColor.b, 0);
+		particleSystem.color1 = values.startColor;
+		particleSystem.color2 = values.startColor;
+		particleSystem.colorDead = new Color4(values.startColor.r, values.startColor.g, values.startColor.b, 0);
+	}
 
-		// Parse start rotation
-		if (config.startRotation) {
-			if (typeof config.startRotation === "object" && config.startRotation !== null && "type" in config.startRotation && config.startRotation.type === "Euler") {
-				const eulerRotation = config.startRotation;
-				if (eulerRotation.angleZ !== undefined) {
-					const angleZ = this._valueParser.parseIntervalValue(eulerRotation.angleZ);
-					particleSystem.minInitialRotation = angleZ.min;
-					particleSystem.maxInitialRotation = angleZ.max;
-				}
-			} else {
-				const rotation = this._valueParser.parseIntervalValue(config.startRotation);
-				particleSystem.minInitialRotation = rotation.min;
-				particleSystem.maxInitialRotation = rotation.max;
-			}
+	/**
+	 * Configures rotation settings
+	 */
+	private _configureRotation(particleSystem: ParticleSystem, config: VFXParticleEmitterConfig): void {
+		if (!config.startRotation) {
+			return;
 		}
 
-		// Set sprite tiles if specified
-		if (config.uTileCount !== undefined && config.vTileCount !== undefined) {
-			if (config.uTileCount > 1 || config.vTileCount > 1) {
-				particleSystem.isAnimationSheetEnabled = true;
-				particleSystem.spriteCellWidth = config.uTileCount;
-				particleSystem.spriteCellHeight = config.vTileCount;
-				if (config.startTileIndex !== undefined) {
-					const startTile = this._valueParser.parseConstantValue(config.startTileIndex);
-					particleSystem.startSpriteCellID = Math.floor(startTile);
-					particleSystem.endSpriteCellID = Math.floor(startTile);
-				}
+		if (this._isEulerRotation(config.startRotation)) {
+			if (config.startRotation.angleZ !== undefined) {
+				const angleZ = this._valueParser.parseIntervalValue(config.startRotation.angleZ);
+				particleSystem.minInitialRotation = angleZ.min;
+				particleSystem.maxInitialRotation = angleZ.max;
 			}
+		} else {
+			const rotation = this._valueParser.parseIntervalValue(config.startRotation as any);
+			particleSystem.minInitialRotation = rotation.min;
+			particleSystem.maxInitialRotation = rotation.max;
+		}
+	}
+
+	/**
+	 * Checks if rotation is Euler type
+	 */
+	private _isEulerRotation(rotation: any): rotation is { type: "Euler"; angleZ?: any } {
+		return typeof rotation === "object" && rotation !== null && "type" in rotation && rotation.type === "Euler";
+	}
+
+	/**
+	 * Configures sprite tiles for animation sheets
+	 */
+	private _configureSpriteTiles(particleSystem: ParticleSystem, config: VFXParticleEmitterConfig): void {
+		if (config.uTileCount === undefined || config.vTileCount === undefined) {
+			return;
 		}
 
-		// Set render order and layers
+		if (config.uTileCount > 1 || config.vTileCount > 1) {
+			particleSystem.isAnimationSheetEnabled = true;
+			particleSystem.spriteCellWidth = config.uTileCount;
+			particleSystem.spriteCellHeight = config.vTileCount;
+
+			if (config.startTileIndex !== undefined) {
+				const startTile = this._valueParser.parseConstantValue(config.startTileIndex);
+				particleSystem.startSpriteCellID = Math.floor(startTile);
+				particleSystem.endSpriteCellID = Math.floor(startTile);
+			}
+		}
+	}
+
+	/**
+	 * Configures rendering properties (render order and layers)
+	 */
+	private _configureRendering(particleSystem: ParticleSystem, config: VFXParticleEmitterConfig): void {
 		if (config.renderOrder !== undefined) {
 			particleSystem.renderingGroupId = config.renderOrder;
 		}
 		if (config.layers !== undefined) {
 			particleSystem.layerMask = config.layers;
 		}
+	}
 
-		// Set emitter shape (pass matrix to extract rotation for emitter direction)
-		this._setEmitterShape(particleSystem, config.shape, emitterData.cumulativeScale, emitterData.matrix, options);
-
-		// Load texture (ParticleSystem only needs texture, not material)
-		if (emitterData.materialId) {
-			const texture = this._materialFactory.createTexture(emitterData.materialId);
-			if (texture) {
-				particleSystem.particleTexture = texture;
-				// Get blend mode from material
-				const { jsonData } = this._context;
-				const material = jsonData.materials?.find((m: any) => m.uuid === emitterData.materialId);
-				if (material?.blending !== undefined) {
-					if (material.blending === 2) {
-						// Additive blending (Three.js AdditiveBlending)
-						particleSystem.blendMode = Constants.ALPHA_ADD;
-					} else if (material.blending === 1) {
-						// Normal blending (Three.js NormalBlending)
-						particleSystem.blendMode = Constants.ALPHA_COMBINE;
-					} else if (material.blending === 0) {
-						// No blending (Three.js NoBlending)
-						particleSystem.blendMode = Constants.ALPHA_DISABLE;
-					}
-				}
-			}
+	/**
+	 * Applies texture and blend mode from material
+	 */
+	private _applyTextureAndBlendMode(particleSystem: ParticleSystem, materialId: string | undefined): void {
+		if (!materialId) {
+			return;
 		}
 
-		// Handle emission bursts
+		const texture = this._materialFactory.createTexture(materialId);
+		if (!texture) {
+			return;
+		}
+
+		particleSystem.particleTexture = texture;
+		const blendMode = this._getBlendModeFromMaterial(materialId);
+		if (blendMode !== undefined) {
+			particleSystem.blendMode = blendMode;
+		}
+	}
+
+	/**
+	 * Gets blend mode from material blending value
+	 */
+	private _getBlendModeFromMaterial(materialId: string): number | undefined {
+		const { jsonData } = this._context;
+		const material = jsonData.materials?.find((m: any) => m.uuid === materialId);
+
+		if (material?.blending === undefined) {
+			return undefined;
+		}
+
+		const blendModeMap: Record<number, number> = {
+			0: Constants.ALPHA_DISABLE, // NoBlending
+			1: Constants.ALPHA_COMBINE, // NormalBlending
+			2: Constants.ALPHA_ADD, // AdditiveBlending
+		};
+
+		return blendModeMap[material.blending];
+	}
+
+	/**
+	 * Applies emission bursts if configured
+	 */
+	private _applyEmissionBurstsIfNeeded(particleSystem: ParticleSystem, config: VFXParticleEmitterConfig, emissionRate: number, duration: number): void {
 		if (config.emissionBursts && Array.isArray(config.emissionBursts) && config.emissionBursts.length > 0) {
-			this._applyEmissionBursts(particleSystem, config.emissionBursts, emissionRate, duration, options);
+			this._applyEmissionBursts(particleSystem, config.emissionBursts, emissionRate, duration);
 		}
+	}
 
-		// Apply behaviors
-		if (config.behaviors && Array.isArray(config.behaviors) && config.behaviors.length > 0) {
-			this._applyBehaviorsToPS(particleSystem, config.behaviors);
+	/**
+	 * Applies behaviors if configured
+	 */
+	private _applyBehaviorsIfNeeded(particleSystem: ParticleSystem, behaviors: VFXBehavior[] | undefined): void {
+		if (behaviors && Array.isArray(behaviors) && behaviors.length > 0) {
+			this._applyBehaviorsToPS(particleSystem, behaviors);
 		}
+	}
 
-		// Set world space
+	/**
+	 * Configures world space setting
+	 */
+	private _configureWorldSpace(particleSystem: ParticleSystem, config: VFXParticleEmitterConfig): void {
 		if (config.worldSpace !== undefined) {
 			particleSystem.isLocal = !config.worldSpace;
+			const { options } = this._context;
 			this._logger.log(`  World space: ${config.worldSpace}`, options);
 		}
+	}
 
-		// Set looping
+	/**
+	 * Configures looping setting
+	 */
+	private _configureLooping(particleSystem: ParticleSystem, config: VFXParticleEmitterConfig, duration: number): void {
 		if (config.looping !== undefined) {
 			particleSystem.targetStopDuration = config.looping ? 0 : duration;
+			const { options } = this._context;
 			this._logger.log(`  Looping: ${config.looping}`, options);
 		}
+	}
 
-		// Set render mode
-		if (config.renderMode !== undefined) {
-			if (config.renderMode === 0) {
-				particleSystem.isBillboardBased = true;
-				this._logger.log(`  Render mode: Billboard`, options);
-			} else if (config.renderMode === 1) {
-				particleSystem.billboardMode = ParticleSystem.BILLBOARDMODE_STRETCHED;
-				this._logger.log(`  Render mode: Stretched Billboard`, options);
-			}
+	/**
+	 * Configures render mode
+	 */
+	private _configureRenderMode(particleSystem: ParticleSystem, config: VFXParticleEmitterConfig): void {
+		if (config.renderMode === undefined) {
+			return;
 		}
 
-		// Set soft particles and auto destroy
+		const { options } = this._context;
+		const renderModeMap: Record<number, () => void> = {
+			0: () => {
+				particleSystem.isBillboardBased = true;
+				this._logger.log(`  Render mode: Billboard`, options);
+			},
+			1: () => {
+				particleSystem.billboardMode = ParticleSystem.BILLBOARDMODE_STRETCHED;
+				this._logger.log(`  Render mode: Stretched Billboard`, options);
+			},
+		};
+
+		const handler = renderModeMap[config.renderMode];
+		if (handler) {
+			handler();
+		}
+	}
+
+	/**
+	 * Configures soft particles and auto destroy settings
+	 */
+	private _configureSoftParticlesAndAutoDestroy(particleSystem: ParticleSystem, config: VFXParticleEmitterConfig): void {
+		const { options } = this._context;
+
 		if (config.softParticles !== undefined) {
 			this._logger.log(`  Soft particles: ${config.softParticles} (not fully supported)`, options);
 		}
+
 		if (config.autoDestroy !== undefined) {
 			particleSystem.disposeOnStop = config.autoDestroy;
 			this._logger.log(`  Auto destroy: ${config.autoDestroy}`, options);
 		}
-
-		this._logger.log(`ParticleSystem created: ${name}`, options);
-		return particleSystem;
 	}
 
 	/**
@@ -226,360 +365,449 @@ export class VFXEmitterFactory {
 	 */
 	private _createSolidParticleSystem(emitterData: VFXEmitterData): Nullable<SolidParticleSystem> {
 		const { name, config } = emitterData;
-		const { scene, options } = this._context;
+		const { options } = this._context;
 
 		this._logger.log(`Creating SolidParticleSystem: ${name}`, options);
 
-		// Calculate capacity based on emission rate and particle lifetime
-		// duration = particle lifetime (how long each particle lives)
-		// startLife = when particle becomes "alive" (for behaviors that depend on age)
-		// emissionOverTime = particles per second (e.g., 2.5 means 2.5 particles per second)
-		const emissionRate = config.emissionOverTime !== undefined ? this._valueParser.parseConstantValue(config.emissionOverTime) : 10; // particles per second
-		const particleLifetime = config.duration || 5; // duration is the particle lifetime
-		const isLooping = config.looping !== false;
+		const capacity = this._calculateSPSCapacity(config);
+		const vfxTransform = this._getVFXTransform(emitterData);
+		const sps = this._createSPSInstance(name, config, emitterData, vfxTransform);
 
-		let capacity: number;
-		if (isLooping) {
-			// For looping systems: capacity = emissionRate * particleLifetime
-			// This gives the steady-state number of particles needed for perfect looping
-			// Example: emissionRate=2.5 particles/sec, particleLifetime=5 sec
-			// -> capacity = 2.5 * 5 = 12.5 -> 13 particles
-			// This ensures we have enough particles to cover the lifetime at the emission rate
-			capacity = Math.ceil(emissionRate * particleLifetime);
-			// Ensure minimum capacity of at least 1
-			capacity = Math.max(capacity, 1);
-			this._logger.log(`  Looping system: Emission rate: ${emissionRate} particles/sec, Particle lifetime: ${particleLifetime} sec, Capacity: ${capacity}`, options);
-		} else {
-			// For non-looping: capacity = emissionRate * particleLifetime * 2 (buffer for particles still alive)
-			capacity = Math.ceil(emissionRate * particleLifetime * 2);
-			this._logger.log(`  Non-looping system: Emission rate: ${emissionRate} particles/sec, Particle lifetime: ${particleLifetime} sec, Capacity: ${capacity}`, options);
-		}
-
-		// Get VFX transform from emitter data (stored during conversion)
-		// This is the clean way - transform is already in left-handed coordinate system
-		let vfxTransform: { position: Vector3; rotation: Quaternion; scale: Vector3 } | null = null;
-		const vfxEmitter = emitterData.vfxEmitter;
-		if (vfxEmitter && vfxEmitter.transform) {
-			vfxTransform = vfxEmitter.transform;
-		}
-
-		const sps = new VFXSolidParticleSystem(name, scene, config, this._valueParser, {
-			updatable: true,
-			isPickable: false,
-			enableDepthSort: false,
-			particleIntersection: false,
-			useModelMaterial: true,
-			parentGroup: emitterData.parentGroup,
-			vfxTransform: vfxTransform,
-			logger: this._logger,
-			loaderOptions: options,
-		});
-
-		// Load geometry for particle shape
-		let particleMesh: Nullable<Mesh> = null;
-		if (config.instancingGeometry) {
-			this._logger.log(`  Loading geometry: ${config.instancingGeometry}`, options);
-			particleMesh = this._geometryFactory.createMesh(config.instancingGeometry, emitterData.materialId, name + "_shape");
-			if (!particleMesh) {
-				this._logger.warn(`  Failed to load geometry ${config.instancingGeometry}, will create default plane`, options);
-			}
-		}
-
-		// Default to plane if no geometry found
+		const particleMesh = this._createOrLoadParticleMesh(name, config, emitterData);
 		if (!particleMesh) {
-			this._logger.log(`  Creating default plane geometry`, options);
-			particleMesh = CreatePlane(name + "_shape", { width: 1, height: 1 }, scene);
-			if (emitterData.materialId && particleMesh) {
-				const particleMaterial = this._materialFactory.createMaterial(emitterData.materialId, name);
-				if (particleMaterial) {
-					particleMesh.material = particleMaterial;
-				}
-			}
-		} else {
-			// Ensure material is applied
-			if (emitterData.materialId && particleMesh && !particleMesh.material) {
-				const particleMaterial = this._materialFactory.createMaterial(emitterData.materialId, name);
-				if (particleMaterial) {
-					particleMesh.material = particleMaterial;
-				}
-			}
-		}
-
-		if (!particleMesh) {
-			this._logger.warn(`  Cannot add shape to SPS: particleMesh is null`, options);
 			return null;
 		}
 
-		this._logger.log(`  Adding shape to SPS: mesh name=${particleMesh.name}, hasMaterial=${!!particleMesh.material}`, options);
-		sps.addShape(particleMesh, capacity);
+		this._addShapeToSPS(sps, particleMesh, capacity);
+		this._configureSPSBillboard(sps, config);
+		this._applyBehaviorsIfNeededSPS(sps, config.behaviors);
 
-		// Set billboard mode if needed
-		if (config.renderMode === 0 || config.renderMode === 1) {
-			sps.billboard = true;
-		}
-
-		// Apply behaviors to SPS
-		if (config.behaviors && Array.isArray(config.behaviors) && config.behaviors.length > 0) {
-			this._applyBehaviorsToSPS(sps, config.behaviors);
-			this._logger.log(`  Set SPS behaviors (${config.behaviors.length})`, options);
-		}
-
-		// Cleanup temporary mesh
-		if (particleMesh) {
-			particleMesh.dispose();
-		}
+		particleMesh.dispose();
 
 		this._logger.log(`SolidParticleSystem created: ${name}`, options);
 		return sps;
 	}
 
 	/**
-	 * Set the emitter shape based on Three.js shape configuration
-	 * @param matrix Optional 4x4 matrix array from Three.js to extract rotation
+	 * Calculates capacity for SolidParticleSystem
 	 */
-	private _setEmitterShape(particleSystem: ParticleSystem, shape: any, cumulativeScale: Vector3, matrix?: number[], options?: VFXLoaderOptions): void {
+	private _calculateSPSCapacity(config: VFXParticleEmitterConfig): number {
+		const { options } = this._context;
+		const emissionRate = config.emissionOverTime !== undefined ? this._valueParser.parseConstantValue(config.emissionOverTime) : 10;
+		const particleLifetime = config.duration || 5;
+		const isLooping = config.looping !== false;
+
+		if (isLooping) {
+			const capacity = Math.max(Math.ceil(emissionRate * particleLifetime), 1);
+			this._logger.log(`  Looping system: Emission rate: ${emissionRate} particles/sec, Particle lifetime: ${particleLifetime} sec, Capacity: ${capacity}`, options);
+			return capacity;
+		} else {
+			const capacity = Math.ceil(emissionRate * particleLifetime * 2);
+			this._logger.log(`  Non-looping system: Emission rate: ${emissionRate} particles/sec, Particle lifetime: ${particleLifetime} sec, Capacity: ${capacity}`, options);
+			return capacity;
+		}
+	}
+
+	/**
+	 * Gets VFX transform from emitter data
+	 */
+	private _getVFXTransform(emitterData: VFXEmitterData): { position: Vector3; rotation: Quaternion; scale: Vector3 } | null {
+		const vfxEmitter = emitterData.vfxEmitter;
+		return vfxEmitter?.transform || null;
+	}
+
+	/**
+	 * Creates SolidParticleSystem instance
+	 */
+	private _createSPSInstance(
+		name: string,
+		config: VFXParticleEmitterConfig,
+		emitterData: VFXEmitterData,
+		vfxTransform: { position: Vector3; rotation: Quaternion; scale: Vector3 } | null
+	): VFXSolidParticleSystem {
+		const { scene, options } = this._context;
+		return new VFXSolidParticleSystem(name, scene, config, this._valueParser, {
+			updatable: true,
+			isPickable: false,
+			enableDepthSort: false,
+			particleIntersection: false,
+			useModelMaterial: true,
+			parentGroup: emitterData.parentGroup,
+			vfxTransform,
+			logger: this._logger,
+			loaderOptions: options,
+		});
+	}
+
+	/**
+	 * Creates or loads particle mesh for SPS
+	 */
+	private _createOrLoadParticleMesh(name: string, config: VFXParticleEmitterConfig, emitterData: VFXEmitterData): Nullable<Mesh> {
+		const { scene, options } = this._context;
+		let particleMesh = this._loadParticleGeometry(config, emitterData, name);
+
+		if (!particleMesh) {
+			particleMesh = this._createDefaultPlaneMesh(name, scene);
+			this._applyMaterialToMesh(particleMesh, emitterData.materialId, name);
+		} else {
+			this._ensureMaterialApplied(particleMesh, emitterData.materialId, name);
+		}
+
+		if (!particleMesh) {
+			this._logger.warn(`  Cannot add shape to SPS: particleMesh is null`, options);
+		}
+
+		return particleMesh;
+	}
+
+	/**
+	 * Loads particle geometry if specified
+	 */
+	private _loadParticleGeometry(config: VFXParticleEmitterConfig, emitterData: VFXEmitterData, name: string): Nullable<Mesh> {
+		const { options } = this._context;
+
+		if (!config.instancingGeometry) {
+			return null;
+		}
+
+		this._logger.log(`  Loading geometry: ${config.instancingGeometry}`, options);
+		const mesh = this._geometryFactory.createMesh(config.instancingGeometry, emitterData.materialId, name + "_shape");
+		if (!mesh) {
+			this._logger.warn(`  Failed to load geometry ${config.instancingGeometry}, will create default plane`, options);
+		}
+
+		return mesh;
+	}
+
+	/**
+	 * Creates default plane mesh
+	 */
+	private _createDefaultPlaneMesh(name: string, scene: any): Mesh {
+		const { options } = this._context;
+		this._logger.log(`  Creating default plane geometry`, options);
+		return CreatePlane(name + "_shape", { width: 1, height: 1 }, scene);
+	}
+
+	/**
+	 * Applies material to mesh
+	 */
+	private _applyMaterialToMesh(mesh: Mesh | null, materialId: string | undefined, name: string): void {
+		if (!mesh || !materialId) {
+			return;
+		}
+
+		const material = this._materialFactory.createMaterial(materialId, name);
+		if (material) {
+			mesh.material = material;
+		}
+	}
+
+	/**
+	 * Ensures material is applied to mesh if missing
+	 */
+	private _ensureMaterialApplied(mesh: Mesh, materialId: string | undefined, name: string): void {
+		if (materialId && !mesh.material) {
+			this._applyMaterialToMesh(mesh, materialId, name);
+		}
+	}
+
+	/**
+	 * Adds shape to SPS
+	 */
+	private _addShapeToSPS(sps: SolidParticleSystem, particleMesh: Mesh, capacity: number): void {
+		const { options } = this._context;
+		this._logger.log(`  Adding shape to SPS: mesh name=${particleMesh.name}, hasMaterial=${!!particleMesh.material}`, options);
+		sps.addShape(particleMesh, capacity);
+	}
+
+	/**
+	 * Configures billboard mode for SPS
+	 */
+	private _configureSPSBillboard(sps: SolidParticleSystem, config: VFXParticleEmitterConfig): void {
+		if (config.renderMode === 0 || config.renderMode === 1) {
+			sps.billboard = true;
+		}
+	}
+
+	/**
+	 * Applies behaviors to SPS if configured
+	 */
+	private _applyBehaviorsIfNeededSPS(sps: SolidParticleSystem, behaviors: VFXBehavior[] | undefined): void {
+		const { options } = this._context;
+
+		if (behaviors && Array.isArray(behaviors) && behaviors.length > 0) {
+			this._applyBehaviorsToSPS(sps, behaviors);
+			this._logger.log(`  Set SPS behaviors (${behaviors.length})`, options);
+		}
+	}
+
+	/**
+	 * Set the emitter shape based on Three.js shape configuration
+	 */
+	private _setEmitterShape(particleSystem: ParticleSystem, shape: any, cumulativeScale: Vector3, matrix?: number[]): void {
 		if (!shape || !shape.type) {
 			particleSystem.createPointEmitter(Vector3.Zero(), Vector3.Zero());
 			return;
 		}
 
-		const scaleX = cumulativeScale.x;
-		const scaleY = cumulativeScale.y;
-		const scaleZ = cumulativeScale.z;
+		const rotationMatrix = this._extractRotationMatrix(matrix);
+		const shapeHandler = this._getShapeHandler(shape.type.toLowerCase());
 
-		// Extract rotation from matrix if provided
-		let rotationMatrix: Matrix | null = null;
-		if (matrix && matrix.length >= 16) {
-			// Three.js uses column-major order, Babylon.js uses row-major
-			const mat = Matrix.FromArray(matrix);
-			mat.transpose();
+		if (shapeHandler) {
+			shapeHandler(particleSystem, shape, cumulativeScale, rotationMatrix);
+		} else {
+			this._createDefaultPointEmitter(particleSystem, rotationMatrix);
+		}
+	}
 
-			// Extract rotation matrix (remove scale and translation)
-			rotationMatrix = mat.getRotationMatrix();
-			this._logger.log(`  Extracted rotation from matrix`, options);
+	/**
+	 * Extracts rotation matrix from Three.js matrix array
+	 */
+	private _extractRotationMatrix(matrix: number[] | undefined): Matrix | null {
+		if (!matrix || matrix.length < 16) {
+			return null;
 		}
 
-		// Helper function to apply rotation to default direction
-		const applyRotation = (defaultDir: Vector3): Vector3 => {
-			if (rotationMatrix) {
-				const rotatedDir = Vector3.Zero();
-				Vector3.TransformNormalToRef(defaultDir, rotationMatrix, rotatedDir);
-				return rotatedDir;
-			}
-			return defaultDir;
+		const { options } = this._context;
+		const mat = Matrix.FromArray(matrix);
+		mat.transpose();
+		const rotationMatrix = mat.getRotationMatrix();
+		this._logger.log(`  Extracted rotation from matrix`, options);
+		return rotationMatrix;
+	}
+
+	/**
+	 * Gets shape handler function for given shape type
+	 */
+	private _getShapeHandler(shapeType: string): ((ps: ParticleSystem, shape: any, scale: Vector3, rotation: Matrix | null) => void) | null {
+		const shapeHandlers: Record<string, (ps: ParticleSystem, shape: any, scale: Vector3, rotation: Matrix | null) => void> = {
+			cone: this._createConeEmitter.bind(this),
+			sphere: this._createSphereEmitter.bind(this),
+			point: this._createPointEmitter.bind(this),
+			box: this._createBoxEmitter.bind(this),
+			hemisphere: this._createHemisphereEmitter.bind(this),
+			cylinder: this._createCylinderEmitter.bind(this),
 		};
 
-		switch (shape.type.toLowerCase()) {
-			case "cone": {
-				let radius = shape.radius || 1;
-				const angle = shape.angle !== undefined ? shape.angle : Math.PI / 4;
-				const coneScale = (scaleX + scaleZ) / 2;
-				radius = radius * coneScale;
+		return shapeHandlers[shapeType] || null;
+	}
 
-				// Default direction for cone is up (0, 1, 0)
-				const defaultDir = new Vector3(0, 1, 0);
-				const rotatedDir = applyRotation(defaultDir);
+	/**
+	 * Applies rotation to default direction vector
+	 */
+	private _applyRotationToDirection(defaultDir: Vector3, rotationMatrix: Matrix | null): Vector3 {
+		if (!rotationMatrix) {
+			return defaultDir;
+		}
 
-				if (rotationMatrix) {
-					// Use directed emitter with rotated direction
-					particleSystem.createDirectedConeEmitter(radius, angle, rotatedDir, rotatedDir);
-					this._logger.log(
-						`  Created directed cone emitter with rotated direction: (${rotatedDir.x.toFixed(2)}, ${rotatedDir.y.toFixed(2)}, ${rotatedDir.z.toFixed(2)})`,
-						options
-					);
-				} else {
-					particleSystem.createConeEmitter(radius, angle);
-				}
-				break;
-			}
+		const rotatedDir = Vector3.Zero();
+		Vector3.TransformNormalToRef(defaultDir, rotationMatrix, rotatedDir);
+		return rotatedDir;
+	}
 
-			case "sphere": {
-				let sphereRadius = shape.radius || 1;
-				const sphereScale = (scaleX + scaleY + scaleZ) / 3;
-				sphereRadius = sphereRadius * sphereScale;
+	/**
+	 * Creates cone emitter
+	 */
+	private _createConeEmitter(particleSystem: ParticleSystem, shape: any, scale: Vector3, rotationMatrix: Matrix | null): void {
+		const { options } = this._context;
+		const radius = (shape.radius || 1) * ((scale.x + scale.z) / 2);
+		const angle = shape.angle !== undefined ? shape.angle : Math.PI / 4;
+		const defaultDir = new Vector3(0, 1, 0);
+		const rotatedDir = this._applyRotationToDirection(defaultDir, rotationMatrix);
 
-				// Default direction for sphere is up (0, 1, 0)
-				const defaultDir = new Vector3(0, 1, 0);
-				const rotatedDir = applyRotation(defaultDir);
+		if (rotationMatrix) {
+			particleSystem.createDirectedConeEmitter(radius, angle, rotatedDir, rotatedDir);
+			this._logger.log(
+				`  Created directed cone emitter with rotated direction: (${rotatedDir.x.toFixed(2)}, ${rotatedDir.y.toFixed(2)}, ${rotatedDir.z.toFixed(2)})`,
+				options
+			);
+		} else {
+			particleSystem.createConeEmitter(radius, angle);
+		}
+	}
 
-				if (rotationMatrix) {
-					particleSystem.createDirectedSphereEmitter(sphereRadius, rotatedDir, rotatedDir);
-					this._logger.log(
-						`  Created directed sphere emitter with rotated direction: (${rotatedDir.x.toFixed(2)}, ${rotatedDir.y.toFixed(2)}, ${rotatedDir.z.toFixed(2)})`,
-						options
-					);
-				} else {
-					particleSystem.createSphereEmitter(sphereRadius);
-				}
-				break;
-			}
+	/**
+	 * Creates sphere emitter
+	 */
+	private _createSphereEmitter(particleSystem: ParticleSystem, shape: any, scale: Vector3, rotationMatrix: Matrix | null): void {
+		const { options } = this._context;
+		const radius = (shape.radius || 1) * ((scale.x + scale.y + scale.z) / 3);
+		const defaultDir = new Vector3(0, 1, 0);
+		const rotatedDir = this._applyRotationToDirection(defaultDir, rotationMatrix);
 
-			case "point": {
-				const defaultDir = new Vector3(0, 1, 0);
-				const rotatedDir = applyRotation(defaultDir);
+		if (rotationMatrix) {
+			particleSystem.createDirectedSphereEmitter(radius, rotatedDir, rotatedDir);
+			this._logger.log(
+				`  Created directed sphere emitter with rotated direction: (${rotatedDir.x.toFixed(2)}, ${rotatedDir.y.toFixed(2)}, ${rotatedDir.z.toFixed(2)})`,
+				options
+			);
+		} else {
+			particleSystem.createSphereEmitter(radius);
+		}
+	}
 
-				if (rotationMatrix) {
-					particleSystem.createPointEmitter(rotatedDir, rotatedDir);
-					this._logger.log(
-						`  Created point emitter with rotated direction: (${rotatedDir.x.toFixed(2)}, ${rotatedDir.y.toFixed(2)}, ${rotatedDir.z.toFixed(2)})`,
-						options
-					);
-				} else {
-					particleSystem.createPointEmitter(Vector3.Zero(), Vector3.Zero());
-				}
-				break;
-			}
+	/**
+	 * Creates point emitter
+	 */
+	private _createPointEmitter(particleSystem: ParticleSystem, _shape: any, _scale: Vector3, rotationMatrix: Matrix | null): void {
+		const { options } = this._context;
+		const defaultDir = new Vector3(0, 1, 0);
+		const rotatedDir = this._applyRotationToDirection(defaultDir, rotationMatrix);
 
-			case "box": {
-				let boxSize = shape.size || [1, 1, 1];
-				boxSize = [boxSize[0] * scaleX, boxSize[1] * scaleY, boxSize[2] * scaleZ];
-				const minBox = new Vector3(-boxSize[0] / 2, -boxSize[1] / 2, -boxSize[2] / 2);
-				const maxBox = new Vector3(boxSize[0] / 2, boxSize[1] / 2, boxSize[2] / 2);
+		if (rotationMatrix) {
+			particleSystem.createPointEmitter(rotatedDir, rotatedDir);
+			this._logger.log(`  Created point emitter with rotated direction: (${rotatedDir.x.toFixed(2)}, ${rotatedDir.y.toFixed(2)}, ${rotatedDir.z.toFixed(2)})`, options);
+		} else {
+			particleSystem.createPointEmitter(Vector3.Zero(), Vector3.Zero());
+		}
+	}
 
-				const defaultDir = new Vector3(0, 1, 0);
-				const rotatedDir = applyRotation(defaultDir);
+	/**
+	 * Creates box emitter
+	 */
+	private _createBoxEmitter(particleSystem: ParticleSystem, shape: any, scale: Vector3, rotationMatrix: Matrix | null): void {
+		const { options } = this._context;
+		const boxSize = (shape.size || [1, 1, 1]).map((s: number, i: number) => s * [scale.x, scale.y, scale.z][i]);
+		const minBox = new Vector3(-boxSize[0] / 2, -boxSize[1] / 2, -boxSize[2] / 2);
+		const maxBox = new Vector3(boxSize[0] / 2, boxSize[1] / 2, boxSize[2] / 2);
+		const defaultDir = new Vector3(0, 1, 0);
+		const rotatedDir = this._applyRotationToDirection(defaultDir, rotationMatrix);
 
-				if (rotationMatrix) {
-					particleSystem.createBoxEmitter(rotatedDir, rotatedDir, minBox, maxBox);
-					this._logger.log(`  Created box emitter with rotated direction: (${rotatedDir.x.toFixed(2)}, ${rotatedDir.y.toFixed(2)}, ${rotatedDir.z.toFixed(2)})`, options);
-				} else {
-					particleSystem.createBoxEmitter(Vector3.Zero(), Vector3.Zero(), minBox, maxBox);
-				}
-				break;
-			}
+		if (rotationMatrix) {
+			particleSystem.createBoxEmitter(rotatedDir, rotatedDir, minBox, maxBox);
+			this._logger.log(`  Created box emitter with rotated direction: (${rotatedDir.x.toFixed(2)}, ${rotatedDir.y.toFixed(2)}, ${rotatedDir.z.toFixed(2)})`, options);
+		} else {
+			particleSystem.createBoxEmitter(Vector3.Zero(), Vector3.Zero(), minBox, maxBox);
+		}
+	}
 
-			case "hemisphere": {
-				let hemRadius = shape.radius || 1;
-				const hemScale = (scaleX + scaleY + scaleZ) / 3;
-				hemRadius = hemRadius * hemScale;
-				particleSystem.createHemisphericEmitter(hemRadius);
-				break;
-			}
+	/**
+	 * Creates hemisphere emitter
+	 */
+	private _createHemisphereEmitter(particleSystem: ParticleSystem, shape: any, scale: Vector3, _rotationMatrix: Matrix | null): void {
+		const radius = (shape.radius || 1) * ((scale.x + scale.y + scale.z) / 3);
+		particleSystem.createHemisphericEmitter(radius);
+	}
 
-			case "cylinder": {
-				let cylRadius = shape.radius || 1;
-				let height = shape.height || 1;
-				const cylRadiusScale = (scaleX + scaleZ) / 2;
-				cylRadius = cylRadius * cylRadiusScale;
-				height = height * scaleY;
+	/**
+	 * Creates cylinder emitter
+	 */
+	private _createCylinderEmitter(particleSystem: ParticleSystem, shape: any, scale: Vector3, rotationMatrix: Matrix | null): void {
+		const { options } = this._context;
+		const radius = (shape.radius || 1) * ((scale.x + scale.z) / 2);
+		const height = (shape.height || 1) * scale.y;
+		const defaultDir = new Vector3(0, 1, 0);
+		const rotatedDir = this._applyRotationToDirection(defaultDir, rotationMatrix);
 
-				// Default direction for cylinder is up (0, 1, 0)
-				const defaultDir = new Vector3(0, 1, 0);
-				const rotatedDir = applyRotation(defaultDir);
+		if (rotationMatrix) {
+			particleSystem.createDirectedCylinderEmitter(radius, height, 1, rotatedDir, rotatedDir);
+			this._logger.log(
+				`  Created directed cylinder emitter with rotated direction: (${rotatedDir.x.toFixed(2)}, ${rotatedDir.y.toFixed(2)}, ${rotatedDir.z.toFixed(2)})`,
+				options
+			);
+		} else {
+			particleSystem.createCylinderEmitter(radius, height);
+		}
+	}
 
-				if (rotationMatrix) {
-					particleSystem.createDirectedCylinderEmitter(cylRadius, height, 1, rotatedDir, rotatedDir);
-					this._logger.log(
-						`  Created directed cylinder emitter with rotated direction: (${rotatedDir.x.toFixed(2)}, ${rotatedDir.y.toFixed(2)}, ${rotatedDir.z.toFixed(2)})`,
-						options
-					);
-				} else {
-					particleSystem.createCylinderEmitter(cylRadius, height);
-				}
-				break;
-			}
+	/**
+	 * Creates default point emitter
+	 */
+	private _createDefaultPointEmitter(particleSystem: ParticleSystem, rotationMatrix: Matrix | null): void {
+		const defaultDir = new Vector3(0, 1, 0);
+		const rotatedDir = this._applyRotationToDirection(defaultDir, rotationMatrix);
 
-			default: {
-				const defaultDir = new Vector3(0, 1, 0);
-				const rotatedDir = applyRotation(defaultDir);
-
-				if (rotationMatrix) {
-					particleSystem.createPointEmitter(rotatedDir, rotatedDir);
-				} else {
-					particleSystem.createPointEmitter(Vector3.Zero(), Vector3.Zero());
-				}
-				break;
-			}
+		if (rotationMatrix) {
+			particleSystem.createPointEmitter(rotatedDir, rotatedDir);
+		} else {
+			particleSystem.createPointEmitter(Vector3.Zero(), Vector3.Zero());
 		}
 	}
 
 	/**
 	 * Apply emission bursts via emit rate gradients
 	 */
-	private _applyEmissionBursts(
-		particleSystem: ParticleSystem,
-		bursts: import("../types/emitterConfig").VFXEmissionBurst[],
-		baseEmitRate: number,
-		duration: number,
-		_options?: VFXLoaderOptions
-	): void {
+	private _applyEmissionBursts(particleSystem: ParticleSystem, bursts: VFXEmissionBurst[], baseEmitRate: number, duration: number): void {
 		for (const burst of bursts) {
-			if (burst.time !== undefined && burst.count !== undefined) {
-				const burstTime = this._valueParser.parseConstantValue(burst.time);
-				const burstCount = this._valueParser.parseConstantValue(burst.count);
-				const timeRatio = Math.min(Math.max(burstTime / duration, 0), 1);
-
-				const windowSize = 0.02;
-				const burstEmitRate = burstCount / windowSize;
-
-				const beforeTime = Math.max(0, timeRatio - windowSize);
-				const afterTime = Math.min(1, timeRatio + windowSize);
-
-				particleSystem.addEmitRateGradient(beforeTime, baseEmitRate);
-				particleSystem.addEmitRateGradient(timeRatio, burstEmitRate);
-				particleSystem.addEmitRateGradient(afterTime, baseEmitRate);
+			if (burst.time === undefined || burst.count === undefined) {
+				continue;
 			}
+
+			const burstTime = this._valueParser.parseConstantValue(burst.time);
+			const burstCount = this._valueParser.parseConstantValue(burst.count);
+			const timeRatio = Math.min(Math.max(burstTime / duration, 0), 1);
+			const windowSize = 0.02;
+			const burstEmitRate = burstCount / windowSize;
+
+			const beforeTime = Math.max(0, timeRatio - windowSize);
+			const afterTime = Math.min(1, timeRatio + windowSize);
+
+			particleSystem.addEmitRateGradient(beforeTime, baseEmitRate);
+			particleSystem.addEmitRateGradient(timeRatio, burstEmitRate);
+			particleSystem.addEmitRateGradient(afterTime, baseEmitRate);
 		}
 	}
 
 	/**
 	 * Apply behaviors to ParticleSystem
 	 */
-	private _applyBehaviorsToPS(particleSystem: ParticleSystem, behaviors: import("../types/behaviors").VFXBehavior[]): void {
+	private _applyBehaviorsToPS(particleSystem: ParticleSystem, behaviors: VFXBehavior[]): void {
+		const vfxPS = particleSystem as any as VFXParticleSystem;
+		if (!vfxPS || typeof vfxPS.setPerParticleBehaviors !== "function") {
+			return;
+		}
+
+		this._applySystemLevelBehaviors(particleSystem, behaviors);
+
+		const perParticleFunctions = VFXBehaviorFunctionFactory.createPerParticleFunctionsPS(behaviors, this._valueParser, particleSystem);
+		vfxPS.setPerParticleBehaviors(perParticleFunctions);
+	}
+
+	/**
+	 * Applies system-level behaviors (gradients, etc.)
+	 */
+	private _applySystemLevelBehaviors(particleSystem: ParticleSystem, behaviors: VFXBehavior[]): void {
 		const { options } = this._context;
 		const valueParser = this._valueParser;
 
-		const vfxPS = particleSystem as any as VFXParticleSystem;
-		if (vfxPS && typeof vfxPS.setPerParticleBehaviors === "function") {
-			// Apply system-level behaviors (gradients, etc.)
-			for (const behavior of behaviors) {
-				if (!behavior.type) {
-					this._logger.warn(`Behavior missing type: ${JSON.stringify(behavior)}`, options);
-					continue;
-				}
-
-				this._logger.log(`  Processing behavior: ${behavior.type}`, options);
-
-				switch (behavior.type) {
-					case "ColorOverLife":
-						applyColorOverLifePS(particleSystem, behavior as any);
-						break;
-					case "SizeOverLife":
-						applySizeOverLifePS(particleSystem, behavior as any);
-						break;
-					case "RotationOverLife":
-					case "Rotation3DOverLife":
-						applyRotationOverLifePS(particleSystem, behavior as any, valueParser);
-						break;
-					case "ForceOverLife":
-					case "ApplyForce":
-						applyForceOverLifePS(particleSystem, behavior as any, valueParser);
-						break;
-					case "GravityForce":
-						applyGravityForcePS(particleSystem, behavior as any, valueParser);
-						break;
-					case "SpeedOverLife":
-						applySpeedOverLifePS(particleSystem, behavior as any, valueParser);
-						break;
-					case "FrameOverLife":
-						applyFrameOverLifePS(particleSystem, behavior as any, valueParser);
-						break;
-					case "LimitSpeedOverLife":
-						applyLimitSpeedOverLifePS(particleSystem, behavior as any, valueParser);
-						break;
-				}
+		for (const behavior of behaviors) {
+			if (!behavior.type) {
+				this._logger.warn(`Behavior missing type: ${JSON.stringify(behavior)}`, options);
+				continue;
 			}
 
-			// Create and set per-particle behavior functions
-			const perParticleFunctions = VFXBehaviorFunctionFactory.createPerParticleFunctionsPS(behaviors, valueParser, particleSystem);
-			vfxPS.setPerParticleBehaviors(perParticleFunctions);
+			this._logger.log(`  Processing behavior: ${behavior.type}`, options);
+			this._applyBehaviorToPS(particleSystem, behavior, valueParser);
+		}
+	}
+
+	/**
+	 * Applies a single behavior to ParticleSystem
+	 */
+	private _applyBehaviorToPS(particleSystem: ParticleSystem, behavior: VFXBehavior, valueParser: VFXValueParser): void {
+		const behaviorHandlers: Record<string, (ps: ParticleSystem, b: VFXBehavior, vp: VFXValueParser) => void> = {
+			ColorOverLife: (ps, b) => applyColorOverLifePS(ps, b as any),
+			SizeOverLife: (ps, b) => applySizeOverLifePS(ps, b as any),
+			RotationOverLife: (ps, b, vp) => applyRotationOverLifePS(ps, b as any, vp),
+			Rotation3DOverLife: (ps, b, vp) => applyRotationOverLifePS(ps, b as any, vp),
+			ForceOverLife: (ps, b, vp) => applyForceOverLifePS(ps, b as any, vp),
+			ApplyForce: (ps, b, vp) => applyForceOverLifePS(ps, b as any, vp),
+			GravityForce: (ps, b, vp) => applyGravityForcePS(ps, b as any, vp),
+			SpeedOverLife: (ps, b, vp) => applySpeedOverLifePS(ps, b as any, vp),
+			FrameOverLife: (ps, b, vp) => applyFrameOverLifePS(ps, b as any, vp),
+			LimitSpeedOverLife: (ps, b, vp) => applyLimitSpeedOverLifePS(ps, b as any, vp),
+		};
+
+		const handler = behaviorHandlers[behavior.type];
+		if (handler) {
+			handler(particleSystem, behavior, valueParser);
 		}
 	}
 
 	/**
 	 * Apply behaviors to SolidParticleSystem
 	 */
-	private _applyBehaviorsToSPS(sps: SolidParticleSystem, behaviors: import("../types/behaviors").VFXBehavior[]): void {
+	private _applyBehaviorsToSPS(sps: SolidParticleSystem, behaviors: VFXBehavior[]): void {
 		const vfxSPS = sps as any as VFXSolidParticleSystem;
 		if (vfxSPS && typeof vfxSPS.setPerParticleBehaviors === "function") {
 			const perParticleFunctions = VFXBehaviorFunctionFactory.createPerParticleFunctionsSPS(behaviors, this._valueParser);
