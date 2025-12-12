@@ -7,71 +7,42 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { HiOutlineTrash } from "react-icons/hi2";
 import { IoAddSharp } from "react-icons/io5";
 
-import { IFXParticleData } from "./types";
+import type { VFXEffectNode } from "../VFX";
 import { BehaviorRegistry, createDefaultBehaviorData, getBehaviorDefinition } from "./behaviors/registry";
 import { BehaviorProperties } from "./behaviors/behavior-properties";
 
 export interface IFXEditorBehaviorsPropertiesProps {
-	particleData: IFXParticleData;
+	nodeData: VFXEffectNode;
 	onChange: () => void;
 }
 
 export function FXEditorBehaviorsProperties(props: IFXEditorBehaviorsPropertiesProps): ReactNode {
-	const { particleData, onChange } = props;
+	const { nodeData, onChange } = props;
+
+	if (nodeData.type !== "particle" || !nodeData.system) {
+		return null;
+	}
+
+	const system = nodeData.system;
+	// Get behaviors from system (system.behaviors for VFXParticleSystem)
+	const behaviors: any[] = (system as any).behaviors || [];
 
 	return (
 		<>
-			{particleData.behaviors.map((behavior, index) => {
-				const definition = getBehaviorDefinition(behavior.type);
-				const title = definition?.label || behavior.type;
+			{behaviors.length === 0 && <div className="px-2 text-muted-foreground">No behaviors. Behaviors are applied as functions to particles.</div>}
+			{behaviors.map((behavior, index) => {
+				// Behaviors are functions, not objects with properties
+				// We can show function name or type if available
+				const behaviorName = behavior.name || `Behavior ${index + 1}`;
 
 				return (
-					<EditorInspectorSectionField
-						key={behavior.id || `behavior-${index}`}
-						title={
-							<div className="flex items-center justify-between w-full">
-								<span>{title}</span>
-								<Button
-									variant="ghost"
-									className="p-2 text-destructive hover:text-destructive hover:bg-destructive/10 transition-colors"
-									onClick={(e) => {
-										e.stopPropagation();
-										particleData.behaviors.splice(index, 1);
-										onChange();
-									}}
-								>
-									<HiOutlineTrash className="w-4 h-4" />
-								</Button>
-							</div>
-						}
-					>
-						<BehaviorProperties behavior={behavior} onChange={onChange} />
+					<EditorInspectorSectionField key={`behavior-${index}`} title={behaviorName}>
+						<div className="px-2 text-sm text-muted-foreground">Behavior function (editing not yet supported)</div>
 					</EditorInspectorSectionField>
 				);
 			})}
 
-			<DropdownMenu>
-				<DropdownMenuTrigger asChild>
-					<Button variant="secondary" className="flex items-center gap-2 w-full">
-						<IoAddSharp className="w-6 h-6" /> Add
-					</Button>
-				</DropdownMenuTrigger>
-				<DropdownMenuContent>
-					{Object.values(BehaviorRegistry).map((definition) => (
-						<DropdownMenuItem
-							key={definition.type}
-							onClick={() => {
-								const behaviorData = createDefaultBehaviorData(definition.type);
-								behaviorData.id = `behavior-${Date.now()}-${Math.random()}`;
-								particleData.behaviors.push(behaviorData);
-								onChange();
-							}}
-						>
-							{definition.label}
-						</DropdownMenuItem>
-					))}
-				</DropdownMenuContent>
-			</DropdownMenu>
+			{/* TODO: Add ability to add/remove behaviors */}
 		</>
 	);
 }
