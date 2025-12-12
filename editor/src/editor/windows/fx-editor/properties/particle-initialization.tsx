@@ -54,35 +54,11 @@ export function FXEditorParticleInitializationProperties(props: IFXEditorParticl
 
 	return (
 		<>
-			<FunctionEditor
-				value={init.startLife}
-				onChange={onChange}
-				availableTypes={["ConstantValue", "IntervalValue", "PiecewiseBezier"]}
-				label="Start Life"
-			/>
-			<FunctionEditor
-				value={init.startSize}
-				onChange={onChange}
-				availableTypes={["ConstantValue", "IntervalValue", "PiecewiseBezier"]}
-				label="Start Size"
-			/>
-			<FunctionEditor
-				value={init.startSpeed}
-				onChange={onChange}
-				availableTypes={["ConstantValue", "IntervalValue", "PiecewiseBezier"]}
-				label="Start Speed"
-			/>
-			<ColorFunctionEditor
-				value={init.startColor}
-				onChange={onChange}
-				label="Start Color"
-			/>
-			<FunctionEditor
-				value={init.startRotation}
-				onChange={onChange}
-				availableTypes={["ConstantValue", "IntervalValue", "PiecewiseBezier"]}
-				label="Start Rotation"
-			/>
+			<FunctionEditor value={init.startLife} onChange={onChange} availableTypes={["ConstantValue", "IntervalValue", "PiecewiseBezier"]} label="Start Life" />
+			<FunctionEditor value={init.startSize} onChange={onChange} availableTypes={["ConstantValue", "IntervalValue", "PiecewiseBezier"]} label="Start Size" />
+			<FunctionEditor value={init.startSpeed} onChange={onChange} availableTypes={["ConstantValue", "IntervalValue", "PiecewiseBezier"]} label="Start Speed" />
+			<ColorFunctionEditor value={init.startColor} onChange={onChange} label="Start Color" />
+			<FunctionEditor value={init.startRotation} onChange={onChange} availableTypes={["ConstantValue", "IntervalValue", "PiecewiseBezier"]} label="Start Rotation" />
 		</>
 	);
 }

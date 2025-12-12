@@ -8,13 +8,12 @@ import type { VFXEmitter } from "./hierarchy";
  * Data structure for emitter creation
  */
 export interface VFXEmitterData {
-    name: string;
-    config: VFXParticleEmitterConfig;
-    materialId?: string;
-    matrix?: number[];
-    position?: number[];
-    parentGroup: Nullable<TransformNode>;
-    cumulativeScale: Vector3;
-    vfxEmitter?: VFXEmitter;
+	name: string;
+	config: VFXParticleEmitterConfig;
+	materialId?: string;
+	matrix?: number[];
+	position?: number[];
+	parentGroup: Nullable<TransformNode>;
+	cumulativeScale: Vector3;
+	vfxEmitter?: VFXEmitter;
 }
-

@@ -3,12 +3,7 @@ import { Tree, TreeNodeInfo } from "@blueprintjs/core";
 
 import { IoImageOutline, IoCubeOutline } from "react-icons/io5";
 
-import {
-	ContextMenu,
-	ContextMenuContent,
-	ContextMenuItem,
-	ContextMenuTrigger,
-} from "../../../ui/shadcn/ui/context-menu";
+import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from "../../../ui/shadcn/ui/context-menu";
 
 export interface IFXEditorResourcesProps {
 	resources: any[];
@@ -37,11 +32,7 @@ export class FXEditorResources extends Component<IFXEditorResourcesProps, IFXEdi
 
 	private _convertToTreeNodeInfo(resources: any[]): TreeNodeInfo[] {
 		return resources.map((resource) => {
-			const icon = resource.type === "texture" ? (
-				<IoImageOutline className="w-4 h-4" />
-			) : (
-				<IoCubeOutline className="w-4 h-4" />
-			);
+			const icon = resource.type === "texture" ? <IoImageOutline className="w-4 h-4" /> : <IoCubeOutline className="w-4 h-4" />;
 
 			const label = (
 				<ContextMenu>
@@ -85,4 +76,3 @@ export class FXEditorResources extends Component<IFXEditorResourcesProps, IFXEdi
 		);
 	}
 }
-

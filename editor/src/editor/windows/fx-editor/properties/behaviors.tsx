@@ -75,4 +75,3 @@ export function FXEditorBehaviorsProperties(props: IFXEditorBehaviorsPropertiesP
 		</>
 	);
 }
-

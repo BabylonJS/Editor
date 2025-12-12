@@ -48,7 +48,7 @@ export class FXEditorProperties extends Component<IFXEditorPropertiesProps, IFXE
 
 	public render(): ReactNode {
 		const nodeId = this.props.selectedNodeId;
-		
+
 		if (!nodeId) {
 			return (
 				<div className="flex items-center justify-center w-full h-full bg-tertiary">
@@ -76,8 +76,8 @@ export class FXEditorProperties extends Component<IFXEditorPropertiesProps, IFXE
 			return (
 				<div className="flex flex-col gap-2 w-full h-full p-2 overflow-auto">
 					<EditorInspectorSectionField title="Object">
-						<FXEditorObjectProperties 
-							particleData={groupDataAsParticle} 
+						<FXEditorObjectProperties
+							particleData={groupDataAsParticle}
 							onChange={() => {
 								this.forceUpdate();
 								this.props.onNameChanged?.();
@@ -94,8 +94,8 @@ export class FXEditorProperties extends Component<IFXEditorPropertiesProps, IFXE
 		return (
 			<div className="flex flex-col gap-2 w-full h-full p-2 overflow-auto">
 				<EditorInspectorSectionField title="Object">
-					<FXEditorObjectProperties 
-						particleData={particleData} 
+					<FXEditorObjectProperties
+						particleData={particleData}
 						onChange={() => {
 							this.forceUpdate();
 							this.props.onNameChanged?.();

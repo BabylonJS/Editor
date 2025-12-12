@@ -115,7 +115,6 @@ export interface IFXEditorLayoutState {
 }
 
 export class FXEditorLayout extends Component<IFXEditorLayoutProps, IFXEditorLayoutState> {
-
 	private _model: Model = Model.fromJson(layoutModel as any);
 
 	private _components: Record<string, React.ReactNode> = {};
@@ -182,12 +181,7 @@ export class FXEditorLayout extends Component<IFXEditorLayoutProps, IFXEditorLay
 					// }}
 				/>
 			),
-			resources: (
-				<FXEditorResources
-					ref={(r) => (this.props.editor.resources = r!)}
-					resources={this.state.resources}
-				/>
-			),
+			resources: <FXEditorResources ref={(r) => (this.props.editor.resources = r!)} resources={this.state.resources} />,
 			animation: <FXEditorAnimation ref={(r) => (this.props.editor.animation = r!)} filePath={this.props.filePath} editor={this.props.editor} />,
 			properties: (
 				<FXEditorProperties
