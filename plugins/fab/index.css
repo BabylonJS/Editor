@@ -1,0 +1,35 @@
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+@layer base {
+	.fab-title {
+		@apply !text-background;
+	}
+
+	.fab-description>ul,
+	li,
+	u,
+	p,
+	span,
+	em,
+	strong {
+		@apply !text-background;
+	}
+
+	.fab-description>a {
+		@apply !underline !text-blue-500;
+	}
+}
+
+@layer utilities {
+	:where(.fab) {
+		all: revert;
+	}
+}
+
+.fab {
+	@tailwind base;
+	@tailwind utilities;
+	@tailwind components;
+}

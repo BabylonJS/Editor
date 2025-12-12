@@ -26,6 +26,8 @@ export class AssetBrowserNavmeshItem extends AssetsBrowserItem {
 	protected async onDoubleClick(): Promise<void> {
 		const data = await readJSON(join(this.props.absolutePath, "config.json"));
 
-		this.props.editor.layout.addLayoutTab("Navmesh Editor", <NavMeshEditor editor={this.props.editor} configuration={data} absolutePath={this.props.absolutePath} />);
+		this.props.editor.layout.addLayoutTab(<NavMeshEditor editor={this.props.editor} configuration={data} absolutePath={this.props.absolutePath} />, {
+			title: "NavMesh Editor",
+		});
 	}
 }
