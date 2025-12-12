@@ -13,7 +13,7 @@ export type { VFXParseContext } from "./context";
 export type { VFXEmitterData } from "./emitter";
 
 // Factory interfaces
-export type { IVFXMaterialFactory, IVFXGeometryFactory, IVFXEmitterFactory } from "./factories";
+export type { IVFXMaterialFactory, IVFXGeometryFactory } from "./factories";
 
 // Core VFX types
 export type { VFXConstantValue, VFXIntervalValue, VFXValue } from "./values";

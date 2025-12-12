@@ -1,4 +1,4 @@
-import { Vector3, Quaternion, Matrix, Color4, SolidParticleSystem, SolidParticle, TransformNode } from "babylonjs";
+import { Vector3, Quaternion, Matrix, Color4, SolidParticleSystem, SolidParticle, TransformNode, Mesh } from "babylonjs";
 import type { VFXParticleEmitterConfig, VFXEmissionBurst } from "../types/emitterConfig";
 import { VFXLogger } from "../loggers/VFXLogger";
 import type { VFXLoaderOptions } from "../types/loader";
@@ -91,6 +91,31 @@ export class VFXSolidParticleSystem extends SolidParticleSystem {
 	 */
 	public get behaviors(): VFXPerSolidParticleBehaviorFunction[] {
 		return this._behaviors;
+	}
+
+	/**
+	 * Initialize mesh for SPS
+	 * Adds the mesh as a shape and configures billboard mode
+	 */
+	public initializeMesh(particleMesh: Mesh, capacity: number): void {
+		if (!particleMesh) {
+			if (this._logger) {
+				this._logger.warn(`Cannot add shape to SPS: particleMesh is null`, this._options);
+			}
+			return;
+		}
+
+		if (this._logger) {
+			this._logger.log(`Adding shape to SPS: mesh name=${particleMesh.name}, hasMaterial=${!!particleMesh.material}`, this._options);
+		}
+
+		// Add shape to SPS
+		this.addShape(particleMesh, capacity);
+
+		// Configure billboard mode
+		if (this.renderMode === 0 || this.renderMode === 1) {
+			this.billboard = true;
+		}
 	}
 
 	/**

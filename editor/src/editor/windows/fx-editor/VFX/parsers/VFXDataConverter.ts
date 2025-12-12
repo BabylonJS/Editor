@@ -143,6 +143,7 @@ export class VFXDataConverter {
 				materialId: obj.ps.material,
 				parentUuid: parentUuid || undefined,
 				systemType,
+				matrix: obj.matrix, // Store original matrix for rotation extraction
 			};
 
 			emitters.set(emitter.uuid, emitter);

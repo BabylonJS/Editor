@@ -3,7 +3,6 @@ export * from "./parsers/VFXParser";
 export * from "./parsers/VFXDataConverter";
 export * from "./factories/VFXMaterialFactory";
 export * from "./factories/VFXGeometryFactory";
-export * from "./factories/VFXEmitterFactory";
 export * from "./factories/VFXSystemFactory";
 export * from "./systems/VFXSolidParticleSystem";
 export * from "./systems/VFXParticleSystem";

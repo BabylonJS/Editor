@@ -31,6 +31,7 @@ export interface VFXEmitter {
 	materialId?: string;
 	parentUuid?: string;
 	systemType: "solid" | "base"; // Determined from renderMode: 2 = solid, otherwise base
+	matrix?: number[]; // Original Three.js matrix array for rotation extraction
 }
 
 /**
