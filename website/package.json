@@ -19,7 +19,7 @@
 		"is-mobile": "^4.0.0",
 		"lenis": "^1.0.45",
 		"lucide-react": "^0.477.0",
-		"next": "14.2.32",
+		"next": "14.2.35",
 		"next-sitemap": "^4.2.3",
 		"next-themes": "^0.4.6",
 		"raw-loader": "^4.0.2",
