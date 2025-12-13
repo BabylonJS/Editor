@@ -1,6 +1,6 @@
-import { Vector3, Matrix, Quaternion } from "babylonjs";
+import { Vector3, Matrix, Quaternion, Color3, Texture } from "babylonjs";
 import type { VFXLoaderOptions } from "../types/loader";
-import type { QuarksVFXJSON } from "../types/quarksTypes";
+import type { QuarksVFXJSON, QuarksMaterial, QuarksTexture, QuarksImage, QuarksGeometry } from "../types/quarksTypes";
 import type {
 	QuarksObject,
 	QuarksParticleEmitterConfig,
@@ -24,6 +24,7 @@ import type {
 	QuarksOrbitOverLifeBehavior,
 } from "../types/quarksTypes";
 import type { VFXTransform, VFXGroup, VFXEmitter, VFXData } from "../types/hierarchy";
+import type { VFXMaterial, VFXTexture, VFXImage, VFXGeometry, VFXGeometryData } from "../types/resources";
 import type { VFXParticleEmitterConfig } from "../types/emitterConfig";
 import type {
 	VFXBehavior,
@@ -48,18 +49,16 @@ import { VFXLogger } from "../loggers/VFXLogger";
  */
 export class VFXDataConverter {
 	private _logger: VFXLogger;
-	private _options?: VFXLoaderOptions;
 
 	constructor(options?: VFXLoaderOptions) {
-		this._logger = new VFXLogger("[VFXDataConverter]");
-		this._options = options;
+		this._logger = new VFXLogger("[VFXDataConverter]", options);
 	}
 
 	/**
 	 * Convert Quarks/Three.js VFX JSON to Babylon.js VFX format
 	 */
 	public convert(quarksVFXData: QuarksVFXJSON): VFXData {
-		this._logger.log("=== Converting Quarks VFX to Babylon.js VFX format ===", this._options);
+		this._logger.log("=== Converting Quarks VFX to Babylon.js VFX format ===");
 
 		const groups = new Map<string, VFXGroup>();
 		const emitters = new Map<string, VFXEmitter>();
@@ -70,12 +69,24 @@ export class VFXDataConverter {
 			root = this._convertObject(quarksVFXData.object, null, groups, emitters, 0);
 		}
 
-		this._logger.log(`=== Conversion complete. Groups: ${groups.size}, Emitters: ${emitters.size} ===`, this._options);
+		// Convert all resources
+		const materials = this._convertMaterials(quarksVFXData.materials || []);
+		const textures = this._convertTextures(quarksVFXData.textures || []);
+		const images = this._convertImages(quarksVFXData.images || []);
+		const geometries = this._convertGeometries(quarksVFXData.geometries || []);
+
+		this._logger.log(
+			`=== Conversion complete. Groups: ${groups.size}, Emitters: ${emitters.size}, Materials: ${materials.length}, Textures: ${textures.length}, Images: ${images.length}, Geometries: ${geometries.length} ===`
+		);
 
 		return {
 			root,
 			groups,
 			emitters,
+			materials,
+			textures,
+			images,
+			geometries,
 		};
 	}
 
@@ -90,16 +101,15 @@ export class VFXDataConverter {
 		depth: number
 	): VFXGroup | VFXEmitter | null {
 		const indent = "  ".repeat(depth);
-		const options = this._options;
 
 		if (!obj || typeof obj !== "object") {
 			return null;
 		}
 
-		this._logger.log(`${indent}Converting object: ${obj.type || "unknown"} (name: ${obj.name || "unnamed"})`, options);
+		this._logger.log(`${indent}Converting object: ${obj.type || "unknown"} (name: ${obj.name || "unnamed"})`);
 
 		// Convert transform from right-handed to left-handed
-		const transform = this._convertTransform(obj.matrix, obj.position, obj.rotation, obj.scale, options);
+		const transform = this._convertTransform(obj.matrix, obj.position, obj.rotation, obj.scale);
 
 		if (obj.type === "Group") {
 			const group: VFXGroup = {
@@ -126,7 +136,7 @@ export class VFXDataConverter {
 			}
 
 			groups.set(group.uuid, group);
-			this._logger.log(`${indent}Converted Group: ${group.name} (uuid: ${group.uuid})`, options);
+			this._logger.log(`${indent}Converted Group: ${group.name} (uuid: ${group.uuid})`);
 			return group;
 		} else if (obj.type === "ParticleEmitter" && obj.ps) {
 			// Convert emitter config from Quarks to VFX format
@@ -147,7 +157,7 @@ export class VFXDataConverter {
 			};
 
 			emitters.set(emitter.uuid, emitter);
-			this._logger.log(`${indent}Converted Emitter: ${emitter.name} (uuid: ${emitter.uuid}, systemType: ${systemType})`, options);
+			this._logger.log(`${indent}Converted Emitter: ${emitter.name} (uuid: ${emitter.uuid}, systemType: ${systemType})`);
 			return emitter;
 		}
 
@@ -158,7 +168,7 @@ export class VFXDataConverter {
 	 * Convert transform from Quarks/Three.js (right-handed) to Babylon.js VFX (left-handed)
 	 * This is the ONLY place where handedness conversion happens
 	 */
-	private _convertTransform(matrixArray?: number[], positionArray?: number[], rotationArray?: number[], scaleArray?: number[], _options?: VFXLoaderOptions): VFXTransform {
+	private _convertTransform(matrixArray?: number[], positionArray?: number[], rotationArray?: number[], scaleArray?: number[]): VFXTransform {
 		const position = Vector3.Zero();
 		const rotation = Quaternion.Identity();
 		const scale = Vector3.One();
@@ -571,5 +581,211 @@ export class VFXDataConverter {
 				// Fallback for unknown behaviors - copy as-is
 				return quarksBehavior as VFXBehavior;
 		}
+	}
+
+	/**
+	 * Convert Quarks materials to VFX materials
+	 */
+	private _convertMaterials(quarksMaterials: QuarksMaterial[]): VFXMaterial[] {
+		return quarksMaterials.map((quarks) => {
+			const vfx: VFXMaterial = {
+				uuid: quarks.uuid,
+				type: quarks.type,
+				transparent: quarks.transparent,
+				depthWrite: quarks.depthWrite,
+				side: quarks.side,
+				map: quarks.map,
+			};
+
+			// Convert color from hex to Color3
+			if (quarks.color !== undefined) {
+				const colorHex = typeof quarks.color === "number" ? quarks.color : parseInt(String(quarks.color).replace("#", ""), 16) || 0xffffff;
+				const r = ((colorHex >> 16) & 0xff) / 255;
+				const g = ((colorHex >> 8) & 0xff) / 255;
+				const b = (colorHex & 0xff) / 255;
+				vfx.color = new Color3(r, g, b);
+			}
+
+			// Convert blending mode (Three.js → Babylon.js)
+			if (quarks.blending !== undefined) {
+				const blendModeMap: Record<number, number> = {
+					0: 0, // NoBlending → ALPHA_DISABLE
+					1: 1, // NormalBlending → ALPHA_COMBINE
+					2: 2, // AdditiveBlending → ALPHA_ADD
+				};
+				vfx.blending = blendModeMap[quarks.blending] ?? quarks.blending;
+			}
+
+			return vfx;
+		});
+	}
+
+	/**
+	 * Convert Quarks textures to VFX textures
+	 */
+	private _convertTextures(quarksTextures: QuarksTexture[]): VFXTexture[] {
+		return quarksTextures.map((quarks) => {
+			const vfx: VFXTexture = {
+				uuid: quarks.uuid,
+				image: quarks.image,
+				generateMipmaps: quarks.generateMipmaps,
+				flipY: quarks.flipY,
+			};
+
+			// Convert wrap mode (Three.js → Babylon.js)
+			if (quarks.wrap && Array.isArray(quarks.wrap)) {
+				const wrapModeMap: Record<number, number> = {
+					1000: Texture.WRAP_ADDRESSMODE, // RepeatWrapping
+					1001: Texture.CLAMP_ADDRESSMODE, // ClampToEdgeWrapping
+					1002: Texture.MIRROR_ADDRESSMODE, // MirroredRepeatWrapping
+				};
+				vfx.wrapU = wrapModeMap[quarks.wrap[0]] ?? Texture.WRAP_ADDRESSMODE;
+				vfx.wrapV = wrapModeMap[quarks.wrap[1]] ?? Texture.WRAP_ADDRESSMODE;
+			}
+
+			// Convert repeat to scale
+			if (quarks.repeat && Array.isArray(quarks.repeat)) {
+				vfx.uScale = quarks.repeat[0] || 1;
+				vfx.vScale = quarks.repeat[1] || 1;
+			}
+
+			// Convert offset
+			if (quarks.offset && Array.isArray(quarks.offset)) {
+				vfx.uOffset = quarks.offset[0] || 0;
+				vfx.vOffset = quarks.offset[1] || 0;
+			}
+
+			// Convert rotation
+			if (quarks.rotation !== undefined) {
+				vfx.uAng = quarks.rotation;
+			}
+
+			// Convert channel
+			if (typeof quarks.channel === "number") {
+				vfx.coordinatesIndex = quarks.channel;
+			}
+
+			// Convert sampling mode (Three.js filters → Babylon.js sampling mode)
+			if (quarks.minFilter !== undefined) {
+				if (quarks.minFilter === 1008 || quarks.minFilter === 1009) {
+					vfx.samplingMode = Texture.TRILINEAR_SAMPLINGMODE;
+				} else if (quarks.minFilter === 1007 || quarks.minFilter === 1006) {
+					vfx.samplingMode = Texture.BILINEAR_SAMPLINGMODE;
+				} else {
+					vfx.samplingMode = Texture.NEAREST_SAMPLINGMODE;
+				}
+			} else if (quarks.magFilter !== undefined) {
+				vfx.samplingMode = quarks.magFilter === 1006 ? Texture.BILINEAR_SAMPLINGMODE : Texture.NEAREST_SAMPLINGMODE;
+			} else {
+				vfx.samplingMode = Texture.TRILINEAR_SAMPLINGMODE;
+			}
+
+			return vfx;
+		});
+	}
+
+	/**
+	 * Convert Quarks images to VFX images (normalize URLs)
+	 */
+	private _convertImages(quarksImages: QuarksImage[]): VFXImage[] {
+		return quarksImages.map((quarks) => ({
+			uuid: quarks.uuid,
+			url: quarks.url || "",
+		}));
+	}
+
+	/**
+	 * Convert Quarks geometries to VFX geometries (convert to left-handed)
+	 */
+	private _convertGeometries(quarksGeometries: QuarksGeometry[]): VFXGeometry[] {
+		return quarksGeometries.map((quarks) => {
+			if (quarks.type === "PlaneGeometry") {
+				// PlaneGeometry - simple properties
+				const vfx: VFXGeometry = {
+					uuid: quarks.uuid,
+					type: "PlaneGeometry",
+					width: (quarks as any).width ?? 1,
+					height: (quarks as any).height ?? 1,
+				};
+				return vfx;
+			} else if (quarks.type === "BufferGeometry") {
+				// BufferGeometry - convert attributes to left-handed
+				const vfx: VFXGeometry = {
+					uuid: quarks.uuid,
+					type: "BufferGeometry",
+				};
+
+				if (quarks.data?.attributes) {
+					const attributes: VFXGeometryData["attributes"] = {};
+					const quarksAttrs = quarks.data.attributes;
+
+					// Convert position (right-hand → left-hand: flip Z)
+					if (quarksAttrs.position) {
+						const positions = Array.from(quarksAttrs.position.array);
+						// Flip Z coordinate for left-handed system
+						for (let i = 2; i < positions.length; i += 3) {
+							positions[i] = -positions[i];
+						}
+						attributes.position = {
+							array: positions,
+							itemSize: quarksAttrs.position.itemSize,
+						};
+					}
+
+					// Convert normal (right-hand → left-hand: flip Z)
+					if (quarksAttrs.normal) {
+						const normals = Array.from(quarksAttrs.normal.array);
+						for (let i = 2; i < normals.length; i += 3) {
+							normals[i] = -normals[i];
+						}
+						attributes.normal = {
+							array: normals,
+							itemSize: quarksAttrs.normal.itemSize,
+						};
+					}
+
+					// UV and color - no conversion needed
+					if (quarksAttrs.uv) {
+						attributes.uv = {
+							array: Array.from(quarksAttrs.uv.array),
+							itemSize: quarksAttrs.uv.itemSize,
+						};
+					}
+
+					if (quarksAttrs.color) {
+						attributes.color = {
+							array: Array.from(quarksAttrs.color.array),
+							itemSize: quarksAttrs.color.itemSize,
+						};
+					}
+
+					vfx.data = {
+						attributes,
+					};
+
+					// Convert indices (reverse winding order for left-handed)
+					if (quarks.data.index) {
+						const indices = Array.from(quarks.data.index.array);
+						// Reverse winding: swap every 2nd and 3rd index in each triangle
+						for (let i = 0; i < indices.length; i += 3) {
+							const temp = indices[i + 1];
+							indices[i + 1] = indices[i + 2];
+							indices[i + 2] = temp;
+						}
+						vfx.data.index = {
+							array: indices,
+						};
+					}
+				}
+
+				return vfx;
+			}
+
+			// Unknown geometry type - return as-is
+			return {
+				uuid: quarks.uuid,
+				type: quarks.type as "PlaneGeometry" | "BufferGeometry",
+			};
+		});
 	}
 }

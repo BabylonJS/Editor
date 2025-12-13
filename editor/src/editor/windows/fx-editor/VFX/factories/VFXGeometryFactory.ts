@@ -1,45 +1,42 @@
-import { Mesh, VertexData, CreatePlane, Nullable } from "babylonjs";
+import { Mesh, VertexData, CreatePlane, Nullable, Scene } from "babylonjs";
 import type { IVFXGeometryFactory } from "../types/factories";
-import type { VFXParseContext } from "../types/context";
 import { VFXLogger } from "../loggers/VFXLogger";
-import { VFXMaterialFactory } from "./VFXMaterialFactory";
-import type { QuarksGeometry } from "../types/quarksTypes";
+import type { VFXData } from "../types/hierarchy";
+import type { VFXGeometry } from "../types/resources";
+import type { VFXLoaderOptions } from "../types/loader";
 
 /**
  * Factory for creating meshes from Three.js geometry data
  */
 export class VFXGeometryFactory implements IVFXGeometryFactory {
 	private _logger: VFXLogger;
-	private _context: VFXParseContext;
-	private _materialFactory: VFXMaterialFactory;
+	private _vfxData: VFXData;
 
-	constructor(context: VFXParseContext, materialFactory: VFXMaterialFactory) {
-		this._context = context;
-		this._logger = new VFXLogger("[VFXGeometryFactory]");
-		this._materialFactory = materialFactory;
+	constructor(vfxData: VFXData, options: VFXLoaderOptions) {
+		this._vfxData = vfxData;
+		this._logger = new VFXLogger("[VFXGeometryFactory]", options);
 	}
 
 	/**
-	 * Create a mesh from geometry ID with material applied
+	 * Create a mesh from geometry ID
 	 */
-	public createMesh(geometryId: string, materialId: string | undefined, name: string): Nullable<Mesh> {
-		const { options } = this._context;
-		this._logger.log(`Creating mesh from geometry ID: ${geometryId}, name: ${name}`, options);
+	public createMesh(geometryId: string, name: string, scene: Scene): Nullable<Mesh> {
+		this._logger.log(`Creating mesh from geometry ID: ${geometryId}, name: ${name}`);
 
 		const geometryData = this._findGeometry(geometryId);
 		if (!geometryData) {
 			return null;
 		}
 
-		this._logGeometryInfo(geometryData, geometryId);
+		const geometryName = geometryData.type || geometryId;
+		this._logger.log(`Found geometry: ${geometryName} (type: ${geometryData.type})`);
 
-		const mesh = this._createMeshFromGeometry(geometryData, name);
+		const mesh = this._createMeshFromGeometry(geometryData, name, scene);
 		if (!mesh) {
-			this._logger.warn(`Failed to create mesh from geometry ${geometryId}`, options);
+			this._logger.warn(`Failed to create mesh from geometry ${geometryId}`);
 			return null;
 		}
 
-		this._applyMaterial(mesh, materialId, name);
 		return mesh;
 	}
 
@@ -47,19 +44,15 @@ export class VFXGeometryFactory implements IVFXGeometryFactory {
 	 * Create or load particle mesh for SPS
 	 * Tries to load geometry if specified, otherwise creates default plane
 	 */
-	public createParticleMesh(config: { instancingGeometry?: string }, materialId: string | undefined, name: string, scene: any): Nullable<Mesh> {
-		const { options } = this._context;
-		let particleMesh = this._loadParticleGeometry(config, materialId, name);
+	public createParticleMesh(config: { instancingGeometry?: string }, name: string, scene: Scene): Nullable<Mesh> {
+		let particleMesh = this._loadParticleGeometry(config, name, scene);
 
 		if (!particleMesh) {
 			particleMesh = this._createDefaultPlaneMesh(name, scene);
-			this._applyMaterial(particleMesh, materialId, name);
-		} else {
-			this._ensureMaterialApplied(particleMesh, materialId, name);
 		}
 
 		if (!particleMesh) {
-			this._logger.warn(`  Cannot create particle mesh: particleMesh is null`, options);
+			this._logger.warn(`  Cannot create particle mesh: particleMesh is null`);
 		}
 
 		return particleMesh;
@@ -68,16 +61,15 @@ export class VFXGeometryFactory implements IVFXGeometryFactory {
 	/**
 	 * Loads particle geometry if specified
 	 */
-	private _loadParticleGeometry(config: { instancingGeometry?: string }, materialId: string | undefined, name: string): Nullable<Mesh> {
+	private _loadParticleGeometry(config: { instancingGeometry?: string }, name: string, scene: Scene): Nullable<Mesh> {
 		if (!config.instancingGeometry) {
 			return null;
 		}
 
-		const { options } = this._context;
-		this._logger.log(`  Loading geometry: ${config.instancingGeometry}`, options);
-		const mesh = this.createMesh(config.instancingGeometry, materialId, name + "_shape");
-		if (!mesh && this._logger) {
-			this._logger.warn(`  Failed to load geometry ${config.instancingGeometry}, will create default plane`, options);
+		this._logger.log(`  Loading geometry: ${config.instancingGeometry}`);
+		const mesh = this.createMesh(config.instancingGeometry, name + "_shape", scene);
+		if (!mesh) {
+			this._logger.warn(`  Failed to load geometry ${config.instancingGeometry}, will create default plane`);
 		}
 
 		return mesh;
@@ -86,35 +78,23 @@ export class VFXGeometryFactory implements IVFXGeometryFactory {
 	/**
 	 * Creates default plane mesh
 	 */
-	private _createDefaultPlaneMesh(name: string, scene: any): Mesh {
-		const { options } = this._context;
-		this._logger.log(`  Creating default plane geometry`, options);
+	private _createDefaultPlaneMesh(name: string, scene: Scene): Mesh {
+		this._logger.log(`  Creating default plane geometry`);
 		return CreatePlane(name + "_shape", { width: 1, height: 1 }, scene);
-	}
-
-	/**
-	 * Ensures material is applied to mesh if missing
-	 */
-	private _ensureMaterialApplied(mesh: Mesh, materialId: string | undefined, name: string): void {
-		if (materialId && !mesh.material) {
-			this._applyMaterial(mesh, materialId, name);
-		}
 	}
 
 	/**
 	 * Finds geometry by UUID
 	 */
-	private _findGeometry(geometryId: string): QuarksGeometry | null {
-		const { jsonData, options } = this._context;
-
-		if (!jsonData.geometries) {
-			this._logger.warn("No geometries data available", options);
+	private _findGeometry(geometryId: string): VFXGeometry | null {
+		if (!this._vfxData.geometries || this._vfxData.geometries.length === 0) {
+			this._logger.warn("No geometries data available");
 			return null;
 		}
 
-		const geometry = jsonData.geometries.find((g) => g.uuid === geometryId);
+		const geometry = this._vfxData.geometries.find((g) => g.uuid === geometryId);
 		if (!geometry) {
-			this._logger.warn(`Geometry not found: ${geometryId}`, options);
+			this._logger.warn(`Geometry not found: ${geometryId}`);
 			return null;
 		}
 
@@ -122,79 +102,50 @@ export class VFXGeometryFactory implements IVFXGeometryFactory {
 	}
 
 	/**
-	 * Logs geometry information
-	 */
-	private _logGeometryInfo(geometryData: QuarksGeometry, geometryId: string): void {
-		const { options } = this._context;
-		const geometryName = geometryData.type || geometryId;
-		this._logger.log(`Found geometry: ${geometryName} (type: ${geometryData.type})`, options);
-	}
-
-	/**
-	 * Applies material to mesh if provided
-	 */
-	private _applyMaterial(mesh: Mesh, materialId: string | undefined, name: string): void {
-		if (!materialId) {
-			return;
-		}
-
-		const { options } = this._context;
-		const material = this._materialFactory.createMaterial(materialId, name);
-		if (material) {
-			mesh.material = material;
-			this._logger.log(`Applied material to mesh: ${name}`, options);
-		}
-	}
-
-	/**
 	 * Creates mesh from geometry data based on type
 	 */
-	private _createMeshFromGeometry(geometryData: QuarksGeometry, name: string): Nullable<Mesh> {
-		const { options } = this._context;
-		this._logger.log(`createMeshFromGeometry: type=${geometryData.type}, name=${name}`, options);
+	private _createMeshFromGeometry(geometryData: VFXGeometry, name: string, scene: Scene): Nullable<Mesh> {
+		this._logger.log(`createMeshFromGeometry: type=${geometryData.type}, name=${name}`);
 
-		const geometryTypeHandlers: Record<string, (data: QuarksGeometry, meshName: string) => Nullable<Mesh>> = {
-			PlaneGeometry: (data, meshName) => this._createPlaneGeometry(data, meshName),
-			BufferGeometry: (data, meshName) => this._createBufferGeometry(data, meshName),
+		const geometryTypeHandlers: Record<string, (data: VFXGeometry, meshName: string, scene: Scene) => Nullable<Mesh>> = {
+			PlaneGeometry: (data, meshName, scene) => this._createPlaneGeometry(data, meshName, scene),
+			BufferGeometry: (data, meshName, scene) => this._createBufferGeometry(data, meshName, scene),
 		};
 
 		const handler = geometryTypeHandlers[geometryData.type];
 		if (!handler) {
-			this._logger.warn(`Unsupported geometry type: ${geometryData.type}`, options);
+			this._logger.warn(`Unsupported geometry type: ${geometryData.type}`);
 			return null;
 		}
 
-		return handler(geometryData, name);
+		return handler(geometryData, name, scene);
 	}
 
 	/**
 	 * Creates plane geometry mesh
 	 */
-	private _createPlaneGeometry(geometryData: QuarksGeometry, name: string): Nullable<Mesh> {
-		const { scene, options } = this._context;
-		const width = this._getNumericProperty(geometryData, "width", 1);
-		const height = this._getNumericProperty(geometryData, "height", 1);
+	private _createPlaneGeometry(geometryData: VFXGeometry, name: string, scene: Scene): Nullable<Mesh> {
+		const width = geometryData.width ?? 1;
+		const height = geometryData.height ?? 1;
 
-		this._logger.log(`Creating PlaneGeometry: width=${width}, height=${height}`, options);
+		this._logger.log(`Creating PlaneGeometry: width=${width}, height=${height}`);
 
 		const mesh = CreatePlane(name, { width, height }, scene);
 		if (mesh) {
-			this._logger.log(`PlaneGeometry created successfully`, options);
+			this._logger.log(`PlaneGeometry created successfully`);
 		} else {
-			this._logger.warn(`Failed to create PlaneGeometry`, options);
+			this._logger.warn(`Failed to create PlaneGeometry`);
 		}
 
 		return mesh;
 	}
 
 	/**
-	 * Creates buffer geometry mesh
+	 * Creates buffer geometry mesh (already converted to left-handed)
 	 */
-	private _createBufferGeometry(geometryData: QuarksGeometry, name: string): Nullable<Mesh> {
-		const { scene, options } = this._context;
-
+	private _createBufferGeometry(geometryData: VFXGeometry, name: string, scene: Scene): Nullable<Mesh> {
 		if (!geometryData.data?.attributes) {
-			this._logger.warn("BufferGeometry missing data or attributes", options);
+			this._logger.warn("BufferGeometry missing data or attributes");
 			return null;
 		}
 
@@ -205,17 +156,15 @@ export class VFXGeometryFactory implements IVFXGeometryFactory {
 
 		const mesh = new Mesh(name, scene);
 		vertexData.applyToMesh(mesh);
-		this._convertToLeftHanded(mesh);
+		// Geometry is already converted to left-handed in VFXDataConverter
 
 		return mesh;
 	}
 
 	/**
-	 * Creates VertexData from BufferGeometry attributes
+	 * Creates VertexData from BufferGeometry attributes (already converted to left-handed)
 	 */
-	private _createVertexDataFromAttributes(geometryData: QuarksGeometry): Nullable<VertexData> {
-		const { options } = this._context;
-
+	private _createVertexDataFromAttributes(geometryData: VFXGeometry): Nullable<VertexData> {
 		if (!geometryData.data?.attributes) {
 			return null;
 		}
@@ -223,7 +172,7 @@ export class VFXGeometryFactory implements IVFXGeometryFactory {
 		const attrs = geometryData.data.attributes;
 		const positions = attrs.position;
 		if (!positions?.array) {
-			this._logger.warn("BufferGeometry missing position attribute", options);
+			this._logger.warn("BufferGeometry missing position attribute");
 			return null;
 		}
 
@@ -259,22 +208,5 @@ export class VFXGeometryFactory implements IVFXGeometryFactory {
 	private _generateIndices(positionsLength: number): number[] {
 		const vertexCount = positionsLength / 3;
 		return Array.from({ length: vertexCount }, (_, i) => i);
-	}
-
-	/**
-	 * Converts mesh geometry from right-handed (Three.js) to left-handed (Babylon.js) coordinate system
-	 */
-	private _convertToLeftHanded(mesh: Mesh): void {
-		if (mesh.geometry) {
-			mesh.geometry.toLeftHanded();
-		}
-	}
-
-	/**
-	 * Gets numeric property from geometry data with fallback
-	 */
-	private _getNumericProperty(geometryData: QuarksGeometry, property: string, defaultValue: number): number {
-		const value = (geometryData as any)[property];
-		return typeof value === "number" ? value : defaultValue;
 	}
 }

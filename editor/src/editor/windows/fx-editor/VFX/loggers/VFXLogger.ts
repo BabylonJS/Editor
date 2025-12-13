@@ -6,16 +6,18 @@ import type { VFXLoaderOptions } from "../types";
  */
 export class VFXLogger {
 	private _prefix: string;
+	private _options?: VFXLoaderOptions;
 
-	constructor(prefix: string = "[VFX]") {
+	constructor(prefix: string = "[VFX]", options?: VFXLoaderOptions) {
 		this._prefix = prefix;
+		this._options = options;
 	}
 
 	/**
 	 * Log a message if verbose mode is enabled
 	 */
-	public log(message: string, options?: VFXLoaderOptions): void {
-		if (options?.verbose) {
+	public log(message: string): void {
+		if (this._options?.verbose) {
 			Logger.Log(`${this._prefix} ${message}`);
 		}
 	}
@@ -23,8 +25,8 @@ export class VFXLogger {
 	/**
 	 * Log a warning if verbose or validate mode is enabled
 	 */
-	public warn(message: string, options?: VFXLoaderOptions): void {
-		if (options?.verbose || options?.validate) {
+	public warn(message: string): void {
+		if (this._options?.verbose || this._options?.validate) {
 			Logger.Warn(`${this._prefix} ${message}`);
 		}
 	}
@@ -32,7 +34,7 @@ export class VFXLogger {
 	/**
 	 * Log an error
 	 */
-	public error(message: string, _options?: VFXLoaderOptions): void {
+	public error(message: string): void {
 		Logger.Error(`${this._prefix} ${message}`);
 	}
 }

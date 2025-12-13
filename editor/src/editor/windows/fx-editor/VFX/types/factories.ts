@@ -1,4 +1,4 @@
-import { Nullable, Mesh, PBRMaterial, Texture } from "babylonjs";
+import { Nullable, Mesh, PBRMaterial, Texture, Scene } from "babylonjs";
 
 /**
  * Factory interfaces for dependency injection
@@ -10,6 +10,6 @@ export interface IVFXMaterialFactory {
 }
 
 export interface IVFXGeometryFactory {
-	createMesh(geometryId: string, materialId: string | undefined, name: string): Nullable<Mesh>;
-	createParticleMesh(config: { instancingGeometry?: string }, materialId: string | undefined, name: string, scene: any): Nullable<Mesh>;
+	createMesh(geometryId: string, name: string, scene: Scene): Nullable<Mesh>;
+	createParticleMesh(config: { instancingGeometry?: string }, name: string, scene: Scene): Nullable<Mesh>;
 }
