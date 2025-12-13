@@ -4,6 +4,8 @@ export * from "./parsers/VFXDataConverter";
 export * from "./factories/VFXMaterialFactory";
 export * from "./factories/VFXGeometryFactory";
 export * from "./factories/VFXSystemFactory";
+export * from "./utils/capacityCalculator";
+export * from "./utils/matrixUtils";
 export * from "./systems/VFXSolidParticleSystem";
 export * from "./systems/VFXParticleSystem";
 export * from "./factories/VFXParticleSystemBehaviorFactory";

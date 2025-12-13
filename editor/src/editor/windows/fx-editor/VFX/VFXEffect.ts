@@ -32,10 +32,24 @@ export interface VFXEffectNode {
  */
 export class VFXEffect implements IDisposable {
 	/** All particle systems in this effect */
-	public readonly systems: (VFXParticleSystem | VFXSolidParticleSystem)[] = [];
+	private _systems: (VFXParticleSystem | VFXSolidParticleSystem)[] = [];
 
 	/** Root node of the effect hierarchy */
-	public readonly root: VFXEffectNode | null = null;
+	private _root: VFXEffectNode | null = null;
+
+	/**
+	 * Get all particle systems in this effect
+	 */
+	public get systems(): ReadonlyArray<VFXParticleSystem | VFXSolidParticleSystem> {
+		return this._systems;
+	}
+
+	/**
+	 * Get root node of the effect hierarchy
+	 */
+	public get root(): VFXEffectNode | null {
+		return this._root;
+	}
 
 	/** Map of systems by name for quick lookup */
 	private readonly _systemsByName = new Map<string, VFXParticleSystem | VFXSolidParticleSystem>();
@@ -92,19 +106,7 @@ export class VFXEffect implements IDisposable {
 	 * @returns A VFXEffect containing all particle systems
 	 */
 	public static Parse(jsonData: QuarksVFXJSON, scene: Scene, rootUrl: string = "", options?: VFXLoaderOptions): VFXEffect {
-		const parser = new VFXParser(scene, rootUrl, jsonData, options);
-		const particleSystems = parser.parse();
-		const context = parser.getContext();
-		const vfxData = context.vfxData;
-		const groupNodesMap = context.groupNodesMap;
-
-		const effect = new VFXEffect();
-		effect.systems.push(...particleSystems);
-		if (vfxData && groupNodesMap) {
-			effect._buildHierarchy(vfxData, groupNodesMap, particleSystems);
-		}
-
-		return effect;
+		return new VFXEffect(jsonData, scene, rootUrl, options);
 	}
 
 	/**
@@ -122,7 +124,7 @@ export class VFXEffect implements IDisposable {
 			const vfxData = context.vfxData;
 			const groupNodesMap = context.groupNodesMap;
 
-			this.systems.push(...particleSystems);
+			this._systems.push(...particleSystems);
 			if (vfxData && groupNodesMap) {
 				this._buildHierarchy(vfxData, groupNodesMap, particleSystems);
 			}
@@ -138,9 +140,7 @@ export class VFXEffect implements IDisposable {
 		}
 
 		// Create nodes from hierarchy
-		const rootNode = this._buildNodeFromHierarchy(vfxData.root, null, groupNodesMap, systems);
-		// Store root (we can't assign to readonly, so we'll use a workaround)
-		(this as any).root = rootNode;
+		this._root = this._buildNodeFromHierarchy(vfxData.root, null, groupNodesMap, systems);
 	}
 
 	/**
@@ -274,7 +274,7 @@ export class VFXEffect implements IDisposable {
 	 */
 	private _collectSystemsInGroup(group: TransformNode, systems: (VFXParticleSystem | VFXSolidParticleSystem)[]): void {
 		// Step 1: Find systems that have this group as direct parent
-		for (const system of this.systems) {
+		for (const system of this._systems) {
 			const mesh = (system as any).mesh || (system as any).emitter;
 			if (mesh && mesh.parent === group) {
 				systems.push(system);
@@ -339,7 +339,7 @@ export class VFXEffect implements IDisposable {
 	 * Start all particle systems
 	 */
 	public start(): void {
-		for (const system of this.systems) {
+		for (const system of this._systems) {
 			system.start();
 		}
 	}
@@ -348,7 +348,7 @@ export class VFXEffect implements IDisposable {
 	 * Stop all particle systems
 	 */
 	public stop(): void {
-		for (const system of this.systems) {
+		for (const system of this._systems) {
 			system.stop();
 		}
 	}
@@ -357,10 +357,11 @@ export class VFXEffect implements IDisposable {
 	 * Dispose all resources
 	 */
 	public dispose(): void {
-		for (const system of this.systems) {
+		for (const system of this._systems) {
 			system.dispose();
 		}
-		this.systems.length = 0;
+		this._systems = [];
+		this._root = null;
 		this._systemsByName.clear();
 		this._systemsByUuid.clear();
 		this._groupsByName.clear();

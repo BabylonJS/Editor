@@ -44,6 +44,64 @@ export class VFXGeometryFactory implements IVFXGeometryFactory {
 	}
 
 	/**
+	 * Create or load particle mesh for SPS
+	 * Tries to load geometry if specified, otherwise creates default plane
+	 */
+	public createParticleMesh(config: { instancingGeometry?: string }, materialId: string | undefined, name: string, scene: any): Nullable<Mesh> {
+		const { options } = this._context;
+		let particleMesh = this._loadParticleGeometry(config, materialId, name);
+
+		if (!particleMesh) {
+			particleMesh = this._createDefaultPlaneMesh(name, scene);
+			this._applyMaterial(particleMesh, materialId, name);
+		} else {
+			this._ensureMaterialApplied(particleMesh, materialId, name);
+		}
+
+		if (!particleMesh) {
+			this._logger.warn(`  Cannot create particle mesh: particleMesh is null`, options);
+		}
+
+		return particleMesh;
+	}
+
+	/**
+	 * Loads particle geometry if specified
+	 */
+	private _loadParticleGeometry(config: { instancingGeometry?: string }, materialId: string | undefined, name: string): Nullable<Mesh> {
+		if (!config.instancingGeometry) {
+			return null;
+		}
+
+		const { options } = this._context;
+		this._logger.log(`  Loading geometry: ${config.instancingGeometry}`, options);
+		const mesh = this.createMesh(config.instancingGeometry, materialId, name + "_shape");
+		if (!mesh && this._logger) {
+			this._logger.warn(`  Failed to load geometry ${config.instancingGeometry}, will create default plane`, options);
+		}
+
+		return mesh;
+	}
+
+	/**
+	 * Creates default plane mesh
+	 */
+	private _createDefaultPlaneMesh(name: string, scene: any): Mesh {
+		const { options } = this._context;
+		this._logger.log(`  Creating default plane geometry`, options);
+		return CreatePlane(name + "_shape", { width: 1, height: 1 }, scene);
+	}
+
+	/**
+	 * Ensures material is applied to mesh if missing
+	 */
+	private _ensureMaterialApplied(mesh: Mesh, materialId: string | undefined, name: string): void {
+		if (materialId && !mesh.material) {
+			this._applyMaterial(mesh, materialId, name);
+		}
+	}
+
+	/**
 	 * Finds geometry by UUID
 	 */
 	private _findGeometry(geometryId: string): QuarksGeometry | null {

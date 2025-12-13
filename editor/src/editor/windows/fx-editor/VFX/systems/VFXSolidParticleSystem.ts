@@ -11,6 +11,7 @@ import type { VFXRotation } from "../types/rotations";
 import { VFXSolidParticleSystemBehaviorFactory } from "../factories/VFXSolidParticleSystemBehaviorFactory";
 import { VFXSolidParticleSystemEmitterFactory } from "../factories/VFXSolidParticleSystemEmitterFactory";
 import { VFXValueUtils } from "../utils/valueParser";
+import { VFXCapacityCalculator } from "../utils/capacityCalculator";
 
 /**
  * Emission state matching three.quarks EmissionState structure
@@ -94,10 +95,10 @@ export class VFXSolidParticleSystem extends SolidParticleSystem {
 	}
 
 	/**
-	 * Initialize mesh for SPS
+	 * Initialize mesh for SPS (internal use)
 	 * Adds the mesh as a shape and configures billboard mode
 	 */
-	public initializeMesh(particleMesh: Mesh, capacity: number): void {
+	private _initializeMesh(particleMesh: Mesh): void {
 		if (!particleMesh) {
 			if (this._logger) {
 				this._logger.warn(`Cannot add shape to SPS: particleMesh is null`, this._options);
@@ -105,8 +106,11 @@ export class VFXSolidParticleSystem extends SolidParticleSystem {
 			return;
 		}
 
+		// Calculate capacity from config
+		const capacity = VFXCapacityCalculator.calculateForSolidParticleSystem(this.emissionOverTime, this.duration, this.isLooping);
+
 		if (this._logger) {
-			this._logger.log(`Adding shape to SPS: mesh name=${particleMesh.name}, hasMaterial=${!!particleMesh.material}`, this._options);
+			this._logger.log(`Adding shape to SPS: mesh name=${particleMesh.name}, hasMaterial=${!!particleMesh.material}, capacity=${capacity}`, this._options);
 		}
 
 		// Add shape to SPS
@@ -116,6 +120,9 @@ export class VFXSolidParticleSystem extends SolidParticleSystem {
 		if (this.renderMode === 0 || this.renderMode === 1) {
 			this.billboard = true;
 		}
+
+		// Dispose temporary mesh after adding to SPS
+		particleMesh.dispose();
 	}
 
 	/**
@@ -159,6 +166,7 @@ export class VFXSolidParticleSystem extends SolidParticleSystem {
 			vfxTransform?: { position: Vector3; rotation: Quaternion; scale: Vector3 } | null;
 			logger?: VFXLogger | null;
 			loaderOptions?: VFXLoaderOptions;
+			particleMesh?: Mesh | null; // Pre-created mesh for initialization
 		}
 	) {
 		super(name, scene, options);
@@ -225,6 +233,11 @@ export class VFXSolidParticleSystem extends SolidParticleSystem {
 			burstParticleCount: 0,
 			isBursting: false,
 		};
+
+		// Initialize mesh if provided
+		if (options?.particleMesh) {
+			this._initializeMesh(options.particleMesh);
+		}
 	}
 
 	private _findDeadParticle(): SolidParticle | null {
