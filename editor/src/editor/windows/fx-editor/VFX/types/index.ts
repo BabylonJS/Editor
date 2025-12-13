@@ -38,5 +38,6 @@ export type {
 } from "./behaviors";
 export type { VFXEmissionBurst, VFXParticleEmitterConfig } from "./emitterConfig";
 export type { VFXTransform, VFXGroup, VFXEmitter, VFXData } from "./hierarchy";
+export type { VFXMaterial, VFXTexture, VFXImage, VFXGeometry } from "./resources";
 export type { QuarksVFXJSON } from "./quarksTypes";
 export type { VFXPerParticleContext, VFXPerParticleBehaviorFunction, VFXPerSolidParticleBehaviorFunction, VFXSystemBehaviorFunction } from "./VFXBehaviorFunction";

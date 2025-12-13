@@ -1,11 +1,11 @@
-import { Nullable, Vector3, TransformNode, Texture } from "babylonjs";
+import { Nullable, Vector3, TransformNode, Texture, Scene } from "babylonjs";
 import { VFXParticleSystem } from "../systems/VFXParticleSystem";
 import { VFXSolidParticleSystem } from "../systems/VFXSolidParticleSystem";
-import type { VFXParseContext } from "../types/context";
 import type { VFXData, VFXGroup, VFXEmitter, VFXTransform } from "../types/hierarchy";
 import { VFXLogger } from "../loggers/VFXLogger";
 import { VFXMatrixUtils } from "../utils/matrixUtils";
 import type { IVFXMaterialFactory, IVFXGeometryFactory } from "../types/factories";
+import type { VFXLoaderOptions } from "../types/loader";
 
 /**
  * Factory for creating particle systems from VFX data
@@ -13,13 +13,17 @@ import type { IVFXMaterialFactory, IVFXGeometryFactory } from "../types/factorie
  */
 export class VFXSystemFactory {
 	private _logger: VFXLogger;
-	private _context: VFXParseContext;
+	private _scene: Scene;
+	private _options: VFXLoaderOptions;
+	private _groupNodesMap: Map<string, TransformNode>;
 	private _materialFactory: IVFXMaterialFactory;
 	private _geometryFactory: IVFXGeometryFactory;
 
-	constructor(context: VFXParseContext, materialFactory: IVFXMaterialFactory, geometryFactory: IVFXGeometryFactory) {
-		this._context = context;
-		this._logger = new VFXLogger("[VFXSystemFactory]");
+	constructor(scene: Scene, options: VFXLoaderOptions, groupNodesMap: Map<string, TransformNode>, materialFactory: IVFXMaterialFactory, geometryFactory: IVFXGeometryFactory) {
+		this._scene = scene;
+		this._options = options;
+		this._groupNodesMap = groupNodesMap;
+		this._logger = new VFXLogger("[VFXSystemFactory]", options);
 		this._materialFactory = materialFactory;
 		this._geometryFactory = geometryFactory;
 	}
@@ -30,11 +34,11 @@ export class VFXSystemFactory {
 	 */
 	public createSystems(vfxData: VFXData): (VFXParticleSystem | VFXSolidParticleSystem)[] {
 		if (!vfxData.root) {
-			this._logWarning("No root object found in VFX data");
+			this._logger.warn("No root object found in VFX data");
 			return [];
 		}
 
-		this._logInfo("Processing hierarchy: creating nodes, setting parents, and applying transformations");
+		this._logger.log("Processing hierarchy: creating nodes, setting parents, and applying transformations");
 		const particleSystems: (VFXParticleSystem | VFXSolidParticleSystem)[] = [];
 		this._processVFXObject(vfxData.root, null, 0, particleSystems, vfxData);
 		return particleSystems;
@@ -51,7 +55,7 @@ export class VFXSystemFactory {
 		particleSystems: (VFXParticleSystem | VFXSolidParticleSystem)[],
 		vfxData: VFXData
 	): void {
-		this._logObjectProcessing(vfxObj.name, depth);
+		this._logger.log(`${"  ".repeat(depth)}Processing object: ${vfxObj.name}`);
 
 		if (this._isGroup(vfxObj)) {
 			this._processGroup(vfxObj, parentGroup, depth, particleSystems, vfxData);
@@ -98,7 +102,7 @@ export class VFXSystemFactory {
 			return;
 		}
 
-		this._logChildrenProcessing(children.length, depth);
+		this._logger.log(`${"  ".repeat(depth)}Processing ${children.length} children`);
 		children.forEach((child) => {
 			this._processVFXObject(child, parentGroup, depth + 1, particleSystems, vfxData);
 		});
@@ -108,17 +112,16 @@ export class VFXSystemFactory {
 	 * Create a TransformNode for a VFX Group
 	 */
 	private _createGroupNode(vfxGroup: VFXGroup, parentGroup: Nullable<TransformNode>, depth: number): TransformNode {
-		const { scene } = this._context;
-		const groupNode = new TransformNode(vfxGroup.name, scene);
+		const groupNode = new TransformNode(vfxGroup.name, this._scene);
 		groupNode.id = vfxGroup.uuid;
 
 		this._applyTransform(groupNode, vfxGroup.transform, depth);
 		this._setParent(groupNode, parentGroup, depth);
 
-		// Store in context for potential future reference
-		this._context.groupNodesMap.set(vfxGroup.uuid, groupNode);
+		// Store in map for potential future reference
+		this._groupNodesMap.set(vfxGroup.uuid, groupNode);
 
-		this._logGroupCreation(vfxGroup.name, depth);
+		this._logger.log(`${"  ".repeat(depth)}Created group node: ${vfxGroup.name}`);
 		return groupNode;
 	}
 
@@ -126,16 +129,19 @@ export class VFXSystemFactory {
 	 * Create a particle system from a VFX Emitter
 	 */
 	private _createParticleSystem(vfxEmitter: VFXEmitter, parentGroup: Nullable<TransformNode>, depth: number): Nullable<VFXParticleSystem | VFXSolidParticleSystem> {
-		this._logEmitterProcessing(vfxEmitter, parentGroup, depth);
-		this._logEmitterConfig(vfxEmitter, depth);
+		const indent = "  ".repeat(depth);
+		const parentName = parentGroup ? parentGroup.name : "none";
+		this._logger.log(`${indent}Processing emitter: ${vfxEmitter.name} (parent: ${parentName})`);
+
+		const config = vfxEmitter.config;
+		this._logger.log(`${indent}  Config: duration=${config.duration}, looping=${config.looping}, systemType=${vfxEmitter.systemType}`);
 
 		const cumulativeScale = this._calculateCumulativeScale(parentGroup);
-		this._logCumulativeScale(cumulativeScale, depth);
+		this._logger.log(`${indent}Cumulative scale: (${cumulativeScale.x.toFixed(2)}, ${cumulativeScale.y.toFixed(2)}, ${cumulativeScale.z.toFixed(2)})`);
 
 		// Use systemType from emitter (determined during conversion)
 		const systemType = vfxEmitter.systemType || "base";
-		const { options } = this._context;
-		this._logger.log(`Using ${systemType === "solid" ? "SolidParticleSystem" : "ParticleSystem"}`, options);
+		this._logger.log(`Using ${systemType === "solid" ? "SolidParticleSystem" : "ParticleSystem"}`);
 
 		let particleSystem: VFXParticleSystem | VFXSolidParticleSystem | null = null;
 
@@ -146,7 +152,7 @@ export class VFXSystemFactory {
 		}
 
 		if (!particleSystem) {
-			this._logWarning(`Failed to create particle system for emitter: ${vfxEmitter.name}`);
+			this._logger.warn(`Failed to create particle system for emitter: ${vfxEmitter.name}`);
 			return null;
 		}
 
@@ -169,7 +175,7 @@ export class VFXSystemFactory {
 		// Handle prewarm
 		this._handlePrewarm(particleSystem, vfxEmitter.config.prewarm);
 
-		this._logParticleSystemCreation(vfxEmitter.name, depth);
+		this._logger.log(`${indent}Created particle system: ${vfxEmitter.name}`);
 		return particleSystem;
 	}
 
@@ -178,9 +184,8 @@ export class VFXSystemFactory {
 	 */
 	private _createParticleSystemInstance(vfxEmitter: VFXEmitter, _parentGroup: Nullable<TransformNode>, cumulativeScale: Vector3, _depth: number): Nullable<VFXParticleSystem> {
 		const { name, config } = vfxEmitter;
-		const { options, scene } = this._context;
 
-		this._logger.log(`Creating ParticleSystem: ${name}`, options);
+		this._logger.log(`Creating ParticleSystem: ${name}`);
 
 		// Get texture and blend mode
 		const texture: Texture | undefined = vfxEmitter.materialId ? this._materialFactory.createTexture(vfxEmitter.materialId) || undefined : undefined;
@@ -190,7 +195,7 @@ export class VFXSystemFactory {
 		const rotationMatrix = vfxEmitter.matrix ? VFXMatrixUtils.extractRotationMatrix(vfxEmitter.matrix) : null;
 
 		// Create instance - all configuration happens in constructor
-		const particleSystem = new VFXParticleSystem(name, scene, config, {
+		const particleSystem = new VFXParticleSystem(name, this._scene, config, {
 			texture,
 			blendMode,
 			emitterShape: {
@@ -200,7 +205,7 @@ export class VFXSystemFactory {
 			},
 		});
 
-		this._logger.log(`ParticleSystem created: ${name}`, options);
+		this._logger.log(`ParticleSystem created: ${name}`);
 		return particleSystem;
 	}
 
@@ -209,21 +214,28 @@ export class VFXSystemFactory {
 	 */
 	private _createSolidParticleSystem(vfxEmitter: VFXEmitter, parentGroup: Nullable<TransformNode>): Nullable<VFXSolidParticleSystem> {
 		const { name, config } = vfxEmitter;
-		const { options, scene } = this._context;
 
-		this._logger.log(`Creating SolidParticleSystem: ${name}`, options);
+		this._logger.log(`Creating SolidParticleSystem: ${name}`);
 
 		// Get VFX transform
 		const vfxTransform = vfxEmitter.transform || null;
 
 		// Create or load particle mesh
-		const particleMesh = this._geometryFactory.createParticleMesh(config, vfxEmitter.materialId, name, scene);
+		const particleMesh = this._geometryFactory.createParticleMesh(config, name, this._scene);
 		if (!particleMesh) {
 			return null;
 		}
 
+		// Apply material if provided
+		if (vfxEmitter.materialId) {
+			const material = this._materialFactory.createMaterial(vfxEmitter.materialId, name);
+			if (material) {
+				particleMesh.material = material;
+			}
+		}
+
 		// Create SPS instance - mesh initialization and capacity calculation happen in constructor
-		const sps = new VFXSolidParticleSystem(name, scene, config, {
+		const sps = new VFXSolidParticleSystem(name, this._scene, config, {
 			updatable: true,
 			isPickable: false,
 			enableDepthSort: false,
@@ -232,11 +244,11 @@ export class VFXSystemFactory {
 			parentGroup,
 			vfxTransform,
 			logger: this._logger,
-			loaderOptions: options,
+			loaderOptions: this._options,
 			particleMesh,
 		});
 
-		this._logger.log(`SolidParticleSystem created: ${name}`, options);
+		this._logger.log(`SolidParticleSystem created: ${name}`);
 		return sps;
 	}
 
@@ -271,66 +283,14 @@ export class VFXSystemFactory {
 		return "children" in vfxObj;
 	}
 
-	// Logging helpers
-	private _getIndent(depth: number): string {
-		return "  ".repeat(depth);
-	}
-
-	private _logInfo(message: string): void {
-		this._logger.log(message, this._context.options);
-	}
-
-	private _logWarning(message: string): void {
-		this._logger.warn(message, this._context.options);
-	}
-
-	private _logObjectProcessing(name: string, depth: number): void {
-		const indent = this._getIndent(depth);
-		this._logger.log(`${indent}Processing object: ${name}`, this._context.options);
-	}
-
-	private _logGroupCreation(name: string, depth: number): void {
-		const indent = this._getIndent(depth);
-		this._logger.log(`${indent}Created group node: ${name}`, this._context.options);
-	}
-
-	private _logChildrenProcessing(count: number, depth: number): void {
-		const indent = this._getIndent(depth);
-		this._logger.log(`${indent}Processing ${count} children`, this._context.options);
-	}
-
-	private _logEmitterProcessing(vfxEmitter: VFXEmitter, parentGroup: Nullable<TransformNode>, depth: number): void {
-		const indent = this._getIndent(depth);
-		const parentName = parentGroup ? parentGroup.name : "none";
-		this._logger.log(`${indent}Processing emitter: ${vfxEmitter.name} (parent: ${parentName})`, this._context.options);
-	}
-
-	private _logEmitterConfig(vfxEmitter: VFXEmitter, depth: number): void {
-		const indent = this._getIndent(depth);
-		const config = vfxEmitter.config;
-		this._logger.log(`${indent}  Config: duration=${config.duration}, looping=${config.looping}, systemType=${vfxEmitter.systemType}`, this._context.options);
-	}
-
-	private _logParticleSystemCreation(name: string, depth: number): void {
-		const indent = this._getIndent(depth);
-		this._logger.log(`${indent}Created particle system: ${name}`, this._context.options);
-	}
-
-	private _logCumulativeScale(scale: Vector3, depth: number): void {
-		const indent = this._getIndent(depth);
-		this._logger.log(`${indent}Cumulative scale: (${scale.x.toFixed(2)}, ${scale.y.toFixed(2)}, ${scale.z.toFixed(2)})`, this._context.options);
-	}
-
 	/**
 	 * Apply transform to a node
 	 */
 	private _applyTransform(node: TransformNode, transform: VFXTransform, depth: number): void {
 		if (!transform) {
-			this._logWarning(`Transform is undefined for node: ${node.name}`);
+			this._logger.warn(`Transform is undefined for node: ${node.name}`);
 			return;
 		}
-
-		const indent = this._getIndent(depth);
 
 		if (transform.position && node.position) {
 			node.position.copyFrom(transform.position);
@@ -345,9 +305,9 @@ export class VFXSystemFactory {
 		}
 
 		if (transform.position && transform.scale) {
+			const indent = "  ".repeat(depth);
 			this._logger.log(
-				`${indent}Applied transform: pos=(${transform.position.x.toFixed(2)}, ${transform.position.y.toFixed(2)}, ${transform.position.z.toFixed(2)}), scale=(${transform.scale.x.toFixed(2)}, ${transform.scale.y.toFixed(2)}, ${transform.scale.z.toFixed(2)})`,
-				this._context.options
+				`${indent}Applied transform: pos=(${transform.position.x.toFixed(2)}, ${transform.position.y.toFixed(2)}, ${transform.position.z.toFixed(2)}), scale=(${transform.scale.x.toFixed(2)}, ${transform.scale.y.toFixed(2)}, ${transform.scale.z.toFixed(2)})`
 			);
 		}
 	}
@@ -363,11 +323,11 @@ export class VFXSystemFactory {
 		// Check if node has setParent method (TransformNode, AbstractMesh, etc.)
 		if (typeof node.setParent === "function") {
 			node.setParent(parent, false, true);
-			const indent = this._getIndent(depth);
-			this._logger.log(`${indent}Set parent: ${node.name || "unknown"} -> ${parent.name}`, this._context.options);
+			const indent = "  ".repeat(depth);
+			this._logger.log(`${indent}Set parent: ${node.name || "unknown"} -> ${parent.name}`);
 		} else {
-			const indent = this._getIndent(depth);
-			this._logger.warn(`${indent}Node does not support setParent: ${node.constructor?.name || "unknown"}`, this._context.options);
+			const indent = "  ".repeat(depth);
+			this._logger.warn(`${indent}Node does not support setParent: ${node.constructor?.name || "unknown"}`);
 		}
 	}
 }

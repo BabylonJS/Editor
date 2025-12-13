@@ -2,6 +2,7 @@ import { Scene, TransformNode } from "babylonjs";
 import type { QuarksVFXJSON } from "../types/quarksTypes";
 import type { VFXLoaderOptions } from "../types/loader";
 import type { VFXParseContext } from "../types/context";
+import type { VFXData } from "../types/hierarchy";
 import { VFXLogger } from "../loggers/VFXLogger";
 import { VFXMaterialFactory } from "../factories/VFXMaterialFactory";
 import { VFXGeometryFactory } from "../factories/VFXGeometryFactory";
@@ -31,59 +32,68 @@ export class VFXParser {
 			groupNodesMap: new Map<string, TransformNode>(),
 		};
 
-		this._logger = new VFXLogger("[VFXParser]");
-		this._materialFactory = new VFXMaterialFactory(this._context);
-		this._geometryFactory = new VFXGeometryFactory(this._context, this._materialFactory);
-		this._systemFactory = new VFXSystemFactory(this._context, this._materialFactory, this._geometryFactory);
+		this._logger = new VFXLogger("[VFXParser]", opts);
+
+		// Convert Quarks JSON to VFXData first
+		const dataConverter = new VFXDataConverter(opts);
+		const vfxData = dataConverter.convert(jsonData);
+		this._context.vfxData = vfxData;
+
+		// Create factories with VFXData instead of QuarksVFXJSON
+		this._materialFactory = new VFXMaterialFactory(scene, vfxData, rootUrl, opts);
+		this._geometryFactory = new VFXGeometryFactory(vfxData, opts);
+		this._systemFactory = new VFXSystemFactory(scene, opts, this._context.groupNodesMap, this._materialFactory, this._geometryFactory);
 	}
 
 	/**
 	 * Parse the JSON data and create particle systems
 	 */
 	public parse(): (VFXParticleSystem | VFXSolidParticleSystem)[] {
-		const { jsonData, options } = this._context;
-		this._logger.log("=== Starting Particle System Parsing ===", options);
+		const { options, vfxData } = this._context;
+		this._logger.log("=== Starting Particle System Parsing ===");
 
-		if (options.validate) {
-			this._validateJSONStructure(jsonData, options);
+		if (!vfxData) {
+			this._logger.warn("VFXData is missing");
+			return [];
 		}
 
-		const dataConverter = new VFXDataConverter(options);
-		const vfxData = dataConverter.convert(jsonData);
-		this._context.vfxData = vfxData;
+		if (options.validate) {
+			this._validateJSONStructure(vfxData);
+		}
+
 		const particleSystems = this._systemFactory.createSystems(vfxData);
 
-		this._logger.log(`=== Parsing complete. Created ${particleSystems.length} particle system(s) ===`, options);
+		this._logger.log(`=== Parsing complete. Created ${particleSystems.length} particle system(s) ===`);
 		return particleSystems;
 	}
 
 	/**
-	 * Validate JSON structure
+	 * Validate VFX data structure
 	 */
-	private _validateJSONStructure(jsonData: QuarksVFXJSON, options: VFXLoaderOptions): void {
-		this._logger.log("Validating JSON structure...", options);
+	private _validateJSONStructure(vfxData: VFXData): void {
+		this._logger.log("Validating VFX data structure...");
 
-		if (!jsonData.object) {
-			this._logger.warn("JSON missing 'object' property", options);
+		if (!vfxData.root) {
+			this._logger.warn("VFX data missing 'root' property");
 		}
 
-		if (!jsonData.materials || jsonData.materials.length === 0) {
-			this._logger.warn("JSON has no materials", options);
+		if (!vfxData.materials || vfxData.materials.length === 0) {
+			this._logger.warn("VFX data has no materials");
 		}
 
-		if (!jsonData.textures || jsonData.textures.length === 0) {
-			this._logger.warn("JSON has no textures", options);
+		if (!vfxData.textures || vfxData.textures.length === 0) {
+			this._logger.warn("VFX data has no textures");
 		}
 
-		if (!jsonData.images || jsonData.images.length === 0) {
-			this._logger.warn("JSON has no images", options);
+		if (!vfxData.images || vfxData.images.length === 0) {
+			this._logger.warn("VFX data has no images");
 		}
 
-		if (!jsonData.geometries || jsonData.geometries.length === 0) {
-			this._logger.warn("JSON has no geometries", options);
+		if (!vfxData.geometries || vfxData.geometries.length === 0) {
+			this._logger.warn("VFX data has no geometries");
 		}
 
-		this._logger.log("Validation complete", options);
+		this._logger.log("Validation complete");
 	}
 
 	/**

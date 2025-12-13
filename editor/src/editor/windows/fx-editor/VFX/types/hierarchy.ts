@@ -1,5 +1,6 @@
 import { Vector3, Quaternion } from "babylonjs";
 import type { VFXParticleEmitterConfig } from "./emitterConfig";
+import type { VFXMaterial, VFXTexture, VFXImage, VFXGeometry } from "./resources";
 
 /**
  * VFX transform (converted from Quarks, left-handed coordinate system)
@@ -36,10 +37,15 @@ export interface VFXEmitter {
 
 /**
  * VFX data (converted from Quarks)
- * Contains the converted VFX structure with groups and emitters
+ * Contains the converted VFX structure with groups, emitters, and resources
  */
 export interface VFXData {
 	root: VFXGroup | VFXEmitter | null;
 	groups: Map<string, VFXGroup>;
 	emitters: Map<string, VFXEmitter>;
+	// Resources (converted from Quarks, ready for Babylon.js)
+	materials: VFXMaterial[];
+	textures: VFXTexture[];
+	images: VFXImage[];
+	geometries: VFXGeometry[];
 }
