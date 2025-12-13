@@ -31,6 +31,26 @@ export class VFXMaterialFactory implements IVFXMaterialFactory {
 	}
 
 	/**
+	 * Get blend mode from material blending value
+	 */
+	public getBlendMode(materialId: string): number | undefined {
+		const { jsonData } = this._context;
+		const material = jsonData.materials?.find((m: any) => m.uuid === materialId);
+
+		if (material?.blending === undefined) {
+			return undefined;
+		}
+
+		const blendModeMap: Record<number, number> = {
+			0: Constants.ALPHA_DISABLE, // NoBlending
+			1: Constants.ALPHA_COMBINE, // NormalBlending
+			2: Constants.ALPHA_ADD, // AdditiveBlending
+		};
+
+		return blendModeMap[material.blending];
+	}
+
+	/**
 	 * Resolves material, texture, and image data from material ID
 	 */
 	private _resolveTextureData(materialId: string): { material: QuarksMaterial; texture: QuarksTexture; image: QuarksImage } | null {

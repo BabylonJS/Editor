@@ -16,6 +16,7 @@ import type { VFXParticleEmitterConfig, VFXEmissionBurst } from "../types/emitte
 import { VFXParticleSystemBehaviorFactory } from "../factories/VFXParticleSystemBehaviorFactory";
 import { VFXParticleSystemEmitterFactory } from "../factories/VFXParticleSystemEmitterFactory";
 import { VFXValueUtils } from "../utils/valueParser";
+import { VFXCapacityCalculator } from "../utils/capacityCalculator";
 import {
 	applyColorOverLifePS,
 	applySizeOverLifePS,
@@ -40,14 +41,34 @@ export class VFXParticleSystem extends ParticleSystem {
 	private _emitterFactory: VFXParticleSystemEmitterFactory;
 	public readonly behaviorConfigs: VFXBehavior[];
 
-	constructor(name: string, capacity: number, scene: Scene, _avgStartSpeed: number, _avgStartSize: number, _startColor: Color4) {
+	constructor(
+		name: string,
+		scene: Scene,
+		config: VFXParticleEmitterConfig,
+		options?: {
+			texture?: Texture;
+			blendMode?: number;
+			emitterShape?: {
+				shape: VFXShape | undefined;
+				cumulativeScale: Vector3;
+				rotationMatrix: Matrix | null;
+			};
+		}
+	) {
+		// Calculate capacity
+		const duration = config.duration || 5;
+		const capacity = VFXCapacityCalculator.calculateForParticleSystem(config.emissionOverTime, duration);
+
 		super(name, capacity, scene);
 		this._behaviors = [];
 		this._behaviorFactory = new VFXParticleSystemBehaviorFactory(this);
 		this._emitterFactory = new VFXParticleSystemEmitterFactory(this);
 
 		// Create proxy array that updates functions when modified
-		this.behaviorConfigs = this._createBehaviorConfigsProxy([]);
+		this.behaviorConfigs = this._createBehaviorConfigsProxy(config.behaviors || []);
+
+		// Configure from config
+		this._configureFromConfig(config, options);
 	}
 
 	/**
@@ -191,10 +212,10 @@ export class VFXParticleSystem extends ParticleSystem {
 	}
 
 	/**
-	 * Configure particle system from VFX config
+	 * Configure particle system from VFX config (internal use)
 	 * This method applies all configuration from VFXParticleEmitterConfig
 	 */
-	public configureFromConfig(
+	private _configureFromConfig(
 		config: VFXParticleEmitterConfig,
 		options?: {
 			texture?: Texture;
