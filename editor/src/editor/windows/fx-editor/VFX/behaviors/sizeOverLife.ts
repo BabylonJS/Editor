@@ -4,25 +4,32 @@ import { extractNumberFromValue } from "./utils";
 
 /**
  * Apply SizeOverLife behavior to ParticleSystem
+ * In Quarks, SizeOverLife values are multipliers relative to initial particle size
+ * In Babylon.js, sizeGradients are absolute values, so we multiply by average initial size
  */
 export function applySizeOverLifePS(particleSystem: ParticleSystem, behavior: VFXSizeOverLifeBehavior): void {
+	// Get average initial size from minSize/maxSize to use as base for multipliers
+	const avgInitialSize = (particleSystem.minSize + particleSystem.maxSize) / 2;
+
 	if (behavior.size && behavior.size.functions) {
 		const functions = behavior.size.functions;
 		for (const func of functions) {
 			if (func.function && func.start !== undefined) {
-				const startSize = func.function.p0 || 1;
-				const endSize = func.function.p3 !== undefined ? func.function.p3 : startSize;
-				particleSystem.addSizeGradient(func.start, startSize);
+				// Values from Quarks are multipliers, convert to absolute values
+				const startSizeMultiplier = func.function.p0 || 1;
+				const endSizeMultiplier = func.function.p3 !== undefined ? func.function.p3 : startSizeMultiplier;
+				particleSystem.addSizeGradient(func.start, startSizeMultiplier * avgInitialSize);
 				if (func.function.p3 !== undefined) {
-					particleSystem.addSizeGradient(func.start + 0.5, endSize);
+					particleSystem.addSizeGradient(func.start + 0.5, endSizeMultiplier * avgInitialSize);
 				}
 			}
 		}
 	} else if (behavior.size && behavior.size.keys) {
 		for (const key of behavior.size.keys) {
 			if (key.value !== undefined && key.pos !== undefined) {
-				const size = extractNumberFromValue(key.value);
-				particleSystem.addSizeGradient(key.pos, size);
+				// Values from Quarks are multipliers, convert to absolute values
+				const sizeMultiplier = extractNumberFromValue(key.value);
+				particleSystem.addSizeGradient(key.pos, sizeMultiplier * avgInitialSize);
 			}
 		}
 	}

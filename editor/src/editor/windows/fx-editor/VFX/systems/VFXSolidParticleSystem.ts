@@ -103,6 +103,291 @@ export class VFXSolidParticleSystem extends SolidParticleSystem implements IVFXS
 	}
 
 	/**
+	 * Get/set minSize (compatible with VFXParticleSystem API)
+	 * Works with startSize VFXValue under the hood
+	 */
+	public get minSize(): number {
+		if (!this.startSize) {
+			return 1;
+		}
+		return VFXValueUtils.parseIntervalValue(this.startSize).min;
+	}
+	public set minSize(value: number) {
+		if (!this.startSize) {
+			this.startSize = { type: "IntervalValue", min: value, max: value };
+			return;
+		}
+		if (typeof this.startSize === "number") {
+			this.startSize = { type: "IntervalValue", min: value, max: this.startSize };
+			return;
+		}
+		if (this.startSize.type === "ConstantValue") {
+			this.startSize = { type: "IntervalValue", min: value, max: this.startSize.value };
+			return;
+		}
+		if (this.startSize.type === "IntervalValue") {
+			this.startSize.min = value;
+			return;
+		}
+		// For PiecewiseBezier, convert to IntervalValue
+		this.startSize = { type: "IntervalValue", min: value, max: value };
+	}
+
+	/**
+	 * Get/set maxSize (compatible with VFXParticleSystem API)
+	 * Works with startSize VFXValue under the hood
+	 */
+	public get maxSize(): number {
+		if (!this.startSize) {
+			return 1;
+		}
+		return VFXValueUtils.parseIntervalValue(this.startSize).max;
+	}
+	public set maxSize(value: number) {
+		if (!this.startSize) {
+			this.startSize = { type: "IntervalValue", min: value, max: value };
+			return;
+		}
+		if (typeof this.startSize === "number") {
+			this.startSize = { type: "IntervalValue", min: this.startSize, max: value };
+			return;
+		}
+		if (this.startSize.type === "ConstantValue") {
+			this.startSize = { type: "IntervalValue", min: this.startSize.value, max: value };
+			return;
+		}
+		if (this.startSize.type === "IntervalValue") {
+			this.startSize.max = value;
+			return;
+		}
+		// For PiecewiseBezier, convert to IntervalValue
+		this.startSize = { type: "IntervalValue", min: value, max: value };
+	}
+
+	/**
+	 * Get/set minLifeTime (compatible with VFXParticleSystem API)
+	 * Works with startLife VFXValue under the hood
+	 */
+	public get minLifeTime(): number {
+		if (!this.startLife) {
+			return 1;
+		}
+		return VFXValueUtils.parseIntervalValue(this.startLife).min;
+	}
+	public set minLifeTime(value: number) {
+		if (!this.startLife) {
+			this.startLife = { type: "IntervalValue", min: value, max: value };
+			return;
+		}
+		if (typeof this.startLife === "number") {
+			this.startLife = { type: "IntervalValue", min: value, max: this.startLife };
+			return;
+		}
+		if (this.startLife.type === "ConstantValue") {
+			this.startLife = { type: "IntervalValue", min: value, max: this.startLife.value };
+			return;
+		}
+		if (this.startLife.type === "IntervalValue") {
+			this.startLife.min = value;
+			return;
+		}
+		// For PiecewiseBezier, convert to IntervalValue
+		this.startLife = { type: "IntervalValue", min: value, max: value };
+	}
+
+	/**
+	 * Get/set maxLifeTime (compatible with VFXParticleSystem API)
+	 * Works with startLife VFXValue under the hood
+	 */
+	public get maxLifeTime(): number {
+		if (!this.startLife) {
+			return 1;
+		}
+		return VFXValueUtils.parseIntervalValue(this.startLife).max;
+	}
+	public set maxLifeTime(value: number) {
+		if (!this.startLife) {
+			this.startLife = { type: "IntervalValue", min: value, max: value };
+			return;
+		}
+		if (typeof this.startLife === "number") {
+			this.startLife = { type: "IntervalValue", min: this.startLife, max: value };
+			return;
+		}
+		if (this.startLife.type === "ConstantValue") {
+			this.startLife = { type: "IntervalValue", min: this.startLife.value, max: value };
+			return;
+		}
+		if (this.startLife.type === "IntervalValue") {
+			this.startLife.max = value;
+			return;
+		}
+		// For PiecewiseBezier, convert to IntervalValue
+		this.startLife = { type: "IntervalValue", min: value, max: value };
+	}
+
+	/**
+	 * Get/set minEmitPower (compatible with VFXParticleSystem API)
+	 * Works with startSpeed VFXValue under the hood
+	 */
+	public get minEmitPower(): number {
+		if (!this.startSpeed) {
+			return 1;
+		}
+		return VFXValueUtils.parseIntervalValue(this.startSpeed).min;
+	}
+	public set minEmitPower(value: number) {
+		if (!this.startSpeed) {
+			this.startSpeed = { type: "IntervalValue", min: value, max: value };
+			return;
+		}
+		if (typeof this.startSpeed === "number") {
+			this.startSpeed = { type: "IntervalValue", min: value, max: this.startSpeed };
+			return;
+		}
+		if (this.startSpeed.type === "ConstantValue") {
+			this.startSpeed = { type: "IntervalValue", min: value, max: this.startSpeed.value };
+			return;
+		}
+		if (this.startSpeed.type === "IntervalValue") {
+			this.startSpeed.min = value;
+			return;
+		}
+		// For PiecewiseBezier, convert to IntervalValue
+		this.startSpeed = { type: "IntervalValue", min: value, max: value };
+	}
+
+	/**
+	 * Get/set maxEmitPower (compatible with VFXParticleSystem API)
+	 * Works with startSpeed VFXValue under the hood
+	 */
+	public get maxEmitPower(): number {
+		if (!this.startSpeed) {
+			return 1;
+		}
+		return VFXValueUtils.parseIntervalValue(this.startSpeed).max;
+	}
+	public set maxEmitPower(value: number) {
+		if (!this.startSpeed) {
+			this.startSpeed = { type: "IntervalValue", min: value, max: value };
+			return;
+		}
+		if (typeof this.startSpeed === "number") {
+			this.startSpeed = { type: "IntervalValue", min: this.startSpeed, max: value };
+			return;
+		}
+		if (this.startSpeed.type === "ConstantValue") {
+			this.startSpeed = { type: "IntervalValue", min: this.startSpeed.value, max: value };
+			return;
+		}
+		if (this.startSpeed.type === "IntervalValue") {
+			this.startSpeed.max = value;
+			return;
+		}
+		// For PiecewiseBezier, convert to IntervalValue
+		this.startSpeed = { type: "IntervalValue", min: value, max: value };
+	}
+
+	/**
+	 * Get/set color1 (compatible with VFXParticleSystem API)
+	 * Works with startColor VFXColor under the hood
+	 */
+	public get color1(): Color4 {
+		if (!this.startColor) {
+			return new Color4(1, 1, 1, 1);
+		}
+		return VFXValueUtils.parseConstantColor(this.startColor);
+	}
+	public set color1(value: Color4) {
+		this.startColor = {
+			type: "ConstantColor",
+			value: [value.r, value.g, value.b, value.a],
+		};
+	}
+
+	/**
+	 * Get/set minInitialRotation (compatible with VFXParticleSystem API)
+	 * Works with startRotation VFXRotation under the hood (uses angleZ)
+	 */
+	public get minInitialRotation(): number {
+		if (!this.startRotation) {
+			return 0;
+		}
+		// Handle Euler rotation with angleZ
+		if (typeof this.startRotation === "object" && "type" in this.startRotation && this.startRotation.type === "Euler") {
+			if (this.startRotation.angleZ) {
+				return VFXValueUtils.parseIntervalValue(this.startRotation.angleZ).min;
+			}
+			return 0;
+		}
+		// Handle simple VFXValue rotation
+		if (typeof this.startRotation === "object" && "type" in this.startRotation) {
+			return VFXValueUtils.parseIntervalValue(this.startRotation as any).min;
+		}
+		return typeof this.startRotation === "number" ? this.startRotation : 0;
+	}
+	public set minInitialRotation(value: number) {
+		if (!this.startRotation) {
+			this.startRotation = { type: "Euler", angleZ: { type: "IntervalValue", min: value, max: value } };
+			return;
+		}
+		// Handle Euler rotation
+		if (typeof this.startRotation === "object" && "type" in this.startRotation && this.startRotation.type === "Euler") {
+			if (!this.startRotation.angleZ) {
+				this.startRotation.angleZ = { type: "IntervalValue", min: value, max: value };
+			} else {
+				const currentMax = VFXValueUtils.parseIntervalValue(this.startRotation.angleZ).max;
+				this.startRotation.angleZ = { type: "IntervalValue", min: value, max: currentMax };
+			}
+			return;
+		}
+		// Convert to Euler rotation
+		const currentMax = this.maxInitialRotation;
+		this.startRotation = { type: "Euler", angleZ: { type: "IntervalValue", min: value, max: currentMax } };
+	}
+
+	/**
+	 * Get/set maxInitialRotation (compatible with VFXParticleSystem API)
+	 * Works with startRotation VFXRotation under the hood (uses angleZ)
+	 */
+	public get maxInitialRotation(): number {
+		if (!this.startRotation) {
+			return 0;
+		}
+		// Handle Euler rotation with angleZ
+		if (typeof this.startRotation === "object" && "type" in this.startRotation && this.startRotation.type === "Euler") {
+			if (this.startRotation.angleZ) {
+				return VFXValueUtils.parseIntervalValue(this.startRotation.angleZ).max;
+			}
+			return 0;
+		}
+		// Handle simple VFXValue rotation
+		if (typeof this.startRotation === "object" && "type" in this.startRotation) {
+			return VFXValueUtils.parseIntervalValue(this.startRotation as any).max;
+		}
+		return typeof this.startRotation === "number" ? this.startRotation : 0;
+	}
+	public set maxInitialRotation(value: number) {
+		if (!this.startRotation) {
+			this.startRotation = { type: "Euler", angleZ: { type: "IntervalValue", min: value, max: value } };
+			return;
+		}
+		// Handle Euler rotation
+		if (typeof this.startRotation === "object" && "type" in this.startRotation && this.startRotation.type === "Euler") {
+			if (!this.startRotation.angleZ) {
+				this.startRotation.angleZ = { type: "IntervalValue", min: value, max: value };
+			} else {
+				const currentMin = VFXValueUtils.parseIntervalValue(this.startRotation.angleZ).min;
+				this.startRotation.angleZ = { type: "IntervalValue", min: currentMin, max: value };
+			}
+			return;
+		}
+		// Convert to Euler rotation
+		const currentMin = this.minInitialRotation;
+		this.startRotation = { type: "Euler", angleZ: { type: "IntervalValue", min: currentMin, max: value } };
+	}
+
+	/**
 	 * Get the parent node (mesh) for hierarchy operations
 	 * Implements IVFXSystem interface
 	 */
@@ -428,6 +713,86 @@ export class VFXSolidParticleSystem extends SolidParticleSystem implements IVFXS
 	}
 
 	/**
+	 * Initialize particle rotation
+	 * Supports Euler, AxisAngle, and RandomQuat rotation types
+	 */
+	private _initializeParticleRotation(particle: SolidParticle, normalizedTime: number): void {
+		if (!this.startRotation) {
+			particle.rotation.setAll(0);
+			return;
+		}
+
+		// Handle simple VFXValue (treat as angleZ for backward compatibility)
+		if (typeof this.startRotation === "number" || (typeof this.startRotation === "object" && "type" in this.startRotation && (this.startRotation.type === "ConstantValue" || this.startRotation.type === "IntervalValue" || this.startRotation.type === "PiecewiseBezier"))) {
+			const angleZ = VFXValueUtils.parseValue(this.startRotation as VFXValue, normalizedTime);
+			particle.rotation.set(0, 0, angleZ);
+			return;
+		}
+
+		// Handle Euler rotation
+		if (this.startRotation.type === "Euler") {
+			const angleX = this.startRotation.angleX ? VFXValueUtils.parseValue(this.startRotation.angleX, normalizedTime) : 0;
+			const angleY = this.startRotation.angleY ? VFXValueUtils.parseValue(this.startRotation.angleY, normalizedTime) : 0;
+			const angleZ = this.startRotation.angleZ ? VFXValueUtils.parseValue(this.startRotation.angleZ, normalizedTime) : 0;
+			const order = this.startRotation.order || "xyz";
+
+			// Convert Euler angles to quaternion based on order
+			let quat: Quaternion;
+			if (order === "xyz") {
+				// XYZ order: apply X, then Y, then Z
+				quat = Quaternion.RotationYawPitchRoll(angleY, angleX, angleZ);
+			} else {
+				// ZYX order: apply Z, then Y, then X
+				const quatZ = Quaternion.RotationAxis(Vector3.Forward(), angleZ);
+				const quatY = Quaternion.RotationAxis(Vector3.Up(), angleY);
+				const quatX = Quaternion.RotationAxis(Vector3.Right(), angleX);
+				quat = quatZ.multiply(quatY).multiply(quatX);
+			}
+			// Convert quaternion to Euler for particle.rotation (Vector3)
+			const euler = quat.toEulerAngles();
+			particle.rotation.set(euler.x, euler.y, euler.z);
+			return;
+		}
+
+		// Handle AxisAngle rotation
+		if (this.startRotation.type === "AxisAngle") {
+			const axisX = this.startRotation.x ? VFXValueUtils.parseValue(this.startRotation.x, normalizedTime) : 0;
+			const axisY = this.startRotation.y ? VFXValueUtils.parseValue(this.startRotation.y, normalizedTime) : 0;
+			const axisZ = this.startRotation.z ? VFXValueUtils.parseValue(this.startRotation.z, normalizedTime) : 1;
+			const angle = this.startRotation.angle ? VFXValueUtils.parseValue(this.startRotation.angle, normalizedTime) : 0;
+
+			const axis = new Vector3(axisX, axisY, axisZ);
+			axis.normalize();
+			const quat = Quaternion.RotationAxis(axis, angle);
+			const euler = quat.toEulerAngles();
+			particle.rotation.set(euler.x, euler.y, euler.z);
+			return;
+		}
+
+		// Handle RandomQuat rotation
+		if (this.startRotation.type === "RandomQuat") {
+			// Generate random quaternion (uniform distribution on unit sphere)
+			const u1 = Math.random();
+			const u2 = Math.random();
+			const u3 = Math.random();
+			const sqrt1MinusU1 = Math.sqrt(1 - u1);
+			const sqrtU1 = Math.sqrt(u1);
+			const quat = new Quaternion(
+				sqrt1MinusU1 * Math.sin(2 * Math.PI * u2),
+				sqrt1MinusU1 * Math.cos(2 * Math.PI * u2),
+				sqrtU1 * Math.sin(2 * Math.PI * u3),
+				sqrtU1 * Math.cos(2 * Math.PI * u3)
+			);
+			const euler = quat.toEulerAngles();
+			particle.rotation.set(euler.x, euler.y, euler.z);
+			return;
+		}
+
+		// Fallback: no rotation
+		particle.rotation.setAll(0);
+	}
+
+	/**
 	 * Spawn particles from dead pool
 	 * Оптимизировано: вычисляем матрицу эмиттера один раз для всех частиц
 	 */
@@ -467,6 +832,7 @@ export class VFXSolidParticleSystem extends SolidParticleSystem implements IVFXS
 			this._initializeParticleSpeed(particle, normalizedTime);
 			this._initializeParticleLife(particle, normalizedTime);
 			this._initializeParticleSize(particle, normalizedTime);
+			this._initializeParticleRotation(particle, normalizedTime);
 			this._initializeEmitterShape(particle);
 		}
 	}

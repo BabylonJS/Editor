@@ -395,6 +395,7 @@ export class VFXDataConverter {
 				angleX: quarksRotation.angleX !== undefined ? this._convertValue(quarksRotation.angleX) : undefined,
 				angleY: quarksRotation.angleY !== undefined ? this._convertValue(quarksRotation.angleY) : undefined,
 				angleZ: quarksRotation.angleZ !== undefined ? this._convertValue(quarksRotation.angleZ) : undefined,
+				order: (quarksRotation as any).order || "xyz", // Default to xyz if not specified
 			};
 		}
 		return this._convertValue(quarksRotation as QuarksValue);

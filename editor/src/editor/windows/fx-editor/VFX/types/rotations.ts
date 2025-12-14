@@ -8,6 +8,19 @@ export interface VFXEulerRotation {
 	angleX?: VFXValue;
 	angleY?: VFXValue;
 	angleZ?: VFXValue;
+	order?: "xyz" | "zyx";
 }
 
-export type VFXRotation = VFXEulerRotation | VFXValue;
+export interface VFXAxisAngleRotation {
+	type: "AxisAngle";
+	x?: VFXValue;
+	y?: VFXValue;
+	z?: VFXValue;
+	angle?: VFXValue;
+}
+
+export interface VFXRandomQuatRotation {
+	type: "RandomQuat";
+}
+
+export type VFXRotation = VFXEulerRotation | VFXAxisAngleRotation | VFXRandomQuatRotation | VFXValue;
