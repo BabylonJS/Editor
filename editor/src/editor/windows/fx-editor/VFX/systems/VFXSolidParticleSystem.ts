@@ -3,15 +3,23 @@ import type { VFXParticleEmitterConfig, VFXEmissionBurst } from "../types/emitte
 import { VFXLogger } from "../loggers/VFXLogger";
 import type { VFXLoaderOptions } from "../types/loader";
 import type { VFXPerSolidParticleBehaviorFunction } from "../types/VFXBehaviorFunction";
-import type { VFXBehavior } from "../types/behaviors";
+import type {
+	VFXBehavior,
+	VFXForceOverLifeBehavior,
+	VFXColorBySpeedBehavior,
+	VFXSizeBySpeedBehavior,
+	VFXRotationBySpeedBehavior,
+	VFXOrbitOverLifeBehavior,
+} from "../types/behaviors";
 import type { VFXShape } from "../types/shapes";
 import type { VFXColor } from "../types/colors";
 import type { VFXValue } from "../types/values";
 import type { VFXRotation } from "../types/rotations";
-import { VFXSolidParticleSystemBehaviorFactory } from "../factories/VFXSolidParticleSystemBehaviorFactory";
 import { VFXSolidParticleSystemEmitterFactory } from "../factories/VFXSolidParticleSystemEmitterFactory";
 import { VFXValueUtils } from "../utils/valueParser";
 import { VFXCapacityCalculator } from "../utils/capacityCalculator";
+import { ColorGradientSystem, NumberGradientSystem } from "../utils/gradientSystem";
+import { applyColorBySpeedSPS, applySizeBySpeedSPS, applyRotationBySpeedSPS, applyOrbitOverLifeSPS } from "../behaviors";
 
 /**
  * Emission state matching three.quarks EmissionState structure
@@ -35,14 +43,20 @@ interface EmissionState {
 export class VFXSolidParticleSystem extends SolidParticleSystem {
 	private _emissionState: EmissionState;
 	private _behaviors: VFXPerSolidParticleBehaviorFunction[];
-	private _behaviorFactory: VFXSolidParticleSystemBehaviorFactory;
 	private _emitterFactory: VFXSolidParticleSystemEmitterFactory;
 	private _parent: TransformNode | null;
 	private _vfxTransform: { position: Vector3; rotation: Quaternion; scale: Vector3 } | null;
 	private _logger: VFXLogger | null;
-	private _options: VFXLoaderOptions | undefined;
 	private _name: string;
 	private _emitEnded: boolean;
+
+	// Gradient systems for "OverLife" behaviors (similar to ParticleSystem native gradients)
+	private _colorGradients: ColorGradientSystem;
+	private _sizeGradients: NumberGradientSystem;
+	private _velocityGradients: NumberGradientSystem;
+	private _angularSpeedGradients: NumberGradientSystem;
+	private _limitVelocityGradients: NumberGradientSystem;
+	private _limitVelocityDamping: number;
 
 	// Properties moved from config
 	public isLooping: boolean;
@@ -95,13 +109,59 @@ export class VFXSolidParticleSystem extends SolidParticleSystem {
 	}
 
 	/**
+	 * Add color gradient (for ColorOverLife behavior)
+	 */
+	public addColorGradient(gradient: number, color: Color4): void {
+		this._colorGradients.addGradient(gradient, color);
+	}
+
+	/**
+	 * Add size gradient (for SizeOverLife behavior)
+	 */
+	public addSizeGradient(gradient: number, size: number): void {
+		this._sizeGradients.addGradient(gradient, size);
+	}
+
+	/**
+	 * Add velocity gradient (for SpeedOverLife behavior)
+	 */
+	public addVelocityGradient(gradient: number, velocity: number): void {
+		this._velocityGradients.addGradient(gradient, velocity);
+	}
+
+	/**
+	 * Add angular speed gradient (for RotationOverLife behavior)
+	 */
+	public addAngularSpeedGradient(gradient: number, angularSpeed: number): void {
+		this._angularSpeedGradients.addGradient(gradient, angularSpeed);
+	}
+
+	/**
+	 * Add limit velocity gradient (for LimitSpeedOverLife behavior)
+	 */
+	public addLimitVelocityGradient(gradient: number, limit: number): void {
+		this._limitVelocityGradients.addGradient(gradient, limit);
+	}
+
+	/**
+	 * Set limit velocity damping (for LimitSpeedOverLife behavior)
+	 */
+	public set limitVelocityDamping(value: number) {
+		this._limitVelocityDamping = value;
+	}
+
+	public get limitVelocityDamping(): number {
+		return this._limitVelocityDamping;
+	}
+
+	/**
 	 * Initialize mesh for SPS (internal use)
 	 * Adds the mesh as a shape and configures billboard mode
 	 */
 	private _initializeMesh(particleMesh: Mesh): void {
 		if (!particleMesh) {
 			if (this._logger) {
-				this._logger.warn(`Cannot add shape to SPS: particleMesh is null`, this._options);
+				this._logger.warn(`Cannot add shape to SPS: particleMesh is null`);
 			}
 			return;
 		}
@@ -110,7 +170,7 @@ export class VFXSolidParticleSystem extends SolidParticleSystem {
 		const capacity = VFXCapacityCalculator.calculateForSolidParticleSystem(this.emissionOverTime, this.duration, this.isLooping);
 
 		if (this._logger) {
-			this._logger.log(`Adding shape to SPS: mesh name=${particleMesh.name}, hasMaterial=${!!particleMesh.material}, capacity=${capacity}`, this._options);
+			this._logger.log(`Adding shape to SPS: mesh name=${particleMesh.name}, hasMaterial=${!!particleMesh.material}, capacity=${capacity}`);
 		}
 
 		// Add shape to SPS
@@ -173,7 +233,6 @@ export class VFXSolidParticleSystem extends SolidParticleSystem {
 
 		this._name = name;
 		this._behaviors = [];
-		this._behaviorFactory = new VFXSolidParticleSystemBehaviorFactory();
 		this._emitterFactory = new VFXSolidParticleSystemEmitterFactory();
 
 		// Initialize properties from initialConfig
@@ -205,6 +264,14 @@ export class VFXSolidParticleSystem extends SolidParticleSystem {
 		this.softNearFade = initialConfig.softNearFade;
 		this.worldSpace = initialConfig.worldSpace || false;
 
+		// Initialize gradient systems
+		this._colorGradients = new ColorGradientSystem();
+		this._sizeGradients = new NumberGradientSystem();
+		this._velocityGradients = new NumberGradientSystem();
+		this._angularSpeedGradients = new NumberGradientSystem();
+		this._limitVelocityGradients = new NumberGradientSystem();
+		this._limitVelocityDamping = 0.1;
+
 		// Create proxy array for behavior configs
 		this.behaviorConfigs = this._createBehaviorConfigsProxy(initialConfig.behaviors || []);
 
@@ -214,7 +281,6 @@ export class VFXSolidParticleSystem extends SolidParticleSystem {
 		this._parent = options?.parentGroup ?? null;
 		this._vfxTransform = options?.vfxTransform ?? null;
 		this._logger = options?.logger ?? null;
-		this._options = options?.loaderOptions;
 		this._emitEnded = false;
 		this._normalMatrix = new Matrix();
 		this._tempVec = Vector3.Zero();
@@ -444,37 +510,37 @@ export class VFXSolidParticleSystem extends SolidParticleSystem {
 	private _setupMeshProperties(): void {
 		if (!this.mesh) {
 			if (this._logger) {
-				this._logger.warn(`  SPS mesh is null in initParticles!`, this._options);
+				this._logger.warn(`  SPS mesh is null in initParticles!`);
 			}
 			return;
 		}
 
 		if (this._logger) {
-			this._logger.log(`  initParticles called for SPS: ${this._name}`, this._options);
-			this._logger.log(`  SPS mesh exists: ${this.mesh.name}`, this._options);
+			this._logger.log(`  initParticles called for SPS: ${this._name}`);
+			this._logger.log(`  SPS mesh exists: ${this.mesh.name}`);
 		}
 
 		if (this.renderOrder !== undefined) {
 			this.mesh.renderingGroupId = this.renderOrder;
 			if (this._logger) {
-				this._logger.log(`  Set SPS mesh renderingGroupId: ${this.renderOrder}`, this._options);
+				this._logger.log(`  Set SPS mesh renderingGroupId: ${this.renderOrder}`);
 			}
 		}
 
 		if (this.layers !== undefined) {
 			this.mesh.layerMask = this.layers;
 			if (this._logger) {
-				this._logger.log(`  Set SPS mesh layerMask: ${this.layers}`, this._options);
+				this._logger.log(`  Set SPS mesh layerMask: ${this.layers}`);
 			}
 		}
 
 		if (this._parent) {
 			this.mesh.setParent(this._parent, false, true);
 			if (this._logger) {
-				this._logger.log(`  Set SPS mesh parent to: ${this._parent.name}`, this._options);
+				this._logger.log(`  Set SPS mesh parent to: ${this._parent.name}`);
 			}
 		} else if (this._logger) {
-			this._logger.log(`  No parent group to set for SPS mesh`, this._options);
+			this._logger.log(`  No parent group to set for SPS mesh`);
 		}
 
 		if (this._vfxTransform) {
@@ -485,12 +551,11 @@ export class VFXSolidParticleSystem extends SolidParticleSystem {
 			if (this._logger) {
 				const rot = this.mesh.rotationQuaternion;
 				this._logger.log(
-					`  Applied VFX transform to SPS mesh: pos=(${this._vfxTransform.position.x.toFixed(2)}, ${this._vfxTransform.position.y.toFixed(2)}, ${this._vfxTransform.position.z.toFixed(2)}), rot=(${rot ? rot.x.toFixed(4) : 0}, ${rot ? rot.y.toFixed(4) : 0}, ${rot ? rot.z.toFixed(4) : 0}, ${rot ? rot.w.toFixed(4) : 1}), scale=(${this._vfxTransform.scale.x.toFixed(2)}, ${this._vfxTransform.scale.y.toFixed(2)}, ${this._vfxTransform.scale.z.toFixed(2)})`,
-					this._options
+					`  Applied VFX transform to SPS mesh: pos=(${this._vfxTransform.position.x.toFixed(2)}, ${this._vfxTransform.position.y.toFixed(2)}, ${this._vfxTransform.position.z.toFixed(2)}), rot=(${rot ? rot.x.toFixed(4) : 0}, ${rot ? rot.y.toFixed(4) : 0}, ${rot ? rot.z.toFixed(4) : 0}, ${rot ? rot.w.toFixed(4) : 1}), scale=(${this._vfxTransform.scale.x.toFixed(2)}, ${this._vfxTransform.scale.y.toFixed(2)}, ${this._vfxTransform.scale.z.toFixed(2)})`
 				);
 			}
 		} else if (this._logger) {
-			this._logger.log(`  No VFX transform to apply to SPS mesh`, this._options);
+			this._logger.log(`  No VFX transform to apply to SPS mesh`);
 		}
 	}
 
@@ -610,8 +675,132 @@ export class VFXSolidParticleSystem extends SolidParticleSystem {
 	 * Update behavior functions from configs
 	 * Internal method, called automatically when configs change
 	 */
+	/**
+	 * Update behavior functions from configs
+	 * Applies both system-level behaviors (gradients) and per-particle behaviors
+	 */
 	private _updateBehaviorFunctions(): void {
-		this._behaviors = this._behaviorFactory.createBehaviorFunctions(this.behaviorConfigs);
+		// Clear all gradients
+		this._colorGradients.clear();
+		this._sizeGradients.clear();
+		this._velocityGradients.clear();
+		this._angularSpeedGradients.clear();
+		this._limitVelocityGradients.clear();
+
+		// Apply system-level behaviors (gradients) - these configure the system once
+		this._applySystemLevelBehaviors();
+
+		// Create per-particle behavior functions (BySpeed, OrbitOverLife, ForceOverLife, etc.)
+		this._behaviors = this._createPerParticleBehaviorFunctions(this.behaviorConfigs);
+	}
+
+	/**
+	 * Create per-particle behavior functions from configurations
+	 * Only creates functions for behaviors that depend on particle properties (speed, orbit, force)
+	 * "OverLife" behaviors are handled by gradients (system-level)
+	 */
+	private _createPerParticleBehaviorFunctions(behaviors: VFXBehavior[]): VFXPerSolidParticleBehaviorFunction[] {
+		const functions: VFXPerSolidParticleBehaviorFunction[] = [];
+
+		for (const behavior of behaviors) {
+			switch (behavior.type) {
+				case "ForceOverLife":
+				case "ApplyForce": {
+					const b = behavior as VFXForceOverLifeBehavior;
+					functions.push((particle: SolidParticle) => {
+						// Get updateSpeed from system (stored in particle.props or use default)
+						const updateSpeed = (particle as any).system?.updateSpeed ?? 0.016;
+
+						const forceX = b.x ?? b.force?.x;
+						const forceY = b.y ?? b.force?.y;
+						const forceZ = b.z ?? b.force?.z;
+						if (forceX !== undefined || forceY !== undefined || forceZ !== undefined) {
+							const fx = forceX !== undefined ? VFXValueUtils.parseConstantValue(forceX) : 0;
+							const fy = forceY !== undefined ? VFXValueUtils.parseConstantValue(forceY) : 0;
+							const fz = forceZ !== undefined ? VFXValueUtils.parseConstantValue(forceZ) : 0;
+							particle.velocity.x += fx * updateSpeed;
+							particle.velocity.y += fy * updateSpeed;
+							particle.velocity.z += fz * updateSpeed;
+						}
+					});
+					break;
+				}
+
+				case "ColorBySpeed": {
+					const b = behavior as VFXColorBySpeedBehavior;
+					functions.push((particle: SolidParticle) => {
+						applyColorBySpeedSPS(particle, b);
+					});
+					break;
+				}
+
+				case "SizeBySpeed": {
+					const b = behavior as VFXSizeBySpeedBehavior;
+					functions.push((particle: SolidParticle) => {
+						applySizeBySpeedSPS(particle, b);
+					});
+					break;
+				}
+
+				case "RotationBySpeed": {
+					const b = behavior as VFXRotationBySpeedBehavior;
+					functions.push((particle: SolidParticle) => {
+						applyRotationBySpeedSPS(particle, b);
+					});
+					break;
+				}
+
+				case "OrbitOverLife": {
+					const b = behavior as VFXOrbitOverLifeBehavior;
+					functions.push((particle: SolidParticle) => {
+						applyOrbitOverLifeSPS(particle, b);
+					});
+					break;
+				}
+			}
+		}
+
+		return functions;
+	}
+
+	/**
+	 * Apply system-level behaviors (gradients) to SolidParticleSystem
+	 * These are applied once when behaviors change, not per-particle
+	 * Similar to ParticleSystem native gradients
+	 */
+	private _applySystemLevelBehaviors(): void {
+		// Import behaviors dynamically to avoid circular dependencies
+		const behaviors = require("../behaviors");
+		const applyColorOverLifeSPS = behaviors.applyColorOverLifeSPS;
+		const applySizeOverLifeSPS = behaviors.applySizeOverLifeSPS;
+		const applyRotationOverLifeSPS = behaviors.applyRotationOverLifeSPS;
+		const applySpeedOverLifeSPS = behaviors.applySpeedOverLifeSPS;
+		const applyLimitSpeedOverLifeSPS = behaviors.applyLimitSpeedOverLifeSPS;
+
+		for (const behavior of this.behaviorConfigs) {
+			if (!behavior.type) {
+				continue;
+			}
+
+			switch (behavior.type) {
+				case "ColorOverLife":
+					applyColorOverLifeSPS(this, behavior as any);
+					break;
+				case "SizeOverLife":
+					applySizeOverLifeSPS(this, behavior as any);
+					break;
+				case "RotationOverLife":
+				case "Rotation3DOverLife":
+					applyRotationOverLifeSPS(this, behavior as any);
+					break;
+				case "SpeedOverLife":
+					applySpeedOverLifeSPS(this, behavior as any);
+					break;
+				case "LimitSpeedOverLife":
+					applyLimitSpeedOverLifeSPS(this, behavior as any);
+					break;
+			}
+		}
 	}
 
 	public override beforeUpdateParticles(start?: number, stop?: number, update?: boolean): void {
@@ -649,21 +838,76 @@ export class VFXSolidParticleSystem extends SolidParticleSystem {
 			return particle;
 		}
 
+		// Calculate lifeRatio for gradient interpolation
+		const lifeRatio = particle.lifeTime > 0 ? particle.age / particle.lifeTime : 0;
+
+		// Apply "OverLife" gradients (similar to ParticleSystem native gradients)
+		this._applyGradients(particle, lifeRatio);
+
 		// Store reference to system in particle for behaviors that need it
 		(particle as any).system = this;
 
-		// Apply behaviors - they receive only particle and behavior config
-		// All data (lifeRatio, speed, etc.) comes from particle itself
-		// Behavior config is stored in closure by factory, so we pass it from behaviorConfigs
-		for (let i = 0; i < this._behaviors.length && i < this.behaviorConfigs.length; i++) {
-			const behaviorFn = this._behaviors[i];
-			const behaviorConfig = this.behaviorConfigs[i];
-			behaviorFn(particle, behaviorConfig);
+		// Apply per-particle behaviors (BySpeed, OrbitOverLife, etc.)
+		// These behaviors don't use gradients as they depend on particle properties, not lifeRatio
+		// Behavior config is captured in closure, so we only need to pass particle
+		for (const behaviorFn of this._behaviors) {
+			behaviorFn(particle);
 		}
 
+		// Apply velocity with speed modifier
 		const speedModifier = particle.props?.speedModifier ?? 1.0;
 		particle.position.addInPlace(particle.velocity.scale(this.updateSpeed * speedModifier));
 
 		return particle;
+	}
+
+	/**
+	 * Apply gradients to particle based on lifeRatio
+	 */
+	private _applyGradients(particle: SolidParticle, lifeRatio: number): void {
+		// Apply color gradient
+		const color = this._colorGradients.getValue(lifeRatio);
+		if (color && particle.color) {
+			const startColor = particle.props?.startColor;
+			if (startColor) {
+				// Multiply with startColor (matching ParticleSystem behavior)
+				particle.color.r = color.r * startColor.r;
+				particle.color.g = color.g * startColor.g;
+				particle.color.b = color.b * startColor.b;
+				particle.color.a = color.a * startColor.a;
+			} else {
+				particle.color.copyFrom(color);
+			}
+		}
+
+		// Apply size gradient
+		const size = this._sizeGradients.getValue(lifeRatio);
+		if (size !== null && particle.props?.startSize !== undefined) {
+			const newSize = particle.props.startSize * size;
+			particle.scaling.setAll(newSize);
+		}
+
+		// Apply velocity gradient (speed modifier)
+		const velocity = this._velocityGradients.getValue(lifeRatio);
+		if (velocity !== null) {
+			particle.props = particle.props || {};
+			particle.props.speedModifier = velocity;
+		}
+
+		// Apply angular speed gradient
+		const angularSpeed = this._angularSpeedGradients.getValue(lifeRatio);
+		if (angularSpeed !== null) {
+			particle.rotation.z += angularSpeed * this.updateSpeed;
+		}
+
+		// Apply limit velocity
+		const limitVelocity = this._limitVelocityGradients.getValue(lifeRatio);
+		if (limitVelocity !== null && this._limitVelocityDamping > 0) {
+			const currentSpeed = Math.sqrt(particle.velocity.x * particle.velocity.x + particle.velocity.y * particle.velocity.y + particle.velocity.z * particle.velocity.z);
+			if (currentSpeed > limitVelocity) {
+				const scale = limitVelocity / currentSpeed;
+				particle.velocity.scaleInPlace(scale * this._limitVelocityDamping);
+			}
+		}
 	}
 }

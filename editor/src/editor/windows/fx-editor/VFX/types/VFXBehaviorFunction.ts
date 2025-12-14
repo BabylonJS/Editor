@@ -3,15 +3,15 @@ import type { VFXBehavior } from "./behaviors";
 
 /**
  * Per-particle behavior function for ParticleSystem
- * Takes only particle and behavior config - all data comes from particle
+ * Behavior config is captured in closure, only particle is needed
  */
-export type VFXPerParticleBehaviorFunction = (particle: Particle, behavior: VFXBehavior) => void;
+export type VFXPerParticleBehaviorFunction = (particle: Particle) => void;
 
 /**
  * Per-particle behavior function for SolidParticleSystem
- * Takes only particle and behavior config - all data comes from particle
+ * Behavior config is captured in closure, only particle is needed
  */
-export type VFXPerSolidParticleBehaviorFunction = (particle: SolidParticle, behavior: VFXBehavior) => void;
+export type VFXPerSolidParticleBehaviorFunction = (particle: SolidParticle) => void;
 
 /**
  * System-level behavior function (applied once during initialization)

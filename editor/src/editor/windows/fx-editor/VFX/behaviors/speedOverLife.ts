@@ -1,6 +1,6 @@
-import { SolidParticle, ParticleSystem } from "babylonjs";
+import { ParticleSystem } from "babylonjs";
 import type { VFXSpeedOverLifeBehavior } from "../types/behaviors";
-import { extractNumberFromValue, interpolateGradientKeys } from "./utils";
+import { extractNumberFromValue } from "./utils";
 import { VFXValueUtils } from "../utils/valueParser";
 
 /**
@@ -43,21 +43,23 @@ export function applySpeedOverLifePS(particleSystem: ParticleSystem, behavior: V
 }
 
 /**
- * Apply SpeedOverLife behavior to SolidParticle
- * Gets lifeRatio from particle (age / lifeTime)
+ * Apply SpeedOverLife behavior to SolidParticleSystem
+ * Adds velocity gradients to the system (similar to ParticleSystem native gradients)
  */
-export function applySpeedOverLifeSPS(particle: SolidParticle, behavior: VFXSpeedOverLifeBehavior): void {
-	if (!behavior.speed || particle.lifeTime <= 0) {
+export function applySpeedOverLifeSPS(system: any, behavior: VFXSpeedOverLifeBehavior): void {
+	if (!behavior.speed) {
 		return;
 	}
 
-	// Get lifeRatio from particle
-	const lifeRatio = particle.age / particle.lifeTime;
-
-	let speedMultiplier = 1;
-
 	if (typeof behavior.speed === "object" && behavior.speed !== null && "keys" in behavior.speed && behavior.speed.keys && Array.isArray(behavior.speed.keys)) {
-		speedMultiplier = interpolateGradientKeys(behavior.speed.keys, lifeRatio, extractNumberFromValue);
+		for (const key of behavior.speed.keys) {
+			const pos = key.pos ?? key.time ?? 0;
+			const val = key.value;
+			if (val !== undefined && pos !== undefined) {
+				const numVal = extractNumberFromValue(val);
+				system.addVelocityGradient(pos, numVal);
+			}
+		}
 	} else if (
 		typeof behavior.speed === "object" &&
 		behavior.speed !== null &&
@@ -65,31 +67,19 @@ export function applySpeedOverLifeSPS(particle: SolidParticle, behavior: VFXSpee
 		behavior.speed.functions &&
 		Array.isArray(behavior.speed.functions)
 	) {
-		// Handle functions (simplified - use first function)
-		const func = behavior.speed.functions[0];
-		if (func && func.function && func.start !== undefined) {
-			const startSpeed = func.function.p0 || 1;
-			const endSpeed = func.function.p3 !== undefined ? func.function.p3 : startSpeed;
-			const t = Math.max(0, Math.min(1, (lifeRatio - func.start) / 0.5));
-			speedMultiplier = startSpeed + (endSpeed - startSpeed) * t;
+		for (const func of behavior.speed.functions) {
+			if (func.function && func.start !== undefined) {
+				const startSpeed = func.function.p0 || 1;
+				const endSpeed = func.function.p3 !== undefined ? func.function.p3 : startSpeed;
+				system.addVelocityGradient(func.start, startSpeed);
+				if (func.function.p3 !== undefined) {
+					system.addVelocityGradient(Math.min(func.start + 0.5, 1), endSpeed);
+				}
+			}
 		}
 	} else if (typeof behavior.speed === "number" || (typeof behavior.speed === "object" && behavior.speed !== null && "type" in behavior.speed)) {
 		const speedValue = VFXValueUtils.parseIntervalValue(behavior.speed);
-		speedMultiplier = speedValue.min + (speedValue.max - speedValue.min) * lifeRatio;
-	}
-
-	// Apply speed modifier to velocity
-	const startSpeed = particle.props?.startSpeed ?? 1;
-	const speedModifier = particle.props?.speedModifier ?? 1;
-	const newSpeedModifier = speedModifier * speedMultiplier;
-	particle.props = particle.props || {};
-	particle.props.speedModifier = newSpeedModifier;
-
-	// Update velocity magnitude
-	const velocityLength = Math.sqrt(particle.velocity.x * particle.velocity.x + particle.velocity.y * particle.velocity.y + particle.velocity.z * particle.velocity.z);
-	if (velocityLength > 0) {
-		const newLength = startSpeed * newSpeedModifier;
-		const scale = newLength / velocityLength;
-		particle.velocity.scaleInPlace(scale);
+		system.addVelocityGradient(0, speedValue.min);
+		system.addVelocityGradient(1, speedValue.max);
 	}
 }

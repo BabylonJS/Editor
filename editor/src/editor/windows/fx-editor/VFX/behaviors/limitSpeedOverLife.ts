@@ -33,3 +33,35 @@ export function applyLimitSpeedOverLifePS(particleSystem: ParticleSystem, behavi
 		}
 	}
 }
+
+/**
+ * Apply LimitSpeedOverLife behavior to SolidParticleSystem
+ * Adds limit velocity gradients to the system (similar to ParticleSystem native gradients)
+ */
+export function applyLimitSpeedOverLifeSPS(system: any, behavior: VFXLimitSpeedOverLifeBehavior): void {
+	if (behavior.dampen !== undefined) {
+		const dampen = VFXValueUtils.parseConstantValue(behavior.dampen);
+		system.limitVelocityDamping = dampen;
+	}
+
+	if (behavior.maxSpeed !== undefined) {
+		const speedLimit = VFXValueUtils.parseConstantValue(behavior.maxSpeed);
+		system.addLimitVelocityGradient(0, speedLimit);
+		system.addLimitVelocityGradient(1, speedLimit);
+	} else if (behavior.speed !== undefined) {
+		if (typeof behavior.speed === "object" && behavior.speed !== null && "keys" in behavior.speed && behavior.speed.keys && Array.isArray(behavior.speed.keys)) {
+			for (const key of behavior.speed.keys) {
+				const pos = key.pos ?? key.time ?? 0;
+				const val = key.value;
+				if (val !== undefined && pos !== undefined) {
+					const numVal = extractNumberFromValue(val);
+					system.addLimitVelocityGradient(pos, numVal);
+				}
+			}
+		} else if (typeof behavior.speed === "number" || (typeof behavior.speed === "object" && behavior.speed !== null && "type" in behavior.speed)) {
+			const speedLimit = VFXValueUtils.parseConstantValue(behavior.speed);
+			system.addLimitVelocityGradient(0, speedLimit);
+			system.addLimitVelocityGradient(1, speedLimit);
+		}
+	}
+}

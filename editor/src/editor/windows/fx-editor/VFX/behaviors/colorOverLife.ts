@@ -1,6 +1,6 @@
-import { Color4, ParticleSystem, SolidParticle } from "babylonjs";
+import { Color4, ParticleSystem } from "babylonjs";
 import type { VFXColorOverLifeBehavior } from "../types/behaviors";
-import { extractColorFromValue, extractAlphaFromValue, interpolateColorKeys, interpolateGradientKeys } from "./utils";
+import { extractColorFromValue, extractAlphaFromValue } from "./utils";
 
 /**
  * Apply ColorOverLife behavior to ParticleSystem
@@ -38,42 +38,51 @@ export function applyColorOverLifePS(particleSystem: ParticleSystem, behavior: V
 }
 
 /**
- * Apply ColorOverLife behavior to SolidParticle
- * Gets lifeRatio from particle (age / lifeTime)
+ * Apply ColorOverLife behavior to SolidParticleSystem
+ * Adds color gradients to the system (similar to ParticleSystem native gradients)
  */
-export function applyColorOverLifeSPS(particle: SolidParticle, behavior: VFXColorOverLifeBehavior): void {
-	if (!behavior.color || !particle.color || particle.lifeTime <= 0) {
+export function applyColorOverLifeSPS(system: any, behavior: VFXColorOverLifeBehavior): void {
+	if (!behavior.color) {
 		return;
 	}
 
-	// Get lifeRatio from particle
-	const lifeRatio = particle.age / particle.lifeTime;
-
-	const colorKeys = behavior.color.color?.keys ?? behavior.color.keys;
-	if (!colorKeys || !Array.isArray(colorKeys)) {
-		return;
+	// Add color gradients from keys
+	if (behavior.color.color && behavior.color.color.keys) {
+		const colorKeys = behavior.color.color.keys;
+		for (const key of colorKeys) {
+			if (key.value !== undefined && key.pos !== undefined) {
+				const color = extractColorFromValue(key.value);
+				const alpha = extractAlphaFromValue(key.value);
+				system.addColorGradient(key.pos, new Color4(color.r, color.g, color.b, alpha));
+			}
+		}
+	} else if (behavior.color.keys) {
+		const colorKeys = behavior.color.keys;
+		for (const key of colorKeys) {
+			if (key.value !== undefined && key.pos !== undefined) {
+				const color = extractColorFromValue(key.value);
+				const alpha = extractAlphaFromValue(key.value);
+				system.addColorGradient(key.pos, new Color4(color.r, color.g, color.b, alpha));
+			}
+		}
 	}
 
-	const interpolatedColor = interpolateColorKeys(colorKeys, lifeRatio);
-	const startColor = particle.props?.startColor;
-
-	if (startColor) {
-		// Multiply with startColor (matching three.quarks behavior)
-		particle.color.r = interpolatedColor.r * startColor.r;
-		particle.color.g = interpolatedColor.g * startColor.g;
-		particle.color.b = interpolatedColor.b * startColor.b;
-	} else {
-		particle.color.r = interpolatedColor.r;
-		particle.color.g = interpolatedColor.g;
-		particle.color.b = interpolatedColor.b;
-	}
-
-	// Apply alpha if specified
-	if (behavior.color.alpha?.keys) {
+	// Update alpha for existing gradients if alpha keys are specified
+	if (behavior.color.alpha && behavior.color.alpha.keys) {
 		const alphaKeys = behavior.color.alpha.keys;
-		const alpha = interpolateGradientKeys(alphaKeys, lifeRatio, extractAlphaFromValue);
-		particle.color.a = alpha;
-	} else {
-		particle.color.a = interpolatedColor.a;
+		for (const key of alphaKeys) {
+			if (key.value !== undefined) {
+				const pos = key.pos ?? key.time ?? 0;
+				const alpha = extractAlphaFromValue(key.value);
+				// Get existing gradients and update alpha
+				const gradients = system._colorGradients.getGradients();
+				const existingGradient = gradients.find((g: any) => Math.abs(g.gradient - pos) < 0.001);
+				if (existingGradient) {
+					existingGradient.value.a = alpha;
+				} else {
+					system.addColorGradient(pos, new Color4(1, 1, 1, alpha));
+				}
+			}
+		}
 	}
 }

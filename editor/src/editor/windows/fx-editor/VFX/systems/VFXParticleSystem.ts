@@ -10,10 +10,14 @@ import type {
 	VFXSpeedOverLifeBehavior,
 	VFXFrameOverLifeBehavior,
 	VFXLimitSpeedOverLifeBehavior,
+	VFXColorBySpeedBehavior,
+	VFXSizeBySpeedBehavior,
+	VFXRotationBySpeedBehavior,
+	VFXOrbitOverLifeBehavior,
 } from "../types/behaviors";
+import type { Particle } from "babylonjs";
 import type { VFXShape } from "../types/shapes";
 import type { VFXParticleEmitterConfig, VFXEmissionBurst } from "../types/emitterConfig";
-import { VFXParticleSystemBehaviorFactory } from "../factories/VFXParticleSystemBehaviorFactory";
 import { VFXParticleSystemEmitterFactory } from "../factories/VFXParticleSystemEmitterFactory";
 import { VFXValueUtils } from "../utils/valueParser";
 import { VFXCapacityCalculator } from "../utils/capacityCalculator";
@@ -26,6 +30,10 @@ import {
 	applySpeedOverLifePS,
 	applyFrameOverLifePS,
 	applyLimitSpeedOverLifePS,
+	applyColorBySpeedPS,
+	applySizeBySpeedPS,
+	applyRotationBySpeedPS,
+	applyOrbitOverLifePS,
 } from "../behaviors";
 
 /**
@@ -37,7 +45,6 @@ export class VFXParticleSystem extends ParticleSystem {
 	public startSpeed: number;
 	public startColor: Color4;
 	private _behaviors: VFXPerParticleBehaviorFunction[];
-	private _behaviorFactory: VFXParticleSystemBehaviorFactory;
 	private _emitterFactory: VFXParticleSystemEmitterFactory;
 	public readonly behaviorConfigs: VFXBehavior[];
 
@@ -61,7 +68,6 @@ export class VFXParticleSystem extends ParticleSystem {
 
 		super(name, capacity, scene);
 		this._behaviors = [];
-		this._behaviorFactory = new VFXParticleSystemBehaviorFactory(this);
 		this._emitterFactory = new VFXParticleSystemEmitterFactory(this);
 
 		// Create proxy array that updates functions when modified
@@ -166,8 +172,56 @@ export class VFXParticleSystem extends ParticleSystem {
 		// Apply system-level behaviors (gradients, etc.) - these configure the ParticleSystem once
 		this._applySystemLevelBehaviors();
 
-		// Create per-particle behavior functions
-		this._behaviors = this._behaviorFactory.createBehaviorFunctions(this.behaviorConfigs);
+		// Create per-particle behavior functions (BySpeed, OrbitOverLife, etc.)
+		this._behaviors = this._createPerParticleBehaviorFunctions(this.behaviorConfigs);
+	}
+
+	/**
+	 * Create per-particle behavior functions from configurations
+	 * Only creates functions for behaviors that depend on particle properties (speed, orbit)
+	 */
+	private _createPerParticleBehaviorFunctions(behaviors: VFXBehavior[]): VFXPerParticleBehaviorFunction[] {
+		const functions: VFXPerParticleBehaviorFunction[] = [];
+
+		for (const behavior of behaviors) {
+			switch (behavior.type) {
+				case "ColorBySpeed": {
+					const b = behavior as VFXColorBySpeedBehavior;
+					functions.push((particle: Particle) => {
+						applyColorBySpeedPS(particle, b);
+					});
+					break;
+				}
+
+				case "SizeBySpeed": {
+					const b = behavior as VFXSizeBySpeedBehavior;
+					functions.push((particle: Particle) => {
+						applySizeBySpeedPS(particle, b);
+					});
+					break;
+				}
+
+				case "RotationBySpeed": {
+					const b = behavior as VFXRotationBySpeedBehavior;
+					functions.push((particle: Particle) => {
+						// Store reference to system in particle for behaviors that need it
+						(particle as any).particleSystem = this;
+						applyRotationBySpeedPS(particle, b);
+					});
+					break;
+				}
+
+				case "OrbitOverLife": {
+					const b = behavior as VFXOrbitOverLifeBehavior;
+					functions.push((particle: Particle) => {
+						applyOrbitOverLifePS(particle, b);
+					});
+					break;
+				}
+			}
+		}
+
+		return functions;
 	}
 
 	/**
