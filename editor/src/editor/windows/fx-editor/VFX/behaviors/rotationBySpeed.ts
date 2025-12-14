@@ -16,7 +16,8 @@ export function applyRotationBySpeedPS(particle: Particle, behavior: VFXRotation
 	const currentSpeed = Vector3.Distance(Vector3.Zero(), particle.direction);
 
 	// Get updateSpeed from system (stored in particle or use default)
-	const updateSpeed = (particle as any).particleSystem?.updateSpeed ?? 0.016;
+	const particleWithSystem = particle as ParticleWithSystem;
+	const updateSpeed = particleWithSystem.particleSystem?.updateSpeed ?? 0.016;
 
 	// angularVelocity can be VFXValue (constant/interval) or object with keys
 	let angularSpeed = 0;
@@ -52,7 +53,8 @@ export function applyRotationBySpeedSPS(particle: SolidParticle, behavior: VFXRo
 	const currentSpeed = Math.sqrt(particle.velocity.x * particle.velocity.x + particle.velocity.y * particle.velocity.y + particle.velocity.z * particle.velocity.z);
 
 	// Get updateSpeed from system (stored in particle.props or use default)
-	const updateSpeed = (particle as any).system?.updateSpeed ?? 0.016;
+	const particleWithSystem = particle as SolidParticleWithSystem;
+	const updateSpeed = particleWithSystem.system?.updateSpeed ?? 0.016;
 
 	// angularVelocity can be VFXValue (constant/interval) or object with keys
 	let angularSpeed = 0;
