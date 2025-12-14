@@ -133,50 +133,75 @@ export class VFXSystemFactory {
 		const parentName = parentGroup ? parentGroup.name : "none";
 		this._logger.log(`${indent}Processing emitter: ${vfxEmitter.name} (parent: ${parentName})`);
 
-		const config = vfxEmitter.config;
-		this._logger.log(`${indent}  Config: duration=${config.duration}, looping=${config.looping}, systemType=${vfxEmitter.systemType}`);
+		try {
+			const config = vfxEmitter.config;
+			if (!config) {
+				this._logger.warn(`${indent}Emitter ${vfxEmitter.name} has no config, skipping`);
+				return null;
+			}
 
-		const cumulativeScale = this._calculateCumulativeScale(parentGroup);
-		this._logger.log(`${indent}Cumulative scale: (${cumulativeScale.x.toFixed(2)}, ${cumulativeScale.y.toFixed(2)}, ${cumulativeScale.z.toFixed(2)})`);
+			this._logger.log(`${indent}  Config: duration=${config.duration}, looping=${config.looping}, systemType=${vfxEmitter.systemType}`);
 
-		// Use systemType from emitter (determined during conversion)
-		const systemType = vfxEmitter.systemType || "base";
-		this._logger.log(`Using ${systemType === "solid" ? "SolidParticleSystem" : "ParticleSystem"}`);
+			const cumulativeScale = this._calculateCumulativeScale(parentGroup);
+			this._logger.log(`${indent}Cumulative scale: (${cumulativeScale.x.toFixed(2)}, ${cumulativeScale.y.toFixed(2)}, ${cumulativeScale.z.toFixed(2)})`);
 
-		let particleSystem: VFXParticleSystem | VFXSolidParticleSystem | null = null;
+			// Use systemType from emitter (determined during conversion)
+			const systemType = vfxEmitter.systemType || "base";
+			this._logger.log(`Using ${systemType === "solid" ? "SolidParticleSystem" : "ParticleSystem"}`);
 
-		if (systemType === "solid") {
-			particleSystem = this._createSolidParticleSystem(vfxEmitter, parentGroup);
-		} else {
-			particleSystem = this._createParticleSystemInstance(vfxEmitter, parentGroup, cumulativeScale, depth);
-		}
+			let particleSystem: VFXParticleSystem | VFXSolidParticleSystem | null = null;
 
-		if (!particleSystem) {
-			this._logger.warn(`Failed to create particle system for emitter: ${vfxEmitter.name}`);
+			try {
+				if (systemType === "solid") {
+					particleSystem = this._createSolidParticleSystem(vfxEmitter, parentGroup);
+				} else {
+					particleSystem = this._createParticleSystemInstance(vfxEmitter, parentGroup, cumulativeScale, depth);
+				}
+			} catch (error) {
+				this._logger.error(`${indent}Failed to create ${systemType} system for emitter ${vfxEmitter.name}: ${error instanceof Error ? error.message : String(error)}`);
+				return null;
+			}
+
+			if (!particleSystem) {
+				this._logger.warn(`${indent}Failed to create particle system for emitter: ${vfxEmitter.name}`);
+				return null;
+			}
+
+			// Apply transform to particle system
+			try {
+				if (particleSystem instanceof VFXSolidParticleSystem) {
+					// For SPS, transform is applied to the mesh
+					if (particleSystem.mesh) {
+						this._applyTransform(particleSystem.mesh, vfxEmitter.transform, depth);
+						this._setParent(particleSystem.mesh, parentGroup, depth);
+					}
+				} else if (particleSystem instanceof VFXParticleSystem) {
+					// For PS, transform is applied to the emitter mesh
+					const emitter = particleSystem.getParentNode();
+					if (emitter) {
+						this._applyTransform(emitter, vfxEmitter.transform, depth);
+						this._setParent(emitter, parentGroup, depth);
+					}
+				}
+			} catch (error) {
+				this._logger.warn(`${indent}Failed to apply transform to system ${vfxEmitter.name}: ${error instanceof Error ? error.message : String(error)}`);
+				// Continue - system is created, just transform failed
+			}
+
+			// Handle prewarm
+			try {
+				this._handlePrewarm(particleSystem, vfxEmitter.config.prewarm);
+			} catch (error) {
+				this._logger.warn(`${indent}Failed to handle prewarm for system ${vfxEmitter.name}: ${error instanceof Error ? error.message : String(error)}`);
+				// Continue - prewarm is optional
+			}
+
+			this._logger.log(`${indent}Created particle system: ${vfxEmitter.name}`);
+			return particleSystem;
+		} catch (error) {
+			this._logger.error(`${indent}Unexpected error creating particle system ${vfxEmitter.name}: ${error instanceof Error ? error.message : String(error)}`);
 			return null;
 		}
-
-		// Apply transform to particle system
-		if (particleSystem instanceof VFXSolidParticleSystem) {
-			// For SPS, transform is applied to the mesh
-			if (particleSystem.mesh) {
-				this._applyTransform(particleSystem.mesh, vfxEmitter.transform, depth);
-				this._setParent(particleSystem.mesh, parentGroup, depth);
-			}
-		} else if (particleSystem instanceof VFXParticleSystem) {
-			// For PS, transform is applied to the emitter mesh
-			const emitter = (particleSystem as any).emitter;
-			if (emitter) {
-				this._applyTransform(emitter, vfxEmitter.transform, depth);
-				this._setParent(emitter, parentGroup, depth);
-			}
-		}
-
-		// Handle prewarm
-		this._handlePrewarm(particleSystem, vfxEmitter.config.prewarm);
-
-		this._logger.log(`${indent}Created particle system: ${vfxEmitter.name}`);
-		return particleSystem;
 	}
 
 	/**

@@ -5,6 +5,7 @@ import { VFXParser } from "./parsers/VFXParser";
 import type { VFXParticleSystem } from "./systems/VFXParticleSystem";
 import type { VFXSolidParticleSystem } from "./systems/VFXSolidParticleSystem";
 import type { VFXGroup, VFXEmitter, VFXData } from "./types/hierarchy";
+import { isVFXSystem } from "./types/system";
 
 /**
  * VFX Effect Node - represents either a particle system or a group
@@ -119,28 +120,31 @@ export class VFXEffect implements IDisposable {
 	constructor(jsonData?: QuarksVFXJSON, scene?: Scene, rootUrl: string = "", options?: VFXLoaderOptions) {
 		if (jsonData && scene) {
 			const parser = new VFXParser(scene, rootUrl, jsonData, options);
-			const particleSystems = parser.parse();
-			const context = parser.getContext();
-			const vfxData = context.vfxData;
-			const groupNodesMap = context.groupNodesMap;
+			const parseResult = parser.parse();
 
-			this._systems.push(...particleSystems);
-			if (vfxData && groupNodesMap) {
-				this._buildHierarchy(vfxData, groupNodesMap, particleSystems);
+			this._systems.push(...parseResult.systems);
+			if (parseResult.vfxData && parseResult.groupNodesMap) {
+				this._buildHierarchy(parseResult.vfxData, parseResult.groupNodesMap, parseResult.systems);
 			}
 		}
 	}
 
 	/**
 	 * Build hierarchy from VFX data and group nodes map
+	 * Handles errors gracefully and continues building partial hierarchy if errors occur
 	 */
 	private _buildHierarchy(vfxData: VFXData, groupNodesMap: Map<string, TransformNode>, systems: (VFXParticleSystem | VFXSolidParticleSystem)[]): void {
 		if (!vfxData || !vfxData.root) {
 			return;
 		}
 
-		// Create nodes from hierarchy
-		this._root = this._buildNodeFromHierarchy(vfxData.root, null, groupNodesMap, systems);
+		try {
+			// Create nodes from hierarchy
+			this._root = this._buildNodeFromHierarchy(vfxData.root, null, groupNodesMap, systems);
+		} catch (error) {
+			// Log error but don't throw - effect can still work with partial hierarchy
+			console.error(`Failed to build VFX hierarchy: ${error instanceof Error ? error.message : String(error)}`);
+		}
 	}
 
 	/**
@@ -156,55 +160,66 @@ export class VFXEffect implements IDisposable {
 			return null;
 		}
 
-		const node: VFXEffectNode = {
-			name: obj.name,
-			uuid: obj.uuid,
-			parent: parent || undefined,
-			children: [],
-			type: "config" in obj ? "particle" : "group",
-		};
+		try {
+			const node: VFXEffectNode = {
+				name: obj.name,
+				uuid: obj.uuid,
+				parent: parent || undefined,
+				children: [],
+				type: "config" in obj ? "particle" : "group",
+			};
 
-		if (node.type === "particle") {
-			// Find system by name
-			const emitter = obj as VFXEmitter;
-			const system = systems.find((s) => s.name === emitter.name);
-			if (system) {
-				node.system = system;
-				this._systemsByName.set(emitter.name, system);
-				if (emitter.uuid) {
-					this._systemsByUuid.set(emitter.uuid, system);
+			if (node.type === "particle") {
+				// Find system by name
+				const emitter = obj as VFXEmitter;
+				const system = systems.find((s) => s.name === emitter.name);
+				if (system) {
+					node.system = system;
+					this._systemsByName.set(emitter.name, system);
+					if (emitter.uuid) {
+						this._systemsByUuid.set(emitter.uuid, system);
+					}
+				}
+			} else {
+				// Find group TransformNode
+				const group = obj as VFXGroup;
+				const groupNode = group.uuid ? groupNodesMap.get(group.uuid) : null;
+				if (groupNode) {
+					node.group = groupNode;
+					this._groupsByName.set(group.name, groupNode);
+					if (group.uuid) {
+						this._groupsByUuid.set(group.uuid, groupNode);
+					}
 				}
 			}
-		} else {
-			// Find group TransformNode
-			const group = obj as VFXGroup;
-			const groupNode = group.uuid ? groupNodesMap.get(group.uuid) : null;
-			if (groupNode) {
-				node.group = groupNode;
-				this._groupsByName.set(group.name, groupNode);
-				if (group.uuid) {
-					this._groupsByUuid.set(group.uuid, groupNode);
+
+			// Process children with error handling
+			if ("children" in obj && obj.children) {
+				for (const child of obj.children) {
+					try {
+						const childNode = this._buildNodeFromHierarchy(child, node, groupNodesMap, systems);
+						if (childNode) {
+							node.children.push(childNode);
+						}
+					} catch (error) {
+						// Log error but continue processing other children
+						console.warn(`Failed to build child node ${child.name}: ${error instanceof Error ? error.message : String(error)}`);
+					}
 				}
 			}
-		}
 
-		// Process children
-		if ("children" in obj && obj.children) {
-			for (const child of obj.children) {
-				const childNode = this._buildNodeFromHierarchy(child, node, groupNodesMap, systems);
-				if (childNode) {
-					node.children.push(childNode);
-				}
+			// Store node
+			if (obj.uuid) {
+				this._nodes.set(obj.uuid, node);
 			}
-		}
+			this._nodes.set(obj.name, node);
 
-		// Store node
-		if (obj.uuid) {
-			this._nodes.set(obj.uuid, node);
+			return node;
+		} catch (error) {
+			// Log error but return null to continue building other parts of hierarchy
+			console.error(`Failed to build node ${obj.name}: ${error instanceof Error ? error.message : String(error)}`);
+			return null;
 		}
-		this._nodes.set(obj.name, node);
-
-		return node;
 	}
 
 	/**
@@ -275,9 +290,11 @@ export class VFXEffect implements IDisposable {
 	private _collectSystemsInGroup(group: TransformNode, systems: (VFXParticleSystem | VFXSolidParticleSystem)[]): void {
 		// Step 1: Find systems that have this group as direct parent
 		for (const system of this._systems) {
-			const mesh = (system as any).mesh || (system as any).emitter;
-			if (mesh && mesh.parent === group) {
-				systems.push(system);
+			if (isVFXSystem(system)) {
+				const parentNode = system.getParentNode();
+				if (parentNode && parentNode.parent === group) {
+					systems.push(system);
+				}
 			}
 		}
 

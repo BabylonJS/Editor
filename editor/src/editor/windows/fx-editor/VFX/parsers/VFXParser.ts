@@ -1,7 +1,6 @@
 import { Scene, TransformNode } from "babylonjs";
 import type { QuarksVFXJSON } from "../types/quarksTypes";
 import type { VFXLoaderOptions } from "../types/loader";
-import type { VFXParseContext } from "../types/context";
 import type { VFXData } from "../types/hierarchy";
 import { VFXLogger } from "../loggers/VFXLogger";
 import { VFXMaterialFactory } from "../factories/VFXMaterialFactory";
@@ -12,59 +11,75 @@ import { VFXParticleSystem } from "../systems/VFXParticleSystem";
 import { VFXSolidParticleSystem } from "../systems/VFXSolidParticleSystem";
 
 /**
+ * Result of parsing VFX JSON
+ */
+export interface VFXParseResult {
+	/** Created particle systems */
+	systems: (VFXParticleSystem | VFXSolidParticleSystem)[];
+	/** Converted VFX data */
+	vfxData: VFXData;
+	/** Map of group UUIDs to TransformNodes */
+	groupNodesMap: Map<string, TransformNode>;
+}
+
+/**
  * Main parser for Three.js particle JSON files
  * Orchestrates the parsing process using modular components
  */
 export class VFXParser {
-	private _context: VFXParseContext;
 	private _logger: VFXLogger;
 	private _materialFactory: VFXMaterialFactory;
 	private _geometryFactory: VFXGeometryFactory;
 	private _systemFactory: VFXSystemFactory;
+	private _vfxData: VFXData;
+	private _groupNodesMap: Map<string, TransformNode>;
+	private _options: VFXLoaderOptions;
 
 	constructor(scene: Scene, rootUrl: string, jsonData: QuarksVFXJSON, options?: VFXLoaderOptions) {
 		const opts = options || {};
-		this._context = {
-			scene,
-			rootUrl,
-			jsonData,
-			options: opts,
-			groupNodesMap: new Map<string, TransformNode>(),
-		};
+		this._options = opts;
+		this._groupNodesMap = new Map<string, TransformNode>();
 
 		this._logger = new VFXLogger("[VFXParser]", opts);
 
 		// Convert Quarks JSON to VFXData first
 		const dataConverter = new VFXDataConverter(opts);
-		const vfxData = dataConverter.convert(jsonData);
-		this._context.vfxData = vfxData;
+		this._vfxData = dataConverter.convert(jsonData);
 
 		// Create factories with VFXData instead of QuarksVFXJSON
-		this._materialFactory = new VFXMaterialFactory(scene, vfxData, rootUrl, opts);
-		this._geometryFactory = new VFXGeometryFactory(vfxData, opts);
-		this._systemFactory = new VFXSystemFactory(scene, opts, this._context.groupNodesMap, this._materialFactory, this._geometryFactory);
+		this._materialFactory = new VFXMaterialFactory(scene, this._vfxData, rootUrl, opts);
+		this._geometryFactory = new VFXGeometryFactory(this._vfxData, opts);
+		this._systemFactory = new VFXSystemFactory(scene, opts, this._groupNodesMap, this._materialFactory, this._geometryFactory);
 	}
 
 	/**
 	 * Parse the JSON data and create particle systems
+	 * Returns all necessary data for building the effect hierarchy
 	 */
-	public parse(): (VFXParticleSystem | VFXSolidParticleSystem)[] {
-		const { options, vfxData } = this._context;
+	public parse(): VFXParseResult {
 		this._logger.log("=== Starting Particle System Parsing ===");
 
-		if (!vfxData) {
+		if (!this._vfxData) {
 			this._logger.warn("VFXData is missing");
-			return [];
+			return {
+				systems: [],
+				vfxData: this._vfxData,
+				groupNodesMap: this._groupNodesMap,
+			};
 		}
 
-		if (options.validate) {
-			this._validateJSONStructure(vfxData);
+		if (this._options.validate) {
+			this._validateJSONStructure(this._vfxData);
 		}
 
-		const particleSystems = this._systemFactory.createSystems(vfxData);
+		const particleSystems = this._systemFactory.createSystems(this._vfxData);
 
 		this._logger.log(`=== Parsing complete. Created ${particleSystems.length} particle system(s) ===`);
-		return particleSystems;
+		return {
+			systems: particleSystems,
+			vfxData: this._vfxData,
+			groupNodesMap: this._groupNodesMap,
+		};
 	}
 
 	/**
@@ -97,21 +112,14 @@ export class VFXParser {
 	}
 
 	/**
-	 * Get the parse context (for use by other components)
-	 */
-	public getContext(): VFXParseContext {
-		return this._context;
-	}
-
-	/**
-	 * Get the material factory
+	 * Get the material factory (for advanced use cases)
 	 */
 	public getMaterialFactory(): VFXMaterialFactory {
 		return this._materialFactory;
 	}
 
 	/**
-	 * Get the geometry factory
+	 * Get the geometry factory (for advanced use cases)
 	 */
 	public getGeometryFactory(): VFXGeometryFactory {
 		return this._geometryFactory;

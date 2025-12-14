@@ -56,6 +56,7 @@ export class VFXDataConverter {
 
 	/**
 	 * Convert Quarks/Three.js VFX JSON to Babylon.js VFX format
+	 * Handles errors gracefully and returns partial data if conversion fails
 	 */
 	public convert(quarksVFXData: QuarksVFXJSON): VFXData {
 		this._logger.log("=== Converting Quarks VFX to Babylon.js VFX format ===");
@@ -65,15 +66,43 @@ export class VFXDataConverter {
 
 		let root: VFXGroup | VFXEmitter | null = null;
 
-		if (quarksVFXData.object) {
-			root = this._convertObject(quarksVFXData.object, null, groups, emitters, 0);
+		try {
+			if (quarksVFXData.object) {
+				root = this._convertObject(quarksVFXData.object, null, groups, emitters, 0);
+			}
+		} catch (error) {
+			this._logger.error(`Failed to convert root object: ${error instanceof Error ? error.message : String(error)}`);
 		}
 
-		// Convert all resources
-		const materials = this._convertMaterials(quarksVFXData.materials || []);
-		const textures = this._convertTextures(quarksVFXData.textures || []);
-		const images = this._convertImages(quarksVFXData.images || []);
-		const geometries = this._convertGeometries(quarksVFXData.geometries || []);
+		// Convert all resources with error handling
+		let materials: VFXMaterial[] = [];
+		let textures: VFXTexture[] = [];
+		let images: VFXImage[] = [];
+		let geometries: VFXGeometry[] = [];
+
+		try {
+			materials = this._convertMaterials(quarksVFXData.materials || []);
+		} catch (error) {
+			this._logger.error(`Failed to convert materials: ${error instanceof Error ? error.message : String(error)}`);
+		}
+
+		try {
+			textures = this._convertTextures(quarksVFXData.textures || []);
+		} catch (error) {
+			this._logger.error(`Failed to convert textures: ${error instanceof Error ? error.message : String(error)}`);
+		}
+
+		try {
+			images = this._convertImages(quarksVFXData.images || []);
+		} catch (error) {
+			this._logger.error(`Failed to convert images: ${error instanceof Error ? error.message : String(error)}`);
+		}
+
+		try {
+			geometries = this._convertGeometries(quarksVFXData.geometries || []);
+		} catch (error) {
+			this._logger.error(`Failed to convert geometries: ${error instanceof Error ? error.message : String(error)}`);
+		}
 
 		this._logger.log(
 			`=== Conversion complete. Groups: ${groups.size}, Emitters: ${emitters.size}, Materials: ${materials.length}, Textures: ${textures.length}, Images: ${images.length}, Geometries: ${geometries.length} ===`

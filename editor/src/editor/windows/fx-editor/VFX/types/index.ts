@@ -5,9 +5,8 @@
  * Import types directly from their specific modules for better tree-shaking.
  */
 
-// Loader and context types
+// Loader types
 export type { VFXLoaderOptions } from "./loader";
-export type { VFXParseContext } from "./context";
 
 // Emitter types
 export type { VFXEmitterData } from "./emitter";
@@ -41,3 +40,5 @@ export type { VFXTransform, VFXGroup, VFXEmitter, VFXData } from "./hierarchy";
 export type { VFXMaterial, VFXTexture, VFXImage, VFXGeometry } from "./resources";
 export type { QuarksVFXJSON } from "./quarksTypes";
 export type { VFXPerParticleContext, VFXPerParticleBehaviorFunction, VFXPerSolidParticleBehaviorFunction, VFXSystemBehaviorFunction } from "./VFXBehaviorFunction";
+export type { IVFXSystem, ParticleWithSystem, SolidParticleWithSystem } from "./system";
+export { isVFXSystem } from "./system";

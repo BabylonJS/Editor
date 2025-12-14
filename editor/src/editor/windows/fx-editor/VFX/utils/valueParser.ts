@@ -1,5 +1,5 @@
 import { Color4, ColorGradient } from "babylonjs";
-import type { VFXValue } from "../types/values";
+import type { VFXPiecewiseBezier, VFXValue } from "../types/values";
 import type { VFXColor } from "../types/colors";
 import type { VFXGradientKey } from "../types/gradients";
 
@@ -83,7 +83,7 @@ export class VFXValueUtils {
 	/**
 	 * Evaluate PiecewiseBezier at normalized time t (0-1)
 	 */
-	private static _evaluatePiecewiseBezier(bezier: any, t: number): number {
+	private static _evaluatePiecewiseBezier(bezier: VFXPiecewiseBezier, t: number): number {
 		if (!bezier.functions || bezier.functions.length === 0) {
 			return 0;
 		}

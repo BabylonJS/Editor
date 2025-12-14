@@ -1,8 +1,9 @@
-import { Vector3, Quaternion, Matrix, Color4, SolidParticleSystem, SolidParticle, TransformNode, Mesh } from "babylonjs";
+import { Vector3, Quaternion, Matrix, Color4, SolidParticleSystem, SolidParticle, TransformNode, Mesh, AbstractMesh } from "babylonjs";
 import type { VFXParticleEmitterConfig, VFXEmissionBurst } from "../types/emitterConfig";
 import { VFXLogger } from "../loggers/VFXLogger";
 import type { VFXLoaderOptions } from "../types/loader";
 import type { VFXPerSolidParticleBehaviorFunction } from "../types/VFXBehaviorFunction";
+import type { IVFXSystem, SolidParticleWithSystem } from "../types/system";
 import type {
 	VFXBehavior,
 	VFXForceOverLifeBehavior,
@@ -40,7 +41,7 @@ interface EmissionState {
  * Extended SolidParticleSystem implementing three.quarks Mesh renderMode (renderMode = 2) logic
  * This class replicates the exact behavior of three.quarks ParticleSystem with renderMode = Mesh
  */
-export class VFXSolidParticleSystem extends SolidParticleSystem {
+export class VFXSolidParticleSystem extends SolidParticleSystem implements IVFXSystem {
 	private _emissionState: EmissionState;
 	private _behaviors: VFXPerSolidParticleBehaviorFunction[];
 	private _emitterFactory: VFXSolidParticleSystemEmitterFactory;
@@ -99,6 +100,14 @@ export class VFXSolidParticleSystem extends SolidParticleSystem {
 		if (this.mesh) {
 			this.mesh.setParent(value, false, true);
 		}
+	}
+
+	/**
+	 * Get the parent node (mesh) for hierarchy operations
+	 * Implements IVFXSystem interface
+	 */
+	public getParentNode(): AbstractMesh | TransformNode | null {
+		return this.mesh || null;
 	}
 
 	/**
@@ -306,84 +315,126 @@ export class VFXSolidParticleSystem extends SolidParticleSystem {
 		}
 	}
 
+	/**
+	 * Find a dead particle for recycling
+	 * Оптимизировано: кешируем particles и nbParticles
+	 */
 	private _findDeadParticle(): SolidParticle | null {
-		for (let j = 0; j < this.nbParticles; j++) {
-			if (!this.particles[j].alive) {
-				return this.particles[j];
+		const particles = this.particles;
+		const nbParticles = this.nbParticles;
+		for (let j = 0; j < nbParticles; j++) {
+			if (!particles[j].alive) {
+				return particles[j];
 			}
 		}
 		return null;
 	}
 
+	/**
+	 * Reset particle to initial state for recycling
+	 * Оптимизировано: используем прямые присваивания вместо setAll где возможно
+	 */
 	private _resetParticle(particle: SolidParticle): void {
 		particle.age = 0;
 		particle.alive = true;
 		particle.isVisible = true;
+		particle._stillInvisible = false; // Сбрасываем флаг невидимости
 		particle.position.setAll(0);
 		particle.velocity.setAll(0);
 		particle.rotation.setAll(0);
 		particle.scaling.setAll(1);
+		
+		// Оптимизация: создаем color только если его нет
 		if (particle.color) {
 			particle.color.set(1, 1, 1, 1);
 		} else {
 			particle.color = new Color4(1, 1, 1, 1);
 		}
 
-		if (!particle.props) {
-			particle.props = {};
-		}
-		particle.props.speedModifier = 1.0;
+		// Оптимизация: создаем props только если его нет
+		const props = particle.props || (particle.props = {});
+		props.speedModifier = 1.0;
 	}
 
+	/**
+	 * Initialize particle color
+	 * Оптимизировано: кешируем props и избегаем лишних созданий объектов
+	 */
 	private _initializeParticleColor(particle: SolidParticle): void {
-		if (!particle.color) {
-			particle.color = new Color4(1, 1, 1, 1);
-		}
-
+		const props = particle.props!;
+		
 		if (this.startColor !== undefined) {
 			const startColor = VFXValueUtils.parseConstantColor(this.startColor);
-			particle.props!.startColor = startColor.clone();
-			particle.color.copyFrom(startColor);
+			props.startColor = startColor.clone();
+			if (particle.color) {
+				particle.color.copyFrom(startColor);
+			} else {
+				particle.color = startColor.clone();
+			}
 		} else {
-			const defaultColor = new Color4(1, 1, 1, 1);
-			particle.props!.startColor = defaultColor.clone();
-			particle.color.copyFrom(defaultColor);
+			// Используем один объект для всех частиц без цвета (оптимизация памяти)
+			if (!particle.color) {
+				particle.color = new Color4(1, 1, 1, 1);
+			} else {
+				particle.color.set(1, 1, 1, 1);
+			}
+			props.startColor = particle.color.clone();
 		}
 	}
 
-	private _initializeParticleSpeed(particle: SolidParticle): void {
+	/**
+	 * Initialize particle speed
+	 * Оптимизировано: normalizedTime передается как параметр (вычисляется один раз в _spawn)
+	 */
+	private _initializeParticleSpeed(particle: SolidParticle, normalizedTime: number): void {
+		const props = particle.props!;
 		if (this.startSpeed !== undefined) {
-			const normalizedTime = this._emissionState.time / this.duration;
-			particle.props!.startSpeed = VFXValueUtils.parseValue(this.startSpeed, normalizedTime);
+			props.startSpeed = VFXValueUtils.parseValue(this.startSpeed, normalizedTime);
 		} else {
-			particle.props!.startSpeed = 0;
+			props.startSpeed = 0;
 		}
 	}
 
-	private _initializeParticleLife(particle: SolidParticle): void {
+	/**
+	 * Initialize particle lifetime
+	 * Оптимизировано: normalizedTime передается как параметр (вычисляется один раз в _spawn)
+	 */
+	private _initializeParticleLife(particle: SolidParticle, normalizedTime: number): void {
 		if (this.startLife !== undefined) {
-			const normalizedTime = this._emissionState.time / this.duration;
 			particle.lifeTime = VFXValueUtils.parseValue(this.startLife, normalizedTime);
 		} else {
 			particle.lifeTime = 1;
 		}
 	}
 
-	private _initializeParticleSize(particle: SolidParticle): void {
+	/**
+	 * Initialize particle size
+	 * Оптимизировано: normalizedTime передается как параметр (вычисляется один раз в _spawn)
+	 */
+	private _initializeParticleSize(particle: SolidParticle, normalizedTime: number): void {
+		const props = particle.props!;
 		if (this.startSize !== undefined) {
-			const normalizedTime = this._emissionState.time / this.duration;
 			const sizeValue = VFXValueUtils.parseValue(this.startSize, normalizedTime);
-			particle.props!.startSize = sizeValue;
+			props.startSize = sizeValue;
 			particle.scaling.setAll(sizeValue);
 		} else {
-			particle.props!.startSize = 1;
+			props.startSize = 1;
 			particle.scaling.setAll(1);
 		}
 	}
 
+	/**
+	 * Spawn particles from dead pool
+	 * Оптимизировано: вычисляем матрицу эмиттера один раз для всех частиц
+	 */
 	private _spawn(count: number): void {
+		if (count <= 0) {
+			return;
+		}
+
 		const emissionState = this._emissionState;
 
+		// Вычисляем матрицу эмиттера один раз для всех частиц
 		const emitterMatrix = this._getEmitterMatrix();
 		const translation = this._tempVec;
 		const quaternion = this._tempQuat;
@@ -391,20 +442,27 @@ export class VFXSolidParticleSystem extends SolidParticleSystem {
 		emitterMatrix.decompose(scale, quaternion, translation);
 		emitterMatrix.toNormalMatrix(this._normalMatrix);
 
+		// Кешируем normalizedTime один раз для всех частиц в этом спавне
+		const normalizedTime = this.duration > 0 ? this._emissionState.time / this.duration : 0;
+
 		for (let i = 0; i < count; i++) {
 			emissionState.burstParticleIndex = i;
 
 			const particle = this._findDeadParticle();
 			if (!particle) {
-				continue;
+				// Логируем только один раз для избежания спама
+				if (i === 0 && this._logger) {
+					this._logger.warn(`No dead particles available for spawning. Capacity may be insufficient.`);
+				}
+				break; // Нет смысла продолжать, если нет мертвых частиц
 			}
 
+			// Вызываем методы напрямую (быстрее, чем bind)
 			this._resetParticle(particle);
 			this._initializeParticleColor(particle);
-			this._initializeParticleSpeed(particle);
-			this._initializeParticleLife(particle);
-			this._initializeParticleSize(particle);
-
+			this._initializeParticleSpeed(particle, normalizedTime);
+			this._initializeParticleLife(particle, normalizedTime);
+			this._initializeParticleSize(particle, normalizedTime);
 			this._initializeEmitterShape(particle);
 		}
 	}
@@ -441,7 +499,7 @@ export class VFXSolidParticleSystem extends SolidParticleSystem {
 
 	private _spawnFromWaitEmiting(): void {
 		const emissionState = this._emissionState;
-		const totalSpawn = Math.ceil(emissionState.waitEmiting);
+		const totalSpawn = Math.floor(emissionState.waitEmiting);
 		if (totalSpawn > 0) {
 			this._spawn(totalSpawn);
 			emissionState.waitEmiting -= totalSpawn;
@@ -495,12 +553,14 @@ export class VFXSolidParticleSystem extends SolidParticleSystem {
 	}
 
 	private _emit(delta: number): void {
-		this._handleEmissionLooping();
-		this._spawnFromWaitEmiting();
-		this._spawnBursts();
+		// Сначала накапливаем эмиссию для текущего кадра
 		this._accumulateEmission(delta);
 
-		this._emissionState.time += delta;
+		// Потом спавним частицы из накопленного waitEmiting
+		this._spawnFromWaitEmiting();
+
+		// Спавним bursts
+		this._spawnBursts();
 	}
 
 	private _getBurstTime(burst: VFXEmissionBurst): number {
@@ -709,7 +769,8 @@ export class VFXSolidParticleSystem extends SolidParticleSystem {
 					const b = behavior as VFXForceOverLifeBehavior;
 					functions.push((particle: SolidParticle) => {
 						// Get updateSpeed from system (stored in particle.props or use default)
-						const updateSpeed = (particle as any).system?.updateSpeed ?? 0.016;
+						const particleWithSystem = particle as SolidParticleWithSystem;
+						const updateSpeed = particleWithSystem.system?.updateSpeed ?? 0.016;
 
 						const forceX = b.x ?? b.force?.x;
 						const forceY = b.y ?? b.force?.y;
@@ -812,32 +873,41 @@ export class VFXSolidParticleSystem extends SolidParticleSystem {
 
 		const deltaTime = this._scaledUpdateSpeed || 0.016;
 
-		this._emit(deltaTime);
+		// Сначала увеличиваем время
 		this._emissionState.time += deltaTime;
+
+		// Потом эмиттим (внутри _emit будет накопление и спавн)
+		this._emit(deltaTime);
+
+		// В конце обрабатываем looping (теперь time уже увеличен)
+		this._handleEmissionLooping();
 	}
 
 	private _updateParticle(particle: SolidParticle): SolidParticle {
+		// Ранний выход для мертвых частиц - базовый класс пропустит их обработку (continue)
 		if (!particle.alive) {
 			particle.isVisible = false;
 
-			if (this._positions32 && particle._model) {
+			// Обнуляем позиции только если частица еще не была помечена как невидимая
+			// Базовый класс обнуляет позиции для невидимых, но живых частиц в блоке else.
+			// Для мертвых частиц базовый класс делает continue до блока else,
+			// поэтому нам нужно обнулить позиции здесь, но только один раз.
+			if (!particle._stillInvisible && this._positions32 && particle._model) {
 				const shape = particle._model._shape;
 				const startIdx = particle._pos;
-				for (let pt = 0; pt < shape.length; pt++) {
+				const positions32 = this._positions32;
+				// Оптимизированное обнуление: используем один цикл с прямым доступом
+				for (let pt = 0, len = shape.length; pt < len; pt++) {
 					const idx = startIdx + pt * 3;
-					this._positions32[idx] = 0;
-					this._positions32[idx + 1] = 0;
-					this._positions32[idx + 2] = 0;
+					positions32[idx] = positions32[idx + 1] = positions32[idx + 2] = 0;
 				}
+				particle._stillInvisible = true; // Помечаем как невидимую для оптимизации
 			}
 
 			return particle;
 		}
 
-		if (particle.age < 0) {
-			return particle;
-		}
-
+		// Базовый класс уже обновил particle.age и проверил lifetime перед вызовом updateParticle
 		// Calculate lifeRatio for gradient interpolation
 		const lifeRatio = particle.lifeTime > 0 ? particle.age / particle.lifeTime : 0;
 
@@ -845,36 +915,48 @@ export class VFXSolidParticleSystem extends SolidParticleSystem {
 		this._applyGradients(particle, lifeRatio);
 
 		// Store reference to system in particle for behaviors that need it
-		(particle as any).system = this;
+		// Используем type assertion только один раз для оптимизации
+		const particleWithSystem = particle as SolidParticleWithSystem;
+		particleWithSystem.system = this;
 
 		// Apply per-particle behaviors (BySpeed, OrbitOverLife, etc.)
 		// These behaviors don't use gradients as they depend on particle properties, not lifeRatio
 		// Behavior config is captured in closure, so we only need to pass particle
-		for (const behaviorFn of this._behaviors) {
-			behaviorFn(particle);
+		const behaviors = this._behaviors;
+		for (let i = 0, len = behaviors.length; i < len; i++) {
+			behaviors[i](particle);
 		}
 
 		// Apply velocity with speed modifier
-		const speedModifier = particle.props?.speedModifier ?? 1.0;
-		particle.position.addInPlace(particle.velocity.scale(this.updateSpeed * speedModifier));
+		// Оптимизация: кешируем props и используем прямое обращение
+		const props = particle.props;
+		const speedModifier = props?.speedModifier ?? 1.0;
+		const updateSpeed = this.updateSpeed;
+		particle.position.addInPlace(particle.velocity.scale(updateSpeed * speedModifier));
 
 		return particle;
 	}
 
 	/**
 	 * Apply gradients to particle based on lifeRatio
+	 * Оптимизировано для производительности: кешируем props и updateSpeed
 	 */
 	private _applyGradients(particle: SolidParticle, lifeRatio: number): void {
+		// Кешируем props и updateSpeed для избежания повторных обращений
+		const props = particle.props || (particle.props = {});
+		const updateSpeed = this.updateSpeed;
+
 		// Apply color gradient
 		const color = this._colorGradients.getValue(lifeRatio);
 		if (color && particle.color) {
-			const startColor = particle.props?.startColor;
+			const startColor = props.startColor;
 			if (startColor) {
 				// Multiply with startColor (matching ParticleSystem behavior)
-				particle.color.r = color.r * startColor.r;
-				particle.color.g = color.g * startColor.g;
-				particle.color.b = color.b * startColor.b;
-				particle.color.a = color.a * startColor.a;
+				const pColor = particle.color;
+				pColor.r = color.r * startColor.r;
+				pColor.g = color.g * startColor.g;
+				pColor.b = color.b * startColor.b;
+				pColor.a = color.a * startColor.a;
 			} else {
 				particle.color.copyFrom(color);
 			}
@@ -882,31 +964,29 @@ export class VFXSolidParticleSystem extends SolidParticleSystem {
 
 		// Apply size gradient
 		const size = this._sizeGradients.getValue(lifeRatio);
-		if (size !== null && particle.props?.startSize !== undefined) {
-			const newSize = particle.props.startSize * size;
-			particle.scaling.setAll(newSize);
+		if (size !== null && props.startSize !== undefined) {
+			particle.scaling.setAll(props.startSize * size);
 		}
 
 		// Apply velocity gradient (speed modifier)
 		const velocity = this._velocityGradients.getValue(lifeRatio);
 		if (velocity !== null) {
-			particle.props = particle.props || {};
-			particle.props.speedModifier = velocity;
+			props.speedModifier = velocity;
 		}
 
 		// Apply angular speed gradient
 		const angularSpeed = this._angularSpeedGradients.getValue(lifeRatio);
 		if (angularSpeed !== null) {
-			particle.rotation.z += angularSpeed * this.updateSpeed;
+			particle.rotation.z += angularSpeed * updateSpeed;
 		}
 
 		// Apply limit velocity
 		const limitVelocity = this._limitVelocityGradients.getValue(lifeRatio);
 		if (limitVelocity !== null && this._limitVelocityDamping > 0) {
-			const currentSpeed = Math.sqrt(particle.velocity.x * particle.velocity.x + particle.velocity.y * particle.velocity.y + particle.velocity.z * particle.velocity.z);
+			const vel = particle.velocity;
+			const currentSpeed = Math.sqrt(vel.x * vel.x + vel.y * vel.y + vel.z * vel.z);
 			if (currentSpeed > limitVelocity) {
-				const scale = limitVelocity / currentSpeed;
-				particle.velocity.scaleInPlace(scale * this._limitVelocityDamping);
+				vel.scaleInPlace((limitVelocity / currentSpeed) * this._limitVelocityDamping);
 			}
 		}
 	}

@@ -1,5 +1,6 @@
-import { Color4, ParticleSystem, Scene, Vector3, Matrix, Texture } from "babylonjs";
+import { Color4, ParticleSystem, Scene, Vector3, Matrix, Texture, AbstractMesh } from "babylonjs";
 import type { VFXPerParticleBehaviorFunction } from "../types/VFXBehaviorFunction";
+import type { IVFXSystem, ParticleWithSystem } from "../types/system";
 import type {
 	VFXBehavior,
 	VFXColorOverLifeBehavior,
@@ -40,7 +41,7 @@ import {
  * Extended ParticleSystem with VFX behaviors support
  * Fully self-contained, no dependencies on parsers or factories
  */
-export class VFXParticleSystem extends ParticleSystem {
+export class VFXParticleSystem extends ParticleSystem implements IVFXSystem {
 	public startSize: number;
 	public startSpeed: number;
 	public startColor: Color4;
@@ -205,7 +206,8 @@ export class VFXParticleSystem extends ParticleSystem {
 					const b = behavior as VFXRotationBySpeedBehavior;
 					functions.push((particle: Particle) => {
 						// Store reference to system in particle for behaviors that need it
-						(particle as any).particleSystem = this;
+						const particleWithSystem = particle as ParticleWithSystem;
+						particleWithSystem.particleSystem = this;
 						applyRotationBySpeedPS(particle, b);
 					});
 					break;
