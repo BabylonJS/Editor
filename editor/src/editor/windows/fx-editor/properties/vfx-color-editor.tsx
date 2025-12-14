@@ -1,17 +1,12 @@
 import { ReactNode } from "react";
-import { Color4, Vector3, Color3 } from "babylonjs";
+import { Color4 } from "babylonjs";
 
 import { EditorInspectorColorField } from "../../../layout/inspector/fields/color";
+import { EditorInspectorColorGradientField } from "../../../layout/inspector/fields/gradient";
 import { EditorInspectorListField } from "../../../layout/inspector/fields/list";
 import { EditorInspectorBlockField } from "../../../layout/inspector/fields/block";
-import { EditorInspectorNumberField } from "../../../layout/inspector/fields/number";
-
-import { Button } from "../../../../ui/shadcn/ui/button";
-import { AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
-import { Slider } from "../../../../ui/shadcn/ui/slider";
 
 import type { VFXColor, VFXConstantColor, VFXColorRange, VFXGradientColor, VFXRandomColor, VFXRandomColorBetweenGradient } from "../VFX/types/colors";
-import type { VFXGradientKey } from "../VFX/types/gradients";
 import { VFXValueUtils } from "../VFX/utils/valueParser";
 
 export type VFXColorType = "ConstantColor" | "ColorRange" | "Gradient" | "RandomColor" | "RandomColorBetweenGradient";
@@ -184,14 +179,46 @@ export function VFXColorEditor(props: IVFXColorEditorProps): ReactNode {
 				</>
 			)}
 
-			{currentType === "Gradient" && <GradientEditor value={value && typeof value === "object" && "type" in value && value.type === "Gradient" ? value : null} onChange={onChange} />}
+			{currentType === "Gradient" && (() => {
+				const gradientValue = value && typeof value === "object" && "type" in value && value.type === "Gradient" ? value : null;
+				const defaultColorKeys = [
+					{ pos: 0, value: [0, 0, 0, 1] },
+					{ pos: 1, value: [1, 1, 1, 1] },
+				];
+				const defaultAlphaKeys = [
+					{ pos: 0, value: 1 },
+					{ pos: 1, value: 1 },
+				];
+				const wrapperGradient = {
+					colorKeys: gradientValue?.colorKeys || defaultColorKeys,
+					alphaKeys: gradientValue?.alphaKeys || defaultAlphaKeys,
+				};
+				return (
+					<EditorInspectorColorGradientField
+						object={wrapperGradient}
+						property=""
+						label=""
+						onChange={(newColorKeys, newAlphaKeys) => {
+							onChange({
+								type: "Gradient",
+								colorKeys: newColorKeys,
+								alphaKeys: newAlphaKeys,
+							});
+						}}
+					/>
+				);
+			})()}
 
 			{currentType === "RandomColor" && (
 				<>
 					{(() => {
 						const randomColor = value && typeof value === "object" && "type" in value && value.type === "RandomColor" ? value : null;
-						const colorA = randomColor ? new Color4(randomColor.colorA[0], randomColor.colorA[1], randomColor.colorA[2], randomColor.colorA[3]) : new Color4(0, 0, 0, 1);
-						const colorB = randomColor ? new Color4(randomColor.colorB[0], randomColor.colorB[1], randomColor.colorB[2], randomColor.colorB[3]) : new Color4(1, 1, 1, 1);
+						const colorA = randomColor
+							? new Color4(randomColor.colorA[0], randomColor.colorA[1], randomColor.colorA[2], randomColor.colorA[3])
+							: new Color4(0, 0, 0, 1);
+						const colorB = randomColor
+							? new Color4(randomColor.colorB[0], randomColor.colorB[1], randomColor.colorB[2], randomColor.colorB[3])
+							: new Color4(1, 1, 1, 1);
 						const wrapperRandom = {
 							get colorA() {
 								return colorA;
@@ -218,239 +245,73 @@ export function VFXColorEditor(props: IVFXColorEditorProps): ReactNode {
 				</>
 			)}
 
-			{currentType === "RandomColorBetweenGradient" && (
-				<>
-					{(() => {
-						const randomGradient = value && typeof value === "object" && "type" in value && value.type === "RandomColorBetweenGradient" ? value : null;
-						return (
-							<>
-								<EditorInspectorBlockField>
-									<div className="px-2">Gradient 1</div>
-									<GradientEditor
-										value={randomGradient ? { type: "Gradient" as const, colorKeys: randomGradient.gradient1.colorKeys, alphaKeys: randomGradient.gradient1.alphaKeys } : null}
-										onChange={(newGradient) => {
-											if (randomGradient) {
-												onChange({
-													type: "RandomColorBetweenGradient",
-													gradient1: {
-														colorKeys: newGradient.type === "Gradient" ? newGradient.colorKeys : [],
-														alphaKeys: newGradient.type === "Gradient" ? newGradient.alphaKeys : [],
-													},
-													gradient2: randomGradient.gradient2,
-												});
-											}
-										}}
-									/>
-								</EditorInspectorBlockField>
-								<EditorInspectorBlockField>
-									<div className="px-2">Gradient 2</div>
-									<GradientEditor
-										value={randomGradient ? { type: "Gradient" as const, colorKeys: randomGradient.gradient2.colorKeys, alphaKeys: randomGradient.gradient2.alphaKeys } : null}
-										onChange={(newGradient) => {
-											if (randomGradient) {
-												onChange({
-													type: "RandomColorBetweenGradient",
-													gradient1: randomGradient.gradient1,
-													gradient2: {
-														colorKeys: newGradient.type === "Gradient" ? newGradient.colorKeys : [],
-														alphaKeys: newGradient.type === "Gradient" ? newGradient.alphaKeys : [],
-													},
-												});
-											}
-										}}
-									/>
-								</EditorInspectorBlockField>
-							</>
-						);
-					})()}
-				</>
-			)}
-		</>
-	);
-}
+			{currentType === "RandomColorBetweenGradient" && (() => {
+				const randomGradient = value && typeof value === "object" && "type" in value && value.type === "RandomColorBetweenGradient" ? value : null;
+				const defaultColorKeys = [
+					{ pos: 0, value: [0, 0, 0, 1] },
+					{ pos: 1, value: [1, 1, 1, 1] },
+				];
+				const defaultAlphaKeys = [
+					{ pos: 0, value: 1 },
+					{ pos: 1, value: 1 },
+				];
 
-interface IGradientEditorProps {
-	value: VFXGradientColor | null;
-	onChange: (newValue: VFXGradientColor) => void;
-}
+				const wrapperGradient1 = {
+					colorKeys: randomGradient?.gradient1?.colorKeys || defaultColorKeys,
+					alphaKeys: randomGradient?.gradient1?.alphaKeys || defaultAlphaKeys,
+				};
 
-function GradientEditor(props: IGradientEditorProps): ReactNode {
-	const { value, onChange } = props;
-
-	// Initialize gradient data
-	const colorKeys = value?.colorKeys || [
-		{ pos: 0, value: [0, 0, 0, 1] },
-		{ pos: 1, value: [1, 1, 1, 1] },
-	];
-	const alphaKeys = value?.alphaKeys || [
-		{ pos: 0, value: 1 },
-		{ pos: 1, value: 1 },
-	];
-
-	const updateGradient = (newColorKeys: VFXGradientKey[], newAlphaKeys?: VFXGradientKey[]) => {
-		onChange({
-			type: "Gradient",
-			colorKeys: newColorKeys,
-			alphaKeys: newAlphaKeys || alphaKeys,
-		});
-	};
-
-	return (
-		<div className="flex flex-col gap-2">
-			<div className="px-2 text-sm font-medium">Color Keys</div>
-			{colorKeys.map((key, index) => {
-				// Convert value to Color3 for color picker
-				// Handle Color4 objects, arrays, numbers, or undefined
-				let colorValue: number[];
-				let alpha: number;
-				if (Array.isArray(key.value)) {
-					colorValue = key.value;
-					alpha = key.value.length > 3 ? key.value[3] : 1;
-				} else if (typeof key.value === "number") {
-					colorValue = [key.value, key.value, key.value];
-					alpha = 1;
-				} else if (key.value && typeof key.value === "object" && "r" in key.value && "g" in key.value && "b" in key.value) {
-					// Handle Color4 or Color3 objects
-					colorValue = [key.value.r || 0, key.value.g || 0, key.value.b || 0];
-					alpha = "a" in key.value ? key.value.a || 1 : 1;
-				} else {
-					colorValue = [0, 0, 0];
-					alpha = 1;
-				}
-				const color3 = new Color3(colorValue[0], colorValue[1], colorValue[2]);
+				const wrapperGradient2 = {
+					colorKeys: randomGradient?.gradient2?.colorKeys || defaultColorKeys,
+					alphaKeys: randomGradient?.gradient2?.alphaKeys || defaultAlphaKeys,
+				};
 
 				return (
-					<EditorInspectorBlockField key={`color-${index}`}>
-						<div className="flex gap-2 items-center">
-							<div className="w-1/3">
-								<EditorInspectorColorField
-									object={{ _color3: color3 }}
-									property="_color3"
-									label=""
-									onChange={(color) => {
-										const newColorKeys = [...colorKeys];
-										// Create new key object without Color4 to avoid React rendering issues
-										newColorKeys[index] = { pos: key.pos, value: [color.r, color.g, color.b, alpha] };
-										updateGradient(newColorKeys);
-									}}
-								/>
-							</div>
-							<div className="flex-1">
-								<Slider
-									min={0}
-									max={1}
-									step={0.01}
-									value={[key.pos || 0]}
-									onValueChange={(vals) => {
-										const newColorKeys = [...colorKeys];
-										// Create new key object without Color4 to avoid React rendering issues
-										const keyValue = Array.isArray(key.value) ? key.value : typeof key.value === "number" ? [key.value, key.value, key.value] : key.value && typeof key.value === "object" && "r" in key.value ? [key.value.r || 0, key.value.g || 0, key.value.b || 0, "a" in key.value ? key.value.a || 1 : 1] : [0, 0, 0, 1];
-										newColorKeys[index] = { pos: vals[0], value: keyValue };
-										updateGradient(newColorKeys);
-									}}
-								/>
-							</div>
-							<Button
-								variant="ghost"
-								size="sm"
-								className="h-6 w-6 p-0"
-								onClick={() => {
-									const newColorKeys = colorKeys.filter((_, i) => i !== index);
-									updateGradient(newColorKeys);
-								}}
-							>
-								<AiOutlineClose className="w-4 h-4" />
-							</Button>
-						</div>
-					</EditorInspectorBlockField>
-				);
-			})}
-			<Button
-				variant="ghost"
-				size="sm"
-				onClick={() => {
-					const lastKey = colorKeys[colorKeys.length - 1];
-					const newPosition = lastKey ? Math.min(1, (lastKey.pos || 0) + 0.1) : 0.5;
-					const newColorKeys = [...colorKeys, { pos: newPosition, value: [1, 1, 1, 1] }];
-					updateGradient(newColorKeys);
-				}}
-			>
-				<AiOutlinePlus className="w-4 h-4" /> Add Color Key
-			</Button>
-
-			<div className="px-2 text-sm font-medium mt-2">Alpha Keys</div>
-			{alphaKeys.map((key, index) => (
-				<EditorInspectorBlockField key={`alpha-${index}`}>
-					<div className="flex gap-2 items-center">
-						<div className="w-1/3">
-							{(() => {
-								// Handle alpha value - can be number, array, or Color4 object
-								let alphaValue: number;
-								if (typeof key.value === "number") {
-									alphaValue = key.value;
-								} else if (Array.isArray(key.value)) {
-									alphaValue = key.value[3] || 1;
-								} else if (key.value && typeof key.value === "object" && "a" in key.value) {
-									alphaValue = key.value.a || 1;
-								} else {
-									alphaValue = 1;
-								}
-								const wrapperAlpha = {
-									get value() {
-										return alphaValue;
-									},
-									set value(newVal: number) {
-										const newAlphaKeys = [...alphaKeys];
-										// Create new key object without Color4 to avoid React rendering issues
-										newAlphaKeys[index] = { pos: key.pos, value: newVal };
-										updateGradient(colorKeys, newAlphaKeys);
-									},
-								};
-								return <EditorInspectorNumberField object={wrapperAlpha} property="value" label="Alpha" min={0} max={1} step={0.01} onChange={() => {}} />;
-							})()}
-						</div>
-						<div className="flex-1">
-							<Slider
-								min={0}
-								max={1}
-								step={0.01}
-								value={[key.pos || 0]}
-								onValueChange={(vals) => {
-									const newAlphaKeys = [...alphaKeys];
-									// Create new key object without Color4 to avoid React rendering issues
-									const keyValue = typeof key.value === "number" ? key.value : Array.isArray(key.value) ? key.value[3] || 1 : key.value && typeof key.value === "object" && "a" in key.value ? key.value.a || 1 : 1;
-									newAlphaKeys[index] = { pos: vals[0], value: keyValue };
-									updateGradient(colorKeys, newAlphaKeys);
+					<>
+						<EditorInspectorBlockField>
+							<div className="px-2">Gradient 1</div>
+							<EditorInspectorColorGradientField
+								object={wrapperGradient1}
+								property=""
+								label=""
+								onChange={(newColorKeys, newAlphaKeys) => {
+									if (randomGradient) {
+										onChange({
+											type: "RandomColorBetweenGradient",
+											gradient1: {
+												colorKeys: newColorKeys,
+												alphaKeys: newAlphaKeys,
+											},
+											gradient2: randomGradient.gradient2,
+										});
+									}
 								}}
 							/>
-						</div>
-						<Button
-							variant="ghost"
-							size="sm"
-							className="h-6 w-6 p-0"
-							onClick={() => {
-								const newAlphaKeys = alphaKeys.filter((_, i) => i !== index);
-								updateGradient(colorKeys, newAlphaKeys);
-							}}
-						>
-							<AiOutlineClose className="w-4 h-4" />
-						</Button>
-					</div>
-				</EditorInspectorBlockField>
-			))}
-			<Button
-				variant="ghost"
-				size="sm"
-				onClick={() => {
-					const lastKey = alphaKeys[alphaKeys.length - 1];
-					const newPosition = lastKey ? Math.min(1, (lastKey.pos || 0) + 0.1) : 0.5;
-					const newAlphaKeys = [...alphaKeys, { pos: newPosition, value: 1 }];
-					updateGradient(colorKeys, newAlphaKeys);
-				}}
-			>
-				<AiOutlinePlus className="w-4 h-4" /> Add Alpha Key
-			</Button>
-		</div>
+						</EditorInspectorBlockField>
+						<EditorInspectorBlockField>
+							<div className="px-2">Gradient 2</div>
+							<EditorInspectorColorGradientField
+								object={wrapperGradient2}
+								property=""
+								label=""
+								onChange={(newColorKeys, newAlphaKeys) => {
+									if (randomGradient) {
+										onChange({
+											type: "RandomColorBetweenGradient",
+											gradient1: randomGradient.gradient1,
+											gradient2: {
+												colorKeys: newColorKeys,
+												alphaKeys: newAlphaKeys,
+											},
+										});
+									}
+								}}
+							/>
+						</EditorInspectorBlockField>
+					</>
+				);
+			})()}
+		</>
 	);
 }
 
