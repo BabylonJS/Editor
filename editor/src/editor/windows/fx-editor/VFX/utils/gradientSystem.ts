@@ -1,0 +1,100 @@
+import { Color4 } from "babylonjs";
+
+/**
+ * Generic gradient system for storing and interpolating gradient values
+ * Similar to Babylon.js native gradients but for SolidParticleSystem
+ */
+export class GradientSystem<T> {
+	private gradients: Array<{ gradient: number; value: T }>;
+
+	constructor() {
+		this.gradients = [];
+	}
+
+	/**
+	 * Add a gradient point
+	 */
+	public addGradient(gradient: number, value: T): void {
+		// Insert in sorted order
+		const index = this.gradients.findIndex((g) => g.gradient > gradient);
+		if (index === -1) {
+			this.gradients.push({ gradient, value });
+		} else {
+			this.gradients.splice(index, 0, { gradient, value });
+		}
+	}
+
+	/**
+	 * Get interpolated value at given gradient position (0-1)
+	 */
+	public getValue(gradient: number): T | null {
+		if (this.gradients.length === 0) {
+			return null;
+		}
+
+		if (this.gradients.length === 1) {
+			return this.gradients[0].value;
+		}
+
+		// Clamp gradient to [0, 1]
+		const clampedGradient = Math.max(0, Math.min(1, gradient));
+
+		// Find the two gradients to interpolate between
+		for (let i = 0; i < this.gradients.length - 1; i++) {
+			const g1 = this.gradients[i];
+			const g2 = this.gradients[i + 1];
+
+			if (clampedGradient >= g1.gradient && clampedGradient <= g2.gradient) {
+				const t = g2.gradient - g1.gradient !== 0 ? (clampedGradient - g1.gradient) / (g2.gradient - g1.gradient) : 0;
+				return this.interpolate(g1.value, g2.value, t);
+			}
+		}
+
+		// Clamp to first or last gradient
+		if (clampedGradient <= this.gradients[0].gradient) {
+			return this.gradients[0].value;
+		}
+		return this.gradients[this.gradients.length - 1].value;
+	}
+
+	/**
+	 * Clear all gradients
+	 */
+	public clear(): void {
+		this.gradients = [];
+	}
+
+	/**
+	 * Get all gradients (for debugging)
+	 */
+	public getGradients(): Array<{ gradient: number; value: T }> {
+		return [...this.gradients];
+	}
+
+	/**
+	 * Interpolate between two values (to be overridden by subclasses)
+	 */
+	protected interpolate(value1: T, value2: T, t: number): T {
+		// Default implementation - should be overridden
+		return value1;
+	}
+}
+
+/**
+ * Color gradient system for Color4
+ */
+export class ColorGradientSystem extends GradientSystem<Color4> {
+	protected interpolate(value1: Color4, value2: Color4, t: number): Color4 {
+		return new Color4(value1.r + (value2.r - value1.r) * t, value1.g + (value2.g - value1.g) * t, value1.b + (value2.b - value1.b) * t, value1.a + (value2.a - value1.a) * t);
+	}
+}
+
+/**
+ * Number gradient system
+ */
+export class NumberGradientSystem extends GradientSystem<number> {
+	protected interpolate(value1: number, value2: number, t: number): number {
+		return value1 + (value2 - value1) * t;
+	}
+}
+

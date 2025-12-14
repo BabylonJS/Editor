@@ -8,8 +8,6 @@ export * from "./utils/capacityCalculator";
 export * from "./utils/matrixUtils";
 export * from "./systems/VFXSolidParticleSystem";
 export * from "./systems/VFXParticleSystem";
-export * from "./factories/VFXParticleSystemBehaviorFactory";
-export * from "./factories/VFXSolidParticleSystemBehaviorFactory";
 export * from "./loggers/VFXLogger";
 export * from "./VFXEffect";
 export * from "./utils/valueParser";
