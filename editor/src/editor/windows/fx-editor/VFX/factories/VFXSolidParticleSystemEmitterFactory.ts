@@ -97,4 +97,3 @@ export class VFXSolidParticleSystemEmitterFactory {
 		particle.velocity.scaleInPlace(startSpeed);
 	}
 }
-

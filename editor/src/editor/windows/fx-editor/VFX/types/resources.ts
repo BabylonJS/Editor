@@ -82,4 +82,3 @@ export interface VFXGeometry {
 	// For BufferGeometry (already converted to left-handed)
 	data?: VFXGeometryData;
 }
-

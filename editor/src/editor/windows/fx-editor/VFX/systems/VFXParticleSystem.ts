@@ -1,4 +1,4 @@
-import { Color4, ParticleSystem, Scene, Vector3, Matrix, Texture, AbstractMesh } from "babylonjs";
+import { Color4, ParticleSystem, Scene, Vector3, Matrix, Texture, AbstractMesh, TransformNode } from "babylonjs";
 import type { VFXPerParticleBehaviorFunction } from "../types/VFXBehaviorFunction";
 import type { IVFXSystem, ParticleWithSystem } from "../types/system";
 import type {
@@ -76,6 +76,16 @@ export class VFXParticleSystem extends ParticleSystem implements IVFXSystem {
 
 		// Configure from config
 		this._configureFromConfig(config, options);
+	}
+
+	/**
+	 * Get the parent node (emitter) for hierarchy operations
+	 * Required by IVFXSystem interface
+	 */
+	public getParentNode(): AbstractMesh | TransformNode | null {
+		// ParticleSystem.emitter can be AbstractMesh, Vector3, or null
+		// Return emitter if it's an AbstractMesh, otherwise null
+		return this.emitter instanceof AbstractMesh ? this.emitter : null;
 	}
 
 	/**

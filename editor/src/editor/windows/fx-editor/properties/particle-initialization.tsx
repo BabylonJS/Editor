@@ -62,9 +62,7 @@ export function FXEditorParticleInitializationProperties(props: IFXEditorParticl
 		// For now, show that properties exist but need proper VFXValue editors
 		return (
 			<>
-				<div className="px-2 text-sm text-muted-foreground">
-					Initialization properties are stored as VFXValue. Full editor support coming soon.
-				</div>
+				<div className="px-2 text-sm text-muted-foreground">Initialization properties are stored as VFXValue. Full editor support coming soon.</div>
 				{/* TODO: Add VFXValue editors for startLife, startSize, startSpeed, startColor */}
 			</>
 		);
