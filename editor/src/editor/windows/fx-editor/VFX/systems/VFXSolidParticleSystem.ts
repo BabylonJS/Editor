@@ -190,6 +190,10 @@ export class VFXSolidParticleSystem extends SolidParticleSystem implements IVFXS
 			this.billboard = true;
 		}
 
+		// Enable vertex colors and alpha for particle color support
+		// This must be done after addShape but before buildMesh
+		// The mesh will be created in buildMesh, so we'll set it there
+		
 		// Dispose temporary mesh after adding to SPS
 		particleMesh.dispose();
 	}
@@ -567,12 +571,39 @@ export class VFXSolidParticleSystem extends SolidParticleSystem implements IVFXS
 		return VFXValueUtils.parseConstantValue(burst.time);
 	}
 
+	/**
+	 * Override buildMesh to enable vertex colors and alpha
+	 * This is required for ColorOverLife behavior to work visually
+	 */
+	public override buildMesh(): Mesh {
+		const mesh = super.buildMesh();
+		
+		// Enable vertex colors and alpha for particle color support
+		// This is required for ColorOverLife behavior to work
+		if (mesh) {
+			mesh.hasVertexAlpha = true;
+			if (this._logger) {
+				this._logger.log(`Enabled hasVertexAlpha for SPS mesh: ${mesh.name}`);
+			}
+		}
+		
+		return mesh;
+	}
+
 	private _setupMeshProperties(): void {
 		if (!this.mesh) {
 			if (this._logger) {
 				this._logger.warn(`  SPS mesh is null in initParticles!`);
 			}
 			return;
+		}
+
+		// Ensure vertex alpha is enabled (in case mesh was already built)
+		if (!this.mesh.hasVertexAlpha) {
+			this.mesh.hasVertexAlpha = true;
+			if (this._logger) {
+				this._logger.log(`Enabled hasVertexAlpha for existing SPS mesh: ${this.mesh.name}`);
+			}
 		}
 
 		if (this._logger) {
@@ -949,16 +980,17 @@ export class VFXSolidParticleSystem extends SolidParticleSystem implements IVFXS
 		// Apply color gradient
 		const color = this._colorGradients.getValue(lifeRatio);
 		if (color && particle.color) {
+			// Always apply gradient color directly to particle.color
+			// The base class will apply this to vertex colors if _computeParticleColor is enabled
+			particle.color.copyFrom(color);
+			
+			// Multiply with startColor if it exists (matching ParticleSystem behavior)
 			const startColor = props.startColor;
 			if (startColor) {
-				// Multiply with startColor (matching ParticleSystem behavior)
-				const pColor = particle.color;
-				pColor.r = color.r * startColor.r;
-				pColor.g = color.g * startColor.g;
-				pColor.b = color.b * startColor.b;
-				pColor.a = color.a * startColor.a;
-			} else {
-				particle.color.copyFrom(color);
+				particle.color.r *= startColor.r;
+				particle.color.g *= startColor.g;
+				particle.color.b *= startColor.b;
+				particle.color.a *= startColor.a;
 			}
 		}
 
