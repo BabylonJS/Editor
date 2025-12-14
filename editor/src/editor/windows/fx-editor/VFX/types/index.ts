@@ -38,7 +38,9 @@ export type {
 export type { VFXEmissionBurst, VFXParticleEmitterConfig } from "./emitterConfig";
 export type { VFXTransform, VFXGroup, VFXEmitter, VFXData } from "./hierarchy";
 export type { VFXMaterial, VFXTexture, VFXImage, VFXGeometry } from "./resources";
+export type { ISolidParticleEmitterType } from "./emitters";
+export { SolidPointParticleEmitter, SolidSphereParticleEmitter, SolidConeParticleEmitter } from "./emitters";
 export type { QuarksVFXJSON } from "./quarksTypes";
-export type { VFXPerParticleContext, VFXPerParticleBehaviorFunction, VFXPerSolidParticleBehaviorFunction, VFXSystemBehaviorFunction } from "./VFXBehaviorFunction";
+export type { VFXPerParticleBehaviorFunction, VFXPerSolidParticleBehaviorFunction, VFXSystemBehaviorFunction } from "./VFXBehaviorFunction";
 export type { IVFXSystem, ParticleWithSystem, SolidParticleWithSystem } from "./system";
 export { isVFXSystem } from "./system";

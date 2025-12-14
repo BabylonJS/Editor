@@ -19,7 +19,6 @@ import type {
 import type { Particle } from "babylonjs";
 import type { VFXShape } from "../types/shapes";
 import type { VFXParticleEmitterConfig, VFXEmissionBurst } from "../types/emitterConfig";
-import { VFXParticleSystemEmitterFactory } from "../factories/VFXParticleSystemEmitterFactory";
 import { VFXValueUtils } from "../utils/valueParser";
 import { VFXCapacityCalculator } from "../utils/capacityCalculator";
 import {
@@ -46,7 +45,6 @@ export class VFXParticleSystem extends ParticleSystem implements IVFXSystem {
 	public startSpeed: number;
 	public startColor: Color4;
 	private _behaviors: VFXPerParticleBehaviorFunction[];
-	private _emitterFactory: VFXParticleSystemEmitterFactory;
 	public readonly behaviorConfigs: VFXBehavior[];
 
 	constructor(
@@ -56,11 +54,6 @@ export class VFXParticleSystem extends ParticleSystem implements IVFXSystem {
 		options?: {
 			texture?: Texture;
 			blendMode?: number;
-			emitterShape?: {
-				shape: VFXShape | undefined;
-				cumulativeScale: Vector3;
-				rotationMatrix: Matrix | null;
-			};
 		}
 	) {
 		// Calculate capacity
@@ -69,7 +62,6 @@ export class VFXParticleSystem extends ParticleSystem implements IVFXSystem {
 
 		super(name, capacity, scene);
 		this._behaviors = [];
-		this._emitterFactory = new VFXParticleSystemEmitterFactory(this);
 
 		// Create proxy array that updates functions when modified
 		this.behaviorConfigs = this._createBehaviorConfigsProxy(config.behaviors || []);
@@ -86,13 +78,6 @@ export class VFXParticleSystem extends ParticleSystem implements IVFXSystem {
 		// ParticleSystem.emitter can be AbstractMesh, Vector3, or null
 		// Return emitter if it's an AbstractMesh, otherwise null
 		return this.emitter instanceof AbstractMesh ? this.emitter : null;
-	}
-
-	/**
-	 * Create emitter shape based on VFX shape configuration
-	 */
-	public createEmitterShape(shape: VFXShape | undefined, cumulativeScale: Vector3, rotationMatrix: Matrix | null): void {
-		this._emitterFactory.createEmitter(shape, cumulativeScale, rotationMatrix);
 	}
 
 	/**
@@ -378,13 +363,12 @@ export class VFXParticleSystem extends ParticleSystem implements IVFXSystem {
 			this.targetStopDuration = config.looping ? 0 : duration;
 		}
 
-		// Configure render mode
-		if (config.renderMode !== undefined) {
-			if (config.renderMode === 0) {
-				this.isBillboardBased = true;
-			} else if (config.renderMode === 1) {
-				this.billboardMode = ParticleSystem.BILLBOARDMODE_STRETCHED;
-			}
+		// Configure billboard mode (converted from renderMode in VFXDataConverter)
+		if (config.isBillboardBased !== undefined) {
+			this.isBillboardBased = config.isBillboardBased;
+		}
+		if (config.billboardMode !== undefined) {
+			this.billboardMode = config.billboardMode;
 		}
 
 		// Configure auto destroy
@@ -392,10 +376,7 @@ export class VFXParticleSystem extends ParticleSystem implements IVFXSystem {
 			this.disposeOnStop = config.autoDestroy;
 		}
 
-		// Set emitter shape
-		if (options?.emitterShape) {
-			this.createEmitterShape(options.emitterShape.shape, options.emitterShape.cumulativeScale, options.emitterShape.rotationMatrix);
-		}
+		// Emitter shape is created in VFXSystemFactory after system creation
 	}
 
 	/**

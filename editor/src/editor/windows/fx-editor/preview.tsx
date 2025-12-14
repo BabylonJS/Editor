@@ -6,10 +6,12 @@ import { Button } from "../../../ui/shadcn/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../../ui/shadcn/ui/tooltip";
 
 import { IoPlay, IoStop, IoRefresh } from "react-icons/io5";
+import type { IFXEditor } from ".";
 
 export interface IFXEditorPreviewProps {
 	filePath: string | null;
 	onSceneReady?: (scene: Scene) => void;
+	editor?: IFXEditor;
 }
 
 export interface IFXEditorPreviewState {
@@ -153,21 +155,43 @@ export class FXEditorPreview extends Component<IFXEditorPreviewProps, IFXEditorP
 	}
 
 	private _handlePlayStop(): void {
-		this.setState({ playing: !this.state.playing });
-	}
-
-	private _handleRestart(): void {
-		if (!this.scene) {
+		const effect = this.props.editor?.graph?.getEffect();
+		if (!effect) {
 			return;
 		}
 
-		// Restart all particle systems
-		this.scene.particleSystems.forEach((ps) => {
-			ps.reset();
-		});
-
-		this.setState({ playing: false }, () => {
+		const isStarted = effect.isStarted();
+		if (isStarted) {
+			effect.stop();
+			this.setState({ playing: false });
+		} else {
+			effect.start();
 			this.setState({ playing: true });
-		});
+		}
+	}
+
+	private _handleRestart(): void {
+		const effect = this.props.editor?.graph?.getEffect();
+		if (!effect) {
+			return;
+		}
+
+		// Reset all systems (stop and clear particles)
+		effect.reset();
+
+		// Start again
+		effect.start();
+		this.setState({ playing: true });
+	}
+
+	public componentDidUpdate(): void {
+		// Update playing state based on actual effect state
+		const effect = this.props.editor?.graph?.getEffect();
+		if (effect) {
+			const isStarted = effect.isStarted();
+			if (this.state.playing !== isStarted) {
+				this.setState({ playing: isStarted });
+			}
+		}
 	}
 }

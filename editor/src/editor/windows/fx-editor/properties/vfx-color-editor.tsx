@@ -300,9 +300,24 @@ function GradientEditor(props: IGradientEditorProps): ReactNode {
 			<div className="px-2 text-sm font-medium">Color Keys</div>
 			{colorKeys.map((key, index) => {
 				// Convert value to Color3 for color picker
-				const colorValue = Array.isArray(key.value) ? key.value : typeof key.value === "number" ? [key.value, key.value, key.value] : [key.value?.r || 0, key.value?.g || 0, key.value?.b || 0];
+				// Handle Color4 objects, arrays, numbers, or undefined
+				let colorValue: number[];
+				let alpha: number;
+				if (Array.isArray(key.value)) {
+					colorValue = key.value;
+					alpha = key.value.length > 3 ? key.value[3] : 1;
+				} else if (typeof key.value === "number") {
+					colorValue = [key.value, key.value, key.value];
+					alpha = 1;
+				} else if (key.value && typeof key.value === "object" && "r" in key.value && "g" in key.value && "b" in key.value) {
+					// Handle Color4 or Color3 objects
+					colorValue = [key.value.r || 0, key.value.g || 0, key.value.b || 0];
+					alpha = "a" in key.value ? key.value.a || 1 : 1;
+				} else {
+					colorValue = [0, 0, 0];
+					alpha = 1;
+				}
 				const color3 = new Color3(colorValue[0], colorValue[1], colorValue[2]);
-				const alpha = Array.isArray(key.value) && key.value.length > 3 ? key.value[3] : 1;
 
 				return (
 					<EditorInspectorBlockField key={`color-${index}`}>
@@ -314,7 +329,8 @@ function GradientEditor(props: IGradientEditorProps): ReactNode {
 									label=""
 									onChange={(color) => {
 										const newColorKeys = [...colorKeys];
-										newColorKeys[index] = { ...key, value: [color.r, color.g, color.b, alpha] };
+										// Create new key object without Color4 to avoid React rendering issues
+										newColorKeys[index] = { pos: key.pos, value: [color.r, color.g, color.b, alpha] };
 										updateGradient(newColorKeys);
 									}}
 								/>
@@ -327,7 +343,9 @@ function GradientEditor(props: IGradientEditorProps): ReactNode {
 									value={[key.pos || 0]}
 									onValueChange={(vals) => {
 										const newColorKeys = [...colorKeys];
-										newColorKeys[index] = { ...key, pos: vals[0] };
+										// Create new key object without Color4 to avoid React rendering issues
+										const keyValue = Array.isArray(key.value) ? key.value : typeof key.value === "number" ? [key.value, key.value, key.value] : key.value && typeof key.value === "object" && "r" in key.value ? [key.value.r || 0, key.value.g || 0, key.value.b || 0, "a" in key.value ? key.value.a || 1 : 1] : [0, 0, 0, 1];
+										newColorKeys[index] = { pos: vals[0], value: keyValue };
 										updateGradient(newColorKeys);
 									}}
 								/>
@@ -366,14 +384,25 @@ function GradientEditor(props: IGradientEditorProps): ReactNode {
 					<div className="flex gap-2 items-center">
 						<div className="w-1/3">
 							{(() => {
-								const alphaValue = typeof key.value === "number" ? key.value : Array.isArray(key.value) ? key.value[3] || 1 : 1;
+								// Handle alpha value - can be number, array, or Color4 object
+								let alphaValue: number;
+								if (typeof key.value === "number") {
+									alphaValue = key.value;
+								} else if (Array.isArray(key.value)) {
+									alphaValue = key.value[3] || 1;
+								} else if (key.value && typeof key.value === "object" && "a" in key.value) {
+									alphaValue = key.value.a || 1;
+								} else {
+									alphaValue = 1;
+								}
 								const wrapperAlpha = {
 									get value() {
 										return alphaValue;
 									},
 									set value(newVal: number) {
 										const newAlphaKeys = [...alphaKeys];
-										newAlphaKeys[index] = { ...key, value: newVal };
+										// Create new key object without Color4 to avoid React rendering issues
+										newAlphaKeys[index] = { pos: key.pos, value: newVal };
 										updateGradient(colorKeys, newAlphaKeys);
 									},
 								};
@@ -388,7 +417,9 @@ function GradientEditor(props: IGradientEditorProps): ReactNode {
 								value={[key.pos || 0]}
 								onValueChange={(vals) => {
 									const newAlphaKeys = [...alphaKeys];
-									newAlphaKeys[index] = { ...key, pos: vals[0] };
+									// Create new key object without Color4 to avoid React rendering issues
+									const keyValue = typeof key.value === "number" ? key.value : Array.isArray(key.value) ? key.value[3] || 1 : key.value && typeof key.value === "object" && "a" in key.value ? key.value.a || 1 : 1;
+									newAlphaKeys[index] = { pos: vals[0], value: keyValue };
 									updateGradient(colorKeys, newAlphaKeys);
 								}}
 							/>

@@ -4,6 +4,7 @@ import { VFXSolidParticleSystem } from "../systems/VFXSolidParticleSystem";
 import type { VFXData, VFXGroup, VFXEmitter, VFXTransform } from "../types/hierarchy";
 import { VFXLogger } from "../loggers/VFXLogger";
 import { VFXMatrixUtils } from "../utils/matrixUtils";
+import { VFXEmitterFactory } from "./VFXEmitterFactory";
 import type { IVFXMaterialFactory, IVFXGeometryFactory } from "../types/factories";
 import type { VFXLoaderOptions } from "../types/loader";
 
@@ -18,6 +19,7 @@ export class VFXSystemFactory {
 	private _groupNodesMap: Map<string, TransformNode>;
 	private _materialFactory: IVFXMaterialFactory;
 	private _geometryFactory: IVFXGeometryFactory;
+	private _emitterFactory: VFXEmitterFactory;
 
 	constructor(scene: Scene, options: VFXLoaderOptions, groupNodesMap: Map<string, TransformNode>, materialFactory: IVFXMaterialFactory, geometryFactory: IVFXGeometryFactory) {
 		this._scene = scene;
@@ -26,6 +28,7 @@ export class VFXSystemFactory {
 		this._logger = new VFXLogger("[VFXSystemFactory]", options);
 		this._materialFactory = materialFactory;
 		this._geometryFactory = geometryFactory;
+		this._emitterFactory = new VFXEmitterFactory();
 	}
 
 	/**
@@ -223,12 +226,10 @@ export class VFXSystemFactory {
 		const particleSystem = new VFXParticleSystem(name, this._scene, config, {
 			texture,
 			blendMode,
-			emitterShape: {
-				shape: config.shape,
-				cumulativeScale,
-				rotationMatrix,
-			},
 		});
+
+		// Create emitter using factory
+		this._emitterFactory.createParticleSystemEmitter(particleSystem, config.shape, cumulativeScale, rotationMatrix);
 
 		this._logger.log(`ParticleSystem created: ${name}`);
 		return particleSystem;
@@ -272,6 +273,9 @@ export class VFXSystemFactory {
 			loaderOptions: this._options,
 			particleMesh,
 		});
+
+		// Create emitter using factory (similar to ParticleSystem)
+		this._emitterFactory.createSolidParticleSystemEmitter(sps, config.shape);
 
 		this._logger.log(`SolidParticleSystem created: ${name}`);
 		return sps;

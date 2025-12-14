@@ -30,6 +30,8 @@ export interface IFXEditorGraphState {
 }
 
 export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraphState> {
+	private _vfxEffect: VFXEffect | null = null;
+
 	public constructor(props: IFXEditorGraphProps) {
 		super(props);
 
@@ -37,6 +39,13 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 			nodes: [],
 			selectedNodeId: null,
 		};
+	}
+
+	/**
+	 * Get the current VFX effect
+	 */
+	public getEffect(): VFXEffect | null {
+		return this._vfxEffect;
 	}
 
 	/**
@@ -82,6 +91,9 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 			// Load VFX effect
 			const dirname = require("path").dirname(filePath);
 			const vfxEffect = await VFXEffect.LoadAsync(filePath, this.props.editor.preview!.scene, dirname + "/");
+
+			// Store effect for preview controls
+			this._vfxEffect = vfxEffect;
 
 			// Build tree from VFXEffect hierarchy
 			const nodes = vfxEffect.root ? [this._convertVFXNodeToTreeNode(vfxEffect.root)] : [];

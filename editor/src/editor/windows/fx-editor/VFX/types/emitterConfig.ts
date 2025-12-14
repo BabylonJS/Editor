@@ -33,10 +33,13 @@ export interface VFXParticleEmitterConfig {
 	onlyUsedByOther?: boolean;
 	instancingGeometry?: string;
 	renderOrder?: number;
-	renderMode?: number;
+	systemType: "solid" | "base"; // Determined from renderMode: 2 = solid, otherwise base
 	rendererEmitterSettings?: Record<string, unknown>;
 	material?: string;
 	layers?: number;
+	// Billboard settings (converted from renderMode)
+	isBillboardBased?: boolean;
+	billboardMode?: number; // ParticleSystem.BILLBOARDMODE_*
 	startTileIndex?: VFXValue;
 	uTileCount?: number;
 	vTileCount?: number;
