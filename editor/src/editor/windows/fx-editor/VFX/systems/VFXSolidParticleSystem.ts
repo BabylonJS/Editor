@@ -343,7 +343,7 @@ export class VFXSolidParticleSystem extends SolidParticleSystem implements IVFXS
 		particle.velocity.setAll(0);
 		particle.rotation.setAll(0);
 		particle.scaling.setAll(1);
-		
+
 		// Оптимизация: создаем color только если его нет
 		if (particle.color) {
 			particle.color.set(1, 1, 1, 1);
@@ -362,7 +362,7 @@ export class VFXSolidParticleSystem extends SolidParticleSystem implements IVFXS
 	 */
 	private _initializeParticleColor(particle: SolidParticle): void {
 		const props = particle.props!;
-		
+
 		if (this.startColor !== undefined) {
 			const startColor = VFXValueUtils.parseConstantColor(this.startColor);
 			props.startColor = startColor.clone();
