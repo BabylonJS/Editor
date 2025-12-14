@@ -19,4 +19,3 @@ export class VFXMatrixUtils {
 		return mat.getRotationMatrix();
 	}
 }
-

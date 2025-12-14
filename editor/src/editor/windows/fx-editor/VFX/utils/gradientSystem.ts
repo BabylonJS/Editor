@@ -97,4 +97,3 @@ export class NumberGradientSystem extends GradientSystem<number> {
 		return value1 + (value2 - value1) * t;
 	}
 }
-
