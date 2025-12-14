@@ -1,5 +1,7 @@
 import { Vector3, Quaternion, Matrix, Color4, SolidParticleSystem, SolidParticle, TransformNode, Mesh, AbstractMesh } from "babylonjs";
 import type { VFXParticleEmitterConfig, VFXEmissionBurst } from "../types/emitterConfig";
+import type { ISolidParticleEmitterType } from "../types/emitters";
+import { SolidPointParticleEmitter, SolidSphereParticleEmitter, SolidConeParticleEmitter } from "../types/emitters";
 import { VFXLogger } from "../loggers/VFXLogger";
 import type { VFXLoaderOptions } from "../types/loader";
 import type { VFXPerSolidParticleBehaviorFunction } from "../types/VFXBehaviorFunction";
@@ -16,7 +18,6 @@ import type { VFXShape } from "../types/shapes";
 import type { VFXColor } from "../types/colors";
 import type { VFXValue } from "../types/values";
 import type { VFXRotation } from "../types/rotations";
-import { VFXSolidParticleSystemEmitterFactory } from "../factories/VFXSolidParticleSystemEmitterFactory";
 import { VFXValueUtils } from "../utils/valueParser";
 import { VFXCapacityCalculator } from "../utils/capacityCalculator";
 import { ColorGradientSystem, NumberGradientSystem } from "../utils/gradientSystem";
@@ -38,13 +39,13 @@ interface EmissionState {
 }
 
 /**
- * Extended SolidParticleSystem implementing three.quarks Mesh renderMode (renderMode = 2) logic
- * This class replicates the exact behavior of three.quarks ParticleSystem with renderMode = Mesh
+ * Extended SolidParticleSystem implementing three.quarks Mesh systemType (systemType = "solid") logic
+ * This class replicates the exact behavior of three.quarks ParticleSystem with systemType = "solid"
  */
 export class VFXSolidParticleSystem extends SolidParticleSystem implements IVFXSystem {
 	private _emissionState: EmissionState;
 	private _behaviors: VFXPerSolidParticleBehaviorFunction[];
-	private _emitterFactory: VFXSolidParticleSystemEmitterFactory;
+	public particleEmitterType: ISolidParticleEmitterType | null;
 	private _parent: TransformNode | null;
 	private _vfxTransform: { position: Vector3; rotation: Quaternion; scale: Vector3 } | null;
 	private _logger: VFXLogger | null;
@@ -75,10 +76,10 @@ export class VFXSolidParticleSystem extends SolidParticleSystem implements IVFXS
 	public onlyUsedByOther: boolean;
 	public instancingGeometry?: string;
 	public renderOrder?: number;
-	public renderMode?: number;
 	public rendererEmitterSettings?: Record<string, unknown>;
 	public material?: string;
 	public layers?: number;
+	public isBillboardBased?: boolean; // Converted from renderMode (always false for Mesh)
 	public startTileIndex?: VFXValue;
 	public uTileCount?: number;
 	public vTileCount?: number;
@@ -396,6 +397,29 @@ export class VFXSolidParticleSystem extends SolidParticleSystem implements IVFXS
 	}
 
 	/**
+	 * Reset the particle system (stop and clear all particles)
+	 * Stops emission, resets emission state, and rebuilds particles to initial state
+	 */
+	public reset(): void {
+		// Stop the system if it's running
+		this.stop();
+
+		// Reset emission state
+		this._emissionState.time = 0;
+		this._emissionState.waitEmiting = 0;
+		this._emissionState.travelDistance = 0;
+		this._emissionState.burstIndex = 0;
+		this._emissionState.burstWaveIndex = 0;
+		this._emissionState.burstParticleIndex = 0;
+		this._emissionState.burstParticleCount = 0;
+		this._emissionState.isBursting = false;
+		this._emitEnded = false;
+
+		// Rebuild mesh to reset all particles to initial state (reset=true)
+		this.rebuildMesh(true);
+	}
+
+	/**
 	 * Get behavior functions (internal use)
 	 */
 	public get behaviors(): VFXPerSolidParticleBehaviorFunction[] {
@@ -470,15 +494,22 @@ export class VFXSolidParticleSystem extends SolidParticleSystem implements IVFXS
 		// Add shape to SPS
 		this.addShape(particleMesh, capacity);
 
-		// Configure billboard mode
-		if (this.renderMode === 0 || this.renderMode === 1) {
-			this.billboard = true;
+		// Configure billboard mode (converted from renderMode in VFXDataConverter)
+		// For Mesh (systemType === "solid"), isBillboardBased is always false
+		// For other modes, use isBillboardBased from config
+		if (this.isBillboardBased !== undefined) {
+			// For SolidParticleSystem, billboard property controls billboard mode
+			// isBillboardBased = false means mesh mode (always false for systemType === "solid")
+			this.billboard = this.isBillboardBased;
+		} else {
+			// Default: no billboard for mesh
+			this.billboard = false;
 		}
 
 		// Enable vertex colors and alpha for particle color support
 		// This must be done after addShape but before buildMesh
 		// The mesh will be created in buildMesh, so we'll set it there
-		
+
 		// Dispose temporary mesh after adding to SPS
 		particleMesh.dispose();
 	}
@@ -531,7 +562,7 @@ export class VFXSolidParticleSystem extends SolidParticleSystem implements IVFXS
 
 		this._name = name;
 		this._behaviors = [];
-		this._emitterFactory = new VFXSolidParticleSystemEmitterFactory();
+		this.particleEmitterType = null; // Will be set by create*Emitter methods
 
 		// Initialize properties from initialConfig
 		this.isLooping = initialConfig.looping !== false;
@@ -549,10 +580,10 @@ export class VFXSolidParticleSystem extends SolidParticleSystem implements IVFXS
 		this.onlyUsedByOther = initialConfig.onlyUsedByOther || false;
 		this.instancingGeometry = initialConfig.instancingGeometry;
 		this.renderOrder = initialConfig.renderOrder;
-		this.renderMode = initialConfig.renderMode;
 		this.rendererEmitterSettings = initialConfig.rendererEmitterSettings;
 		this.material = initialConfig.material;
 		this.layers = initialConfig.layers;
+		this.isBillboardBased = initialConfig.isBillboardBased; // Always false for Mesh (systemType === "solid")
 		this.startTileIndex = initialConfig.startTileIndex;
 		this.uTileCount = initialConfig.uTileCount;
 		this.vTileCount = initialConfig.vTileCount;
@@ -723,7 +754,12 @@ export class VFXSolidParticleSystem extends SolidParticleSystem implements IVFXS
 		}
 
 		// Handle simple VFXValue (treat as angleZ for backward compatibility)
-		if (typeof this.startRotation === "number" || (typeof this.startRotation === "object" && "type" in this.startRotation && (this.startRotation.type === "ConstantValue" || this.startRotation.type === "IntervalValue" || this.startRotation.type === "PiecewiseBezier"))) {
+		if (
+			typeof this.startRotation === "number" ||
+			(typeof this.startRotation === "object" &&
+				"type" in this.startRotation &&
+				(this.startRotation.type === "ConstantValue" || this.startRotation.type === "IntervalValue" || this.startRotation.type === "PiecewiseBezier"))
+		) {
 			const angleZ = VFXValueUtils.parseValue(this.startRotation as VFXValue, normalizedTime);
 			particle.rotation.set(0, 0, angleZ);
 			return;
@@ -838,11 +874,45 @@ export class VFXSolidParticleSystem extends SolidParticleSystem implements IVFXS
 	}
 
 	/**
-	 * Initialize emitter shape for particle using factory
+	 * Initialize emitter shape for particle using particleEmitterType
 	 */
 	private _initializeEmitterShape(particle: SolidParticle): void {
 		const startSpeed = particle.props?.startSpeed ?? 0;
-		this._emitterFactory.initializeParticle(particle, this.shape, startSpeed);
+		if (this.particleEmitterType) {
+			this.particleEmitterType.initializeParticle(particle, startSpeed);
+		} else {
+			// Fallback: default point emitter
+			particle.position.setAll(0);
+			particle.velocity.set(0, 1, 0);
+			particle.velocity.scaleInPlace(startSpeed);
+		}
+	}
+
+	/**
+	 * Create point emitter for SolidParticleSystem
+	 */
+	public createPointEmitter(): SolidPointParticleEmitter {
+		const emitter = new SolidPointParticleEmitter();
+		this.particleEmitterType = emitter;
+		return emitter;
+	}
+
+	/**
+	 * Create sphere emitter for SolidParticleSystem
+	 */
+	public createSphereEmitter(radius: number = 1, arc: number = Math.PI * 2, thickness: number = 1): SolidSphereParticleEmitter {
+		const emitter = new SolidSphereParticleEmitter(radius, arc, thickness);
+		this.particleEmitterType = emitter;
+		return emitter;
+	}
+
+	/**
+	 * Create cone emitter for SolidParticleSystem
+	 */
+	public createConeEmitter(radius: number = 1, arc: number = Math.PI * 2, thickness: number = 1, angle: number = Math.PI / 6): SolidConeParticleEmitter {
+		const emitter = new SolidConeParticleEmitter(radius, arc, thickness, angle);
+		this.particleEmitterType = emitter;
+		return emitter;
 	}
 
 	private _getEmitterMatrix(): Matrix {
@@ -943,7 +1013,7 @@ export class VFXSolidParticleSystem extends SolidParticleSystem implements IVFXS
 	 */
 	public override buildMesh(): Mesh {
 		const mesh = super.buildMesh();
-		
+
 		// Enable vertex colors and alpha for particle color support
 		// This is required for ColorOverLife behavior to work
 		if (mesh) {
@@ -952,7 +1022,7 @@ export class VFXSolidParticleSystem extends SolidParticleSystem implements IVFXS
 				this._logger.log(`Enabled hasVertexAlpha for SPS mesh: ${mesh.name}`);
 			}
 		}
-		
+
 		return mesh;
 	}
 
@@ -1349,7 +1419,7 @@ export class VFXSolidParticleSystem extends SolidParticleSystem implements IVFXS
 			// Always apply gradient color directly to particle.color
 			// The base class will apply this to vertex colors if _computeParticleColor is enabled
 			particle.color.copyFrom(color);
-			
+
 			// Multiply with startColor if it exists (matching ParticleSystem behavior)
 			const startColor = props.startColor;
 			if (startColor) {

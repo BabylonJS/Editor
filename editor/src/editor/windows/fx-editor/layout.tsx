@@ -162,6 +162,7 @@ export class FXEditorLayout extends Component<IFXEditorLayoutProps, IFXEditorLay
 				<FXEditorPreview
 					ref={(r) => (this.props.editor.preview = r!)}
 					filePath={this.props.filePath}
+					editor={this.props.editor}
 					onSceneReady={() => {
 						// Update graph when scene is ready
 						if (this.props.editor.graph) {

@@ -2,8 +2,8 @@ import { Scene, Tools, IDisposable, TransformNode } from "babylonjs";
 import type { QuarksVFXJSON } from "./types/quarksTypes";
 import type { VFXLoaderOptions } from "./types/loader";
 import { VFXParser } from "./parsers/VFXParser";
-import type { VFXParticleSystem } from "./systems/VFXParticleSystem";
-import type { VFXSolidParticleSystem } from "./systems/VFXSolidParticleSystem";
+import { VFXParticleSystem } from "./systems/VFXParticleSystem";
+import { VFXSolidParticleSystem } from "./systems/VFXSolidParticleSystem";
 import type { VFXGroup, VFXEmitter, VFXData } from "./types/hierarchy";
 import { isVFXSystem } from "./types/system";
 
@@ -368,6 +368,34 @@ export class VFXEffect implements IDisposable {
 		for (const system of this._systems) {
 			system.stop();
 		}
+	}
+
+	/**
+	 * Reset all particle systems (stop and clear particles)
+	 */
+	public reset(): void {
+		for (const system of this._systems) {
+			system.reset();
+		}
+	}
+
+	/**
+	 * Check if any system is started
+	 */
+	public isStarted(): boolean {
+		for (const system of this._systems) {
+			if (system instanceof VFXParticleSystem) {
+				if ((system as any).isStarted && (system as any).isStarted()) {
+					return true;
+				}
+			} else if (system instanceof VFXSolidParticleSystem) {
+				// Check internal _started flag for SPS
+				if ((system as any)._started && !(system as any)._stopped) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	/**

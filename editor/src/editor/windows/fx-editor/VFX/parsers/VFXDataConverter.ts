@@ -1,4 +1,4 @@
-import { Vector3, Matrix, Quaternion, Color3, Texture } from "babylonjs";
+import { Vector3, Matrix, Quaternion, Color3, Texture, ParticleSystem } from "babylonjs";
 import type { VFXLoaderOptions } from "../types/loader";
 import type { QuarksVFXJSON, QuarksMaterial, QuarksTexture, QuarksImage, QuarksGeometry } from "../types/quarksTypes";
 import type {
@@ -171,9 +171,6 @@ export class VFXDataConverter {
 			// Convert emitter config from Quarks to VFX format
 			const vfxConfig = this._convertEmitterConfig(obj.ps);
 
-			// Determine system type based on renderMode: 2 = solid, otherwise base
-			const systemType: "solid" | "base" = vfxConfig.renderMode === 2 ? "solid" : "base";
-
 			const emitter: VFXEmitter = {
 				uuid: obj.uuid || `emitter_${emitters.size}`,
 				name: obj.name || "ParticleEmitter",
@@ -181,12 +178,12 @@ export class VFXDataConverter {
 				config: vfxConfig,
 				materialId: obj.ps.material,
 				parentUuid: parentUuid || undefined,
-				systemType,
+				systemType: vfxConfig.systemType, // systemType is set in _convertEmitterConfig
 				matrix: obj.matrix, // Store original matrix for rotation extraction
 			};
 
 			emitters.set(emitter.uuid, emitter);
-			this._logger.log(`${indent}Converted Emitter: ${emitter.name} (uuid: ${emitter.uuid}, systemType: ${systemType})`);
+			this._logger.log(`${indent}Converted Emitter: ${emitter.name} (uuid: ${emitter.uuid}, systemType: ${vfxConfig.systemType})`);
 			return emitter;
 		}
 
@@ -252,6 +249,9 @@ export class VFXDataConverter {
 	 * Convert emitter config from Quarks to VFX format
 	 */
 	private _convertEmitterConfig(quarksConfig: QuarksParticleEmitterConfig): VFXParticleEmitterConfig {
+		// Determine system type based on renderMode: 2 = solid, otherwise base
+		const systemType: "solid" | "base" = quarksConfig.renderMode === 2 ? "solid" : "base";
+
 		const vfxConfig: VFXParticleEmitterConfig = {
 			version: quarksConfig.version,
 			autoDestroy: quarksConfig.autoDestroy,
@@ -261,7 +261,7 @@ export class VFXDataConverter {
 			onlyUsedByOther: quarksConfig.onlyUsedByOther,
 			instancingGeometry: quarksConfig.instancingGeometry,
 			renderOrder: quarksConfig.renderOrder,
-			renderMode: quarksConfig.renderMode,
+			systemType,
 			rendererEmitterSettings: quarksConfig.rendererEmitterSettings,
 			material: quarksConfig.material,
 			layers: quarksConfig.layers,
@@ -316,6 +316,46 @@ export class VFXDataConverter {
 		// Convert behaviors
 		if (quarksConfig.behaviors !== undefined && Array.isArray(quarksConfig.behaviors)) {
 			vfxConfig.behaviors = quarksConfig.behaviors.map((behavior) => this._convertBehavior(behavior));
+		}
+
+		// Convert renderMode to systemType, billboardMode and isBillboardBased
+		// Quarks RenderMode:
+		// 0 = BillBoard → systemType = "base", isBillboardBased = true, billboardMode = ALL (default)
+		// 1 = StretchedBillBoard → systemType = "base", isBillboardBased = true, billboardMode = STRETCHED
+		// 2 = Mesh → systemType = "solid", isBillboardBased = false (always)
+		// 3 = Trail → systemType = "base", isBillboardBased = true, billboardMode = ALL (not directly supported, treat as billboard)
+		// 4 = HorizontalBillBoard → systemType = "base", isBillboardBased = true, billboardMode = Y
+		// 5 = VerticalBillBoard → systemType = "base", isBillboardBased = true, billboardMode = Y (same as horizontal)
+		if (quarksConfig.renderMode !== undefined) {
+			if (quarksConfig.renderMode === 0) {
+				// BillBoard
+				vfxConfig.isBillboardBased = true;
+				vfxConfig.billboardMode = ParticleSystem.BILLBOARDMODE_ALL;
+			} else if (quarksConfig.renderMode === 1) {
+				// StretchedBillBoard
+				vfxConfig.isBillboardBased = true;
+				vfxConfig.billboardMode = ParticleSystem.BILLBOARDMODE_STRETCHED;
+			} else if (quarksConfig.renderMode === 2) {
+				// Mesh (SolidParticleSystem) - always false
+				vfxConfig.isBillboardBased = false;
+				// billboardMode not applicable for mesh
+			} else if (quarksConfig.renderMode === 3) {
+				// Trail - not directly supported, treat as billboard
+				vfxConfig.isBillboardBased = true;
+				vfxConfig.billboardMode = ParticleSystem.BILLBOARDMODE_ALL;
+			} else if (quarksConfig.renderMode === 4 || quarksConfig.renderMode === 5) {
+				// HorizontalBillBoard or VerticalBillBoard
+				vfxConfig.isBillboardBased = true;
+				vfxConfig.billboardMode = ParticleSystem.BILLBOARDMODE_Y;
+			} else {
+				// Unknown renderMode, default to billboard
+				vfxConfig.isBillboardBased = true;
+				vfxConfig.billboardMode = ParticleSystem.BILLBOARDMODE_ALL;
+			}
+		} else {
+			// Default: billboard mode
+			vfxConfig.isBillboardBased = true;
+			vfxConfig.billboardMode = ParticleSystem.BILLBOARDMODE_ALL;
 		}
 
 		return vfxConfig;
