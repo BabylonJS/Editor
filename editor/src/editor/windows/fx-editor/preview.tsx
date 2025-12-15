@@ -7,11 +7,13 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../
 
 import { IoPlay, IoStop, IoRefresh } from "react-icons/io5";
 import type { IFXEditor } from ".";
+import type { VFXEffectNode } from "./VFX";
 
 export interface IFXEditorPreviewProps {
 	filePath: string | null;
 	onSceneReady?: (scene: Scene) => void;
 	editor?: IFXEditor;
+	selectedNodeId?: string | number | null;
 }
 
 export interface IFXEditorPreviewState {
@@ -39,30 +41,32 @@ export class FXEditorPreview extends Component<IFXEditorPreviewProps, IFXEditorP
 			<div className="relative w-full h-full">
 				<canvas ref={(r) => this._onGotCanvasRef(r!)} className="w-full h-full outline-none" />
 
-				{/* Play/Stop/Restart buttons */}
-				<div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 flex gap-2">
-					<TooltipProvider>
-						<Tooltip>
-							<TooltipTrigger asChild>
-								<Button variant="secondary" size="icon" onClick={() => this._handlePlayStop()} className="w-10 h-10">
-									{this.state.playing ? <IoStop className="w-5 h-5" /> : <IoPlay className="w-5 h-5" />}
-								</Button>
-							</TooltipTrigger>
-							<TooltipContent>{this.state.playing ? "Stop" : "Play"}</TooltipContent>
-						</Tooltip>
-
-						{this.state.playing && (
+				{/* Play/Stop/Restart buttons - only show if a node is selected */}
+				{this.props.selectedNodeId && (
+					<div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 flex gap-2">
+						<TooltipProvider>
 							<Tooltip>
 								<TooltipTrigger asChild>
-									<Button variant="secondary" size="icon" onClick={() => this._handleRestart()} className="w-10 h-10">
-										<IoRefresh className="w-5 h-5" />
+									<Button variant="secondary" size="icon" onClick={() => this._handlePlayStop()} className="w-10 h-10">
+										{this.state.playing ? <IoStop className="w-5 h-5" /> : <IoPlay className="w-5 h-5" />}
 									</Button>
 								</TooltipTrigger>
-								<TooltipContent>Restart</TooltipContent>
+								<TooltipContent>{this.state.playing ? "Stop" : "Play"}</TooltipContent>
 							</Tooltip>
-						)}
-					</TooltipProvider>
-				</div>
+
+							{this.state.playing && (
+								<Tooltip>
+									<TooltipTrigger asChild>
+										<Button variant="secondary" size="icon" onClick={() => this._handleRestart()} className="w-10 h-10">
+											<IoRefresh className="w-5 h-5" />
+										</Button>
+									</TooltipTrigger>
+									<TooltipContent>Restart</TooltipContent>
+								</Tooltip>
+							)}
+						</TooltipProvider>
+					</div>
+				)}
 			</div>
 		);
 	}
@@ -74,16 +78,101 @@ export class FXEditorPreview extends Component<IFXEditorPreviewProps, IFXEditorP
 	}
 
 	private _syncPlayingState(): void {
-		const effect = this.props.editor?.graph?.getEffect();
-		if (effect) {
+		if (!this.props.selectedNodeId) {
+			// No node selected, hide buttons
+			if (this.state.playing) {
+				this.setState({ playing: false });
+			}
+			return;
+		}
+
+		const nodeData = this.props.editor?.graph?.getNodeData(this.props.selectedNodeId);
+		if (!nodeData) {
+			if (this.state.playing) {
+				this.setState({ playing: false });
+			}
+			return;
+		}
+
+		// Find the effect that contains this node
+		const effect = this._findEffectForNode(nodeData);
+		if (!effect) {
+			if (this.state.playing) {
+				this.setState({ playing: false });
+			}
+			return;
+		}
+
+		// Check if this is an effect root node
+		const isEffectRoot = this._isEffectRootNode(nodeData);
+		if (isEffectRoot) {
+			// For effect root, check if entire effect is started
 			const isStarted = effect.isStarted();
 			if (this.state.playing !== isStarted) {
 				this.setState({ playing: isStarted });
 			}
-		} else if (this.state.playing) {
-			// If effect is null but we're still showing as playing, reset to false
-			this.setState({ playing: false });
+		} else {
+			// For group or system, check if node is started
+			const isStarted = effect.isNodeStarted(nodeData);
+			if (this.state.playing !== isStarted) {
+				this.setState({ playing: isStarted });
+			}
 		}
+	}
+
+	/**
+	 * Find the effect that contains the given node
+	 */
+	private _findEffectForNode(node: VFXEffectNode): import("./VFX").VFXEffect | null {
+		const effects = this.props.editor?.graph?.getAllEffects() || [];
+		for (const effect of effects) {
+			// Check if node is part of this effect's hierarchy
+			if (this._isNodeInEffect(node, effect)) {
+				return effect;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Check if node is part of effect's hierarchy
+	 */
+	private _isNodeInEffect(node: VFXEffectNode, effect: import("./VFX").VFXEffect): boolean {
+		if (!effect.root) {
+			return false;
+		}
+
+		const findNode = (current: VFXEffectNode): boolean => {
+			if (current === node || current.uuid === node.uuid || current.name === node.name) {
+				return true;
+			}
+			for (const child of current.children) {
+				if (findNode(child)) {
+					return true;
+				}
+			}
+			return false;
+		};
+
+		return findNode(effect.root);
+	}
+
+	/**
+	 * Check if node is an effect root node
+	 */
+	private _isEffectRootNode(node: VFXEffectNode): boolean {
+		if (!node.uuid) {
+			return false;
+		}
+
+		// Check if this node's UUID matches an effect ID (effect root has effect ID as uuid)
+		const effects = this.props.editor?.graph?.getAllEffects() || [];
+		for (const effect of effects) {
+			if (effect.root && effect.root.uuid === node.uuid) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public componentWillUnmount(): void {
@@ -170,48 +259,78 @@ export class FXEditorPreview extends Component<IFXEditorPreviewProps, IFXEditorP
 	}
 
 	private _handlePlayStop(): void {
-		const effect = this.props.editor?.graph?.getEffect();
+		if (!this.props.selectedNodeId) {
+			return;
+		}
+
+		const nodeData = this.props.editor?.graph?.getNodeData(this.props.selectedNodeId);
+		if (!nodeData) {
+			return;
+		}
+
+		const effect = this._findEffectForNode(nodeData);
 		if (!effect) {
 			return;
 		}
 
-		const isStarted = effect.isStarted();
-		if (isStarted) {
-			effect.stop();
-			this.setState({ playing: false });
+		// Check if this is an effect root node
+		const isEffectRoot = this._isEffectRootNode(nodeData);
+		if (isEffectRoot) {
+			// For effect root, manage entire effect
+			if (effect.isStarted()) {
+				effect.stop();
+			} else {
+				effect.start();
+			}
 		} else {
-			effect.start();
-			this.setState({ playing: true });
+			// For group or system, manage only this node
+			if (effect.isNodeStarted(nodeData)) {
+				effect.stopNode(nodeData);
+			} else {
+				effect.startNode(nodeData);
+			}
 		}
+
+		this._syncPlayingState();
 	}
 
 	private _handleRestart(): void {
-		const effect = this.props.editor?.graph?.getEffect();
+		if (!this.props.selectedNodeId) {
+			return;
+		}
+
+		const nodeData = this.props.editor?.graph?.getNodeData(this.props.selectedNodeId);
+		if (!nodeData) {
+			return;
+		}
+
+		const effect = this._findEffectForNode(nodeData);
 		if (!effect) {
 			return;
 		}
 
-		// Reset all systems (stop and clear particles)
-		effect.reset();
+		// Check if this is an effect root node
+		const isEffectRoot = this._isEffectRootNode(nodeData);
+		if (isEffectRoot) {
+			// For effect root, restart entire effect
+			effect.reset();
+			effect.start();
+		} else {
+			// For group or system, restart only this node
+			effect.resetNode(nodeData);
+			effect.startNode(nodeData);
+		}
 
-		// Start again
-		effect.start();
 		this.setState({ playing: true });
 	}
 
 	public componentDidUpdate(prevProps: IFXEditorPreviewProps): void {
-		// Sync playing state when effect changes or when props change
-		if (prevProps.editor?.graph?.getEffect() !== this.props.editor?.graph?.getEffect()) {
+		// Sync playing state when selected node changes or when props change
+		if (prevProps.selectedNodeId !== this.props.selectedNodeId) {
 			this._syncPlayingState();
 		} else {
-			// Update playing state based on actual effect state
-			const effect = this.props.editor?.graph?.getEffect();
-			if (effect) {
-				const isStarted = effect.isStarted();
-				if (this.state.playing !== isStarted) {
-					this.setState({ playing: isStarted });
-				}
-			}
+			// Update playing state based on actual node state
+			this._syncPlayingState();
 		}
 	}
 }
