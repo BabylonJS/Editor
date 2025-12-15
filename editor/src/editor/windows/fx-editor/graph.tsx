@@ -100,8 +100,19 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 
 			this.setState({ nodes, selectedNodeId: null });
 
+			// Apply prewarm before starting (if any systems have prewarm enabled)
+			vfxEffect.applyPrewarm();
+
 			// Start systems
 			vfxEffect.start();
+
+			// Notify preview to sync playing state after a short delay
+			// This ensures the effect state is properly synchronized
+			setTimeout(() => {
+				if (this.props.editor?.preview) {
+					(this.props.editor.preview as any).forceUpdate?.();
+				}
+			}, 100);
 		} catch (error) {
 			console.error("Failed to load FX file:", error);
 		}

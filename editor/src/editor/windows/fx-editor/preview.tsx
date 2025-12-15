@@ -69,6 +69,21 @@ export class FXEditorPreview extends Component<IFXEditorPreviewProps, IFXEditorP
 
 	public componentDidMount(): void {
 		// Canvas ref will be set in render, _onGotCanvasRef will be called automatically
+		// Sync playing state with effect state
+		this._syncPlayingState();
+	}
+
+	private _syncPlayingState(): void {
+		const effect = this.props.editor?.graph?.getEffect();
+		if (effect) {
+			const isStarted = effect.isStarted();
+			if (this.state.playing !== isStarted) {
+				this.setState({ playing: isStarted });
+			}
+		} else if (this.state.playing) {
+			// If effect is null but we're still showing as playing, reset to false
+			this.setState({ playing: false });
+		}
 	}
 
 	public componentWillUnmount(): void {
@@ -184,13 +199,18 @@ export class FXEditorPreview extends Component<IFXEditorPreviewProps, IFXEditorP
 		this.setState({ playing: true });
 	}
 
-	public componentDidUpdate(): void {
-		// Update playing state based on actual effect state
-		const effect = this.props.editor?.graph?.getEffect();
-		if (effect) {
-			const isStarted = effect.isStarted();
-			if (this.state.playing !== isStarted) {
-				this.setState({ playing: isStarted });
+	public componentDidUpdate(prevProps: IFXEditorPreviewProps): void {
+		// Sync playing state when effect changes or when props change
+		if (prevProps.editor?.graph?.getEffect() !== this.props.editor?.graph?.getEffect()) {
+			this._syncPlayingState();
+		} else {
+			// Update playing state based on actual effect state
+			const effect = this.props.editor?.graph?.getEffect();
+			if (effect) {
+				const isStarted = effect.isStarted();
+				if (this.state.playing !== isStarted) {
+					this.setState({ playing: isStarted });
+				}
 			}
 		}
 	}

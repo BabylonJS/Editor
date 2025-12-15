@@ -397,6 +397,53 @@ export class VFXSolidParticleSystem extends SolidParticleSystem implements IVFXS
 	}
 
 	/**
+	 * Start the particle system
+	 * Overrides base class to ensure proper initialization
+	 */
+	public override start(delay = 0): void {
+		// Call base class start
+		super.start(delay);
+
+		// Reset emission state when starting
+		if (delay === 0) {
+			this._emissionState.time = 0;
+			this._emissionState.waitEmiting = 0;
+			this._emissionState.travelDistance = 0;
+			this._emissionState.burstIndex = 0;
+			this._emissionState.burstWaveIndex = 0;
+			this._emissionState.burstParticleIndex = 0;
+			this._emissionState.burstParticleCount = 0;
+			this._emissionState.isBursting = false;
+			this._emitEnded = false;
+
+			// Ensure particles are visible when starting (they will be updated by setParticles)
+			// Note: New particles will be spawned and visible automatically
+		}
+	}
+
+	/**
+	 * Stop the particle system
+	 * Overrides base class to hide all particles when stopped
+	 */
+	public override stop(): void {
+		// Hide all particles before stopping
+		const particles = this.particles;
+		const nbParticles = this.nbParticles;
+		for (let i = 0; i < nbParticles; i++) {
+			const particle = particles[i];
+			if (particle.alive) {
+				particle.isVisible = false;
+			}
+		}
+
+		// Update particles to apply visibility changes
+		this.setParticles();
+
+		// Call base class stop
+		super.stop();
+	}
+
+	/**
 	 * Reset the particle system (stop and clear all particles)
 	 * Stops emission, resets emission state, and rebuilds particles to initial state
 	 */
@@ -1334,7 +1381,20 @@ export class VFXSolidParticleSystem extends SolidParticleSystem implements IVFXS
 	public override beforeUpdateParticles(start?: number, stop?: number, update?: boolean): void {
 		super.beforeUpdateParticles(start, stop, update);
 
-		if (!this._started || this._stopped) {
+		// If system is stopped, hide all particles and return early
+		if (this._stopped) {
+			const particles = this.particles;
+			const nbParticles = this.nbParticles;
+			for (let i = 0; i < nbParticles; i++) {
+				const particle = particles[i];
+				if (particle.alive) {
+					particle.isVisible = false;
+				}
+			}
+			return;
+		}
+
+		if (!this._started) {
 			return;
 		}
 
