@@ -44,6 +44,7 @@ export class VFXParticleSystem extends ParticleSystem implements IVFXSystem {
 	public startSize: number;
 	public startSpeed: number;
 	public startColor: Color4;
+	public prewarm: boolean;
 	private _behaviors: VFXPerParticleBehaviorFunction[];
 	public readonly behaviorConfigs: VFXBehavior[];
 
@@ -62,6 +63,7 @@ export class VFXParticleSystem extends ParticleSystem implements IVFXSystem {
 
 		super(name, capacity, scene);
 		this._behaviors = [];
+		this.prewarm = config.prewarm || false;
 
 		// Create proxy array that updates functions when modified
 		this.behaviorConfigs = this._createBehaviorConfigsProxy(config.behaviors || []);

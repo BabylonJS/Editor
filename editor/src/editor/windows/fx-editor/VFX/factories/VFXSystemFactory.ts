@@ -191,14 +191,6 @@ export class VFXSystemFactory {
 				// Continue - system is created, just transform failed
 			}
 
-			// Handle prewarm
-			try {
-				this._handlePrewarm(particleSystem, vfxEmitter.config.prewarm);
-			} catch (error) {
-				this._logger.warn(`${indent}Failed to handle prewarm for system ${vfxEmitter.name}: ${error instanceof Error ? error.message : String(error)}`);
-				// Continue - prewarm is optional
-			}
-
 			this._logger.log(`${indent}Created particle system: ${vfxEmitter.name}`);
 			return particleSystem;
 		} catch (error) {
@@ -296,15 +288,6 @@ export class VFXSystemFactory {
 		}
 
 		return cumulativeScale;
-	}
-
-	/**
-	 * Handle prewarm configuration for particle system
-	 */
-	private _handlePrewarm(particleSystem: VFXParticleSystem | VFXSolidParticleSystem, prewarm: boolean | undefined): void {
-		if (prewarm && particleSystem) {
-			particleSystem.start();
-		}
 	}
 
 	// Type guards
