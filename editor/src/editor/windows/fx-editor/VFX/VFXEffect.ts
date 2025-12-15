@@ -657,6 +657,9 @@ export class VFXEffect implements IDisposable {
 				parentGroup: parent.group || undefined,
 			});
 
+			// Store reference to source mesh for geometry field
+			(system as any)._sourceMesh = planeMesh.clone(`${uniqueName}_sourceMesh`);
+
 			// Create default point emitter
 			system.createPointEmitter();
 		} else {

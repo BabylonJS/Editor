@@ -5,10 +5,42 @@ import { EditorInspectorNumberField } from "../../../layout/inspector/fields/num
 import { EditorInspectorSwitchField } from "../../../layout/inspector/fields/switch";
 import { EditorInspectorListField } from "../../../layout/inspector/fields/list";
 import { EditorInspectorTextureField } from "../../../layout/inspector/fields/texture";
+import { EditorInspectorGeometryField } from "../../../layout/inspector/fields/geometry";
 import { EditorInspectorColorField } from "../../../layout/inspector/fields/color";
 import { EditorInspectorStringField } from "../../../layout/inspector/fields/string";
 
-import { ParticleSystem, Constants, Material } from "babylonjs";
+import {
+	PBRMaterial,
+	StandardMaterial,
+	NodeMaterial,
+	MultiMaterial,
+	SkyMaterial,
+	GridMaterial,
+	NormalMaterial,
+	WaterMaterial,
+	LavaMaterial,
+	TriPlanarMaterial,
+	CellMaterial,
+	FireMaterial,
+	GradientMaterial,
+	Material,
+	ParticleSystem,
+} from "babylonjs";
+
+import { EditorPBRMaterialInspector } from "../../../layout/inspector/material/pbr";
+import { EditorStandardMaterialInspector } from "../../../layout/inspector/material/standard";
+import { EditorNodeMaterialInspector } from "../../../layout/inspector/material/node";
+import { EditorMultiMaterialInspector } from "../../../layout/inspector/material/multi";
+import { EditorSkyMaterialInspector } from "../../../layout/inspector/material/sky";
+import { EditorGridMaterialInspector } from "../../../layout/inspector/material/grid";
+import { EditorNormalMaterialInspector } from "../../../layout/inspector/material/normal";
+import { EditorWaterMaterialInspector } from "../../../layout/inspector/material/water";
+import { EditorLavaMaterialInspector } from "../../../layout/inspector/material/lava";
+import { EditorTriPlanarMaterialInspector } from "../../../layout/inspector/material/tri-planar";
+import { EditorCellMaterialInspector } from "../../../layout/inspector/material/cell";
+import { EditorFireMaterialInspector } from "../../../layout/inspector/material/fire";
+import { EditorGradientMaterialInspector } from "../../../layout/inspector/material/gradient";
+
 import type { VFXEffectNode } from "../VFX";
 import { VFXParticleSystem, VFXSolidParticleSystem } from "../VFX";
 import { IFXEditor } from "..";
@@ -96,8 +128,8 @@ export class FXEditorParticleRendererProperties extends Component<IFXEditorParti
 					/>
 				)}
 
-				{/* Material - для обеих систем */}
-				{this._getMaterialField()}
+				{/* Material Inspector - только для solid с материалом */}
+				{isVFXSolidParticleSystem && this._getMaterialInspector()}
 
 				{/* Blend Mode - только для base */}
 				{isVFXParticleSystem && (
@@ -115,9 +147,6 @@ export class FXEditorParticleRendererProperties extends Component<IFXEditorParti
 						onChange={() => this.props.onChange()}
 					/>
 				)}
-
-				{/* Material Properties - только для solid */}
-				{isVFXSolidParticleSystem && this._getMaterialProperties()}
 
 				{/* Texture */}
 				{this._getTextureField()}
@@ -145,7 +174,7 @@ export class FXEditorParticleRendererProperties extends Component<IFXEditorParti
 		);
 	}
 
-	private _getMaterialField(): ReactNode {
+	private _getMaterialInspector(): ReactNode {
 		const { nodeData } = this.props;
 
 		if (nodeData.type !== "particle" || !nodeData.system) {
@@ -154,126 +183,59 @@ export class FXEditorParticleRendererProperties extends Component<IFXEditorParti
 
 		const system = nodeData.system;
 
-		// Для VFXSolidParticleSystem, material ID хранится в system.material
-		if (system instanceof VFXSolidParticleSystem) {
-			return (
-				<EditorInspectorStringField
-					object={system}
-					property="material"
-					label="Material"
-					onChange={() => this.props.onChange()}
-				/>
-			);
+		// Получаем material только для VFXSolidParticleSystem
+		if (!(system instanceof VFXSolidParticleSystem) || !system.mesh || !system.mesh.material) {
+			return null;
 		}
 
-		// Для VFXParticleSystem, material может быть в config или на texture
-		// Пока просто показываем, что material управляется через texture
-		return null;
+		const material = system.mesh.material;
+		return this._getMaterialInspectorComponent(material, system.mesh);
 	}
 
-	private _getMaterialProperties(): ReactNode {
-		const { nodeData } = this.props;
+	private _getMaterialInspectorComponent(material: Material, mesh?: any): ReactNode {
+		switch (material.getClassName()) {
+			case "PBRMaterial":
+				return <EditorPBRMaterialInspector mesh={mesh} material={material as PBRMaterial} />;
 
-		if (nodeData.type !== "particle" || !nodeData.system) {
-			return null;
+			case "StandardMaterial":
+				return <EditorStandardMaterialInspector mesh={mesh} material={material as StandardMaterial} />;
+
+			case "NodeMaterial":
+				return <EditorNodeMaterialInspector mesh={mesh} material={material as NodeMaterial} />;
+
+			case "MultiMaterial":
+				return <EditorMultiMaterialInspector material={material as MultiMaterial} />;
+
+			case "SkyMaterial":
+				return <EditorSkyMaterialInspector mesh={mesh} material={material as SkyMaterial} />;
+
+			case "GridMaterial":
+				return <EditorGridMaterialInspector mesh={mesh} material={material as GridMaterial} />;
+
+			case "NormalMaterial":
+				return <EditorNormalMaterialInspector mesh={mesh} material={material as NormalMaterial} />;
+
+			case "WaterMaterial":
+				return <EditorWaterMaterialInspector mesh={mesh} material={material as WaterMaterial} />;
+
+			case "LavaMaterial":
+				return <EditorLavaMaterialInspector mesh={mesh} material={material as LavaMaterial} />;
+
+			case "TriPlanarMaterial":
+				return <EditorTriPlanarMaterialInspector mesh={mesh} material={material as TriPlanarMaterial} />;
+
+			case "CellMaterial":
+				return <EditorCellMaterialInspector mesh={mesh} material={material as CellMaterial} />;
+
+			case "FireMaterial":
+				return <EditorFireMaterialInspector mesh={mesh} material={material as FireMaterial} />;
+
+			case "GradientMaterial":
+				return <EditorGradientMaterialInspector mesh={mesh} material={material as GradientMaterial} />;
+
+			default:
+				return null;
 		}
-
-		const system = nodeData.system;
-		let material: Material | null = null;
-
-		// Получаем material в зависимости от типа системы
-		if (system instanceof VFXSolidParticleSystem && system.mesh && system.mesh.material) {
-			material = system.mesh.material;
-		} else if (system instanceof VFXParticleSystem) {
-			// Для VFXParticleSystem material управляется через blendMode и texture
-			// Material properties не доступны напрямую
-			return null;
-		}
-
-		if (!material) {
-			return null;
-		}
-
-		const pbrMaterial = material as any;
-
-		return (
-			<EditorInspectorSectionField title="Material Properties">
-				{/* Transparent */}
-				{pbrMaterial.transparencyMode !== undefined && (() => {
-					// Proxy для transparent property
-					const transparentProxy = {
-						get transparent() {
-							return pbrMaterial.transparencyMode !== Constants.ALPHA_DISABLE;
-						},
-						set transparent(value: boolean) {
-							pbrMaterial.transparencyMode = value ? Constants.ALPHA_COMBINE : Constants.ALPHA_DISABLE;
-						},
-					};
-					return <EditorInspectorSwitchField object={transparentProxy} property="transparent" label="Transparent" onChange={() => this.props.onChange()} />;
-				})()}
-
-				{/* Opacity */}
-				{pbrMaterial.alpha !== undefined && (
-					<EditorInspectorNumberField
-						object={pbrMaterial}
-						property="alpha"
-						label="Opacity"
-						min={0}
-						max={1}
-						step={0.01}
-						onChange={() => this.props.onChange()}
-					/>
-				)}
-
-				{/* Side */}
-				{pbrMaterial.sideOrientation !== undefined && (
-					<EditorInspectorListField
-						object={pbrMaterial}
-						property="sideOrientation"
-						label="Side"
-						items={[
-							{ text: "Front", value: Material.FrontSide },
-							{ text: "Back", value: Material.BackSide },
-							{ text: "Double", value: Material.DoubleSide },
-						]}
-						onChange={() => this.props.onChange()}
-					/>
-				)}
-
-				{/* Blending */}
-				{pbrMaterial.alphaMode !== undefined && (
-					<EditorInspectorListField
-						object={pbrMaterial}
-						property="alphaMode"
-						label="Blending"
-						items={[
-							{ text: "Disable", value: Constants.ALPHA_DISABLE },
-							{ text: "Combine", value: Constants.ALPHA_COMBINE },
-							{ text: "Add", value: Constants.ALPHA_ADD },
-							{ text: "Subtract", value: Constants.ALPHA_SUBTRACT },
-							{ text: "Multiply", value: Constants.ALPHA_MULTIPLY },
-							{ text: "Maximized", value: Constants.ALPHA_MAXIMIZED },
-							{ text: "One One", value: Constants.ALPHA_ONEONE },
-							{ text: "Pre-multiplied", value: Constants.ALPHA_PREMULTIPLIED },
-							{ text: "Pre-multiplied Pixels", value: Constants.ALPHA_PREMULTIPLIED_PORTPONE },
-							{ text: "Interpolate", value: Constants.ALPHA_INTERPOLATE },
-							{ text: "Screen Mode", value: Constants.ALPHA_SCREENMODE },
-						]}
-						onChange={() => this.props.onChange()}
-					/>
-				)}
-
-				{/* Color */}
-				{pbrMaterial.albedoColor !== undefined && (
-					<EditorInspectorColorField
-						object={pbrMaterial}
-						property="albedoColor"
-						label="Color"
-						onChange={() => this.props.onChange()}
-					/>
-				)}
-			</EditorInspectorSectionField>
-		);
 	}
 
 	private _getTextureField(): ReactNode {
@@ -286,19 +248,9 @@ export class FXEditorParticleRendererProperties extends Component<IFXEditorParti
 		const system = nodeData.system;
 
 		// For VFXParticleSystem, use particleTexture
+		// For VFXSolidParticleSystem, textures are handled by the material inspector
 		if (system instanceof VFXParticleSystem) {
 			return <EditorInspectorTextureField object={system} property="particleTexture" title="Texture" scene={editor.preview.scene} onChange={() => this.props.onChange()} />;
-		}
-
-		// For VFXSolidParticleSystem, texture is on the mesh material
-		if (system instanceof VFXSolidParticleSystem && system.mesh && system.mesh.material) {
-			const material = system.mesh.material;
-			// Check if material has diffuseTexture or other texture properties
-			if ((material as any).diffuseTexture) {
-				return (
-					<EditorInspectorTextureField object={material} property="diffuseTexture" title="Texture" scene={editor.preview.scene} onChange={() => this.props.onChange()} />
-				);
-			}
 		}
 
 		return null;
@@ -435,28 +387,55 @@ export class FXEditorParticleRendererProperties extends Component<IFXEditorParti
 	}
 
 	private _getGeometryField(): ReactNode {
-		const { nodeData } = this.props;
+		const { nodeData, editor } = this.props;
 
-		if (nodeData.type !== "particle" || !nodeData.system || !(nodeData.system instanceof VFXSolidParticleSystem)) {
+		if (nodeData.type !== "particle" || !nodeData.system || !(nodeData.system instanceof VFXSolidParticleSystem) || !editor.preview?.scene) {
 			return null;
 		}
 
 		const system = nodeData.system as VFXSolidParticleSystem;
-		const mesh = system.mesh;
+
+		// Store reference to source mesh in a custom property
+		// Since SPS disposes the source mesh after addShape, we need to store it separately
+		// We'll use a WeakMap or store it in the system itself
+		if (!(system as any)._sourceMesh) {
+			(system as any)._sourceMesh = null;
+		}
+
+		const proxy = {
+			get particleMesh() {
+				// Return stored source mesh or null
+				return (system as any)._sourceMesh || null;
+			},
+			set particleMesh(value: Mesh | null) {
+				// Store reference to source mesh
+				(system as any)._sourceMesh = value;
+
+				if (value) {
+					// Clone mesh to avoid disposing the original
+					const clonedMesh = value.clone(`${system.name}_particleMesh`);
+					clonedMesh.setEnabled(false); // Hide the source mesh
+
+					// Clear existing shapes and add new one
+					// Note: SPS doesn't have a clearShapes method, so we need to rebuild
+					const capacity = system.getCapacity();
+					system.addShape(clonedMesh, capacity);
+					system.buildMesh();
+					system._setupMeshProperties();
+
+					// Don't dispose cloned mesh - SPS will manage it
+				}
+			},
+		};
 
 		return (
-			<div className="flex gap-2 items-center px-2">
-				<div className="w-1/3 text-sm">Geometry</div>
-				<div className="w-2/3 px-2">
-					{system.instancingGeometry ? (
-						<div className="text-sm">{system.instancingGeometry}</div>
-					) : mesh ? (
-						<div className="text-sm">{mesh.name}</div>
-					) : (
-						<div className="text-sm text-muted-foreground">No geometry</div>
-					)}
-				</div>
-			</div>
+			<EditorInspectorGeometryField
+				object={proxy}
+				property="particleMesh"
+				title="Geometry"
+				scene={editor.preview.scene}
+				onChange={() => this.props.onChange()}
+			/>
 		);
 	}
 }

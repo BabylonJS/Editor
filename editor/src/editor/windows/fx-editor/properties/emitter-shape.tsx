@@ -9,7 +9,7 @@ import { EditorInspectorBlockField } from "../../../layout/inspector/fields/bloc
 
 import type { VFXEffectNode } from "../VFX";
 import { VFXParticleSystem, VFXSolidParticleSystem } from "../VFX";
-import type { SolidSphereParticleEmitter, SolidConeParticleEmitter } from "../VFX/types/emitters";
+import { SolidSphereParticleEmitter, SolidConeParticleEmitter } from "../VFX/types/emitters";
 
 export interface IFXEditorEmitterShapePropertiesProps {
 	nodeData: VFXEffectNode;
@@ -90,72 +90,18 @@ export class FXEditorEmitterShapeProperties extends Component<IFXEditorEmitterSh
 
 				{emitter instanceof SolidSphereParticleEmitter && (
 					<>
-						<EditorInspectorNumberField
-							object={emitter}
-							property="radius"
-							label="Radius"
-							min={0}
-							step={0.1}
-							onChange={onChange}
-						/>
-						<EditorInspectorNumberField
-							object={emitter}
-							property="arc"
-							label="Arc"
-							min={0}
-							max={Math.PI * 2}
-							step={0.1}
-							onChange={onChange}
-						/>
-						<EditorInspectorNumberField
-							object={emitter}
-							property="thickness"
-							label="Thickness"
-							min={0}
-							max={1}
-							step={0.01}
-							onChange={onChange}
-						/>
+						<EditorInspectorNumberField object={emitter} property="radius" label="Radius" min={0} step={0.1} onChange={onChange} />
+						<EditorInspectorNumberField object={emitter} property="arc" label="Arc" min={0} max={Math.PI * 2} step={0.1} onChange={onChange} />
+						<EditorInspectorNumberField object={emitter} property="thickness" label="Thickness" min={0} max={1} step={0.01} onChange={onChange} />
 					</>
 				)}
 
 				{emitter instanceof SolidConeParticleEmitter && (
 					<>
-						<EditorInspectorNumberField
-							object={emitter}
-							property="radius"
-							label="Radius"
-							min={0}
-							step={0.1}
-							onChange={onChange}
-						/>
-						<EditorInspectorNumberField
-							object={emitter}
-							property="arc"
-							label="Arc"
-							min={0}
-							max={Math.PI * 2}
-							step={0.1}
-							onChange={onChange}
-						/>
-						<EditorInspectorNumberField
-							object={emitter}
-							property="thickness"
-							label="Thickness"
-							min={0}
-							max={1}
-							step={0.01}
-							onChange={onChange}
-						/>
-						<EditorInspectorNumberField
-							object={emitter}
-							property="angle"
-							label="Angle"
-							min={0}
-							max={Math.PI}
-							step={0.1}
-							onChange={onChange}
-						/>
+						<EditorInspectorNumberField object={emitter} property="radius" label="Radius" min={0} step={0.1} onChange={onChange} />
+						<EditorInspectorNumberField object={emitter} property="arc" label="Arc" min={0} max={Math.PI * 2} step={0.1} onChange={onChange} />
+						<EditorInspectorNumberField object={emitter} property="thickness" label="Thickness" min={0} max={1} step={0.01} onChange={onChange} />
+						<EditorInspectorNumberField object={emitter} property="angle" label="Angle" min={0} max={Math.PI} step={0.1} onChange={onChange} />
 					</>
 				)}
 			</>
