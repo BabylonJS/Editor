@@ -553,9 +553,12 @@ export class VFXSolidParticleSystem extends SolidParticleSystem implements IVFXS
 			this.billboard = false;
 		}
 
-		// Enable vertex colors and alpha for particle color support
-		// This must be done after addShape but before buildMesh
-		// The mesh will be created in buildMesh, so we'll set it there
+		// Build mesh immediately after adding shape to ensure mesh is available
+		this.buildMesh();
+
+		// Setup mesh properties (parent, transform, etc.)
+		// Call _setupMeshProperties to configure mesh properly
+		this._setupMeshProperties();
 
 		// Dispose temporary mesh after adding to SPS
 		particleMesh.dispose();

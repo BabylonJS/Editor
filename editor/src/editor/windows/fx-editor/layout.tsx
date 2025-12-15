@@ -6,7 +6,12 @@ import { waitNextAnimationFrame } from "../../../tools/tools";
 import { FXEditorPreview } from "./preview";
 import { FXEditorGraph } from "./graph";
 import { FXEditorAnimation } from "./animation";
-import { FXEditorProperties } from "./properties";
+import { FXEditorObjectPropertiesTab } from "./properties/object-properties";
+import { FXEditorEmitterPropertiesTab } from "./properties/emitter-properties";
+import { FXEditorRendererPropertiesTab } from "./properties/renderer-properties";
+import { FXEditorEmissionPropertiesTab } from "./properties/emission-properties";
+import { FXEditorInitializationPropertiesTab } from "./properties/initialization-properties";
+import { FXEditorBehaviorsPropertiesTab } from "./properties/behaviors-properties";
 import { FXEditorResources } from "./resources";
 import { IFXEditor } from ".";
 
@@ -89,9 +94,49 @@ const layoutModel: IJsonModel = {
 						children: [
 							{
 								type: "tab",
-								id: "properties",
-								name: "Properties",
-								component: "properties",
+								id: "properties-object",
+								name: "Object",
+								component: "properties-object",
+								enableClose: false,
+								enableRenderOnDemand: false,
+							},
+							{
+								type: "tab",
+								id: "properties-emitter",
+								name: "Emitter",
+								component: "properties-emitter",
+								enableClose: false,
+								enableRenderOnDemand: false,
+							},
+							{
+								type: "tab",
+								id: "properties-renderer",
+								name: "Renderer",
+								component: "properties-renderer",
+								enableClose: false,
+								enableRenderOnDemand: false,
+							},
+							{
+								type: "tab",
+								id: "properties-emission",
+								name: "Emission",
+								component: "properties-emission",
+								enableClose: false,
+								enableRenderOnDemand: false,
+							},
+							{
+								type: "tab",
+								id: "properties-initialization",
+								name: "Initialization",
+								component: "properties-initialization",
+								enableClose: false,
+								enableRenderOnDemand: false,
+							},
+							{
+								type: "tab",
+								id: "properties-behaviors",
+								name: "Behaviors",
+								component: "properties-behaviors",
 								enableClose: false,
 								enableRenderOnDemand: false,
 							},
@@ -146,10 +191,6 @@ export class FXEditorLayout extends Component<IFXEditorLayoutProps, IFXEditorLay
 			() => {
 				// Update components immediately after state change
 				this._updateComponents();
-				// Force update properties component after state change
-				if (this.props.editor.properties) {
-					this.props.editor.properties.forceUpdate();
-				}
 				// Force update layout to ensure flexlayout-react sees the new component
 				this.forceUpdate();
 			}
@@ -185,10 +226,9 @@ export class FXEditorLayout extends Component<IFXEditorLayoutProps, IFXEditorLay
 			),
 			resources: <FXEditorResources ref={(r) => (this.props.editor.resources = r!)} resources={this.state.resources} />,
 			animation: <FXEditorAnimation ref={(r) => (this.props.editor.animation = r!)} filePath={this.props.filePath} editor={this.props.editor} />,
-			properties: (
-				<FXEditorProperties
-					key={`properties-${this.state.selectedNodeId || "none"}-${this.state.propertiesKey}`}
-					ref={(r) => (this.props.editor.properties = r!)}
+			"properties-object": (
+				<FXEditorObjectPropertiesTab
+					key={`properties-object-${this.state.selectedNodeId || "none"}-${this.state.propertiesKey}`}
 					filePath={this.props.filePath}
 					selectedNodeId={this.state.selectedNodeId}
 					editor={this.props.editor}
@@ -198,6 +238,47 @@ export class FXEditorLayout extends Component<IFXEditorLayoutProps, IFXEditorLay
 							this.props.editor.graph.updateNodeNames();
 						}
 					}}
+					getNodeData={(nodeId) => this.props.editor.graph?.getNodeData(nodeId) || null}
+				/>
+			),
+			"properties-emitter": (
+				<FXEditorEmitterPropertiesTab
+					key={`properties-emitter-${this.state.selectedNodeId || "none"}-${this.state.propertiesKey}`}
+					filePath={this.props.filePath}
+					selectedNodeId={this.state.selectedNodeId}
+					getNodeData={(nodeId) => this.props.editor.graph?.getNodeData(nodeId) || null}
+				/>
+			),
+			"properties-renderer": (
+				<FXEditorRendererPropertiesTab
+					key={`properties-renderer-${this.state.selectedNodeId || "none"}-${this.state.propertiesKey}`}
+					filePath={this.props.filePath}
+					selectedNodeId={this.state.selectedNodeId}
+					editor={this.props.editor}
+					getNodeData={(nodeId) => this.props.editor.graph?.getNodeData(nodeId) || null}
+				/>
+			),
+			"properties-emission": (
+				<FXEditorEmissionPropertiesTab
+					key={`properties-emission-${this.state.selectedNodeId || "none"}-${this.state.propertiesKey}`}
+					filePath={this.props.filePath}
+					selectedNodeId={this.state.selectedNodeId}
+					getNodeData={(nodeId) => this.props.editor.graph?.getNodeData(nodeId) || null}
+				/>
+			),
+			"properties-initialization": (
+				<FXEditorInitializationPropertiesTab
+					key={`properties-initialization-${this.state.selectedNodeId || "none"}-${this.state.propertiesKey}`}
+					filePath={this.props.filePath}
+					selectedNodeId={this.state.selectedNodeId}
+					getNodeData={(nodeId) => this.props.editor.graph?.getNodeData(nodeId) || null}
+				/>
+			),
+			"properties-behaviors": (
+				<FXEditorBehaviorsPropertiesTab
+					key={`properties-behaviors-${this.state.selectedNodeId || "none"}-${this.state.propertiesKey}`}
+					filePath={this.props.filePath}
+					selectedNodeId={this.state.selectedNodeId}
 					getNodeData={(nodeId) => this.props.editor.graph?.getNodeData(nodeId) || null}
 				/>
 			),
@@ -218,9 +299,9 @@ export class FXEditorLayout extends Component<IFXEditorLayoutProps, IFXEditorLay
 			return <div>Error, see console...</div>;
 		}
 
-		// Always update components before returning, especially for properties tab
+		// Always update components before returning, especially for properties tabs
 		// This ensures flexlayout-react gets the latest component with updated props
-		if (componentName === "properties") {
+		if (componentName.startsWith("properties-")) {
 			this._updateComponents();
 		}
 

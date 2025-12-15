@@ -1,6 +1,6 @@
 import { Component, ReactNode } from "react";
 
-import { EditorInspectorSectionField } from "../../layout/inspector/fields/section";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../ui/shadcn/ui/tabs";
 
 import { FXEditorObjectProperties } from "./properties/object";
 import { FXEditorEmitterShapeProperties } from "./properties/emitter-shape";
@@ -69,53 +69,83 @@ export class FXEditorProperties extends Component<IFXEditorPropertiesProps, IFXE
 		// For groups, show only Object properties
 		if (nodeData.type === "group" && nodeData.group) {
 			return (
-				<div className="flex flex-col gap-2 w-full h-full p-2 overflow-auto">
-					<EditorInspectorSectionField title="Object">
-						<FXEditorObjectProperties
-							nodeData={nodeData}
-							onChange={() => {
-								this.forceUpdate();
-								this.props.onNameChanged?.();
-							}}
-						/>
-					</EditorInspectorSectionField>
+				<div className="flex flex-col w-full h-full overflow-hidden">
+					<Tabs defaultValue="object" className="flex flex-col w-full h-full">
+						<TabsList className="w-full rounded-none border-b">
+							<TabsTrigger value="object" className="flex-1">
+								Object
+							</TabsTrigger>
+						</TabsList>
+						<TabsContent value="object" className="flex-1 overflow-auto p-2 m-0">
+							<FXEditorObjectProperties
+								nodeData={nodeData}
+								onChange={() => {
+									this.forceUpdate();
+									this.props.onNameChanged?.();
+								}}
+							/>
+						</TabsContent>
+					</Tabs>
 				</div>
 			);
 		}
 
-		// For particles, show all properties
+		// For particles, show all properties in tabs
 		if (nodeData.type === "particle" && nodeData.system) {
 			return (
-				<div className="flex flex-col gap-2 w-full h-full p-2 overflow-auto">
-					<EditorInspectorSectionField title="Object">
-						<FXEditorObjectProperties
-							nodeData={nodeData}
-							onChange={() => {
-								this.forceUpdate();
-								this.props.onNameChanged?.();
-							}}
-						/>
-					</EditorInspectorSectionField>
+				<div className="flex flex-col w-full h-full overflow-hidden">
+					<Tabs defaultValue="object" className="flex flex-col w-full h-full">
+						<TabsList className="w-full rounded-none border-b grid grid-cols-6">
+							<TabsTrigger value="object" className="text-xs">
+								Object
+							</TabsTrigger>
+							<TabsTrigger value="emitter" className="text-xs">
+								Emitter
+							</TabsTrigger>
+							<TabsTrigger value="renderer" className="text-xs">
+								Renderer
+							</TabsTrigger>
+							<TabsTrigger value="emission" className="text-xs">
+								Emission
+							</TabsTrigger>
+							<TabsTrigger value="initialization" className="text-xs">
+								Initialization
+							</TabsTrigger>
+							<TabsTrigger value="behaviors" className="text-xs">
+								Behaviors
+							</TabsTrigger>
+						</TabsList>
 
-					<EditorInspectorSectionField title="Emitter Shape">
-						<FXEditorEmitterShapeProperties nodeData={nodeData} onChange={() => this.forceUpdate()} />
-					</EditorInspectorSectionField>
+						<TabsContent value="object" className="flex-1 overflow-auto p-2 m-0">
+							<FXEditorObjectProperties
+								nodeData={nodeData}
+								onChange={() => {
+									this.forceUpdate();
+									this.props.onNameChanged?.();
+								}}
+							/>
+						</TabsContent>
 
-					<EditorInspectorSectionField title="Particle Renderer">
-						<FXEditorParticleRendererProperties nodeData={nodeData} editor={this.props.editor} onChange={() => this.forceUpdate()} />
-					</EditorInspectorSectionField>
+						<TabsContent value="emitter" className="flex-1 overflow-auto p-2 m-0">
+							<FXEditorEmitterShapeProperties nodeData={nodeData} onChange={() => this.forceUpdate()} />
+						</TabsContent>
 
-					<EditorInspectorSectionField title="Emission">
-						<FXEditorEmissionProperties nodeData={nodeData} onChange={() => this.forceUpdate()} />
-					</EditorInspectorSectionField>
+						<TabsContent value="renderer" className="flex-1 overflow-auto p-2 m-0">
+							<FXEditorParticleRendererProperties nodeData={nodeData} editor={this.props.editor} onChange={() => this.forceUpdate()} />
+						</TabsContent>
 
-					<EditorInspectorSectionField title="Particle Initialization">
-						<FXEditorParticleInitializationProperties nodeData={nodeData} onChange={() => this.forceUpdate()} />
-					</EditorInspectorSectionField>
+						<TabsContent value="emission" className="flex-1 overflow-auto p-2 m-0">
+							<FXEditorEmissionProperties nodeData={nodeData} onChange={() => this.forceUpdate()} />
+						</TabsContent>
 
-					<EditorInspectorSectionField title="Behaviors">
-						<FXEditorBehaviorsProperties nodeData={nodeData} onChange={() => this.forceUpdate()} />
-					</EditorInspectorSectionField>
+						<TabsContent value="initialization" className="flex-1 overflow-auto p-2 m-0">
+							<FXEditorParticleInitializationProperties nodeData={nodeData} onChange={() => this.forceUpdate()} />
+						</TabsContent>
+
+						<TabsContent value="behaviors" className="flex-1 overflow-auto p-2 m-0">
+							<FXEditorBehaviorsProperties nodeData={nodeData} onChange={() => this.forceUpdate()} />
+						</TabsContent>
+					</Tabs>
 				</div>
 			);
 		}
