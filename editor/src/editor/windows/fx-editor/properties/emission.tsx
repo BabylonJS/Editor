@@ -3,9 +3,13 @@ import { ReactNode } from "react";
 import { EditorInspectorNumberField } from "../../../layout/inspector/fields/number";
 import { EditorInspectorSwitchField } from "../../../layout/inspector/fields/switch";
 import { EditorInspectorBlockField } from "../../../layout/inspector/fields/block";
+import { EditorInspectorSectionField } from "../../../layout/inspector/fields/section";
+import { EditorInspectorStringField } from "../../../layout/inspector/fields/string";
 
 import type { VFXEffectNode } from "../VFX";
 import { VFXParticleSystem, VFXSolidParticleSystem } from "../VFX";
+import { VFXValueEditor } from "./vfx-value-editor";
+import type { VFXEmissionBurst, VFXValue } from "../VFX/types";
 
 export interface IFXEditorEmissionPropertiesProps {
 	nodeData: VFXEffectNode;
@@ -21,13 +25,47 @@ export function FXEditorEmissionProperties(props: IFXEditorEmissionPropertiesPro
 
 	const system = nodeData.system;
 
-	// For VFXParticleSystem, show emission properties
-	if (system instanceof VFXParticleSystem) {
-		return (
-			<>
-				<EditorInspectorSwitchField object={system} property="isLooping" label="Looping" onChange={onChange} />
-				<EditorInspectorNumberField object={system} property="targetStopDuration" label="Duration" min={0} step={0.1} onChange={onChange} />
-				<EditorInspectorNumberField object={system} property="emitRate" label="Emit Rate" min={0} step={0.1} onChange={onChange} />
+	return (
+		<>
+			{/* Looping / Duration / Prewarm / OnlyUsedByOther */}
+			<EditorInspectorSwitchField object={system as any} property="isLooping" label="Looping" onChange={onChange} />
+			<EditorInspectorNumberField
+				object={system as any}
+				property={"targetStopDuration" in system ? "targetStopDuration" : "duration"}
+				label="Duration"
+				min={0}
+				step={0.1}
+				onChange={onChange}
+			/>
+			<EditorInspectorSwitchField object={system as any} property="prewarm" label="Prewarm" onChange={onChange} />
+			<EditorInspectorSwitchField object={system as any} property="onlyUsedByOther" label="Only Used By Other System" onChange={onChange} />
+
+			{/* Emit Over Time */}
+			<EditorInspectorSectionField title="Emit Over Time">
+				<VFXValueEditor
+					label="Emit Over Time"
+					value={(system as any).emissionOverTime as VFXValue | undefined}
+					onChange={(val) => {
+						(system as any).emissionOverTime = val;
+						onChange();
+					}}
+				/>
+			</EditorInspectorSectionField>
+
+			{/* Emit Over Distance */}
+			<EditorInspectorSectionField title="Emit Over Distance">
+				<VFXValueEditor
+					label="Emit Over Distance"
+					value={(system as any).emissionOverDistance as VFXValue | undefined}
+					onChange={(val) => {
+						(system as any).emissionOverDistance = val;
+						onChange();
+					}}
+				/>
+			</EditorInspectorSectionField>
+
+			{/* Emit Power (min/max) - только для base (есть min/maxEmitPower) */}
+			{system instanceof VFXParticleSystem && (
 				<EditorInspectorBlockField>
 					<div className="px-2">Emit Power</div>
 					<div className="flex items-center">
@@ -35,24 +73,97 @@ export function FXEditorEmissionProperties(props: IFXEditorEmissionPropertiesPro
 						<EditorInspectorNumberField grayLabel object={system} property="maxEmitPower" label="Max" min={0} onChange={onChange} />
 					</div>
 				</EditorInspectorBlockField>
-				{/* TODO: Add prewarm, onlyUsedByOtherSystem, emitOverDistance properties */}
-				{/* TODO: Add bursts support */}
-			</>
-		);
-	}
+			)}
 
-	// For VFXSolidParticleSystem, show emission properties
-	if (system instanceof VFXSolidParticleSystem) {
-		return (
-			<>
-				<EditorInspectorSwitchField object={system} property="isLooping" label="Looping" onChange={onChange} />
-				<EditorInspectorNumberField object={system} property="targetStopDuration" label="Duration" min={0} step={0.1} onChange={onChange} />
-				<EditorInspectorNumberField object={system} property="emitRate" label="Emit Rate" min={0} step={0.1} onChange={onChange} />
-				{/* TODO: Add prewarm, onlyUsedByOtherSystem, emitOverDistance properties */}
-				{/* TODO: Add bursts support */}
-			</>
-		);
-	}
+			{/* Bursts */}
+			{renderBursts(system as any, onChange)}
+		</>
+	);
+}
 
-	return null;
+function renderBursts(system: any, onChange: () => void): ReactNode {
+	const bursts: (VFXEmissionBurst & { cycle?: number; interval?: number; probability?: number })[] = Array.isArray(system.emissionBursts)
+		? system.emissionBursts
+		: [];
+
+	const addBurst = () => {
+		bursts.push({
+			time: 0,
+			count: 1,
+			cycle: 1,
+			interval: 0,
+			probability: 1,
+		});
+		system.emissionBursts = bursts;
+		onChange();
+	};
+
+	const removeBurst = (index: number) => {
+		bursts.splice(index, 1);
+		system.emissionBursts = bursts;
+		onChange();
+	};
+
+	return (
+		<EditorInspectorSectionField title="Bursts">
+			<div className="flex flex-col gap-3 px-2">
+				{bursts.map((burst, idx) => (
+					<div key={idx} className="border border-border rounded p-2 flex flex-col gap-2">
+						<div className="flex justify-between items-center text-sm font-medium">
+							<div>Burst #{idx + 1}</div>
+							<button className="text-red-500" onClick={() => removeBurst(idx)}>
+								Remove
+							</button>
+						</div>
+						<div className="flex flex-col gap-2">
+							<VFXValueEditor
+								label="Time"
+								value={burst.time as VFXValue}
+								onChange={(val) => {
+									burst.time = val;
+									onChange();
+								}}
+							/>
+							<VFXValueEditor
+								label="Count"
+								value={burst.count as VFXValue}
+								onChange={(val) => {
+									burst.count = val;
+									onChange();
+								}}
+							/>
+							<EditorInspectorNumberField
+								object={burst as any}
+								property="cycle"
+								label="Cycle"
+								min={0}
+								step={1}
+								onChange={onChange}
+							/>
+							<EditorInspectorNumberField
+								object={burst as any}
+								property="interval"
+								label="Interval"
+								min={0}
+								step={0.01}
+								onChange={onChange}
+							/>
+							<EditorInspectorNumberField
+								object={burst as any}
+								property="probability"
+								label="Probability"
+								min={0}
+								max={1}
+								step={0.01}
+								onChange={onChange}
+							/>
+						</div>
+					</div>
+				))}
+				<button className="px-2 py-1 border border-border rounded" onClick={addBurst}>
+					Add Burst
+				</button>
+			</div>
+		</EditorInspectorSectionField>
+	);
 }
