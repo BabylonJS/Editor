@@ -1,11 +1,13 @@
-import { Scene, Tools, IDisposable, TransformNode } from "babylonjs";
+import { Scene, Tools, IDisposable, TransformNode, Vector3, CreatePlane, MeshBuilder, Texture } from "babylonjs";
 import type { QuarksVFXJSON } from "./types/quarksTypes";
 import type { VFXLoaderOptions } from "./types/loader";
 import { VFXParser } from "./parsers/VFXParser";
 import { VFXParticleSystem } from "./systems/VFXParticleSystem";
 import { VFXSolidParticleSystem } from "./systems/VFXSolidParticleSystem";
 import type { VFXGroup, VFXEmitter, VFXData } from "./types/hierarchy";
+import type { VFXParticleEmitterConfig } from "./types/emitterConfig";
 import { isVFXSystem } from "./types/system";
+import { VFXEmitterFactory } from "./factories/VFXEmitterFactory";
 
 /**
  * VFX Effect Node - represents either a particle system or a group
@@ -67,6 +69,9 @@ export class VFXEffect implements IDisposable {
 	/** All nodes in the hierarchy */
 	private readonly _nodes = new Map<string, VFXEffectNode>();
 
+	/** Scene reference for creating new systems */
+	private _scene: Scene | null = null;
+
 	/**
 	 * Load a Three.js particle JSON file and create particle systems
 	 * @param url URL to the JSON file
@@ -118,6 +123,7 @@ export class VFXEffect implements IDisposable {
 	 * @param options Optional parsing options
 	 */
 	constructor(jsonData?: QuarksVFXJSON, scene?: Scene, rootUrl: string = "", options?: VFXLoaderOptions) {
+		this._scene = scene || null;
 		if (jsonData && scene) {
 			const parser = new VFXParser(scene, rootUrl, jsonData, options);
 			const parseResult = parser.parse();
@@ -126,6 +132,10 @@ export class VFXEffect implements IDisposable {
 			if (parseResult.vfxData && parseResult.groupNodesMap) {
 				this._buildHierarchy(parseResult.vfxData, parseResult.groupNodesMap, parseResult.systems);
 			}
+		} else if (scene) {
+			// Create empty effect with root group
+			this._scene = scene;
+			this._createEmptyEffect();
 		}
 	}
 
@@ -353,6 +363,95 @@ export class VFXEffect implements IDisposable {
 	}
 
 	/**
+	 * Start a node (system or group)
+	 */
+	public startNode(node: VFXEffectNode): void {
+		if (node.type === "particle" && node.system) {
+			node.system.start();
+		} else if (node.type === "group" && node.group) {
+			// Find all systems in this group recursively
+			const systems = this._getSystemsInNode(node);
+			for (const system of systems) {
+				system.start();
+			}
+		}
+	}
+
+	/**
+	 * Stop a node (system or group)
+	 */
+	public stopNode(node: VFXEffectNode): void {
+		if (node.type === "particle" && node.system) {
+			node.system.stop();
+		} else if (node.type === "group" && node.group) {
+			// Find all systems in this group recursively
+			const systems = this._getSystemsInNode(node);
+			for (const system of systems) {
+				system.stop();
+			}
+		}
+	}
+
+	/**
+	 * Reset a node (system or group)
+	 */
+	public resetNode(node: VFXEffectNode): void {
+		if (node.type === "particle" && node.system) {
+			node.system.reset();
+		} else if (node.type === "group" && node.group) {
+			// Find all systems in this group recursively
+			const systems = this._getSystemsInNode(node);
+			for (const system of systems) {
+				system.reset();
+			}
+		}
+	}
+
+	/**
+	 * Check if a node is started (system or group)
+	 */
+	public isNodeStarted(node: VFXEffectNode): boolean {
+		if (node.type === "particle" && node.system) {
+			if (node.system instanceof VFXParticleSystem) {
+				return (node.system as any).isStarted ? (node.system as any).isStarted() : false;
+			} else if (node.system instanceof VFXSolidParticleSystem) {
+				return (node.system as any)._started && !(node.system as any)._stopped;
+			}
+			return false;
+		} else if (node.type === "group" && node.group) {
+			// Check if any system in this group is started
+			const systems = this._getSystemsInNode(node);
+			return systems.some((system) => {
+				if (system instanceof VFXParticleSystem) {
+					return (system as any).isStarted ? (system as any).isStarted() : false;
+				} else if (system instanceof VFXSolidParticleSystem) {
+					return (system as any)._started && !(system as any)._stopped;
+				}
+				return false;
+			});
+		}
+		return false;
+	}
+
+	/**
+	 * Get all systems in a node recursively
+	 */
+	private _getSystemsInNode(node: VFXEffectNode): (VFXParticleSystem | VFXSolidParticleSystem)[] {
+		const systems: (VFXParticleSystem | VFXSolidParticleSystem)[] = [];
+
+		if (node.type === "particle" && node.system) {
+			systems.push(node.system);
+		} else if (node.type === "group") {
+			// Recursively collect all systems from children
+			for (const child of node.children) {
+				systems.push(...this._getSystemsInNode(child));
+			}
+		}
+
+		return systems;
+	}
+
+	/**
 	 * Start all particle systems
 	 */
 	public start(): void {
@@ -418,6 +517,192 @@ export class VFXEffect implements IDisposable {
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Create empty effect with root group
+	 */
+	private _createEmptyEffect(): void {
+		if (!this._scene) {
+			return;
+		}
+
+		const rootGroup = new TransformNode("Root", this._scene);
+		const rootUuid = Tools.RandomId();
+		rootGroup.id = rootUuid;
+
+		const rootNode: VFXEffectNode = {
+			name: "Root",
+			uuid: rootUuid,
+			group: rootGroup,
+			children: [],
+			type: "group",
+		};
+
+		this._root = rootNode;
+		this._groupsByName.set("Root", rootGroup);
+		this._groupsByUuid.set(rootUuid, rootGroup);
+		this._nodes.set(rootUuid, rootNode);
+		this._nodes.set("Root", rootNode);
+	}
+
+	/**
+	 * Create a new group node
+	 * @param parentNode Parent node (if null, adds to root)
+	 * @param name Optional name (defaults to "Group")
+	 * @returns Created group node
+	 */
+	public createGroup(parentNode: VFXEffectNode | null = null, name: string = "Group"): VFXEffectNode | null {
+		if (!this._scene) {
+			console.error("Cannot create group: scene is not available");
+			return null;
+		}
+
+		const parent = parentNode || this._root;
+		if (!parent || parent.type !== "group") {
+			console.error("Cannot create group: parent is not a group");
+			return null;
+		}
+
+		// Ensure unique name
+		let uniqueName = name;
+		let counter = 1;
+		while (this._nodes.has(uniqueName)) {
+			uniqueName = `${name} ${counter}`;
+			counter++;
+		}
+
+		const groupUuid = Tools.RandomId();
+		const groupNode = new TransformNode(uniqueName, this._scene);
+		groupNode.id = groupUuid;
+
+		// Set parent transform
+		if (parent.group) {
+			groupNode.setParent(parent.group, false, true);
+		}
+
+		const newNode: VFXEffectNode = {
+			name: uniqueName,
+			uuid: groupUuid,
+			group: groupNode,
+			parent,
+			children: [],
+			type: "group",
+		};
+
+		// Add to parent's children
+		parent.children.push(newNode);
+
+		// Store in maps
+		this._groupsByName.set(uniqueName, groupNode);
+		this._groupsByUuid.set(groupUuid, groupNode);
+		this._nodes.set(groupUuid, newNode);
+		this._nodes.set(uniqueName, newNode);
+
+		return newNode;
+	}
+
+	/**
+	 * Create a new particle system
+	 * @param parentNode Parent node (if null, adds to root)
+	 * @param systemType Type of system ("solid" or "base")
+	 * @param name Optional name (defaults to "ParticleSystem")
+	 * @returns Created particle system node
+	 */
+	public createParticleSystem(parentNode: VFXEffectNode | null = null, systemType: "solid" | "base" = "base", name: string = "ParticleSystem"): VFXEffectNode | null {
+		if (!this._scene) {
+			console.error("Cannot create particle system: scene is not available");
+			return null;
+		}
+
+		const parent = parentNode || this._root;
+		if (!parent || parent.type !== "group") {
+			console.error("Cannot create particle system: parent is not a group");
+			return null;
+		}
+
+		// Ensure unique name
+		let uniqueName = name;
+		let counter = 1;
+		while (this._nodes.has(uniqueName)) {
+			uniqueName = `${name} ${counter}`;
+			counter++;
+		}
+
+		const systemUuid = Tools.RandomId();
+
+		// Create default config
+		const config: VFXParticleEmitterConfig = {
+			systemType,
+			looping: true,
+			duration: 5,
+			prewarm: false,
+			emissionOverTime: 10,
+			startLife: 1,
+			startSpeed: 1,
+			startSize: 1,
+			startColor: { type: "ConstantColor", value: [1, 1, 1, 1] },
+			behaviors: [],
+		};
+
+		let system: VFXParticleSystem | VFXSolidParticleSystem;
+
+		if (systemType === "solid") {
+			// Create default plane mesh for SPS
+			const planeMesh = CreatePlane("particleMesh", { size: 1 }, this._scene);
+			planeMesh.setEnabled(false); // Hide the source mesh
+
+			system = new VFXSolidParticleSystem(uniqueName, this._scene, config, {
+				particleMesh: planeMesh,
+				parentGroup: parent.group || undefined,
+			});
+
+			// Create default point emitter
+			system.createPointEmitter();
+		} else {
+			// Create base particle system with default flare texture
+			const flareTexture = new Texture(Tools.GetAssetUrl("https://assets.babylonjs.com/core/textures/flare.png"), this._scene);
+			system = new VFXParticleSystem(uniqueName, this._scene, config, {
+				texture: flareTexture,
+			});
+
+			// Create default point emitter
+			const emitterFactory = new VFXEmitterFactory();
+			emitterFactory.createParticleSystemEmitter(system, undefined, Vector3.One(), null);
+
+			// Create emitter mesh (Mesh for ParticleSystem)
+			const emitterMesh = MeshBuilder.CreateBox(`${uniqueName}_Emitter`, { size: 0.1 }, this._scene);
+			emitterMesh.id = Tools.RandomId();
+			emitterMesh.setEnabled(false); // Hide the emitter mesh
+			if (parent.group) {
+				emitterMesh.setParent(parent.group, false, true);
+			}
+			system.emitter = emitterMesh;
+		}
+
+		// Set system name
+		system.name = uniqueName;
+
+		const newNode: VFXEffectNode = {
+			name: uniqueName,
+			uuid: systemUuid,
+			system,
+			parent,
+			children: [],
+			type: "particle",
+		};
+
+		// Add to parent's children
+		parent.children.push(newNode);
+
+		// Store in maps
+		this._systems.push(system);
+		this._systemsByName.set(uniqueName, system);
+		this._systemsByUuid.set(systemUuid, system);
+		this._nodes.set(systemUuid, newNode);
+		this._nodes.set(uniqueName, newNode);
+
+		return newNode;
 	}
 
 	/**

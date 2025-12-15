@@ -17,6 +17,9 @@ import {
 } from "../../../ui/shadcn/ui/context-menu";
 import { IFXEditor } from ".";
 import { VFXEffect, type VFXEffectNode } from "./VFX";
+import { saveSingleFileDialog } from "../../../tools/dialog";
+import { writeJSON } from "fs-extra";
+import { toast } from "sonner";
 
 export interface IFXEditorGraphProps {
 	filePath: string | null;
@@ -29,8 +32,17 @@ export interface IFXEditorGraphState {
 	selectedNodeId: string | number | null;
 }
 
+interface EffectInfo {
+	id: string;
+	name: string;
+	effect: VFXEffect;
+	originalJsonData?: any; // Store original JSON data for export
+}
+
 export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraphState> {
-	private _vfxEffect: VFXEffect | null = null;
+	private _vfxEffects: Map<string, EffectInfo> = new Map();
+	/** Map of node instances to unique IDs for tree nodes */
+	private _nodeIdMap: Map<VFXEffectNode, string> = new Map();
 
 	public constructor(props: IFXEditorGraphProps) {
 		super(props);
@@ -42,10 +54,26 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 	}
 
 	/**
-	 * Get the current VFX effect
+	 * Get the first VFX effect (for backward compatibility)
 	 */
 	public getEffect(): VFXEffect | null {
-		return this._vfxEffect;
+		const firstEffect = this._vfxEffects.values().next().value;
+		return firstEffect ? firstEffect.effect : null;
+	}
+
+	/**
+	 * Get all VFX effects
+	 */
+	public getAllEffects(): VFXEffect[] {
+		return Array.from(this._vfxEffects.values()).map((info) => info.effect);
+	}
+
+	/**
+	 * Get effect by ID
+	 */
+	public getEffectById(id: string): VFXEffect | null {
+		const info = this._vfxEffects.get(id);
+		return info ? info.effect : null;
 	}
 
 	/**
@@ -90,15 +118,24 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 
 			// Load VFX effect
 			const dirname = require("path").dirname(filePath);
+			const fs = require("fs-extra");
+			const originalJsonData = await fs.readJSON(filePath);
 			const vfxEffect = await VFXEffect.LoadAsync(filePath, this.props.editor.preview!.scene, dirname + "/");
 
-			// Store effect for preview controls
-			this._vfxEffect = vfxEffect;
+			// Generate unique ID for effect
+			const effectId = `effect-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+			const effectName = require("path").basename(filePath, ".json") || "Effect";
 
-			// Build tree from VFXEffect hierarchy
-			const nodes = vfxEffect.root ? [this._convertVFXNodeToTreeNode(vfxEffect.root)] : [];
+			// Store effect with original JSON data for export
+			this._vfxEffects.set(effectId, {
+				id: effectId,
+				name: effectName,
+				effect: vfxEffect,
+				originalJsonData,
+			});
 
-			this.setState({ nodes, selectedNodeId: null });
+			// Rebuild tree with all effects
+			this._rebuildTree();
 
 			// Apply prewarm before starting (if any systems have prewarm enabled)
 			vfxEffect.applyPrewarm();
@@ -119,20 +156,65 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 	}
 
 	/**
+	 * Rebuild tree from all effects
+	 */
+	private _rebuildTree(): void {
+		// Clear node ID map when rebuilding tree to ensure unique IDs
+		this._nodeIdMap.clear();
+
+		const nodes: TreeNodeInfo<VFXEffectNode>[] = [];
+
+		for (const [effectId, effectInfo] of this._vfxEffects.entries()) {
+			if (effectInfo.effect.root) {
+				// Use effect root directly as the tree node, but update its name to effect name
+				effectInfo.effect.root.name = effectInfo.name;
+				effectInfo.effect.root.uuid = effectId;
+
+				const treeNode = this._convertVFXNodeToTreeNode(effectInfo.effect.root, true);
+				nodes.push(treeNode);
+			}
+		}
+
+		this.setState({ nodes });
+	}
+
+	/**
+	 * Generate unique ID for a node
+	 */
+	private _generateUniqueNodeId(vfxNode: VFXEffectNode): string {
+		// Check if we already have an ID for this node instance
+		if (this._nodeIdMap.has(vfxNode)) {
+			return this._nodeIdMap.get(vfxNode)!;
+		}
+
+		// Generate unique ID
+		const uniqueId = `node-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+		this._nodeIdMap.set(vfxNode, uniqueId);
+		return uniqueId;
+	}
+
+	/**
 	 * Converts VFXEffectNode to TreeNodeInfo recursively
 	 */
-	private _convertVFXNodeToTreeNode(vfxNode: VFXEffectNode): TreeNodeInfo<VFXEffectNode> {
-		const nodeId = vfxNode.uuid || vfxNode.name;
-		const childNodes = vfxNode.children.length > 0 ? vfxNode.children.map((child) => this._convertVFXNodeToTreeNode(child)) : undefined;
+	private _convertVFXNodeToTreeNode(vfxNode: VFXEffectNode, isEffectRoot: boolean = false): TreeNodeInfo<VFXEffectNode> {
+		// Always use unique ID instead of uuid or name
+		const nodeId = this._generateUniqueNodeId(vfxNode);
+		const childNodes = vfxNode.children.length > 0 ? vfxNode.children.map((child) => this._convertVFXNodeToTreeNode(child, false)) : undefined;
 
 		return {
 			id: nodeId,
 			label: this._getNodeLabelComponent({ id: nodeId, nodeData: vfxNode } as any, vfxNode.name),
-			icon: vfxNode.type === "particle" ? <IoSparklesSharp className="w-4 h-4" /> : <HiOutlineFolder className="w-4 h-4" />,
-			isExpanded: vfxNode.type === "group",
+			icon: isEffectRoot ? (
+				<IoSparklesSharp className="w-4 h-4" />
+			) : vfxNode.type === "particle" ? (
+				<IoSparklesSharp className="w-4 h-4" />
+			) : (
+				<HiOutlineFolder className="w-4 h-4" />
+			),
+			isExpanded: isEffectRoot || vfxNode.type === "group",
 			childNodes,
 			isSelected: false,
-			hasCaret: vfxNode.type === "group" || (childNodes && childNodes.length > 0),
+			hasCaret: isEffectRoot || vfxNode.type === "group" || (childNodes && childNodes.length > 0),
 			nodeData: vfxNode,
 		};
 	}
@@ -174,7 +256,15 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 					</div>
 				)}
 
-				<div className="flex-1" style={{ minHeight: "80px" }} onDragOver={(ev) => ev.preventDefault()}>
+				<div
+					className="flex-1"
+					style={{ minHeight: "80px" }}
+					onDragOver={(ev) => {
+						ev.preventDefault();
+						ev.dataTransfer.dropEffect = "copy";
+					}}
+					onDrop={(ev) => this._handleDropEmpty(ev)}
+				>
 					<ContextMenu>
 						<ContextMenuTrigger className="w-full h-full">
 							<div className="w-full h-full flex items-center justify-center">
@@ -187,11 +277,14 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 									<AiOutlinePlus className="w-5 h-5" /> Add
 								</ContextMenuSubTrigger>
 								<ContextMenuSubContent>
-									<ContextMenuItem onClick={() => this._handleAddParticles()}>
-										<IoSparklesSharp className="w-4 h-4" /> Particle
-									</ContextMenuItem>
-									<ContextMenuItem onClick={() => this._handleAddGroup()}>
-										<HiOutlineFolder className="w-4 h-4" /> Group
+									<ContextMenuItem
+										draggable
+										onDragStart={(ev) => {
+											ev.dataTransfer.setData("fx-editor/create-effect", "effect");
+										}}
+										onClick={() => this._handleCreateEffect()}
+									>
+										<IoSparklesSharp className="w-4 h-4" /> Effect
 									</ContextMenuItem>
 								</ContextMenuSubContent>
 							</ContextMenuSub>
@@ -234,10 +327,6 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 		});
 	}
 
-	private _getNodeType(node: TreeNodeInfo<VFXEffectNode>): "particle" | "group" {
-		return node.nodeData?.type || "particle";
-	}
-
 	private _handleNodeClicked(node: TreeNodeInfo<VFXEffectNode>): void {
 		const selectedId = node.id as string | number;
 		const nodes = this._updateNodeSelection(this.state.nodes, selectedId);
@@ -260,7 +349,27 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 	}
 
 	private _getNodeLabelComponent(node: TreeNodeInfo<VFXEffectNode>, name: string): JSX.Element {
-		const label = <div className="ml-2 p-1 w-full">{name}</div>;
+		const label = (
+			<div
+				className="ml-2 p-1 w-full"
+				onDragOver={(ev) => {
+					if (node.nodeData?.type === "group") {
+						ev.preventDefault();
+						ev.stopPropagation();
+						ev.dataTransfer.dropEffect = "copy";
+					}
+				}}
+				onDrop={(ev) => {
+					if (node.nodeData?.type === "group") {
+						ev.preventDefault();
+						ev.stopPropagation();
+						this._handleDropOnNode(node, ev);
+					}
+				}}
+			>
+				{name}
+			</div>
+		);
 
 		return (
 			<ContextMenu>
@@ -271,16 +380,45 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 							<AiOutlinePlus className="w-5 h-5" /> Add
 						</ContextMenuSubTrigger>
 						<ContextMenuSubContent>
-							<ContextMenuItem onClick={() => this._handleAddParticlesToNode(node)}>
-								<IoSparklesSharp className="w-4 h-4" /> Particle
-							</ContextMenuItem>
-							{this._getNodeType(node) === "group" && (
-								<ContextMenuItem onClick={() => this._handleAddGroupToNode(node)}>
-									<HiOutlineFolder className="w-4 h-4" /> Group
-								</ContextMenuItem>
+							{node.nodeData?.type === "group" && (
+								<>
+									<ContextMenuItem
+										draggable
+										onDragStart={(ev) => {
+											ev.dataTransfer.setData("fx-editor/create-item", "base-particle");
+										}}
+										onClick={() => this._handleAddParticleSystemToNode(node, "base")}
+									>
+										<IoSparklesSharp className="w-4 h-4" /> Base Particle
+									</ContextMenuItem>
+									<ContextMenuItem
+										draggable
+										onDragStart={(ev) => {
+											ev.dataTransfer.setData("fx-editor/create-item", "solid-particle");
+										}}
+										onClick={() => this._handleAddParticleSystemToNode(node, "solid")}
+									>
+										<IoSparklesSharp className="w-4 h-4" /> Solid Particle
+									</ContextMenuItem>
+									<ContextMenuItem
+										draggable
+										onDragStart={(ev) => {
+											ev.dataTransfer.setData("fx-editor/create-item", "group");
+										}}
+										onClick={() => this._handleAddGroupToNode(node)}
+									>
+										<HiOutlineFolder className="w-4 h-4" /> Group
+									</ContextMenuItem>
+								</>
 							)}
 						</ContextMenuSubContent>
 					</ContextMenuSub>
+					{this._isEffectRootNode(node) && (
+						<>
+							<ContextMenuSeparator />
+							<ContextMenuItem onClick={() => this._handleExportEffect(node)}>Export</ContextMenuItem>
+						</>
+					)}
 					<ContextMenuSeparator />
 					<ContextMenuItem className="flex items-center gap-2 !text-red-400" onClick={() => this._handleDeleteNode(node)}>
 						<AiOutlineClose className="w-5 h-5" fill="rgb(248, 113, 113)" /> Delete
@@ -290,44 +428,202 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 		);
 	}
 
-	private _handleAddParticles(_parentId?: string | number): void {
-		// const _nodeId = `particle-${Date.now()}`;
-		// const particleData = this.getOrCreateParticleData(nodeId);
-		// const newNode: TreeNodeInfo = {
-		// 	id: nodeId,
-		// 	label: this._getNodeLabelComponent({ id: nodeId, nodeData: particleData } as any, particleData.name),
-		// 	icon: <IoSparklesSharp className="w-4 h-4" />,
-		// 	isExpanded: false,
-		// 	childNodes: undefined,
-		// 	isSelected: false,
-		// 	hasCaret: false,
-		// 	nodeData: particleData,
-		// };
+	/**
+	 * Check if node is an effect root node
+	 */
+	private _isEffectRootNode(node: TreeNodeInfo<VFXEffectNode>): boolean {
+		const nodeData = node.nodeData;
+		if (!nodeData || !nodeData.uuid) {
+			return false;
+		}
+
+		// Check if this node is the root of any effect
+		return this._vfxEffects.has(nodeData.uuid);
 	}
 
-	private _handleAddGroup(_parentId?: string | number): void {
-		// const _nodeId = `group-${Date.now()}`;
-		// const groupData = this.getOrCreateGroupData(nodeId);
-		// const newNode: TreeNodeInfo = {
-		// 	id: nodeId,
-		// 	label: this._getNodeLabelComponent({ id: nodeId, nodeData: groupData } as any, groupData.name),
-		// 	icon: <HiOutlineFolder className="w-4 h-4" />,
-		// 	isExpanded: true,
-		// 	childNodes: [],
-		// 	isSelected: false,
-		// 	hasCaret: true,
-		// 	nodeData: groupData,
-		// };
+	/**
+	 * Export effect to JSON file
+	 */
+	private async _handleExportEffect(node: TreeNodeInfo<VFXEffectNode>): Promise<void> {
+		const nodeData = node.nodeData;
+		if (!nodeData || !nodeData.uuid) {
+			return;
+		}
+
+		const effectInfo = this._vfxEffects.get(nodeData.uuid);
+		if (!effectInfo || !effectInfo.originalJsonData) {
+			toast.error("Cannot export effect: original data not available");
+			return;
+		}
+
+		const filePath = saveSingleFileDialog({
+			title: "Export Effect",
+			filters: [{ name: "Effect Files", extensions: ["effect"] }],
+			defaultPath: `${effectInfo.name}.effect`,
+		});
+
+		if (!filePath) {
+			return;
+		}
+
+		try {
+			await writeJSON(filePath, effectInfo.originalJsonData, {
+				spaces: "\t",
+				encoding: "utf-8",
+			});
+
+			toast.success(`Effect exported successfully to ${filePath}`);
+		} catch (error) {
+			console.error("Failed to export effect:", error);
+			toast.error(`Failed to export effect: ${error instanceof Error ? error.message : String(error)}`);
+		}
 	}
 
-	private _handleAddParticlesToNode(node: TreeNodeInfo<VFXEffectNode>): void {
-		const nodeId = node.id as string | number;
-		this._handleAddParticles(nodeId);
+	private _handleCreateEffect(): void {
+		if (!this.props.editor.preview?.scene) {
+			console.error("Scene is not available");
+			return;
+		}
+
+		// Create empty effect
+		const vfxEffect = new VFXEffect(undefined, this.props.editor.preview.scene);
+
+		// Generate unique ID and name for effect
+		const effectId = `effect-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+		let effectName = "Effect";
+		let counter = 1;
+		while (Array.from(this._vfxEffects.values()).some((info) => info.name === effectName)) {
+			effectName = `Effect ${counter}`;
+			counter++;
+		}
+
+		// Store effect
+		this._vfxEffects.set(effectId, {
+			id: effectId,
+			name: effectName,
+			effect: vfxEffect,
+		});
+
+		// Rebuild tree with all effects
+		this._rebuildTree();
+	}
+
+	private _findEffectForNode(node: TreeNodeInfo<VFXEffectNode>): VFXEffect | null {
+		// Find the effect that contains this node by traversing up the tree
+		const nodeData = node.nodeData;
+		if (!nodeData) {
+			return null;
+		}
+
+		// First check if this is an effect root node
+		if (nodeData.uuid) {
+			const effectInfo = this._vfxEffects.get(nodeData.uuid);
+			if (effectInfo) {
+				return effectInfo.effect;
+			}
+		}
+
+		// Find effect by checking if node is in any effect's hierarchy
+		for (const effectInfo of this._vfxEffects.values()) {
+			const effect = effectInfo.effect;
+			if (effect.root) {
+				// Check if node is part of this effect's hierarchy
+				const findNodeInHierarchy = (current: VFXEffectNode): boolean => {
+					// Use instance comparison and uuid for matching
+					if (current === nodeData || (current.uuid && nodeData.uuid && current.uuid === nodeData.uuid)) {
+						return true;
+					}
+					for (const child of current.children) {
+						if (findNodeInHierarchy(child)) {
+							return true;
+						}
+					}
+					return false;
+				};
+
+				if (findNodeInHierarchy(effect.root)) {
+					return effect;
+				}
+			}
+		}
+
+		return null;
+	}
+
+	private _handleAddParticleSystemToNode(node: TreeNodeInfo<VFXEffectNode>, systemType: "solid" | "base"): void {
+		const effect = this._findEffectForNode(node);
+		if (!effect) {
+			console.error("No effect found for node");
+			return;
+		}
+
+		const nodeData = node.nodeData;
+		if (!nodeData || nodeData.type !== "group") {
+			console.error("Cannot add particle system: parent is not a group");
+			return;
+		}
+
+		const newNode = effect.createParticleSystem(nodeData, systemType);
+		if (newNode) {
+			// Rebuild tree with all effects
+			this._rebuildTree();
+		}
 	}
 
 	private _handleAddGroupToNode(node: TreeNodeInfo<VFXEffectNode>): void {
-		const nodeId = node.id as string | number;
-		this._handleAddGroup(nodeId);
+		const effect = this._findEffectForNode(node);
+		if (!effect) {
+			console.error("No effect found for node");
+			return;
+		}
+
+		const nodeData = node.nodeData;
+		if (!nodeData || nodeData.type !== "group") {
+			console.error("Cannot add group: parent is not a group");
+			return;
+		}
+
+		const newNode = effect.createGroup(nodeData);
+		if (newNode) {
+			// Rebuild tree with all effects
+			this._rebuildTree();
+		}
+	}
+
+	private _handleDropEmpty(ev: React.DragEvent<HTMLDivElement>): void {
+		ev.preventDefault();
+		ev.stopPropagation();
+
+		try {
+			const data = ev.dataTransfer.getData("fx-editor/create-effect");
+			if (data === "effect") {
+				this._handleCreateEffect();
+			}
+		} catch (e) {
+			// Ignore errors
+		}
+	}
+
+	private _handleDropOnNode(node: TreeNodeInfo<VFXEffectNode>, ev: React.DragEvent<HTMLDivElement>): void {
+		ev.preventDefault();
+		ev.stopPropagation();
+
+		if (!node.nodeData || node.nodeData.type !== "group") {
+			return;
+		}
+
+		try {
+			const data = ev.dataTransfer.getData("fx-editor/create-item");
+			if (data === "solid-particle") {
+				this._handleAddParticleSystemToNode(node, "solid");
+			} else if (data === "base-particle") {
+				this._handleAddParticleSystemToNode(node, "base");
+			} else if (data === "group") {
+				this._handleAddGroupToNode(node);
+			}
+		} catch (e) {
+			// Ignore errors
+		}
 	}
 
 	private _addNodeToParent(nodes: TreeNodeInfo<VFXEffectNode>[], parentId: string | number, newNode: TreeNodeInfo<VFXEffectNode>): TreeNodeInfo<VFXEffectNode>[] {
@@ -352,43 +648,63 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 	}
 
 	private _handleDeleteNode(node: TreeNodeInfo<VFXEffectNode>): void {
-		const deleteNodeById = (nodes: TreeNodeInfo<VFXEffectNode>[], id: string | number): TreeNodeInfo<VFXEffectNode>[] => {
-			return nodes
-				.filter((n) => n.id !== id)
-				.map((n) => {
-					if (n.childNodes) {
-						return {
-							...n,
-							childNodes: deleteNodeById(n.childNodes, id),
-						};
+		const nodeData = node.nodeData;
+		if (!nodeData) {
+			return;
+		}
+
+		// Check if this is an effect root node
+		const effectId = node.id as string;
+		if (this._vfxEffects.has(effectId)) {
+			// Delete entire effect
+			const effectInfo = this._vfxEffects.get(effectId);
+			if (effectInfo) {
+				effectInfo.effect.dispose();
+				this._vfxEffects.delete(effectId);
+				this._rebuildTree();
+			}
+		} else {
+			// Delete node from effect hierarchy
+			const effect = this._findEffectForNode(node);
+			if (!effect) {
+				return;
+			}
+
+			// Find and remove node from effect hierarchy
+			const removeNodeFromHierarchy = (current: VFXEffectNode): boolean => {
+				// Remove from children
+				const index = current.children.findIndex((child) => child === nodeData || child.uuid === nodeData.uuid || child.name === nodeData.name);
+				if (index !== -1) {
+					const removedNode = current.children[index];
+					// Dispose system if it's a particle system
+					if (removedNode.system) {
+						removedNode.system.dispose();
 					}
-					return n;
-				});
-		};
+					// Dispose group if it's a group
+					if (removedNode.group) {
+						removedNode.group.dispose();
+					}
+					current.children.splice(index, 1);
+					return true;
+				}
 
-		const deletedId = node.id!;
+				// Recursively search in children
+				for (const child of current.children) {
+					if (removeNodeFromHierarchy(child)) {
+						return true;
+					}
+				}
+				return false;
+			};
 
-		// Dispose particle system or mesh
-		// const particleSystem = createdParticleSystemsMap.get(deletedId);
-		// if (particleSystem) {
-		// 	if (particleSystem.dispose) {
-		// 		particleSystem.dispose();
-		// 	}
-		// 	createdParticleSystemsMap.delete(deletedId);
-		// }
+			if (effect.root) {
+				removeNodeFromHierarchy(effect.root);
+				this._rebuildTree();
+			}
+		}
 
-		// const mesh = createdMeshesMap.get(deletedId);
-		// if (mesh) {
-		// 	mesh.dispose();
-		// 	createdMeshesMap.delete(deletedId);
-		// }
-
-		// Node data is removed automatically when node is deleted from tree
-
-		// const newNodes = deleteNodeById(this.state.nodes, deletedId);
-		// const newSelectedNodeId = this.state.selectedNodeId === deletedId ? null : this.state.selectedNodeId;
-
-		if (this.state.selectedNodeId === deletedId) {
+		// Clear selection if deleted node was selected
+		if (this.state.selectedNodeId === node.id) {
 			this.props.onNodeSelected?.(null);
 		}
 	}
