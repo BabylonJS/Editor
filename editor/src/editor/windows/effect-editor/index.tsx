@@ -14,7 +14,6 @@ import { projectConfiguration, onProjectConfigurationChangedObservable, IProject
 import { EffectEditorAnimation } from "./animation";
 import { EffectEditorGraph } from "./graph";
 import { EffectEditorPreview } from "./preview";
-import { EffectEditorProperties } from "./properties";
 import { EffectEditorResources } from "./resources";
 
 export interface IEffectEditorWindowProps {
@@ -31,7 +30,6 @@ export interface IEffectEditor {
 	preview: EffectEditorPreview | null;
 	graph: EffectEditorGraph | null;
 	animation: EffectEditorAnimation | null;
-	properties: EffectEditorProperties | null;
 	resources: EffectEditorResources | null;
 }
 export default class EffectEditorWindow extends Component<IEffectEditorWindowProps, IEffectEditorWindowState> {
@@ -40,7 +38,6 @@ export default class EffectEditorWindow extends Component<IEffectEditorWindowPro
 		preview: null,
 		graph: null,
 		animation: null,
-		properties: null,
 		resources: null,
 	};
 

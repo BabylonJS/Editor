@@ -3,10 +3,10 @@ import { ReactNode } from "react";
 import { EditorInspectorListField } from "../../../layout/inspector/fields/list";
 import { EditorInspectorBlockField } from "../../../layout/inspector/fields/block";
 
-import { type Rotation, ValueUtils, type Value } from "babylonjs-editor-tools";
+import { type Rotation, type EulerRotation, type AxisAngleRotation, type RandomQuatRotation, ValueUtils, type Value } from "babylonjs-editor-tools";
 import { EffectValueEditor } from "./value-editor";
 
-export type EffectRotationType = "Euler" | "AxisAngle" | "RandomQuat";
+export type EffectRotationType = EulerRotation["type"] | AxisAngleRotation["type"] | RandomQuatRotation["type"];
 
 export interface IEffectRotationEditorProps {
 	value: Rotation | undefined;

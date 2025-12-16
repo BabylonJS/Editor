@@ -6,12 +6,7 @@ import { waitNextAnimationFrame } from "../../../tools/tools";
 import { EffectEditorPreview } from "./preview";
 import { EffectEditorGraph } from "./graph";
 import { EffectEditorAnimation } from "./animation";
-import { EffectEditorObjectPropertiesTab } from "./properties/object-properties";
-import { EffectEditorEmitterPropertiesTab } from "./properties/emitter-properties";
-import { EffectEditorRendererPropertiesTab } from "./properties/renderer-properties";
-import { EffectEditorEmissionPropertiesTab } from "./properties/emission-properties";
-import { EffectEditorInitializationPropertiesTab } from "./properties/initialization-properties";
-import { EffectEditorBehaviorsPropertiesTab } from "./properties/behaviors-properties";
+import { EffectEditorPropertiesTab } from "./properties/properties-tab";
 import { EffectEditorResources } from "./resources";
 import { IEffectEditor } from ".";
 
@@ -227,11 +222,12 @@ export class EffectEditorLayout extends Component<IEffectEditorLayoutProps, IEff
 			resources: <EffectEditorResources ref={(r) => (this.props.editor.resources = r!)} resources={this.state.resources} />,
 			animation: <EffectEditorAnimation ref={(r) => (this.props.editor.animation = r!)} filePath={this.props.filePath} editor={this.props.editor} />,
 			"properties-object": (
-				<EffectEditorObjectPropertiesTab
+				<EffectEditorPropertiesTab
 					key={`properties-object-${this.state.selectedNodeId || "none"}-${this.state.propertiesKey}`}
 					filePath={this.props.filePath}
 					selectedNodeId={this.state.selectedNodeId}
 					editor={this.props.editor}
+					tabType="object"
 					onNameChanged={() => {
 						// Update graph node names when name changes
 						if (this.props.editor.graph) {
@@ -242,43 +238,52 @@ export class EffectEditorLayout extends Component<IEffectEditorLayoutProps, IEff
 				/>
 			),
 			"properties-emitter": (
-				<EffectEditorEmitterPropertiesTab
+				<EffectEditorPropertiesTab
 					key={`properties-emitter-${this.state.selectedNodeId || "none"}-${this.state.propertiesKey}`}
 					filePath={this.props.filePath}
 					selectedNodeId={this.state.selectedNodeId}
+					editor={this.props.editor}
+					tabType="emitter"
 					getNodeData={(nodeId) => this.props.editor.graph?.getNodeData(nodeId) || null}
 				/>
 			),
 			"properties-renderer": (
-				<EffectEditorRendererPropertiesTab
+				<EffectEditorPropertiesTab
 					key={`properties-renderer-${this.state.selectedNodeId || "none"}-${this.state.propertiesKey}`}
 					filePath={this.props.filePath}
 					selectedNodeId={this.state.selectedNodeId}
 					editor={this.props.editor}
+					tabType="renderer"
 					getNodeData={(nodeId) => this.props.editor.graph?.getNodeData(nodeId) || null}
 				/>
 			),
 			"properties-emission": (
-				<EffectEditorEmissionPropertiesTab
+				<EffectEditorPropertiesTab
 					key={`properties-emission-${this.state.selectedNodeId || "none"}-${this.state.propertiesKey}`}
 					filePath={this.props.filePath}
 					selectedNodeId={this.state.selectedNodeId}
+					editor={this.props.editor}
+					tabType="emission"
 					getNodeData={(nodeId) => this.props.editor.graph?.getNodeData(nodeId) || null}
 				/>
 			),
 			"properties-initialization": (
-				<EffectEditorInitializationPropertiesTab
+				<EffectEditorPropertiesTab
 					key={`properties-initialization-${this.state.selectedNodeId || "none"}-${this.state.propertiesKey}`}
 					filePath={this.props.filePath}
 					selectedNodeId={this.state.selectedNodeId}
+					editor={this.props.editor}
+					tabType="initialization"
 					getNodeData={(nodeId) => this.props.editor.graph?.getNodeData(nodeId) || null}
 				/>
 			),
 			"properties-behaviors": (
-				<EffectEditorBehaviorsPropertiesTab
+				<EffectEditorPropertiesTab
 					key={`properties-behaviors-${this.state.selectedNodeId || "none"}-${this.state.propertiesKey}`}
 					filePath={this.props.filePath}
 					selectedNodeId={this.state.selectedNodeId}
+					editor={this.props.editor}
+					tabType="behaviors"
 					getNodeData={(nodeId) => this.props.editor.graph?.getNodeData(nodeId) || null}
 				/>
 			),
