@@ -7,7 +7,7 @@ import { EditorInspectorListField } from "../../../layout/inspector/fields/list"
 import { EditorInspectorTextureField } from "../../../layout/inspector/fields/texture";
 import { EditorInspectorGeometryField } from "../../../layout/inspector/fields/geometry";
 
-import { PBRMaterial, StandardMaterial, NodeMaterial, MultiMaterial, Material, ParticleSystem } from "babylonjs";
+import { PBRMaterial, StandardMaterial, NodeMaterial, MultiMaterial, Material, ParticleSystem, Mesh } from "babylonjs";
 
 import { EditorPBRMaterialInspector } from "../../../layout/inspector/material/pbr";
 import { EditorStandardMaterialInspector } from "../../../layout/inspector/material/standard";
@@ -25,7 +25,6 @@ import { EditorGradientMaterialInspector } from "../../../layout/inspector/mater
 
 import { type EffectNode, EffectSolidParticleSystem, EffectParticleSystem } from "babylonjs-editor-tools";
 import { IEffectEditor } from "..";
-import { Mesh } from "babylonjs";
 import { EffectValueEditor } from "../editors/value";
 import { CellMaterial, FireMaterial, GradientMaterial, GridMaterial, LavaMaterial, NormalMaterial, SkyMaterial, TriPlanarMaterial, WaterMaterial } from "babylonjs-materials";
 

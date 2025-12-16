@@ -72,10 +72,47 @@ export function GradientPicker(props: IGradientPickerProps): ReactNode {
 		return new Color4(0, 0, 0, 1);
 	};
 
+	// Interpolate color at position
+	const interpolateColorAtPosition = (keys: IGradientKey[], pos: number): Color4 => {
+		if (keys.length === 0) {
+			return new Color4(1, 1, 1, 1);
+		}
+		if (keys.length === 1) {
+			return getColorFromKey(keys[0]);
+		}
+
+		for (let i = 0; i < keys.length - 1; i++) {
+			const key1 = keys[i];
+			const key2 = keys[i + 1];
+			const pos1 = key1.pos || 0;
+			const pos2 = key2.pos || 0;
+
+			if (pos >= pos1 && pos <= pos2) {
+				const t = (pos - pos1) / (pos2 - pos1);
+				const color1 = getColorFromKey(key1);
+				const color2 = getColorFromKey(key2);
+				return new Color4(
+					color1.r + (color2.r - color1.r) * t,
+					color1.g + (color2.g - color1.g) * t,
+					color1.b + (color2.b - color1.b) * t,
+					color1.a + (color2.a - color1.a) * t
+				);
+			}
+		}
+
+		// Outside range, return nearest
+		if (pos <= (keys[0].pos || 0)) {
+			return getColorFromKey(keys[0]);
+		}
+		return getColorFromKey(keys[keys.length - 1]);
+	};
+
 	// Handle click on gradient bar to add/select key
 	const handleGradientClick = (e: MouseEvent<HTMLDivElement>, isAlpha: boolean = false) => {
 		const rect = isAlpha ? alphaRef.current?.getBoundingClientRect() : gradientRef.current?.getBoundingClientRect();
-		if (!rect) return;
+		if (!rect) {
+			return;
+		}
 
 		const x = e.clientX - rect.left;
 		const pos = Math.max(0, Math.min(1, x / rect.width));
@@ -110,35 +147,6 @@ export function GradientPicker(props: IGradientPickerProps): ReactNode {
 			setSelectedKeyIndex(newIndex);
 			onChange(sorted, alphaKeys);
 		}
-	};
-
-	// Interpolate color at position
-	const interpolateColorAtPosition = (keys: IGradientKey[], pos: number): Color4 => {
-		if (keys.length === 0) return new Color4(1, 1, 1, 1);
-		if (keys.length === 1) return getColorFromKey(keys[0]);
-
-		for (let i = 0; i < keys.length - 1; i++) {
-			const key1 = keys[i];
-			const key2 = keys[i + 1];
-			const pos1 = key1.pos || 0;
-			const pos2 = key2.pos || 0;
-
-			if (pos >= pos1 && pos <= pos2) {
-				const t = (pos - pos1) / (pos2 - pos1);
-				const color1 = getColorFromKey(key1);
-				const color2 = getColorFromKey(key2);
-				return new Color4(
-					color1.r + (color2.r - color1.r) * t,
-					color1.g + (color2.g - color1.g) * t,
-					color1.b + (color2.b - color1.b) * t,
-					color1.a + (color2.a - color1.a) * t
-				);
-			}
-		}
-
-		// Outside range, return nearest
-		if (pos <= (keys[0].pos || 0)) return getColorFromKey(keys[0]);
-		return getColorFromKey(keys[keys.length - 1]);
 	};
 
 	// Handle mouse down on key stop
@@ -211,7 +219,9 @@ export function GradientPicker(props: IGradientPickerProps): ReactNode {
 
 	// Handle color change for selected key
 	const handleColorChange = (color: Color3 | Color4) => {
-		if (selectedKeyIndex === null) return;
+		if (selectedKeyIndex === null) {
+			return;
+		}
 
 		const key = sortedColorKeys[selectedKeyIndex];
 		const originalIndex = colorKeys.findIndex((k) => k === key);
@@ -227,7 +237,9 @@ export function GradientPicker(props: IGradientPickerProps): ReactNode {
 
 	// Handle alpha change for selected alpha key
 	const handleAlphaChange = (value: number) => {
-		if (selectedAlphaIndex === null) return;
+		if (selectedAlphaIndex === null) {
+			return;
+		}
 
 		const key = sortedAlphaKeys[selectedAlphaIndex];
 		const originalIndex = alphaKeys.findIndex((k) => k === key);
@@ -241,12 +253,16 @@ export function GradientPicker(props: IGradientPickerProps): ReactNode {
 	// Handle delete key
 	const handleDeleteKey = (index: number, isAlpha: boolean) => {
 		if (isAlpha) {
-			if (alphaKeys.length <= 2) return; // Keep at least 2 keys
+			if (alphaKeys.length <= 2) {
+				return; // Keep at least 2 keys
+			}
 			const newAlphaKeys = alphaKeys.filter((_, i) => i !== index);
 			setSelectedAlphaIndex(null);
 			onChange(colorKeys, newAlphaKeys);
 		} else {
-			if (colorKeys.length <= 2) return; // Keep at least 2 keys
+			if (colorKeys.length <= 2) {
+				return; // Keep at least 2 keys
+			}
 			const newColorKeys = colorKeys.filter((_, i) => i !== index);
 			setSelectedKeyIndex(null);
 			onChange(newColorKeys, alphaKeys);

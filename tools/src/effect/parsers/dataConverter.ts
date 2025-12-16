@@ -1,27 +1,31 @@
 import { Vector3, Matrix, Quaternion, Color3, Texture as BabylonTexture, ParticleSystem } from "babylonjs";
 import type { LoaderOptions } from "../types/loader";
-import type { QuarksJSON, QuarksMaterial, QuarksTexture, QuarksImage, QuarksGeometry } from "../types/quarksTypes";
 import type {
-	QuarksObject,
-	QuarksParticleEmitterConfig,
-	QuarksBehavior,
-	QuarksValue,
-	QuarksColor,
-	QuarksRotation,
-	QuarksGradientKey,
-	QuarksShape,
-	QuarksColorOverLifeBehavior,
-	QuarksSizeOverLifeBehavior,
-	QuarksRotationOverLifeBehavior,
-	QuarksForceOverLifeBehavior,
-	QuarksGravityForceBehavior,
-	QuarksSpeedOverLifeBehavior,
-	QuarksFrameOverLifeBehavior,
-	QuarksLimitSpeedOverLifeBehavior,
-	QuarksColorBySpeedBehavior,
-	QuarksSizeBySpeedBehavior,
-	QuarksRotationBySpeedBehavior,
-	QuarksOrbitOverLifeBehavior,
+	IQuarksJSON,
+	IQuarksMaterial,
+	IQuarksTexture,
+	IQuarksImage,
+	IQuarksGeometry,
+	IQuarksObject,
+	IQuarksParticleEmitterConfig,
+	IQuarksBehavior,
+	IQuarksValue,
+	IQuarksColor,
+	IQuarksRotation,
+	IQuarksGradientKey,
+	IQuarksShape,
+	IQuarksColorOverLifeBehavior,
+	IQuarksSizeOverLifeBehavior,
+	IQuarksRotationOverLifeBehavior,
+	IQuarksForceOverLifeBehavior,
+	IQuarksGravityForceBehavior,
+	IQuarksSpeedOverLifeBehavior,
+	IQuarksFrameOverLifeBehavior,
+	IQuarksLimitSpeedOverLifeBehavior,
+	IQuarksColorBySpeedBehavior,
+	IQuarksSizeBySpeedBehavior,
+	IQuarksRotationBySpeedBehavior,
+	IQuarksOrbitOverLifeBehavior,
 } from "../types/quarksTypes";
 import type { Transform, Group, Emitter, Data } from "../types/hierarchy";
 import type { IMaterial, ITexture, IImage, IGeometry, IGeometryData } from "../types/resources";
@@ -44,7 +48,7 @@ import type { IShape } from "../types/shapes";
 import { Logger } from "../loggers/logger";
 
 /**
- * Converts Quarks/Three.js  JSON (right-handed) to Babylon.js  format (left-handed)
+ * Converts IQuarks/Three.js  JSON (right-handed) to Babylon.js  format (left-handed)
  * All coordinate system conversions happen here, once
  */
 export class DataConverter {
@@ -55,11 +59,11 @@ export class DataConverter {
 	}
 
 	/**
-	 * Convert Quarks/Three.js  JSON to Babylon.js  format
+	 * Convert IQuarks/Three.js  JSON to Babylon.js  format
 	 * Handles errors gracefully and returns partial data if conversion fails
 	 */
-	public convert(quarksData: QuarksJSON): Data {
-		this._logger.log("=== Converting Quarks  to Babylon.js  format ===");
+	public convert(IQuarksData: IQuarksJSON): Data {
+		this._logger.log("=== Converting IQuarks  to Babylon.js  format ===");
 
 		const groups = new Map<string, Group>();
 		const emitters = new Map<string, Emitter>();
@@ -67,8 +71,8 @@ export class DataConverter {
 		let root: Group | Emitter | null = null;
 
 		try {
-			if (quarksData.object) {
-				root = this._convertObject(quarksData.object, null, groups, emitters, 0);
+			if (IQuarksData.object) {
+				root = this._convertObject(IQuarksData.object, null, groups, emitters, 0);
 			}
 		} catch (error) {
 			this._logger.error(`Failed to convert root object: ${error instanceof Error ? error.message : String(error)}`);
@@ -81,25 +85,25 @@ export class DataConverter {
 		let geometries: IGeometry[] = [];
 
 		try {
-			materials = this._convertMaterials(quarksData.materials || []);
+			materials = this._convertMaterials(IQuarksData.materials || []);
 		} catch (error) {
 			this._logger.error(`Failed to convert materials: ${error instanceof Error ? error.message : String(error)}`);
 		}
 
 		try {
-			textures = this._convertTextures(quarksData.textures || []);
+			textures = this._convertTextures(IQuarksData.textures || []);
 		} catch (error) {
 			this._logger.error(`Failed to convert textures: ${error instanceof Error ? error.message : String(error)}`);
 		}
 
 		try {
-			images = this._convertImages(quarksData.images || []);
+			images = this._convertImages(IQuarksData.images || []);
 		} catch (error) {
 			this._logger.error(`Failed to convert images: ${error instanceof Error ? error.message : String(error)}`);
 		}
 
 		try {
-			geometries = this._convertGeometries(quarksData.geometries || []);
+			geometries = this._convertGeometries(IQuarksData.geometries || []);
 		} catch (error) {
 			this._logger.error(`Failed to convert geometries: ${error instanceof Error ? error.message : String(error)}`);
 		}
@@ -120,9 +124,9 @@ export class DataConverter {
 	}
 
 	/**
-	 * Convert a Quarks/Three.js object to Babylon.js  format
+	 * Convert a IQuarks/Three.js object to Babylon.js  format
 	 */
-	private _convertObject(obj: QuarksObject, parentUuid: string | null, groups: Map<string, Group>, emitters: Map<string, Emitter>, depth: number): Group | Emitter | null {
+	private _convertObject(obj: IQuarksObject, parentUuid: string | null, groups: Map<string, Group>, emitters: Map<string, Emitter>, depth: number): Group | Emitter | null {
 		const indent = "  ".repeat(depth);
 
 		if (!obj || typeof obj !== "object") {
@@ -162,7 +166,7 @@ export class DataConverter {
 			this._logger.log(`${indent}Converted Group: ${group.name} (uuid: ${group.uuid})`);
 			return group;
 		} else if (obj.type === "ParticleEmitter" && obj.ps) {
-			// Convert emitter config from Quarks to  format
+			// Convert emitter config from IQuarks to  format
 			const Config = this._convertEmitterConfig(obj.ps);
 
 			const emitter: Emitter = {
@@ -185,7 +189,7 @@ export class DataConverter {
 	}
 
 	/**
-	 * Convert transform from Quarks/Three.js (right-handed) to Babylon.js  (left-handed)
+	 * Convert transform from IQuarks/Three.js (right-handed) to Babylon.js  (left-handed)
 	 * This is the ONLY place where handedness conversion happens
 	 */
 	private _convertTransform(matrixArray?: number[], positionArray?: number[], rotationArray?: number[], scaleArray?: number[]): Transform {
@@ -240,104 +244,104 @@ export class DataConverter {
 	}
 
 	/**
-	 * Convert emitter config from Quarks to  format
+	 * Convert emitter config from IQuarks to  format
 	 */
-	private _convertEmitterConfig(quarksConfig: QuarksParticleEmitterConfig): EmitterConfig {
+	private _convertEmitterConfig(IQuarksConfig: IQuarksParticleEmitterConfig): EmitterConfig {
 		// Determine system type based on renderMode: 2 = solid, otherwise base
-		const systemType: "solid" | "base" = quarksConfig.renderMode === 2 ? "solid" : "base";
+		const systemType: "solid" | "base" = IQuarksConfig.renderMode === 2 ? "solid" : "base";
 
 		const Config: EmitterConfig = {
-			version: quarksConfig.version,
-			autoDestroy: quarksConfig.autoDestroy,
-			looping: quarksConfig.looping,
-			prewarm: quarksConfig.prewarm,
-			duration: quarksConfig.duration,
-			onlyUsedByOther: quarksConfig.onlyUsedByOther,
-			instancingGeometry: quarksConfig.instancingGeometry,
-			renderOrder: quarksConfig.renderOrder,
+			version: IQuarksConfig.version,
+			autoDestroy: IQuarksConfig.autoDestroy,
+			looping: IQuarksConfig.looping,
+			prewarm: IQuarksConfig.prewarm,
+			duration: IQuarksConfig.duration,
+			onlyUsedByOther: IQuarksConfig.onlyUsedByOther,
+			instancingGeometry: IQuarksConfig.instancingGeometry,
+			renderOrder: IQuarksConfig.renderOrder,
 			systemType,
-			rendererEmitterSettings: quarksConfig.rendererEmitterSettings,
-			material: quarksConfig.material,
-			layers: quarksConfig.layers,
-			uTileCount: quarksConfig.uTileCount,
-			vTileCount: quarksConfig.vTileCount,
-			blendTiles: quarksConfig.blendTiles,
-			softParticles: quarksConfig.softParticles,
-			softFarFade: quarksConfig.softFarFade,
-			softNearFade: quarksConfig.softNearFade,
-			worldSpace: quarksConfig.worldSpace,
+			rendererEmitterSettings: IQuarksConfig.rendererEmitterSettings,
+			material: IQuarksConfig.material,
+			layers: IQuarksConfig.layers,
+			uTileCount: IQuarksConfig.uTileCount,
+			vTileCount: IQuarksConfig.vTileCount,
+			blendTiles: IQuarksConfig.blendTiles,
+			softParticles: IQuarksConfig.softParticles,
+			softFarFade: IQuarksConfig.softFarFade,
+			softNearFade: IQuarksConfig.softNearFade,
+			worldSpace: IQuarksConfig.worldSpace,
 		};
 
 		// Convert values
-		if (quarksConfig.startLife !== undefined) {
-			Config.startLife = this._convertValue(quarksConfig.startLife);
+		if (IQuarksConfig.startLife !== undefined) {
+			Config.startLife = this._convertValue(IQuarksConfig.startLife);
 		}
-		if (quarksConfig.startSpeed !== undefined) {
-			Config.startSpeed = this._convertValue(quarksConfig.startSpeed);
+		if (IQuarksConfig.startSpeed !== undefined) {
+			Config.startSpeed = this._convertValue(IQuarksConfig.startSpeed);
 		}
-		if (quarksConfig.startRotation !== undefined) {
-			Config.startRotation = this._convertRotation(quarksConfig.startRotation);
+		if (IQuarksConfig.startRotation !== undefined) {
+			Config.startRotation = this._convertRotation(IQuarksConfig.startRotation);
 		}
-		if (quarksConfig.startSize !== undefined) {
-			Config.startSize = this._convertValue(quarksConfig.startSize);
+		if (IQuarksConfig.startSize !== undefined) {
+			Config.startSize = this._convertValue(IQuarksConfig.startSize);
 		}
-		if (quarksConfig.startColor !== undefined) {
-			Config.startColor = this._convertColor(quarksConfig.startColor);
+		if (IQuarksConfig.startColor !== undefined) {
+			Config.startColor = this._convertColor(IQuarksConfig.startColor);
 		}
-		if (quarksConfig.emissionOverTime !== undefined) {
-			Config.emissionOverTime = this._convertValue(quarksConfig.emissionOverTime);
+		if (IQuarksConfig.emissionOverTime !== undefined) {
+			Config.emissionOverTime = this._convertValue(IQuarksConfig.emissionOverTime);
 		}
-		if (quarksConfig.emissionOverDistance !== undefined) {
-			Config.emissionOverDistance = this._convertValue(quarksConfig.emissionOverDistance);
+		if (IQuarksConfig.emissionOverDistance !== undefined) {
+			Config.emissionOverDistance = this._convertValue(IQuarksConfig.emissionOverDistance);
 		}
-		if (quarksConfig.startTileIndex !== undefined) {
-			Config.startTileIndex = this._convertValue(quarksConfig.startTileIndex);
+		if (IQuarksConfig.startTileIndex !== undefined) {
+			Config.startTileIndex = this._convertValue(IQuarksConfig.startTileIndex);
 		}
 
 		// Convert shape
-		if (quarksConfig.shape !== undefined) {
-			Config.shape = this._convertShape(quarksConfig.shape);
+		if (IQuarksConfig.shape !== undefined) {
+			Config.shape = this._convertShape(IQuarksConfig.shape);
 		}
 
 		// Convert emission bursts
-		if (quarksConfig.emissionBursts !== undefined && Array.isArray(quarksConfig.emissionBursts)) {
-			Config.emissionBursts = quarksConfig.emissionBursts.map((burst) => ({
+		if (IQuarksConfig.emissionBursts !== undefined && Array.isArray(IQuarksConfig.emissionBursts)) {
+			Config.emissionBursts = IQuarksConfig.emissionBursts.map((burst) => ({
 				time: this._convertValue(burst.time),
 				count: this._convertValue(burst.count),
 			}));
 		}
 
 		// Convert behaviors
-		if (quarksConfig.behaviors !== undefined && Array.isArray(quarksConfig.behaviors)) {
-			Config.behaviors = quarksConfig.behaviors.map((behavior) => this._convertBehavior(behavior));
+		if (IQuarksConfig.behaviors !== undefined && Array.isArray(IQuarksConfig.behaviors)) {
+			Config.behaviors = IQuarksConfig.behaviors.map((behavior) => this._convertBehavior(behavior));
 		}
 
 		// Convert renderMode to systemType, billboardMode and isBillboardBased
-		// Quarks RenderMode:
+		// IQuarks RenderMode:
 		// 0 = BillBoard → systemType = "base", isBillboardBased = true, billboardMode = ALL (default)
 		// 1 = StretchedBillBoard → systemType = "base", isBillboardBased = true, billboardMode = STRETCHED
 		// 2 = Mesh → systemType = "solid", isBillboardBased = false (always)
 		// 3 = Trail → systemType = "base", isBillboardBased = true, billboardMode = ALL (not directly supported, treat as billboard)
 		// 4 = HorizontalBillBoard → systemType = "base", isBillboardBased = true, billboardMode = Y
 		// 5 = VerticalBillBoard → systemType = "base", isBillboardBased = true, billboardMode = Y (same as horizontal)
-		if (quarksConfig.renderMode !== undefined) {
-			if (quarksConfig.renderMode === 0) {
+		if (IQuarksConfig.renderMode !== undefined) {
+			if (IQuarksConfig.renderMode === 0) {
 				// BillBoard
 				Config.isBillboardBased = true;
 				Config.billboardMode = ParticleSystem.BILLBOARDMODE_ALL;
-			} else if (quarksConfig.renderMode === 1) {
+			} else if (IQuarksConfig.renderMode === 1) {
 				// StretchedBillBoard
 				Config.isBillboardBased = true;
 				Config.billboardMode = ParticleSystem.BILLBOARDMODE_STRETCHED;
-			} else if (quarksConfig.renderMode === 2) {
+			} else if (IQuarksConfig.renderMode === 2) {
 				// Mesh (SolidParticleSystem) - always false
 				Config.isBillboardBased = false;
 				// billboardMode not applicable for mesh
-			} else if (quarksConfig.renderMode === 3) {
+			} else if (IQuarksConfig.renderMode === 3) {
 				// Trail - not directly supported, treat as billboard
 				Config.isBillboardBased = true;
 				Config.billboardMode = ParticleSystem.BILLBOARDMODE_ALL;
-			} else if (quarksConfig.renderMode === 4 || quarksConfig.renderMode === 5) {
+			} else if (IQuarksConfig.renderMode === 4 || IQuarksConfig.renderMode === 5) {
 				// HorizontalBillBoard or VerticalBillBoard
 				Config.isBillboardBased = true;
 				Config.billboardMode = ParticleSystem.BILLBOARDMODE_Y;
@@ -356,54 +360,54 @@ export class DataConverter {
 	}
 
 	/**
-	 * Convert Quarks value to  value
+	 * Convert IQuarks value to  value
 	 */
-	private _convertValue(quarksValue: QuarksValue): Value {
-		if (typeof quarksValue === "number") {
-			return quarksValue;
+	private _convertValue(IQuarksValue: IQuarksValue): Value {
+		if (typeof IQuarksValue === "number") {
+			return IQuarksValue;
 		}
-		if (quarksValue.type === "ConstantValue") {
+		if (IQuarksValue.type === "ConstantValue") {
 			return {
 				type: "ConstantValue",
-				value: quarksValue.value,
+				value: IQuarksValue.value,
 			};
 		}
-		if (quarksValue.type === "IntervalValue") {
+		if (IQuarksValue.type === "IntervalValue") {
 			return {
 				type: "IntervalValue",
-				min: quarksValue.a ?? 0,
-				max: quarksValue.b ?? 0,
+				min: IQuarksValue.a ?? 0,
+				max: IQuarksValue.b ?? 0,
 			};
 		}
-		if (quarksValue.type === "PiecewiseBezier") {
+		if (IQuarksValue.type === "PiecewiseBezier") {
 			return {
 				type: "PiecewiseBezier",
-				functions: quarksValue.functions.map((f) => ({
+				functions: IQuarksValue.functions.map((f) => ({
 					function: f.function,
 					start: f.start,
 				})),
 			};
 		}
-		return quarksValue;
+		return IQuarksValue;
 	}
 
 	/**
-	 * Convert Quarks color to  color
+	 * Convert IQuarks color to  color
 	 */
-	private _convertColor(quarksColor: QuarksColor): Color {
-		if (typeof quarksColor === "string" || Array.isArray(quarksColor)) {
-			return quarksColor;
+	private _convertColor(IQuarksColor: IQuarksColor): Color {
+		if (typeof IQuarksColor === "string" || Array.isArray(IQuarksColor)) {
+			return IQuarksColor;
 		}
-		if (quarksColor.type === "ConstantColor") {
-			if (quarksColor.value && Array.isArray(quarksColor.value)) {
+		if (IQuarksColor.type === "ConstantColor") {
+			if (IQuarksColor.value && Array.isArray(IQuarksColor.value)) {
 				return {
 					type: "ConstantColor",
-					value: quarksColor.value,
+					value: IQuarksColor.value,
 				};
-			} else if (quarksColor.color) {
+			} else if (IQuarksColor.color) {
 				return {
 					type: "ConstantColor",
-					value: [quarksColor.color.r || 0, quarksColor.color.g || 0, quarksColor.color.b || 0, quarksColor.color.a !== undefined ? quarksColor.color.a : 1],
+					value: [IQuarksColor.color.r || 0, IQuarksColor.color.g || 0, IQuarksColor.color.b || 0, IQuarksColor.color.a !== undefined ? IQuarksColor.color.a : 1],
 				};
 			} else {
 				// Fallback: return default color if neither value nor color is present
@@ -413,67 +417,70 @@ export class DataConverter {
 				};
 			}
 		}
-		return quarksColor as Color;
+		return IQuarksColor as Color;
 	}
 
 	/**
-	 * Convert Quarks rotation to  rotation
+	 * Convert IQuarks rotation to  rotation
 	 */
-	private _convertRotation(quarksRotation: QuarksRotation): Rotation {
-		if (typeof quarksRotation === "number" || (typeof quarksRotation === "object" && quarksRotation !== null && "type" in quarksRotation && quarksRotation.type !== "Euler")) {
-			return this._convertValue(quarksRotation as QuarksValue);
+	private _convertRotation(IQuarksRotation: IQuarksRotation): Rotation {
+		if (
+			typeof IQuarksRotation === "number" ||
+			(typeof IQuarksRotation === "object" && IQuarksRotation !== null && "type" in IQuarksRotation && IQuarksRotation.type !== "Euler")
+		) {
+			return this._convertValue(IQuarksRotation as IQuarksValue);
 		}
-		if (typeof quarksRotation === "object" && quarksRotation !== null && "type" in quarksRotation && quarksRotation.type === "Euler") {
+		if (typeof IQuarksRotation === "object" && IQuarksRotation !== null && "type" in IQuarksRotation && IQuarksRotation.type === "Euler") {
 			return {
 				type: "Euler",
-				angleX: quarksRotation.angleX !== undefined ? this._convertValue(quarksRotation.angleX) : undefined,
-				angleY: quarksRotation.angleY !== undefined ? this._convertValue(quarksRotation.angleY) : undefined,
-				angleZ: quarksRotation.angleZ !== undefined ? this._convertValue(quarksRotation.angleZ) : undefined,
-				order: (quarksRotation as any).order || "xyz", // Default to xyz if not specified
+				angleX: IQuarksRotation.angleX !== undefined ? this._convertValue(IQuarksRotation.angleX) : undefined,
+				angleY: IQuarksRotation.angleY !== undefined ? this._convertValue(IQuarksRotation.angleY) : undefined,
+				angleZ: IQuarksRotation.angleZ !== undefined ? this._convertValue(IQuarksRotation.angleZ) : undefined,
+				order: (IQuarksRotation as any).order || "xyz", // Default to xyz if not specified
 			};
 		}
-		return this._convertValue(quarksRotation as QuarksValue);
+		return this._convertValue(IQuarksRotation as IQuarksValue);
 	}
 
 	/**
-	 * Convert Quarks gradient key to  gradient key
+	 * Convert IQuarks gradient key to  gradient key
 	 */
-	private _convertGradientKey(quarksKey: QuarksGradientKey): GradientKey {
+	private _convertGradientKey(IQuarksKey: IQuarksGradientKey): GradientKey {
 		return {
-			time: quarksKey.time,
-			value: quarksKey.value,
-			pos: quarksKey.pos,
+			time: IQuarksKey.time,
+			value: IQuarksKey.value,
+			pos: IQuarksKey.pos,
 		};
 	}
 
 	/**
-	 * Convert Quarks shape to  shape
+	 * Convert IQuarks shape to  shape
 	 */
-	private _convertShape(quarksShape: QuarksShape): IShape {
+	private _convertShape(IQuarksShape: IQuarksShape): IShape {
 		const Shape: IShape = {
-			type: quarksShape.type,
-			radius: quarksShape.radius,
-			arc: quarksShape.arc,
-			thickness: quarksShape.thickness,
-			angle: quarksShape.angle,
-			mode: quarksShape.mode,
-			spread: quarksShape.spread,
-			size: quarksShape.size,
-			height: quarksShape.height,
+			type: IQuarksShape.type,
+			radius: IQuarksShape.radius,
+			arc: IQuarksShape.arc,
+			thickness: IQuarksShape.thickness,
+			angle: IQuarksShape.angle,
+			mode: IQuarksShape.mode,
+			spread: IQuarksShape.spread,
+			size: IQuarksShape.size,
+			height: IQuarksShape.height,
 		};
-		if (quarksShape.speed !== undefined) {
-			Shape.speed = this._convertValue(quarksShape.speed);
+		if (IQuarksShape.speed !== undefined) {
+			Shape.speed = this._convertValue(IQuarksShape.speed);
 		}
 		return Shape;
 	}
 
 	/**
-	 * Convert Quarks behavior to  behavior
+	 * Convert IQuarks behavior to  behavior
 	 */
-	private _convertBehavior(quarksBehavior: QuarksBehavior): Behavior {
-		switch (quarksBehavior.type) {
+	private _convertBehavior(IQuarksBehavior: IQuarksBehavior): Behavior {
+		switch (IQuarksBehavior.type) {
 			case "ColorOverLife": {
-				const behavior = quarksBehavior as QuarksColorOverLifeBehavior;
+				const behavior = IQuarksBehavior as IQuarksColorOverLifeBehavior;
 				if (behavior.color) {
 					const Color: ColorOverLifeBehavior["color"] = {};
 					if (behavior.color.color?.keys) {
@@ -491,11 +498,11 @@ export class DataConverter {
 			}
 
 			case "SizeOverLife": {
-				const behavior = quarksBehavior as QuarksSizeOverLifeBehavior;
+				const behavior = IQuarksBehavior as IQuarksSizeOverLifeBehavior;
 				if (behavior.size) {
 					const Size: SizeOverLifeBehavior["size"] = {};
 					if (behavior.size.keys) {
-						Size.keys = behavior.size.keys.map((k: QuarksGradientKey) => this._convertGradientKey(k));
+						Size.keys = behavior.size.keys.map((k: IQuarksGradientKey) => this._convertGradientKey(k));
 					}
 					if (behavior.size.functions) {
 						Size.functions = behavior.size.functions;
@@ -507,7 +514,7 @@ export class DataConverter {
 
 			case "RotationOverLife":
 			case "Rotation3DOverLife": {
-				const behavior = quarksBehavior as QuarksRotationOverLifeBehavior;
+				const behavior = IQuarksBehavior as IQuarksRotationOverLifeBehavior;
 				return {
 					type: behavior.type,
 					angularVelocity: behavior.angularVelocity !== undefined ? this._convertValue(behavior.angularVelocity) : undefined,
@@ -516,7 +523,7 @@ export class DataConverter {
 
 			case "ForceOverLife":
 			case "ApplyForce": {
-				const behavior = quarksBehavior as QuarksForceOverLifeBehavior;
+				const behavior = IQuarksBehavior as IQuarksForceOverLifeBehavior;
 				const Behavior: ForceOverLifeBehavior = { type: behavior.type };
 				if (behavior.force) {
 					Behavior.force = {
@@ -532,7 +539,7 @@ export class DataConverter {
 			}
 
 			case "GravityForce": {
-				const behavior = quarksBehavior as QuarksGravityForceBehavior;
+				const behavior = IQuarksBehavior as IQuarksGravityForceBehavior;
 				const Behavior: { type: string; gravity?: Value } = {
 					type: "GravityForce",
 					gravity: behavior.gravity !== undefined ? this._convertValue(behavior.gravity) : undefined,
@@ -541,50 +548,50 @@ export class DataConverter {
 			}
 
 			case "SpeedOverLife": {
-				const behavior = quarksBehavior as QuarksSpeedOverLifeBehavior;
+				const behavior = IQuarksBehavior as IQuarksSpeedOverLifeBehavior;
 				if (behavior.speed) {
 					if (typeof behavior.speed === "object" && behavior.speed !== null && "keys" in behavior.speed) {
 						const Speed: SpeedOverLifeBehavior["speed"] = {};
 						if (behavior.speed.keys) {
-							Speed.keys = behavior.speed.keys.map((k: QuarksGradientKey) => this._convertGradientKey(k));
+							Speed.keys = behavior.speed.keys.map((k: IQuarksGradientKey) => this._convertGradientKey(k));
 						}
 						if (behavior.speed.functions) {
 							Speed.functions = behavior.speed.functions;
 						}
 						return { type: "SpeedOverLife", speed: Speed };
 					} else if (typeof behavior.speed === "number" || (typeof behavior.speed === "object" && behavior.speed !== null && "type" in behavior.speed)) {
-						return { type: "SpeedOverLife", speed: this._convertValue(behavior.speed as QuarksValue) };
+						return { type: "SpeedOverLife", speed: this._convertValue(behavior.speed as IQuarksValue) };
 					}
 				}
 				return { type: "SpeedOverLife" };
 			}
 
 			case "FrameOverLife": {
-				const behavior = quarksBehavior as QuarksFrameOverLifeBehavior;
+				const behavior = IQuarksBehavior as IQuarksFrameOverLifeBehavior;
 				const Behavior: { type: string; frame?: Value | { keys?: GradientKey[] } } = { type: "FrameOverLife" };
 				if (behavior.frame) {
 					if (typeof behavior.frame === "object" && behavior.frame !== null && "keys" in behavior.frame) {
 						Behavior.frame = {
-							keys: behavior.frame.keys?.map((k: QuarksGradientKey) => this._convertGradientKey(k)),
+							keys: behavior.frame.keys?.map((k: IQuarksGradientKey) => this._convertGradientKey(k)),
 						};
 					} else if (typeof behavior.frame === "number" || (typeof behavior.frame === "object" && behavior.frame !== null && "type" in behavior.frame)) {
-						Behavior.frame = this._convertValue(behavior.frame as QuarksValue);
+						Behavior.frame = this._convertValue(behavior.frame as IQuarksValue);
 					}
 				}
 				return Behavior as Behavior;
 			}
 
 			case "LimitSpeedOverLife": {
-				const behavior = quarksBehavior as QuarksLimitSpeedOverLifeBehavior;
+				const behavior = IQuarksBehavior as IQuarksLimitSpeedOverLifeBehavior;
 				const Behavior: LimitSpeedOverLifeBehavior = { type: "LimitSpeedOverLife" };
 				if (behavior.maxSpeed !== undefined) {
 					Behavior.maxSpeed = this._convertValue(behavior.maxSpeed);
 				}
 				if (behavior.speed !== undefined) {
 					if (typeof behavior.speed === "object" && behavior.speed !== null && "keys" in behavior.speed) {
-						Behavior.speed = { keys: behavior.speed.keys?.map((k: QuarksGradientKey) => this._convertGradientKey(k)) };
+						Behavior.speed = { keys: behavior.speed.keys?.map((k: IQuarksGradientKey) => this._convertGradientKey(k)) };
 					} else if (typeof behavior.speed === "number" || (typeof behavior.speed === "object" && behavior.speed !== null && "type" in behavior.speed)) {
-						Behavior.speed = this._convertValue(behavior.speed as QuarksValue);
+						Behavior.speed = this._convertValue(behavior.speed as IQuarksValue);
 					}
 				}
 				if (behavior.dampen !== undefined) {
@@ -594,33 +601,33 @@ export class DataConverter {
 			}
 
 			case "ColorBySpeed": {
-				const behavior = quarksBehavior as QuarksColorBySpeedBehavior;
+				const behavior = IQuarksBehavior as IQuarksColorBySpeedBehavior;
 				const Behavior: ColorBySpeedBehavior = {
 					type: "ColorBySpeed",
 					minSpeed: behavior.minSpeed !== undefined ? this._convertValue(behavior.minSpeed) : undefined,
 					maxSpeed: behavior.maxSpeed !== undefined ? this._convertValue(behavior.maxSpeed) : undefined,
 				};
 				if (behavior.color?.keys) {
-					Behavior.color = { keys: behavior.color.keys.map((k: QuarksGradientKey) => this._convertGradientKey(k)) };
+					Behavior.color = { keys: behavior.color.keys.map((k: IQuarksGradientKey) => this._convertGradientKey(k)) };
 				}
 				return Behavior;
 			}
 
 			case "SizeBySpeed": {
-				const behavior = quarksBehavior as QuarksSizeBySpeedBehavior;
+				const behavior = IQuarksBehavior as IQuarksSizeBySpeedBehavior;
 				const Behavior: SizeBySpeedBehavior = {
 					type: "SizeBySpeed",
 					minSpeed: behavior.minSpeed !== undefined ? this._convertValue(behavior.minSpeed) : undefined,
 					maxSpeed: behavior.maxSpeed !== undefined ? this._convertValue(behavior.maxSpeed) : undefined,
 				};
 				if (behavior.size?.keys) {
-					Behavior.size = { keys: behavior.size.keys.map((k: QuarksGradientKey) => this._convertGradientKey(k)) };
+					Behavior.size = { keys: behavior.size.keys.map((k: IQuarksGradientKey) => this._convertGradientKey(k)) };
 				}
 				return Behavior;
 			}
 
 			case "RotationBySpeed": {
-				const behavior = quarksBehavior as QuarksRotationBySpeedBehavior;
+				const behavior = IQuarksBehavior as IQuarksRotationBySpeedBehavior;
 				const Behavior: { type: string; angularVelocity?: Value; minSpeed?: Value; maxSpeed?: Value } = {
 					type: "RotationBySpeed",
 					angularVelocity: behavior.angularVelocity !== undefined ? this._convertValue(behavior.angularVelocity) : undefined,
@@ -631,7 +638,7 @@ export class DataConverter {
 			}
 
 			case "OrbitOverLife": {
-				const behavior = quarksBehavior as QuarksOrbitOverLifeBehavior;
+				const behavior = IQuarksBehavior as IQuarksOrbitOverLifeBehavior;
 				const Behavior: { type: string; center?: { x?: number; y?: number; z?: number }; radius?: Value; speed?: Value } = {
 					type: "OrbitOverLife",
 					center: behavior.center,
@@ -643,27 +650,27 @@ export class DataConverter {
 
 			default:
 				// Fallback for unknown behaviors - copy as-is
-				return quarksBehavior as Behavior;
+				return IQuarksBehavior as Behavior;
 		}
 	}
 
 	/**
-	 * Convert Quarks materials to  materials
+	 * Convert IQuarks materials to  materials
 	 */
-	private _convertMaterials(quarksMaterials: QuarksMaterial[]): IMaterial[] {
-		return quarksMaterials.map((quarks) => {
+	private _convertMaterials(IQuarksMaterials: IQuarksMaterial[]): IMaterial[] {
+		return IQuarksMaterials.map((IQuarks) => {
 			const material: IMaterial = {
-				uuid: quarks.uuid,
-				type: quarks.type,
-				transparent: quarks.transparent,
-				depthWrite: quarks.depthWrite,
-				side: quarks.side,
-				map: quarks.map,
+				uuid: IQuarks.uuid,
+				type: IQuarks.type,
+				transparent: IQuarks.transparent,
+				depthWrite: IQuarks.depthWrite,
+				side: IQuarks.side,
+				map: IQuarks.map,
 			};
 
 			// Convert color from hex to Color3
-			if (quarks.color !== undefined) {
-				const colorHex = typeof quarks.color === "number" ? quarks.color : parseInt(String(quarks.color).replace("#", ""), 16) || 0xffffff;
+			if (IQuarks.color !== undefined) {
+				const colorHex = typeof IQuarks.color === "number" ? IQuarks.color : parseInt(String(IQuarks.color).replace("#", ""), 16) || 0xffffff;
 				const r = ((colorHex >> 16) & 0xff) / 255;
 				const g = ((colorHex >> 8) & 0xff) / 255;
 				const b = (colorHex & 0xff) / 255;
@@ -671,13 +678,13 @@ export class DataConverter {
 			}
 
 			// Convert blending mode (Three.js → Babylon.js)
-			if (quarks.blending !== undefined) {
+			if (IQuarks.blending !== undefined) {
 				const blendModeMap: Record<number, number> = {
 					0: 0, // NoBlending → ALPHA_DISABLE
 					1: 1, // NormalBlending → ALPHA_COMBINE
 					2: 2, // AdditiveBlending → ALPHA_ADD
 				};
-				material.blending = blendModeMap[quarks.blending] ?? quarks.blending;
+				material.blending = blendModeMap[IQuarks.blending] ?? IQuarks.blending;
 			}
 
 			return material;
@@ -685,61 +692,61 @@ export class DataConverter {
 	}
 
 	/**
-	 * Convert Quarks textures to  textures
+	 * Convert IQuarks textures to  textures
 	 */
-	private _convertTextures(quarksTextures: QuarksTexture[]): ITexture[] {
-		return quarksTextures.map((quarks) => {
+	private _convertTextures(IQuarksTextures: IQuarksTexture[]): ITexture[] {
+		return IQuarksTextures.map((IQuarks) => {
 			const texture: ITexture = {
-				uuid: quarks.uuid,
-				image: quarks.image,
-				generateMipmaps: quarks.generateMipmaps,
-				flipY: quarks.flipY,
+				uuid: IQuarks.uuid,
+				image: IQuarks.image,
+				generateMipmaps: IQuarks.generateMipmaps,
+				flipY: IQuarks.flipY,
 			};
 
 			// Convert wrap mode (Three.js → Babylon.js)
-			if (quarks.wrap && Array.isArray(quarks.wrap)) {
+			if (IQuarks.wrap && Array.isArray(IQuarks.wrap)) {
 				const wrapModeMap: Record<number, number> = {
 					1000: BabylonTexture.WRAP_ADDRESSMODE, // RepeatWrapping
 					1001: BabylonTexture.CLAMP_ADDRESSMODE, // ClampToEdgeWrapping
 					1002: BabylonTexture.MIRROR_ADDRESSMODE, // MirroredRepeatWrapping
 				};
-				texture.wrapU = wrapModeMap[quarks.wrap[0]] ?? BabylonTexture.WRAP_ADDRESSMODE;
-				texture.wrapV = wrapModeMap[quarks.wrap[1]] ?? BabylonTexture.WRAP_ADDRESSMODE;
+				texture.wrapU = wrapModeMap[IQuarks.wrap[0]] ?? BabylonTexture.WRAP_ADDRESSMODE;
+				texture.wrapV = wrapModeMap[IQuarks.wrap[1]] ?? BabylonTexture.WRAP_ADDRESSMODE;
 			}
 
 			// Convert repeat to scale
-			if (quarks.repeat && Array.isArray(quarks.repeat)) {
-				texture.uScale = quarks.repeat[0] || 1;
-				texture.vScale = quarks.repeat[1] || 1;
+			if (IQuarks.repeat && Array.isArray(IQuarks.repeat)) {
+				texture.uScale = IQuarks.repeat[0] || 1;
+				texture.vScale = IQuarks.repeat[1] || 1;
 			}
 
 			// Convert offset
-			if (quarks.offset && Array.isArray(quarks.offset)) {
-				texture.uOffset = quarks.offset[0] || 0;
-				texture.vOffset = quarks.offset[1] || 0;
+			if (IQuarks.offset && Array.isArray(IQuarks.offset)) {
+				texture.uOffset = IQuarks.offset[0] || 0;
+				texture.vOffset = IQuarks.offset[1] || 0;
 			}
 
 			// Convert rotation
-			if (quarks.rotation !== undefined) {
-				texture.uAng = quarks.rotation;
+			if (IQuarks.rotation !== undefined) {
+				texture.uAng = IQuarks.rotation;
 			}
 
 			// Convert channel
-			if (typeof quarks.channel === "number") {
-				texture.coordinatesIndex = quarks.channel;
+			if (typeof IQuarks.channel === "number") {
+				texture.coordinatesIndex = IQuarks.channel;
 			}
 
 			// Convert sampling mode (Three.js filters → Babylon.js sampling mode)
-			if (quarks.minFilter !== undefined) {
-				if (quarks.minFilter === 1008 || quarks.minFilter === 1009) {
+			if (IQuarks.minFilter !== undefined) {
+				if (IQuarks.minFilter === 1008 || IQuarks.minFilter === 1009) {
 					texture.samplingMode = BabylonTexture.TRILINEAR_SAMPLINGMODE;
-				} else if (quarks.minFilter === 1007 || quarks.minFilter === 1006) {
+				} else if (IQuarks.minFilter === 1007 || IQuarks.minFilter === 1006) {
 					texture.samplingMode = BabylonTexture.BILINEAR_SAMPLINGMODE;
 				} else {
 					texture.samplingMode = BabylonTexture.NEAREST_SAMPLINGMODE;
 				}
-			} else if (quarks.magFilter !== undefined) {
-				texture.samplingMode = quarks.magFilter === 1006 ? BabylonTexture.BILINEAR_SAMPLINGMODE : BabylonTexture.NEAREST_SAMPLINGMODE;
+			} else if (IQuarks.magFilter !== undefined) {
+				texture.samplingMode = IQuarks.magFilter === 1006 ? BabylonTexture.BILINEAR_SAMPLINGMODE : BabylonTexture.NEAREST_SAMPLINGMODE;
 			} else {
 				texture.samplingMode = BabylonTexture.TRILINEAR_SAMPLINGMODE;
 			}
@@ -749,77 +756,77 @@ export class DataConverter {
 	}
 
 	/**
-	 * Convert Quarks images to  images (normalize URLs)
+	 * Convert IQuarks images to  images (normalize URLs)
 	 */
-	private _convertImages(quarksImages: QuarksImage[]): IImage[] {
-		return quarksImages.map((quarks) => ({
-			uuid: quarks.uuid,
-			url: quarks.url || "",
+	private _convertImages(IQuarksImages: IQuarksImage[]): IImage[] {
+		return IQuarksImages.map((IQuarks) => ({
+			uuid: IQuarks.uuid,
+			url: IQuarks.url || "",
 		}));
 	}
 
 	/**
-	 * Convert Quarks geometries to  geometries (convert to left-handed)
+	 * Convert IQuarks geometries to  geometries (convert to left-handed)
 	 */
-	private _convertGeometries(quarksGeometries: QuarksGeometry[]): Geometry[] {
-		return quarksGeometries.map((quarks) => {
-			if (quarks.type === "PlaneGeometry") {
+	private _convertGeometries(IQuarksGeometries: IQuarksGeometry[]): IGeometry[] {
+		return IQuarksGeometries.map((IQuarks) => {
+			if (IQuarks.type === "PlaneGeometry") {
 				// PlaneGeometry - simple properties
-				const geometry: Geometry = {
-					uuid: quarks.uuid,
+				const geometry: IGeometry = {
+					uuid: IQuarks.uuid,
 					type: "PlaneGeometry",
-					width: (quarks as any).width ?? 1,
-					height: (quarks as any).height ?? 1,
+					width: (IQuarks as any).width ?? 1,
+					height: (IQuarks as any).height ?? 1,
 				};
 				return geometry;
-			} else if (quarks.type === "BufferGeometry") {
+			} else if (IQuarks.type === "BufferGeometry") {
 				// BufferGeometry - convert attributes to left-handed
 				const geometry: IGeometry = {
-					uuid: quarks.uuid,
+					uuid: IQuarks.uuid,
 					type: "BufferGeometry",
 				};
 
-				if (quarks.data?.attributes) {
+				if (IQuarks.data?.attributes) {
 					const attributes: IGeometryData["attributes"] = {};
-					const quarksAttrs = quarks.data.attributes;
+					const IQuarksAttrs = IQuarks.data.attributes;
 
 					// Convert position (right-hand → left-hand: flip Z)
-					if (quarksAttrs.position) {
-						const positions = Array.from(quarksAttrs.position.array);
+					if (IQuarksAttrs.position) {
+						const positions = Array.from(IQuarksAttrs.position.array);
 						// Flip Z coordinate for left-handed system
 						for (let i = 2; i < positions.length; i += 3) {
 							positions[i] = -positions[i];
 						}
 						attributes.position = {
 							array: positions,
-							itemSize: quarksAttrs.position.itemSize,
+							itemSize: IQuarksAttrs.position.itemSize,
 						};
 					}
 
 					// Convert normal (right-hand → left-hand: flip Z)
-					if (quarksAttrs.normal) {
-						const normals = Array.from(quarksAttrs.normal.array);
+					if (IQuarksAttrs.normal) {
+						const normals = Array.from(IQuarksAttrs.normal.array);
 						for (let i = 2; i < normals.length; i += 3) {
 							normals[i] = -normals[i];
 						}
 						attributes.normal = {
 							array: normals,
-							itemSize: quarksAttrs.normal.itemSize,
+							itemSize: IQuarksAttrs.normal.itemSize,
 						};
 					}
 
 					// UV and color - no conversion needed
-					if (quarksAttrs.uv) {
+					if (IQuarksAttrs.uv) {
 						attributes.uv = {
-							array: Array.from(quarksAttrs.uv.array),
-							itemSize: quarksAttrs.uv.itemSize,
+							array: Array.from(IQuarksAttrs.uv.array),
+							itemSize: IQuarksAttrs.uv.itemSize,
 						};
 					}
 
-					if (quarksAttrs.color) {
+					if (IQuarksAttrs.color) {
 						attributes.color = {
-							array: Array.from(quarksAttrs.color.array),
-							itemSize: quarksAttrs.color.itemSize,
+							array: Array.from(IQuarksAttrs.color.array),
+							itemSize: IQuarksAttrs.color.itemSize,
 						};
 					}
 
@@ -828,8 +835,8 @@ export class DataConverter {
 					};
 
 					// Convert indices (reverse winding order for left-handed)
-					if (quarks.data.index) {
-						const indices = Array.from(quarks.data.index.array);
+					if (IQuarks.data.index) {
+						const indices = Array.from(IQuarks.data.index.array);
 						// Reverse winding: swap every 2nd and 3rd index in each triangle
 						for (let i = 0; i < indices.length; i += 3) {
 							const temp = indices[i + 1];
@@ -847,8 +854,8 @@ export class DataConverter {
 
 			// Unknown geometry type - return as-is
 			return {
-				uuid: quarks.uuid,
-				type: quarks.type as "PlaneGeometry" | "BufferGeometry",
+				uuid: IQuarks.uuid,
+				type: IQuarks.type as "PlaneGeometry" | "BufferGeometry",
 			};
 		});
 	}

@@ -32,7 +32,7 @@ export interface IEffectEditorGraphState {
 	selectedNodeId: string | number | null;
 }
 
-interface EffectInfo {
+interface IEffectInfo {
 	id: string;
 	name: string;
 	effect: Effect;
@@ -40,7 +40,7 @@ interface EffectInfo {
 }
 
 export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffectEditorGraphState> {
-	private _effects: Map<string, EffectInfo> = new Map();
+	private _effects: Map<string, IEffectInfo> = new Map();
 	/** Map of node instances to unique IDs for tree nodes */
 	private _nodeIdMap: Map<EffectNode, string> = new Map();
 

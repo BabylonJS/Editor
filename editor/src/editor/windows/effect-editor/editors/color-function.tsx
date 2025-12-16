@@ -221,8 +221,12 @@ export function ColorFunctionEditor(props: IColorFunctionEditorProps): ReactNode
 						}));
 					};
 
-					if (!value.data.gradient1) value.data.gradient1 = {};
-					if (!value.data.gradient2) value.data.gradient2 = {};
+					if (!value.data.gradient1) {
+						value.data.gradient1 = {};
+					}
+					if (!value.data.gradient2) {
+						value.data.gradient2 = {};
+					}
 
 					const wrapperGradient1 = {
 						colorKeys: convertColorKeys(value.data.gradient1.colorKeys),
