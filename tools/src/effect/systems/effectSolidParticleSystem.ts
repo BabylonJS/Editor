@@ -5,7 +5,7 @@ import { SolidPointParticleEmitter, SolidSphereParticleEmitter, SolidConeParticl
 import type { PerSolidParticleBehaviorFunction } from "../types/behaviors";
 import type { ISystem, SolidParticleWithSystem } from "../types/system";
 import type { Behavior, ForceOverLifeBehavior, ColorBySpeedBehavior, SizeBySpeedBehavior, RotationBySpeedBehavior, OrbitOverLifeBehavior } from "../types/behaviors";
-import type { Shape } from "../types/shapes";
+import type { IShape } from "../types/shapes";
 import type { Color } from "../types/colors";
 import type { Value } from "../types/values";
 import type { Rotation } from "../types/rotations";
@@ -63,7 +63,7 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 	public isLooping: boolean;
 	public duration: number;
 	public prewarm: boolean;
-	public shape?: Shape;
+	public shape?: IShape;
 	public startLife?: Value;
 	public startSpeed?: Value;
 	public startRotation?: Rotation;

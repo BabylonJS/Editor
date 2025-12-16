@@ -2,7 +2,7 @@ import { Mesh, VertexData, CreatePlane, Nullable, Scene } from "babylonjs";
 import type { IGeometryFactory } from "../types/factories";
 import { Logger } from "../loggers/logger";
 import type { Data } from "../types/hierarchy";
-import type { Geometry } from "../types/resources";
+import type { IGeometry } from "../types/resources";
 import type { LoaderOptions } from "../types/loader";
 
 /**
@@ -86,7 +86,7 @@ export class GeometryFactory implements IGeometryFactory {
 	/**
 	 * Finds geometry by UUID
 	 */
-	private _findGeometry(geometryId: string): Geometry | null {
+	private _findGeometry(geometryId: string): IGeometry | null {
 		if (!this._Data.geometries || this._Data.geometries.length === 0) {
 			this._logger.warn("No geometries data available");
 			return null;
@@ -104,10 +104,10 @@ export class GeometryFactory implements IGeometryFactory {
 	/**
 	 * Creates mesh from geometry data based on type
 	 */
-	private _createMeshFromGeometry(geometryData: Geometry, name: string, scene: Scene): Nullable<Mesh> {
+	private _createMeshFromGeometry(geometryData: IGeometry, name: string, scene: Scene): Nullable<Mesh> {
 		this._logger.log(`createMeshFromGeometry: type=${geometryData.type}, name=${name}`);
 
-		const geometryTypeHandlers: Record<string, (data: Geometry, meshName: string, scene: Scene) => Nullable<Mesh>> = {
+		const geometryTypeHandlers: Record<string, (data: IGeometry, meshName: string, scene: Scene) => Nullable<Mesh>> = {
 			PlaneGeometry: (data, meshName, scene) => this._createPlaneGeometry(data, meshName, scene),
 			BufferGeometry: (data, meshName, scene) => this._createBufferGeometry(data, meshName, scene),
 		};
@@ -124,7 +124,7 @@ export class GeometryFactory implements IGeometryFactory {
 	/**
 	 * Creates plane geometry mesh
 	 */
-	private _createPlaneGeometry(geometryData: Geometry, name: string, scene: Scene): Nullable<Mesh> {
+	private _createPlaneGeometry(geometryData: IGeometry, name: string, scene: Scene): Nullable<Mesh> {
 		const width = geometryData.width ?? 1;
 		const height = geometryData.height ?? 1;
 
@@ -143,7 +143,7 @@ export class GeometryFactory implements IGeometryFactory {
 	/**
 	 * Creates buffer geometry mesh (already converted to left-handed)
 	 */
-	private _createBufferGeometry(geometryData: Geometry, name: string, scene: Scene): Nullable<Mesh> {
+	private _createBufferGeometry(geometryData: IGeometry, name: string, scene: Scene): Nullable<Mesh> {
 		if (!geometryData.data?.attributes) {
 			this._logger.warn("BufferGeometry missing data or attributes");
 			return null;
@@ -164,7 +164,7 @@ export class GeometryFactory implements IGeometryFactory {
 	/**
 	 * Creates VertexData from BufferGeometry attributes (already converted to left-handed)
 	 */
-	private _createVertexDataFromAttributes(geometryData: Geometry): Nullable<VertexData> {
+	private _createVertexDataFromAttributes(geometryData: IGeometry): Nullable<VertexData> {
 		if (!geometryData.data?.attributes) {
 			return null;
 		}

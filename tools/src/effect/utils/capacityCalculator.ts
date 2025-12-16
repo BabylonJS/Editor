@@ -26,8 +26,7 @@ export class CapacityCalculator {
 
 		if (isLooping) {
 			return Math.max(Math.ceil(emissionRate * particleLifetime), 1);
-		} else {
-			return Math.ceil(emissionRate * particleLifetime * 2);
 		}
+		return Math.ceil(emissionRate * particleLifetime * 2);
 	}
 }

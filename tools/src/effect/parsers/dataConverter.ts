@@ -24,7 +24,7 @@ import type {
 	QuarksOrbitOverLifeBehavior,
 } from "../types/quarksTypes";
 import type { Transform, Group, Emitter, Data } from "../types/hierarchy";
-import type { Material, Texture, Image, Geometry, GeometryData } from "../types/resources";
+import type { IMaterial, ITexture, IImage, IGeometry, IGeometryData } from "../types/resources";
 import type { EmitterConfig } from "../types/emitter";
 import type {
 	Behavior,
@@ -40,7 +40,7 @@ import type { Value } from "../types/values";
 import type { Color } from "../types/colors";
 import type { Rotation } from "../types/rotations";
 import type { GradientKey } from "../types/gradients";
-import type { Shape } from "../types/shapes";
+import type { IShape } from "../types/shapes";
 import { Logger } from "../loggers/logger";
 
 /**
@@ -75,10 +75,10 @@ export class DataConverter {
 		}
 
 		// Convert all resources with error handling
-		let materials: Material[] = [];
-		let textures: Texture[] = [];
-		let images: Image[] = [];
-		let geometries: Geometry[] = [];
+		let materials: IMaterial[] = [];
+		let textures: ITexture[] = [];
+		let images: IImage[] = [];
+		let geometries: IGeometry[] = [];
 
 		try {
 			materials = this._convertMaterials(quarksData.materials || []);
@@ -449,8 +449,8 @@ export class DataConverter {
 	/**
 	 * Convert Quarks shape to  shape
 	 */
-	private _convertShape(quarksShape: QuarksShape): Shape {
-		const Shape: Shape = {
+	private _convertShape(quarksShape: QuarksShape): IShape {
+		const Shape: IShape = {
 			type: quarksShape.type,
 			radius: quarksShape.radius,
 			arc: quarksShape.arc,
@@ -650,9 +650,9 @@ export class DataConverter {
 	/**
 	 * Convert Quarks materials to  materials
 	 */
-	private _convertMaterials(quarksMaterials: QuarksMaterial[]): Material[] {
+	private _convertMaterials(quarksMaterials: QuarksMaterial[]): IMaterial[] {
 		return quarksMaterials.map((quarks) => {
-			const material: Material = {
+			const material: IMaterial = {
 				uuid: quarks.uuid,
 				type: quarks.type,
 				transparent: quarks.transparent,
@@ -687,9 +687,9 @@ export class DataConverter {
 	/**
 	 * Convert Quarks textures to  textures
 	 */
-	private _convertTextures(quarksTextures: QuarksTexture[]): Texture[] {
+	private _convertTextures(quarksTextures: QuarksTexture[]): ITexture[] {
 		return quarksTextures.map((quarks) => {
-			const texture: Texture = {
+			const texture: ITexture = {
 				uuid: quarks.uuid,
 				image: quarks.image,
 				generateMipmaps: quarks.generateMipmaps,
@@ -751,7 +751,7 @@ export class DataConverter {
 	/**
 	 * Convert Quarks images to  images (normalize URLs)
 	 */
-	private _convertImages(quarksImages: QuarksImage[]): Image[] {
+	private _convertImages(quarksImages: QuarksImage[]): IImage[] {
 		return quarksImages.map((quarks) => ({
 			uuid: quarks.uuid,
 			url: quarks.url || "",
@@ -774,13 +774,13 @@ export class DataConverter {
 				return geometry;
 			} else if (quarks.type === "BufferGeometry") {
 				// BufferGeometry - convert attributes to left-handed
-				const geometry: Geometry = {
+				const geometry: IGeometry = {
 					uuid: quarks.uuid,
 					type: "BufferGeometry",
 				};
 
 				if (quarks.data?.attributes) {
-					const attributes: GeometryData["attributes"] = {};
+					const attributes: IGeometryData["attributes"] = {};
 					const quarksAttrs = quarks.data.attributes;
 
 					// Convert position (right-hand → left-hand: flip Z)

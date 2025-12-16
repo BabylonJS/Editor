@@ -3,7 +3,7 @@ import type { IMaterialFactory } from "../types/factories";
 import { Logger } from "../loggers/logger";
 import type { LoaderOptions } from "../types/loader";
 import type { Data } from "../types/hierarchy";
-import type { Material, Texture, Image } from "../types/resources";
+import type { IMaterial, ITexture, IImage } from "../types/resources";
 
 /**
  * Factory for creating materials and textures from Three.js JSON data
@@ -57,7 +57,7 @@ export class MaterialFactory implements IMaterialFactory {
 	/**
 	 * Resolves material, texture, and image data from material ID
 	 */
-	private _resolveTextureData(materialId: string): { material: Material; texture: Texture; image: Image } | null {
+	private _resolveTextureData(materialId: string): { material: IMaterial; texture: ITexture; image: IImage } | null {
 		if (!this._hasRequiredData()) {
 			this._logger.warn(`Missing materials/textures/images data for material ${materialId}`);
 			return null;
@@ -91,7 +91,7 @@ export class MaterialFactory implements IMaterialFactory {
 	/**
 	 * Finds material by UUID
 	 */
-	private _findMaterial(materialId: string): Material | null {
+	private _findMaterial(materialId: string): IMaterial | null {
 		const material = this._data.materials?.find((m) => m.uuid === materialId);
 		if (!material) {
 			this._logger.warn(`Material not found: ${materialId}`);
@@ -103,7 +103,7 @@ export class MaterialFactory implements IMaterialFactory {
 	/**
 	 * Finds texture by UUID
 	 */
-	private _findTexture(textureId: string): Texture | null {
+	private _findTexture(textureId: string): ITexture | null {
 		const texture = this._data.textures?.find((t) => t.uuid === textureId);
 		if (!texture) {
 			this._logger.warn(`Texture not found: ${textureId}`);
@@ -115,7 +115,7 @@ export class MaterialFactory implements IMaterialFactory {
 	/**
 	 * Finds image by UUID
 	 */
-	private _findImage(imageId: string): Image | null {
+	private _findImage(imageId: string): IImage | null {
 		const image = this._data.images?.find((img) => img.uuid === imageId);
 		if (!image) {
 			this._logger.warn(`Image not found: ${imageId}`);
@@ -127,7 +127,7 @@ export class MaterialFactory implements IMaterialFactory {
 	/**
 	 * Builds texture URL from image data
 	 */
-	private _buildTextureUrl(image: Image): string {
+	private _buildTextureUrl(image: IImage): string {
 		if (!image.url) {
 			return "";
 		}
@@ -138,7 +138,7 @@ export class MaterialFactory implements IMaterialFactory {
 	/**
 	 * Applies texture properties from  texture data to Babylon.js texture
 	 */
-	private _applyTextureProperties(babylonTexture: BabylonTexture, texture: Texture): void {
+	private _applyTextureProperties(babylonTexture: BabylonTexture, texture: ITexture): void {
 		if (texture.wrapU !== undefined) {
 			babylonTexture.wrapU = texture.wrapU;
 		}
@@ -168,7 +168,7 @@ export class MaterialFactory implements IMaterialFactory {
 	/**
 	 * Creates Babylon.js texture from  texture data
 	 */
-	private _createTextureFromData(textureUrl: string, texture: Texture): BabylonTexture {
+	private _createTextureFromData(textureUrl: string, texture: ITexture): BabylonTexture {
 		const samplingMode = texture.samplingMode ?? BabylonTexture.TRILINEAR_SAMPLINGMODE;
 
 		const babylonTexture = new BabylonTexture(textureUrl, this._scene, {
@@ -214,7 +214,7 @@ export class MaterialFactory implements IMaterialFactory {
 	/**
 	 * Creates unlit material (MeshBasicMaterial equivalent)
 	 */
-	private _createUnlitMaterial(name: string, material: Material, texture: BabylonTexture, color: Color3): PBRMaterial {
+	private _createUnlitMaterial(name: string, material: IMaterial, texture: BabylonTexture, color: Color3): PBRMaterial {
 		const unlitMaterial = new PBRMaterial(name + "_material", this._scene);
 
 		unlitMaterial.unlit = true;
@@ -235,7 +235,7 @@ export class MaterialFactory implements IMaterialFactory {
 	/**
 	 * Applies transparency settings to material
 	 */
-	private _applyTransparency(material: PBRMaterial, Material: Material, texture: BabylonTexture): void {
+	private _applyTransparency(material: PBRMaterial, Material: IMaterial, texture: BabylonTexture): void {
 		if (Material.transparent) {
 			material.transparencyMode = BabylonMaterial.MATERIAL_ALPHABLEND;
 			material.needDepthPrePass = false;
@@ -251,7 +251,7 @@ export class MaterialFactory implements IMaterialFactory {
 	/**
 	 * Applies depth write settings to material
 	 */
-	private _applyDepthWrite(material: PBRMaterial, Material: Material): void {
+	private _applyDepthWrite(material: PBRMaterial, Material: IMaterial): void {
 		if (Material.depthWrite !== undefined) {
 			material.disableDepthWrite = !Material.depthWrite;
 			this._logger.log(`Set disableDepthWrite: ${!Material.depthWrite}`);
@@ -263,7 +263,7 @@ export class MaterialFactory implements IMaterialFactory {
 	/**
 	 * Applies side orientation settings to material
 	 */
-	private _applySideSettings(material: PBRMaterial, Material: Material): void {
+	private _applySideSettings(material: PBRMaterial, Material: IMaterial): void {
 		material.backFaceCulling = false;
 
 		if (Material.side !== undefined) {
@@ -275,7 +275,7 @@ export class MaterialFactory implements IMaterialFactory {
 	/**
 	 * Applies blend mode to material
 	 */
-	private _applyBlendMode(material: PBRMaterial, Material: Material): void {
+	private _applyBlendMode(material: PBRMaterial, Material: IMaterial): void {
 		if (Material.blending === undefined) {
 			return;
 		}

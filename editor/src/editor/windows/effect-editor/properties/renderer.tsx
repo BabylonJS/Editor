@@ -26,7 +26,7 @@ import { EditorGradientMaterialInspector } from "../../../layout/inspector/mater
 import { type EffectNode, EffectSolidParticleSystem, EffectParticleSystem } from "babylonjs-editor-tools";
 import { IEffectEditor } from "..";
 import { Mesh } from "babylonjs";
-import { EffectValueEditor } from "./value-editor";
+import { EffectValueEditor } from "../editors/value";
 import { CellMaterial, FireMaterial, GradientMaterial, GridMaterial, LavaMaterial, NormalMaterial, SkyMaterial, TriPlanarMaterial, WaterMaterial } from "babylonjs-materials";
 
 export interface IEffectEditorParticleRendererPropertiesProps {

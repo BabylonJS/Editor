@@ -1,10 +1,10 @@
 import { ReactNode } from "react";
 
-import { EditorInspectorNumberField } from "../../../../layout/inspector/fields/number";
-import { EditorInspectorListField } from "../../../../layout/inspector/fields/list";
-import { EditorInspectorBlockField } from "../../../../layout/inspector/fields/block";
+import { EditorInspectorNumberField } from "../../../layout/inspector/fields/number";
+import { EditorInspectorListField } from "../../../layout/inspector/fields/list";
+import { EditorInspectorBlockField } from "../../../layout/inspector/fields/block";
 
-import { BezierEditor } from "./bezier-editor";
+import { BezierEditor } from "./bezier";
 
 export type FunctionType = "ConstantValue" | "IntervalValue" | "PiecewiseBezier" | "Vector3Function";
 

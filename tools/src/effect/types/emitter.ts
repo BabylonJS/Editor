@@ -3,7 +3,7 @@ import type { Emitter } from "./hierarchy";
 import type { Value } from "./values";
 import type { Color } from "./colors";
 import type { Rotation } from "./rotations";
-import type { Shape } from "./shapes";
+import type { IShape } from "./shapes";
 import type { Behavior } from "./behaviors";
 
 /**
@@ -23,7 +23,7 @@ export interface EmitterConfig {
 	looping?: boolean;
 	prewarm?: boolean;
 	duration?: number;
-	shape?: Shape;
+	shape?: IShape;
 	startLife?: Value;
 	startSpeed?: Value;
 	startRotation?: Rotation;

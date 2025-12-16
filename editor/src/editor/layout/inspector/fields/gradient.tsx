@@ -176,4 +176,3 @@ export function EditorInspectorColorGradientField(props: IEditorInspectorColorGr
 		</div>
 	);
 }
-

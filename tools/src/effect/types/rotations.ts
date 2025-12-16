@@ -3,7 +3,7 @@ import type { Value } from "./values";
 /**
  *  rotation types (converted from Quarks)
  */
-export interface EulerRotation {
+export interface IEulerRotation {
 	type: "Euler";
 	angleX?: Value;
 	angleY?: Value;
@@ -11,7 +11,7 @@ export interface EulerRotation {
 	order?: "xyz" | "zyx";
 }
 
-export interface AxisAngleRotation {
+export interface IAxisAngleRotation {
 	type: "AxisAngle";
 	x?: Value;
 	y?: Value;
@@ -19,8 +19,8 @@ export interface AxisAngleRotation {
 	angle?: Value;
 }
 
-export interface RandomQuatRotation {
+export interface IRandomQuatRotation {
 	type: "RandomQuat";
 }
 
-export type Rotation = EulerRotation | AxisAngleRotation | RandomQuatRotation | Value;
+export type Rotation = IEulerRotation | IAxisAngleRotation | IRandomQuatRotation | Value;

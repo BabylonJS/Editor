@@ -7,7 +7,7 @@ import { EditorInspectorBlockField } from "../../../layout/inspector/fields/bloc
 import { type Value, type ConstantValue, type IntervalValue, ValueUtils } from "babylonjs-editor-tools";
 
 type PiecewiseBezier = Extract<Value, { type: "PiecewiseBezier" }>;
-import { BezierEditor } from "./behaviors/bezier-editor";
+import { BezierEditor } from "./bezier";
 
 // Vec3Function is a custom editor extension, not part of the core Value type
 export type EffectValueType = ConstantValue["type"] | IntervalValue["type"] | PiecewiseBezier["type"] | "Vec3Function";

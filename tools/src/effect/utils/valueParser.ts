@@ -1,5 +1,5 @@
 import { Color4, ColorGradient } from "babylonjs";
-import type { PiecewiseBezier, Value } from "../types/values";
+import type { IPiecewiseBezier, Value } from "../types/values";
 import type { Color } from "../types/colors";
 import type { GradientKey } from "../types/gradients";
 
@@ -83,7 +83,7 @@ export class ValueUtils {
 	/**
 	 * Evaluate PiecewiseBezier at normalized time t (0-1)
 	 */
-	private static _evaluatePiecewiseBezier(bezier: PiecewiseBezier, t: number): number {
+	private static _evaluatePiecewiseBezier(bezier: IPiecewiseBezier, t: number): number {
 		if (!bezier.functions || bezier.functions.length === 0) {
 			return 0;
 		}

@@ -3,7 +3,7 @@ import type { Value } from "./values";
 /**
  *  shape configuration (converted from Quarks)
  */
-export interface Shape {
+export interface IShape {
 	type: string;
 	radius?: number;
 	arc?: number;

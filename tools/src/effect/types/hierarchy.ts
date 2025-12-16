@@ -1,6 +1,6 @@
 import { Vector3, Quaternion } from "babylonjs";
 import type { EmitterConfig } from "./emitter";
-import type { Material, Texture, Image, Geometry } from "./resources";
+import type { IMaterial, ITexture, IImage, IGeometry } from "./resources";
 
 /**
  *  transform (converted from Quarks, left-handed coordinate system)
@@ -44,8 +44,8 @@ export interface Data {
 	groups: Map<string, Group>;
 	emitters: Map<string, Emitter>;
 	// Resources (converted from Quarks, ready for Babylon.js)
-	materials: Material[];
-	textures: Texture[];
-	images: Image[];
-	geometries: Geometry[];
+	materials: IMaterial[];
+	textures: ITexture[];
+	images: IImage[];
+	geometries: IGeometry[];
 }
