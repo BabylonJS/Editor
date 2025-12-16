@@ -6,21 +6,21 @@ import { Button } from "../../../ui/shadcn/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../../ui/shadcn/ui/tooltip";
 
 import { IoPlay, IoStop, IoRefresh } from "react-icons/io5";
-import type { IFXEditor } from ".";
-import type { VFXEffectNode } from "./VFX";
+import type { IEffectEditor } from ".";
+import { Effect, EffectNode } from "babylonjs-editor-tools";
 
-export interface IFXEditorPreviewProps {
+export interface IEffectEditorPreviewProps {
 	filePath: string | null;
 	onSceneReady?: (scene: Scene) => void;
-	editor?: IFXEditor;
+	editor?: IEffectEditor;
 	selectedNodeId?: string | number | null;
 }
 
-export interface IFXEditorPreviewState {
+export interface IEffectEditorPreviewState {
 	playing: boolean;
 }
 
-export class FXEditorPreview extends Component<IFXEditorPreviewProps, IFXEditorPreviewState> {
+export class EffectEditorPreview extends Component<IEffectEditorPreviewProps, IEffectEditorPreviewState> {
 	public engine: Engine | null = null;
 	public scene: Scene | null = null;
 	public camera: ArcRotateCamera | null = null;
@@ -28,7 +28,7 @@ export class FXEditorPreview extends Component<IFXEditorPreviewProps, IFXEditorP
 	private _canvasRef: HTMLCanvasElement | null = null;
 	private _renderLoopId: number = -1;
 
-	public constructor(props: IFXEditorPreviewProps) {
+	public constructor(props: IEffectEditorPreviewProps) {
 		super(props);
 
 		this.state = {
@@ -123,7 +123,7 @@ export class FXEditorPreview extends Component<IFXEditorPreviewProps, IFXEditorP
 	/**
 	 * Find the effect that contains the given node
 	 */
-	private _findEffectForNode(node: VFXEffectNode): import("./VFX").VFXEffect | null {
+	private _findEffectForNode(node: EffectNode): Effect | null {
 		const effects = this.props.editor?.graph?.getAllEffects() || [];
 		for (const effect of effects) {
 			// Check if node is part of this effect's hierarchy
@@ -137,12 +137,12 @@ export class FXEditorPreview extends Component<IFXEditorPreviewProps, IFXEditorP
 	/**
 	 * Check if node is part of effect's hierarchy
 	 */
-	private _isNodeInEffect(node: VFXEffectNode, effect: import("./VFX").VFXEffect): boolean {
+	private _isNodeInEffect(node: EffectNode, effect: Effect): boolean {
 		if (!effect.root) {
 			return false;
 		}
 
-		const findNode = (current: VFXEffectNode): boolean => {
+		const findNode = (current: EffectNode): boolean => {
 			if (current === node || current.uuid === node.uuid || current.name === node.name) {
 				return true;
 			}
@@ -160,7 +160,7 @@ export class FXEditorPreview extends Component<IFXEditorPreviewProps, IFXEditorP
 	/**
 	 * Check if node is an effect root node
 	 */
-	private _isEffectRootNode(node: VFXEffectNode): boolean {
+	private _isEffectRootNode(node: EffectNode): boolean {
 		if (!node.uuid) {
 			return false;
 		}
@@ -324,7 +324,7 @@ export class FXEditorPreview extends Component<IFXEditorPreviewProps, IFXEditorP
 		this.setState({ playing: true });
 	}
 
-	public componentDidUpdate(prevProps: IFXEditorPreviewProps): void {
+	public componentDidUpdate(prevProps: IEffectEditorPreviewProps): void {
 		// Sync playing state when selected node changes or when props change
 		if (prevProps.selectedNodeId !== this.props.selectedNodeId) {
 			this._syncPlayingState();

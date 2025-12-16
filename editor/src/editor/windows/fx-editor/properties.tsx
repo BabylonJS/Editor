@@ -2,32 +2,32 @@ import { Component, ReactNode } from "react";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../ui/shadcn/ui/tabs";
 
-import { FXEditorObjectProperties } from "./properties/object";
-import { FXEditorEmitterShapeProperties } from "./properties/emitter-shape";
-import { FXEditorParticleRendererProperties } from "./properties/particle-renderer";
-import { FXEditorEmissionProperties } from "./properties/emission";
-import { FXEditorParticleInitializationProperties } from "./properties/particle-initialization";
-import { FXEditorBehaviorsProperties } from "./properties/behaviors";
-import { IFXEditor } from ".";
-import type { VFXEffectNode } from "./VFX";
+import { EffectEditorObjectProperties } from "./properties/object";
+import { EffectEditorEmitterShapeProperties } from "./properties/emitter-shape";
+import { EffectEditorParticleRendererProperties } from "./properties/particle-renderer";
+import { EffectEditorEmissionProperties } from "./properties/emission";
+import { EffectEditorParticleInitializationProperties } from "./properties/particle-initialization";
+import { EffectEditorBehaviorsProperties } from "./properties/behaviors";
+import { IEffectEditor } from ".";
+import type { EffectNode } from "babylonjs-editor-tools";
 
-export interface IFXEditorPropertiesProps {
+export interface IEffectEditorPropertiesProps {
 	filePath: string | null;
 	selectedNodeId: string | number | null;
-	editor: IFXEditor;
+	editor: IEffectEditor;
 	onNameChanged?: () => void;
-	getNodeData: (nodeId: string | number) => VFXEffectNode | null;
+	getNodeData: (nodeId: string | number) => EffectNode | null;
 }
 
-export interface IFXEditorPropertiesState {}
+export interface IEffectEditorPropertiesState {}
 
-export class FXEditorProperties extends Component<IFXEditorPropertiesProps, IFXEditorPropertiesState> {
-	public constructor(props: IFXEditorPropertiesProps) {
+export class EffectEditorProperties extends Component<IEffectEditorPropertiesProps, IEffectEditorPropertiesState> {
+	public constructor(props: IEffectEditorPropertiesProps) {
 		super(props);
 		this.state = {};
 	}
 
-	public componentDidUpdate(prevProps: IFXEditorPropertiesProps): void {
+	public componentDidUpdate(prevProps: IEffectEditorPropertiesProps): void {
 		// Force update when selectedNodeId changes to ensure we show the correct node's properties
 		if (prevProps.selectedNodeId !== this.props.selectedNodeId) {
 			// Use setTimeout to ensure the update happens after flexlayout-react processes the change
@@ -77,7 +77,7 @@ export class FXEditorProperties extends Component<IFXEditorPropertiesProps, IFXE
 							</TabsTrigger>
 						</TabsList>
 						<TabsContent value="object" className="flex-1 overflow-auto p-2 m-0">
-							<FXEditorObjectProperties
+							<EffectEditorObjectProperties
 								nodeData={nodeData}
 								onChange={() => {
 									this.forceUpdate();
@@ -117,7 +117,7 @@ export class FXEditorProperties extends Component<IFXEditorPropertiesProps, IFXE
 						</TabsList>
 
 						<TabsContent value="object" className="flex-1 overflow-auto p-2 m-0">
-							<FXEditorObjectProperties
+							<EffectEditorObjectProperties
 								nodeData={nodeData}
 								onChange={() => {
 									this.forceUpdate();
@@ -127,23 +127,23 @@ export class FXEditorProperties extends Component<IFXEditorPropertiesProps, IFXE
 						</TabsContent>
 
 						<TabsContent value="emitter" className="flex-1 overflow-auto p-2 m-0">
-							<FXEditorEmitterShapeProperties nodeData={nodeData} onChange={() => this.forceUpdate()} />
+							<EffectEditorEmitterShapeProperties nodeData={nodeData} onChange={() => this.forceUpdate()} />
 						</TabsContent>
 
 						<TabsContent value="renderer" className="flex-1 overflow-auto p-2 m-0">
-							<FXEditorParticleRendererProperties nodeData={nodeData} editor={this.props.editor} onChange={() => this.forceUpdate()} />
+							<EffectEditorParticleRendererProperties nodeData={nodeData} editor={this.props.editor} onChange={() => this.forceUpdate()} />
 						</TabsContent>
 
 						<TabsContent value="emission" className="flex-1 overflow-auto p-2 m-0">
-							<FXEditorEmissionProperties nodeData={nodeData} onChange={() => this.forceUpdate()} />
+							<EffectEditorEmissionProperties nodeData={nodeData} onChange={() => this.forceUpdate()} />
 						</TabsContent>
 
 						<TabsContent value="initialization" className="flex-1 overflow-auto p-2 m-0">
-							<FXEditorParticleInitializationProperties nodeData={nodeData} onChange={() => this.forceUpdate()} />
+							<EffectEditorParticleInitializationProperties nodeData={nodeData} onChange={() => this.forceUpdate()} />
 						</TabsContent>
 
 						<TabsContent value="behaviors" className="flex-1 overflow-auto p-2 m-0">
-							<FXEditorBehaviorsProperties nodeData={nodeData} onChange={() => this.forceUpdate()} />
+							<EffectEditorBehaviorsProperties nodeData={nodeData} onChange={() => this.forceUpdate()} />
 						</TabsContent>
 					</Tabs>
 				</div>

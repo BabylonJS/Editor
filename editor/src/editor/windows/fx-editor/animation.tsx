@@ -1,12 +1,12 @@
 import { Component, ReactNode } from "react";
-import { IFXEditor } from ".";
+import { IEffectEditor } from ".";
 
-export interface IFXEditorAnimationProps {
+export interface IEffectEditorAnimationProps {
 	filePath: string | null;
-	editor: IFXEditor;
+	editor: IEffectEditor;
 }
 
-export class FXEditorAnimation extends Component<IFXEditorAnimationProps> {
+export class EffectEditorAnimation extends Component<IEffectEditorAnimationProps> {
 	public render(): ReactNode {
 		return (
 			<div className="w-full h-full p-4">

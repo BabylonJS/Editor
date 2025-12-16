@@ -5,16 +5,16 @@ import { IoImageOutline, IoCubeOutline } from "react-icons/io5";
 
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from "../../../ui/shadcn/ui/context-menu";
 
-export interface IFXEditorResourcesProps {
+export interface IEffectEditorResourcesProps {
 	resources: any[];
 }
 
-export interface IFXEditorResourcesState {
+export interface IEffectEditorResourcesState {
 	nodes: TreeNodeInfo[];
 }
 
-export class FXEditorResources extends Component<IFXEditorResourcesProps, IFXEditorResourcesState> {
-	public constructor(props: IFXEditorResourcesProps) {
+export class EffectEditorResources extends Component<IEffectEditorResourcesProps, IEffectEditorResourcesState> {
+	public constructor(props: IEffectEditorResourcesProps) {
 		super(props);
 
 		this.state = {
@@ -22,7 +22,7 @@ export class FXEditorResources extends Component<IFXEditorResourcesProps, IFXEdi
 		};
 	}
 
-	public componentDidUpdate(prevProps: IFXEditorResourcesProps): void {
+	public componentDidUpdate(prevProps: IEffectEditorResourcesProps): void {
 		if (prevProps.resources !== this.props.resources) {
 			this.setState({
 				nodes: this._convertToTreeNodeInfo(this.props.resources),

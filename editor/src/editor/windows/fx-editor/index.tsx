@@ -7,35 +7,35 @@ import { Component, ReactNode } from "react";
 
 import { Toaster } from "../../../ui/shadcn/ui/sonner";
 
-import { FXEditorLayout } from "./layout";
-import { FXEditorToolbar } from "./toolbar";
+import { EffectEditorLayout } from "./layout";
+import { EffectEditorToolbar } from "./toolbar";
 
 import { projectConfiguration, onProjectConfigurationChangedObservable, IProjectConfiguration } from "../../../project/configuration";
-import { FXEditorAnimation } from "./animation";
-import { FXEditorGraph } from "./graph";
-import { FXEditorPreview } from "./preview";
-import { FXEditorProperties } from "./properties";
-import { FXEditorResources } from "./resources";
+import { EffectEditorAnimation } from "./animation";
+import { EffectEditorGraph } from "./graph";
+import { EffectEditorPreview } from "./preview";
+import { EffectEditorProperties } from "./properties";
+import { EffectEditorResources } from "./resources";
 
-export interface IFXEditorWindowProps {
+export interface IEffectEditorWindowProps {
 	filePath?: string;
 	projectConfiguration?: IProjectConfiguration;
 }
 
-export interface IFXEditorWindowState {
+export interface IEffectEditorWindowState {
 	filePath: string | null;
 }
 
-export interface IFXEditor {
-	layout: FXEditorLayout | null;
-	preview: FXEditorPreview | null;
-	graph: FXEditorGraph | null;
-	animation: FXEditorAnimation | null;
-	properties: FXEditorProperties | null;
-	resources: FXEditorResources | null;
+export interface IEffectEditor {
+	layout: EffectEditorLayout | null;
+	preview: EffectEditorPreview | null;
+	graph: EffectEditorGraph | null;
+	animation: EffectEditorAnimation | null;
+	properties: EffectEditorProperties | null;
+	resources: EffectEditorResources | null;
 }
-export default class FXEditorWindow extends Component<IFXEditorWindowProps, IFXEditorWindowState> {
-	public editor: IFXEditor = {
+export default class EffectEditorWindow extends Component<IEffectEditorWindowProps, IEffectEditorWindowState> {
+	public editor: IEffectEditor = {
 		layout: null,
 		preview: null,
 		graph: null,
@@ -44,7 +44,7 @@ export default class FXEditorWindow extends Component<IFXEditorWindowProps, IFXE
 		resources: null,
 	};
 
-	public constructor(props: IFXEditorWindowProps) {
+	public constructor(props: IEffectEditorWindowProps) {
 		super(props);
 
 		this.state = {
@@ -56,10 +56,10 @@ export default class FXEditorWindow extends Component<IFXEditorWindowProps, IFXE
 		return (
 			<>
 				<div className="flex flex-col w-screen h-screen">
-					<FXEditorToolbar fxEditor={this} />
+					<EffectEditorToolbar editor={this} />
 
 					<div className="w-full h-full overflow-hidden">
-						<FXEditorLayout ref={(r) => (this.editor.layout = r)} filePath={this.state.filePath || ""} editor={this.editor} />
+						<EffectEditorLayout ref={(r) => (this.editor.layout = r)} filePath={this.state.filePath || ""} editor={this.editor} />
 					</div>
 				</div>
 
@@ -97,10 +97,10 @@ export default class FXEditorWindow extends Component<IFXEditorWindowProps, IFXE
 		try {
 			const data = await readJSON(this.state.filePath);
 			await writeJSON(this.state.filePath, data, { spaces: 4 });
-			toast.success("FX saved");
-			ipcRenderer.send("editor:asset-updated", "fx", data);
+			toast.success("Effect saved");
+			ipcRenderer.send("editor:asset-updated", "Effect", data);
 		} catch (error) {
-			toast.error("Failed to save FX");
+			toast.error("Failed to save Effect");
 		}
 	}
 
@@ -114,13 +114,13 @@ export default class FXEditorWindow extends Component<IFXEditorWindowProps, IFXE
 			// Get graph component reference from layout
 			if (this.editor.graph) {
 				await this.editor.graph.loadFromFile(filePath);
-				toast.success("FX imported");
+				toast.success("Effect imported");
 			} else {
-				toast.error("Failed to import FX: Graph not available");
+				toast.error("Failed to import Effect: Graph not available");
 			}
 		} catch (error) {
-			console.error("Failed to import FX:", error);
-			toast.error("Failed to import FX");
+			console.error("Failed to import Effect:", error);
+			toast.error("Failed to import Effect");
 		}
 	}
 }

@@ -1,0 +1,51 @@
+import { Vector3, Quaternion } from "babylonjs";
+import type { EmitterConfig } from "./emitter";
+import type { Material, Texture, Image, Geometry } from "./resources";
+
+/**
+ *  transform (converted from Quarks, left-handed coordinate system)
+ */
+export interface Transform {
+	position: Vector3;
+	rotation: Quaternion;
+	scale: Vector3;
+}
+
+/**
+ *  group (converted from Quarks)
+ */
+export interface Group {
+	uuid: string;
+	name: string;
+	transform: Transform;
+	children: (Group | Emitter)[];
+}
+
+/**
+ *  emitter (converted from Quarks)
+ */
+export interface Emitter {
+	uuid: string;
+	name: string;
+	transform: Transform;
+	config: EmitterConfig;
+	materialId?: string;
+	parentUuid?: string;
+	systemType: "solid" | "base"; // Determined from renderMode: 2 = solid, otherwise base
+	matrix?: number[]; // Original Three.js matrix array for rotation extraction
+}
+
+/**
+ *  data (converted from Quarks)
+ * Contains the converted  structure with groups, emitters, and resources
+ */
+export interface Data {
+	root: Group | Emitter | null;
+	groups: Map<string, Group>;
+	emitters: Map<string, Emitter>;
+	// Resources (converted from Quarks, ready for Babylon.js)
+	materials: Material[];
+	textures: Texture[];
+	images: Image[];
+	geometries: Geometry[];
+}

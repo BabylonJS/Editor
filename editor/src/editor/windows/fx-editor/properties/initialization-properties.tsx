@@ -1,15 +1,15 @@
 import { Component, ReactNode } from "react";
 
-import { FXEditorParticleInitializationProperties } from "./particle-initialization";
-import type { VFXEffectNode } from "../VFX";
+import { EffectEditorParticleInitializationProperties } from "./particle-initialization";
+import type { EffectNode } from "babylonjs-editor-tools";
 
-export interface IFXEditorInitializationPropertiesTabProps {
+export interface IEffectEditorInitializationPropertiesTabProps {
 	filePath: string | null;
 	selectedNodeId: string | number | null;
-	getNodeData: (nodeId: string | number) => VFXEffectNode | null;
+	getNodeData: (nodeId: string | number) => EffectNode | null;
 }
 
-export class FXEditorInitializationPropertiesTab extends Component<IFXEditorInitializationPropertiesTabProps> {
+export class EffectEditorInitializationPropertiesTab extends Component<IEffectEditorInitializationPropertiesTabProps> {
 	public render(): ReactNode {
 		const nodeId = this.props.selectedNodeId;
 
@@ -33,9 +33,8 @@ export class FXEditorInitializationPropertiesTab extends Component<IFXEditorInit
 
 		return (
 			<div className="flex flex-col gap-2 w-full h-full p-2 overflow-auto">
-				<FXEditorParticleInitializationProperties nodeData={nodeData} onChange={() => this.forceUpdate()} />
+				<EffectEditorParticleInitializationProperties nodeData={nodeData} onChange={() => this.forceUpdate()} />
 			</div>
 		);
 	}
 }
-

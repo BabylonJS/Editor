@@ -7,17 +7,16 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { HiOutlineTrash } from "react-icons/hi2";
 import { IoAddSharp } from "react-icons/io5";
 
-import type { VFXEffectNode } from "../VFX";
-import { VFXParticleSystem, VFXSolidParticleSystem } from "../VFX";
+import { type EffectNode, EffectParticleSystem, EffectSolidParticleSystem } from "babylonjs-editor-tools";
 import { BehaviorRegistry, createDefaultBehaviorData, getBehaviorDefinition } from "./behaviors/registry";
 import { BehaviorProperties } from "./behaviors/behavior-properties";
 
-export interface IFXEditorBehaviorsPropertiesProps {
-	nodeData: VFXEffectNode;
+export interface IEffectEditorBehaviorsPropertiesProps {
+	nodeData: EffectNode;
 	onChange: () => void;
 }
 
-export function FXEditorBehaviorsProperties(props: IFXEditorBehaviorsPropertiesProps): ReactNode {
+export function EffectEditorBehaviorsProperties(props: IEffectEditorBehaviorsPropertiesProps): ReactNode {
 	const { nodeData, onChange } = props;
 
 	if (nodeData.type !== "particle" || !nodeData.system) {
@@ -28,9 +27,9 @@ export function FXEditorBehaviorsProperties(props: IFXEditorBehaviorsPropertiesP
 
 	// Get behavior configurations from system
 	let behaviorConfigs: any[] = [];
-	if (system instanceof VFXParticleSystem) {
+	if (system instanceof EffectParticleSystem) {
 		behaviorConfigs = system.behaviorConfigs || [];
-	} else if (system instanceof VFXSolidParticleSystem) {
+	} else if (system instanceof EffectSolidParticleSystem) {
 		behaviorConfigs = system.behaviorConfigs || [];
 	}
 

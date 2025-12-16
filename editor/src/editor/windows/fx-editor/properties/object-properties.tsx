@@ -1,18 +1,18 @@
 import { Component, ReactNode } from "react";
 
-import { FXEditorObjectProperties } from "./object";
-import { IFXEditor } from "..";
-import type { VFXEffectNode } from "../VFX";
+import { EffectEditorObjectProperties } from "./object";
+import { IEffectEditor } from "..";
+import type { EffectNode } from "babylonjs-editor-tools";
 
-export interface IFXEditorObjectPropertiesTabProps {
+export interface IEffectEditorObjectPropertiesTabProps {
 	filePath: string | null;
 	selectedNodeId: string | number | null;
-	editor: IFXEditor;
+	editor: IEffectEditor;
 	onNameChanged?: () => void;
-	getNodeData: (nodeId: string | number) => VFXEffectNode | null;
+	getNodeData: (nodeId: string | number) => EffectNode | null;
 }
 
-export class FXEditorObjectPropertiesTab extends Component<IFXEditorObjectPropertiesTabProps> {
+export class EffectEditorObjectPropertiesTab extends Component<IEffectEditorObjectPropertiesTabProps> {
 	public render(): ReactNode {
 		const nodeId = this.props.selectedNodeId;
 
@@ -36,7 +36,7 @@ export class FXEditorObjectPropertiesTab extends Component<IFXEditorObjectProper
 
 		return (
 			<div className="flex flex-col gap-2 w-full h-full p-2 overflow-auto">
-				<FXEditorObjectProperties
+				<EffectEditorObjectProperties
 					nodeData={nodeData}
 					onChange={() => {
 						this.forceUpdate();
@@ -47,4 +47,3 @@ export class FXEditorObjectPropertiesTab extends Component<IFXEditorObjectProper
 		);
 	}
 }
-
