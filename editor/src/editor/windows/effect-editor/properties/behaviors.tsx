@@ -15,7 +15,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { HiOutlineTrash } from "react-icons/hi2";
 import { IoAddSharp } from "react-icons/io5";
 
-import { type EffectNode, EffectParticleSystem, EffectSolidParticleSystem } from "babylonjs-editor-tools";
+import { type IEffectNode, EffectParticleSystem, EffectSolidParticleSystem } from "babylonjs-editor-tools";
 import { FunctionEditor, ColorFunctionEditor } from "../editors";
 
 // Types
@@ -473,7 +473,7 @@ function BehaviorProperties(props: IBehaviorPropertiesProps): ReactNode {
 
 // Main component
 export interface IEffectEditorBehaviorsPropertiesProps {
-	nodeData: EffectNode;
+	nodeData: IEffectNode;
 	onChange: () => void;
 }
 

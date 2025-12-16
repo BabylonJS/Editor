@@ -9,18 +9,18 @@ import { EditorInspectorBlockField } from "../../../layout/inspector/fields/bloc
 import { EditorInspectorSectionField } from "../../../layout/inspector/fields/section";
 
 import {
-	type EffectNode,
+	type IEffectNode,
+	type IEmissionBurst,
 	EffectSolidParticleSystem,
 	EffectParticleSystem,
 	SolidSphereParticleEmitter,
 	SolidConeParticleEmitter,
-	EmissionBurst,
 	Value,
 } from "babylonjs-editor-tools";
 import { EffectValueEditor } from "../editors/value";
 
 export interface IEffectEditorEmissionPropertiesProps {
-	nodeData: EffectNode;
+	nodeData: IEffectNode;
 	onChange: () => void;
 }
 
@@ -252,7 +252,7 @@ function renderParticleSystemEmitter(system: EffectParticleSystem, onChange: () 
 /**
  * Renders emitter shape properties
  */
-function renderEmitterShape(nodeData: EffectNode, onChange: () => void): ReactNode {
+function renderEmitterShape(nodeData: IEffectNode, onChange: () => void): ReactNode {
 	if (nodeData.type !== "particle" || !nodeData.system) {
 		return null;
 	}
@@ -274,7 +274,7 @@ function renderEmitterShape(nodeData: EffectNode, onChange: () => void): ReactNo
  * Renders emission bursts
  */
 function renderBursts(system: EffectParticleSystem | EffectSolidParticleSystem, onChange: () => void): ReactNode {
-	const bursts: (EmissionBurst & { cycle?: number; interval?: number; probability?: number })[] = Array.isArray((system as any).emissionBursts)
+	const bursts: (IEmissionBurst & { cycle?: number; interval?: number; probability?: number })[] = Array.isArray((system as any).emissionBursts)
 		? (system as any).emissionBursts
 		: [];
 
@@ -341,7 +341,7 @@ function renderBursts(system: EffectParticleSystem | EffectSolidParticleSystem, 
 /**
  * Renders emission parameters (looping, duration, emit over time/distance, bursts)
  */
-function renderEmissionParameters(nodeData: EffectNode, onChange: () => void): ReactNode {
+function renderEmissionParameters(nodeData: IEffectNode, onChange: () => void): ReactNode {
 	if (nodeData.type !== "particle" || !nodeData.system) {
 		return null;
 	}

@@ -2,13 +2,13 @@ import { ReactNode } from "react";
 
 import { EditorInspectorBlockField } from "../../../layout/inspector/fields/block";
 
-import { type EffectNode, EffectSolidParticleSystem, EffectParticleSystem, ValueUtils, Value, Color, Rotation } from "babylonjs-editor-tools";
+import { type IEffectNode, EffectSolidParticleSystem, EffectParticleSystem, ValueUtils, Value, Color, Rotation } from "babylonjs-editor-tools";
 import { EffectValueEditor, type IVec3Function } from "../editors/value";
 import { EffectColorEditor } from "../editors/color";
 import { EffectRotationEditor } from "../editors/rotation";
 
 export interface IEffectEditorParticleInitializationPropertiesProps {
-	nodeData: EffectNode;
+	nodeData: IEffectNode;
 	onChange?: () => void;
 }
 

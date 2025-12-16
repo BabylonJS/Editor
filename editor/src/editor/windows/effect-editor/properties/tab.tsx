@@ -1,5 +1,5 @@
 import { Component, ReactNode } from "react";
-import type { EffectNode } from "babylonjs-editor-tools";
+import type { IEffectNode } from "babylonjs-editor-tools";
 import { IEffectEditor } from "..";
 import { EffectEditorObjectProperties } from "./object";
 import { EffectEditorParticleRendererProperties } from "./renderer";
@@ -13,7 +13,7 @@ export interface IEffectEditorPropertiesTabProps {
 	editor: IEffectEditor;
 	tabType: "object" | "emission" | "renderer" | "initialization" | "behaviors";
 	onNameChanged?: () => void;
-	getNodeData: (nodeId: string | number) => EffectNode | null;
+	getNodeData: (nodeId: string | number) => IEffectNode | null;
 }
 
 export class EffectEditorPropertiesTab extends Component<IEffectEditorPropertiesTabProps> {
