@@ -1,4 +1,4 @@
-import type { IIRotationOverLifeBehavior } from "../types/behaviors";
+import type { IRotationOverLifeBehavior } from "../types/behaviors";
 import { ValueUtils } from "../utils/valueParser";
 import { extractNumberFromValue } from "./utils";
 import type { EffectSolidParticleSystem } from "../systems/effectSolidParticleSystem";

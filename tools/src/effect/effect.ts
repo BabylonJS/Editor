@@ -1,5 +1,5 @@
 import { Scene, Tools, IDisposable, TransformNode, Vector3, CreatePlane, MeshBuilder, Texture } from "babylonjs";
-import type { QuarksJSON } from "./types/quarksTypes";
+import type { IQuarksJSON } from "./types/quarksTypes";
 import type { ILoaderOptions } from "./types/loader";
 import { Parser } from "./parsers/parser";
 import { EffectParticleSystem } from "./systems/effectParticleSystem";
@@ -111,7 +111,7 @@ export class Effect implements IDisposable {
 	 * @param options Optional parsing options
 	 * @returns A Effect containing all particle systems
 	 */
-	public static Parse(jsonData: QuarksJSON, scene: Scene, rootUrl: string = "", options?: ILoaderOptions): Effect {
+	public static Parse(jsonData: IQuarksJSON, scene: Scene, rootUrl: string = "", options?: ILoaderOptions): Effect {
 		return new Effect(jsonData, scene, rootUrl, options);
 	}
 
@@ -122,7 +122,7 @@ export class Effect implements IDisposable {
 	 * @param rootUrl Root URL for loading textures
 	 * @param options Optional parsing options
 	 */
-	constructor(jsonData?: QuarksJSON, scene?: Scene, rootUrl: string = "", options?: ILoaderOptions) {
+	constructor(jsonData?: IQuarksJSON, scene?: Scene, rootUrl: string = "", options?: ILoaderOptions) {
 		this._scene = scene || null;
 		if (jsonData && scene) {
 			const parser = new Parser(scene, rootUrl, jsonData, options);

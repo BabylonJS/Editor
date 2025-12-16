@@ -1,4 +1,4 @@
-import type { IISizeOverLifeBehavior } from "../types/behaviors";
+import type { ISizeOverLifeBehavior } from "../types/behaviors";
 import { extractNumberFromValue } from "./utils";
 import type { EffectSolidParticleSystem } from "../systems/effectSolidParticleSystem";
 import type { EffectParticleSystem } from "../systems/effectParticleSystem";

@@ -1,5 +1,5 @@
 import { SolidParticle, Particle, Vector3 } from "babylonjs";
-import type { IIColorBySpeedBehavior } from "../types/behaviors";
+import type { IColorBySpeedBehavior } from "../types/behaviors";
 import { interpolateColorKeys } from "./utils";
 import { ValueUtils } from "../utils/valueParser";
 
