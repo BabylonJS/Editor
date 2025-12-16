@@ -1,17 +1,17 @@
 import { Component, ReactNode } from "react";
 
-import { FXEditorParticleRendererProperties } from "./particle-renderer";
-import { IFXEditor } from "..";
-import type { VFXEffectNode } from "../VFX";
+import { EffectEditorParticleRendererProperties } from "./particle-renderer";
+import { IEffectEditor } from "..";
+import type { EffectNode } from "babylonjs-editor-tools";
 
-export interface IFXEditorRendererPropertiesTabProps {
+export interface IEffectEditorRendererPropertiesTabProps {
 	filePath: string | null;
 	selectedNodeId: string | number | null;
-	editor: IFXEditor;
-	getNodeData: (nodeId: string | number) => VFXEffectNode | null;
+	editor: IEffectEditor;
+	getNodeData: (nodeId: string | number) => EffectNode | null;
 }
 
-export class FXEditorRendererPropertiesTab extends Component<IFXEditorRendererPropertiesTabProps> {
+export class EffectEditorRendererPropertiesTab extends Component<IEffectEditorRendererPropertiesTabProps> {
 	public render(): ReactNode {
 		const nodeId = this.props.selectedNodeId;
 
@@ -35,9 +35,8 @@ export class FXEditorRendererPropertiesTab extends Component<IFXEditorRendererPr
 
 		return (
 			<div className="flex flex-col gap-2 w-full h-full p-2 overflow-auto">
-				<FXEditorParticleRendererProperties nodeData={nodeData} editor={this.props.editor} onChange={() => this.forceUpdate()} />
+				<EffectEditorParticleRendererProperties nodeData={nodeData} editor={this.props.editor} onChange={() => this.forceUpdate()} />
 			</div>
 		);
 	}
 }
-

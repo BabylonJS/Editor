@@ -1,15 +1,14 @@
 import { Component, ReactNode } from "react";
+import type { EffectNode } from "babylonjs-editor-tools";
+import { EffectEditorBehaviorsProperties } from "./behaviors";
 
-import { FXEditorBehaviorsProperties } from "./behaviors";
-import type { VFXEffectNode } from "../VFX";
-
-export interface IFXEditorBehaviorsPropertiesTabProps {
+export interface IEffectEditorBehaviorsPropertiesTabProps {
 	filePath: string | null;
 	selectedNodeId: string | number | null;
-	getNodeData: (nodeId: string | number) => VFXEffectNode | null;
+	getNodeData: (nodeId: string | number) => EffectNode | null;
 }
 
-export class FXEditorBehaviorsPropertiesTab extends Component<IFXEditorBehaviorsPropertiesTabProps> {
+export class EffectEditorBehaviorsPropertiesTab extends Component<IEffectEditorBehaviorsPropertiesTabProps> {
 	public render(): ReactNode {
 		const nodeId = this.props.selectedNodeId;
 
@@ -33,9 +32,8 @@ export class FXEditorBehaviorsPropertiesTab extends Component<IFXEditorBehaviors
 
 		return (
 			<div className="flex flex-col gap-2 w-full h-full p-2 overflow-auto">
-				<FXEditorBehaviorsProperties nodeData={nodeData} onChange={() => this.forceUpdate()} />
+				<EffectEditorBehaviorsProperties nodeData={nodeData} onChange={() => this.forceUpdate()} />
 			</div>
 		);
 	}
 }
-

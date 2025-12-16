@@ -15,36 +15,36 @@ import {
 	ContextMenuSubTrigger,
 	ContextMenuSubContent,
 } from "../../../ui/shadcn/ui/context-menu";
-import { IFXEditor } from ".";
-import { VFXEffect, type VFXEffectNode } from "./VFX";
+import { IEffectEditor } from ".";
 import { saveSingleFileDialog } from "../../../tools/dialog";
 import { writeJSON } from "fs-extra";
 import { toast } from "sonner";
+import { Effect, type EffectNode } from "babylonjs-editor-tools";
 
-export interface IFXEditorGraphProps {
+export interface IEffectEditorGraphProps {
 	filePath: string | null;
 	onNodeSelected?: (nodeId: string | number | null) => void;
-	editor: IFXEditor;
+	editor: IEffectEditor;
 }
 
-export interface IFXEditorGraphState {
-	nodes: TreeNodeInfo<VFXEffectNode>[];
+export interface IEffectEditorGraphState {
+	nodes: TreeNodeInfo<EffectNode>[];
 	selectedNodeId: string | number | null;
 }
 
 interface EffectInfo {
 	id: string;
 	name: string;
-	effect: VFXEffect;
+	effect: Effect;
 	originalJsonData?: any; // Store original JSON data for export
 }
 
-export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraphState> {
-	private _vfxEffects: Map<string, EffectInfo> = new Map();
+export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffectEditorGraphState> {
+	private _effects: Map<string, EffectInfo> = new Map();
 	/** Map of node instances to unique IDs for tree nodes */
-	private _nodeIdMap: Map<VFXEffectNode, string> = new Map();
+	private _nodeIdMap: Map<EffectNode, string> = new Map();
 
-	public constructor(props: IFXEditorGraphProps) {
+	public constructor(props: IEffectEditorGraphProps) {
 		super(props);
 
 		this.state = {
@@ -54,32 +54,32 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 	}
 
 	/**
-	 * Get the first VFX effect (for backward compatibility)
+	 * Get the first  effect (for backward compatibility)
 	 */
-	public getEffect(): VFXEffect | null {
-		const firstEffect = this._vfxEffects.values().next().value;
+	public getEffect(): Effect | null {
+		const firstEffect = this._effects.values().next().value;
 		return firstEffect ? firstEffect.effect : null;
 	}
 
 	/**
-	 * Get all VFX effects
+	 * Get all  effects
 	 */
-	public getAllEffects(): VFXEffect[] {
-		return Array.from(this._vfxEffects.values()).map((info) => info.effect);
+	public getAllEffects(): Effect[] {
+		return Array.from(this._effects.values()).map((info) => info.effect);
 	}
 
 	/**
 	 * Get effect by ID
 	 */
-	public getEffectById(id: string): VFXEffect | null {
-		const info = this._vfxEffects.get(id);
+	public getEffectById(id: string): Effect | null {
+		const info = this._effects.get(id);
 		return info ? info.effect : null;
 	}
 
 	/**
 	 * Finds a node in the tree by ID
 	 */
-	private _findNodeById(nodes: TreeNodeInfo<VFXEffectNode>[], nodeId: string | number): TreeNodeInfo<VFXEffectNode> | null {
+	private _findNodeById(nodes: TreeNodeInfo<EffectNode>[], nodeId: string | number): TreeNodeInfo<EffectNode> | null {
 		for (const node of nodes) {
 			if (node.id === nodeId) {
 				return node;
@@ -97,17 +97,17 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 	/**
 	 * Gets node data by ID from tree
 	 */
-	public getNodeData(nodeId: string | number): VFXEffectNode | null {
+	public getNodeData(nodeId: string | number): EffectNode | null {
 		const node = this._findNodeById(this.state.nodes, nodeId);
 		return node?.nodeData || null;
 	}
 
 	public componentDidMount(): void {}
 
-	public componentDidUpdate(_prevProps: IFXEditorGraphProps): void {}
+	public componentDidUpdate(_prevProps: IEffectEditorGraphProps): void {}
 
 	/**
-	 * Loads nodes from converted Three.js JSON data using VFXEffect
+	 * Loads nodes from converted Three.js JSON data using Effect
 	 */
 	public async loadFromFile(filePath: string): Promise<void> {
 		try {
@@ -116,21 +116,21 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 				return;
 			}
 
-			// Load VFX effect
+			// Load  effect
 			const dirname = require("path").dirname(filePath);
 			const fs = require("fs-extra");
 			const originalJsonData = await fs.readJSON(filePath);
-			const vfxEffect = await VFXEffect.LoadAsync(filePath, this.props.editor.preview!.scene, dirname + "/");
+			const effect = await Effect.LoadAsync(filePath, this.props.editor.preview!.scene, dirname + "/");
 
 			// Generate unique ID for effect
 			const effectId = `effect-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 			const effectName = require("path").basename(filePath, ".json") || "Effect";
 
 			// Store effect with original JSON data for export
-			this._vfxEffects.set(effectId, {
+			this._effects.set(effectId, {
 				id: effectId,
 				name: effectName,
-				effect: vfxEffect,
+				effect: effect,
 				originalJsonData,
 			});
 
@@ -138,10 +138,10 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 			this._rebuildTree();
 
 			// Apply prewarm before starting (if any systems have prewarm enabled)
-			vfxEffect.applyPrewarm();
+			effect.applyPrewarm();
 
 			// Start systems
-			vfxEffect.start();
+			effect.start();
 
 			// Notify preview to sync playing state after a short delay
 			// This ensures the effect state is properly synchronized
@@ -151,7 +151,7 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 				}
 			}, 100);
 		} catch (error) {
-			console.error("Failed to load FX file:", error);
+			console.error("Failed to load Effect file:", error);
 		}
 	}
 
@@ -162,15 +162,15 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 		// Clear node ID map when rebuilding tree to ensure unique IDs
 		this._nodeIdMap.clear();
 
-		const nodes: TreeNodeInfo<VFXEffectNode>[] = [];
+		const nodes: TreeNodeInfo<EffectNode>[] = [];
 
-		for (const [effectId, effectInfo] of this._vfxEffects.entries()) {
+		for (const [effectId, effectInfo] of this._effects.entries()) {
 			if (effectInfo.effect.root) {
 				// Use effect root directly as the tree node, but update its name to effect name
 				effectInfo.effect.root.name = effectInfo.name;
 				effectInfo.effect.root.uuid = effectId;
 
-				const treeNode = this._convertVFXNodeToTreeNode(effectInfo.effect.root, true);
+				const treeNode = this._convertNodeToTreeNode(effectInfo.effect.root, true);
 				nodes.push(treeNode);
 			}
 		}
@@ -181,41 +181,41 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 	/**
 	 * Generate unique ID for a node
 	 */
-	private _generateUniqueNodeId(vfxNode: VFXEffectNode): string {
+	private _generateUniqueNodeId(Node: EffectNode): string {
 		// Check if we already have an ID for this node instance
-		if (this._nodeIdMap.has(vfxNode)) {
-			return this._nodeIdMap.get(vfxNode)!;
+		if (this._nodeIdMap.has(Node)) {
+			return this._nodeIdMap.get(Node)!;
 		}
 
 		// Generate unique ID
 		const uniqueId = `node-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-		this._nodeIdMap.set(vfxNode, uniqueId);
+		this._nodeIdMap.set(Node, uniqueId);
 		return uniqueId;
 	}
 
 	/**
-	 * Converts VFXEffectNode to TreeNodeInfo recursively
+	 * Converts EffectNode to TreeNodeInfo recursively
 	 */
-	private _convertVFXNodeToTreeNode(vfxNode: VFXEffectNode, isEffectRoot: boolean = false): TreeNodeInfo<VFXEffectNode> {
+	private _convertNodeToTreeNode(Node: EffectNode, isEffectRoot: boolean = false): TreeNodeInfo<EffectNode> {
 		// Always use unique ID instead of uuid or name
-		const nodeId = this._generateUniqueNodeId(vfxNode);
-		const childNodes = vfxNode.children.length > 0 ? vfxNode.children.map((child) => this._convertVFXNodeToTreeNode(child, false)) : undefined;
+		const nodeId = this._generateUniqueNodeId(Node);
+		const childNodes = Node.children.length > 0 ? Node.children.map((child) => this._convertNodeToTreeNode(child, false)) : undefined;
 
 		return {
 			id: nodeId,
-			label: this._getNodeLabelComponent({ id: nodeId, nodeData: vfxNode } as any, vfxNode.name),
+			label: this._getNodeLabelComponent({ id: nodeId, nodeData: Node } as any, Node.name),
 			icon: isEffectRoot ? (
 				<IoSparklesSharp className="w-4 h-4" />
-			) : vfxNode.type === "particle" ? (
+			) : Node.type === "particle" ? (
 				<IoSparklesSharp className="w-4 h-4" />
 			) : (
 				<HiOutlineFolder className="w-4 h-4" />
 			),
-			isExpanded: isEffectRoot || vfxNode.type === "group",
+			isExpanded: isEffectRoot || Node.type === "group",
 			childNodes,
 			isSelected: false,
-			hasCaret: isEffectRoot || vfxNode.type === "group" || (childNodes && childNodes.length > 0),
-			nodeData: vfxNode,
+			hasCaret: isEffectRoot || Node.type === "group" || (childNodes && childNodes.length > 0),
+			nodeData: Node,
 		};
 	}
 
@@ -230,7 +230,7 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 	/**
 	 * Updates all node names in the tree from actual data
 	 */
-	private _updateAllNodeNames(nodes: TreeNodeInfo<VFXEffectNode>[]): TreeNodeInfo<VFXEffectNode>[] {
+	private _updateAllNodeNames(nodes: TreeNodeInfo<EffectNode>[]): TreeNodeInfo<EffectNode>[] {
 		return nodes.map((n) => {
 			const nodeName = n.nodeData?.name || "Unknown";
 			const childNodes = n.childNodes ? this._updateAllNodeNames(n.childNodes) : undefined;
@@ -280,7 +280,7 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 									<ContextMenuItem
 										draggable
 										onDragStart={(ev) => {
-											ev.dataTransfer.setData("fx-editor/create-effect", "effect");
+											ev.dataTransfer.setData("Effect-editor/create-effect", "effect");
 										}}
 										onClick={() => this._handleCreateEffect()}
 									>
@@ -295,19 +295,19 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 		);
 	}
 
-	private _handleNodeExpanded(node: TreeNodeInfo<VFXEffectNode>): void {
+	private _handleNodeExpanded(node: TreeNodeInfo<EffectNode>): void {
 		const nodeId = node.id;
 		const nodes = this._updateNodeExpanded(this.state.nodes, nodeId as string | number, true);
 		this.setState({ nodes });
 	}
 
-	private _handleNodeCollapsed(node: TreeNodeInfo<VFXEffectNode>): void {
+	private _handleNodeCollapsed(node: TreeNodeInfo<EffectNode>): void {
 		const nodeId = node.id;
 		const nodes = this._updateNodeExpanded(this.state.nodes, nodeId as string | number, false);
 		this.setState({ nodes });
 	}
 
-	private _updateNodeExpanded(nodes: TreeNodeInfo<VFXEffectNode>[], nodeId: string | number, isExpanded: boolean): TreeNodeInfo<VFXEffectNode>[] {
+	private _updateNodeExpanded(nodes: TreeNodeInfo<EffectNode>[], nodeId: string | number, isExpanded: boolean): TreeNodeInfo<EffectNode>[] {
 		return nodes.map((n) => {
 			const nodeName = n.nodeData?.name || "Unknown";
 			if (n.id === nodeId) {
@@ -327,14 +327,14 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 		});
 	}
 
-	private _handleNodeClicked(node: TreeNodeInfo<VFXEffectNode>): void {
+	private _handleNodeClicked(node: TreeNodeInfo<EffectNode>): void {
 		const selectedId = node.id as string | number;
 		const nodes = this._updateNodeSelection(this.state.nodes, selectedId);
 		this.setState({ nodes, selectedNodeId: selectedId });
 		this.props.onNodeSelected?.(selectedId);
 	}
 
-	private _updateNodeSelection(nodes: TreeNodeInfo<VFXEffectNode>[], selectedId: string | number): TreeNodeInfo<VFXEffectNode>[] {
+	private _updateNodeSelection(nodes: TreeNodeInfo<EffectNode>[], selectedId: string | number): TreeNodeInfo<EffectNode>[] {
 		return nodes.map((n) => {
 			const nodeName = n.nodeData?.name || "Unknown";
 			const isSelected = n.id === selectedId;
@@ -348,7 +348,7 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 		});
 	}
 
-	private _getNodeLabelComponent(node: TreeNodeInfo<VFXEffectNode>, name: string): JSX.Element {
+	private _getNodeLabelComponent(node: TreeNodeInfo<EffectNode>, name: string): JSX.Element {
 		const label = (
 			<div
 				className="ml-2 p-1 w-full"
@@ -385,7 +385,7 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 									<ContextMenuItem
 										draggable
 										onDragStart={(ev) => {
-											ev.dataTransfer.setData("fx-editor/create-item", "base-particle");
+											ev.dataTransfer.setData("Effect-editor/create-item", "base-particle");
 										}}
 										onClick={() => this._handleAddParticleSystemToNode(node, "base")}
 									>
@@ -394,7 +394,7 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 									<ContextMenuItem
 										draggable
 										onDragStart={(ev) => {
-											ev.dataTransfer.setData("fx-editor/create-item", "solid-particle");
+											ev.dataTransfer.setData("Effect-editor/create-item", "solid-particle");
 										}}
 										onClick={() => this._handleAddParticleSystemToNode(node, "solid")}
 									>
@@ -403,7 +403,7 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 									<ContextMenuItem
 										draggable
 										onDragStart={(ev) => {
-											ev.dataTransfer.setData("fx-editor/create-item", "group");
+											ev.dataTransfer.setData("Effect-editor/create-item", "group");
 										}}
 										onClick={() => this._handleAddGroupToNode(node)}
 									>
@@ -431,26 +431,26 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 	/**
 	 * Check if node is an effect root node
 	 */
-	private _isEffectRootNode(node: TreeNodeInfo<VFXEffectNode>): boolean {
+	private _isEffectRootNode(node: TreeNodeInfo<EffectNode>): boolean {
 		const nodeData = node.nodeData;
 		if (!nodeData || !nodeData.uuid) {
 			return false;
 		}
 
 		// Check if this node is the root of any effect
-		return this._vfxEffects.has(nodeData.uuid);
+		return this._effects.has(nodeData.uuid);
 	}
 
 	/**
 	 * Export effect to JSON file
 	 */
-	private async _handleExportEffect(node: TreeNodeInfo<VFXEffectNode>): Promise<void> {
+	private async _handleExportEffect(node: TreeNodeInfo<EffectNode>): Promise<void> {
 		const nodeData = node.nodeData;
 		if (!nodeData || !nodeData.uuid) {
 			return;
 		}
 
-		const effectInfo = this._vfxEffects.get(nodeData.uuid);
+		const effectInfo = this._effects.get(nodeData.uuid);
 		if (!effectInfo || !effectInfo.originalJsonData) {
 			toast.error("Cannot export effect: original data not available");
 			return;
@@ -486,29 +486,29 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 		}
 
 		// Create empty effect
-		const vfxEffect = new VFXEffect(undefined, this.props.editor.preview.scene);
+		const effect = new Effect(undefined, this.props.editor.preview.scene);
 
 		// Generate unique ID and name for effect
 		const effectId = `effect-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 		let effectName = "Effect";
 		let counter = 1;
-		while (Array.from(this._vfxEffects.values()).some((info) => info.name === effectName)) {
+		while (Array.from(this._effects.values()).some((info) => info.name === effectName)) {
 			effectName = `Effect ${counter}`;
 			counter++;
 		}
 
 		// Store effect
-		this._vfxEffects.set(effectId, {
+		this._effects.set(effectId, {
 			id: effectId,
 			name: effectName,
-			effect: vfxEffect,
+			effect: effect,
 		});
 
 		// Rebuild tree with all effects
 		this._rebuildTree();
 	}
 
-	private _findEffectForNode(node: TreeNodeInfo<VFXEffectNode>): VFXEffect | null {
+	private _findEffectForNode(node: TreeNodeInfo<EffectNode>): Effect | null {
 		// Find the effect that contains this node by traversing up the tree
 		const nodeData = node.nodeData;
 		if (!nodeData) {
@@ -517,18 +517,18 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 
 		// First check if this is an effect root node
 		if (nodeData.uuid) {
-			const effectInfo = this._vfxEffects.get(nodeData.uuid);
+			const effectInfo = this._effects.get(nodeData.uuid);
 			if (effectInfo) {
 				return effectInfo.effect;
 			}
 		}
 
 		// Find effect by checking if node is in any effect's hierarchy
-		for (const effectInfo of this._vfxEffects.values()) {
+		for (const effectInfo of this._effects.values()) {
 			const effect = effectInfo.effect;
 			if (effect.root) {
 				// Check if node is part of this effect's hierarchy
-				const findNodeInHierarchy = (current: VFXEffectNode): boolean => {
+				const findNodeInHierarchy = (current: EffectNode): boolean => {
 					// Use instance comparison and uuid for matching
 					if (current === nodeData || (current.uuid && nodeData.uuid && current.uuid === nodeData.uuid)) {
 						return true;
@@ -550,7 +550,7 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 		return null;
 	}
 
-	private _handleAddParticleSystemToNode(node: TreeNodeInfo<VFXEffectNode>, systemType: "solid" | "base"): void {
+	private _handleAddParticleSystemToNode(node: TreeNodeInfo<EffectNode>, systemType: "solid" | "base"): void {
 		const effect = this._findEffectForNode(node);
 		if (!effect) {
 			console.error("No effect found for node");
@@ -570,7 +570,7 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 		}
 	}
 
-	private _handleAddGroupToNode(node: TreeNodeInfo<VFXEffectNode>): void {
+	private _handleAddGroupToNode(node: TreeNodeInfo<EffectNode>): void {
 		const effect = this._findEffectForNode(node);
 		if (!effect) {
 			console.error("No effect found for node");
@@ -595,7 +595,7 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 		ev.stopPropagation();
 
 		try {
-			const data = ev.dataTransfer.getData("fx-editor/create-effect");
+			const data = ev.dataTransfer.getData("Effect-editor/create-effect");
 			if (data === "effect") {
 				this._handleCreateEffect();
 			}
@@ -604,7 +604,7 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 		}
 	}
 
-	private _handleDropOnNode(node: TreeNodeInfo<VFXEffectNode>, ev: React.DragEvent<HTMLDivElement>): void {
+	private _handleDropOnNode(node: TreeNodeInfo<EffectNode>, ev: React.DragEvent<HTMLDivElement>): void {
 		ev.preventDefault();
 		ev.stopPropagation();
 
@@ -613,7 +613,7 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 		}
 
 		try {
-			const data = ev.dataTransfer.getData("fx-editor/create-item");
+			const data = ev.dataTransfer.getData("Effect-editor/create-item");
 			if (data === "solid-particle") {
 				this._handleAddParticleSystemToNode(node, "solid");
 			} else if (data === "base-particle") {
@@ -626,7 +626,7 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 		}
 	}
 
-	private _addNodeToParent(nodes: TreeNodeInfo<VFXEffectNode>[], parentId: string | number, newNode: TreeNodeInfo<VFXEffectNode>): TreeNodeInfo<VFXEffectNode>[] {
+	private _addNodeToParent(nodes: TreeNodeInfo<EffectNode>[], parentId: string | number, newNode: TreeNodeInfo<EffectNode>): TreeNodeInfo<EffectNode>[] {
 		return nodes.map((n) => {
 			if (n.id === parentId) {
 				const childNodes = n.childNodes || [];
@@ -647,7 +647,7 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 		});
 	}
 
-	private _handleDeleteNode(node: TreeNodeInfo<VFXEffectNode>): void {
+	private _handleDeleteNode(node: TreeNodeInfo<EffectNode>): void {
 		const nodeData = node.nodeData;
 		if (!nodeData) {
 			return;
@@ -655,12 +655,12 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 
 		// Check if this is an effect root node
 		const effectId = node.id as string;
-		if (this._vfxEffects.has(effectId)) {
+		if (this._effects.has(effectId)) {
 			// Delete entire effect
-			const effectInfo = this._vfxEffects.get(effectId);
+			const effectInfo = this._effects.get(effectId);
 			if (effectInfo) {
 				effectInfo.effect.dispose();
-				this._vfxEffects.delete(effectId);
+				this._effects.delete(effectId);
 				this._rebuildTree();
 			}
 		} else {
@@ -671,7 +671,7 @@ export class FXEditorGraph extends Component<IFXEditorGraphProps, IFXEditorGraph
 			}
 
 			// Find and remove node from effect hierarchy
-			const removeNodeFromHierarchy = (current: VFXEffectNode): boolean => {
+			const removeNodeFromHierarchy = (current: EffectNode): boolean => {
 				// Remove from children
 				const index = current.children.findIndex((child) => child === nodeData || child.uuid === nodeData.uuid || child.name === nodeData.name);
 				if (index !== -1) {

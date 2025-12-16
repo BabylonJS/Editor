@@ -5,11 +5,10 @@ import { EditorInspectorStringField } from "../../../layout/inspector/fields/str
 import { EditorInspectorVectorField } from "../../../layout/inspector/fields/vector";
 import { EditorInspectorSwitchField } from "../../../layout/inspector/fields/switch";
 
-import type { VFXEffectNode } from "../VFX";
-import { VFXParticleSystem, VFXSolidParticleSystem } from "../VFX";
+import  { type EffectNode, EffectSolidParticleSystem, EffectParticleSystem } from "babylonjs-editor-tools";
 
-export interface IFXEditorObjectPropertiesProps {
-	nodeData: VFXEffectNode;
+export interface IEffectEditorObjectPropertiesProps {
+	nodeData: EffectNode;
 	onChange?: () => void;
 }
 
@@ -52,7 +51,7 @@ function getRotationInspector(object: any, onChange?: () => void): ReactNode {
 	return null;
 }
 
-export function FXEditorObjectProperties(props: IFXEditorObjectPropertiesProps): ReactNode {
+export function EffectEditorObjectProperties(props: IEffectEditorObjectPropertiesProps): ReactNode {
 	const { nodeData, onChange } = props;
 
 	// For groups, use transformNode directly
@@ -70,12 +69,12 @@ export function FXEditorObjectProperties(props: IFXEditorObjectPropertiesProps):
 		);
 	}
 
-	// For particles, use system.emitter for VFXParticleSystem or system.mesh for VFXSolidParticleSystem
+	// For particles, use system.emitter for VEffectParticleSystem or system.mesh for VEffectSolidParticleSystem
 	if (nodeData.type === "particle" && nodeData.system) {
 		const system = nodeData.system;
 
-		// For VFXSolidParticleSystem, use mesh (common mesh for all particles)
-		if (system instanceof VFXSolidParticleSystem) {
+		// For VEffectSolidParticleSystem, use mesh (common mesh for all particles)
+		if (system instanceof EffectSolidParticleSystem) {
 			const mesh = system.mesh;
 			if (!mesh) {
 				return (
@@ -97,8 +96,8 @@ export function FXEditorObjectProperties(props: IFXEditorObjectPropertiesProps):
 			);
 		}
 
-		// For VFXParticleSystem, use emitter
-		if (system instanceof VFXParticleSystem) {
+		// For VEffectParticleSystem, use emitter
+		if (system instanceof EffectParticleSystem) {
 			const emitter = (system as any).emitter;
 			if (!emitter) {
 				return (

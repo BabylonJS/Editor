@@ -5,7 +5,6 @@ import { EditorInspectorColorField } from "../../../../layout/inspector/fields/c
 import { EditorInspectorColorGradientField } from "../../../../layout/inspector/fields/gradient";
 import { EditorInspectorListField } from "../../../../layout/inspector/fields/list";
 import { EditorInspectorBlockField } from "../../../../layout/inspector/fields/block";
-import { EditorInspectorNumberField } from "../../../../layout/inspector/fields/number";
 import type { IGradientKey } from "../../../../../ui/gradient-picker";
 
 export type ColorFunctionType = "ConstantColor" | "ColorRange" | "Gradient" | "RandomColor" | "RandomColorBetweenGradient";
@@ -110,62 +109,67 @@ export function ColorFunctionEditor(props: IColorFunctionEditorProps): ReactNode
 				</>
 			)}
 
-			{functionType === "Gradient" && (() => {
-				// Convert old format (Vector3 + position) to new format (array + pos) if needed
-				const convertColorKeys = (keys: any[]): IGradientKey[] => {
-					if (!keys || keys.length === 0) {
-						return [
-							{ pos: 0, value: [0, 0, 0, 1] },
-							{ pos: 1, value: [1, 1, 1, 1] },
-						];
-					}
-					return keys.map((key) => {
-						if (key.color && key.color instanceof Vector3) {
-							// Old format: { color: Vector3, position: number }
-							return {
-								pos: key.position ?? key.pos ?? 0,
-								value: [key.color.x, key.color.y, key.color.z, 1],
-							};
+			{functionType === "Gradient" &&
+				(() => {
+					// Convert old format (Vector3 + position) to new format (array + pos) if needed
+					const convertColorKeys = (keys: any[]): IGradientKey[] => {
+						if (!keys || keys.length === 0) {
+							return [
+								{ pos: 0, value: [0, 0, 0, 1] },
+								{ pos: 1, value: [1, 1, 1, 1] },
+							];
 						}
-						// Already in new format or other format
-						return {
+						return keys.map((key) => {
+							if (key.color && key.color instanceof Vector3) {
+								// Old format: { color: Vector3, position: number }
+								return {
+									pos: key.position ?? key.pos ?? 0,
+									value: [key.color.x, key.color.y, key.color.z, 1],
+								};
+							}
+							// Already in new format or other format
+							return {
+								pos: key.pos ?? key.position ?? 0,
+								value: Array.isArray(key.value)
+									? key.value
+									: typeof key.value === "object" && "r" in key.value
+										? [key.value.r, key.value.g, key.value.b, key.value.a ?? 1]
+										: [0, 0, 0, 1],
+							};
+						});
+					};
+
+					const convertAlphaKeys = (keys: any[]): IGradientKey[] => {
+						if (!keys || keys.length === 0) {
+							return [
+								{ pos: 0, value: 1 },
+								{ pos: 1, value: 1 },
+							];
+						}
+						return keys.map((key) => ({
 							pos: key.pos ?? key.position ?? 0,
-							value: Array.isArray(key.value) ? key.value : typeof key.value === "object" && "r" in key.value ? [key.value.r, key.value.g, key.value.b, key.value.a ?? 1] : [0, 0, 0, 1],
-						};
-					});
-				};
+							value: typeof key.value === "number" ? key.value : 1,
+						}));
+					};
 
-				const convertAlphaKeys = (keys: any[]): IGradientKey[] => {
-					if (!keys || keys.length === 0) {
-						return [
-							{ pos: 0, value: 1 },
-							{ pos: 1, value: 1 },
-						];
-					}
-					return keys.map((key) => ({
-						pos: key.pos ?? key.position ?? 0,
-						value: typeof key.value === "number" ? key.value : 1,
-					}));
-				};
+					const wrapperGradient = {
+						colorKeys: convertColorKeys(value.data.colorKeys),
+						alphaKeys: convertAlphaKeys(value.data.alphaKeys),
+					};
 
-				const wrapperGradient = {
-					colorKeys: convertColorKeys(value.data.colorKeys),
-					alphaKeys: convertAlphaKeys(value.data.alphaKeys),
-				};
-
-				return (
-					<EditorInspectorColorGradientField
-						object={wrapperGradient}
-						property=""
-						label=""
-						onChange={(newColorKeys, newAlphaKeys) => {
-							value.data.colorKeys = newColorKeys;
-							value.data.alphaKeys = newAlphaKeys;
-							onChange();
-						}}
-					/>
-				);
-			})()}
+					return (
+						<EditorInspectorColorGradientField
+							object={wrapperGradient}
+							property=""
+							label=""
+							onChange={(newColorKeys, newAlphaKeys) => {
+								value.data.colorKeys = newColorKeys;
+								value.data.alphaKeys = newAlphaKeys;
+								onChange();
+							}}
+						/>
+					);
+				})()}
 
 			{functionType === "RandomColor" && (
 				<>
@@ -176,87 +180,91 @@ export function ColorFunctionEditor(props: IColorFunctionEditorProps): ReactNode
 				</>
 			)}
 
-			{functionType === "RandomColorBetweenGradient" && (() => {
-				// Convert old format to new format if needed
-				const convertColorKeys = (keys: any[]): IGradientKey[] => {
-					if (!keys || keys.length === 0) {
-						return [
-							{ pos: 0, value: [0, 0, 0, 1] },
-							{ pos: 1, value: [1, 1, 1, 1] },
-						];
-					}
-					return keys.map((key) => {
-						if (key.color && key.color instanceof Vector3) {
-							return {
-								pos: key.position ?? key.pos ?? 0,
-								value: [key.color.x, key.color.y, key.color.z, 1],
-							};
+			{functionType === "RandomColorBetweenGradient" &&
+				(() => {
+					// Convert old format to new format if needed
+					const convertColorKeys = (keys: any[]): IGradientKey[] => {
+						if (!keys || keys.length === 0) {
+							return [
+								{ pos: 0, value: [0, 0, 0, 1] },
+								{ pos: 1, value: [1, 1, 1, 1] },
+							];
 						}
-						return {
+						return keys.map((key) => {
+							if (key.color && key.color instanceof Vector3) {
+								return {
+									pos: key.position ?? key.pos ?? 0,
+									value: [key.color.x, key.color.y, key.color.z, 1],
+								};
+							}
+							return {
+								pos: key.pos ?? key.position ?? 0,
+								value: Array.isArray(key.value)
+									? key.value
+									: typeof key.value === "object" && "r" in key.value
+										? [key.value.r, key.value.g, key.value.b, key.value.a ?? 1]
+										: [0, 0, 0, 1],
+							};
+						});
+					};
+
+					const convertAlphaKeys = (keys: any[]): IGradientKey[] => {
+						if (!keys || keys.length === 0) {
+							return [
+								{ pos: 0, value: 1 },
+								{ pos: 1, value: 1 },
+							];
+						}
+						return keys.map((key) => ({
 							pos: key.pos ?? key.position ?? 0,
-							value: Array.isArray(key.value) ? key.value : typeof key.value === "object" && "r" in key.value ? [key.value.r, key.value.g, key.value.b, key.value.a ?? 1] : [0, 0, 0, 1],
-						};
-					});
-				};
+							value: typeof key.value === "number" ? key.value : 1,
+						}));
+					};
 
-				const convertAlphaKeys = (keys: any[]): IGradientKey[] => {
-					if (!keys || keys.length === 0) {
-						return [
-							{ pos: 0, value: 1 },
-							{ pos: 1, value: 1 },
-						];
-					}
-					return keys.map((key) => ({
-						pos: key.pos ?? key.position ?? 0,
-						value: typeof key.value === "number" ? key.value : 1,
-					}));
-				};
+					if (!value.data.gradient1) value.data.gradient1 = {};
+					if (!value.data.gradient2) value.data.gradient2 = {};
 
-				if (!value.data.gradient1) value.data.gradient1 = {};
-				if (!value.data.gradient2) value.data.gradient2 = {};
+					const wrapperGradient1 = {
+						colorKeys: convertColorKeys(value.data.gradient1.colorKeys),
+						alphaKeys: convertAlphaKeys(value.data.gradient1.alphaKeys),
+					};
 
-				const wrapperGradient1 = {
-					colorKeys: convertColorKeys(value.data.gradient1.colorKeys),
-					alphaKeys: convertAlphaKeys(value.data.gradient1.alphaKeys),
-				};
+					const wrapperGradient2 = {
+						colorKeys: convertColorKeys(value.data.gradient2.colorKeys),
+						alphaKeys: convertAlphaKeys(value.data.gradient2.alphaKeys),
+					};
 
-				const wrapperGradient2 = {
-					colorKeys: convertColorKeys(value.data.gradient2.colorKeys),
-					alphaKeys: convertAlphaKeys(value.data.gradient2.alphaKeys),
-				};
-
-				return (
-					<>
-						<EditorInspectorBlockField>
-							<div className="px-2">Gradient 1</div>
-							<EditorInspectorColorGradientField
-								object={wrapperGradient1}
-								property=""
-								label=""
-								onChange={(newColorKeys, newAlphaKeys) => {
-									value.data.gradient1.colorKeys = newColorKeys;
-									value.data.gradient1.alphaKeys = newAlphaKeys;
-									onChange();
-								}}
-							/>
-						</EditorInspectorBlockField>
-						<EditorInspectorBlockField>
-							<div className="px-2">Gradient 2</div>
-							<EditorInspectorColorGradientField
-								object={wrapperGradient2}
-								property=""
-								label=""
-								onChange={(newColorKeys, newAlphaKeys) => {
-									value.data.gradient2.colorKeys = newColorKeys;
-									value.data.gradient2.alphaKeys = newAlphaKeys;
-									onChange();
-								}}
-							/>
-						</EditorInspectorBlockField>
-					</>
-				);
-			})()}
+					return (
+						<>
+							<EditorInspectorBlockField>
+								<div className="px-2">Gradient 1</div>
+								<EditorInspectorColorGradientField
+									object={wrapperGradient1}
+									property=""
+									label=""
+									onChange={(newColorKeys, newAlphaKeys) => {
+										value.data.gradient1.colorKeys = newColorKeys;
+										value.data.gradient1.alphaKeys = newAlphaKeys;
+										onChange();
+									}}
+								/>
+							</EditorInspectorBlockField>
+							<EditorInspectorBlockField>
+								<div className="px-2">Gradient 2</div>
+								<EditorInspectorColorGradientField
+									object={wrapperGradient2}
+									property=""
+									label=""
+									onChange={(newColorKeys, newAlphaKeys) => {
+										value.data.gradient2.colorKeys = newColorKeys;
+										value.data.gradient2.alphaKeys = newAlphaKeys;
+										onChange();
+									}}
+								/>
+							</EditorInspectorBlockField>
+						</>
+					);
+				})()}
 		</>
 	);
 }
-

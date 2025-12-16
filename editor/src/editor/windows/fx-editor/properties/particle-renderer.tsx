@@ -6,26 +6,8 @@ import { EditorInspectorSwitchField } from "../../../layout/inspector/fields/swi
 import { EditorInspectorListField } from "../../../layout/inspector/fields/list";
 import { EditorInspectorTextureField } from "../../../layout/inspector/fields/texture";
 import { EditorInspectorGeometryField } from "../../../layout/inspector/fields/geometry";
-import { EditorInspectorColorField } from "../../../layout/inspector/fields/color";
-import { EditorInspectorStringField } from "../../../layout/inspector/fields/string";
 
-import {
-	PBRMaterial,
-	StandardMaterial,
-	NodeMaterial,
-	MultiMaterial,
-	SkyMaterial,
-	GridMaterial,
-	NormalMaterial,
-	WaterMaterial,
-	LavaMaterial,
-	TriPlanarMaterial,
-	CellMaterial,
-	FireMaterial,
-	GradientMaterial,
-	Material,
-	ParticleSystem,
-} from "babylonjs";
+import { PBRMaterial, StandardMaterial, NodeMaterial, MultiMaterial, Material, ParticleSystem } from "babylonjs";
 
 import { EditorPBRMaterialInspector } from "../../../layout/inspector/material/pbr";
 import { EditorStandardMaterialInspector } from "../../../layout/inspector/material/standard";
@@ -41,24 +23,24 @@ import { EditorCellMaterialInspector } from "../../../layout/inspector/material/
 import { EditorFireMaterialInspector } from "../../../layout/inspector/material/fire";
 import { EditorGradientMaterialInspector } from "../../../layout/inspector/material/gradient";
 
-import type { VFXEffectNode } from "../VFX";
-import { VFXParticleSystem, VFXSolidParticleSystem } from "../VFX";
-import { IFXEditor } from "..";
-import { VFXValueUtils } from "../VFX/utils/valueParser";
-import { VFXValueEditor } from "./vfx-value-editor";
+import { type EffectNode, EffectSolidParticleSystem, EffectParticleSystem } from "babylonjs-editor-tools";
+import { IEffectEditor } from "..";
+import { Mesh } from "babylonjs";
+import { EffectValueEditor } from "./value-editor";
+import { CellMaterial, FireMaterial, GradientMaterial, GridMaterial, LavaMaterial, NormalMaterial, SkyMaterial, TriPlanarMaterial, WaterMaterial } from "babylonjs-materials";
 
-export interface IFXEditorParticleRendererPropertiesProps {
-	nodeData: VFXEffectNode;
-	editor: IFXEditor;
+export interface IEffectEditorParticleRendererPropertiesProps {
+	nodeData: EffectNode;
+	editor: IEffectEditor;
 	onChange: () => void;
 }
 
-export interface IFXEditorParticleRendererPropertiesState {
+export interface IEffectEditorParticleRendererPropertiesState {
 	meshDragOver: boolean;
 }
 
-export class FXEditorParticleRendererProperties extends Component<IFXEditorParticleRendererPropertiesProps, IFXEditorParticleRendererPropertiesState> {
-	public constructor(props: IFXEditorParticleRendererPropertiesProps) {
+export class EffectEditorParticleRendererProperties extends Component<IEffectEditorParticleRendererPropertiesProps, IEffectEditorParticleRendererPropertiesState> {
+	public constructor(props: IEffectEditorParticleRendererPropertiesProps) {
 		super(props);
 		this.state = {
 			meshDragOver: false,
@@ -73,9 +55,9 @@ export class FXEditorParticleRendererProperties extends Component<IFXEditorParti
 		}
 
 		const system = nodeData.system;
-		const isVFXSolidParticleSystem = system instanceof VFXSolidParticleSystem;
-		const isVFXParticleSystem = system instanceof VFXParticleSystem;
-		const systemType = isVFXSolidParticleSystem ? "solid" : "base";
+		const isEffectSolidParticleSystem = system instanceof EffectSolidParticleSystem;
+		const isEffectParticleSystem = system instanceof EffectParticleSystem;
+		const systemType = isEffectSolidParticleSystem ? "solid" : "base";
 
 		return (
 			<>
@@ -83,7 +65,7 @@ export class FXEditorParticleRendererProperties extends Component<IFXEditorParti
 				<div className="px-2 text-sm text-muted-foreground">System Mode: {systemType === "solid" ? "Mesh (Solid)" : "Billboard (Base)"}</div>
 
 				{/* Billboard Mode - только для base */}
-				{isVFXParticleSystem && (
+				{isEffectParticleSystem && (
 					<>
 						<EditorInspectorListField
 							object={system}
@@ -97,42 +79,31 @@ export class FXEditorParticleRendererProperties extends Component<IFXEditorParti
 							]}
 							onChange={() => this.props.onChange()}
 						/>
-						<EditorInspectorSwitchField
-							object={system}
-							property="isBillboardBased"
-							label="Is Billboard Based"
-							onChange={() => this.props.onChange()}
-						/>
+						<EditorInspectorSwitchField object={system} property="isBillboardBased" label="Is Billboard Based" onChange={() => this.props.onChange()} />
 					</>
 				)}
 
 				{/* World Space */}
-				{isVFXParticleSystem && (() => {
-					// Для VFXParticleSystem, worldSpace = !isLocal
-					const proxy = {
-						get worldSpace() {
-							return !system.isLocal;
-						},
-						set worldSpace(value: boolean) {
-							system.isLocal = !value;
-						},
-					};
-					return <EditorInspectorSwitchField object={proxy} property="worldSpace" label="World Space" onChange={() => this.props.onChange()} />;
-				})()}
-				{isVFXSolidParticleSystem && (
-					<EditorInspectorSwitchField
-						object={system}
-						property="worldSpace"
-						label="World Space"
-						onChange={() => this.props.onChange()}
-					/>
-				)}
+				{isEffectParticleSystem &&
+					(() => {
+						// Для VEffectParticleSystem, worldSpace = !isLocal
+						const proxy = {
+							get worldSpace() {
+								return !system.isLocal;
+							},
+							set worldSpace(value: boolean) {
+								system.isLocal = !value;
+							},
+						};
+						return <EditorInspectorSwitchField object={proxy} property="worldSpace" label="World Space" onChange={() => this.props.onChange()} />;
+					})()}
+				{isEffectSolidParticleSystem && <EditorInspectorSwitchField object={system} property="worldSpace" label="World Space" onChange={() => this.props.onChange()} />}
 
 				{/* Material Inspector - только для solid с материалом */}
-				{isVFXSolidParticleSystem && this._getMaterialInspector()}
+				{isEffectSolidParticleSystem && this._getMaterialInspector()}
 
 				{/* Blend Mode - только для base */}
-				{isVFXParticleSystem && (
+				{isEffectParticleSystem && (
 					<EditorInspectorListField
 						object={system}
 						property="blendMode"
@@ -161,15 +132,13 @@ export class FXEditorParticleRendererProperties extends Component<IFXEditorParti
 				{this._getStartTileIndexField()}
 
 				{/* Soft Particles */}
-				{isVFXParticleSystem && (
-					<EditorInspectorSwitchField object={system} property="softParticles" label="Soft Particles" onChange={() => this.props.onChange()} />
-				)}
-				{isVFXSolidParticleSystem && (
+				{isEffectParticleSystem && <EditorInspectorSwitchField object={system} property="softParticles" label="Soft Particles" onChange={() => this.props.onChange()} />}
+				{isEffectSolidParticleSystem && (
 					<EditorInspectorSwitchField object={system} property="softParticles" label="Soft Particles" onChange={() => this.props.onChange()} />
 				)}
 
 				{/* Geometry - только для solid */}
-				{isVFXSolidParticleSystem && this._getGeometryField()}
+				{isEffectSolidParticleSystem && this._getGeometryField()}
 			</>
 		);
 	}
@@ -183,8 +152,8 @@ export class FXEditorParticleRendererProperties extends Component<IFXEditorParti
 
 		const system = nodeData.system;
 
-		// Получаем material только для VFXSolidParticleSystem
-		if (!(system instanceof VFXSolidParticleSystem) || !system.mesh || !system.mesh.material) {
+		// Получаем material только для VEffectSolidParticleSystem
+		if (!(system instanceof EffectSolidParticleSystem) || !system.mesh || !system.mesh.material) {
 			return null;
 		}
 
@@ -247,9 +216,9 @@ export class FXEditorParticleRendererProperties extends Component<IFXEditorParti
 
 		const system = nodeData.system;
 
-		// For VFXParticleSystem, use particleTexture
-		// For VFXSolidParticleSystem, textures are handled by the material inspector
-		if (system instanceof VFXParticleSystem) {
+		// For VEffectParticleSystem, use particleTexture
+		// For VEffectSolidParticleSystem, textures are handled by the material inspector
+		if (system instanceof EffectParticleSystem) {
 			return <EditorInspectorTextureField object={system} property="particleTexture" title="Texture" scene={editor.preview.scene} onChange={() => this.props.onChange()} />;
 		}
 
@@ -265,22 +234,13 @@ export class FXEditorParticleRendererProperties extends Component<IFXEditorParti
 
 		const system = nodeData.system;
 
-		// Для VFXParticleSystem, renderOrder хранится в renderingGroupId
-		if (system instanceof VFXParticleSystem) {
-			return (
-				<EditorInspectorNumberField
-					object={system}
-					property="renderingGroupId"
-					label="Render Order"
-					min={0}
-					step={1}
-					onChange={() => this.props.onChange()}
-				/>
-			);
+		// Для VEffectParticleSystem, renderOrder хранится в renderingGroupId
+		if (system instanceof EffectParticleSystem) {
+			return <EditorInspectorNumberField object={system} property="renderingGroupId" label="Render Order" min={0} step={1} onChange={() => this.props.onChange()} />;
 		}
 
-		// Для VFXSolidParticleSystem, renderOrder хранится в system.renderOrder и применяется к mesh.renderingGroupId
-		if (system instanceof VFXSolidParticleSystem) {
+		// Для VEffectSolidParticleSystem, renderOrder хранится в system.renderOrder и применяется к mesh.renderingGroupId
+		if (system instanceof EffectSolidParticleSystem) {
 			// Создаем proxy объект для доступа к renderOrder через mesh.renderingGroupId
 			const proxy = {
 				get renderingGroupId() {
@@ -294,16 +254,7 @@ export class FXEditorParticleRendererProperties extends Component<IFXEditorParti
 				},
 			};
 
-			return (
-				<EditorInspectorNumberField
-					object={proxy}
-					property="renderingGroupId"
-					label="Render Order"
-					min={0}
-					step={1}
-					onChange={() => this.props.onChange()}
-				/>
-			);
+			return <EditorInspectorNumberField object={proxy} property="renderingGroupId" label="Render Order" min={0} step={1} onChange={() => this.props.onChange()} />;
 		}
 
 		return null;
@@ -318,19 +269,19 @@ export class FXEditorParticleRendererProperties extends Component<IFXEditorParti
 
 		const system = nodeData.system;
 
-		// Для VFXParticleSystem, используем spriteCellWidth и spriteCellHeight
-		if (system instanceof VFXParticleSystem) {
+		// Для VEffectParticleSystem, используем spriteCellWidth и spriteCellHeight
+		if (system instanceof EffectParticleSystem) {
 			return (
 				<EditorInspectorSectionField title="UV Tile">
 					<EditorInspectorNumberField object={system} property="spriteCellWidth" label="U Tile Count" min={1} step={1} onChange={() => this.props.onChange()} />
 					<EditorInspectorNumberField object={system} property="spriteCellHeight" label="V Tile Count" min={1} step={1} onChange={() => this.props.onChange()} />
-					{/* TODO: Add blendTiles if available for VFXParticleSystem */}
+					{/* TODO: Add blendTiles if available for VEffectParticleSystem */}
 				</EditorInspectorSectionField>
 			);
 		}
 
-		// Для VFXSolidParticleSystem, используем uTileCount и vTileCount
-		if (system instanceof VFXSolidParticleSystem) {
+		// Для VEffectSolidParticleSystem, используем uTileCount и vTileCount
+		if (system instanceof EffectSolidParticleSystem) {
 			return (
 				<EditorInspectorSectionField title="UV Tile">
 					<EditorInspectorNumberField object={system} property="uTileCount" label="U Tile Count" min={1} step={1} onChange={() => this.props.onChange()} />
@@ -354,22 +305,13 @@ export class FXEditorParticleRendererProperties extends Component<IFXEditorParti
 
 		const system = nodeData.system;
 
-		// Для VFXParticleSystem, используем startSpriteCellID
-		if (system instanceof VFXParticleSystem) {
-			return (
-				<EditorInspectorNumberField
-					object={system}
-					property="startSpriteCellID"
-					label="Start Tile Index"
-					min={0}
-					step={1}
-					onChange={() => this.props.onChange()}
-				/>
-			);
+		// Для VEffectParticleSystem, используем startSpriteCellID
+		if (system instanceof EffectParticleSystem) {
+			return <EditorInspectorNumberField object={system} property="startSpriteCellID" label="Start Tile Index" min={0} step={1} onChange={() => this.props.onChange()} />;
 		}
 
-		// Для VFXSolidParticleSystem, используем startTileIndex (VFXValue)
-		if (system instanceof VFXSolidParticleSystem && system.startTileIndex !== undefined) {
+		// Для VEffectSolidParticleSystem, используем startTileIndex (VEffectValue)
+		if (system instanceof EffectSolidParticleSystem && system.startTileIndex !== undefined) {
 			const getValue = () => system.startTileIndex!;
 			const setValue = (value: any) => {
 				system.startTileIndex = value;
@@ -378,7 +320,7 @@ export class FXEditorParticleRendererProperties extends Component<IFXEditorParti
 
 			return (
 				<div className="px-2">
-					<VFXValueEditor value={getValue()} onChange={setValue} label="Start Tile Index" />
+					<EffectValueEditor value={getValue()} onChange={setValue} label="Start Tile Index" />
 				</div>
 			);
 		}
@@ -389,11 +331,11 @@ export class FXEditorParticleRendererProperties extends Component<IFXEditorParti
 	private _getGeometryField(): ReactNode {
 		const { nodeData, editor } = this.props;
 
-		if (nodeData.type !== "particle" || !nodeData.system || !(nodeData.system instanceof VFXSolidParticleSystem) || !editor.preview?.scene) {
+		if (nodeData.type !== "particle" || !nodeData.system || !(nodeData.system instanceof EffectSolidParticleSystem) || !editor.preview?.scene) {
 			return null;
 		}
 
-		const system = nodeData.system as VFXSolidParticleSystem;
+		const system = nodeData.system as EffectSolidParticleSystem;
 
 		// Store reference to source mesh in a custom property
 		// Since SPS disposes the source mesh after addShape, we need to store it separately
@@ -418,24 +360,16 @@ export class FXEditorParticleRendererProperties extends Component<IFXEditorParti
 
 					// Clear existing shapes and add new one
 					// Note: SPS doesn't have a clearShapes method, so we need to rebuild
-					const capacity = system.getCapacity();
+					const capacity = (system as any).getCapacity();
 					system.addShape(clonedMesh, capacity);
 					system.buildMesh();
-					system._setupMeshProperties();
+					(system as any)._setupMeshProperties();
 
 					// Don't dispose cloned mesh - SPS will manage it
 				}
 			},
 		};
 
-		return (
-			<EditorInspectorGeometryField
-				object={proxy}
-				property="particleMesh"
-				title="Geometry"
-				scene={editor.preview.scene}
-				onChange={() => this.props.onChange()}
-			/>
-		);
+		return <EditorInspectorGeometryField object={proxy} property="particleMesh" title="Geometry" scene={editor.preview.scene} onChange={() => this.props.onChange()} />;
 	}
 }

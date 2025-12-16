@@ -7,16 +7,14 @@ import { EditorInspectorSwitchField } from "../../../layout/inspector/fields/swi
 import { EditorInspectorListField } from "../../../layout/inspector/fields/list";
 import { EditorInspectorBlockField } from "../../../layout/inspector/fields/block";
 
-import type { VFXEffectNode } from "../VFX";
-import { VFXParticleSystem, VFXSolidParticleSystem } from "../VFX";
-import { SolidSphereParticleEmitter, SolidConeParticleEmitter } from "../VFX/types/emitters";
+import { type EffectNode, EffectSolidParticleSystem, EffectParticleSystem, SolidSphereParticleEmitter, SolidConeParticleEmitter } from "babylonjs-editor-tools";
 
-export interface IFXEditorEmitterShapePropertiesProps {
-	nodeData: VFXEffectNode;
+export interface IEffectEditorEmitterShapePropertiesProps {
+	nodeData: EffectNode;
 	onChange: () => void;
 }
 
-export class FXEditorEmitterShapeProperties extends Component<IFXEditorEmitterShapePropertiesProps> {
+export class EffectEditorEmitterShapeProperties extends Component<IEffectEditorEmitterShapePropertiesProps> {
 	public render(): ReactNode {
 		const { nodeData, onChange } = this.props;
 
@@ -26,20 +24,20 @@ export class FXEditorEmitterShapeProperties extends Component<IFXEditorEmitterSh
 
 		const system = nodeData.system;
 
-		// For VFXSolidParticleSystem
-		if (system instanceof VFXSolidParticleSystem) {
+		// For VEffectSolidParticleSystem
+		if (system instanceof EffectSolidParticleSystem) {
 			return this._renderSolidParticleSystemEmitter(system, onChange);
 		}
 
-		// For VFXParticleSystem
-		if (system instanceof VFXParticleSystem) {
+		// For VEffectParticleSystem
+		if (system instanceof EffectParticleSystem) {
 			return this._renderParticleSystemEmitter(system, onChange);
 		}
 
 		return null;
 	}
 
-	private _renderSolidParticleSystemEmitter(system: VFXSolidParticleSystem, onChange: () => void): ReactNode {
+	private _renderSolidParticleSystemEmitter(system: EffectSolidParticleSystem, onChange: () => void): ReactNode {
 		const emitter = system.particleEmitterType;
 		const emitterType = emitter ? emitter.constructor.name : "Point";
 
@@ -108,7 +106,7 @@ export class FXEditorEmitterShapeProperties extends Component<IFXEditorEmitterSh
 		);
 	}
 
-	private _renderParticleSystemEmitter(system: VFXParticleSystem, onChange: () => void): ReactNode {
+	private _renderParticleSystemEmitter(system: EffectParticleSystem, onChange: () => void): ReactNode {
 		const emitter = system.particleEmitterType;
 		if (!emitter) {
 			return <div className="px-2 text-muted-foreground">No emitter found.</div>;

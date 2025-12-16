@@ -5,13 +5,13 @@ import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarSeparator, Me
 import { openSingleFileDialog, saveSingleFileDialog } from "../../../tools/dialog";
 import { ToolbarComponent } from "../../../ui/toolbar";
 
-import FXEditorWindow from "./index";
+import IEffectEditor from "./index";
 
-export interface IFXEditorToolbarProps {
-	fxEditor: FXEditorWindow;
+export interface IEffectEditorToolbarProps {
+	editor: IEffectEditor;
 }
 
-export class FXEditorToolbar extends Component<IFXEditorToolbarProps> {
+export class EffectEditorToolbar extends Component<IEffectEditorToolbarProps> {
 	public render(): ReactNode {
 		return (
 			<ToolbarComponent>
@@ -45,9 +45,9 @@ export class FXEditorToolbar extends Component<IFXEditorToolbarProps> {
 
 				<div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
 					<div className="flex items-center gap-1 font-semibold text-lg select-none">
-						FX Editor
-						{this.props.fxEditor.state.filePath && (
-							<div className="text-sm font-thin">(...{this.props.fxEditor.state.filePath.substring(this.props.fxEditor.state.filePath.length - 30)})</div>
+						Effect Editor
+						{this.props.editor.state.filePath && (
+							<div className="text-sm font-thin">(...{this.props.editor.state.filePath.substring(this.props.editor.state.filePath.length - 30)})</div>
 						)}
 					</div>
 				</div>
@@ -57,50 +57,50 @@ export class FXEditorToolbar extends Component<IFXEditorToolbarProps> {
 
 	private _handleOpen(): void {
 		const file = openSingleFileDialog({
-			title: "Open FX File",
-			filters: [{ name: "FX Files", extensions: ["fx", "json"] }],
+			title: "Open Effect File",
+			filters: [{ name: "Effect Files", extensions: ["Effect", "json"] }],
 		});
 
 		if (!file) {
 			return;
 		}
 
-		this.props.fxEditor.loadFile(file);
+		this.props.editor.loadFile(file);
 	}
 
 	private _handleSave(): void {
-		if (!this.props.fxEditor.state.filePath) {
+		if (!this.props.editor.state.filePath) {
 			this._handleSaveAs();
 			return;
 		}
 
-		this.props.fxEditor.save();
+		this.props.editor.save();
 	}
 
 	private _handleSaveAs(): void {
 		const file = saveSingleFileDialog({
-			title: "Save FX File",
-			filters: [{ name: "FX Files", extensions: ["fx", "json"] }],
-			defaultPath: this.props.fxEditor.state.filePath || "untitled.fx",
+			title: "Save Effect File",
+			filters: [{ name: "Effect Files", extensions: ["Effect", "json"] }],
+			defaultPath: this.props.editor.state.filePath || "untitled.Effect",
 		});
 
 		if (!file) {
 			return;
 		}
 
-		this.props.fxEditor.saveAs(file);
+		this.props.editor.saveAs(file);
 	}
 
 	private _handleImport(): void {
 		const file = openSingleFileDialog({
-			title: "Import FX File",
-			filters: [{ name: "FX Files", extensions: ["fx", "json"] }],
+			title: "Import Effect File",
+			filters: [{ name: "Effect Files", extensions: ["Effect", "json"] }],
 		});
 
 		if (!file) {
 			return;
 		}
 
-		this.props.fxEditor.importFile(file);
+		this.props.editor.importFile(file);
 	}
 }

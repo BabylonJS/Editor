@@ -1,12 +1,11 @@
-import { Component, ReactNode, MouseEvent, useState, useRef, useEffect } from "react";
+import { ReactNode, MouseEvent, useState, useRef, useEffect } from "react";
 import { Color3, Color4 } from "babylonjs";
-import { Color } from "@jniac/color-xplr";
 import { ColorPicker } from "./color-picker";
 import { Button } from "../ui/shadcn/ui/button";
 import { AiOutlineClose } from "react-icons/ai";
 
 /**
- * Universal gradient key type (not tied to VFX)
+ * Universal gradient key type (not tied to Effect)
  */
 export interface IGradientKey {
 	time?: number;

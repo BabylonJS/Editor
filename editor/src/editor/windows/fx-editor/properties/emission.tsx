@@ -4,19 +4,16 @@ import { EditorInspectorNumberField } from "../../../layout/inspector/fields/num
 import { EditorInspectorSwitchField } from "../../../layout/inspector/fields/switch";
 import { EditorInspectorBlockField } from "../../../layout/inspector/fields/block";
 import { EditorInspectorSectionField } from "../../../layout/inspector/fields/section";
-import { EditorInspectorStringField } from "../../../layout/inspector/fields/string";
 
-import type { VFXEffectNode } from "../VFX";
-import { VFXParticleSystem, VFXSolidParticleSystem } from "../VFX";
-import { VFXValueEditor } from "./vfx-value-editor";
-import type { VFXEmissionBurst, VFXValue } from "../VFX/types";
+import { type EffectNode, EffectSolidParticleSystem, EffectParticleSystem, EmissionBurst, Value } from "babylonjs-editor-tools";
+import { EffectValueEditor } from "./value-editor";
 
-export interface IFXEditorEmissionPropertiesProps {
-	nodeData: VFXEffectNode;
+export interface IEffectEditorEmissionPropertiesProps {
+	nodeData: EffectNode;
 	onChange: () => void;
 }
 
-export function FXEditorEmissionProperties(props: IFXEditorEmissionPropertiesProps): ReactNode {
+export function EffectEditorEmissionProperties(props: IEffectEditorEmissionPropertiesProps): ReactNode {
 	const { nodeData, onChange } = props;
 
 	if (nodeData.type !== "particle" || !nodeData.system) {
@@ -42,9 +39,9 @@ export function FXEditorEmissionProperties(props: IFXEditorEmissionPropertiesPro
 
 			{/* Emit Over Time */}
 			<EditorInspectorSectionField title="Emit Over Time">
-				<VFXValueEditor
+				<EffectValueEditor
 					label="Emit Over Time"
-					value={(system as any).emissionOverTime as VFXValue | undefined}
+					value={(system as any).emissionOverTime as Value | undefined}
 					onChange={(val) => {
 						(system as any).emissionOverTime = val;
 						onChange();
@@ -54,9 +51,9 @@ export function FXEditorEmissionProperties(props: IFXEditorEmissionPropertiesPro
 
 			{/* Emit Over Distance */}
 			<EditorInspectorSectionField title="Emit Over Distance">
-				<VFXValueEditor
+				<EffectValueEditor
 					label="Emit Over Distance"
-					value={(system as any).emissionOverDistance as VFXValue | undefined}
+					value={(system as any).emissionOverDistance as Value | undefined}
 					onChange={(val) => {
 						(system as any).emissionOverDistance = val;
 						onChange();
@@ -65,7 +62,7 @@ export function FXEditorEmissionProperties(props: IFXEditorEmissionPropertiesPro
 			</EditorInspectorSectionField>
 
 			{/* Emit Power (min/max) - только для base (есть min/maxEmitPower) */}
-			{system instanceof VFXParticleSystem && (
+			{system instanceof EffectParticleSystem && (
 				<EditorInspectorBlockField>
 					<div className="px-2">Emit Power</div>
 					<div className="flex items-center">
@@ -81,9 +78,9 @@ export function FXEditorEmissionProperties(props: IFXEditorEmissionPropertiesPro
 	);
 }
 
-function renderBursts(system: any, onChange: () => void): ReactNode {
-	const bursts: (VFXEmissionBurst & { cycle?: number; interval?: number; probability?: number })[] = Array.isArray(system.emissionBursts)
-		? system.emissionBursts
+function renderBursts(system: EffectParticleSystem | EffectSolidParticleSystem, onChange: () => void): ReactNode {
+	const bursts: (EmissionBurst & { cycle?: number; interval?: number; probability?: number })[] = Array.isArray((system as any).emissionBursts)
+		? (system as any).emissionBursts
 		: [];
 
 	const addBurst = () => {
@@ -94,13 +91,13 @@ function renderBursts(system: any, onChange: () => void): ReactNode {
 			interval: 0,
 			probability: 1,
 		});
-		system.emissionBursts = bursts;
+		(system as any).emissionBursts = bursts;
 		onChange();
 	};
 
 	const removeBurst = (index: number) => {
 		bursts.splice(index, 1);
-		system.emissionBursts = bursts;
+		(system as any).emissionBursts = bursts;
 		onChange();
 	};
 
@@ -116,47 +113,25 @@ function renderBursts(system: any, onChange: () => void): ReactNode {
 							</button>
 						</div>
 						<div className="flex flex-col gap-2">
-							<VFXValueEditor
+							<EffectValueEditor
 								label="Time"
-								value={burst.time as VFXValue}
+								value={burst.time as Value}
 								onChange={(val) => {
-									burst.time = val;
+									burst.time = val as Value;
 									onChange();
 								}}
 							/>
-							<VFXValueEditor
+							<EffectValueEditor
 								label="Count"
-								value={burst.count as VFXValue}
+								value={burst.count as Value}
 								onChange={(val) => {
-									burst.count = val;
+									burst.count = val as Value;
 									onChange();
 								}}
 							/>
-							<EditorInspectorNumberField
-								object={burst as any}
-								property="cycle"
-								label="Cycle"
-								min={0}
-								step={1}
-								onChange={onChange}
-							/>
-							<EditorInspectorNumberField
-								object={burst as any}
-								property="interval"
-								label="Interval"
-								min={0}
-								step={0.01}
-								onChange={onChange}
-							/>
-							<EditorInspectorNumberField
-								object={burst as any}
-								property="probability"
-								label="Probability"
-								min={0}
-								max={1}
-								step={0.01}
-								onChange={onChange}
-							/>
+							<EditorInspectorNumberField object={burst as any} property="cycle" label="Cycle" min={0} step={1} onChange={onChange} />
+							<EditorInspectorNumberField object={burst as any} property="interval" label="Interval" min={0} step={0.01} onChange={onChange} />
+							<EditorInspectorNumberField object={burst as any} property="probability" label="Probability" min={0} max={1} step={0.01} onChange={onChange} />
 						</div>
 					</div>
 				))}

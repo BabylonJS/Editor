@@ -3,17 +3,17 @@ import { IJsonModel, Layout, Model, TabNode } from "flexlayout-react";
 
 import { waitNextAnimationFrame } from "../../../tools/tools";
 
-import { FXEditorPreview } from "./preview";
-import { FXEditorGraph } from "./graph";
-import { FXEditorAnimation } from "./animation";
-import { FXEditorObjectPropertiesTab } from "./properties/object-properties";
-import { FXEditorEmitterPropertiesTab } from "./properties/emitter-properties";
-import { FXEditorRendererPropertiesTab } from "./properties/renderer-properties";
-import { FXEditorEmissionPropertiesTab } from "./properties/emission-properties";
-import { FXEditorInitializationPropertiesTab } from "./properties/initialization-properties";
-import { FXEditorBehaviorsPropertiesTab } from "./properties/behaviors-properties";
-import { FXEditorResources } from "./resources";
-import { IFXEditor } from ".";
+import { EffectEditorPreview } from "./preview";
+import { EffectEditorGraph } from "./graph";
+import { EffectEditorAnimation } from "./animation";
+import { EffectEditorObjectPropertiesTab } from "./properties/object-properties";
+import { EffectEditorEmitterPropertiesTab } from "./properties/emitter-properties";
+import { EffectEditorRendererPropertiesTab } from "./properties/renderer-properties";
+import { EffectEditorEmissionPropertiesTab } from "./properties/emission-properties";
+import { EffectEditorInitializationPropertiesTab } from "./properties/initialization-properties";
+import { EffectEditorBehaviorsPropertiesTab } from "./properties/behaviors-properties";
+import { EffectEditorResources } from "./resources";
+import { IEffectEditor } from ".";
 
 const layoutModel: IJsonModel = {
 	global: {
@@ -148,23 +148,23 @@ const layoutModel: IJsonModel = {
 	},
 };
 
-export interface IFXEditorLayoutProps {
+export interface IEffectEditorLayoutProps {
 	filePath: string | null;
-	editor: IFXEditor;
+	editor: IEffectEditor;
 }
 
-export interface IFXEditorLayoutState {
+export interface IEffectEditorLayoutState {
 	selectedNodeId: string | number | null;
 	resources: any[];
 	propertiesKey: number;
 }
 
-export class FXEditorLayout extends Component<IFXEditorLayoutProps, IFXEditorLayoutState> {
+export class EffectEditorLayout extends Component<IEffectEditorLayoutProps, IEffectEditorLayoutState> {
 	private _model: Model = Model.fromJson(layoutModel as any);
 
 	private _components: Record<string, React.ReactNode> = {};
 
-	public constructor(props: IFXEditorLayoutProps) {
+	public constructor(props: IEffectEditorLayoutProps) {
 		super(props);
 
 		this.state = {
@@ -200,7 +200,7 @@ export class FXEditorLayout extends Component<IFXEditorLayoutProps, IFXEditorLay
 	private _updateComponents(): void {
 		this._components = {
 			preview: (
-				<FXEditorPreview
+				<EffectEditorPreview
 					ref={(r) => (this.props.editor.preview = r!)}
 					filePath={this.props.filePath}
 					editor={this.props.editor}
@@ -214,7 +214,7 @@ export class FXEditorLayout extends Component<IFXEditorLayoutProps, IFXEditorLay
 				/>
 			),
 			graph: (
-				<FXEditorGraph
+				<EffectEditorGraph
 					ref={(r) => (this.props.editor.graph = r!)}
 					filePath={this.props.filePath}
 					onNodeSelected={this._handleNodeSelected}
@@ -224,10 +224,10 @@ export class FXEditorLayout extends Component<IFXEditorLayoutProps, IFXEditorLay
 					// }}
 				/>
 			),
-			resources: <FXEditorResources ref={(r) => (this.props.editor.resources = r!)} resources={this.state.resources} />,
-			animation: <FXEditorAnimation ref={(r) => (this.props.editor.animation = r!)} filePath={this.props.filePath} editor={this.props.editor} />,
+			resources: <EffectEditorResources ref={(r) => (this.props.editor.resources = r!)} resources={this.state.resources} />,
+			animation: <EffectEditorAnimation ref={(r) => (this.props.editor.animation = r!)} filePath={this.props.filePath} editor={this.props.editor} />,
 			"properties-object": (
-				<FXEditorObjectPropertiesTab
+				<EffectEditorObjectPropertiesTab
 					key={`properties-object-${this.state.selectedNodeId || "none"}-${this.state.propertiesKey}`}
 					filePath={this.props.filePath}
 					selectedNodeId={this.state.selectedNodeId}
@@ -242,7 +242,7 @@ export class FXEditorLayout extends Component<IFXEditorLayoutProps, IFXEditorLay
 				/>
 			),
 			"properties-emitter": (
-				<FXEditorEmitterPropertiesTab
+				<EffectEditorEmitterPropertiesTab
 					key={`properties-emitter-${this.state.selectedNodeId || "none"}-${this.state.propertiesKey}`}
 					filePath={this.props.filePath}
 					selectedNodeId={this.state.selectedNodeId}
@@ -250,7 +250,7 @@ export class FXEditorLayout extends Component<IFXEditorLayoutProps, IFXEditorLay
 				/>
 			),
 			"properties-renderer": (
-				<FXEditorRendererPropertiesTab
+				<EffectEditorRendererPropertiesTab
 					key={`properties-renderer-${this.state.selectedNodeId || "none"}-${this.state.propertiesKey}`}
 					filePath={this.props.filePath}
 					selectedNodeId={this.state.selectedNodeId}
@@ -259,7 +259,7 @@ export class FXEditorLayout extends Component<IFXEditorLayoutProps, IFXEditorLay
 				/>
 			),
 			"properties-emission": (
-				<FXEditorEmissionPropertiesTab
+				<EffectEditorEmissionPropertiesTab
 					key={`properties-emission-${this.state.selectedNodeId || "none"}-${this.state.propertiesKey}`}
 					filePath={this.props.filePath}
 					selectedNodeId={this.state.selectedNodeId}
@@ -267,7 +267,7 @@ export class FXEditorLayout extends Component<IFXEditorLayoutProps, IFXEditorLay
 				/>
 			),
 			"properties-initialization": (
-				<FXEditorInitializationPropertiesTab
+				<EffectEditorInitializationPropertiesTab
 					key={`properties-initialization-${this.state.selectedNodeId || "none"}-${this.state.propertiesKey}`}
 					filePath={this.props.filePath}
 					selectedNodeId={this.state.selectedNodeId}
@@ -275,7 +275,7 @@ export class FXEditorLayout extends Component<IFXEditorLayoutProps, IFXEditorLay
 				/>
 			),
 			"properties-behaviors": (
-				<FXEditorBehaviorsPropertiesTab
+				<EffectEditorBehaviorsPropertiesTab
 					key={`properties-behaviors-${this.state.selectedNodeId || "none"}-${this.state.propertiesKey}`}
 					filePath={this.props.filePath}
 					selectedNodeId={this.state.selectedNodeId}
