@@ -17,8 +17,8 @@ import type {
 	ISystem,
 	ParticleWithSystem,
 	IShape,
-	EmitterConfig,
-	EmissionBurst,
+	IEmitterConfig,
+	IEmissionBurst,
 } from "../types";
 import { ValueUtils } from "../utils/valueParser";
 import { CapacityCalculator } from "../utils/capacityCalculator";
@@ -52,7 +52,7 @@ export class EffectParticleSystem extends ParticleSystem implements ISystem {
 	constructor(
 		name: string,
 		scene: Scene,
-		config: EmitterConfig,
+		config: IEmitterConfig,
 		options?: {
 			texture?: Texture;
 			blendMode?: number;
@@ -270,7 +270,7 @@ export class EffectParticleSystem extends ParticleSystem implements ISystem {
 	 * This method applies all configuration from ParticleEmitterConfig
 	 */
 	private _configureFromConfig(
-		config: EmitterConfig,
+		config: IEmitterConfig,
 		options?: {
 			texture?: Texture;
 			blendMode?: number;
@@ -392,7 +392,7 @@ export class EffectParticleSystem extends ParticleSystem implements ISystem {
 	/**
 	 * Apply emission bursts via emit rate gradients
 	 */
-	private _applyEmissionBursts(bursts: EmissionBurst[], baseEmitRate: number, duration: number): void {
+	private _applyEmissionBursts(bursts: IEmissionBurst[], baseEmitRate: number, duration: number): void {
 		for (const burst of bursts) {
 			if (burst.time === undefined || burst.count === undefined) {
 				continue;

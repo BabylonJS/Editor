@@ -1,5 +1,5 @@
 import { Scene, TransformNode } from "babylonjs";
-import type { IQuarksJSON, LoaderOptions, Data } from "../types";
+import type { IQuarksJSON, ILoaderOptions, IData } from "../types";
 import { Logger } from "../loggers/logger";
 import { MaterialFactory, GeometryFactory, SystemFactory } from "../factories";
 import { DataConverter } from "./dataConverter";
@@ -12,7 +12,7 @@ export interface ParseResult {
 	/** Created particle systems */
 	systems: (EffectParticleSystem | EffectSolidParticleSystem)[];
 	/** Converted  data */
-	Data: Data;
+	Data: IData;
 	/** Map of group UUIDs to TransformNodes */
 	groupNodesMap: Map<string, TransformNode>;
 }
@@ -26,11 +26,11 @@ export class Parser {
 	private _materialFactory: MaterialFactory;
 	private _geometryFactory: GeometryFactory;
 	private _systemFactory: SystemFactory;
-	private _Data: Data;
+	private _Data: IData;
 	private _groupNodesMap: Map<string, TransformNode>;
-	private _options: LoaderOptions;
+	private _options: ILoaderOptions;
 
-	constructor(scene: Scene, rootUrl: string, jsonData: IQuarksJSON, options?: LoaderOptions) {
+	constructor(scene: Scene, rootUrl: string, jsonData: IQuarksJSON, options?: ILoaderOptions) {
 		const opts = options || {};
 		this._options = opts;
 		this._groupNodesMap = new Map<string, TransformNode>();
@@ -80,7 +80,7 @@ export class Parser {
 	/**
 	 * Validate  data structure
 	 */
-	private _validateJSONStructure(Data: Data): void {
+	private _validateJSONStructure(Data: IData): void {
 		this._logger.log("Validating  data structure...");
 
 		if (!Data.root) {

@@ -1,5 +1,5 @@
 import type { Value } from "./values";
-import type { GradientKey } from "./gradients";
+import type { IGradientKey } from "./gradients";
 import { Particle, ParticleSystem, SolidParticle, SolidParticleSystem } from "babylonjs";
 
 /**
@@ -27,19 +27,19 @@ export interface ColorOverLifeBehavior {
 	type: "ColorOverLife";
 	color?: {
 		color?: {
-			keys: GradientKey[];
+			keys: IGradientKey[];
 		};
 		alpha?: {
-			keys: GradientKey[];
+			keys: IGradientKey[];
 		};
-		keys?: GradientKey[];
+		keys?: IGradientKey[];
 	};
 }
 
 export interface SizeOverLifeBehavior {
 	type: "SizeOverLife";
 	size?: {
-		keys?: GradientKey[];
+		keys?: IGradientKey[];
 		functions?: Array<{
 			start: number;
 			function: {
@@ -76,7 +76,7 @@ export interface SpeedOverLifeBehavior {
 	type: "SpeedOverLife";
 	speed?:
 		| {
-				keys?: GradientKey[];
+				keys?: IGradientKey[];
 				functions?: Array<{
 					start: number;
 					function: {
@@ -92,7 +92,7 @@ export interface FrameOverLifeBehavior {
 	type: "FrameOverLife";
 	frame?:
 		| {
-				keys?: GradientKey[];
+				keys?: IGradientKey[];
 		  }
 		| Value;
 }
@@ -100,7 +100,7 @@ export interface FrameOverLifeBehavior {
 export interface LimitSpeedOverLifeBehavior {
 	type: "LimitSpeedOverLife";
 	maxSpeed?: Value;
-	speed?: Value | { keys?: GradientKey[] };
+	speed?: Value | { keys?: IGradientKey[] };
 	dampen?: Value;
 }
 
@@ -136,7 +136,7 @@ export interface OrbitOverLifeBehavior {
 		y?: number;
 		z?: number;
 	};
-	radius?: Value | { keys?: GradientKey[] };
+	radius?: Value | { keys?: IGradientKey[] };
 	speed?: Value;
 }
 

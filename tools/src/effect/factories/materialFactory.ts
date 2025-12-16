@@ -1,8 +1,8 @@
 import { Nullable, Texture as BabylonTexture, PBRMaterial, Material as BabylonMaterial, Constants, Tools, Scene, Color3 } from "babylonjs";
 import type { IMaterialFactory } from "../types/factories";
 import { Logger } from "../loggers/logger";
-import type { LoaderOptions } from "../types/loader";
-import type { Data } from "../types/hierarchy";
+import type { ILoaderOptions } from "../types/loader";
+import type { IData } from "../types/hierarchy";
 import type { IMaterial, ITexture, IImage } from "../types/resources";
 
 /**
@@ -11,10 +11,10 @@ import type { IMaterial, ITexture, IImage } from "../types/resources";
 export class MaterialFactory implements IMaterialFactory {
 	private _logger: Logger;
 	private _scene: Scene;
-	private _data: Data;
+	private _data: IData;
 	private _rootUrl: string;
 
-	constructor(scene: Scene, data: Data, rootUrl: string, options: LoaderOptions) {
+	constructor(scene: Scene, data: IData, rootUrl: string, options: ILoaderOptions) {
 		this._scene = scene;
 		this._data = data;
 		this._rootUrl = rootUrl;

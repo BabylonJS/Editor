@@ -1,11 +1,11 @@
 import { Vector3, Quaternion } from "babylonjs";
-import type { EmitterConfig } from "./emitter";
+import type { IEmitterConfig } from "./emitter";
 import type { IMaterial, ITexture, IImage, IGeometry } from "./resources";
 
 /**
  *  transform (converted from Quarks, left-handed coordinate system)
  */
-export interface Transform {
+export interface ITransform {
 	position: Vector3;
 	rotation: Quaternion;
 	scale: Vector3;
@@ -14,21 +14,21 @@ export interface Transform {
 /**
  *  group (converted from Quarks)
  */
-export interface Group {
+export interface IGroup {
 	uuid: string;
 	name: string;
-	transform: Transform;
-	children: (Group | Emitter)[];
+	transform: ITransform;
+	children: (IGroup | IEmitter)[];
 }
 
 /**
  *  emitter (converted from Quarks)
  */
-export interface Emitter {
+export interface IEmitter {
 	uuid: string;
 	name: string;
-	transform: Transform;
-	config: EmitterConfig;
+	transform: ITransform;
+	config: IEmitterConfig;
 	materialId?: string;
 	parentUuid?: string;
 	systemType: "solid" | "base"; // Determined from renderMode: 2 = solid, otherwise base
@@ -39,10 +39,10 @@ export interface Emitter {
  *  data (converted from Quarks)
  * Contains the converted  structure with groups, emitters, and resources
  */
-export interface Data {
-	root: Group | Emitter | null;
-	groups: Map<string, Group>;
-	emitters: Map<string, Emitter>;
+export interface IData {
+	root: IGroup | IEmitter | null;
+	groups: Map<string, IGroup>;
+	emitters: Map<string, IEmitter>;
 	// Resources (converted from Quarks, ready for Babylon.js)
 	materials: IMaterial[];
 	textures: ITexture[];

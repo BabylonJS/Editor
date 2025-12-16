@@ -1,5 +1,5 @@
 import { Vector3, Matrix, Quaternion, Color3, Texture as BabylonTexture, ParticleSystem } from "babylonjs";
-import type { LoaderOptions } from "../types/loader";
+import type { ILoaderOptions } from "../types/loader";
 import type {
 	IQuarksJSON,
 	IQuarksMaterial,
@@ -27,9 +27,9 @@ import type {
 	IQuarksRotationBySpeedBehavior,
 	IQuarksOrbitOverLifeBehavior,
 } from "../types/quarksTypes";
-import type { Transform, Group, Emitter, Data } from "../types/hierarchy";
+import type { ITransform, IGroup, IEmitter, IData } from "../types/hierarchy";
 import type { IMaterial, ITexture, IImage, IGeometry, IGeometryData } from "../types/resources";
-import type { EmitterConfig } from "../types/emitter";
+import type { IEmitterConfig } from "../types/emitter";
 import type {
 	Behavior,
 	ColorOverLifeBehavior,
@@ -43,7 +43,7 @@ import type {
 import type { Value } from "../types/values";
 import type { Color } from "../types/colors";
 import type { Rotation } from "../types/rotations";
-import type { GradientKey } from "../types/gradients";
+import type { IGradientKey } from "../types/gradients";
 import type { IShape } from "../types/shapes";
 import { Logger } from "../loggers/logger";
 
@@ -54,7 +54,7 @@ import { Logger } from "../loggers/logger";
 export class DataConverter {
 	private _logger: Logger;
 
-	constructor(options?: LoaderOptions) {
+	constructor(options?: ILoaderOptions) {
 		this._logger = new Logger("[DataConverter]", options);
 	}
 
@@ -62,13 +62,13 @@ export class DataConverter {
 	 * Convert IQuarks/Three.js  JSON to Babylon.js  format
 	 * Handles errors gracefully and returns partial data if conversion fails
 	 */
-	public convert(IQuarksData: IQuarksJSON): Data {
+	public convert(IQuarksData: IQuarksJSON): IData {
 		this._logger.log("=== Converting IQuarks  to Babylon.js  format ===");
 
-		const groups = new Map<string, Group>();
-		const emitters = new Map<string, Emitter>();
+		const groups = new Map<string, IGroup>();
+		const emitters = new Map<string, IEmitter>();
 
-		let root: Group | Emitter | null = null;
+		let root: IGroup | IEmitter | null = null;
 
 		try {
 			if (IQuarksData.object) {
@@ -126,7 +126,7 @@ export class DataConverter {
 	/**
 	 * Convert a IQuarks/Three.js object to Babylon.js  format
 	 */
-	private _convertObject(obj: IQuarksObject, parentUuid: string | null, groups: Map<string, Group>, emitters: Map<string, Emitter>, depth: number): Group | Emitter | null {
+	private _convertObject(obj: IQuarksObject, parentUuid: string | null, groups: Map<string, IGroup>, emitters: Map<string, IEmitter>, depth: number): IGroup | IEmitter | null {
 		const indent = "  ".repeat(depth);
 
 		if (!obj || typeof obj !== "object") {
@@ -139,7 +139,7 @@ export class DataConverter {
 		const transform = this._convertTransform(obj.matrix, obj.position, obj.rotation, obj.scale);
 
 		if (obj.type === "Group") {
-			const group: Group = {
+			const group: IGroup = {
 				uuid: obj.uuid || `group_${groups.size}`,
 				name: obj.name || "Group",
 				transform,
@@ -153,10 +153,10 @@ export class DataConverter {
 					if (convertedChild) {
 						if ("config" in convertedChild) {
 							// It's an emitter
-							group.children.push(convertedChild as Emitter);
+							group.children.push(convertedChild as IEmitter);
 						} else {
 							// It's a group
-							group.children.push(convertedChild as Group);
+							group.children.push(convertedChild as IGroup);
 						}
 					}
 				}
@@ -169,7 +169,7 @@ export class DataConverter {
 			// Convert emitter config from IQuarks to  format
 			const Config = this._convertEmitterConfig(obj.ps);
 
-			const emitter: Emitter = {
+			const emitter: IEmitter = {
 				uuid: obj.uuid || `emitter_${emitters.size}`,
 				name: obj.name || "ParticleEmitter",
 				transform,
@@ -192,7 +192,7 @@ export class DataConverter {
 	 * Convert transform from IQuarks/Three.js (right-handed) to Babylon.js  (left-handed)
 	 * This is the ONLY place where handedness conversion happens
 	 */
-	private _convertTransform(matrixArray?: number[], positionArray?: number[], rotationArray?: number[], scaleArray?: number[]): Transform {
+	private _convertTransform(matrixArray?: number[], positionArray?: number[], rotationArray?: number[], scaleArray?: number[]): ITransform {
 		const position = Vector3.Zero();
 		const rotation = Quaternion.Identity();
 		const scale = Vector3.One();
@@ -246,11 +246,11 @@ export class DataConverter {
 	/**
 	 * Convert emitter config from IQuarks to  format
 	 */
-	private _convertEmitterConfig(IQuarksConfig: IQuarksParticleEmitterConfig): EmitterConfig {
+	private _convertEmitterConfig(IQuarksConfig: IQuarksParticleEmitterConfig): IEmitterConfig {
 		// Determine system type based on renderMode: 2 = solid, otherwise base
 		const systemType: "solid" | "base" = IQuarksConfig.renderMode === 2 ? "solid" : "base";
 
-		const Config: EmitterConfig = {
+		const Config: IEmitterConfig = {
 			version: IQuarksConfig.version,
 			autoDestroy: IQuarksConfig.autoDestroy,
 			looping: IQuarksConfig.looping,
@@ -445,7 +445,7 @@ export class DataConverter {
 	/**
 	 * Convert IQuarks gradient key to  gradient key
 	 */
-	private _convertGradientKey(IQuarksKey: IQuarksGradientKey): GradientKey {
+	private _convertGradientKey(IQuarksKey: IQuarksGradientKey): IGradientKey {
 		return {
 			time: IQuarksKey.time,
 			value: IQuarksKey.value,
@@ -568,7 +568,7 @@ export class DataConverter {
 
 			case "FrameOverLife": {
 				const behavior = IQuarksBehavior as IQuarksFrameOverLifeBehavior;
-				const Behavior: { type: string; frame?: Value | { keys?: GradientKey[] } } = { type: "FrameOverLife" };
+				const Behavior: { type: string; frame?: Value | { keys?: IGradientKey[] } } = { type: "FrameOverLife" };
 				if (behavior.frame) {
 					if (typeof behavior.frame === "object" && behavior.frame !== null && "keys" in behavior.frame) {
 						Behavior.frame = {

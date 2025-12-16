@@ -1,7 +1,7 @@
 /**
  * Options for parsing Quarks/Three.js particle JSON
  */
-export interface LoaderOptions {
+export interface ILoaderOptions {
 	/**
 	 * Enable verbose logging for debugging
 	 */

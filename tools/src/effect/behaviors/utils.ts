@@ -1,4 +1,4 @@
-import type { GradientKey } from "../types/gradients";
+import type { IGradientKey } from "../types/gradients";
 
 /**
  * Extract RGB color from gradient key value
@@ -77,7 +77,7 @@ export function extractNumberFromValue(value: number | number[] | { r: number; g
  * Interpolate between two gradient keys
  */
 export function interpolateGradientKeys(
-	keys: GradientKey[],
+	keys: IGradientKey[],
 	ratio: number,
 	extractValue: (value: number | number[] | { r: number; g: number; b: number; a?: number } | undefined) => number
 ): number {
@@ -112,7 +112,7 @@ export function interpolateGradientKeys(
 /**
  * Interpolate color between two gradient keys
  */
-export function interpolateColorKeys(keys: GradientKey[], ratio: number): { r: number; g: number; b: number; a: number } {
+export function interpolateColorKeys(keys: IGradientKey[], ratio: number): { r: number; g: number; b: number; a: number } {
 	if (!keys || keys.length === 0) {
 		return { r: 1, g: 1, b: 1, a: 1 };
 	}
