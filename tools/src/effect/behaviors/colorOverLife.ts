@@ -1,5 +1,5 @@
 import { Color4 } from "babylonjs";
-import type { IIColorOverLifeBehavior } from "../types/behaviors";
+import type { IColorOverLifeBehavior } from "../types/behaviors";
 import { extractColorFromValue, extractAlphaFromValue } from "./utils";
 import type { EffectSolidParticleSystem } from "../systems/effectSolidParticleSystem";
 import type { EffectParticleSystem } from "../systems/effectParticleSystem";

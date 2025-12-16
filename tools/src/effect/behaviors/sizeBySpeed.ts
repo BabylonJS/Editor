@@ -1,5 +1,5 @@
 import { Particle, SolidParticle, Vector3 } from "babylonjs";
-import type { IISizeBySpeedBehavior } from "../types/behaviors";
+import type { ISizeBySpeedBehavior } from "../types/behaviors";
 import { extractNumberFromValue, interpolateGradientKeys } from "./utils";
 import { ValueUtils } from "../utils/valueParser";
 

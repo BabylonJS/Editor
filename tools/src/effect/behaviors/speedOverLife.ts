@@ -1,4 +1,4 @@
-import type { IISpeedOverLifeBehavior } from "../types/behaviors";
+import type { ISpeedOverLifeBehavior } from "../types/behaviors";
 import { extractNumberFromValue } from "./utils";
 import { ValueUtils } from "../utils/valueParser";
 import type { EffectSolidParticleSystem } from "../systems/effectSolidParticleSystem";

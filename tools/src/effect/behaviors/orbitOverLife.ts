@@ -1,5 +1,5 @@
 import { Particle, SolidParticle } from "babylonjs";
-import type { IIOrbitOverLifeBehavior } from "../types/behaviors";
+import type { IOrbitOverLifeBehavior } from "../types/behaviors";
 import { extractNumberFromValue, interpolateGradientKeys } from "./utils";
 import { ValueUtils } from "../utils/valueParser";
 import type { Value } from "../types/values";
