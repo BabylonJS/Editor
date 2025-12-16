@@ -1,6 +1,4 @@
-import { Color4, ParticleSystem, Scene, Vector3, Matrix, Texture, AbstractMesh, TransformNode } from "babylonjs";
-import type { PerParticleBehaviorFunction } from "../types/behaviors";
-import type { ISystem, ParticleWithSystem } from "../types/system";
+import { Color4, ParticleSystem, Scene, Vector3, Matrix, Texture, AbstractMesh, TransformNode, Particle } from "babylonjs";
 import type {
 	Behavior,
 	ColorOverLifeBehavior,
@@ -15,10 +13,13 @@ import type {
 	SizeBySpeedBehavior,
 	RotationBySpeedBehavior,
 	OrbitOverLifeBehavior,
-} from "../types/behaviors";
-import type { Particle } from "babylonjs";
-import type { IShape } from "../types/shapes";
-import type { EmitterConfig, EmissionBurst } from "../types/emitter";
+	PerParticleBehaviorFunction,
+	ISystem,
+	ParticleWithSystem,
+	IShape,
+	EmitterConfig,
+	EmissionBurst,
+} from "../types";
 import { ValueUtils } from "../utils/valueParser";
 import { CapacityCalculator } from "../utils/capacityCalculator";
 import {

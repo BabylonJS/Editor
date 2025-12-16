@@ -6,18 +6,18 @@
 /**
  * Quarks/Three.js value types
  */
-export interface QuarksConstantValue {
+export interface IQuarksConstantValue {
 	type: "ConstantValue";
 	value: number;
 }
 
-export interface QuarksIntervalValue {
+export interface IQuarksIntervalValue {
 	type: "IntervalValue";
 	a: number; // min
 	b: number; // max
 }
 
-export interface QuarksPiecewiseBezier {
+export interface IQuarksPiecewiseBezier {
 	type: "PiecewiseBezier";
 	functions: Array<{
 		function: {
@@ -30,12 +30,12 @@ export interface QuarksPiecewiseBezier {
 	}>;
 }
 
-export type QuarksValue = QuarksConstantValue | QuarksIntervalValue | QuarksPiecewiseBezier | number;
+export type IQuarksValue = IQuarksConstantValue | IQuarksIntervalValue | IQuarksPiecewiseBezier | number;
 
 /**
  * Quarks/Three.js color types
  */
-export interface QuarksConstantColor {
+export interface IQuarksConstantColor {
 	type: "ConstantColor";
 	color?: {
 		r: number;
@@ -46,24 +46,24 @@ export interface QuarksConstantColor {
 	value?: [number, number, number, number]; // RGBA array alternative
 }
 
-export type QuarksColor = QuarksConstantColor | [number, number, number, number] | string;
+export type IQuarksColor = IQuarksConstantColor | [number, number, number, number] | string;
 
 /**
  * Quarks/Three.js rotation types
  */
-export interface QuarksEulerRotation {
+export interface IQuarksEulerRotation {
 	type: "Euler";
-	angleX?: QuarksValue;
-	angleY?: QuarksValue;
-	angleZ?: QuarksValue;
+	angleX?: IQuarksValue;
+	angleY?: IQuarksValue;
+	angleZ?: IQuarksValue;
 }
 
-export type QuarksRotation = QuarksEulerRotation | QuarksValue;
+export type IQuarksRotation = IQuarksEulerRotation | IQuarksValue;
 
 /**
  * Quarks/Three.js gradient key
  */
-export interface QuarksGradientKey {
+export interface IQuarksGradientKey {
 	time?: number;
 	value: number | [number, number, number, number] | { r: number; g: number; b: number; a?: number };
 	pos?: number;
@@ -72,7 +72,7 @@ export interface QuarksGradientKey {
 /**
  * Quarks/Three.js shape configuration
  */
-export interface QuarksShape {
+export interface IQuarksShape {
 	type: string;
 	radius?: number;
 	arc?: number;
@@ -80,7 +80,7 @@ export interface QuarksShape {
 	angle?: number;
 	mode?: number;
 	spread?: number;
-	speed?: QuarksValue;
+	speed?: IQuarksValue;
 	size?: number[];
 	height?: number;
 }
@@ -88,31 +88,31 @@ export interface QuarksShape {
 /**
  * Quarks/Three.js emission burst
  */
-export interface QuarksEmissionBurst {
-	time: QuarksValue;
-	count: QuarksValue;
+export interface IQuarksEmissionBurst {
+	time: IQuarksValue;
+	count: IQuarksValue;
 }
 
 /**
  * Quarks/Three.js behavior types
  */
-export interface QuarksColorOverLifeBehavior {
+export interface IQuarksColorOverLifeBehavior {
 	type: "ColorOverLife";
 	color?: {
 		color?: {
-			keys: QuarksGradientKey[];
+			keys: IQuarksGradientKey[];
 		};
 		alpha?: {
-			keys: QuarksGradientKey[];
+			keys: IQuarksGradientKey[];
 		};
-		keys?: QuarksGradientKey[];
+		keys?: IQuarksGradientKey[];
 	};
 }
 
-export interface QuarksSizeOverLifeBehavior {
+export interface IQuarksSizeOverLifeBehavior {
 	type: "SizeOverLife";
 	size?: {
-		keys?: QuarksGradientKey[];
+		keys?: IQuarksGradientKey[];
 		functions?: Array<{
 			start: number;
 			function: {
@@ -123,33 +123,33 @@ export interface QuarksSizeOverLifeBehavior {
 	};
 }
 
-export interface QuarksRotationOverLifeBehavior {
+export interface IQuarksRotationOverLifeBehavior {
 	type: "RotationOverLife" | "Rotation3DOverLife";
-	angularVelocity?: QuarksValue;
+	angularVelocity?: IQuarksValue;
 }
 
-export interface QuarksForceOverLifeBehavior {
+export interface IQuarksForceOverLifeBehavior {
 	type: "ForceOverLife" | "ApplyForce";
 	force?: {
-		x?: QuarksValue;
-		y?: QuarksValue;
-		z?: QuarksValue;
+		x?: IQuarksValue;
+		y?: IQuarksValue;
+		z?: IQuarksValue;
 	};
-	x?: QuarksValue;
-	y?: QuarksValue;
-	z?: QuarksValue;
+	x?: IQuarksValue;
+	y?: IQuarksValue;
+	z?: IQuarksValue;
 }
 
-export interface QuarksGravityForceBehavior {
+export interface IQuarksGravityForceBehavior {
 	type: "GravityForce";
-	gravity?: QuarksValue;
+	gravity?: IQuarksValue;
 }
 
-export interface QuarksSpeedOverLifeBehavior {
+export interface IQuarksSpeedOverLifeBehavior {
 	type: "SpeedOverLife";
 	speed?:
 		| {
-				keys?: QuarksGradientKey[];
+				keys?: IQuarksGradientKey[];
 				functions?: Array<{
 					start: number;
 					function: {
@@ -158,94 +158,94 @@ export interface QuarksSpeedOverLifeBehavior {
 					};
 				}>;
 		  }
-		| QuarksValue;
+		| IQuarksValue;
 }
 
-export interface QuarksFrameOverLifeBehavior {
+export interface IQuarksFrameOverLifeBehavior {
 	type: "FrameOverLife";
 	frame?:
 		| {
-				keys?: QuarksGradientKey[];
+				keys?: IQuarksGradientKey[];
 		  }
-		| QuarksValue;
+		| IQuarksValue;
 }
 
-export interface QuarksLimitSpeedOverLifeBehavior {
+export interface IQuarksLimitSpeedOverLifeBehavior {
 	type: "LimitSpeedOverLife";
-	maxSpeed?: QuarksValue;
-	speed?: QuarksValue | { keys?: QuarksGradientKey[] };
-	dampen?: QuarksValue;
+	maxSpeed?: IQuarksValue;
+	speed?: IQuarksValue | { keys?: IQuarksGradientKey[] };
+	dampen?: IQuarksValue;
 }
 
-export interface QuarksColorBySpeedBehavior {
+export interface IQuarksColorBySpeedBehavior {
 	type: "ColorBySpeed";
 	color?: {
-		keys: QuarksGradientKey[];
+		keys: IQuarksGradientKey[];
 	};
-	minSpeed?: QuarksValue;
-	maxSpeed?: QuarksValue;
+	minSpeed?: IQuarksValue;
+	maxSpeed?: IQuarksValue;
 }
 
-export interface QuarksSizeBySpeedBehavior {
+export interface IQuarksSizeBySpeedBehavior {
 	type: "SizeBySpeed";
 	size?: {
-		keys: QuarksGradientKey[];
+		keys: IQuarksGradientKey[];
 	};
-	minSpeed?: QuarksValue;
-	maxSpeed?: QuarksValue;
+	minSpeed?: IQuarksValue;
+	maxSpeed?: IQuarksValue;
 }
 
-export interface QuarksRotationBySpeedBehavior {
+export interface IQuarksRotationBySpeedBehavior {
 	type: "RotationBySpeed";
-	angularVelocity?: QuarksValue;
-	minSpeed?: QuarksValue;
-	maxSpeed?: QuarksValue;
+	angularVelocity?: IQuarksValue;
+	minSpeed?: IQuarksValue;
+	maxSpeed?: IQuarksValue;
 }
 
-export interface QuarksOrbitOverLifeBehavior {
+export interface IQuarksOrbitOverLifeBehavior {
 	type: "OrbitOverLife";
 	center?: {
 		x?: number;
 		y?: number;
 		z?: number;
 	};
-	radius?: QuarksValue;
-	speed?: QuarksValue;
+	radius?: IQuarksValue;
+	speed?: IQuarksValue;
 }
 
-export type QuarksBehavior =
-	| QuarksColorOverLifeBehavior
-	| QuarksSizeOverLifeBehavior
-	| QuarksRotationOverLifeBehavior
-	| QuarksForceOverLifeBehavior
-	| QuarksGravityForceBehavior
-	| QuarksSpeedOverLifeBehavior
-	| QuarksFrameOverLifeBehavior
-	| QuarksLimitSpeedOverLifeBehavior
-	| QuarksColorBySpeedBehavior
-	| QuarksSizeBySpeedBehavior
-	| QuarksRotationBySpeedBehavior
-	| QuarksOrbitOverLifeBehavior
+export type IQuarksBehavior =
+	| IQuarksColorOverLifeBehavior
+	| IQuarksSizeOverLifeBehavior
+	| IQuarksRotationOverLifeBehavior
+	| IQuarksForceOverLifeBehavior
+	| IQuarksGravityForceBehavior
+	| IQuarksSpeedOverLifeBehavior
+	| IQuarksFrameOverLifeBehavior
+	| IQuarksLimitSpeedOverLifeBehavior
+	| IQuarksColorBySpeedBehavior
+	| IQuarksSizeBySpeedBehavior
+	| IQuarksRotationBySpeedBehavior
+	| IQuarksOrbitOverLifeBehavior
 	| { type: string; [key: string]: unknown }; // Fallback for unknown behaviors
 
 /**
  * Quarks/Three.js particle emitter configuration
  */
-export interface QuarksParticleEmitterConfig {
+export interface IQuarksParticleEmitterConfig {
 	version?: string;
 	autoDestroy?: boolean;
 	looping?: boolean;
 	prewarm?: boolean;
 	duration?: number;
-	shape?: QuarksShape;
-	startLife?: QuarksValue;
-	startSpeed?: QuarksValue;
-	startRotation?: QuarksRotation;
-	startSize?: QuarksValue;
-	startColor?: QuarksColor;
-	emissionOverTime?: QuarksValue;
-	emissionOverDistance?: QuarksValue;
-	emissionBursts?: QuarksEmissionBurst[];
+	shape?: IQuarksShape;
+	startLife?: IQuarksValue;
+	startSpeed?: IQuarksValue;
+	startRotation?: IQuarksRotation;
+	startSize?: IQuarksValue;
+	startColor?: IQuarksColor;
+	emissionOverTime?: IQuarksValue;
+	emissionOverDistance?: IQuarksValue;
+	emissionBursts?: IQuarksEmissionBurst[];
 	onlyUsedByOther?: boolean;
 	instancingGeometry?: string;
 	renderOrder?: number;
@@ -253,21 +253,21 @@ export interface QuarksParticleEmitterConfig {
 	rendererEmitterSettings?: Record<string, unknown>;
 	material?: string;
 	layers?: number;
-	startTileIndex?: QuarksValue;
+	startTileIndex?: IQuarksValue;
 	uTileCount?: number;
 	vTileCount?: number;
 	blendTiles?: boolean;
 	softParticles?: boolean;
 	softFarFade?: number;
 	softNearFade?: number;
-	behaviors?: QuarksBehavior[];
+	behaviors?: IQuarksBehavior[];
 	worldSpace?: boolean;
 }
 
 /**
  * Quarks/Three.js object types
  */
-export interface QuarksGroup {
+export interface IQuarksGroup {
 	uuid: string;
 	type: "Group";
 	name: string;
@@ -275,10 +275,10 @@ export interface QuarksGroup {
 	position?: number[];
 	rotation?: number[];
 	scale?: number[];
-	children?: QuarksObject[];
+	children?: IQuarksObject[];
 }
 
-export interface QuarksParticleEmitter {
+export interface IQuarksParticleEmitter {
 	uuid: string;
 	type: "ParticleEmitter";
 	name: string;
@@ -286,16 +286,16 @@ export interface QuarksParticleEmitter {
 	position?: number[];
 	rotation?: number[];
 	scale?: number[];
-	ps: QuarksParticleEmitterConfig;
-	children?: QuarksObject[];
+	ps: IQuarksParticleEmitterConfig;
+	children?: IQuarksObject[];
 }
 
-export type QuarksObject = QuarksGroup | QuarksParticleEmitter;
+export type IQuarksObject = IQuarksGroup | IQuarksParticleEmitter;
 
 /**
  * Quarks/Three.js material
  */
-export interface QuarksMaterial {
+export interface IQuarksMaterial {
 	uuid: string;
 	type: string;
 	name?: string;
@@ -310,7 +310,7 @@ export interface QuarksMaterial {
 /**
  * Quarks/Three.js texture
  */
-export interface QuarksTexture {
+export interface IQuarksTexture {
 	uuid: string;
 	name?: string;
 	image?: string;
@@ -330,7 +330,7 @@ export interface QuarksTexture {
 /**
  * Quarks/Three.js image
  */
-export interface QuarksImage {
+export interface IQuarksImage {
 	uuid: string;
 	url?: string;
 }
@@ -338,7 +338,7 @@ export interface QuarksImage {
 /**
  * Quarks/Three.js geometry
  */
-export interface QuarksGeometry {
+export interface IQuarksGeometry {
 	uuid: string;
 	type: string;
 	data?: {
@@ -360,15 +360,15 @@ export interface QuarksGeometry {
 /**
  * Quarks/Three.js JSON structure
  */
-export interface QuarksJSON {
+export interface IQuarksJSON {
 	metadata?: {
 		version?: number;
 		type?: string;
 		generator?: string;
 	};
-	geometries?: QuarksGeometry[];
-	materials?: QuarksMaterial[];
-	textures?: QuarksTexture[];
-	images?: QuarksImage[];
-	object?: QuarksObject;
+	geometries?: IQuarksGeometry[];
+	materials?: IQuarksMaterial[];
+	textures?: IQuarksTexture[];
+	images?: IQuarksImage[];
+	object?: IQuarksObject;
 }

@@ -282,13 +282,11 @@ export class EffectEditorPreview extends Component<IEffectEditorPreviewProps, IE
 			} else {
 				effect.start();
 			}
-		} else {
+		} else if (effect.isNodeStarted(nodeData)) {
 			// For group or system, manage only this node
-			if (effect.isNodeStarted(nodeData)) {
-				effect.stopNode(nodeData);
-			} else {
-				effect.startNode(nodeData);
-			}
+			effect.stopNode(nodeData);
+		} else {
+			effect.startNode(nodeData);
 		}
 
 		this._syncPlayingState();

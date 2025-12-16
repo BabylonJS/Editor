@@ -43,7 +43,9 @@ export function EditorInspectorColorGradientField(props: IEditorInspectorColorGr
 	// Generate preview gradient CSS
 	const generatePreview = (): string => {
 		const sorted = [...value.colorKeys].sort((a, b) => (a.pos || 0) - (b.pos || 0));
-		if (sorted.length === 0) return "linear-gradient(to right, rgba(0, 0, 0, 1) 0%, rgba(1, 1, 1, 1) 100%)";
+		if (sorted.length === 0) {
+			return "linear-gradient(to right, rgba(0, 0, 0, 1) 0%, rgba(1, 1, 1, 1) 100%)";
+		}
 
 		const stops = sorted.map((key) => {
 			const pos = (key.pos || 0) * 100;

@@ -1,17 +1,24 @@
 import { Vector3, Quaternion, Matrix, Color4, SolidParticle, TransformNode, Mesh, AbstractMesh, SolidParticleSystem } from "babylonjs";
-import type { EmitterConfig, EmissionBurst } from "../types/emitter";
-import type { ISolidParticleEmitterType } from "../types/emitter";
+import type {
+	Behavior,
+	ForceOverLifeBehavior,
+	ColorBySpeedBehavior,
+	SizeBySpeedBehavior,
+	RotationBySpeedBehavior,
+	OrbitOverLifeBehavior,
+	EmitterConfig,
+	EmissionBurst,
+	ISolidParticleEmitterType,
+	PerSolidParticleBehaviorFunction,
+	ISystem,
+	SolidParticleWithSystem,
+	IShape,
+	Color,
+	Value,
+	Rotation,
+} from "../types";
 import { SolidPointParticleEmitter, SolidSphereParticleEmitter, SolidConeParticleEmitter } from "../emitters";
-import type { PerSolidParticleBehaviorFunction } from "../types/behaviors";
-import type { ISystem, SolidParticleWithSystem } from "../types/system";
-import type { Behavior, ForceOverLifeBehavior, ColorBySpeedBehavior, SizeBySpeedBehavior, RotationBySpeedBehavior, OrbitOverLifeBehavior } from "../types/behaviors";
-import type { IShape } from "../types/shapes";
-import type { Color } from "../types/colors";
-import type { Value } from "../types/values";
-import type { Rotation } from "../types/rotations";
-import { ValueUtils } from "../utils/valueParser";
-import { CapacityCalculator } from "../utils/capacityCalculator";
-import { ColorGradientSystem, NumberGradientSystem } from "../utils/gradientSystem";
+import { ValueUtils, CapacityCalculator, ColorGradientSystem, NumberGradientSystem } from "../utils";
 import {
 	applyColorBySpeedSPS,
 	applySizeBySpeedSPS,

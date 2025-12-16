@@ -11,8 +11,7 @@ import { Scene, Mesh } from "babylonjs";
 import { isScene } from "../../../../tools/guards/scene";
 import { registerUndoRedo } from "../../../../tools/undoredo";
 
-import { configureImportedNodeIds } from "../../preview/import/import";
-import { loadImportedSceneFile } from "../../preview/import/import";
+import { configureImportedNodeIds, loadImportedSceneFile } from "../../preview/import/import";
 import { EditorInspectorNumberField } from "./number";
 import { isMesh } from "babylonjs-editor-tools";
 

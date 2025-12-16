@@ -1,12 +1,9 @@
 import { Scene, TransformNode } from "babylonjs";
-import type { QuarksJSON } from "../types/quarksTypes";
-import type { LoaderOptions } from "../types/loader";
-import type { Data } from "../types/hierarchy";
+import type { IQuarksJSON, LoaderOptions, Data } from "../types";
 import { Logger } from "../loggers/logger";
 import { MaterialFactory, GeometryFactory, SystemFactory } from "../factories";
 import { DataConverter } from "./dataConverter";
-import type { EffectParticleSystem } from "../systems/effectParticleSystem";
-import type { EffectSolidParticleSystem } from "../systems/effectSolidParticleSystem";
+import type { EffectParticleSystem, EffectSolidParticleSystem } from "../systems";
 
 /**
  * Result of parsing  JSON
@@ -33,7 +30,7 @@ export class Parser {
 	private _groupNodesMap: Map<string, TransformNode>;
 	private _options: LoaderOptions;
 
-	constructor(scene: Scene, rootUrl: string, jsonData: QuarksJSON, options?: LoaderOptions) {
+	constructor(scene: Scene, rootUrl: string, jsonData: IQuarksJSON, options?: LoaderOptions) {
 		const opts = options || {};
 		this._options = opts;
 		this._groupNodesMap = new Map<string, TransformNode>();
