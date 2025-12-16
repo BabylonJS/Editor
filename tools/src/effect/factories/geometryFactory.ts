@@ -1,18 +1,18 @@
 import { Mesh, VertexData, CreatePlane, Nullable, Scene } from "babylonjs";
 import type { IGeometryFactory } from "../types/factories";
 import { Logger } from "../loggers/logger";
-import type { Data } from "../types/hierarchy";
+import type { IData } from "../types/hierarchy";
 import type { IGeometry } from "../types/resources";
-import type { LoaderOptions } from "../types/loader";
+import type { ILoaderOptions } from "../types/loader";
 
 /**
  * Factory for creating meshes from Three.js geometry data
  */
 export class GeometryFactory implements IGeometryFactory {
 	private _logger: Logger;
-	private _Data: Data;
+	private _Data: IData;
 
-	constructor(Data: Data, options: LoaderOptions) {
+	constructor(Data: IData, options: ILoaderOptions) {
 		this._Data = Data;
 		this._logger = new Logger("[GeometryFactory]", options);
 	}

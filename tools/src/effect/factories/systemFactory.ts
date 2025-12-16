@@ -1,12 +1,12 @@
 import { Nullable, Vector3, TransformNode, Texture, Scene } from "babylonjs";
 import { EffectParticleSystem } from "../systems/effectParticleSystem";
 import { EffectSolidParticleSystem } from "../systems/effectSolidParticleSystem";
-import type { Data, Group, Emitter, Transform } from "../types/hierarchy";
+import type { IData, IGroup, IEmitter, ITransform } from "../types/hierarchy";
 import { Logger } from "../loggers/logger";
 import { MatrixUtils } from "../utils/matrixUtils";
 import { EmitterFactory } from "./emitterFactory";
 import type { IMaterialFactory, IGeometryFactory } from "../types/factories";
-import type { LoaderOptions } from "../types/loader";
+import type { ILoaderOptions } from "../types/loader";
 
 /**
  * Factory for creating particle systems from  data
@@ -20,7 +20,7 @@ export class SystemFactory {
 	private _geometryFactory: IGeometryFactory;
 	private _emitterFactory: EmitterFactory;
 
-	constructor(scene: Scene, options: LoaderOptions, groupNodesMap: Map<string, TransformNode>, materialFactory: IMaterialFactory, geometryFactory: IGeometryFactory) {
+	constructor(scene: Scene, options: ILoaderOptions, groupNodesMap: Map<string, TransformNode>, materialFactory: IMaterialFactory, geometryFactory: IGeometryFactory) {
 		this._scene = scene;
 		this._groupNodesMap = groupNodesMap;
 		this._logger = new Logger("[SystemFactory]", options);
@@ -33,7 +33,7 @@ export class SystemFactory {
 	 * Create particle systems from  data
 	 * Creates all nodes, sets parents, and applies transformations in one pass
 	 */
-	public createSystems(Data: Data): (EffectParticleSystem | EffectSolidParticleSystem)[] {
+	public createSystems(Data: IData): (EffectParticleSystem | EffectSolidParticleSystem)[] {
 		if (!Data.root) {
 			this._logger.warn("No root object found in  data");
 			return [];
@@ -50,11 +50,11 @@ export class SystemFactory {
 	 * Creates nodes, sets parents, and applies transformations in one pass
 	 */
 	private _processObject(
-		Obj: Group | Emitter,
+		Obj: IGroup | IEmitter,
 		parentGroup: Nullable<TransformNode>,
 		depth: number,
 		particleSystems: (EffectParticleSystem | EffectSolidParticleSystem)[],
-		Data: Data
+		Data: IData
 	): void {
 		this._logger.log(`${"  ".repeat(depth)}Processing object: ${Obj.name}`);
 
@@ -69,11 +69,11 @@ export class SystemFactory {
 	 * Process a  Group object
 	 */
 	private _processGroup(
-		Group: Group,
+		Group: IGroup,
 		parentGroup: Nullable<TransformNode>,
 		depth: number,
 		particleSystems: (EffectParticleSystem | EffectSolidParticleSystem)[],
-		Data: Data
+		Data: IData
 	): void {
 		const groupNode = this._createGroupNode(Group, parentGroup, depth);
 		this._processChildren(Group.children, groupNode, depth, particleSystems, Data);
@@ -82,7 +82,7 @@ export class SystemFactory {
 	/**
 	 * Process a  Emitter object
 	 */
-	private _processEmitter(Emitter: Emitter, parentGroup: Nullable<TransformNode>, depth: number, particleSystems: (EffectParticleSystem | EffectSolidParticleSystem)[]): void {
+	private _processEmitter(Emitter: IEmitter, parentGroup: Nullable<TransformNode>, depth: number, particleSystems: (EffectParticleSystem | EffectSolidParticleSystem)[]): void {
 		const particleSystem = this._createParticleSystem(Emitter, parentGroup, depth);
 		if (particleSystem) {
 			particleSystems.push(particleSystem);
@@ -93,11 +93,11 @@ export class SystemFactory {
 	 * Process children of a group recursively
 	 */
 	private _processChildren(
-		children: (Group | Emitter)[] | undefined,
+		children: (IGroup | IEmitter)[] | undefined,
 		parentGroup: TransformNode,
 		depth: number,
 		particleSystems: (EffectParticleSystem | EffectSolidParticleSystem)[],
-		Data: Data
+		Data: IData
 	): void {
 		if (!children || children.length === 0) {
 			return;
@@ -112,7 +112,7 @@ export class SystemFactory {
 	/**
 	 * Create a TransformNode for a  Group
 	 */
-	private _createGroupNode(Group: Group, parentGroup: Nullable<TransformNode>, depth: number): TransformNode {
+	private _createGroupNode(Group: IGroup, parentGroup: Nullable<TransformNode>, depth: number): TransformNode {
 		const groupNode = new TransformNode(Group.name, this._scene);
 		groupNode.id = Group.uuid;
 
@@ -129,7 +129,7 @@ export class SystemFactory {
 	/**
 	 * Create a particle system from a  Emitter
 	 */
-	private _createParticleSystem(Emitter: Emitter, parentGroup: Nullable<TransformNode>, depth: number): Nullable<EffectParticleSystem | EffectSolidParticleSystem> {
+	private _createParticleSystem(Emitter: IEmitter, parentGroup: Nullable<TransformNode>, depth: number): Nullable<EffectParticleSystem | EffectSolidParticleSystem> {
 		const indent = "  ".repeat(depth);
 		const parentName = parentGroup ? parentGroup.name : "none";
 		this._logger.log(`${indent}Processing emitter: ${Emitter.name} (parent: ${parentName})`);
@@ -200,7 +200,7 @@ export class SystemFactory {
 	/**
 	 * Create a ParticleSystem instance
 	 */
-	private _createParticleSystemInstance(Emitter: Emitter, _parentGroup: Nullable<TransformNode>, cumulativeScale: Vector3, _depth: number): Nullable<EffectParticleSystem> {
+	private _createParticleSystemInstance(Emitter: IEmitter, _parentGroup: Nullable<TransformNode>, cumulativeScale: Vector3, _depth: number): Nullable<EffectParticleSystem> {
 		const { name, config } = Emitter;
 
 		this._logger.log(`Creating ParticleSystem: ${name}`);
@@ -228,7 +228,7 @@ export class SystemFactory {
 	/**
 	 * Create a SolidParticleSystem instance
 	 */
-	private _createSolidParticleSystem(Emitter: Emitter, parentGroup: Nullable<TransformNode>): Nullable<EffectSolidParticleSystem> {
+	private _createSolidParticleSystem(Emitter: IEmitter, parentGroup: Nullable<TransformNode>): Nullable<EffectSolidParticleSystem> {
 		const { name, config } = Emitter;
 
 		this._logger.log(`Creating SolidParticleSystem: ${name}`);
@@ -287,14 +287,14 @@ export class SystemFactory {
 	}
 
 	// Type guards
-	private _isGroup(Obj: Group | Emitter): Obj is Group {
+	private _isGroup(Obj: IGroup | IEmitter): Obj is IGroup {
 		return "children" in Obj;
 	}
 
 	/**
 	 * Apply transform to a node
 	 */
-	private _applyTransform(node: TransformNode, transform: Transform, depth: number): void {
+	private _applyTransform(node: TransformNode, transform: ITransform, depth: number): void {
 		if (!transform) {
 			this._logger.warn(`Transform is undefined for node: ${node.name}`);
 			return;

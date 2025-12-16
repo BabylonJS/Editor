@@ -1,14 +1,14 @@
 import { Logger as BabylonLogger } from "babylonjs";
-import type { LoaderOptions } from "../types";
+import type { ILoaderOptions } from "../types";
 
 /**
  * Logger utility for  operations
  */
 export class Logger {
 	private _prefix: string;
-	private _options?: LoaderOptions;
+	private _options?: ILoaderOptions;
 
-	constructor(prefix: string = "[]", options?: LoaderOptions) {
+	constructor(prefix: string = "[]", options?: ILoaderOptions) {
 		this._prefix = prefix;
 		this._options = options;
 	}

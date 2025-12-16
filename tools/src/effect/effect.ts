@@ -1,11 +1,11 @@
 import { Scene, Tools, IDisposable, TransformNode, Vector3, CreatePlane, MeshBuilder, Texture } from "babylonjs";
 import type { QuarksJSON } from "./types/quarksTypes";
-import type { LoaderOptions } from "./types/loader";
+import type { ILoaderOptions } from "./types/loader";
 import { Parser } from "./parsers/parser";
 import { EffectParticleSystem } from "./systems/effectParticleSystem";
 import { EffectSolidParticleSystem } from "./systems/effectSolidParticleSystem";
-import type { Group, Emitter, Data } from "./types/hierarchy";
-import type { EmitterConfig } from "./types/emitter";
+import type { IGroup, IEmitter, IData } from "./types/hierarchy";
+import type { IEmitterConfig } from "./types/emitter";
 import { isSystem } from "./types/system";
 import { EmitterFactory } from "./factories/emitterFactory";
 
@@ -80,7 +80,7 @@ export class Effect implements IDisposable {
 	 * @param options Optional parsing options
 	 * @returns Promise that resolves to a Effect
 	 */
-	public static async LoadAsync(url: string, scene: Scene, rootUrl: string = "", options?: LoaderOptions): Promise<Effect> {
+	public static async LoadAsync(url: string, scene: Scene, rootUrl: string = "", options?: ILoaderOptions): Promise<Effect> {
 		return new Promise((resolve, reject) => {
 			Tools.LoadFile(
 				url,
@@ -111,7 +111,7 @@ export class Effect implements IDisposable {
 	 * @param options Optional parsing options
 	 * @returns A Effect containing all particle systems
 	 */
-	public static Parse(jsonData: QuarksJSON, scene: Scene, rootUrl: string = "", options?: LoaderOptions): Effect {
+	public static Parse(jsonData: QuarksJSON, scene: Scene, rootUrl: string = "", options?: ILoaderOptions): Effect {
 		return new Effect(jsonData, scene, rootUrl, options);
 	}
 
@@ -122,7 +122,7 @@ export class Effect implements IDisposable {
 	 * @param rootUrl Root URL for loading textures
 	 * @param options Optional parsing options
 	 */
-	constructor(jsonData?: QuarksJSON, scene?: Scene, rootUrl: string = "", options?: LoaderOptions) {
+	constructor(jsonData?: QuarksJSON, scene?: Scene, rootUrl: string = "", options?: ILoaderOptions) {
 		this._scene = scene || null;
 		if (jsonData && scene) {
 			const parser = new Parser(scene, rootUrl, jsonData, options);
@@ -143,7 +143,7 @@ export class Effect implements IDisposable {
 	 * Build hierarchy from  data and group nodes map
 	 * Handles errors gracefully and continues building partial hierarchy if errors occur
 	 */
-	private _buildHierarchy(Data: Data, groupNodesMap: Map<string, TransformNode>, systems: (EffectParticleSystem | EffectSolidParticleSystem)[]): void {
+	private _buildHierarchy(Data: IData, groupNodesMap: Map<string, TransformNode>, systems: (EffectParticleSystem | EffectSolidParticleSystem)[]): void {
 		if (!Data || !Data.root) {
 			return;
 		}
@@ -161,7 +161,7 @@ export class Effect implements IDisposable {
 	 * Recursively build nodes from hierarchy
 	 */
 	private _buildNodeFromHierarchy(
-		obj: Group | Emitter,
+		obj: IGroup | IEmitter,
 		parent: EffectNode | null,
 		groupNodesMap: Map<string, TransformNode>,
 		systems: (EffectParticleSystem | EffectSolidParticleSystem)[]
@@ -181,7 +181,7 @@ export class Effect implements IDisposable {
 
 			if (node.type === "particle") {
 				// Find system by name
-				const emitter = obj as Emitter;
+				const emitter = obj as IEmitter;
 				const system = systems.find((s) => s.name === emitter.name);
 				if (system) {
 					node.system = system;
@@ -192,7 +192,7 @@ export class Effect implements IDisposable {
 				}
 			} else {
 				// Find group TransformNode
-				const group = obj as Group;
+				const group = obj as IGroup;
 				const groupNode = group.uuid ? groupNodesMap.get(group.uuid) : null;
 				if (groupNode) {
 					node.group = groupNode;
@@ -632,7 +632,7 @@ export class Effect implements IDisposable {
 		const systemUuid = Tools.RandomId();
 
 		// Create default config
-		const config: EmitterConfig = {
+		const config: IEmitterConfig = {
 			systemType,
 			looping: true,
 			duration: 5,

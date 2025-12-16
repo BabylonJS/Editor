@@ -1,41 +1,41 @@
-import type { GradientKey } from "./gradients";
+import type { IGradientKey } from "./gradients";
 
 /**
  *  color types (converted from Quarks)
  */
-export interface ConstantColor {
+export interface IConstantColor {
 	type: "ConstantColor";
 	value: [number, number, number, number]; // RGBA
 }
 
-export interface ColorRange {
+export interface IColorRange {
 	type: "ColorRange";
 	colorA: [number, number, number, number]; // RGBA
 	colorB: [number, number, number, number]; // RGBA
 }
 
-export interface GradientColor {
+export interface IGradientColor {
 	type: "Gradient";
-	colorKeys: GradientKey[];
-	alphaKeys?: GradientKey[];
+	colorKeys: IGradientKey[];
+	alphaKeys?: IGradientKey[];
 }
 
-export interface RandomColor {
+export interface IRandomColor {
 	type: "RandomColor";
 	colorA: [number, number, number, number]; // RGBA
 	colorB: [number, number, number, number]; // RGBA
 }
 
-export interface RandomColorBetweenGradient {
+export interface IRandomColorBetweenGradient {
 	type: "RandomColorBetweenGradient";
 	gradient1: {
-		colorKeys: GradientKey[];
-		alphaKeys?: GradientKey[];
+		colorKeys: IGradientKey[];
+		alphaKeys?: IGradientKey[];
 	};
 	gradient2: {
-		colorKeys: GradientKey[];
-		alphaKeys?: GradientKey[];
+		colorKeys: IGradientKey[];
+		alphaKeys?: IGradientKey[];
 	};
 }
 
-export type Color = ConstantColor | ColorRange | GradientColor | RandomColor | RandomColorBetweenGradient | [number, number, number, number] | string;
+export type Color = IConstantColor | IColorRange | IGradientColor | IRandomColor | IRandomColorBetweenGradient | [number, number, number, number] | string;

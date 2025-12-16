@@ -6,8 +6,8 @@ import type {
 	SizeBySpeedBehavior,
 	RotationBySpeedBehavior,
 	OrbitOverLifeBehavior,
-	EmitterConfig,
-	EmissionBurst,
+	IEmitterConfig,
+	IEmissionBurst,
 	ISolidParticleEmitterType,
 	PerSolidParticleBehaviorFunction,
 	ISystem,
@@ -78,7 +78,7 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 	public startColor?: Color;
 	public emissionOverTime?: Value;
 	public emissionOverDistance?: Value;
-	public emissionBursts?: EmissionBurst[];
+	public emissionBursts?: IEmissionBurst[];
 	public onlyUsedByOther: boolean;
 	public instancingGeometry?: string;
 	public renderOrder?: number;
@@ -578,7 +578,7 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 	constructor(
 		name: string,
 		scene: any,
-		initialConfig: EmitterConfig,
+		initialConfig: IEmitterConfig,
 		options?: {
 			updatable?: boolean;
 			isPickable?: boolean;
@@ -995,7 +995,7 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 		this._spawnBursts();
 	}
 
-	private _getBurstTime(burst: EmissionBurst): number {
+	private _getBurstTime(burst: IEmissionBurst): number {
 		return ValueUtils.parseConstantValue(burst.time);
 	}
 

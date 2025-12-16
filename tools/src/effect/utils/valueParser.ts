@@ -1,7 +1,7 @@
 import { Color4, ColorGradient } from "babylonjs";
 import type { IPiecewiseBezier, Value } from "../types/values";
 import type { Color } from "../types/colors";
-import type { GradientKey } from "../types/gradients";
+import type { IGradientKey } from "../types/gradients";
 
 /**
  * Static utility functions for parsing  values
@@ -139,7 +139,7 @@ export class ValueUtils {
 	/**
 	 * Parse gradient color keys
 	 */
-	public static parseGradientColorKeys(keys: GradientKey[]): ColorGradient[] {
+	public static parseGradientColorKeys(keys: IGradientKey[]): ColorGradient[] {
 		const gradients: ColorGradient[] = [];
 		for (const key of keys) {
 			const pos = key.pos ?? key.time ?? 0;
@@ -164,7 +164,7 @@ export class ValueUtils {
 	/**
 	 * Parse gradient alpha keys
 	 */
-	public static parseGradientAlphaKeys(keys: GradientKey[]): { gradient: number; factor: number }[] {
+	public static parseGradientAlphaKeys(keys: IGradientKey[]): { gradient: number; factor: number }[] {
 		const gradients: { gradient: number; factor: number }[] = [];
 		for (const key of keys) {
 			const pos = key.pos ?? key.time ?? 0;

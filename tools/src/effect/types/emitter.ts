@@ -1,5 +1,5 @@
 import { Nullable, SolidParticle, TransformNode, Vector3 } from "babylonjs";
-import type { Emitter } from "./hierarchy";
+import type { IEmitter } from "./hierarchy";
 import type { Value } from "./values";
 import type { Color } from "./colors";
 import type { Rotation } from "./rotations";
@@ -9,7 +9,7 @@ import type { Behavior } from "./behaviors";
 /**
  *  emission burst (converted from Quarks)
  */
-export interface EmissionBurst {
+export interface IEmissionBurst {
 	time: Value;
 	count: Value;
 }
@@ -17,7 +17,7 @@ export interface EmissionBurst {
 /**
  *  particle emitter configuration (converted from Quarks)
  */
-export interface EmitterConfig {
+export interface IEmitterConfig {
 	version?: string;
 	autoDestroy?: boolean;
 	looping?: boolean;
@@ -31,7 +31,7 @@ export interface EmitterConfig {
 	startColor?: Color;
 	emissionOverTime?: Value;
 	emissionOverDistance?: Value;
-	emissionBursts?: EmissionBurst[];
+	emissionBursts?: IEmissionBurst[];
 	onlyUsedByOther?: boolean;
 	instancingGeometry?: string;
 	renderOrder?: number;
@@ -55,15 +55,15 @@ export interface EmitterConfig {
 /**
  * Data structure for emitter creation
  */
-export interface EmitterData {
+export interface IEmitterData {
 	name: string;
-	config: EmitterConfig;
+	config: IEmitterConfig;
 	materialId?: string;
 	matrix?: number[];
 	position?: number[];
 	parentGroup: Nullable<TransformNode>;
 	cumulativeScale: Vector3;
-	Emitter?: Emitter;
+	Emitter?: IEmitter;
 }
 
 /**
