@@ -19,7 +19,7 @@ import { IEffectEditor } from ".";
 import { saveSingleFileDialog } from "../../../tools/dialog";
 import { writeJSON } from "fs-extra";
 import { toast } from "sonner";
-import { Effect, type EffectNode } from "babylonjs-editor-tools";
+import { Effect, type IEffectNode } from "babylonjs-editor-tools";
 
 export interface IEffectEditorGraphProps {
 	filePath: string | null;
@@ -28,7 +28,7 @@ export interface IEffectEditorGraphProps {
 }
 
 export interface IEffectEditorGraphState {
-	nodes: TreeNodeInfo<EffectNode>[];
+	nodes: TreeNodeInfo<IEffectNode>[];
 	selectedNodeId: string | number | null;
 }
 
@@ -42,7 +42,7 @@ interface IEffectInfo {
 export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffectEditorGraphState> {
 	private _effects: Map<string, IEffectInfo> = new Map();
 	/** Map of node instances to unique IDs for tree nodes */
-	private _nodeIdMap: Map<EffectNode, string> = new Map();
+	private _nodeIdMap: Map<IEffectNode, string> = new Map();
 
 	public constructor(props: IEffectEditorGraphProps) {
 		super(props);
@@ -79,7 +79,7 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 	/**
 	 * Finds a node in the tree by ID
 	 */
-	private _findNodeById(nodes: TreeNodeInfo<EffectNode>[], nodeId: string | number): TreeNodeInfo<EffectNode> | null {
+	private _findNodeById(nodes: TreeNodeInfo<IEffectNode>[], nodeId: string | number): TreeNodeInfo<IEffectNode> | null {
 		for (const node of nodes) {
 			if (node.id === nodeId) {
 				return node;
@@ -97,7 +97,7 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 	/**
 	 * Gets node data by ID from tree
 	 */
-	public getNodeData(nodeId: string | number): EffectNode | null {
+	public getNodeData(nodeId: string | number): IEffectNode | null {
 		const node = this._findNodeById(this.state.nodes, nodeId);
 		return node?.nodeData || null;
 	}
@@ -162,7 +162,7 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 		// Clear node ID map when rebuilding tree to ensure unique IDs
 		this._nodeIdMap.clear();
 
-		const nodes: TreeNodeInfo<EffectNode>[] = [];
+		const nodes: TreeNodeInfo<IEffectNode>[] = [];
 
 		for (const [effectId, effectInfo] of this._effects.entries()) {
 			if (effectInfo.effect.root) {
@@ -181,7 +181,7 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 	/**
 	 * Generate unique ID for a node
 	 */
-	private _generateUniqueNodeId(Node: EffectNode): string {
+	private _generateUniqueNodeId(Node: IEffectNode): string {
 		// Check if we already have an ID for this node instance
 		if (this._nodeIdMap.has(Node)) {
 			return this._nodeIdMap.get(Node)!;
@@ -194,9 +194,9 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 	}
 
 	/**
-	 * Converts EffectNode to TreeNodeInfo recursively
+	 * Converts IEffectNode to TreeNodeInfo recursively
 	 */
-	private _convertNodeToTreeNode(Node: EffectNode, isEffectRoot: boolean = false): TreeNodeInfo<EffectNode> {
+	private _convertNodeToTreeNode(Node: IEffectNode, isEffectRoot: boolean = false): TreeNodeInfo<IEffectNode> {
 		// Always use unique ID instead of uuid or name
 		const nodeId = this._generateUniqueNodeId(Node);
 		const childNodes = Node.children.length > 0 ? Node.children.map((child) => this._convertNodeToTreeNode(child, false)) : undefined;
@@ -230,7 +230,7 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 	/**
 	 * Updates all node names in the tree from actual data
 	 */
-	private _updateAllNodeNames(nodes: TreeNodeInfo<EffectNode>[]): TreeNodeInfo<EffectNode>[] {
+	private _updateAllNodeNames(nodes: TreeNodeInfo<IEffectNode>[]): TreeNodeInfo<IEffectNode>[] {
 		return nodes.map((n) => {
 			const nodeName = n.nodeData?.name || "Unknown";
 			const childNodes = n.childNodes ? this._updateAllNodeNames(n.childNodes) : undefined;
@@ -295,19 +295,19 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 		);
 	}
 
-	private _handleNodeExpanded(node: TreeNodeInfo<EffectNode>): void {
+	private _handleNodeExpanded(node: TreeNodeInfo<IEffectNode>): void {
 		const nodeId = node.id;
 		const nodes = this._updateNodeExpanded(this.state.nodes, nodeId as string | number, true);
 		this.setState({ nodes });
 	}
 
-	private _handleNodeCollapsed(node: TreeNodeInfo<EffectNode>): void {
+	private _handleNodeCollapsed(node: TreeNodeInfo<IEffectNode>): void {
 		const nodeId = node.id;
 		const nodes = this._updateNodeExpanded(this.state.nodes, nodeId as string | number, false);
 		this.setState({ nodes });
 	}
 
-	private _updateNodeExpanded(nodes: TreeNodeInfo<EffectNode>[], nodeId: string | number, isExpanded: boolean): TreeNodeInfo<EffectNode>[] {
+	private _updateNodeExpanded(nodes: TreeNodeInfo<IEffectNode>[], nodeId: string | number, isExpanded: boolean): TreeNodeInfo<IEffectNode>[] {
 		return nodes.map((n) => {
 			const nodeName = n.nodeData?.name || "Unknown";
 			if (n.id === nodeId) {
@@ -327,14 +327,14 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 		});
 	}
 
-	private _handleNodeClicked(node: TreeNodeInfo<EffectNode>): void {
+	private _handleNodeClicked(node: TreeNodeInfo<IEffectNode>): void {
 		const selectedId = node.id as string | number;
 		const nodes = this._updateNodeSelection(this.state.nodes, selectedId);
 		this.setState({ nodes, selectedNodeId: selectedId });
 		this.props.onNodeSelected?.(selectedId);
 	}
 
-	private _updateNodeSelection(nodes: TreeNodeInfo<EffectNode>[], selectedId: string | number): TreeNodeInfo<EffectNode>[] {
+	private _updateNodeSelection(nodes: TreeNodeInfo<IEffectNode>[], selectedId: string | number): TreeNodeInfo<IEffectNode>[] {
 		return nodes.map((n) => {
 			const nodeName = n.nodeData?.name || "Unknown";
 			const isSelected = n.id === selectedId;
@@ -348,7 +348,7 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 		});
 	}
 
-	private _getNodeLabelComponent(node: TreeNodeInfo<EffectNode>, name: string): JSX.Element {
+	private _getNodeLabelComponent(node: TreeNodeInfo<IEffectNode>, name: string): JSX.Element {
 		const label = (
 			<div
 				className="ml-2 p-1 w-full"
@@ -431,7 +431,7 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 	/**
 	 * Check if node is an effect root node
 	 */
-	private _isEffectRootNode(node: TreeNodeInfo<EffectNode>): boolean {
+	private _isEffectRootNode(node: TreeNodeInfo<IEffectNode>): boolean {
 		const nodeData = node.nodeData;
 		if (!nodeData || !nodeData.uuid) {
 			return false;
@@ -444,7 +444,7 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 	/**
 	 * Export effect to JSON file
 	 */
-	private async _handleExportEffect(node: TreeNodeInfo<EffectNode>): Promise<void> {
+	private async _handleExportEffect(node: TreeNodeInfo<IEffectNode>): Promise<void> {
 		const nodeData = node.nodeData;
 		if (!nodeData || !nodeData.uuid) {
 			return;
@@ -508,7 +508,7 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 		this._rebuildTree();
 	}
 
-	private _findEffectForNode(node: TreeNodeInfo<EffectNode>): Effect | null {
+	private _findEffectForNode(node: TreeNodeInfo<IEffectNode>): Effect | null {
 		// Find the effect that contains this node by traversing up the tree
 		const nodeData = node.nodeData;
 		if (!nodeData) {
@@ -528,7 +528,7 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 			const effect = effectInfo.effect;
 			if (effect.root) {
 				// Check if node is part of this effect's hierarchy
-				const findNodeInHierarchy = (current: EffectNode): boolean => {
+				const findNodeInHierarchy = (current: IEffectNode): boolean => {
 					// Use instance comparison and uuid for matching
 					if (current === nodeData || (current.uuid && nodeData.uuid && current.uuid === nodeData.uuid)) {
 						return true;
@@ -550,7 +550,7 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 		return null;
 	}
 
-	private _handleAddParticleSystemToNode(node: TreeNodeInfo<EffectNode>, systemType: "solid" | "base"): void {
+	private _handleAddParticleSystemToNode(node: TreeNodeInfo<IEffectNode>, systemType: "solid" | "base"): void {
 		const effect = this._findEffectForNode(node);
 		if (!effect) {
 			console.error("No effect found for node");
@@ -570,7 +570,7 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 		}
 	}
 
-	private _handleAddGroupToNode(node: TreeNodeInfo<EffectNode>): void {
+	private _handleAddGroupToNode(node: TreeNodeInfo<IEffectNode>): void {
 		const effect = this._findEffectForNode(node);
 		if (!effect) {
 			console.error("No effect found for node");
@@ -604,7 +604,7 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 		}
 	}
 
-	private _handleDropOnNode(node: TreeNodeInfo<EffectNode>, ev: React.DragEvent<HTMLDivElement>): void {
+	private _handleDropOnNode(node: TreeNodeInfo<IEffectNode>, ev: React.DragEvent<HTMLDivElement>): void {
 		ev.preventDefault();
 		ev.stopPropagation();
 
@@ -626,7 +626,7 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 		}
 	}
 
-	private _addNodeToParent(nodes: TreeNodeInfo<EffectNode>[], parentId: string | number, newNode: TreeNodeInfo<EffectNode>): TreeNodeInfo<EffectNode>[] {
+	private _addNodeToParent(nodes: TreeNodeInfo<IEffectNode>[], parentId: string | number, newNode: TreeNodeInfo<IEffectNode>): TreeNodeInfo<IEffectNode>[] {
 		return nodes.map((n) => {
 			if (n.id === parentId) {
 				const childNodes = n.childNodes || [];
@@ -647,7 +647,7 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 		});
 	}
 
-	private _handleDeleteNode(node: TreeNodeInfo<EffectNode>): void {
+	private _handleDeleteNode(node: TreeNodeInfo<IEffectNode>): void {
 		const nodeData = node.nodeData;
 		if (!nodeData) {
 			return;
@@ -671,7 +671,7 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 			}
 
 			// Find and remove node from effect hierarchy
-			const removeNodeFromHierarchy = (current: EffectNode): boolean => {
+			const removeNodeFromHierarchy = (current: IEffectNode): boolean => {
 				// Remove from children
 				const index = current.children.findIndex((child) => child === nodeData || child.uuid === nodeData.uuid || child.name === nodeData.name);
 				if (index !== -1) {

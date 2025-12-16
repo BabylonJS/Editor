@@ -23,13 +23,13 @@ import { EditorCellMaterialInspector } from "../../../layout/inspector/material/
 import { EditorFireMaterialInspector } from "../../../layout/inspector/material/fire";
 import { EditorGradientMaterialInspector } from "../../../layout/inspector/material/gradient";
 
-import { type EffectNode, EffectSolidParticleSystem, EffectParticleSystem } from "babylonjs-editor-tools";
+import { type IEffectNode, EffectSolidParticleSystem, EffectParticleSystem } from "babylonjs-editor-tools";
 import { IEffectEditor } from "..";
 import { EffectValueEditor } from "../editors/value";
 import { CellMaterial, FireMaterial, GradientMaterial, GridMaterial, LavaMaterial, NormalMaterial, SkyMaterial, TriPlanarMaterial, WaterMaterial } from "babylonjs-materials";
 
 export interface IEffectEditorParticleRendererPropertiesProps {
-	nodeData: EffectNode;
+	nodeData: IEffectNode;
 	editor: IEffectEditor;
 	onChange: () => void;
 }

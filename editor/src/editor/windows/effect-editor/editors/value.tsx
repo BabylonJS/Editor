@@ -4,13 +4,13 @@ import { EditorInspectorNumberField } from "../../../layout/inspector/fields/num
 import { EditorInspectorListField } from "../../../layout/inspector/fields/list";
 import { EditorInspectorBlockField } from "../../../layout/inspector/fields/block";
 
-import { type Value, type ConstantValue, type IntervalValue, ValueUtils } from "babylonjs-editor-tools";
+import { type Value, type IConstantValue, type IIntervalValue, ValueUtils } from "babylonjs-editor-tools";
 
 type PiecewiseBezier = Extract<Value, { type: "PiecewiseBezier" }>;
 import { BezierEditor } from "./bezier";
 
 // Vec3Function is a custom editor extension, not part of the core Value type
-export type EffectValueType = ConstantValue["type"] | IntervalValue["type"] | PiecewiseBezier["type"] | "Vec3Function";
+export type EffectValueType = IConstantValue["type"] | IIntervalValue["type"] | PiecewiseBezier["type"] | "Vec3Function";
 
 export interface IVec3Function {
 	type: "Vec3Function";

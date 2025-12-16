@@ -7,7 +7,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../
 
 import { IoPlay, IoStop, IoRefresh } from "react-icons/io5";
 import type { IEffectEditor } from ".";
-import { Effect, EffectNode } from "babylonjs-editor-tools";
+import { Effect, type IEffectNode } from "babylonjs-editor-tools";
 
 export interface IEffectEditorPreviewProps {
 	filePath: string | null;
@@ -123,7 +123,7 @@ export class EffectEditorPreview extends Component<IEffectEditorPreviewProps, IE
 	/**
 	 * Find the effect that contains the given node
 	 */
-	private _findEffectForNode(node: EffectNode): Effect | null {
+	private _findEffectForNode(node: IEffectNode): Effect | null {
 		const effects = this.props.editor?.graph?.getAllEffects() || [];
 		for (const effect of effects) {
 			// Check if node is part of this effect's hierarchy
@@ -137,12 +137,12 @@ export class EffectEditorPreview extends Component<IEffectEditorPreviewProps, IE
 	/**
 	 * Check if node is part of effect's hierarchy
 	 */
-	private _isNodeInEffect(node: EffectNode, effect: Effect): boolean {
+	private _isNodeInEffect(node: IEffectNode, effect: Effect): boolean {
 		if (!effect.root) {
 			return false;
 		}
 
-		const findNode = (current: EffectNode): boolean => {
+		const findNode = (current: IEffectNode): boolean => {
 			if (current === node || current.uuid === node.uuid || current.name === node.name) {
 				return true;
 			}
@@ -160,7 +160,7 @@ export class EffectEditorPreview extends Component<IEffectEditorPreviewProps, IE
 	/**
 	 * Check if node is an effect root node
 	 */
-	private _isEffectRootNode(node: EffectNode): boolean {
+	private _isEffectRootNode(node: IEffectNode): boolean {
 		if (!node.uuid) {
 			return false;
 		}
