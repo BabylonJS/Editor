@@ -1,5 +1,5 @@
 import { SolidParticle, Particle, Vector3 } from "babylonjs";
-import type { ColorBySpeedBehavior } from "../types/behaviors";
+import type { IIColorBySpeedBehavior } from "../types/behaviors";
 import { interpolateColorKeys } from "./utils";
 import { ValueUtils } from "../utils/valueParser";
 
@@ -7,7 +7,7 @@ import { ValueUtils } from "../utils/valueParser";
  * Apply ColorBySpeed behavior to Particle
  * Gets currentSpeed from particle.velocity magnitude
  */
-export function applyColorBySpeedPS(particle: Particle, behavior: ColorBySpeedBehavior): void {
+export function applyColorBySpeedPS(particle: Particle, behavior: IColorBySpeedBehavior): void {
 	if (!behavior.color || !behavior.color.keys || !particle.color || !particle.direction) {
 		return;
 	}
@@ -40,7 +40,7 @@ export function applyColorBySpeedPS(particle: Particle, behavior: ColorBySpeedBe
  * Apply ColorBySpeed behavior to SolidParticle
  * Gets currentSpeed from particle.velocity magnitude
  */
-export function applyColorBySpeedSPS(particle: SolidParticle, behavior: ColorBySpeedBehavior): void {
+export function applyColorBySpeedSPS(particle: SolidParticle, behavior: IColorBySpeedBehavior): void {
 	if (!behavior.color || !behavior.color.keys || !particle.color) {
 		return;
 	}

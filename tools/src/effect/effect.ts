@@ -12,7 +12,7 @@ import { EmitterFactory } from "./factories/emitterFactory";
 /**
  *  Effect Node - represents either a particle system or a group
  */
-export interface EffectNode {
+export interface IEffectNode {
 	/** Node name */
 	name: string;
 	/** Node UUID from original JSON */
@@ -22,9 +22,9 @@ export interface EffectNode {
 	/** Transform node (if this is a group) */
 	group?: TransformNode;
 	/** Parent node */
-	parent?: EffectNode;
+	parent?: IEffectNode;
 	/** Child nodes */
-	children: EffectNode[];
+	children: IEffectNode[];
 	/** Node type */
 	type: "particle" | "group";
 }
@@ -38,7 +38,7 @@ export class Effect implements IDisposable {
 	private _systems: (EffectParticleSystem | EffectSolidParticleSystem)[] = [];
 
 	/** Root node of the effect hierarchy */
-	private _root: EffectNode | null = null;
+	private _root: IEffectNode | null = null;
 
 	/**
 	 * Get all particle systems in this effect
@@ -50,7 +50,7 @@ export class Effect implements IDisposable {
 	/**
 	 * Get root node of the effect hierarchy
 	 */
-	public get root(): EffectNode | null {
+	public get root(): IEffectNode | null {
 		return this._root;
 	}
 
@@ -67,7 +67,7 @@ export class Effect implements IDisposable {
 	private readonly _groupsByUuid = new Map<string, TransformNode>();
 
 	/** All nodes in the hierarchy */
-	private readonly _nodes = new Map<string, EffectNode>();
+	private readonly _nodes = new Map<string, IEffectNode>();
 
 	/** Scene reference for creating new systems */
 	private _scene: Scene | null = null;
@@ -129,8 +129,8 @@ export class Effect implements IDisposable {
 			const parseResult = parser.parse();
 
 			this._systems.push(...parseResult.systems);
-			if (parseResult.Data && parseResult.groupNodesMap) {
-				this._buildHierarchy(parseResult.Data, parseResult.groupNodesMap, parseResult.systems);
+			if (parseResult.data && parseResult.groupNodesMap) {
+				this._buildHierarchy(parseResult.data, parseResult.groupNodesMap, parseResult.systems);
 			}
 		} else if (scene) {
 			// Create empty effect with root group
@@ -162,16 +162,16 @@ export class Effect implements IDisposable {
 	 */
 	private _buildNodeFromHierarchy(
 		obj: IGroup | IEmitter,
-		parent: EffectNode | null,
+		parent: IEffectNode | null,
 		groupNodesMap: Map<string, TransformNode>,
 		systems: (EffectParticleSystem | EffectSolidParticleSystem)[]
-	): EffectNode | null {
+	): IEffectNode | null {
 		if (!obj) {
 			return null;
 		}
 
 		try {
-			const node: EffectNode = {
+			const node: IEffectNode = {
 				name: obj.name,
 				uuid: obj.uuid,
 				parent: parent || undefined,
@@ -263,14 +263,14 @@ export class Effect implements IDisposable {
 	/**
 	 * Find a node (system or group) by name
 	 */
-	public findNodeByName(name: string): EffectNode | null {
+	public findNodeByName(name: string): IEffectNode | null {
 		return this._nodes.get(name) || null;
 	}
 
 	/**
 	 * Find a node (system or group) by UUID
 	 */
-	public findNodeByUuid(uuid: string): EffectNode | null {
+	public findNodeByUuid(uuid: string): IEffectNode | null {
 		return this._nodes.get(uuid) || null;
 	}
 
@@ -365,7 +365,7 @@ export class Effect implements IDisposable {
 	/**
 	 * Start a node (system or group)
 	 */
-	public startNode(node: EffectNode): void {
+	public startNode(node: IEffectNode): void {
 		if (node.type === "particle" && node.system) {
 			node.system.start();
 		} else if (node.type === "group" && node.group) {
@@ -380,7 +380,7 @@ export class Effect implements IDisposable {
 	/**
 	 * Stop a node (system or group)
 	 */
-	public stopNode(node: EffectNode): void {
+	public stopNode(node: IEffectNode): void {
 		if (node.type === "particle" && node.system) {
 			node.system.stop();
 		} else if (node.type === "group" && node.group) {
@@ -395,7 +395,7 @@ export class Effect implements IDisposable {
 	/**
 	 * Reset a node (system or group)
 	 */
-	public resetNode(node: EffectNode): void {
+	public resetNode(node: IEffectNode): void {
 		if (node.type === "particle" && node.system) {
 			node.system.reset();
 		} else if (node.type === "group" && node.group) {
@@ -410,7 +410,7 @@ export class Effect implements IDisposable {
 	/**
 	 * Check if a node is started (system or group)
 	 */
-	public isNodeStarted(node: EffectNode): boolean {
+	public isNodeStarted(node: IEffectNode): boolean {
 		if (node.type === "particle" && node.system) {
 			if (node.system instanceof EffectParticleSystem) {
 				return (node.system as any).isStarted ? (node.system as any).isStarted() : false;
@@ -436,7 +436,7 @@ export class Effect implements IDisposable {
 	/**
 	 * Get all systems in a node recursively
 	 */
-	private _getSystemsInNode(node: EffectNode): (EffectParticleSystem | EffectSolidParticleSystem)[] {
+	private _getSystemsInNode(node: IEffectNode): (EffectParticleSystem | EffectSolidParticleSystem)[] {
 		const systems: (EffectParticleSystem | EffectSolidParticleSystem)[] = [];
 
 		if (node.type === "particle" && node.system) {
@@ -531,7 +531,7 @@ export class Effect implements IDisposable {
 		const rootUuid = Tools.RandomId();
 		rootGroup.id = rootUuid;
 
-		const rootNode: EffectNode = {
+		const rootNode: IEffectNode = {
 			name: "Root",
 			uuid: rootUuid,
 			group: rootGroup,
@@ -552,7 +552,7 @@ export class Effect implements IDisposable {
 	 * @param name Optional name (defaults to "Group")
 	 * @returns Created group node
 	 */
-	public createGroup(parentNode: EffectNode | null = null, name: string = "Group"): EffectNode | null {
+	public createGroup(parentNode: IEffectNode | null = null, name: string = "Group"): IEffectNode | null {
 		if (!this._scene) {
 			console.error("Cannot create group: scene is not available");
 			return null;
@@ -581,7 +581,7 @@ export class Effect implements IDisposable {
 			groupNode.setParent(parent.group, false, true);
 		}
 
-		const newNode: EffectNode = {
+		const newNode: IEffectNode = {
 			name: uniqueName,
 			uuid: groupUuid,
 			group: groupNode,
@@ -609,7 +609,7 @@ export class Effect implements IDisposable {
 	 * @param name Optional name (defaults to "ParticleSystem")
 	 * @returns Created particle system node
 	 */
-	public createParticleSystem(parentNode: EffectNode | null = null, systemType: "solid" | "base" = "base", name: string = "ParticleSystem"): EffectNode | null {
+	public createParticleSystem(parentNode: IEffectNode | null = null, systemType: "solid" | "base" = "base", name: string = "ParticleSystem"): IEffectNode | null {
 		if (!this._scene) {
 			console.error("Cannot create particle system: scene is not available");
 			return null;
@@ -686,7 +686,7 @@ export class Effect implements IDisposable {
 		// Set system name
 		system.name = uniqueName;
 
-		const newNode: EffectNode = {
+		const newNode: IEffectNode = {
 			name: uniqueName,
 			uuid: systemUuid,
 			system,

@@ -1,5 +1,5 @@
 import { Particle, SolidParticle, Vector3 } from "babylonjs";
-import type { RotationBySpeedBehavior } from "../types/behaviors";
+import type { IIRotationBySpeedBehavior } from "../types/behaviors";
 import { extractNumberFromValue, interpolateGradientKeys } from "./utils";
 import { ValueUtils } from "../utils/valueParser";
 import { ParticleWithSystem, SolidParticleWithSystem } from "../types/system";
@@ -8,7 +8,7 @@ import { ParticleWithSystem, SolidParticleWithSystem } from "../types/system";
  * Apply RotationBySpeed behavior to Particle
  * Gets currentSpeed from particle.direction magnitude and updateSpeed from system
  */
-export function applyRotationBySpeedPS(particle: Particle, behavior: RotationBySpeedBehavior): void {
+export function applyRotationBySpeedPS(particle: Particle, behavior: IRotationBySpeedBehavior): void {
 	if (!behavior.angularVelocity || !particle.direction) {
 		return;
 	}
@@ -45,7 +45,7 @@ export function applyRotationBySpeedPS(particle: Particle, behavior: RotationByS
  * Apply RotationBySpeed behavior to SolidParticle
  * Gets currentSpeed from particle.velocity magnitude and updateSpeed from system
  */
-export function applyRotationBySpeedSPS(particle: SolidParticle, behavior: RotationBySpeedBehavior): void {
+export function applyRotationBySpeedSPS(particle: SolidParticle, behavior: IRotationBySpeedBehavior): void {
 	if (!behavior.angularVelocity) {
 		return;
 	}

@@ -1,4 +1,4 @@
-import type { SizeOverLifeBehavior } from "../types/behaviors";
+import type { IISizeOverLifeBehavior } from "../types/behaviors";
 import { extractNumberFromValue } from "./utils";
 import type { EffectSolidParticleSystem } from "../systems/effectSolidParticleSystem";
 import type { EffectParticleSystem } from "../systems/effectParticleSystem";
@@ -7,7 +7,7 @@ import type { EffectParticleSystem } from "../systems/effectParticleSystem";
  * In Quarks, SizeOverLife values are multipliers relative to initial particle size
  * In Babylon.js, sizeGradients are absolute values, so we multiply by average initial size
  */
-export function applySizeOverLifePS(particleSystem: EffectParticleSystem, behavior: SizeOverLifeBehavior): void {
+export function applySizeOverLifePS(particleSystem: EffectParticleSystem, behavior: ISizeOverLifeBehavior): void {
 	// Get average initial size from minSize/maxSize to use as base for multipliers
 	const avgInitialSize = (particleSystem.minSize + particleSystem.maxSize) / 2;
 
@@ -39,7 +39,7 @@ export function applySizeOverLifePS(particleSystem: EffectParticleSystem, behavi
  * Apply SizeOverLife behavior to SolidParticleSystem
  * Adds size gradients to the system (similar to ParticleSystem native gradients)
  */
-export function applySizeOverLifeSPS(system: EffectSolidParticleSystem, behavior: SizeOverLifeBehavior): void {
+export function applySizeOverLifeSPS(system: EffectSolidParticleSystem, behavior: ISizeOverLifeBehavior): void {
 	if (!behavior.size) {
 		return;
 	}

@@ -1,11 +1,11 @@
 import { Vector3, Quaternion, Matrix, Color4, SolidParticle, TransformNode, Mesh, AbstractMesh, SolidParticleSystem } from "babylonjs";
 import type {
 	Behavior,
-	ForceOverLifeBehavior,
-	ColorBySpeedBehavior,
-	SizeBySpeedBehavior,
-	RotationBySpeedBehavior,
-	OrbitOverLifeBehavior,
+	IForceOverLifeBehavior,
+	IColorBySpeedBehavior,
+	ISizeBySpeedBehavior,
+	IRotationBySpeedBehavior,
+	IOrbitOverLifeBehavior,
 	IEmitterConfig,
 	IEmissionBurst,
 	ISolidParticleEmitterType,
@@ -34,7 +34,7 @@ import {
 /**
  * Emission state matching three.quarks EmissionState structure
  */
-interface EmissionState {
+interface IEmissionState {
 	time: number;
 	waitEmiting: number;
 	travelDistance: number;
@@ -51,7 +51,7 @@ interface EmissionState {
  * This class replicates the exact behavior of three.quarks ParticleSystem with systemType = "solid"
  */
 export class EffectSolidParticleSystem extends SolidParticleSystem implements ISystem {
-	private _emissionState: EmissionState;
+	private _emissionState: IEmissionState;
 	private _behaviors: PerSolidParticleBehaviorFunction[];
 	public particleEmitterType: ISolidParticleEmitterType | null;
 	private _parent: TransformNode | null;
@@ -693,7 +693,7 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 			particle.color = new Color4(1, 1, 1, 1);
 		}
 
-		const props = particle.props || (particle.props = {});
+		const props = (particle.props ||= {});
 		props.speedModifier = 1.0;
 	}
 
@@ -1178,7 +1178,7 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 			switch (behavior.type) {
 				case "ForceOverLife":
 				case "ApplyForce": {
-					const b = behavior as ForceOverLifeBehavior;
+					const b = behavior as IForceOverLifeBehavior;
 					functions.push((particle: SolidParticle) => {
 						const particleWithSystem = particle as SolidParticleWithSystem;
 						const updateSpeed = particleWithSystem.system?.updateSpeed ?? 0.016;
@@ -1199,7 +1199,7 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 				}
 
 				case "ColorBySpeed": {
-					const b = behavior as ColorBySpeedBehavior;
+					const b = behavior as IColorBySpeedBehavior;
 					functions.push((particle: SolidParticle) => {
 						applyColorBySpeedSPS(particle, b);
 					});
@@ -1207,7 +1207,7 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 				}
 
 				case "SizeBySpeed": {
-					const b = behavior as SizeBySpeedBehavior;
+					const b = behavior as ISizeBySpeedBehavior;
 					functions.push((particle: SolidParticle) => {
 						applySizeBySpeedSPS(particle, b);
 					});
@@ -1215,7 +1215,7 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 				}
 
 				case "RotationBySpeed": {
-					const b = behavior as RotationBySpeedBehavior;
+					const b = behavior as IRotationBySpeedBehavior;
 					functions.push((particle: SolidParticle) => {
 						applyRotationBySpeedSPS(particle, b);
 					});
@@ -1223,7 +1223,7 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 				}
 
 				case "OrbitOverLife": {
-					const b = behavior as OrbitOverLifeBehavior;
+					const b = behavior as IOrbitOverLifeBehavior;
 					functions.push((particle: SolidParticle) => {
 						applyOrbitOverLifeSPS(particle, b);
 					});
@@ -1337,7 +1337,7 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 	 * Apply gradients to particle based on lifeRatio
 	 */
 	private _applyGradients(particle: SolidParticle, lifeRatio: number): void {
-		const props = particle.props || (particle.props = {});
+		const props = (particle.props ||= {});
 		const updateSpeed = this.updateSpeed;
 
 		const color = this._colorGradients.getValue(lifeRatio);

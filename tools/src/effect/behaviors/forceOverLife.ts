@@ -1,11 +1,11 @@
 import { Vector3 } from "babylonjs";
-import type { ForceOverLifeBehavior, GravityForceBehavior } from "../types/behaviors";
+import type { IIForceOverLifeBehavior, IIGravityForceBehavior } from "../types/behaviors";
 import { ValueUtils } from "../utils/valueParser";
 import type { EffectParticleSystem } from "../systems/effectParticleSystem";
 /**
  * Apply ForceOverLife behavior to ParticleSystem
  */
-export function applyForceOverLifePS(particleSystem: EffectParticleSystem, behavior: ForceOverLifeBehavior): void {
+export function applyForceOverLifePS(particleSystem: EffectParticleSystem, behavior: IForceOverLifeBehavior): void {
 	if (behavior.force) {
 		const forceX = behavior.force.x !== undefined ? ValueUtils.parseConstantValue(behavior.force.x) : 0;
 		const forceY = behavior.force.y !== undefined ? ValueUtils.parseConstantValue(behavior.force.y) : 0;
@@ -26,7 +26,7 @@ export function applyForceOverLifePS(particleSystem: EffectParticleSystem, behav
 /**
  * Apply GravityForce behavior to ParticleSystem
  */
-export function applyGravityForcePS(particleSystem: EffectParticleSystem, behavior: GravityForceBehavior): void {
+export function applyGravityForcePS(particleSystem: EffectParticleSystem, behavior: IGravityForceBehavior): void {
 	if (behavior.gravity !== undefined) {
 		const gravity = ValueUtils.parseConstantValue(behavior.gravity);
 		particleSystem.gravity = new Vector3(0, -gravity, 0);

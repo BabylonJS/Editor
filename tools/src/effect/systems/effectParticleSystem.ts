@@ -1,18 +1,18 @@
 import { Color4, ParticleSystem, Scene, Vector3, Matrix, Texture, AbstractMesh, TransformNode, Particle } from "babylonjs";
 import type {
 	Behavior,
-	ColorOverLifeBehavior,
-	SizeOverLifeBehavior,
-	RotationOverLifeBehavior,
-	ForceOverLifeBehavior,
-	GravityForceBehavior,
-	SpeedOverLifeBehavior,
-	FrameOverLifeBehavior,
-	LimitSpeedOverLifeBehavior,
-	ColorBySpeedBehavior,
-	SizeBySpeedBehavior,
-	RotationBySpeedBehavior,
-	OrbitOverLifeBehavior,
+	IColorOverLifeBehavior,
+	ISizeOverLifeBehavior,
+	IRotationOverLifeBehavior,
+	IForceOverLifeBehavior,
+	IGravityForceBehavior,
+	ISpeedOverLifeBehavior,
+	IFrameOverLifeBehavior,
+	ILimitSpeedOverLifeBehavior,
+	IColorBySpeedBehavior,
+	ISizeBySpeedBehavior,
+	IRotationBySpeedBehavior,
+	IOrbitOverLifeBehavior,
 	PerParticleBehaviorFunction,
 	ISystem,
 	ParticleWithSystem,
@@ -185,7 +185,7 @@ export class EffectParticleSystem extends ParticleSystem implements ISystem {
 		for (const behavior of behaviors) {
 			switch (behavior.type) {
 				case "ColorBySpeed": {
-					const b = behavior as ColorBySpeedBehavior;
+					const b = behavior as IColorBySpeedBehavior;
 					functions.push((particle: Particle) => {
 						applyColorBySpeedPS(particle, b);
 					});
@@ -193,7 +193,7 @@ export class EffectParticleSystem extends ParticleSystem implements ISystem {
 				}
 
 				case "SizeBySpeed": {
-					const b = behavior as SizeBySpeedBehavior;
+					const b = behavior as ISizeBySpeedBehavior;
 					functions.push((particle: Particle) => {
 						applySizeBySpeedPS(particle, b);
 					});
@@ -201,7 +201,7 @@ export class EffectParticleSystem extends ParticleSystem implements ISystem {
 				}
 
 				case "RotationBySpeed": {
-					const b = behavior as RotationBySpeedBehavior;
+					const b = behavior as IRotationBySpeedBehavior;
 					functions.push((particle: Particle) => {
 						// Store reference to system in particle for behaviors that need it
 						const particleWithSystem = particle as ParticleWithSystem;
@@ -212,7 +212,7 @@ export class EffectParticleSystem extends ParticleSystem implements ISystem {
 				}
 
 				case "OrbitOverLife": {
-					const b = behavior as OrbitOverLifeBehavior;
+					const b = behavior as IOrbitOverLifeBehavior;
 					functions.push((particle: Particle) => {
 						applyOrbitOverLifePS(particle, b);
 					});
@@ -236,30 +236,30 @@ export class EffectParticleSystem extends ParticleSystem implements ISystem {
 
 			switch (behavior.type) {
 				case "ColorOverLife":
-					applyColorOverLifePS(this, behavior as ColorOverLifeBehavior);
+					applyColorOverLifePS(this, behavior as IColorOverLifeBehavior);
 					break;
 				case "SizeOverLife":
-					applySizeOverLifePS(this, behavior as SizeOverLifeBehavior);
+					applySizeOverLifePS(this, behavior as ISizeOverLifeBehavior);
 					break;
 				case "RotationOverLife":
 				case "Rotation3DOverLife":
-					applyRotationOverLifePS(this, behavior as RotationOverLifeBehavior);
+					applyRotationOverLifePS(this, behavior as IRotationOverLifeBehavior);
 					break;
 				case "ForceOverLife":
 				case "ApplyForce":
-					applyForceOverLifePS(this, behavior as ForceOverLifeBehavior);
+					applyForceOverLifePS(this, behavior as IForceOverLifeBehavior);
 					break;
 				case "GravityForce":
-					applyGravityForcePS(this, behavior as GravityForceBehavior);
+					applyGravityForcePS(this, behavior as IGravityForceBehavior);
 					break;
 				case "SpeedOverLife":
-					applySpeedOverLifePS(this, behavior as SpeedOverLifeBehavior);
+					applySpeedOverLifePS(this, behavior as ISpeedOverLifeBehavior);
 					break;
 				case "FrameOverLife":
-					applyFrameOverLifePS(this, behavior as FrameOverLifeBehavior);
+					applyFrameOverLifePS(this, behavior as IFrameOverLifeBehavior);
 					break;
 				case "LimitSpeedOverLife":
-					applyLimitSpeedOverLifePS(this, behavior as LimitSpeedOverLifeBehavior);
+					applyLimitSpeedOverLifePS(this, behavior as ILimitSpeedOverLifeBehavior);
 					break;
 			}
 		}

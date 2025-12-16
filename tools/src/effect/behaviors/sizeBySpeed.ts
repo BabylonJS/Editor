@@ -1,5 +1,5 @@
 import { Particle, SolidParticle, Vector3 } from "babylonjs";
-import type { SizeBySpeedBehavior } from "../types/behaviors";
+import type { IISizeBySpeedBehavior } from "../types/behaviors";
 import { extractNumberFromValue, interpolateGradientKeys } from "./utils";
 import { ValueUtils } from "../utils/valueParser";
 
@@ -7,7 +7,7 @@ import { ValueUtils } from "../utils/valueParser";
  * Apply SizeBySpeed behavior to Particle
  * Gets currentSpeed from particle.direction magnitude
  */
-export function applySizeBySpeedPS(particle: Particle, behavior: SizeBySpeedBehavior): void {
+export function applySizeBySpeedPS(particle: Particle, behavior: ISizeBySpeedBehavior): void {
 	if (!behavior.size || !behavior.size.keys || !particle.direction) {
 		return;
 	}
@@ -29,7 +29,7 @@ export function applySizeBySpeedPS(particle: Particle, behavior: SizeBySpeedBeha
  * Apply SizeBySpeed behavior to SolidParticle
  * Gets currentSpeed from particle.velocity magnitude
  */
-export function applySizeBySpeedSPS(particle: SolidParticle, behavior: SizeBySpeedBehavior): void {
+export function applySizeBySpeedSPS(particle: SolidParticle, behavior: ISizeBySpeedBehavior): void {
 	if (!behavior.size || !behavior.size.keys) {
 		return;
 	}

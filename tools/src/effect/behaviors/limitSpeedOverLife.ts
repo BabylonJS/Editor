@@ -1,4 +1,4 @@
-import type { LimitSpeedOverLifeBehavior } from "../types/behaviors";
+import type { IILimitSpeedOverLifeBehavior } from "../types/behaviors";
 import { extractNumberFromValue } from "./utils";
 import { ValueUtils } from "../utils/valueParser";
 import type { EffectSolidParticleSystem } from "../systems/effectSolidParticleSystem";
@@ -6,7 +6,7 @@ import type { EffectParticleSystem } from "../systems/effectParticleSystem";
 /**
  * Apply LimitSpeedOverLife behavior to ParticleSystem
  */
-export function applyLimitSpeedOverLifePS(particleSystem: EffectParticleSystem, behavior: LimitSpeedOverLifeBehavior): void {
+export function applyLimitSpeedOverLifePS(particleSystem: EffectParticleSystem, behavior: ILimitSpeedOverLifeBehavior): void {
 	if (behavior.dampen !== undefined) {
 		const dampen = ValueUtils.parseConstantValue(behavior.dampen);
 		particleSystem.limitVelocityDamping = dampen;
@@ -38,7 +38,7 @@ export function applyLimitSpeedOverLifePS(particleSystem: EffectParticleSystem, 
  * Apply LimitSpeedOverLife behavior to SolidParticleSystem
  * Adds limit velocity gradients to the system (similar to ParticleSystem native gradients)
  */
-export function applyLimitSpeedOverLifeSPS(system: EffectSolidParticleSystem, behavior: LimitSpeedOverLifeBehavior): void {
+export function applyLimitSpeedOverLifeSPS(system: EffectSolidParticleSystem, behavior: ILimitSpeedOverLifeBehavior): void {
 	if (behavior.dampen !== undefined) {
 		const dampen = ValueUtils.parseConstantValue(behavior.dampen);
 		system.limitVelocityDamping = dampen;
