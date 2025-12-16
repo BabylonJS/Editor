@@ -1,10 +1,10 @@
-import type { FrameOverLifeBehavior } from "../types/behaviors";
+import type { IFrameOverLifeBehavior } from "../types/behaviors";
 import { ValueUtils } from "../utils/valueParser";
 import type { EffectParticleSystem } from "../systems/effectParticleSystem";
 /**
  * Apply FrameOverLife behavior to ParticleSystem
  */
-export function applyFrameOverLifePS(particleSystem: EffectParticleSystem, behavior: FrameOverLifeBehavior): void {
+export function applyFrameOverLifePS(particleSystem: EffectParticleSystem, behavior: IFrameOverLifeBehavior): void {
 	if (!behavior.frame) {
 		return;
 	}
@@ -16,11 +16,11 @@ export function applyFrameOverLifePS(particleSystem: EffectParticleSystem, behav
 			const pos = k.pos ?? k.time ?? 0;
 			if (typeof val === "number") {
 				return val;
-			} else if (Array.isArray(val)) {
-				return val[0] || 0;
-			} else {
-				return pos;
 			}
+			if (Array.isArray(val)) {
+				return val[0] || 0;
+			}
+			return pos;
 		});
 		if (frames.length > 0) {
 			particleSystem.startSpriteCellID = Math.floor(frames[0]);

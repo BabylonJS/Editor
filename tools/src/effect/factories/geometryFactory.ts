@@ -10,10 +10,10 @@ import type { ILoaderOptions } from "../types/loader";
  */
 export class GeometryFactory implements IGeometryFactory {
 	private _logger: Logger;
-	private _Data: IData;
+	private _data: IData;
 
-	constructor(Data: IData, options: ILoaderOptions) {
-		this._Data = Data;
+	constructor(data: IData, options: ILoaderOptions) {
+		this._data = data;
 		this._logger = new Logger("[GeometryFactory]", options);
 	}
 
@@ -87,12 +87,12 @@ export class GeometryFactory implements IGeometryFactory {
 	 * Finds geometry by UUID
 	 */
 	private _findGeometry(geometryId: string): IGeometry | null {
-		if (!this._Data.geometries || this._Data.geometries.length === 0) {
+		if (!this._data.geometries || this._data.geometries.length === 0) {
 			this._logger.warn("No geometries data available");
 			return null;
 		}
 
-		const geometry = this._Data.geometries.find((g) => g.uuid === geometryId);
+		const geometry = this._data.geometries.find((g) => g.uuid === geometryId);
 		if (!geometry) {
 			this._logger.warn(`Geometry not found: ${geometryId}`);
 			return null;

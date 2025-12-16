@@ -1,5 +1,5 @@
 import { Color4 } from "babylonjs";
-import type { ColorOverLifeBehavior } from "../types/behaviors";
+import type { IIColorOverLifeBehavior } from "../types/behaviors";
 import { extractColorFromValue, extractAlphaFromValue } from "./utils";
 import type { EffectSolidParticleSystem } from "../systems/effectSolidParticleSystem";
 import type { EffectParticleSystem } from "../systems/effectParticleSystem";
@@ -7,7 +7,7 @@ import type { EffectParticleSystem } from "../systems/effectParticleSystem";
 /**
  * Apply ColorOverLife behavior to ParticleSystem
  */
-export function applyColorOverLifePS(particleSystem: EffectParticleSystem, behavior: ColorOverLifeBehavior): void {
+export function applyColorOverLifePS(particleSystem: EffectParticleSystem, behavior: IColorOverLifeBehavior): void {
 	if (behavior.color && behavior.color.color && behavior.color.color.keys) {
 		const colorKeys = behavior.color.color.keys;
 		for (const key of colorKeys) {
@@ -44,7 +44,7 @@ export function applyColorOverLifePS(particleSystem: EffectParticleSystem, behav
  * Adds color gradients to the system (similar to ParticleSystem native gradients)
  * Properly combines color and alpha keys even when they have different positions
  */
-export function applyColorOverLifeSPS(system: EffectSolidParticleSystem, behavior: ColorOverLifeBehavior): void {
+export function applyColorOverLifeSPS(system: EffectSolidParticleSystem, behavior: IColorOverLifeBehavior): void {
 	if (!behavior.color) {
 		return;
 	}

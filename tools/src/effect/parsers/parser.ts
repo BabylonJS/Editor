@@ -8,11 +8,11 @@ import type { EffectParticleSystem, EffectSolidParticleSystem } from "../systems
 /**
  * Result of parsing  JSON
  */
-export interface ParseResult {
+export interface IParseResult {
 	/** Created particle systems */
 	systems: (EffectParticleSystem | EffectSolidParticleSystem)[];
 	/** Converted  data */
-	Data: IData;
+	data: IData;
 	/** Map of group UUIDs to TransformNodes */
 	groupNodesMap: Map<string, TransformNode>;
 }
@@ -26,24 +26,24 @@ export class Parser {
 	private _materialFactory: MaterialFactory;
 	private _geometryFactory: GeometryFactory;
 	private _systemFactory: SystemFactory;
-	private _Data: IData;
+	private _data: IData;
 	private _groupNodesMap: Map<string, TransformNode>;
 	private _options: ILoaderOptions;
 
-	constructor(scene: Scene, rootUrl: string, jsonData: IQuarksJSON, options?: ILoaderOptions) {
+	constructor(scene: Scene, rootUrl: string, jsondata: IQuarksJSON, options?: ILoaderOptions) {
 		const opts = options || {};
 		this._options = opts;
 		this._groupNodesMap = new Map<string, TransformNode>();
 
 		this._logger = new Logger("[Parser]", opts);
 
-		// Convert Quarks JSON to Data first
+		// Convert Quarks JSON to data first
 		const dataConverter = new DataConverter(opts);
-		this._Data = dataConverter.convert(jsonData);
+		this._data = dataConverter.convert(jsondata);
 
-		// Create factories with Data instead of QuarksJSON
-		this._materialFactory = new MaterialFactory(scene, this._Data, rootUrl, opts);
-		this._geometryFactory = new GeometryFactory(this._Data, opts);
+		// Create factories with data instead of QuarksJSON
+		this._materialFactory = new MaterialFactory(scene, this._data, rootUrl, opts);
+		this._geometryFactory = new GeometryFactory(this._data, opts);
 		this._systemFactory = new SystemFactory(scene, opts, this._groupNodesMap, this._materialFactory, this._geometryFactory);
 	}
 
@@ -51,28 +51,28 @@ export class Parser {
 	 * Parse the JSON data and create particle systems
 	 * Returns all necessary data for building the effect hierarchy
 	 */
-	public parse(): ParseResult {
+	public parse(): IParseResult {
 		this._logger.log("=== Starting Particle System Parsing ===");
 
-		if (!this._Data) {
-			this._logger.warn("Data is missing");
+		if (!this._data) {
+			this._logger.warn("data is missing");
 			return {
 				systems: [],
-				Data: this._Data,
+				data: this._data,
 				groupNodesMap: this._groupNodesMap,
 			};
 		}
 
 		if (this._options.validate) {
-			this._validateJSONStructure(this._Data);
+			this._validateJSONStructure(this._data);
 		}
 
-		const particleSystems = this._systemFactory.createSystems(this._Data);
+		const particleSystems = this._systemFactory.createSystems(this._data);
 
 		this._logger.log(`=== Parsing complete. Created ${particleSystems.length} particle system(s) ===`);
 		return {
 			systems: particleSystems,
-			Data: this._Data,
+			data: this._data,
 			groupNodesMap: this._groupNodesMap,
 		};
 	}
@@ -80,26 +80,26 @@ export class Parser {
 	/**
 	 * Validate  data structure
 	 */
-	private _validateJSONStructure(Data: IData): void {
+	private _validateJSONStructure(data: IData): void {
 		this._logger.log("Validating  data structure...");
 
-		if (!Data.root) {
+		if (!data.root) {
 			this._logger.warn(" data missing 'root' property");
 		}
 
-		if (!Data.materials || Data.materials.length === 0) {
+		if (!data.materials || data.materials.length === 0) {
 			this._logger.warn(" data has no materials");
 		}
 
-		if (!Data.textures || Data.textures.length === 0) {
+		if (!data.textures || data.textures.length === 0) {
 			this._logger.warn(" data has no textures");
 		}
 
-		if (!Data.images || Data.images.length === 0) {
+		if (!data.images || data.images.length === 0) {
 			this._logger.warn(" data has no images");
 		}
 
-		if (!Data.geometries || Data.geometries.length === 0) {
+		if (!data.geometries || data.geometries.length === 0) {
 			this._logger.warn(" data has no geometries");
 		}
 

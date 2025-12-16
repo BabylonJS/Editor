@@ -23,7 +23,7 @@ export type SystemBehaviorFunction = (system: ParticleSystem | SolidParticleSyst
 /**
  *  behavior types (converted from Quarks)
  */
-export interface ColorOverLifeBehavior {
+export interface IColorOverLifeBehavior {
 	type: "ColorOverLife";
 	color?: {
 		color?: {
@@ -36,7 +36,7 @@ export interface ColorOverLifeBehavior {
 	};
 }
 
-export interface SizeOverLifeBehavior {
+export interface ISizeOverLifeBehavior {
 	type: "SizeOverLife";
 	size?: {
 		keys?: IGradientKey[];
@@ -50,12 +50,12 @@ export interface SizeOverLifeBehavior {
 	};
 }
 
-export interface RotationOverLifeBehavior {
+export interface IRotationOverLifeBehavior {
 	type: "RotationOverLife" | "Rotation3DOverLife";
 	angularVelocity?: Value;
 }
 
-export interface ForceOverLifeBehavior {
+export interface IForceOverLifeBehavior {
 	type: "ForceOverLife" | "ApplyForce";
 	force?: {
 		x?: Value;
@@ -67,12 +67,12 @@ export interface ForceOverLifeBehavior {
 	z?: Value;
 }
 
-export interface GravityForceBehavior {
+export interface IGravityForceBehavior {
 	type: "GravityForce";
 	gravity?: Value;
 }
 
-export interface SpeedOverLifeBehavior {
+export interface ISpeedOverLifeBehavior {
 	type: "SpeedOverLife";
 	speed?:
 		| {
@@ -88,7 +88,7 @@ export interface SpeedOverLifeBehavior {
 		| Value;
 }
 
-export interface FrameOverLifeBehavior {
+export interface IFrameOverLifeBehavior {
 	type: "FrameOverLife";
 	frame?:
 		| {
@@ -97,39 +97,39 @@ export interface FrameOverLifeBehavior {
 		| Value;
 }
 
-export interface LimitSpeedOverLifeBehavior {
+export interface ILimitSpeedOverLifeBehavior {
 	type: "LimitSpeedOverLife";
 	maxSpeed?: Value;
 	speed?: Value | { keys?: IGradientKey[] };
 	dampen?: Value;
 }
 
-export interface ColorBySpeedBehavior {
+export interface IColorBySpeedBehavior {
 	type: "ColorBySpeed";
 	color?: {
-		keys: GradientKey[];
+		keys: IGradientKey[];
 	};
 	minSpeed?: Value;
 	maxSpeed?: Value;
 }
 
-export interface SizeBySpeedBehavior {
+export interface ISizeBySpeedBehavior {
 	type: "SizeBySpeed";
 	size?: {
-		keys: GradientKey[];
+		keys: IGradientKey[];
 	};
 	minSpeed?: Value;
 	maxSpeed?: Value;
 }
 
-export interface RotationBySpeedBehavior {
+export interface IRotationBySpeedBehavior {
 	type: "RotationBySpeed";
 	angularVelocity?: Value;
 	minSpeed?: Value;
 	maxSpeed?: Value;
 }
 
-export interface OrbitOverLifeBehavior {
+export interface IOrbitOverLifeBehavior {
 	type: "OrbitOverLife";
 	center?: {
 		x?: number;
@@ -141,16 +141,16 @@ export interface OrbitOverLifeBehavior {
 }
 
 export type Behavior =
-	| ColorOverLifeBehavior
-	| SizeOverLifeBehavior
-	| RotationOverLifeBehavior
-	| ForceOverLifeBehavior
-	| GravityForceBehavior
-	| SpeedOverLifeBehavior
-	| FrameOverLifeBehavior
-	| LimitSpeedOverLifeBehavior
-	| ColorBySpeedBehavior
-	| SizeBySpeedBehavior
-	| RotationBySpeedBehavior
-	| OrbitOverLifeBehavior
+	| IColorOverLifeBehavior
+	| ISizeOverLifeBehavior
+	| IRotationOverLifeBehavior
+	| IForceOverLifeBehavior
+	| IGravityForceBehavior
+	| ISpeedOverLifeBehavior
+	| IFrameOverLifeBehavior
+	| ILimitSpeedOverLifeBehavior
+	| IColorBySpeedBehavior
+	| ISizeBySpeedBehavior
+	| IRotationBySpeedBehavior
+	| IOrbitOverLifeBehavior
 	| { type: string; [key: string]: unknown }; // Fallback for unknown behaviors

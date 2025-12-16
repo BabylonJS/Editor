@@ -1,5 +1,5 @@
 import { Particle, SolidParticle } from "babylonjs";
-import type { OrbitOverLifeBehavior } from "../types/behaviors";
+import type { IIOrbitOverLifeBehavior } from "../types/behaviors";
 import { extractNumberFromValue, interpolateGradientKeys } from "./utils";
 import { ValueUtils } from "../utils/valueParser";
 import type { Value } from "../types/values";
@@ -8,7 +8,7 @@ import type { Value } from "../types/values";
  * Apply OrbitOverLife behavior to Particle
  * Gets lifeRatio from particle (age / lifeTime)
  */
-export function applyOrbitOverLifePS(particle: Particle, behavior: OrbitOverLifeBehavior): void {
+export function applyOrbitOverLifePS(particle: Particle, behavior: IOrbitOverLifeBehavior): void {
 	if (!behavior.radius || particle.lifeTime <= 0) {
 		return;
 	}
@@ -60,7 +60,7 @@ export function applyOrbitOverLifePS(particle: Particle, behavior: OrbitOverLife
  * Apply OrbitOverLife behavior to SolidParticle
  * Gets lifeRatio from particle (age / lifeTime)
  */
-export function applyOrbitOverLifeSPS(particle: SolidParticle, behavior: OrbitOverLifeBehavior): void {
+export function applyOrbitOverLifeSPS(particle: SolidParticle, behavior: IOrbitOverLifeBehavior): void {
 	if (!behavior.radius || particle.lifeTime <= 0) {
 		return;
 	}

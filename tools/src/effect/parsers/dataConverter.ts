@@ -32,13 +32,13 @@ import type { IMaterial, ITexture, IImage, IGeometry, IGeometryData } from "../t
 import type { IEmitterConfig } from "../types/emitter";
 import type {
 	Behavior,
-	ColorOverLifeBehavior,
-	SizeOverLifeBehavior,
-	ForceOverLifeBehavior,
-	SpeedOverLifeBehavior,
-	LimitSpeedOverLifeBehavior,
-	ColorBySpeedBehavior,
-	SizeBySpeedBehavior,
+	IColorOverLifeBehavior,
+	ISizeOverLifeBehavior,
+	IForceOverLifeBehavior,
+	ISpeedOverLifeBehavior,
+	ILimitSpeedOverLifeBehavior,
+	IColorBySpeedBehavior,
+	ISizeBySpeedBehavior,
 } from "../types/behaviors";
 import type { Value } from "../types/values";
 import type { Color } from "../types/colors";
@@ -404,18 +404,18 @@ export class DataConverter {
 					type: "ConstantColor",
 					value: IQuarksColor.value,
 				};
-			} else if (IQuarksColor.color) {
+			}
+			if (IQuarksColor.color) {
 				return {
 					type: "ConstantColor",
 					value: [IQuarksColor.color.r || 0, IQuarksColor.color.g || 0, IQuarksColor.color.b || 0, IQuarksColor.color.a !== undefined ? IQuarksColor.color.a : 1],
 				};
-			} else {
-				// Fallback: return default color if neither value nor color is present
-				return {
-					type: "ConstantColor",
-					value: [1, 1, 1, 1],
-				};
 			}
+			// Fallback: return default color if neither value nor color is present
+			return {
+				type: "ConstantColor",
+				value: [1, 1, 1, 1],
+			};
 		}
 		return IQuarksColor as Color;
 	}
@@ -482,7 +482,7 @@ export class DataConverter {
 			case "ColorOverLife": {
 				const behavior = IQuarksBehavior as IQuarksColorOverLifeBehavior;
 				if (behavior.color) {
-					const Color: ColorOverLifeBehavior["color"] = {};
+					const Color: IColorOverLifeBehavior["color"] = {};
 					if (behavior.color.color?.keys) {
 						Color.color = { keys: behavior.color.color.keys.map((k) => this._convertGradientKey(k)) };
 					}
@@ -500,7 +500,7 @@ export class DataConverter {
 			case "SizeOverLife": {
 				const behavior = IQuarksBehavior as IQuarksSizeOverLifeBehavior;
 				if (behavior.size) {
-					const Size: SizeOverLifeBehavior["size"] = {};
+					const Size: ISizeOverLifeBehavior["size"] = {};
 					if (behavior.size.keys) {
 						Size.keys = behavior.size.keys.map((k: IQuarksGradientKey) => this._convertGradientKey(k));
 					}
@@ -524,7 +524,7 @@ export class DataConverter {
 			case "ForceOverLife":
 			case "ApplyForce": {
 				const behavior = IQuarksBehavior as IQuarksForceOverLifeBehavior;
-				const Behavior: ForceOverLifeBehavior = { type: behavior.type };
+				const Behavior: IForceOverLifeBehavior = { type: behavior.type };
 				if (behavior.force) {
 					Behavior.force = {
 						x: behavior.force.x !== undefined ? this._convertValue(behavior.force.x) : undefined,
@@ -532,9 +532,15 @@ export class DataConverter {
 						z: behavior.force.z !== undefined ? this._convertValue(behavior.force.z) : undefined,
 					};
 				}
-				if (behavior.x !== undefined) Behavior.x = this._convertValue(behavior.x);
-				if (behavior.y !== undefined) Behavior.y = this._convertValue(behavior.y);
-				if (behavior.z !== undefined) Behavior.z = this._convertValue(behavior.z);
+				if (behavior.x !== undefined) {
+					Behavior.x = this._convertValue(behavior.x);
+				}
+				if (behavior.y !== undefined) {
+					Behavior.y = this._convertValue(behavior.y);
+				}
+				if (behavior.z !== undefined) {
+					Behavior.z = this._convertValue(behavior.z);
+				}
 				return Behavior;
 			}
 
@@ -551,7 +557,7 @@ export class DataConverter {
 				const behavior = IQuarksBehavior as IQuarksSpeedOverLifeBehavior;
 				if (behavior.speed) {
 					if (typeof behavior.speed === "object" && behavior.speed !== null && "keys" in behavior.speed) {
-						const Speed: SpeedOverLifeBehavior["speed"] = {};
+						const Speed: ISpeedOverLifeBehavior["speed"] = {};
 						if (behavior.speed.keys) {
 							Speed.keys = behavior.speed.keys.map((k: IQuarksGradientKey) => this._convertGradientKey(k));
 						}
@@ -583,7 +589,7 @@ export class DataConverter {
 
 			case "LimitSpeedOverLife": {
 				const behavior = IQuarksBehavior as IQuarksLimitSpeedOverLifeBehavior;
-				const Behavior: LimitSpeedOverLifeBehavior = { type: "LimitSpeedOverLife" };
+				const Behavior: ILimitSpeedOverLifeBehavior = { type: "LimitSpeedOverLife" };
 				if (behavior.maxSpeed !== undefined) {
 					Behavior.maxSpeed = this._convertValue(behavior.maxSpeed);
 				}
@@ -602,7 +608,7 @@ export class DataConverter {
 
 			case "ColorBySpeed": {
 				const behavior = IQuarksBehavior as IQuarksColorBySpeedBehavior;
-				const Behavior: ColorBySpeedBehavior = {
+				const Behavior: IColorBySpeedBehavior = {
 					type: "ColorBySpeed",
 					minSpeed: behavior.minSpeed !== undefined ? this._convertValue(behavior.minSpeed) : undefined,
 					maxSpeed: behavior.maxSpeed !== undefined ? this._convertValue(behavior.maxSpeed) : undefined,
@@ -615,7 +621,7 @@ export class DataConverter {
 
 			case "SizeBySpeed": {
 				const behavior = IQuarksBehavior as IQuarksSizeBySpeedBehavior;
-				const Behavior: SizeBySpeedBehavior = {
+				const Behavior: ISizeBySpeedBehavior = {
 					type: "SizeBySpeed",
 					minSpeed: behavior.minSpeed !== undefined ? this._convertValue(behavior.minSpeed) : undefined,
 					maxSpeed: behavior.maxSpeed !== undefined ? this._convertValue(behavior.maxSpeed) : undefined,

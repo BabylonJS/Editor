@@ -1,4 +1,4 @@
-import type { SpeedOverLifeBehavior } from "../types/behaviors";
+import type { IISpeedOverLifeBehavior } from "../types/behaviors";
 import { extractNumberFromValue } from "./utils";
 import { ValueUtils } from "../utils/valueParser";
 import type { EffectSolidParticleSystem } from "../systems/effectSolidParticleSystem";
@@ -6,7 +6,7 @@ import type { EffectParticleSystem } from "../systems/effectParticleSystem";
 /**
  * Apply SpeedOverLife behavior to ParticleSystem
  */
-export function applySpeedOverLifePS(particleSystem: EffectParticleSystem, behavior: SpeedOverLifeBehavior): void {
+export function applySpeedOverLifePS(particleSystem: EffectParticleSystem, behavior: ISpeedOverLifeBehavior): void {
 	if (behavior.speed) {
 		if (typeof behavior.speed === "object" && behavior.speed !== null && "keys" in behavior.speed && behavior.speed.keys && Array.isArray(behavior.speed.keys)) {
 			for (const key of behavior.speed.keys) {
@@ -46,7 +46,7 @@ export function applySpeedOverLifePS(particleSystem: EffectParticleSystem, behav
  * Apply SpeedOverLife behavior to SolidParticleSystem
  * Adds velocity gradients to the system (similar to ParticleSystem native gradients)
  */
-export function applySpeedOverLifeSPS(system: EffectSolidParticleSystem, behavior: SpeedOverLifeBehavior): void {
+export function applySpeedOverLifeSPS(system: EffectSolidParticleSystem, behavior: ISpeedOverLifeBehavior): void {
 	if (!behavior.speed) {
 		return;
 	}
