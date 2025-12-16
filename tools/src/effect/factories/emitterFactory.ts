@@ -1,5 +1,5 @@
 import { Vector3, Matrix } from "babylonjs";
-import type { Shape } from "../types/shapes";
+import type { IShape } from "../types/shapes";
 import type { EffectSolidParticleSystem } from "../systems/effectSolidParticleSystem";
 import type { EffectParticleSystem } from "../systems/effectParticleSystem";
 
@@ -12,14 +12,14 @@ export class EmitterFactory {
 	 * Create emitter for ParticleSystem
 	 * Applies emitter shape to the particle system
 	 */
-	public createParticleSystemEmitter(particleSystem: EffectParticleSystem, shape: Shape | undefined, cumulativeScale: Vector3, rotationMatrix: Matrix | null): void {
+	public createParticleSystemEmitter(particleSystem: EffectParticleSystem, shape: IShape | undefined, cumulativeScale: Vector3, rotationMatrix: Matrix | null): void {
 		if (!shape || !shape.type) {
 			this._createPointEmitter(particleSystem, Vector3.Zero(), Vector3.Zero());
 			return;
 		}
 
 		const shapeType = shape.type.toLowerCase();
-		const shapeHandlers: Record<string, (shape: Shape, scale: Vector3, rotation: Matrix | null) => void> = {
+		const shapeHandlers: Record<string, (shape: IShape, scale: Vector3, rotation: Matrix | null) => void> = {
 			cone: this._createConeEmitter.bind(this, particleSystem),
 			sphere: this._createSphereEmitter.bind(this, particleSystem),
 			point: this._createPointEmitter.bind(this, particleSystem),
@@ -40,7 +40,7 @@ export class EmitterFactory {
 	 * Create emitter for SolidParticleSystem
 	 * Creates emitter using system's create*Emitter methods (similar to ParticleSystem)
 	 */
-	public createSolidParticleSystemEmitter(sps: EffectSolidParticleSystem, shape: Shape | undefined): void {
+	public createSolidParticleSystemEmitter(sps: EffectSolidParticleSystem, shape: IShape | undefined): void {
 		if (!shape || !shape.type) {
 			sps.createPointEmitter();
 			return;
@@ -84,7 +84,7 @@ export class EmitterFactory {
 	/**
 	 * Creates cone emitter for ParticleSystem
 	 */
-	private _createConeEmitter(particleSystem: EffectParticleSystem, shape: Shape, scale: Vector3, rotationMatrix: Matrix | null): void {
+	private _createConeEmitter(particleSystem: EffectParticleSystem, shape: IShape, scale: Vector3, rotationMatrix: Matrix | null): void {
 		const radius = ((shape as any).radius || 1) * ((scale.x + scale.z) / 2);
 		const angle = (shape as any).angle !== undefined ? (shape as any).angle : Math.PI / 4;
 		const defaultDir = new Vector3(0, 1, 0);
@@ -100,7 +100,7 @@ export class EmitterFactory {
 	/**
 	 * Creates sphere emitter for ParticleSystem
 	 */
-	private _createSphereEmitter(particleSystem: EffectParticleSystem, shape: Shape, scale: Vector3, rotationMatrix: Matrix | null): void {
+	private _createSphereEmitter(particleSystem: EffectParticleSystem, shape: IShape, scale: Vector3, rotationMatrix: Matrix | null): void {
 		const radius = ((shape as any).radius || 1) * ((scale.x + scale.y + scale.z) / 3);
 		const defaultDir = new Vector3(0, 1, 0);
 		const rotatedDir = this._applyRotationToDirection(defaultDir, rotationMatrix);
@@ -122,7 +122,7 @@ export class EmitterFactory {
 	/**
 	 * Creates box emitter for ParticleSystem
 	 */
-	private _createBoxEmitter(particleSystem: EffectParticleSystem, shape: Shape, scale: Vector3, rotationMatrix: Matrix | null): void {
+	private _createBoxEmitter(particleSystem: EffectParticleSystem, shape: IShape, scale: Vector3, rotationMatrix: Matrix | null): void {
 		const boxSize = ((shape as any).size || [1, 1, 1]).map((s: number, i: number) => s * [scale.x, scale.y, scale.z][i]);
 		const minBox = new Vector3(-boxSize[0] / 2, -boxSize[1] / 2, -boxSize[2] / 2);
 		const maxBox = new Vector3(boxSize[0] / 2, boxSize[1] / 2, boxSize[2] / 2);
@@ -139,7 +139,7 @@ export class EmitterFactory {
 	/**
 	 * Creates hemisphere emitter for ParticleSystem
 	 */
-	private _createHemisphereEmitter(particleSystem: EffectParticleSystem, shape: Shape, scale: Vector3, _rotationMatrix: Matrix | null): void {
+	private _createHemisphereEmitter(particleSystem: EffectParticleSystem, shape: IShape, scale: Vector3, _rotationMatrix: Matrix | null): void {
 		const radius = ((shape as any).radius || 1) * ((scale.x + scale.y + scale.z) / 3);
 		particleSystem.createHemisphericEmitter(radius);
 	}
@@ -147,7 +147,7 @@ export class EmitterFactory {
 	/**
 	 * Creates cylinder emitter for ParticleSystem
 	 */
-	private _createCylinderEmitter(particleSystem: EffectParticleSystem, shape: Shape, scale: Vector3, rotationMatrix: Matrix | null): void {
+	private _createCylinderEmitter(particleSystem: EffectParticleSystem, shape: IShape, scale: Vector3, rotationMatrix: Matrix | null): void {
 		const radius = ((shape as any).radius || 1) * ((scale.x + scale.z) / 2);
 		const height = ((shape as any).height || 1) * scale.y;
 		const defaultDir = new Vector3(0, 1, 0);

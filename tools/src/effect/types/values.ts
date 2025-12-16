@@ -1,18 +1,18 @@
 /**
  *  value types (converted from Quarks)
  */
-export interface ConstantValue {
+export interface IConstantValue {
 	type: "ConstantValue";
 	value: number;
 }
 
-export interface IntervalValue {
+export interface IIntervalValue {
 	type: "IntervalValue";
 	min: number;
 	max: number;
 }
 
-export interface PiecewiseBezier {
+export interface IPiecewiseBezier {
 	type: "PiecewiseBezier";
 	functions: Array<{
 		function: {
@@ -24,4 +24,4 @@ export interface PiecewiseBezier {
 		start: number;
 	}>;
 }
-export type Value = ConstantValue | IntervalValue | PiecewiseBezier | number;
+export type Value = IConstantValue | IIntervalValue | IPiecewiseBezier | number;

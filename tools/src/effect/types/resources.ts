@@ -3,7 +3,7 @@ import { Color3 } from "babylonjs";
 /**
  *  Material (converted from Quarks, ready for Babylon.js)
  */
-export interface Material {
+export interface IMaterial {
 	uuid: string;
 	type?: string;
 	color?: Color3; // Converted from hex/array to Color3
@@ -18,7 +18,7 @@ export interface Material {
 /**
  *  Texture (converted from Quarks, ready for Babylon.js)
  */
-export interface Texture {
+export interface ITexture {
 	uuid: string;
 	image?: string; // Image UUID reference
 	wrapU?: number; // Converted to Babylon.js wrap mode
@@ -37,7 +37,7 @@ export interface Texture {
 /**
  *  Image (converted from Quarks, normalized URL)
  */
-export interface Image {
+export interface IImage {
 	uuid: string;
 	url: string; // Normalized URL (ready for use)
 }
@@ -45,7 +45,7 @@ export interface Image {
 /**
  *  Geometry Attribute Data
  */
-export interface GeometryAttribute {
+export interface IGeometryAttribute {
 	array: number[];
 	itemSize?: number;
 }
@@ -53,32 +53,32 @@ export interface GeometryAttribute {
 /**
  *  Geometry Index Data
  */
-export interface GeometryIndex {
+export interface IGeometryIndex {
 	array: number[];
 }
 
 /**
  *  Geometry Data (converted from Quarks, left-handed coordinate system)
  */
-export interface GeometryData {
+export interface IGeometryData {
 	attributes: {
-		position?: GeometryAttribute;
-		normal?: GeometryAttribute;
-		uv?: GeometryAttribute;
-		color?: GeometryAttribute;
+		position?: IGeometryAttribute;
+		normal?: IGeometryAttribute;
+		uv?: IGeometryAttribute;
+		color?: IGeometryAttribute;
 	};
-	index?: GeometryIndex;
+	index?: IGeometryIndex;
 }
 
 /**
  *  Geometry (converted from Quarks, ready for Babylon.js)
  */
-export interface Geometry {
+export interface IGeometry {
 	uuid: string;
 	type: "PlaneGeometry" | "BufferGeometry";
 	// For PlaneGeometry
 	width?: number;
 	height?: number;
 	// For BufferGeometry (already converted to left-handed)
-	data?: GeometryData;
+	data?: IGeometryData;
 }

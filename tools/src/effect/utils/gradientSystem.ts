@@ -5,10 +5,10 @@ import { Color4 } from "babylonjs";
  * Similar to Babylon.js native gradients but for SolidParticleSystem
  */
 export class GradientSystem<T> {
-	private gradients: Array<{ gradient: number; value: T }>;
+	private _gradients: Array<{ gradient: number; value: T }>;
 
 	constructor() {
-		this.gradients = [];
+		this._gradients = [];
 	}
 
 	/**
@@ -16,11 +16,11 @@ export class GradientSystem<T> {
 	 */
 	public addGradient(gradient: number, value: T): void {
 		// Insert in sorted order
-		const index = this.gradients.findIndex((g) => g.gradient > gradient);
+		const index = this._gradients.findIndex((g) => g.gradient > gradient);
 		if (index === -1) {
-			this.gradients.push({ gradient, value });
+			this._gradients.push({ gradient, value });
 		} else {
-			this.gradients.splice(index, 0, { gradient, value });
+			this._gradients.splice(index, 0, { gradient, value });
 		}
 	}
 
@@ -28,21 +28,21 @@ export class GradientSystem<T> {
 	 * Get interpolated value at given gradient position (0-1)
 	 */
 	public getValue(gradient: number): T | null {
-		if (this.gradients.length === 0) {
+		if (this._gradients.length === 0) {
 			return null;
 		}
 
-		if (this.gradients.length === 1) {
-			return this.gradients[0].value;
+		if (this._gradients.length === 1) {
+			return this._gradients[0].value;
 		}
 
 		// Clamp gradient to [0, 1]
 		const clampedGradient = Math.max(0, Math.min(1, gradient));
 
 		// Find the two gradients to interpolate between
-		for (let i = 0; i < this.gradients.length - 1; i++) {
-			const g1 = this.gradients[i];
-			const g2 = this.gradients[i + 1];
+		for (let i = 0; i < this._gradients.length - 1; i++) {
+			const g1 = this._gradients[i];
+			const g2 = this._gradients[i + 1];
 
 			if (clampedGradient >= g1.gradient && clampedGradient <= g2.gradient) {
 				const t = g2.gradient - g1.gradient !== 0 ? (clampedGradient - g1.gradient) / (g2.gradient - g1.gradient) : 0;
@@ -51,24 +51,24 @@ export class GradientSystem<T> {
 		}
 
 		// Clamp to first or last gradient
-		if (clampedGradient <= this.gradients[0].gradient) {
-			return this.gradients[0].value;
+		if (clampedGradient <= this._gradients[0].gradient) {
+			return this._gradients[0].value;
 		}
-		return this.gradients[this.gradients.length - 1].value;
+		return this._gradients[this._gradients.length - 1].value;
 	}
 
 	/**
 	 * Clear all gradients
 	 */
 	public clear(): void {
-		this.gradients = [];
+		this._gradients = [];
 	}
 
 	/**
 	 * Get all gradients (for debugging)
 	 */
 	public getGradients(): Array<{ gradient: number; value: T }> {
-		return [...this.gradients];
+		return [...this._gradients];
 	}
 
 	/**

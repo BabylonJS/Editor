@@ -17,7 +17,7 @@ import type {
 	OrbitOverLifeBehavior,
 } from "../types/behaviors";
 import type { Particle } from "babylonjs";
-import type { Shape } from "../types/shapes";
+import type { IShape } from "../types/shapes";
 import type { EmitterConfig, EmissionBurst } from "../types/emitter";
 import { ValueUtils } from "../utils/valueParser";
 import { CapacityCalculator } from "../utils/capacityCalculator";
@@ -273,7 +273,7 @@ export class EffectParticleSystem extends ParticleSystem implements ISystem {
 		options?: {
 			texture?: Texture;
 			blendMode?: number;
-			emitterShape?: { shape: Shape | undefined; cumulativeScale: Vector3; rotationMatrix: Matrix | null };
+			emitterShape?: { shape: IShape | undefined; cumulativeScale: Vector3; rotationMatrix: Matrix | null };
 		}
 	): void {
 		// Parse values

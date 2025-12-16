@@ -4,7 +4,7 @@ import { EditorInspectorListField } from "../../../layout/inspector/fields/list"
 import { EditorInspectorBlockField } from "../../../layout/inspector/fields/block";
 
 import { type Rotation, type EulerRotation, type AxisAngleRotation, type RandomQuatRotation, ValueUtils, type Value } from "babylonjs-editor-tools";
-import { EffectValueEditor } from "./value-editor";
+import { EffectValueEditor } from "./value";
 
 export type EffectRotationType = EulerRotation["type"] | AxisAngleRotation["type"] | RandomQuatRotation["type"];
 

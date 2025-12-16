@@ -6,7 +6,7 @@ import { waitNextAnimationFrame } from "../../../tools/tools";
 import { EffectEditorPreview } from "./preview";
 import { EffectEditorGraph } from "./graph";
 import { EffectEditorAnimation } from "./animation";
-import { EffectEditorPropertiesTab } from "./properties/properties-tab";
+import { EffectEditorPropertiesTab } from "./properties/tab";
 import { EffectEditorResources } from "./resources";
 import { IEffectEditor } from ".";
 
@@ -97,9 +97,9 @@ const layoutModel: IJsonModel = {
 							},
 							{
 								type: "tab",
-								id: "properties-emitter",
-								name: "Emitter",
-								component: "properties-emitter",
+								id: "properties-emission",
+								name: "Emission",
+								component: "properties-emission",
 								enableClose: false,
 								enableRenderOnDemand: false,
 							},
@@ -108,14 +108,6 @@ const layoutModel: IJsonModel = {
 								id: "properties-renderer",
 								name: "Renderer",
 								component: "properties-renderer",
-								enableClose: false,
-								enableRenderOnDemand: false,
-							},
-							{
-								type: "tab",
-								id: "properties-emission",
-								name: "Emission",
-								component: "properties-emission",
 								enableClose: false,
 								enableRenderOnDemand: false,
 							},
@@ -234,16 +226,6 @@ export class EffectEditorLayout extends Component<IEffectEditorLayoutProps, IEff
 							this.props.editor.graph.updateNodeNames();
 						}
 					}}
-					getNodeData={(nodeId) => this.props.editor.graph?.getNodeData(nodeId) || null}
-				/>
-			),
-			"properties-emitter": (
-				<EffectEditorPropertiesTab
-					key={`properties-emitter-${this.state.selectedNodeId || "none"}-${this.state.propertiesKey}`}
-					filePath={this.props.filePath}
-					selectedNodeId={this.state.selectedNodeId}
-					editor={this.props.editor}
-					tabType="emitter"
 					getNodeData={(nodeId) => this.props.editor.graph?.getNodeData(nodeId) || null}
 				/>
 			),

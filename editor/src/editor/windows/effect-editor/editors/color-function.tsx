@@ -1,11 +1,11 @@
 import { ReactNode } from "react";
 import { Color4, Vector3 } from "babylonjs";
 
-import { EditorInspectorColorField } from "../../../../layout/inspector/fields/color";
-import { EditorInspectorColorGradientField } from "../../../../layout/inspector/fields/gradient";
-import { EditorInspectorListField } from "../../../../layout/inspector/fields/list";
-import { EditorInspectorBlockField } from "../../../../layout/inspector/fields/block";
-import type { IGradientKey } from "../../../../../ui/gradient-picker";
+import { EditorInspectorColorField } from "../../../layout/inspector/fields/color";
+import { EditorInspectorColorGradientField } from "../../../layout/inspector/fields/gradient";
+import { EditorInspectorListField } from "../../../layout/inspector/fields/list";
+import { EditorInspectorBlockField } from "../../../layout/inspector/fields/block";
+import type { IGradientKey } from "../../../../ui/gradient-picker";
 
 export type ColorFunctionType = "ConstantColor" | "ColorRange" | "Gradient" | "RandomColor" | "RandomColorBetweenGradient";
 

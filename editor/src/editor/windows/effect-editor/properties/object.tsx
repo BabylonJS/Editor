@@ -5,7 +5,7 @@ import { EditorInspectorStringField } from "../../../layout/inspector/fields/str
 import { EditorInspectorVectorField } from "../../../layout/inspector/fields/vector";
 import { EditorInspectorSwitchField } from "../../../layout/inspector/fields/switch";
 
-import  { type EffectNode, EffectSolidParticleSystem, EffectParticleSystem } from "babylonjs-editor-tools";
+import { type EffectNode, EffectSolidParticleSystem, EffectParticleSystem } from "babylonjs-editor-tools";
 
 export interface IEffectEditorObjectPropertiesProps {
 	nodeData: EffectNode;
