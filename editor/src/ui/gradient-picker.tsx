@@ -53,7 +53,7 @@ export function GradientPicker(props: IGradientPickerProps): ReactNode {
 				const r = key.value.r * 255;
 				const g = key.value.g * 255;
 				const b = key.value.b * 255;
-				const a = ("a" in key.value ? key.value.a : 1) * 255;
+				const a = ("a" in key.value && key.value.a !== undefined ? key.value.a : 1) * 255;
 				color = `rgba(${r}, ${g}, ${b}, ${a / 255})`;
 			}
 			return `${color} ${pos}%`;
@@ -141,7 +141,8 @@ export function GradientPicker(props: IGradientPickerProps): ReactNode {
 
 			// Interpolate color at position
 			const color = interpolateColorAtPosition(sortedColorKeys, pos);
-			const newColorKeys = [...colorKeys, { pos, value: [color.r, color.g, color.b, color.a] }];
+			const newKey: IGradientKey = { pos, value: [color.r, color.g, color.b, color.a] as [number, number, number, number] };
+			const newColorKeys: IGradientKey[] = [...colorKeys, newKey];
 			const sorted = newColorKeys.sort((a, b) => (a.pos || 0) - (b.pos || 0));
 			const newIndex = sorted.findIndex((key) => key.pos === pos);
 			setSelectedKeyIndex(newIndex);

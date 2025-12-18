@@ -348,41 +348,57 @@ function renderEmissionParameters(nodeData: IEffectNode, onChange: () => void): 
 
 	const system = nodeData.system;
 
+	// Proxy for looping (targetStopDuration === 0 means looping)
+	const loopingProxy = {
+		get isLooping() {
+			return system.targetStopDuration === 0;
+		},
+		set isLooping(value: boolean) {
+			if (value) {
+				system.targetStopDuration = 0;
+			} else if (system.targetStopDuration === 0) {
+				system.targetStopDuration = 5; // Default duration
+			}
+		},
+	};
+
+	// Proxy for prewarm (preWarmCycles > 0 means prewarm enabled)
+	const prewarmProxy = {
+		get prewarm() {
+			return system.preWarmCycles > 0;
+		},
+		set prewarm(value: boolean) {
+			if (value && system.preWarmCycles === 0) {
+				system.preWarmCycles = Math.ceil((system.targetStopDuration || 5) * 60);
+				system.preWarmStepOffset = 1 / 60;
+			} else if (!value) {
+				system.preWarmCycles = 0;
+			}
+		},
+	};
+
 	return (
 		<>
-			<EditorInspectorSwitchField object={system as any} property="isLooping" label="Looping" onChange={onChange} />
-			<EditorInspectorNumberField
-				object={system as any}
-				property={"targetStopDuration" in system ? "targetStopDuration" : "duration"}
-				label="Duration"
-				min={0}
-				step={0.1}
-				onChange={onChange}
-			/>
-			<EditorInspectorSwitchField object={system as any} property="prewarm" label="Prewarm" onChange={onChange} />
-			<EditorInspectorSwitchField object={system as any} property="onlyUsedByOther" label="Only Used By Other System" onChange={onChange} />
+			<EditorInspectorSwitchField object={loopingProxy} property="isLooping" label="Looping" onChange={onChange} />
+			<EditorInspectorNumberField object={system} property="targetStopDuration" label="Duration" min={0} step={0.1} onChange={onChange} />
+			<EditorInspectorSwitchField object={prewarmProxy} property="prewarm" label="Prewarm" onChange={onChange} />
 
-			<EditorInspectorSectionField title="Emit Over Time">
-				<EffectValueEditor
-					label="Emit Over Time"
-					value={(system as any).emissionOverTime as Value | undefined}
-					onChange={(val) => {
-						(system as any).emissionOverTime = val;
-						onChange();
-					}}
-				/>
-			</EditorInspectorSectionField>
+			{/* Emit Rate (native Babylon.js property) */}
+			<EditorInspectorNumberField object={system} property="emitRate" label="Emit Rate" min={0} step={1} onChange={onChange} />
 
-			<EditorInspectorSectionField title="Emit Over Distance">
-				<EffectValueEditor
-					label="Emit Over Distance"
-					value={(system as any).emissionOverDistance as Value | undefined}
-					onChange={(val) => {
-						(system as any).emissionOverDistance = val;
-						onChange();
-					}}
-				/>
-			</EditorInspectorSectionField>
+			{/* Emit Over Distance - only for SolidParticleSystem */}
+			{system instanceof EffectSolidParticleSystem && (
+				<EditorInspectorSectionField title="Emit Over Distance">
+					<EffectValueEditor
+						label="Emit Over Distance"
+						value={(system as EffectSolidParticleSystem).emissionOverDistance as Value | undefined}
+						onChange={(val) => {
+							(system as EffectSolidParticleSystem).emissionOverDistance = val as Value;
+							onChange();
+						}}
+					/>
+				</EditorInspectorSectionField>
+			)}
 
 			{system instanceof EffectParticleSystem && (
 				<EditorInspectorBlockField>

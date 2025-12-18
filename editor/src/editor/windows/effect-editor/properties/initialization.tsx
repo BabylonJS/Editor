@@ -2,10 +2,9 @@ import { ReactNode } from "react";
 
 import { EditorInspectorBlockField } from "../../../layout/inspector/fields/block";
 
-import { type IEffectNode, EffectSolidParticleSystem, EffectParticleSystem, ValueUtils, Value, Color, Rotation } from "babylonjs-editor-tools";
+import { type IEffectNode, ValueUtils, Value, Color, Rotation } from "babylonjs-editor-tools";
 import { EffectValueEditor, type IVec3Function } from "../editors/value";
 import { EffectColorEditor } from "../editors/color";
-import { EffectRotationEditor } from "../editors/rotation";
 
 export interface IEffectEditorParticleInitializationPropertiesProps {
 	nodeData: IEffectNode;
@@ -22,150 +21,93 @@ export function EffectEditorParticleInitializationProperties(props: IEffectEdito
 
 	const system = nodeData.system;
 
-	// Helper to get/set startLife as VEffectValue for both systems
+	// Helper to get/set startLife - both systems use native minLifeTime/maxLifeTime
 	const getStartLife = (): Value | undefined => {
-		if (system instanceof EffectSolidParticleSystem) {
-			return system.startLife;
-		}
-		// For VEffectParticleSystem, convert minLifeTime/maxLifeTime to IntervalValue
-		if (system instanceof EffectParticleSystem) {
-			return { type: "IntervalValue", min: system.minLifeTime, max: system.maxLifeTime };
-		}
-		return undefined;
+		// Both systems have native minLifeTime/maxLifeTime properties
+		return { type: "IntervalValue", min: system.minLifeTime, max: system.maxLifeTime };
 	};
 
 	const setStartLife = (value: Value): void => {
-		if (system instanceof EffectSolidParticleSystem) {
-			system.startLife = value;
-		} else if (system instanceof EffectParticleSystem) {
-			const interval = ValueUtils.parseIntervalValue(value);
-			system.minLifeTime = interval.min;
-			system.maxLifeTime = interval.max;
-		}
+		const interval = ValueUtils.parseIntervalValue(value);
+		system.minLifeTime = interval.min;
+		system.maxLifeTime = interval.max;
 		onChange();
 	};
 
-	// Helper to get/set startSize as VEffectValue | IVec3Function for both systems
+	// Helper to get/set startSize - both systems use native minSize/maxSize
 	const getStartSize = (): Value | IVec3Function | undefined => {
-		if (system instanceof EffectSolidParticleSystem) {
-			return system.startSize;
-		}
-		// For VEffectParticleSystem, convert minSize/maxSize to IntervalValue
-		if (system instanceof EffectParticleSystem) {
-			return { type: "IntervalValue", min: system.minSize, max: system.maxSize };
-		}
-		return undefined;
+		// Both systems have native minSize/maxSize properties
+		return { type: "IntervalValue", min: system.minSize, max: system.maxSize };
 	};
 
 	const setStartSize = (value: Value | IVec3Function): void => {
-		if (system instanceof EffectSolidParticleSystem) {
-			// For Vec3Function, we need to handle it differently - but VEffectSolidParticleSystem doesn't support Vec3Function yet
-			// For now, convert Vec3Function to a single value
-			if (typeof value === "object" && "type" in value && value.type === "Vec3Function") {
-				const x = ValueUtils.parseConstantValue(value.x);
-				const y = ValueUtils.parseConstantValue(value.y);
-				const z = ValueUtils.parseConstantValue(value.z);
-				const avg = (x + y + z) / 3;
-				system.startSize = { type: "ConstantValue", value: avg };
-			} else {
-				system.startSize = value as Value;
-			}
-		} else if (system instanceof EffectParticleSystem) {
-			if (typeof value === "object" && "type" in value && value.type === "Vec3Function") {
-				// For Vec3Function, use average of x, y, z
-				const x = ValueUtils.parseConstantValue(value.x);
-				const y = ValueUtils.parseConstantValue(value.y);
-				const z = ValueUtils.parseConstantValue(value.z);
-				const avg = (x + y + z) / 3;
-				system.minSize = avg;
-				system.maxSize = avg;
-			} else {
-				const interval = ValueUtils.parseIntervalValue(value as Value);
-				system.minSize = interval.min;
-				system.maxSize = interval.max;
-			}
+		if (typeof value === "object" && "type" in value && value.type === "Vec3Function") {
+			// For Vec3Function, use average of x, y, z
+			const x = ValueUtils.parseConstantValue(value.x);
+			const y = ValueUtils.parseConstantValue(value.y);
+			const z = ValueUtils.parseConstantValue(value.z);
+			const avg = (x + y + z) / 3;
+			system.minSize = avg;
+			system.maxSize = avg;
+		} else {
+			const interval = ValueUtils.parseIntervalValue(value as Value);
+			system.minSize = interval.min;
+			system.maxSize = interval.max;
 		}
 		onChange();
 	};
 
-	// Helper to get/set startSpeed as VEffectValue for both systems
+	// Helper to get/set startSpeed - both systems use native minEmitPower/maxEmitPower
 	const getStartSpeed = (): Value | undefined => {
-		if (system instanceof EffectSolidParticleSystem) {
-			return system.startSpeed;
-		}
-		// For VEffectParticleSystem, convert minEmitPower/maxEmitPower to IntervalValue
-		if (system instanceof EffectParticleSystem) {
-			return { type: "IntervalValue", min: system.minEmitPower, max: system.maxEmitPower };
-		}
-		return undefined;
+		// Both systems have native minEmitPower/maxEmitPower properties
+		return { type: "IntervalValue", min: system.minEmitPower, max: system.maxEmitPower };
 	};
 
 	const setStartSpeed = (value: Value): void => {
-		if (system instanceof EffectSolidParticleSystem) {
-			system.startSpeed = value;
-		} else if (system instanceof EffectParticleSystem) {
-			const interval = ValueUtils.parseIntervalValue(value);
-			system.minEmitPower = interval.min;
-			system.maxEmitPower = interval.max;
-		}
+		const interval = ValueUtils.parseIntervalValue(value);
+		system.minEmitPower = interval.min;
+		system.maxEmitPower = interval.max;
 		onChange();
 	};
 
-	// Helper to get/set startColor as VEffectColor for both systems
+	// Helper to get/set startColor - both systems use native color1
 	const getStartColor = (): Color | undefined => {
-		if (system instanceof EffectSolidParticleSystem) {
-			return system.startColor;
-		}
-		// For VEffectParticleSystem, convert Color4 to ConstantColor
-		if (system instanceof EffectParticleSystem && system.color1) {
+		// Both systems have native color1 property
+		if (system.color1) {
 			return { type: "ConstantColor", value: [system.color1.r, system.color1.g, system.color1.b, system.color1.a] };
 		}
 		return undefined;
 	};
 
 	const setStartColor = (value: Color): void => {
-		if (system instanceof EffectSolidParticleSystem) {
-			system.startColor = value;
-		} else if (system instanceof EffectParticleSystem) {
-			const color = ValueUtils.parseConstantColor(value);
-			system.color1 = color;
-		}
+		const color = ValueUtils.parseConstantColor(value);
+		system.color1 = color;
 		onChange();
 	};
 
-	// Helper to get/set startRotation as VEffectRotation for both systems
+	// Helper to get/set startRotation - both systems use native minInitialRotation/maxInitialRotation
 	const getStartRotation = (): Rotation | undefined => {
-		if (system instanceof EffectSolidParticleSystem) {
-			return system.startRotation;
-		}
-		// For VEffectParticleSystem, convert minInitialRotation/maxInitialRotation to Euler with angleZ
-		if (system instanceof EffectParticleSystem) {
-			return {
-				type: "Euler",
-				angleZ: { type: "IntervalValue", min: system.minInitialRotation, max: system.maxInitialRotation },
-				order: "xyz",
-			};
-		}
-		return undefined;
+		// Both systems have native minInitialRotation/maxInitialRotation properties
+		return {
+			type: "Euler",
+			angleZ: { type: "IntervalValue", min: system.minInitialRotation, max: system.maxInitialRotation },
+			order: "xyz",
+		};
 	};
 
 	const setStartRotation = (value: Rotation): void => {
-		if (system instanceof EffectSolidParticleSystem) {
-			system.startRotation = value;
-		} else if (system instanceof EffectParticleSystem) {
-			// Extract angleZ from rotation for VEffectParticleSystem
-			if (typeof value === "object" && "type" in value && value.type === "Euler" && value.angleZ) {
-				const interval = ValueUtils.parseIntervalValue(value.angleZ);
-				system.minInitialRotation = interval.min;
-				system.maxInitialRotation = interval.max;
-			} else if (
-				typeof value === "number" ||
-				(typeof value === "object" && "type" in value && (value.type === "ConstantValue" || value.type === "IntervalValue" || value.type === "PiecewiseBezier"))
-			) {
-				const interval = ValueUtils.parseIntervalValue(value as Value);
-				system.minInitialRotation = interval.min;
-				system.maxInitialRotation = interval.max;
-			}
+		// Extract angleZ from rotation
+		if (typeof value === "object" && "type" in value && value.type === "Euler" && value.angleZ) {
+			const interval = ValueUtils.parseIntervalValue(value.angleZ);
+			system.minInitialRotation = interval.min;
+			system.maxInitialRotation = interval.max;
+		} else if (
+			typeof value === "number" ||
+			(typeof value === "object" && "type" in value && (value.type === "ConstantValue" || value.type === "IntervalValue" || value.type === "PiecewiseBezier"))
+		) {
+			const interval = ValueUtils.parseIntervalValue(value as Value);
+			system.minInitialRotation = interval.min;
+			system.maxInitialRotation = interval.max;
 		}
 		onChange();
 	};
@@ -200,38 +142,28 @@ export function EffectEditorParticleInitializationProperties(props: IEffectEdito
 
 			<EditorInspectorBlockField>
 				<div className="px-2">Start Rotation</div>
-				{system instanceof EffectSolidParticleSystem ? (
-					<EffectRotationEditor value={getStartRotation()} onChange={setStartRotation} />
-				) : (
-					(() => {
-						// For VEffectParticleSystem, extract angleZ from rotation
-						const rotation = getStartRotation();
-						const angleZ =
-							rotation && typeof rotation === "object" && "type" in rotation && rotation.type === "Euler" && rotation.angleZ
-								? rotation.angleZ
-								: rotation &&
-									  (typeof rotation === "number" ||
-											(typeof rotation === "object" &&
-												"type" in rotation &&
-												(rotation.type === "ConstantValue" || rotation.type === "IntervalValue" || rotation.type === "PiecewiseBezier")))
-									? (rotation as Value)
-									: { type: "IntervalValue" as const, min: 0, max: 0 };
-						return (
-							<EffectValueEditor
-								value={angleZ}
-								onChange={(newAngleZ) => {
-									setStartRotation({
-										type: "Euler",
-										angleZ: newAngleZ as Value,
-										order: "xyz",
-									});
-								}}
-								availableTypes={["ConstantValue", "IntervalValue", "PiecewiseBezier"]}
-								step={0.1}
-							/>
-						);
-					})()
-				)}
+				{(() => {
+					// Both systems use native minInitialRotation/maxInitialRotation
+					const rotation = getStartRotation();
+					const angleZ =
+						rotation && typeof rotation === "object" && "type" in rotation && rotation.type === "Euler" && rotation.angleZ
+							? rotation.angleZ
+							: { type: "IntervalValue" as const, min: 0, max: 0 };
+					return (
+						<EffectValueEditor
+							value={angleZ}
+							onChange={(newAngleZ) => {
+								setStartRotation({
+									type: "Euler",
+									angleZ: newAngleZ as Value,
+									order: "xyz",
+								});
+							}}
+							availableTypes={["ConstantValue", "IntervalValue", "PiecewiseBezier"]}
+							step={0.1}
+						/>
+					);
+				})()}
 			</EditorInspectorBlockField>
 		</>
 	);

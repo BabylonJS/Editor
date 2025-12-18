@@ -41,8 +41,6 @@ import type {
 	ISizeBySpeedBehavior,
 } from "../types/behaviors";
 import type { Value } from "../types/values";
-import type { Color } from "../types/colors";
-import type { Rotation } from "../types/rotations";
 import type { IGradientKey } from "../types/gradients";
 import type { IShape } from "../types/shapes";
 import { Logger } from "../loggers/logger";
@@ -280,42 +278,72 @@ export class DataConverter {
 			isLocal,
 			disposeOnStop,
 			// Other properties
-			onlyUsedByOther: IQuarksConfig.onlyUsedByOther,
-			instancingGeometry: IQuarksConfig.instancingGeometry,
+			instancingGeometry: IQuarksConfig.instancingGeometry, // Custom geometry for SPS
 			renderOrder: IQuarksConfig.renderOrder,
-			rendererEmitterSettings: IQuarksConfig.rendererEmitterSettings,
-			material: IQuarksConfig.material,
 			layers: IQuarksConfig.layers,
+			// Sprite animation (ParticleSystem only)
 			uTileCount: IQuarksConfig.uTileCount,
 			vTileCount: IQuarksConfig.vTileCount,
-			blendTiles: IQuarksConfig.blendTiles,
-			softParticles: IQuarksConfig.softParticles,
-			softFarFade: IQuarksConfig.softFarFade,
-			softNearFade: IQuarksConfig.softNearFade,
 		};
 
-		// Convert values
+		// === Convert Quarks values to native Babylon.js properties ===
+
+		// Convert startLife → minLifeTime, maxLifeTime, lifeTimeGradients
 		if (IQuarksConfig.startLife !== undefined) {
-			Config.startLife = this._convertValue(IQuarksConfig.startLife);
+			const lifeResult = this._convertValueToMinMax(IQuarksConfig.startLife);
+			Config.minLifeTime = lifeResult.min;
+			Config.maxLifeTime = lifeResult.max;
+			if (lifeResult.gradients) {
+				Config.lifeTimeGradients = lifeResult.gradients;
+			}
 		}
+
+		// Convert startSpeed → minEmitPower, maxEmitPower
 		if (IQuarksConfig.startSpeed !== undefined) {
-			Config.startSpeed = this._convertValue(IQuarksConfig.startSpeed);
+			const speedResult = this._convertValueToMinMax(IQuarksConfig.startSpeed);
+			Config.minEmitPower = speedResult.min;
+			Config.maxEmitPower = speedResult.max;
 		}
-		if (IQuarksConfig.startRotation !== undefined) {
-			Config.startRotation = this._convertRotation(IQuarksConfig.startRotation);
-		}
+
+		// Convert startSize → minSize, maxSize, startSizeGradients
 		if (IQuarksConfig.startSize !== undefined) {
-			Config.startSize = this._convertValue(IQuarksConfig.startSize);
+			const sizeResult = this._convertValueToMinMax(IQuarksConfig.startSize);
+			Config.minSize = sizeResult.min;
+			Config.maxSize = sizeResult.max;
+			if (sizeResult.gradients) {
+				Config.startSizeGradients = sizeResult.gradients;
+			}
 		}
+
+		// Convert startRotation → minInitialRotation, maxInitialRotation
+		if (IQuarksConfig.startRotation !== undefined) {
+			const rotResult = this._convertRotationToMinMax(IQuarksConfig.startRotation);
+			Config.minInitialRotation = rotResult.min;
+			Config.maxInitialRotation = rotResult.max;
+		}
+
+		// Convert startColor → color1, color2
 		if (IQuarksConfig.startColor !== undefined) {
-			Config.startColor = this._convertColor(IQuarksConfig.startColor);
+			const colorResult = this._convertColorToColor4(IQuarksConfig.startColor);
+			Config.color1 = colorResult.color1;
+			Config.color2 = colorResult.color2;
 		}
+
+		// Convert emissionOverTime → emitRate, emitRateGradients
 		if (IQuarksConfig.emissionOverTime !== undefined) {
-			Config.emissionOverTime = this._convertValue(IQuarksConfig.emissionOverTime);
+			const emitResult = this._convertValueToMinMax(IQuarksConfig.emissionOverTime);
+			Config.emitRate = emitResult.min; // Use min as base rate
+			if (emitResult.gradients) {
+				Config.emitRateGradients = emitResult.gradients;
+			}
 		}
+
+		// emissionOverDistance - only for SPS, keep as Value
 		if (IQuarksConfig.emissionOverDistance !== undefined) {
 			Config.emissionOverDistance = this._convertValue(IQuarksConfig.emissionOverDistance);
 		}
+
+		// startTileIndex - for sprite animation (ParticleSystem only)
 		if (IQuarksConfig.startTileIndex !== undefined) {
 			Config.startTileIndex = this._convertValue(IQuarksConfig.startTileIndex);
 		}
@@ -414,54 +442,122 @@ export class DataConverter {
 	}
 
 	/**
-	 * Convert IQuarks color to  color
+	 * Convert IQuarks value to native Babylon.js min/max + gradients
+	 * - ConstantValue → min = max = value
+	 * - IntervalValue → min = a, max = b
+	 * - PiecewiseBezier → gradients array
 	 */
-	private _convertColor(IQuarksColor: IQuarksColor): Color {
-		if (typeof IQuarksColor === "string" || Array.isArray(IQuarksColor)) {
-			return IQuarksColor;
+	private _convertValueToMinMax(IQuarksValue: IQuarksValue): { min: number; max: number; gradients?: Array<{ gradient: number; factor: number; factor2?: number }> } {
+		if (typeof IQuarksValue === "number") {
+			return { min: IQuarksValue, max: IQuarksValue };
 		}
-		if (IQuarksColor.type === "ConstantColor") {
-			if (IQuarksColor.value && Array.isArray(IQuarksColor.value)) {
-				return {
-					type: "ConstantColor",
-					value: IQuarksColor.value,
-				};
+		if (IQuarksValue.type === "ConstantValue") {
+			return { min: IQuarksValue.value, max: IQuarksValue.value };
+		}
+		if (IQuarksValue.type === "IntervalValue") {
+			return { min: IQuarksValue.a ?? 0, max: IQuarksValue.b ?? 0 };
+		}
+		if (IQuarksValue.type === "PiecewiseBezier" && IQuarksValue.functions) {
+			// Convert PiecewiseBezier to gradients
+			const gradients: Array<{ gradient: number; factor: number; factor2?: number }> = [];
+			let minVal = Infinity;
+			let maxVal = -Infinity;
+
+			for (const func of IQuarksValue.functions) {
+				const startTime = func.start;
+				// Evaluate bezier at start and end points
+				const startValue = this._evaluateBezierAt(func.function, 0);
+				const endValue = this._evaluateBezierAt(func.function, 1);
+
+				gradients.push({ gradient: startTime, factor: startValue });
+
+				// Track min/max for fallback
+				minVal = Math.min(minVal, startValue, endValue);
+				maxVal = Math.max(maxVal, startValue, endValue);
 			}
-			if (IQuarksColor.color) {
-				return {
-					type: "ConstantColor",
-					value: [IQuarksColor.color.r || 0, IQuarksColor.color.g || 0, IQuarksColor.color.b || 0, IQuarksColor.color.a !== undefined ? IQuarksColor.color.a : 1],
-				};
+
+			// Add final point at gradient 1.0 if not present
+			if (gradients.length > 0 && gradients[gradients.length - 1].gradient < 1) {
+				const lastFunc = IQuarksValue.functions[IQuarksValue.functions.length - 1];
+				const endValue = this._evaluateBezierAt(lastFunc.function, 1);
+				gradients.push({ gradient: 1, factor: endValue });
 			}
-			// Fallback: return default color if neither value nor color is present
+
 			return {
-				type: "ConstantColor",
-				value: [1, 1, 1, 1],
+				min: minVal === Infinity ? 1 : minVal,
+				max: maxVal === -Infinity ? 1 : maxVal,
+				gradients: gradients.length > 0 ? gradients : undefined,
 			};
 		}
-		return IQuarksColor as Color;
+		return { min: 1, max: 1 };
 	}
 
 	/**
-	 * Convert IQuarks rotation to  rotation
+	 * Evaluate bezier curve at time t
+	 * Bezier format: { p0, p1, p2, p3 } for cubic bezier
 	 */
-	private _convertRotation(IQuarksRotation: IQuarksRotation): Rotation {
-		if (
-			typeof IQuarksRotation === "number" ||
-			(typeof IQuarksRotation === "object" && IQuarksRotation !== null && "type" in IQuarksRotation && IQuarksRotation.type !== "Euler")
-		) {
-			return this._convertValue(IQuarksRotation as IQuarksValue);
+	private _evaluateBezierAt(bezier: { p0: number; p1: number; p2: number; p3: number }, t: number): number {
+		const { p0, p1, p2, p3 } = bezier;
+		const t2 = t * t;
+		const t3 = t2 * t;
+		const mt = 1 - t;
+		const mt2 = mt * mt;
+		const mt3 = mt2 * mt;
+		return mt3 * p0 + 3 * mt2 * t * p1 + 3 * mt * t2 * p2 + t3 * p3;
+	}
+
+	/**
+	 * Convert IQuarks rotation to native min/max radians
+	 */
+	private _convertRotationToMinMax(IQuarksRotation: IQuarksRotation): { min: number; max: number } {
+		if (typeof IQuarksRotation === "number") {
+			return { min: IQuarksRotation, max: IQuarksRotation };
 		}
-		if (typeof IQuarksRotation === "object" && IQuarksRotation !== null && "type" in IQuarksRotation && IQuarksRotation.type === "Euler") {
-			return {
-				type: "Euler",
-				angleX: IQuarksRotation.angleX !== undefined ? this._convertValue(IQuarksRotation.angleX) : undefined,
-				angleY: IQuarksRotation.angleY !== undefined ? this._convertValue(IQuarksRotation.angleY) : undefined,
-				angleZ: IQuarksRotation.angleZ !== undefined ? this._convertValue(IQuarksRotation.angleZ) : undefined,
-				order: (IQuarksRotation as any).order || "xyz", // Default to xyz if not specified
-			};
+		if (typeof IQuarksRotation === "object" && IQuarksRotation !== null && "type" in IQuarksRotation) {
+			if (IQuarksRotation.type === "ConstantValue") {
+				const val = (IQuarksRotation as any).value ?? 0;
+				return { min: val, max: val };
+			}
+			if (IQuarksRotation.type === "IntervalValue") {
+				return { min: (IQuarksRotation as any).a ?? 0, max: (IQuarksRotation as any).b ?? 0 };
+			}
 		}
-		return this._convertValue(IQuarksRotation as IQuarksValue);
+		return { min: 0, max: 0 };
+	}
+
+	/**
+	 * Convert IQuarks color to native Babylon.js Color4 (color1, color2)
+	 */
+	private _convertColorToColor4(IQuarksColor: IQuarksColor): { color1: import("babylonjs").Color4; color2: import("babylonjs").Color4 } {
+		const { Color4 } = require("babylonjs");
+
+		if (Array.isArray(IQuarksColor)) {
+			const c = new Color4(IQuarksColor[0] || 1, IQuarksColor[1] || 1, IQuarksColor[2] || 1, IQuarksColor[3] ?? 1);
+			return { color1: c, color2: c };
+		}
+
+		if (typeof IQuarksColor === "object" && IQuarksColor !== null && "type" in IQuarksColor) {
+			if (IQuarksColor.type === "ConstantColor") {
+				if (IQuarksColor.value && Array.isArray(IQuarksColor.value)) {
+					const c = new Color4(IQuarksColor.value[0] || 1, IQuarksColor.value[1] || 1, IQuarksColor.value[2] || 1, IQuarksColor.value[3] ?? 1);
+					return { color1: c, color2: c };
+				}
+				if (IQuarksColor.color) {
+					const c = new Color4(IQuarksColor.color.r || 1, IQuarksColor.color.g || 1, IQuarksColor.color.b || 1, IQuarksColor.color.a ?? 1);
+					return { color1: c, color2: c };
+				}
+			}
+			// Handle RandomColor (interpolation between two colors)
+			const anyColor = IQuarksColor as any;
+			if (anyColor.type === "RandomColor" && anyColor.a && anyColor.b) {
+				const color1 = new Color4(anyColor.a[0] || 1, anyColor.a[1] || 1, anyColor.a[2] || 1, anyColor.a[3] ?? 1);
+				const color2 = new Color4(anyColor.b[0] || 1, anyColor.b[1] || 1, anyColor.b[2] || 1, anyColor.b[3] ?? 1);
+				return { color1, color2 };
+			}
+		}
+
+		// Default white
+		return { color1: new Color4(1, 1, 1, 1), color2: new Color4(1, 1, 1, 1) };
 	}
 
 	/**
