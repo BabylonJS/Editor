@@ -202,33 +202,33 @@ export class SystemFactory {
 	 * Apply common native properties to both ParticleSystem and SolidParticleSystem
 	 */
 	private _applyCommonProperties(system: EffectParticleSystem | EffectSolidParticleSystem, config: IParticleSystemConfig): void {
-		if (config.minSize !== undefined) system.minSize = config.minSize;
-		if (config.maxSize !== undefined) system.maxSize = config.maxSize;
-		if (config.minLifeTime !== undefined) system.minLifeTime = config.minLifeTime;
-		if (config.maxLifeTime !== undefined) system.maxLifeTime = config.maxLifeTime;
-		if (config.minEmitPower !== undefined) system.minEmitPower = config.minEmitPower;
-		if (config.maxEmitPower !== undefined) system.maxEmitPower = config.maxEmitPower;
-		if (config.emitRate !== undefined) system.emitRate = config.emitRate;
-		if (config.targetStopDuration !== undefined) system.targetStopDuration = config.targetStopDuration;
-		if (config.manualEmitCount !== undefined) system.manualEmitCount = config.manualEmitCount;
-		if (config.preWarmCycles !== undefined) system.preWarmCycles = config.preWarmCycles;
-		if (config.preWarmStepOffset !== undefined) system.preWarmStepOffset = config.preWarmStepOffset;
-		if (config.color1 !== undefined) system.color1 = config.color1;
-		if (config.color2 !== undefined) system.color2 = config.color2;
-		if (config.colorDead !== undefined) system.colorDead = config.colorDead;
-		if (config.minInitialRotation !== undefined) system.minInitialRotation = config.minInitialRotation;
-		if (config.maxInitialRotation !== undefined) system.maxInitialRotation = config.maxInitialRotation;
-		if (config.isLocal !== undefined) system.isLocal = config.isLocal;
-		if (config.disposeOnStop !== undefined) system.disposeOnStop = config.disposeOnStop;
-		if (config.gravity !== undefined) system.gravity = config.gravity;
-		if (config.noiseStrength !== undefined) system.noiseStrength = config.noiseStrength;
-		if (config.updateSpeed !== undefined) system.updateSpeed = config.updateSpeed;
-		if (config.minAngularSpeed !== undefined) system.minAngularSpeed = config.minAngularSpeed;
-		if (config.maxAngularSpeed !== undefined) system.maxAngularSpeed = config.maxAngularSpeed;
-		if (config.minScaleX !== undefined) system.minScaleX = config.minScaleX;
-		if (config.maxScaleX !== undefined) system.maxScaleX = config.maxScaleX;
-		if (config.minScaleY !== undefined) system.minScaleY = config.minScaleY;
-		if (config.maxScaleY !== undefined) system.maxScaleY = config.maxScaleY;
+		if (config.minSize !== undefined) {system.minSize = config.minSize;}
+		if (config.maxSize !== undefined) {system.maxSize = config.maxSize;}
+		if (config.minLifeTime !== undefined) {system.minLifeTime = config.minLifeTime;}
+		if (config.maxLifeTime !== undefined) {system.maxLifeTime = config.maxLifeTime;}
+		if (config.minEmitPower !== undefined) {system.minEmitPower = config.minEmitPower;}
+		if (config.maxEmitPower !== undefined) {system.maxEmitPower = config.maxEmitPower;}
+		if (config.emitRate !== undefined) {system.emitRate = config.emitRate;}
+		if (config.targetStopDuration !== undefined) {system.targetStopDuration = config.targetStopDuration;}
+		if (config.manualEmitCount !== undefined) {system.manualEmitCount = config.manualEmitCount;}
+		if (config.preWarmCycles !== undefined) {system.preWarmCycles = config.preWarmCycles;}
+		if (config.preWarmStepOffset !== undefined) {system.preWarmStepOffset = config.preWarmStepOffset;}
+		if (config.color1 !== undefined) {system.color1 = config.color1;}
+		if (config.color2 !== undefined) {system.color2 = config.color2;}
+		if (config.colorDead !== undefined) {system.colorDead = config.colorDead;}
+		if (config.minInitialRotation !== undefined) {system.minInitialRotation = config.minInitialRotation;}
+		if (config.maxInitialRotation !== undefined) {system.maxInitialRotation = config.maxInitialRotation;}
+		if (config.isLocal !== undefined) {system.isLocal = config.isLocal;}
+		if (config.disposeOnStop !== undefined) {system.disposeOnStop = config.disposeOnStop;}
+		if (config.gravity !== undefined) {system.gravity = config.gravity;}
+		if (config.noiseStrength !== undefined) {system.noiseStrength = config.noiseStrength;}
+		if (config.updateSpeed !== undefined) {system.updateSpeed = config.updateSpeed;}
+		if (config.minAngularSpeed !== undefined) {system.minAngularSpeed = config.minAngularSpeed;}
+		if (config.maxAngularSpeed !== undefined) {system.maxAngularSpeed = config.maxAngularSpeed;}
+		if (config.minScaleX !== undefined) {system.minScaleX = config.minScaleX;}
+		if (config.maxScaleX !== undefined) {system.maxScaleX = config.maxScaleX;}
+		if (config.minScaleY !== undefined) {system.minScaleY = config.minScaleY;}
+		if (config.maxScaleY !== undefined) {system.maxScaleY = config.maxScaleY;}
 	}
 
 	/**
