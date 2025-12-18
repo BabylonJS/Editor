@@ -15,6 +15,9 @@ import {
 	EffectParticleSystem,
 	SolidSphereParticleEmitter,
 	SolidConeParticleEmitter,
+	SolidBoxParticleEmitter,
+	SolidHemisphericParticleEmitter,
+	SolidCylinderParticleEmitter,
 	Value,
 } from "babylonjs-editor-tools";
 import { EffectValueEditor } from "../editors/value";
@@ -35,14 +38,45 @@ function renderSolidParticleSystemEmitter(system: EffectSolidParticleSystem, onC
 		SolidPointParticleEmitter: "point",
 		SolidSphereParticleEmitter: "sphere",
 		SolidConeParticleEmitter: "cone",
+		SolidBoxParticleEmitter: "box",
+		SolidHemisphericParticleEmitter: "hemisphere",
+		SolidCylinderParticleEmitter: "cylinder",
 	};
 
 	const currentType = emitterTypeMap[emitterType] || "point";
 	const emitterTypes = [
 		{ text: "Point", value: "point" },
+		{ text: "Box", value: "box" },
 		{ text: "Sphere", value: "sphere" },
 		{ text: "Cone", value: "cone" },
+		{ text: "Hemisphere", value: "hemisphere" },
+		{ text: "Cylinder", value: "cylinder" },
 	];
+
+	// Helper to get current values from various emitter types
+	const getRadius = (): number => {
+		if (emitter instanceof SolidSphereParticleEmitter || emitter instanceof SolidConeParticleEmitter) {
+			return emitter.radius;
+		}
+		if (emitter instanceof SolidHemisphericParticleEmitter || emitter instanceof SolidCylinderParticleEmitter) {
+			return emitter.radius;
+		}
+		return 1;
+	};
+
+	const getRadiusRange = (): number => {
+		if (emitter instanceof SolidHemisphericParticleEmitter || emitter instanceof SolidCylinderParticleEmitter) {
+			return emitter.radiusRange;
+		}
+		return 1;
+	};
+
+	const getDirectionRandomizer = (): number => {
+		if (emitter instanceof SolidHemisphericParticleEmitter || emitter instanceof SolidCylinderParticleEmitter) {
+			return emitter.directionRandomizer;
+		}
+		return 0;
+	};
 
 	return (
 		<>
@@ -52,20 +86,32 @@ function renderSolidParticleSystemEmitter(system: EffectSolidParticleSystem, onC
 				label="Shape"
 				items={emitterTypes.map((t) => ({ text: t.text, value: t.value }))}
 				onChange={(value) => {
-					const currentRadius = emitter instanceof SolidSphereParticleEmitter || emitter instanceof SolidConeParticleEmitter ? emitter.radius : 1;
+					const currentRadius = getRadius();
 					const currentArc = emitter instanceof SolidSphereParticleEmitter || emitter instanceof SolidConeParticleEmitter ? emitter.arc : Math.PI * 2;
 					const currentThickness = emitter instanceof SolidSphereParticleEmitter || emitter instanceof SolidConeParticleEmitter ? emitter.thickness : 1;
 					const currentAngle = emitter instanceof SolidConeParticleEmitter ? emitter.angle : Math.PI / 6;
+					const currentHeight = emitter instanceof SolidCylinderParticleEmitter ? emitter.height : 1;
+					const currentRadiusRange = getRadiusRange();
+					const currentDirRandomizer = getDirectionRandomizer();
 
 					switch (value) {
 						case "point":
 							system.createPointEmitter();
+							break;
+						case "box":
+							system.createBoxEmitter();
 							break;
 						case "sphere":
 							system.createSphereEmitter(currentRadius, currentArc, currentThickness);
 							break;
 						case "cone":
 							system.createConeEmitter(currentRadius, currentArc, currentThickness, currentAngle);
+							break;
+						case "hemisphere":
+							system.createHemisphericEmitter(currentRadius, currentRadiusRange, currentDirRandomizer);
+							break;
+						case "cylinder":
+							system.createCylinderEmitter(currentRadius, currentHeight, currentRadiusRange, currentDirRandomizer);
 							break;
 					}
 					onChange();
@@ -86,6 +132,38 @@ function renderSolidParticleSystemEmitter(system: EffectSolidParticleSystem, onC
 					<EditorInspectorNumberField object={emitter} property="arc" label="Arc" min={0} max={Math.PI * 2} step={0.1} onChange={onChange} />
 					<EditorInspectorNumberField object={emitter} property="thickness" label="Thickness" min={0} max={1} step={0.01} onChange={onChange} />
 					<EditorInspectorNumberField object={emitter} property="angle" label="Angle" min={0} max={Math.PI} step={0.1} onChange={onChange} />
+				</>
+			)}
+
+			{emitter instanceof SolidBoxParticleEmitter && (
+				<>
+					<EditorInspectorBlockField>
+						<div className="px-2">Direction</div>
+						<EditorInspectorVectorField grayLabel object={emitter} property="direction1" label="Min" onChange={onChange} />
+						<EditorInspectorVectorField grayLabel object={emitter} property="direction2" label="Max" onChange={onChange} />
+					</EditorInspectorBlockField>
+					<EditorInspectorBlockField>
+						<div className="px-2">Emit Box</div>
+						<EditorInspectorVectorField grayLabel object={emitter} property="minEmitBox" label="Min" onChange={onChange} />
+						<EditorInspectorVectorField grayLabel object={emitter} property="maxEmitBox" label="Max" onChange={onChange} />
+					</EditorInspectorBlockField>
+				</>
+			)}
+
+			{emitter instanceof SolidHemisphericParticleEmitter && (
+				<>
+					<EditorInspectorNumberField object={emitter} property="radius" label="Radius" min={0} step={0.1} onChange={onChange} />
+					<EditorInspectorNumberField object={emitter} property="radiusRange" label="Radius Range" min={0} max={1} step={0.01} onChange={onChange} />
+					<EditorInspectorNumberField object={emitter} property="directionRandomizer" label="Direction Randomizer" min={0} max={1} step={0.01} onChange={onChange} />
+				</>
+			)}
+
+			{emitter instanceof SolidCylinderParticleEmitter && (
+				<>
+					<EditorInspectorNumberField object={emitter} property="radius" label="Radius" min={0} step={0.1} onChange={onChange} />
+					<EditorInspectorNumberField object={emitter} property="height" label="Height" min={0} step={0.1} onChange={onChange} />
+					<EditorInspectorNumberField object={emitter} property="radiusRange" label="Radius Range" min={0} max={1} step={0.01} onChange={onChange} />
+					<EditorInspectorNumberField object={emitter} property="directionRandomizer" label="Direction Randomizer" min={0} max={1} step={0.01} onChange={onChange} />
 				</>
 			)}
 		</>
@@ -398,16 +476,6 @@ function renderEmissionParameters(nodeData: IEffectNode, onChange: () => void): 
 						}}
 					/>
 				</EditorInspectorSectionField>
-			)}
-
-			{system instanceof EffectParticleSystem && (
-				<EditorInspectorBlockField>
-					<div className="px-2">Emit Power</div>
-					<div className="flex items-center">
-						<EditorInspectorNumberField grayLabel object={system} property="minEmitPower" label="Min" min={0} onChange={onChange} />
-						<EditorInspectorNumberField grayLabel object={system} property="maxEmitPower" label="Max" min={0} onChange={onChange} />
-					</div>
-				</EditorInspectorBlockField>
 			)}
 
 			{renderBursts(system as any, onChange)}
