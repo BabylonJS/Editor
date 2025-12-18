@@ -1,4 +1,4 @@
-import { Scene, Tools, IDisposable, TransformNode, MeshBuilder, Texture, AbstractMesh } from "babylonjs";
+import { Scene, Tools, IDisposable, TransformNode, MeshBuilder, Texture, Color4, AbstractMesh } from "babylonjs";
 import type { IQuarksJSON } from "./types/quarksTypes";
 import type { ILoaderOptions } from "./types/loader";
 import { Parser } from "./parsers/parser";
@@ -6,7 +6,6 @@ import { EffectParticleSystem } from "./systems/effectParticleSystem";
 import { EffectSolidParticleSystem } from "./systems/effectSolidParticleSystem";
 import type { IGroup, IEmitter, IData } from "./types/hierarchy";
 import type { IParticleSystemConfig } from "./types/emitter";
-import { Color4 } from "babylonjs";
 import { isSystem } from "./types/system";
 
 /**
@@ -669,24 +668,24 @@ export class Effect implements IDisposable {
 		system.name = uniqueName;
 		system.emitter = parent.group as AbstractMesh;
 		// === Assign native properties (shared by both systems) ===
-		if (config.minSize !== undefined) system.minSize = config.minSize;
-		if (config.maxSize !== undefined) system.maxSize = config.maxSize;
-		if (config.minLifeTime !== undefined) system.minLifeTime = config.minLifeTime;
-		if (config.maxLifeTime !== undefined) system.maxLifeTime = config.maxLifeTime;
-		if (config.minEmitPower !== undefined) system.minEmitPower = config.minEmitPower;
-		if (config.maxEmitPower !== undefined) system.maxEmitPower = config.maxEmitPower;
-		if (config.emitRate !== undefined) system.emitRate = config.emitRate;
-		if (config.targetStopDuration !== undefined) system.targetStopDuration = config.targetStopDuration;
-		if (config.manualEmitCount !== undefined) system.manualEmitCount = config.manualEmitCount;
-		if (config.preWarmCycles !== undefined) system.preWarmCycles = config.preWarmCycles;
-		if (config.preWarmStepOffset !== undefined) system.preWarmStepOffset = config.preWarmStepOffset;
-		if (config.color1 !== undefined) system.color1 = config.color1;
-		if (config.color2 !== undefined) system.color2 = config.color2;
-		if (config.colorDead !== undefined) system.colorDead = config.colorDead;
-		if (config.minInitialRotation !== undefined) system.minInitialRotation = config.minInitialRotation;
-		if (config.maxInitialRotation !== undefined) system.maxInitialRotation = config.maxInitialRotation;
-		if (config.isLocal !== undefined) system.isLocal = config.isLocal;
-		if (config.disposeOnStop !== undefined) system.disposeOnStop = config.disposeOnStop;
+		if (config.minSize !== undefined) {system.minSize = config.minSize;}
+		if (config.maxSize !== undefined) {system.maxSize = config.maxSize;}
+		if (config.minLifeTime !== undefined) {system.minLifeTime = config.minLifeTime;}
+		if (config.maxLifeTime !== undefined) {system.maxLifeTime = config.maxLifeTime;}
+		if (config.minEmitPower !== undefined) {system.minEmitPower = config.minEmitPower;}
+		if (config.maxEmitPower !== undefined) {system.maxEmitPower = config.maxEmitPower;}
+		if (config.emitRate !== undefined) {system.emitRate = config.emitRate;}
+		if (config.targetStopDuration !== undefined) {system.targetStopDuration = config.targetStopDuration;}
+		if (config.manualEmitCount !== undefined) {system.manualEmitCount = config.manualEmitCount;}
+		if (config.preWarmCycles !== undefined) {system.preWarmCycles = config.preWarmCycles;}
+		if (config.preWarmStepOffset !== undefined) {system.preWarmStepOffset = config.preWarmStepOffset;}
+		if (config.color1 !== undefined) {system.color1 = config.color1;}
+		if (config.color2 !== undefined) {system.color2 = config.color2;}
+		if (config.colorDead !== undefined) {system.colorDead = config.colorDead;}
+		if (config.minInitialRotation !== undefined) {system.minInitialRotation = config.minInitialRotation;}
+		if (config.maxInitialRotation !== undefined) {system.maxInitialRotation = config.maxInitialRotation;}
+		if (config.isLocal !== undefined) {system.isLocal = config.isLocal;}
+		if (config.disposeOnStop !== undefined) {system.disposeOnStop = config.disposeOnStop;}
 
 		// === Apply gradients (shared by both systems) ===
 		if (config.startSizeGradients) {
