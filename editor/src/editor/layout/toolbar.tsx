@@ -265,7 +265,7 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 	}
 
 	private _handleOpenFXEditor(): void {
-		ipcRenderer.send("window:open", "build/src/editor/windows/fx-editor", {
+		ipcRenderer.send("window:open", "build/src/editor/windows/effect-editor", {
 			projectConfiguration: { ...projectConfiguration },
 		});
 	}
