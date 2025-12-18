@@ -1,9 +1,9 @@
 import { Component, ReactNode, MouseEvent } from "react";
-import { Button } from "../../../../../ui/shadcn/ui/button";
-import { EditorInspectorNumberField } from "../../../../layout/inspector/fields/number";
-import { EditorInspectorBlockField } from "../../../../layout/inspector/fields/block";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../../../../ui/shadcn/ui/dropdown-menu";
+import { EditorInspectorNumberField } from "../../../layout/inspector/fields/number";
+import { EditorInspectorBlockField } from "../../../layout/inspector/fields/block";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../../../ui/shadcn/ui/dropdown-menu";
 import { HiOutlineArrowPath } from "react-icons/hi2";
+import { Button } from "../../../../ui/shadcn/ui/button";
 
 export interface IBezierCurve {
 	p0: number;

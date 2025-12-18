@@ -75,21 +75,16 @@ export interface IParticleSystemConfig {
 	shape?: IShape;
 	emissionBursts?: IEmissionBurst[];
 	emissionOverDistance?: Value; // For solid system only
-	onlyUsedByOther?: boolean;
-	instancingGeometry?: string;
+	instancingGeometry?: string; // Custom geometry ID for SPS
 	renderOrder?: number;
-	rendererEmitterSettings?: Record<string, unknown>;
-	material?: string;
 	layers?: number;
 	isBillboardBased?: boolean;
 	billboardMode?: number;
+	// Sprite animation (ParticleSystem only)
 	startTileIndex?: Value;
 	uTileCount?: number;
 	vTileCount?: number;
-	blendTiles?: boolean;
-	softParticles?: boolean;
-	softFarFade?: number;
-	softNearFade?: number;
+	// Behaviors
 	behaviors?: Behavior[];
 }
 

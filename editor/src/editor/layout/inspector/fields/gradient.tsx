@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Button, Popover } from "@blueprintjs/core";
-import { Color4 } from "babylonjs";
 import { GradientPicker, type IGradientKey } from "../../../../ui/gradient-picker";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../../../ui/shadcn/ui/tooltip";
 import { MdOutlineInfo } from "react-icons/md";
@@ -57,7 +56,7 @@ export function EditorInspectorColorGradientField(props: IEditorInspectorColorGr
 				const r = key.value.r * 255;
 				const g = key.value.g * 255;
 				const b = key.value.b * 255;
-				const a = ("a" in key.value ? key.value.a : 1) * 255;
+				const a = ("a" in key.value && key.value.a !== undefined ? key.value.a : 1) * 255;
 				color = `rgba(${r}, ${g}, ${b}, ${a / 255})`;
 			}
 			return `${color} ${pos}%`;

@@ -25,7 +25,6 @@ import { EditorGradientMaterialInspector } from "../../../layout/inspector/mater
 
 import { type IEffectNode, EffectSolidParticleSystem, EffectParticleSystem } from "babylonjs-editor-tools";
 import { IEffectEditor } from "..";
-import { EffectValueEditor } from "../editors/value";
 import { CellMaterial, FireMaterial, GradientMaterial, GridMaterial, LavaMaterial, NormalMaterial, SkyMaterial, TriPlanarMaterial, WaterMaterial } from "babylonjs-materials";
 
 export interface IEffectEditorParticleRendererPropertiesProps {
@@ -82,21 +81,18 @@ export class EffectEditorParticleRendererProperties extends Component<IEffectEdi
 					</>
 				)}
 
-				{/* World Space */}
-				{isEffectParticleSystem &&
-					(() => {
-						// Для VEffectParticleSystem, worldSpace = !isLocal
-						const proxy = {
-							get worldSpace() {
-								return !system.isLocal;
-							},
-							set worldSpace(value: boolean) {
-								system.isLocal = !value;
-							},
-						};
-						return <EditorInspectorSwitchField object={proxy} property="worldSpace" label="World Space" onChange={() => this.props.onChange()} />;
-					})()}
-				{isEffectSolidParticleSystem && <EditorInspectorSwitchField object={system} property="worldSpace" label="World Space" onChange={() => this.props.onChange()} />}
+				{/* World Space (isLocal inverted) */}
+				{(() => {
+					const proxy = {
+						get worldSpace() {
+							return !system.isLocal;
+						},
+						set worldSpace(value: boolean) {
+							system.isLocal = !value;
+						},
+					};
+					return <EditorInspectorSwitchField object={proxy} property="worldSpace" label="World Space" onChange={() => this.props.onChange()} />;
+				})()}
 
 				{/* Material Inspector - только для solid с материалом */}
 				{isEffectSolidParticleSystem && this._getMaterialInspector()}
@@ -130,11 +126,8 @@ export class EffectEditorParticleRendererProperties extends Component<IEffectEdi
 				{/* Start Tile Index */}
 				{this._getStartTileIndexField()}
 
-				{/* Soft Particles */}
+				{/* Soft Particles - only for ParticleSystem */}
 				{isEffectParticleSystem && <EditorInspectorSwitchField object={system} property="softParticles" label="Soft Particles" onChange={() => this.props.onChange()} />}
-				{isEffectSolidParticleSystem && (
-					<EditorInspectorSwitchField object={system} property="softParticles" label="Soft Particles" onChange={() => this.props.onChange()} />
-				)}
 
 				{/* Geometry - только для solid */}
 				{isEffectSolidParticleSystem && this._getGeometryField()}
@@ -268,30 +261,17 @@ export class EffectEditorParticleRendererProperties extends Component<IEffectEdi
 
 		const system = nodeData.system;
 
-		// Для VEffectParticleSystem, используем spriteCellWidth и spriteCellHeight
+		// UV Tile only available for ParticleSystem (sprite sheets)
 		if (system instanceof EffectParticleSystem) {
 			return (
 				<EditorInspectorSectionField title="UV Tile">
 					<EditorInspectorNumberField object={system} property="spriteCellWidth" label="U Tile Count" min={1} step={1} onChange={() => this.props.onChange()} />
 					<EditorInspectorNumberField object={system} property="spriteCellHeight" label="V Tile Count" min={1} step={1} onChange={() => this.props.onChange()} />
-					{/* TODO: Add blendTiles if available for VEffectParticleSystem */}
 				</EditorInspectorSectionField>
 			);
 		}
 
-		// Для VEffectSolidParticleSystem, используем uTileCount и vTileCount
-		if (system instanceof EffectSolidParticleSystem) {
-			return (
-				<EditorInspectorSectionField title="UV Tile">
-					<EditorInspectorNumberField object={system} property="uTileCount" label="U Tile Count" min={1} step={1} onChange={() => this.props.onChange()} />
-					<EditorInspectorNumberField object={system} property="vTileCount" label="V Tile Count" min={1} step={1} onChange={() => this.props.onChange()} />
-					{system.blendTiles !== undefined && (
-						<EditorInspectorSwitchField object={system} property="blendTiles" label="Blend Tiles" onChange={() => this.props.onChange()} />
-					)}
-				</EditorInspectorSectionField>
-			);
-		}
-
+		// SolidParticleSystem uses mesh UVs, no tile settings
 		return null;
 	}
 
@@ -304,26 +284,12 @@ export class EffectEditorParticleRendererProperties extends Component<IEffectEdi
 
 		const system = nodeData.system;
 
-		// Для VEffectParticleSystem, используем startSpriteCellID
+		// Start Tile Index only available for ParticleSystem (sprite sheets)
 		if (system instanceof EffectParticleSystem) {
 			return <EditorInspectorNumberField object={system} property="startSpriteCellID" label="Start Tile Index" min={0} step={1} onChange={() => this.props.onChange()} />;
 		}
 
-		// Для VEffectSolidParticleSystem, используем startTileIndex (VEffectValue)
-		if (system instanceof EffectSolidParticleSystem && system.startTileIndex !== undefined) {
-			const getValue = () => system.startTileIndex!;
-			const setValue = (value: any) => {
-				system.startTileIndex = value;
-				this.props.onChange();
-			};
-
-			return (
-				<div className="px-2">
-					<EffectValueEditor value={getValue()} onChange={setValue} label="Start Tile Index" />
-				</div>
-			);
-		}
-
+		// SolidParticleSystem uses mesh UVs, no tile index
 		return null;
 	}
 

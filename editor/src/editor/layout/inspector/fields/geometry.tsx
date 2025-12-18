@@ -13,7 +13,6 @@ import { registerUndoRedo } from "../../../../tools/undoredo";
 
 import { configureImportedNodeIds, loadImportedSceneFile } from "../../preview/import/import";
 import { EditorInspectorNumberField } from "./number";
-import { isMesh } from "babylonjs-editor-tools";
 
 export interface IEditorInspectorGeometryFieldProps extends PropsWithChildren {
 	title: string;
@@ -163,14 +162,14 @@ export class EditorInspectorGeometryField extends Component<IEditorInspectorGeom
 			// Use the first mesh or find a mesh without parent
 			let importedMesh: Mesh | null = null;
 			for (const m of result.meshes) {
-				if (isMesh(m) && !m.parent) {
+				if (m instanceof Mesh && !m.parent) {
 					importedMesh = m;
 					break;
 				}
 			}
 
-			if (!importedMesh && result.meshes.length > 0 && isMesh(result.meshes[0])) {
-				importedMesh = result.meshes[0] as Mesh;
+			if (!importedMesh && result.meshes.length > 0 && result.meshes[0] instanceof Mesh) {
+				importedMesh = result.meshes[0];
 			}
 
 			if (!importedMesh) {
@@ -210,7 +209,7 @@ export class EditorInspectorGeometryField extends Component<IEditorInspectorGeom
 
 			// Dispose other meshes from the imported file
 			for (const m of result.meshes) {
-				if (m !== importedMesh && isMesh(m)) {
+				if (m !== importedMesh) {
 					m.dispose();
 				}
 			}
