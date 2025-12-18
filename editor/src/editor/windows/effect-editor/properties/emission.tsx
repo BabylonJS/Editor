@@ -32,12 +32,12 @@ function renderSolidParticleSystemEmitter(system: EffectSolidParticleSystem, onC
 	const emitterType = emitter ? emitter.constructor.name : "Point";
 
 	const emitterTypeMap: Record<string, string> = {
-		SolidPointParticleEmitter: "Point",
-		SolidSphereParticleEmitter: "Sphere",
-		SolidConeParticleEmitter: "Cone",
+		SolidPointParticleEmitter: "point",
+		SolidSphereParticleEmitter: "sphere",
+		SolidConeParticleEmitter: "cone",
 	};
 
-	const currentType = emitterTypeMap[emitterType] || "Point";
+	const currentType = emitterTypeMap[emitterType] || "point";
 	const emitterTypes = [
 		{ text: "Point", value: "point" },
 		{ text: "Sphere", value: "sphere" },

@@ -653,9 +653,9 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 			return;
 		}
 
-		// Check if this is an effect root node
-		const effectId = node.id as string;
-		if (this._effects.has(effectId)) {
+		// Check if this is an effect root node (uuid matches an effect ID)
+		const effectId = nodeData.uuid;
+		if (effectId && this._effects.has(effectId)) {
 			// Delete entire effect
 			const effectInfo = this._effects.get(effectId);
 			if (effectInfo) {
@@ -670,20 +670,25 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 				return;
 			}
 
-			// Find and remove node from effect hierarchy
+			// Find and remove node from effect hierarchy using instance comparison
 			const removeNodeFromHierarchy = (current: IEffectNode): boolean => {
-				// Remove from children
-				const index = current.children.findIndex((child) => child === nodeData || child.uuid === nodeData.uuid || child.name === nodeData.name);
+				// Remove from children - use instance comparison primarily
+				const index = current.children.findIndex((child) => {
+					// Primary: instance comparison
+					if (child === nodeData) {
+						return true;
+					}
+					// Fallback: uuid comparison (if both have uuid)
+					if (child.uuid && nodeData.uuid && child.uuid === nodeData.uuid) {
+						return true;
+					}
+					return false;
+				});
+
 				if (index !== -1) {
 					const removedNode = current.children[index];
-					// Dispose system if it's a particle system
-					if (removedNode.system) {
-						removedNode.system.dispose();
-					}
-					// Dispose group if it's a group
-					if (removedNode.group) {
-						removedNode.group.dispose();
-					}
+					// Recursively dispose all children first
+					this._disposeNodeRecursive(removedNode);
 					current.children.splice(index, 1);
 					return true;
 				}
@@ -705,7 +710,30 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 
 		// Clear selection if deleted node was selected
 		if (this.state.selectedNodeId === node.id) {
+			this.setState({ selectedNodeId: null });
 			this.props.onNodeSelected?.(null);
 		}
+	}
+
+	/**
+	 * Recursively dispose a node and all its children
+	 */
+	private _disposeNodeRecursive(node: IEffectNode): void {
+		// First dispose all children
+		for (const child of node.children) {
+			this._disposeNodeRecursive(child);
+		}
+
+		// Dispose system if it's a particle system
+		if (node.system) {
+			node.system.dispose();
+		}
+		// Dispose group if it's a group
+		if (node.group) {
+			node.group.dispose();
+		}
+
+		// Clear the node ID from our map
+		this._nodeIdMap.delete(node);
 	}
 }
