@@ -112,6 +112,42 @@ export function EffectEditorParticleInitializationProperties(props: IEffectEdito
 		onChange();
 	};
 
+	// Helper to get/set angular speed - both systems use native minAngularSpeed/maxAngularSpeed
+	const getAngularSpeed = (): Value | undefined => {
+		return { type: "IntervalValue", min: system.minAngularSpeed, max: system.maxAngularSpeed };
+	};
+
+	const setAngularSpeed = (value: Value): void => {
+		const interval = ValueUtils.parseIntervalValue(value);
+		system.minAngularSpeed = interval.min;
+		system.maxAngularSpeed = interval.max;
+		onChange();
+	};
+
+	// Helper to get/set scale X - both systems use native minScaleX/maxScaleX
+	const getScaleX = (): Value | undefined => {
+		return { type: "IntervalValue", min: system.minScaleX, max: system.maxScaleX };
+	};
+
+	const setScaleX = (value: Value): void => {
+		const interval = ValueUtils.parseIntervalValue(value);
+		system.minScaleX = interval.min;
+		system.maxScaleX = interval.max;
+		onChange();
+	};
+
+	// Helper to get/set scale Y - both systems use native minScaleY/maxScaleY
+	const getScaleY = (): Value | undefined => {
+		return { type: "IntervalValue", min: system.minScaleY, max: system.maxScaleY };
+	};
+
+	const setScaleY = (value: Value): void => {
+		const interval = ValueUtils.parseIntervalValue(value);
+		system.minScaleY = interval.min;
+		system.maxScaleY = interval.max;
+		onChange();
+	};
+
 	return (
 		<>
 			<EditorInspectorBlockField>
@@ -128,6 +164,16 @@ export function EffectEditorParticleInitializationProperties(props: IEffectEdito
 					min={0}
 					step={0.01}
 				/>
+			</EditorInspectorBlockField>
+
+			<EditorInspectorBlockField>
+				<div className="px-2">Scale X</div>
+				<EffectValueEditor value={getScaleX()} onChange={setScaleX} availableTypes={["ConstantValue", "IntervalValue"]} min={0} step={0.01} />
+			</EditorInspectorBlockField>
+
+			<EditorInspectorBlockField>
+				<div className="px-2">Scale Y</div>
+				<EffectValueEditor value={getScaleY()} onChange={setScaleY} availableTypes={["ConstantValue", "IntervalValue"]} min={0} step={0.01} />
 			</EditorInspectorBlockField>
 
 			<EditorInspectorBlockField>
@@ -164,6 +210,11 @@ export function EffectEditorParticleInitializationProperties(props: IEffectEdito
 						/>
 					);
 				})()}
+			</EditorInspectorBlockField>
+
+			<EditorInspectorBlockField>
+				<div className="px-2">Angular Speed</div>
+				<EffectValueEditor value={getAngularSpeed()} onChange={setAngularSpeed} availableTypes={["ConstantValue", "IntervalValue"]} step={0.1} />
 			</EditorInspectorBlockField>
 		</>
 	);

@@ -19,7 +19,7 @@ import { IEffectEditor } from ".";
 import { saveSingleFileDialog } from "../../../tools/dialog";
 import { writeJSON } from "fs-extra";
 import { toast } from "sonner";
-import { Effect, type IEffectNode } from "babylonjs-editor-tools";
+import { Effect, type IEffectNode, EffectSolidParticleSystem } from "babylonjs-editor-tools";
 
 export interface IEffectEditorGraphProps {
 	filePath: string | null;
@@ -201,16 +201,31 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 		const nodeId = this._generateUniqueNodeId(Node);
 		const childNodes = Node.children.length > 0 ? Node.children.map((child) => this._convertNodeToTreeNode(child, false)) : undefined;
 
+		// Check if solid particle system
+		const isSolid = Node.system instanceof EffectSolidParticleSystem;
+
+		// Determine icon based on node type (sparkles for all particles, with color coding)
+		let icon: JSX.Element;
+		if (isEffectRoot) {
+			icon = <IoSparklesSharp className="w-4 h-4 text-purple-400" />;
+		} else if (Node.type === "particle") {
+			icon = <IoSparklesSharp className={`w-4 h-4 ${isSolid ? "text-orange-400" : "text-yellow-400"}`} />;
+		} else {
+			icon = <HiOutlineFolder className="w-4 h-4 text-blue-400" />;
+		}
+
+		// Get system type label for particles
+		const secondaryLabel = Node.type === "particle" ? (
+			<span className={`text-xs px-1 rounded ${isSolid ? "bg-orange-500/20 text-orange-400" : "bg-yellow-500/20 text-yellow-400"}`}>
+				{isSolid ? "Solid" : "Base"}
+			</span>
+		) : undefined;
+
 		return {
 			id: nodeId,
 			label: this._getNodeLabelComponent({ id: nodeId, nodeData: Node } as any, Node.name),
-			icon: isEffectRoot ? (
-				<IoSparklesSharp className="w-4 h-4" />
-			) : Node.type === "particle" ? (
-				<IoSparklesSharp className="w-4 h-4" />
-			) : (
-				<HiOutlineFolder className="w-4 h-4" />
-			),
+			icon,
+			secondaryLabel,
 			isExpanded: isEffectRoot || Node.type === "group",
 			childNodes,
 			isSelected: false,

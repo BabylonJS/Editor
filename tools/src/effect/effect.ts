@@ -656,7 +656,7 @@ export class Effect implements IDisposable {
 				particleIntersection: false,
 				useModelMaterial: true,
 			});
-			const particleMesh = MeshBuilder.CreatePlane("particleMesh", { size: 1 }, this._scene);
+			const particleMesh = MeshBuilder.CreateSphere("particleMesh", { segments: 16, diameter: 1 }, this._scene);
 			system.particleMesh = particleMesh;
 		} else {
 			const capacity = 500;

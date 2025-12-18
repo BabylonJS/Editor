@@ -13,7 +13,14 @@ import type {
 	SolidParticleWithSystem,
 	Value,
 } from "../types";
-import { SolidPointParticleEmitter, SolidSphereParticleEmitter, SolidConeParticleEmitter } from "../emitters";
+import {
+	SolidPointParticleEmitter,
+	SolidSphereParticleEmitter,
+	SolidConeParticleEmitter,
+	SolidBoxParticleEmitter,
+	SolidHemisphericParticleEmitter,
+	SolidCylinderParticleEmitter,
+} from "../emitters";
 import { ValueUtils, CapacityCalculator, ColorGradientSystem, NumberGradientSystem } from "../utils";
 import {
 	applyColorBySpeedSPS,
@@ -82,7 +89,8 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 	public disposeOnStop: boolean = false;
 	public gravity?: Vector3;
 	public noiseStrength?: Vector3;
-	public updateSpeed: number = 1;
+	// Note: inherited from SolidParticleSystem, default is 0.01
+	// We don't override it, using the base class default
 	public minAngularSpeed: number = 0;
 	public maxAngularSpeed: number = 0;
 	public minScaleX: number = 1;
@@ -355,6 +363,11 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 
 		this.buildMesh();
 		this._setupMeshProperties();
+
+		// Initialize all particles as dead/invisible immediately after build
+		this._initializeDeadParticles();
+		this.setParticles(); // Apply visibility changes to mesh
+
 		particleMesh.dispose();
 	}
 
@@ -378,7 +391,7 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 
 		this.name = name;
 		this._behaviors = [];
-		this.particleEmitterType = null;
+		this.particleEmitterType = new SolidBoxParticleEmitter(); // Default emitter (like ParticleSystem)
 		this._emitter = null;
 
 		// Gradient systems for "OverLife" behaviors
@@ -469,24 +482,12 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 
 	/**
 	 * Initialize particle speed
+	 * Uses minEmitPower/maxEmitPower like ParticleSystem
 	 */
-	private _initializeParticleSpeed(particle: SolidParticle, normalizedTime: number): void {
+	private _initializeParticleSpeed(particle: SolidParticle): void {
 		const props = particle.props!;
-		// Use min/max or gradient
-		let speedValue: number;
-		const emitRateGradients = this._emitRateGradients.getGradients();
-		if (emitRateGradients.length > 0 && this.targetStopDuration > 0) {
-			const ratio = Math.max(0, Math.min(1, normalizedTime));
-			const gradientValue = this._emitRateGradients.getValue(ratio);
-			if (gradientValue !== null) {
-				speedValue = gradientValue;
-			} else {
-				speedValue = this._randomRange(this.minEmitPower, this.maxEmitPower);
-			}
-		} else {
-			speedValue = this._randomRange(this.minEmitPower, this.maxEmitPower);
-		}
-		props.startSpeed = speedValue;
+		// Simply use random between min and max emit power (like ParticleSystem)
+		props.startSpeed = this._randomRange(this.minEmitPower, this.maxEmitPower);
 	}
 
 	/**
@@ -508,10 +509,11 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 
 	/**
 	 * Initialize particle size
+	 * Uses minSize/maxSize and minScaleX/maxScaleX/minScaleY/maxScaleY (like ParticleSystem)
 	 */
 	private _initializeParticleSize(particle: SolidParticle, normalizedTime: number): void {
 		const props = particle.props!;
-		// Use min/max or gradient
+		// Use min/max or gradient for base size
 		let sizeValue: number;
 		const startSizeGradients = this._startSizeGradients.getGradients();
 		if (startSizeGradients.length > 0 && this.targetStopDuration > 0) {
@@ -526,7 +528,13 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 			sizeValue = this._randomRange(this.minSize, this.maxSize);
 		}
 		props.startSize = sizeValue;
-		particle.scaling.setAll(sizeValue);
+
+		// Apply scale modifiers (like ParticleSystem: scale.copyFromFloats)
+		const scaleX = this._randomRange(this.minScaleX, this.maxScaleX);
+		const scaleY = this._randomRange(this.minScaleY, this.maxScaleY);
+		props.startScaleX = scaleX;
+		props.startScaleY = scaleY;
+		particle.scaling.set(sizeValue * scaleX, sizeValue * scaleY, sizeValue);
 	}
 
 	/**
@@ -537,12 +545,15 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 	}
 
 	/**
-	 * Initialize particle rotation
-	 * Uses minInitialRotation/maxInitialRotation (like ParticleSystem)
+	 * Initialize particle rotation and angular speed
+	 * Uses minInitialRotation/maxInitialRotation and minAngularSpeed/maxAngularSpeed (like ParticleSystem)
 	 */
 	private _initializeParticleRotation(particle: SolidParticle, _normalizedTime: number): void {
+		const props = particle.props!;
 		const angleZ = this._randomRange(this.minInitialRotation, this.maxInitialRotation);
 		particle.rotation.set(0, 0, angleZ);
+		// Store angular speed for per-frame rotation (like ParticleSystem)
+		props.startAngularSpeed = this._randomRange(this.minAngularSpeed, this.maxAngularSpeed);
 	}
 
 	/**
@@ -574,7 +585,7 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 
 			this._resetParticle(particle);
 			this._initializeParticleColor(particle);
-			this._initializeParticleSpeed(particle, normalizedTime);
+			this._initializeParticleSpeed(particle);
 			this._initializeParticleLife(particle, normalizedTime);
 			this._initializeParticleSize(particle, normalizedTime);
 			this._initializeParticleRotation(particle, normalizedTime);
@@ -624,6 +635,38 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 	}
 
 	/**
+	 * Create box emitter for SolidParticleSystem
+	 */
+	public createBoxEmitter(
+		direction1: Vector3 = new Vector3(0, 1, 0),
+		direction2: Vector3 = new Vector3(0, 1, 0),
+		minEmitBox: Vector3 = new Vector3(-0.5, -0.5, -0.5),
+		maxEmitBox: Vector3 = new Vector3(0.5, 0.5, 0.5)
+	): SolidBoxParticleEmitter {
+		const emitter = new SolidBoxParticleEmitter(direction1, direction2, minEmitBox, maxEmitBox);
+		this.particleEmitterType = emitter;
+		return emitter;
+	}
+
+	/**
+	 * Create hemispheric emitter for SolidParticleSystem
+	 */
+	public createHemisphericEmitter(radius: number = 1, radiusRange: number = 1, directionRandomizer: number = 0): SolidHemisphericParticleEmitter {
+		const emitter = new SolidHemisphericParticleEmitter(radius, radiusRange, directionRandomizer);
+		this.particleEmitterType = emitter;
+		return emitter;
+	}
+
+	/**
+	 * Create cylinder emitter for SolidParticleSystem
+	 */
+	public createCylinderEmitter(radius: number = 1, height: number = 1, radiusRange: number = 1, directionRandomizer: number = 0): SolidCylinderParticleEmitter {
+		const emitter = new SolidCylinderParticleEmitter(radius, height, radiusRange, directionRandomizer);
+		this.particleEmitterType = emitter;
+		return emitter;
+	}
+
+	/**
 	 * Configure emitter from shape config
 	 * This replaces the need for EmitterFactory
 	 */
@@ -638,6 +681,9 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 		const arc = shape.arc ?? Math.PI * 2;
 		const thickness = shape.thickness ?? 1;
 		const angle = shape.angle ?? Math.PI / 6;
+		const height = shape.height ?? 1;
+		const radiusRange = shape.radiusRange ?? 1;
+		const directionRandomizer = shape.directionRandomizer ?? 0;
 
 		switch (shapeType) {
 			case "sphere":
@@ -645,6 +691,22 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 				break;
 			case "cone":
 				this.createConeEmitter(radius, arc, thickness, angle);
+				break;
+			case "box": {
+				const minEmitBox = shape.minEmitBox
+					? new Vector3(shape.minEmitBox[0] ?? -0.5, shape.minEmitBox[1] ?? -0.5, shape.minEmitBox[2] ?? -0.5)
+					: new Vector3(-0.5, -0.5, -0.5);
+				const maxEmitBox = shape.maxEmitBox ? new Vector3(shape.maxEmitBox[0] ?? 0.5, shape.maxEmitBox[1] ?? 0.5, shape.maxEmitBox[2] ?? 0.5) : new Vector3(0.5, 0.5, 0.5);
+				const direction1 = shape.direction1 ? new Vector3(shape.direction1[0] ?? 0, shape.direction1[1] ?? 1, shape.direction1[2] ?? 0) : new Vector3(0, 1, 0);
+				const direction2 = shape.direction2 ? new Vector3(shape.direction2[0] ?? 0, shape.direction2[1] ?? 1, shape.direction2[2] ?? 0) : new Vector3(0, 1, 0);
+				this.createBoxEmitter(direction1, direction2, minEmitBox, maxEmitBox);
+				break;
+			}
+			case "hemisphere":
+				this.createHemisphericEmitter(radius, radiusRange, directionRandomizer);
+				break;
+			case "cylinder":
+				this.createCylinderEmitter(radius, height, radiusRange, directionRandomizer);
 				break;
 			case "point":
 				this.createPointEmitter();
@@ -712,6 +774,14 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 		const emissionState = this._emissionState;
 
 		if (this._emitEnded) {
+			return;
+		}
+
+		// Check for manual emit count (like ParticleSystem)
+		// When manualEmitCount > -1, emit that exact number and reset to 0
+		if (this.manualEmitCount > -1) {
+			emissionState.waitEmiting = this.manualEmitCount;
+			this.manualEmitCount = 0;
 			return;
 		}
 
@@ -937,6 +1007,7 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 	public override beforeUpdateParticles(start?: number, stop?: number, update?: boolean): void {
 		super.beforeUpdateParticles(start, stop, update);
 
+		// Hide particles when stopped
 		if (this._stopped) {
 			const particles = this.particles;
 			const nbParticles = this.nbParticles;
@@ -946,14 +1017,37 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 					particle.isVisible = false;
 				}
 			}
+		}
+	}
+
+	/**
+	 * Called AFTER particle updates in setParticles().
+	 * This is the correct place for emission because _scaledUpdateSpeed is already calculated.
+	 */
+	public override afterUpdateParticles(start?: number, stop?: number, update?: boolean): void {
+		super.afterUpdateParticles(start, stop, update);
+
+		if (this._stopped || !this._started) {
 			return;
 		}
 
-		if (!this._started) {
-			return;
-		}
+		// Use _scaledUpdateSpeed for emission (same as ThinParticleSystem)
+		// Now it's properly calculated by the base class
+		const deltaTime = this._scaledUpdateSpeed;
 
-		const deltaTime = this._scaledUpdateSpeed || 0.016;
+		// Debug logging (aggregated per second)
+		this._debugFrameCount++;
+		this._debugDeltaSum += deltaTime;
+		const now = performance.now();
+		if (now - this._debugLastLog > 1000) {
+			const aliveCount = this.particles.filter((p) => p.alive).length;
+			console.log(`[SPS] emitRate=${this.emitRate}, updateSpeed=${this.updateSpeed}`);
+			console.log(`  _scaledUpdateSpeed=${this._scaledUpdateSpeed?.toFixed(4)}, avgDelta=${(this._debugDeltaSum / this._debugFrameCount).toFixed(4)}`);
+			console.log(`  waitEmiting=${this._emissionState.waitEmiting.toFixed(2)}, alive=${aliveCount}/${this.nbParticles}`);
+			this._debugLastLog = now;
+			this._debugFrameCount = 0;
+			this._debugDeltaSum = 0;
+		}
 
 		this._emissionState.time += deltaTime;
 
@@ -961,6 +1055,10 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 
 		this._handleEmissionLooping();
 	}
+
+	private _debugLastLog = 0;
+	private _debugFrameCount = 0;
+	private _debugDeltaSum = 0;
 
 	private _updateParticle(particle: SolidParticle): SolidParticle {
 		if (!particle.alive) {
@@ -994,8 +1092,9 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 
 		const props = particle.props;
 		const speedModifier = props?.speedModifier ?? 1.0;
-		const updateSpeed = this.updateSpeed;
-		particle.position.addInPlace(particle.velocity.scale(updateSpeed * speedModifier));
+		// Use _scaledUpdateSpeed for FPS-independent movement (like ParticleSystem)
+		const deltaTime = this._scaledUpdateSpeed || this.updateSpeed;
+		particle.position.addInPlace(particle.velocity.scale(deltaTime * speedModifier));
 
 		return particle;
 	}
@@ -1005,7 +1104,8 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 	 */
 	private _applyGradients(particle: SolidParticle, lifeRatio: number): void {
 		const props = (particle.props ||= {});
-		const updateSpeed = this.updateSpeed;
+		// Use _scaledUpdateSpeed for FPS-independent gradients
+		const deltaTime = this._scaledUpdateSpeed || this.updateSpeed;
 
 		const color = this._colorGradients.getValue(lifeRatio);
 		if (color && particle.color) {
@@ -1020,9 +1120,12 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 			}
 		}
 
+		// Apply size gradients with scale modifiers (like ParticleSystem)
 		const size = this._sizeGradients.getValue(lifeRatio);
 		if (size !== null && props.startSize !== undefined) {
-			particle.scaling.setAll(props.startSize * size);
+			const scaleX = props.startScaleX ?? 1;
+			const scaleY = props.startScaleY ?? 1;
+			particle.scaling.set(props.startSize * size * scaleX, props.startSize * size * scaleY, props.startSize * size);
 		}
 
 		const velocity = this._velocityGradients.getValue(lifeRatio);
@@ -1030,9 +1133,13 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 			props.speedModifier = velocity;
 		}
 
-		const angularSpeed = this._angularSpeedGradients.getValue(lifeRatio);
-		if (angularSpeed !== null) {
-			particle.rotation.z += angularSpeed * updateSpeed;
+		// Apply angular speed: use gradient if available, otherwise use particle's startAngularSpeed (like ParticleSystem)
+		const angularSpeedFromGradient = this._angularSpeedGradients.getValue(lifeRatio);
+		if (angularSpeedFromGradient !== null) {
+			particle.rotation.z += angularSpeedFromGradient * deltaTime;
+		} else if (props.startAngularSpeed !== undefined && props.startAngularSpeed !== 0) {
+			// Apply base angular speed (like ParticleSystem._ProcessAngularSpeed)
+			particle.rotation.z += props.startAngularSpeed * deltaTime;
 		}
 
 		const limitVelocity = this._limitVelocityGradients.getValue(lifeRatio);
