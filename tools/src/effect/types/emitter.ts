@@ -1,8 +1,6 @@
 import { Nullable, SolidParticle, TransformNode, Vector3 } from "babylonjs";
 import type { IEmitter } from "./hierarchy";
 import type { Value } from "./values";
-import type { Color } from "./colors";
-import type { Rotation } from "./rotations";
 import type { IShape } from "./shapes";
 import type { Behavior } from "./behaviors";
 
@@ -15,27 +13,71 @@ export interface IEmissionBurst {
 }
 
 /**
- *  particle emitter configuration (converted from Quarks)
+ * Particle system configuration (converted from Quarks to native Babylon.js properties)
  */
-export interface IEmitterConfig {
+export interface IParticleSystemConfig {
 	version?: string;
-	autoDestroy?: boolean;
-	looping?: boolean;
-	prewarm?: boolean;
-	duration?: number;
+	systemType: "solid" | "base";
+
+	// === Native Babylon.js properties (converted from Quarks Value) ===
+
+	// Life & Size
+	minLifeTime?: number;
+	maxLifeTime?: number;
+	minSize?: number;
+	maxSize?: number;
+	minScaleX?: number;
+	maxScaleX?: number;
+	minScaleY?: number;
+	maxScaleY?: number;
+
+	// Speed & Power
+	minEmitPower?: number;
+	maxEmitPower?: number;
+	emitRate?: number;
+
+	// Rotation
+	minInitialRotation?: number;
+	maxInitialRotation?: number;
+	minAngularSpeed?: number;
+	maxAngularSpeed?: number;
+
+	// Color
+	color1?: import("babylonjs").Color4;
+	color2?: import("babylonjs").Color4;
+	colorDead?: import("babylonjs").Color4;
+
+	// Duration & Looping
+	targetStopDuration?: number; // 0 = infinite (looping), >0 = duration
+	manualEmitCount?: number; // -1 = automatic, otherwise specific count
+
+	// Prewarm
+	preWarmCycles?: number;
+	preWarmStepOffset?: number;
+
+	// Physics
+	gravity?: import("babylonjs").Vector3;
+	noiseStrength?: import("babylonjs").Vector3;
+	updateSpeed?: number;
+
+	// World space
+	isLocal?: boolean;
+
+	// Auto destroy
+	disposeOnStop?: boolean;
+
+	// Gradients for PiecewiseBezier
+	startSizeGradients?: Array<{ gradient: number; factor: number; factor2?: number }>;
+	lifeTimeGradients?: Array<{ gradient: number; factor: number; factor2?: number }>;
+	emitRateGradients?: Array<{ gradient: number; factor: number; factor2?: number }>;
+
+	// === Other properties ===
 	shape?: IShape;
-	startLife?: Value;
-	startSpeed?: Value;
-	startRotation?: Rotation;
-	startSize?: Value;
-	startColor?: Color;
-	emissionOverTime?: Value;
-	emissionOverDistance?: Value;
 	emissionBursts?: IEmissionBurst[];
+	emissionOverDistance?: Value; // For solid system only
 	onlyUsedByOther?: boolean;
 	instancingGeometry?: string;
 	renderOrder?: number;
-	systemType: "solid" | "base";
 	rendererEmitterSettings?: Record<string, unknown>;
 	material?: string;
 	layers?: number;
@@ -49,7 +91,6 @@ export interface IEmitterConfig {
 	softFarFade?: number;
 	softNearFade?: number;
 	behaviors?: Behavior[];
-	worldSpace?: boolean;
 }
 
 /**
@@ -57,13 +98,13 @@ export interface IEmitterConfig {
  */
 export interface IEmitterData {
 	name: string;
-	config: IEmitterConfig;
+	config: IParticleSystemConfig;
 	materialId?: string;
 	matrix?: number[];
 	position?: number[];
 	parentGroup: Nullable<TransformNode>;
 	cumulativeScale: Vector3;
-	Emitter?: IEmitter;
+	emitter?: IEmitter;
 }
 
 /**

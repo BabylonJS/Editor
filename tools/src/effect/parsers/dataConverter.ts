@@ -29,7 +29,7 @@ import type {
 } from "../types/quarksTypes";
 import type { ITransform, IGroup, IEmitter, IData } from "../types/hierarchy";
 import type { IMaterial, ITexture, IImage, IGeometry, IGeometryData } from "../types/resources";
-import type { IEmitterConfig } from "../types/emitter";
+import type { IParticleSystemConfig } from "../types/emitter";
 import type {
 	Behavior,
 	IColorOverLifeBehavior,
@@ -246,20 +246,43 @@ export class DataConverter {
 	/**
 	 * Convert emitter config from IQuarks to  format
 	 */
-	private _convertEmitterConfig(IQuarksConfig: IQuarksParticleEmitterConfig): IEmitterConfig {
+	private _convertEmitterConfig(IQuarksConfig: IQuarksParticleEmitterConfig): IParticleSystemConfig {
 		// Determine system type based on renderMode: 2 = solid, otherwise base
 		const systemType: "solid" | "base" = IQuarksConfig.renderMode === 2 ? "solid" : "base";
 
-		const Config: IEmitterConfig = {
+		// Convert duration/looping to native targetStopDuration
+		// In Babylon.js: targetStopDuration = 0 means infinite loop
+		const duration = IQuarksConfig.duration ?? 5;
+		const targetStopDuration = IQuarksConfig.looping ? 0 : duration;
+
+		// Convert prewarm to native preWarmCycles
+		// In Babylon.js: preWarmCycles > 0 means prewarm enabled
+		let preWarmCycles = 0;
+		let preWarmStepOffset = 0.016;
+		if (IQuarksConfig.prewarm) {
+			preWarmCycles = Math.ceil(duration * 60); // Simulate ~60fps for duration
+			preWarmStepOffset = 1 / 60;
+		}
+
+		// Convert worldSpace to native isLocal (inverse)
+		const isLocal = IQuarksConfig.worldSpace === undefined ? false : !IQuarksConfig.worldSpace;
+
+		// Convert autoDestroy to native disposeOnStop
+		const disposeOnStop = IQuarksConfig.autoDestroy ?? false;
+
+		const Config: IParticleSystemConfig = {
 			version: IQuarksConfig.version,
-			autoDestroy: IQuarksConfig.autoDestroy,
-			looping: IQuarksConfig.looping,
-			prewarm: IQuarksConfig.prewarm,
-			duration: IQuarksConfig.duration,
+			systemType,
+			// Native properties
+			targetStopDuration,
+			preWarmCycles,
+			preWarmStepOffset,
+			isLocal,
+			disposeOnStop,
+			// Other properties
 			onlyUsedByOther: IQuarksConfig.onlyUsedByOther,
 			instancingGeometry: IQuarksConfig.instancingGeometry,
 			renderOrder: IQuarksConfig.renderOrder,
-			systemType,
 			rendererEmitterSettings: IQuarksConfig.rendererEmitterSettings,
 			material: IQuarksConfig.material,
 			layers: IQuarksConfig.layers,
@@ -269,7 +292,6 @@ export class DataConverter {
 			softParticles: IQuarksConfig.softParticles,
 			softFarFade: IQuarksConfig.softFarFade,
 			softNearFade: IQuarksConfig.softNearFade,
-			worldSpace: IQuarksConfig.worldSpace,
 		};
 
 		// Convert values

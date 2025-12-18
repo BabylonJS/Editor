@@ -1,5 +1,5 @@
 import { Vector3, Quaternion } from "babylonjs";
-import type { IEmitterConfig } from "./emitter";
+import type { IParticleSystemConfig } from "./emitter";
 import type { IMaterial, ITexture, IImage, IGeometry } from "./resources";
 
 /**
@@ -28,7 +28,7 @@ export interface IEmitter {
 	uuid: string;
 	name: string;
 	transform: ITransform;
-	config: IEmitterConfig;
+	config: IParticleSystemConfig;
 	materialId?: string;
 	parentUuid?: string;
 	systemType: "solid" | "base"; // Determined from renderMode: 2 = solid, otherwise base

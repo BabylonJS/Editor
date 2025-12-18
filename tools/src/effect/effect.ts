@@ -1,13 +1,13 @@
-import { Scene, Tools, IDisposable, TransformNode, Vector3, CreatePlane, MeshBuilder, Texture } from "babylonjs";
+import { Scene, Tools, IDisposable, TransformNode, MeshBuilder, Texture, AbstractMesh } from "babylonjs";
 import type { IQuarksJSON } from "./types/quarksTypes";
 import type { ILoaderOptions } from "./types/loader";
 import { Parser } from "./parsers/parser";
 import { EffectParticleSystem } from "./systems/effectParticleSystem";
 import { EffectSolidParticleSystem } from "./systems/effectSolidParticleSystem";
 import type { IGroup, IEmitter, IData } from "./types/hierarchy";
-import type { IEmitterConfig } from "./types/emitter";
+import type { IParticleSystemConfig } from "./types/emitter";
+import { Color4 } from "babylonjs";
 import { isSystem } from "./types/system";
-import { EmitterFactory } from "./factories/emitterFactory";
 
 /**
  *  Effect Node - represents either a particle system or a group
@@ -485,13 +485,10 @@ export class Effect implements IDisposable {
 	 */
 	public applyPrewarm(): void {
 		for (const system of this._systems) {
-			if (system instanceof EffectParticleSystem && system.prewarm) {
-				// For ParticleSystem, use Babylon.js built-in prewarm
-				const duration = system.targetStopDuration || 5;
-				const cycles = Math.ceil(duration * 60); // Simulate 60 FPS for duration
-				(system as any).preWarmCycles = cycles;
-				(system as any).preWarmStepOffset = 1; // Use normal time step
-			} else if (system instanceof EffectSolidParticleSystem && system.prewarm) {
+			if (system instanceof EffectParticleSystem && system.preWarmCycles > 0) {
+				// ParticleSystem uses native preWarmCycles/preWarmStepOffset
+				// Already configured via config.preWarmCycles, nothing more needed
+			} else if (system instanceof EffectSolidParticleSystem && system.preWarmCycles > 0) {
 				// For SolidParticleSystem, we need to manually simulate prewarm
 				// Start the system and let it run for duration
 				// Note: SPS doesn't have built-in prewarm, so we'll start it normally
@@ -632,59 +629,86 @@ export class Effect implements IDisposable {
 		const systemUuid = Tools.RandomId();
 
 		// Create default config
-		const config: IEmitterConfig = {
+		const config: IParticleSystemConfig = {
 			systemType,
-			looping: true,
-			duration: 5,
-			prewarm: false,
-			emissionOverTime: 10,
-			startLife: 1,
-			startSpeed: 1,
-			startSize: 1,
-			startColor: { type: "ConstantColor", value: [1, 1, 1, 1] },
+			targetStopDuration: 0, // looping
+			manualEmitCount: -1,
+			emitRate: 10,
+			minLifeTime: 1,
+			maxLifeTime: 1,
+			minEmitPower: 1,
+			maxEmitPower: 1,
+			minSize: 1,
+			maxSize: 1,
+			color1: new Color4(1, 1, 1, 1),
+			color2: new Color4(1, 1, 1, 1),
+			colorDead: new Color4(1, 1, 1, 0),
 			behaviors: [],
 		};
 
 		let system: EffectParticleSystem | EffectSolidParticleSystem;
 
+		// Create system instance based on type
 		if (systemType === "solid") {
-			// Create default plane mesh for SPS
-			const planeMesh = CreatePlane("particleMesh", { size: 1 }, this._scene);
-			planeMesh.setEnabled(false); // Hide the source mesh
-
-			system = new EffectSolidParticleSystem(uniqueName, this._scene, config, {
-				particleMesh: planeMesh,
-				parentGroup: parent.group || undefined,
+			system = new EffectSolidParticleSystem(uniqueName, this._scene, {
+				updatable: true,
+				isPickable: false,
+				enableDepthSort: false,
+				particleIntersection: false,
+				useModelMaterial: true,
 			});
-
-			// Store reference to source mesh for geometry field
-			(system as any)._sourceMesh = planeMesh.clone(`${uniqueName}_sourceMesh`);
-
-			// Create default point emitter
-			system.createPointEmitter();
+			const particleMesh = MeshBuilder.CreatePlane("particleMesh", { size: 1 }, this._scene);
+			system.particleMesh = particleMesh;
 		} else {
-			// Create base particle system with default flare texture
-			const flareTexture = new Texture(Tools.GetAssetUrl("https://assets.babylonjs.com/core/textures/flare.png"), this._scene);
-			system = new EffectParticleSystem(uniqueName, this._scene, config, {
-				texture: flareTexture,
-			});
-
-			// Create default point emitter
-			const emitterFactory = new EmitterFactory();
-			emitterFactory.createParticleSystemEmitter(system, undefined, Vector3.One(), null);
-
-			// Create emitter mesh (Mesh for ParticleSystem)
-			const emitterMesh = MeshBuilder.CreateBox(`${uniqueName}_Emitter`, { size: 0.1 }, this._scene);
-			emitterMesh.id = Tools.RandomId();
-			emitterMesh.setEnabled(false); // Hide the emitter mesh
-			if (parent.group) {
-				emitterMesh.setParent(parent.group, false, true);
-			}
-			system.emitter = emitterMesh;
+			const capacity = 500;
+			system = new EffectParticleSystem(uniqueName, capacity, this._scene);
+			system.particleTexture = new Texture("https://assets.babylonjs.com/core/textures/flare.png", this._scene);
 		}
 
 		// Set system name
 		system.name = uniqueName;
+		system.emitter = parent.group as AbstractMesh;
+		// === Assign native properties (shared by both systems) ===
+		if (config.minSize !== undefined) system.minSize = config.minSize;
+		if (config.maxSize !== undefined) system.maxSize = config.maxSize;
+		if (config.minLifeTime !== undefined) system.minLifeTime = config.minLifeTime;
+		if (config.maxLifeTime !== undefined) system.maxLifeTime = config.maxLifeTime;
+		if (config.minEmitPower !== undefined) system.minEmitPower = config.minEmitPower;
+		if (config.maxEmitPower !== undefined) system.maxEmitPower = config.maxEmitPower;
+		if (config.emitRate !== undefined) system.emitRate = config.emitRate;
+		if (config.targetStopDuration !== undefined) system.targetStopDuration = config.targetStopDuration;
+		if (config.manualEmitCount !== undefined) system.manualEmitCount = config.manualEmitCount;
+		if (config.preWarmCycles !== undefined) system.preWarmCycles = config.preWarmCycles;
+		if (config.preWarmStepOffset !== undefined) system.preWarmStepOffset = config.preWarmStepOffset;
+		if (config.color1 !== undefined) system.color1 = config.color1;
+		if (config.color2 !== undefined) system.color2 = config.color2;
+		if (config.colorDead !== undefined) system.colorDead = config.colorDead;
+		if (config.minInitialRotation !== undefined) system.minInitialRotation = config.minInitialRotation;
+		if (config.maxInitialRotation !== undefined) system.maxInitialRotation = config.maxInitialRotation;
+		if (config.isLocal !== undefined) system.isLocal = config.isLocal;
+		if (config.disposeOnStop !== undefined) system.disposeOnStop = config.disposeOnStop;
+
+		// === Apply gradients (shared by both systems) ===
+		if (config.startSizeGradients) {
+			for (const grad of config.startSizeGradients) {
+				system.addStartSizeGradient(grad.gradient, grad.factor, grad.factor2);
+			}
+		}
+		if (config.lifeTimeGradients) {
+			for (const grad of config.lifeTimeGradients) {
+				system.addLifeTimeGradient(grad.gradient, grad.factor, grad.factor2);
+			}
+		}
+		if (config.emitRateGradients) {
+			for (const grad of config.emitRateGradients) {
+				system.addEmitRateGradient(grad.gradient, grad.factor, grad.factor2);
+			}
+		}
+
+		// === Apply behaviors (shared by both systems) ===
+		if (config.behaviors !== undefined) {
+			system.setBehaviors(config.behaviors);
+		}
 
 		const newNode: IEffectNode = {
 			name: uniqueName,

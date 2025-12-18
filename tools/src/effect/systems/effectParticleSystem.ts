@@ -1,4 +1,4 @@
-import { Color4, ParticleSystem, Scene, Vector3, Matrix, Texture, AbstractMesh, TransformNode, Particle } from "babylonjs";
+import { ParticleSystem, Scene, AbstractMesh, TransformNode, Particle, Vector3 } from "babylonjs";
 import type {
 	Behavior,
 	IColorOverLifeBehavior,
@@ -16,12 +16,7 @@ import type {
 	PerParticleBehaviorFunction,
 	ISystem,
 	ParticleWithSystem,
-	IShape,
-	IEmitterConfig,
-	IEmissionBurst,
 } from "../types";
-import { ValueUtils } from "../utils/valueParser";
-import { CapacityCalculator } from "../utils/capacityCalculator";
 import {
 	applyColorOverLifePS,
 	applySizeOverLifePS,
@@ -38,39 +33,55 @@ import {
 } from "../behaviors";
 
 /**
- * Extended ParticleSystem with  behaviors support
- * Fully self-contained, no dependencies on parsers or factories
+ * Extended ParticleSystem with behaviors support
+ * Integrates per-particle behaviors (ColorBySpeed, OrbitOverLife, etc.)
+ * into the native Babylon.js particle update loop
  */
 export class EffectParticleSystem extends ParticleSystem implements ISystem {
-	public startSize: number;
-	public startSpeed: number;
-	public startColor: Color4;
-	public prewarm: boolean;
-	private _behaviors: PerParticleBehaviorFunction[];
-	public readonly behaviorConfigs: Behavior[];
+	private _perParticleBehaviors: PerParticleBehaviorFunction[];
+	private _behaviorConfigs: Behavior[];
 
-	constructor(
-		name: string,
-		scene: Scene,
-		config: IEmitterConfig,
-		options?: {
-			texture?: Texture;
-			blendMode?: number;
-		}
-	) {
-		// Calculate capacity
-		const duration = config.duration || 5;
-		const capacity = CapacityCalculator.calculateForParticleSystem(config.emissionOverTime, duration);
+	/** Store reference to default updateFunction */
+	private _defaultUpdateFunction: (particles: Particle[]) => void;
 
+	constructor(name: string, capacity: number, scene: Scene) {
 		super(name, capacity, scene);
-		this._behaviors = [];
-		this.prewarm = config.prewarm || false;
+		this._perParticleBehaviors = [];
+		this._behaviorConfigs = [];
 
-		// Create proxy array that updates functions when modified
-		this.behaviorConfigs = this._createBehaviorConfigsProxy(config.behaviors || []);
+		// Store reference to the default updateFunction created by ParticleSystem
+		this._defaultUpdateFunction = this.updateFunction;
 
-		// Configure from config
-		this._configureFromConfig(config, options);
+		// Override updateFunction to integrate per-particle behaviors
+		this._setupCustomUpdateFunction();
+	}
+
+	/**
+	 * Setup custom updateFunction that extends default behavior
+	 * with per-particle behavior execution
+	 */
+	private _setupCustomUpdateFunction(): void {
+		this.updateFunction = (particles: Particle[]): void => {
+			// First, run the default Babylon.js update logic
+			// This handles: age, gradients (color, size, angular speed, velocity), position, gravity, etc.
+			this._defaultUpdateFunction(particles);
+
+			// Then apply per-particle behaviors if any exist
+			if (this._perParticleBehaviors.length === 0) {
+				return;
+			}
+
+			// Apply per-particle behaviors to each active particle
+			for (const particle of particles) {
+				// Attach system reference for behaviors that need it
+				(particle as ParticleWithSystem).particleSystem = this;
+
+				// Execute all per-particle behavior functions
+				for (const behaviorFn of this._perParticleBehaviors) {
+					behaviorFn(particle);
+				}
+			}
+		};
 	}
 
 	/**
@@ -78,144 +89,68 @@ export class EffectParticleSystem extends ParticleSystem implements ISystem {
 	 * Required by ISystem interface
 	 */
 	public getParentNode(): AbstractMesh | TransformNode | null {
-		// ParticleSystem.emitter can be AbstractMesh, Vector3, or null
-		// Return emitter if it's an AbstractMesh, otherwise null
 		return this.emitter instanceof AbstractMesh ? this.emitter : null;
 	}
 
 	/**
-	 * Get behavior functions (internal use)
+	 * Get current behavior configurations
 	 */
-	public get behaviors(): PerParticleBehaviorFunction[] {
-		return this._behaviors;
+	public get behaviorConfigs(): Behavior[] {
+		return this._behaviorConfigs;
 	}
 
 	/**
-	 * Create a proxy array that automatically updates behavior functions when configs change
+	 * Set behaviors and apply them to the particle system
+	 * System-level behaviors configure gradients, per-particle behaviors run each frame
 	 */
-	private _createBehaviorConfigsProxy(configs: Behavior[]): Behavior[] {
-		const self = this;
+	public setBehaviors(behaviors: Behavior[]): void {
+		this._behaviorConfigs = behaviors;
 
-		// Wrap each behavior object in a proxy to detect property changes
-		const wrapBehavior = (behavior: Behavior): Behavior => {
-			return new Proxy(behavior, {
-				set(target, prop, value) {
-					const result = Reflect.set(target, prop, value);
-					// When a behavior property changes, update functions
-					self._updateBehaviorFunctions();
-					return result;
-				},
-			});
-		};
+		// Apply system-level behaviors (gradients) to ParticleSystem
+		this._applySystemLevelBehaviors(behaviors);
 
-		// Wrap all initial behaviors
-		const wrappedConfigs = configs.map(wrapBehavior);
-
-		return new Proxy(wrappedConfigs, {
-			set(target, property, value) {
-				const result = Reflect.set(target, property, value);
-
-				// Update functions when array is modified
-				if (property === "length" || typeof property === "number") {
-					// If setting an element, wrap it in proxy
-					if (typeof property === "number" && value && typeof value === "object") {
-						Reflect.set(target, property, wrapBehavior(value as Behavior));
-					}
-					self._updateBehaviorFunctions();
-				}
-
-				return result;
-			},
-
-			get(target, property) {
-				const value = Reflect.get(target, property);
-
-				// Intercept array methods that modify the array
-				if (
-					typeof value === "function" &&
-					(property === "push" ||
-						property === "pop" ||
-						property === "splice" ||
-						property === "shift" ||
-						property === "unshift" ||
-						property === "sort" ||
-						property === "reverse")
-				) {
-					return function (...args: any[]) {
-						const result = value.apply(target, args);
-						// Wrap any new behaviors added via push/unshift
-						if (property === "push" || property === "unshift") {
-							for (let i = 0; i < args.length; i++) {
-								if (args[i] && typeof args[i] === "object") {
-									const index = property === "push" ? target.length - args.length + i : i;
-									Reflect.set(target, index, wrapBehavior(args[i] as Behavior));
-								}
-							}
-						}
-						self._updateBehaviorFunctions();
-						return result;
-					};
-				}
-
-				return value;
-			},
-		});
+		// Build per-particle behavior functions for update loop
+		this._perParticleBehaviors = this._buildPerParticleBehaviors(behaviors);
 	}
 
 	/**
-	 * Update behavior functions from configs
-	 * Internal method, called automatically when configs change
-	 * Applies both system-level behaviors (gradients) and per-particle behaviors
+	 * Add a single behavior
 	 */
-	private _updateBehaviorFunctions(): void {
-		// Apply system-level behaviors (gradients, etc.) - these configure the ParticleSystem once
-		this._applySystemLevelBehaviors();
-
-		// Create per-particle behavior functions (BySpeed, OrbitOverLife, etc.)
-		this._behaviors = this._createPerParticleBehaviorFunctions(this.behaviorConfigs);
+	public addBehavior(behavior: Behavior): void {
+		this._behaviorConfigs.push(behavior);
+		this.setBehaviors(this._behaviorConfigs);
 	}
 
 	/**
-	 * Create per-particle behavior functions from configurations
-	 * Only creates functions for behaviors that depend on particle properties (speed, orbit)
+	 * Build per-particle behavior functions from configurations
+	 * Per-particle behaviors run each frame for each particle (ColorBySpeed, OrbitOverLife, etc.)
 	 */
-	private _createPerParticleBehaviorFunctions(behaviors: Behavior[]): PerParticleBehaviorFunction[] {
+	private _buildPerParticleBehaviors(behaviors: Behavior[]): PerParticleBehaviorFunction[] {
 		const functions: PerParticleBehaviorFunction[] = [];
 
 		for (const behavior of behaviors) {
 			switch (behavior.type) {
 				case "ColorBySpeed": {
 					const b = behavior as IColorBySpeedBehavior;
-					functions.push((particle: Particle) => {
-						applyColorBySpeedPS(particle, b);
-					});
+					functions.push((particle: Particle) => applyColorBySpeedPS(particle, b));
 					break;
 				}
 
 				case "SizeBySpeed": {
 					const b = behavior as ISizeBySpeedBehavior;
-					functions.push((particle: Particle) => {
-						applySizeBySpeedPS(particle, b);
-					});
+					functions.push((particle: Particle) => applySizeBySpeedPS(particle, b));
 					break;
 				}
 
 				case "RotationBySpeed": {
 					const b = behavior as IRotationBySpeedBehavior;
-					functions.push((particle: Particle) => {
-						// Store reference to system in particle for behaviors that need it
-						const particleWithSystem = particle as ParticleWithSystem;
-						particleWithSystem.particleSystem = this;
-						applyRotationBySpeedPS(particle, b);
-					});
+					functions.push((particle: Particle) => applyRotationBySpeedPS(particle, b));
 					break;
 				}
 
 				case "OrbitOverLife": {
 					const b = behavior as IOrbitOverLifeBehavior;
-					functions.push((particle: Particle) => {
-						applyOrbitOverLifePS(particle, b);
-					});
+					functions.push((particle: Particle) => applyOrbitOverLifePS(particle, b));
 					break;
 				}
 			}
@@ -225,11 +160,11 @@ export class EffectParticleSystem extends ParticleSystem implements ISystem {
 	}
 
 	/**
-	 * Apply system-level behaviors (gradients, etc.) to ParticleSystem
-	 * These are applied once when behaviors change, not per-particle
+	 * Apply system-level behaviors (gradients) to ParticleSystem
+	 * These configure native Babylon.js gradients once, not per-particle
 	 */
-	private _applySystemLevelBehaviors(): void {
-		for (const behavior of this.behaviorConfigs) {
+	private _applySystemLevelBehaviors(behaviors: Behavior[]): void {
+		for (const behavior of behaviors) {
 			if (!behavior.type) {
 				continue;
 			}
@@ -266,150 +201,47 @@ export class EffectParticleSystem extends ParticleSystem implements ISystem {
 	}
 
 	/**
-	 * Configure particle system from  config (internal use)
-	 * This method applies all configuration from ParticleEmitterConfig
+	 * Configure emitter from shape config
+	 * This replaces the need for EmitterFactory
 	 */
-	private _configureFromConfig(
-		config: IEmitterConfig,
-		options?: {
-			texture?: Texture;
-			blendMode?: number;
-			emitterShape?: { shape: IShape | undefined; cumulativeScale: Vector3; rotationMatrix: Matrix | null };
+	public configureEmitterFromShape(shape: any, cumulativeScale: any, _rotationMatrix: any): void {
+		if (!shape || !shape.type) {
+			this.createPointEmitter(new Vector3(0, 1, 0), new Vector3(0, 1, 0));
+			return;
 		}
-	): void {
-		// Parse values
-		const emissionRate = config.emissionOverTime !== undefined ? ValueUtils.parseConstantValue(config.emissionOverTime) : 10;
-		const duration = config.duration || 5;
-		const lifeTime = config.startLife !== undefined ? ValueUtils.parseIntervalValue(config.startLife) : { min: 1, max: 1 };
-		const speed = config.startSpeed !== undefined ? ValueUtils.parseIntervalValue(config.startSpeed) : { min: 1, max: 1 };
-		const size = config.startSize !== undefined ? ValueUtils.parseIntervalValue(config.startSize) : { min: 1, max: 1 };
-		const startColor = config.startColor !== undefined ? ValueUtils.parseConstantColor(config.startColor) : new Color4(1, 1, 1, 1);
 
-		// Configure basic properties
-		this.targetStopDuration = duration;
-		this.emitRate = emissionRate;
-		this.manualEmitCount = -1;
-		this.minLifeTime = lifeTime.min;
-		this.maxLifeTime = lifeTime.max;
-		this.minEmitPower = speed.min;
-		this.maxEmitPower = speed.max;
-		this.minSize = size.min;
-		this.maxSize = size.max;
-		this.color1 = startColor;
-		this.color2 = startColor;
-		this.colorDead = new Color4(startColor.r, startColor.g, startColor.b, 0);
+		const shapeType = shape.type.toLowerCase();
+		const radius = (shape.radius ?? 1) * ((cumulativeScale.x + cumulativeScale.y + cumulativeScale.z) / 3);
+		const angle = shape.angle ?? Math.PI / 4;
 
-		// Configure rotation
-		if (config.startRotation) {
-			if (this._isEulerRotation(config.startRotation)) {
-				if (config.startRotation.angleZ !== undefined) {
-					const angleZ = ValueUtils.parseIntervalValue(config.startRotation.angleZ);
-					this.minInitialRotation = angleZ.min;
-					this.maxInitialRotation = angleZ.max;
-				}
-			} else {
-				const rotation = ValueUtils.parseIntervalValue(config.startRotation as any);
-				this.minInitialRotation = rotation.min;
-				this.maxInitialRotation = rotation.max;
+		switch (shapeType) {
+			case "cone":
+				this.createConeEmitter(radius, angle);
+				break;
+			case "sphere":
+				this.createSphereEmitter(radius);
+				break;
+			case "point":
+				this.createPointEmitter(new Vector3(0, 1, 0), new Vector3(0, 1, 0));
+				break;
+			case "box": {
+				const boxSize = (shape.size || [1, 1, 1]).map((s: number, i: number) => s * [cumulativeScale.x, cumulativeScale.y, cumulativeScale.z][i]);
+				const minBox = new Vector3(-boxSize[0] / 2, -boxSize[1] / 2, -boxSize[2] / 2);
+				const maxBox = new Vector3(boxSize[0] / 2, boxSize[1] / 2, boxSize[2] / 2);
+				this.createBoxEmitter(new Vector3(0, 1, 0), new Vector3(0, 1, 0), minBox, maxBox);
+				break;
 			}
-		}
-
-		// Configure sprite tiles
-		if (config.uTileCount !== undefined && config.vTileCount !== undefined) {
-			if (config.uTileCount > 1 || config.vTileCount > 1) {
-				this.isAnimationSheetEnabled = true;
-				this.spriteCellWidth = config.uTileCount;
-				this.spriteCellHeight = config.vTileCount;
-
-				if (config.startTileIndex !== undefined) {
-					const startTile = ValueUtils.parseConstantValue(config.startTileIndex);
-					this.startSpriteCellID = Math.floor(startTile);
-					this.endSpriteCellID = Math.floor(startTile);
-				}
+			case "hemisphere":
+				this.createHemisphericEmitter(radius);
+				break;
+			case "cylinder": {
+				const height = (shape.height ?? 1) * cumulativeScale.y;
+				this.createCylinderEmitter(radius, height);
+				break;
 			}
-		}
-
-		// Configure rendering
-		if (config.renderOrder !== undefined) {
-			this.renderingGroupId = config.renderOrder;
-		}
-		if (config.layers !== undefined) {
-			this.layerMask = config.layers;
-		}
-
-		// Apply texture and blend mode
-		if (options?.texture) {
-			this.particleTexture = options.texture;
-		}
-		if (options?.blendMode !== undefined) {
-			this.blendMode = options.blendMode;
-		}
-
-		// Apply emission bursts
-		if (config.emissionBursts && Array.isArray(config.emissionBursts) && config.emissionBursts.length > 0) {
-			this._applyEmissionBursts(config.emissionBursts, emissionRate, duration);
-		}
-
-		// Apply behaviors
-		if (config.behaviors && Array.isArray(config.behaviors) && config.behaviors.length > 0) {
-			this.behaviorConfigs.length = 0;
-			this.behaviorConfigs.push(...config.behaviors);
-		}
-
-		// Configure world space
-		if (config.worldSpace !== undefined) {
-			this.isLocal = !config.worldSpace;
-		}
-
-		// Configure looping
-		if (config.looping !== undefined) {
-			this.targetStopDuration = config.looping ? 0 : duration;
-		}
-
-		// Configure billboard mode (converted from renderMode in DataConverter)
-		if (config.isBillboardBased !== undefined) {
-			this.isBillboardBased = config.isBillboardBased;
-		}
-		if (config.billboardMode !== undefined) {
-			this.billboardMode = config.billboardMode;
-		}
-
-		// Configure auto destroy
-		if (config.autoDestroy !== undefined) {
-			this.disposeOnStop = config.autoDestroy;
-		}
-
-		// Emitter shape is created in SystemFactory after system creation
-	}
-
-	/**
-	 * Check if rotation is Euler type
-	 */
-	private _isEulerRotation(rotation: any): rotation is { type: "Euler"; angleZ?: any } {
-		return typeof rotation === "object" && rotation !== null && "type" in rotation && rotation.type === "Euler";
-	}
-
-	/**
-	 * Apply emission bursts via emit rate gradients
-	 */
-	private _applyEmissionBursts(bursts: IEmissionBurst[], baseEmitRate: number, duration: number): void {
-		for (const burst of bursts) {
-			if (burst.time === undefined || burst.count === undefined) {
-				continue;
-			}
-
-			const burstTime = ValueUtils.parseConstantValue(burst.time);
-			const burstCount = ValueUtils.parseConstantValue(burst.count);
-			const timeRatio = Math.min(Math.max(burstTime / duration, 0), 1);
-			const windowSize = 0.02;
-			const burstEmitRate = burstCount / windowSize;
-
-			const beforeTime = Math.max(0, timeRatio - windowSize);
-			const afterTime = Math.min(1, timeRatio + windowSize);
-
-			this.addEmitRateGradient(beforeTime, baseEmitRate);
-			this.addEmitRateGradient(timeRatio, burstEmitRate);
-			this.addEmitRateGradient(afterTime, baseEmitRate);
+			default:
+				this.createPointEmitter(new Vector3(0, 1, 0), new Vector3(0, 1, 0));
+				break;
 		}
 	}
 }

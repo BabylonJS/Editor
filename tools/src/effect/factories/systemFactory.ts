@@ -1,15 +1,17 @@
-import { Nullable, Vector3, TransformNode, Texture, Scene } from "babylonjs";
+import { Nullable, Vector3, TransformNode, Scene, AbstractMesh } from "babylonjs";
 import { EffectParticleSystem } from "../systems/effectParticleSystem";
 import { EffectSolidParticleSystem } from "../systems/effectSolidParticleSystem";
 import type { IData, IGroup, IEmitter, ITransform } from "../types/hierarchy";
+import type { IParticleSystemConfig } from "../types/emitter";
 import { Logger } from "../loggers/logger";
 import { MatrixUtils } from "../utils/matrixUtils";
-import { EmitterFactory } from "./emitterFactory";
 import type { IMaterialFactory, IGeometryFactory } from "../types/factories";
 import type { ILoaderOptions } from "../types/loader";
+import { CapacityCalculator } from "../utils/capacityCalculator";
+import { ValueUtils } from "../utils/valueParser";
 
 /**
- * Factory for creating particle systems from  data
+ * Factory for creating particle systems from data
  * Creates all nodes, sets parents, and applies transformations in a single pass
  */
 export class SystemFactory {
@@ -18,7 +20,6 @@ export class SystemFactory {
 	private _groupNodesMap: Map<string, TransformNode>;
 	private _materialFactory: IMaterialFactory;
 	private _geometryFactory: IGeometryFactory;
-	private _emitterFactory: EmitterFactory;
 
 	constructor(scene: Scene, options: ILoaderOptions, groupNodesMap: Map<string, TransformNode>, materialFactory: IMaterialFactory, geometryFactory: IGeometryFactory) {
 		this._scene = scene;
@@ -26,22 +27,21 @@ export class SystemFactory {
 		this._logger = new Logger("[SystemFactory]", options);
 		this._materialFactory = materialFactory;
 		this._geometryFactory = geometryFactory;
-		this._emitterFactory = new EmitterFactory();
 	}
 
 	/**
 	 * Create particle systems from  data
 	 * Creates all nodes, sets parents, and applies transformations in one pass
 	 */
-	public createSystems(Data: IData): (EffectParticleSystem | EffectSolidParticleSystem)[] {
-		if (!Data.root) {
+	public createSystems(data: IData): (EffectParticleSystem | EffectSolidParticleSystem)[] {
+		if (!data.root) {
 			this._logger.warn("No root object found in  data");
 			return [];
 		}
 
 		this._logger.log("Processing hierarchy: creating nodes, setting parents, and applying transformations");
 		const particleSystems: (EffectParticleSystem | EffectSolidParticleSystem)[] = [];
-		this._processObject(Data.root, null, 0, particleSystems, Data);
+		this._processObject(data.root, null, 0, particleSystems, data);
 		return particleSystems;
 	}
 
@@ -50,18 +50,18 @@ export class SystemFactory {
 	 * Creates nodes, sets parents, and applies transformations in one pass
 	 */
 	private _processObject(
-		Obj: IGroup | IEmitter,
+		obj: IGroup | IEmitter,
 		parentGroup: Nullable<TransformNode>,
 		depth: number,
 		particleSystems: (EffectParticleSystem | EffectSolidParticleSystem)[],
-		Data: IData
+		data: IData
 	): void {
-		this._logger.log(`${"  ".repeat(depth)}Processing object: ${Obj.name}`);
+		this._logger.log(`${"  ".repeat(depth)}Processing object: ${obj.name}`);
 
-		if (this._isGroup(Obj)) {
-			this._processGroup(Obj, parentGroup, depth, particleSystems, Data);
+		if (this._isGroup(obj)) {
+			this._processGroup(obj, parentGroup, depth, particleSystems, data);
 		} else {
-			this._processEmitter(Obj, parentGroup, depth, particleSystems);
+			this._processEmitter(obj, parentGroup, depth, particleSystems);
 		}
 	}
 
@@ -69,21 +69,21 @@ export class SystemFactory {
 	 * Process a  Group object
 	 */
 	private _processGroup(
-		Group: IGroup,
+		group: IGroup,
 		parentGroup: Nullable<TransformNode>,
 		depth: number,
 		particleSystems: (EffectParticleSystem | EffectSolidParticleSystem)[],
-		Data: IData
+		data: IData
 	): void {
-		const groupNode = this._createGroupNode(Group, parentGroup, depth);
-		this._processChildren(Group.children, groupNode, depth, particleSystems, Data);
+		const groupNode = this._createGroupNode(group, parentGroup, depth);
+		this._processChildren(group.children, groupNode, depth, particleSystems, data);
 	}
 
 	/**
 	 * Process a  Emitter object
 	 */
-	private _processEmitter(Emitter: IEmitter, parentGroup: Nullable<TransformNode>, depth: number, particleSystems: (EffectParticleSystem | EffectSolidParticleSystem)[]): void {
-		const particleSystem = this._createParticleSystem(Emitter, parentGroup, depth);
+	private _processEmitter(emitter: IEmitter, parentGroup: Nullable<TransformNode>, depth: number, particleSystems: (EffectParticleSystem | EffectSolidParticleSystem)[]): void {
+		const particleSystem = this._createParticleSystem(emitter, parentGroup, depth);
 		if (particleSystem) {
 			particleSystems.push(particleSystem);
 		}
@@ -97,7 +97,7 @@ export class SystemFactory {
 		parentGroup: TransformNode,
 		depth: number,
 		particleSystems: (EffectParticleSystem | EffectSolidParticleSystem)[],
-		Data: IData
+		data: IData
 	): void {
 		if (!children || children.length === 0) {
 			return;
@@ -105,66 +105,67 @@ export class SystemFactory {
 
 		this._logger.log(`${"  ".repeat(depth)}Processing ${children.length} children`);
 		children.forEach((child) => {
-			this._processObject(child, parentGroup, depth + 1, particleSystems, Data);
+			this._processObject(child, parentGroup, depth + 1, particleSystems, data);
 		});
 	}
 
 	/**
 	 * Create a TransformNode for a  Group
 	 */
-	private _createGroupNode(Group: IGroup, parentGroup: Nullable<TransformNode>, depth: number): TransformNode {
-		const groupNode = new TransformNode(Group.name, this._scene);
-		groupNode.id = Group.uuid;
+	private _createGroupNode(group: IGroup, parentGroup: Nullable<TransformNode>, depth: number): TransformNode {
+		const groupNode = new TransformNode(group.name, this._scene);
+		groupNode.id = group.uuid;
 
-		this._applyTransform(groupNode, Group.transform, depth);
+		this._applyTransform(groupNode, group.transform, depth);
 		this._setParent(groupNode, parentGroup, depth);
 
 		// Store in map for potential future reference
-		this._groupNodesMap.set(Group.uuid, groupNode);
+		this._groupNodesMap.set(group.uuid, groupNode);
 
-		this._logger.log(`${"  ".repeat(depth)}Created group node: ${Group.name}`);
+		this._logger.log(`${"  ".repeat(depth)}Created group node: ${group.name}`);
 		return groupNode;
 	}
 
 	/**
 	 * Create a particle system from a  Emitter
 	 */
-	private _createParticleSystem(Emitter: IEmitter, parentGroup: Nullable<TransformNode>, depth: number): Nullable<EffectParticleSystem | EffectSolidParticleSystem> {
+	private _createParticleSystem(emitter: IEmitter, parentGroup: Nullable<TransformNode>, depth: number): Nullable<EffectParticleSystem | EffectSolidParticleSystem> {
 		const indent = "  ".repeat(depth);
 		const parentName = parentGroup ? parentGroup.name : "none";
-		this._logger.log(`${indent}Processing emitter: ${Emitter.name} (parent: ${parentName})`);
+		this._logger.log(`${indent}Processing emitter: ${emitter.name} (parent: ${parentName})`);
 
 		try {
-			const config = Emitter.config;
+			const config = emitter.config;
 			if (!config) {
-				this._logger.warn(`${indent}Emitter ${Emitter.name} has no config, skipping`);
+				this._logger.warn(`${indent}Emitter ${emitter.name} has no config, skipping`);
 				return null;
 			}
 
-			this._logger.log(`${indent}  Config: duration=${config.duration}, looping=${config.looping}, systemType=${Emitter.systemType}`);
+			const isLooping = config.targetStopDuration === 0;
+			this._logger.log(`${indent}  Config: targetStopDuration=${config.targetStopDuration}, looping=${isLooping}, systemType=${emitter.systemType}`);
 
 			const cumulativeScale = this._calculateCumulativeScale(parentGroup);
 			this._logger.log(`${indent}Cumulative scale: (${cumulativeScale.x.toFixed(2)}, ${cumulativeScale.y.toFixed(2)}, ${cumulativeScale.z.toFixed(2)})`);
 
 			// Use systemType from emitter (determined during conversion)
-			const systemType = Emitter.systemType || "base";
+			const systemType = emitter.systemType || "base";
 			this._logger.log(`Using ${systemType === "solid" ? "SolidParticleSystem" : "ParticleSystem"}`);
 
 			let particleSystem: EffectParticleSystem | EffectSolidParticleSystem | null = null;
 
 			try {
 				if (systemType === "solid") {
-					particleSystem = this._createSolidParticleSystem(Emitter, parentGroup);
+					particleSystem = this._createSolidParticleSystem(emitter, parentGroup);
 				} else {
-					particleSystem = this._createParticleSystemInstance(Emitter, parentGroup, cumulativeScale, depth);
+					particleSystem = this._createParticleSystemInstance(emitter, parentGroup, cumulativeScale, depth);
 				}
 			} catch (error) {
-				this._logger.error(`${indent}Failed to create ${systemType} system for emitter ${Emitter.name}: ${error instanceof Error ? error.message : String(error)}`);
+				this._logger.error(`${indent}Failed to create ${systemType} system for emitter ${emitter.name}: ${error instanceof Error ? error.message : String(error)}`);
 				return null;
 			}
 
 			if (!particleSystem) {
-				this._logger.warn(`${indent}Failed to create particle system for emitter: ${Emitter.name}`);
+				this._logger.warn(`${indent}Failed to create particle system for emitter: ${emitter.name}`);
 				return null;
 			}
 
@@ -173,53 +174,191 @@ export class SystemFactory {
 				if (particleSystem instanceof EffectSolidParticleSystem) {
 					// For SPS, transform is applied to the mesh
 					if (particleSystem.mesh) {
-						this._applyTransform(particleSystem.mesh, Emitter.transform, depth);
+						this._applyTransform(particleSystem.mesh, emitter.transform, depth);
 						this._setParent(particleSystem.mesh, parentGroup, depth);
 					}
 				} else if (particleSystem instanceof EffectParticleSystem) {
 					// For PS, transform is applied to the emitter mesh
-					const emitter = particleSystem.getParentNode();
-					if (emitter) {
-						this._applyTransform(emitter, Emitter.transform, depth);
-						this._setParent(emitter, parentGroup, depth);
+					const emitterNode = particleSystem.getParentNode();
+					if (emitterNode) {
+						this._applyTransform(emitterNode, emitter.transform, depth);
+						this._setParent(emitterNode, parentGroup, depth);
 					}
 				}
 			} catch (error) {
-				this._logger.warn(`${indent}Failed to apply transform to system ${Emitter.name}: ${error instanceof Error ? error.message : String(error)}`);
+				this._logger.warn(`${indent}Failed to apply transform to system ${emitter.name}: ${error instanceof Error ? error.message : String(error)}`);
 				// Continue - system is created, just transform failed
 			}
 
-			this._logger.log(`${indent}Created particle system: ${Emitter.name}`);
+			this._logger.log(`${indent}Created particle system: ${emitter.name}`);
 			return particleSystem;
 		} catch (error) {
-			this._logger.error(`${indent}Unexpected error creating particle system ${Emitter.name}: ${error instanceof Error ? error.message : String(error)}`);
+			this._logger.error(`${indent}Unexpected error creating particle system ${emitter.name}: ${error instanceof Error ? error.message : String(error)}`);
 			return null;
+		}
+	}
+
+	/**
+	 * Apply common native properties to both ParticleSystem and SolidParticleSystem
+	 */
+	private _applyCommonProperties(system: EffectParticleSystem | EffectSolidParticleSystem, config: IParticleSystemConfig): void {
+		if (config.minSize !== undefined) system.minSize = config.minSize;
+		if (config.maxSize !== undefined) system.maxSize = config.maxSize;
+		if (config.minLifeTime !== undefined) system.minLifeTime = config.minLifeTime;
+		if (config.maxLifeTime !== undefined) system.maxLifeTime = config.maxLifeTime;
+		if (config.minEmitPower !== undefined) system.minEmitPower = config.minEmitPower;
+		if (config.maxEmitPower !== undefined) system.maxEmitPower = config.maxEmitPower;
+		if (config.emitRate !== undefined) system.emitRate = config.emitRate;
+		if (config.targetStopDuration !== undefined) system.targetStopDuration = config.targetStopDuration;
+		if (config.manualEmitCount !== undefined) system.manualEmitCount = config.manualEmitCount;
+		if (config.preWarmCycles !== undefined) system.preWarmCycles = config.preWarmCycles;
+		if (config.preWarmStepOffset !== undefined) system.preWarmStepOffset = config.preWarmStepOffset;
+		if (config.color1 !== undefined) system.color1 = config.color1;
+		if (config.color2 !== undefined) system.color2 = config.color2;
+		if (config.colorDead !== undefined) system.colorDead = config.colorDead;
+		if (config.minInitialRotation !== undefined) system.minInitialRotation = config.minInitialRotation;
+		if (config.maxInitialRotation !== undefined) system.maxInitialRotation = config.maxInitialRotation;
+		if (config.isLocal !== undefined) system.isLocal = config.isLocal;
+		if (config.disposeOnStop !== undefined) system.disposeOnStop = config.disposeOnStop;
+		if (config.gravity !== undefined) system.gravity = config.gravity;
+		if (config.noiseStrength !== undefined) system.noiseStrength = config.noiseStrength;
+		if (config.updateSpeed !== undefined) system.updateSpeed = config.updateSpeed;
+		if (config.minAngularSpeed !== undefined) system.minAngularSpeed = config.minAngularSpeed;
+		if (config.maxAngularSpeed !== undefined) system.maxAngularSpeed = config.maxAngularSpeed;
+		if (config.minScaleX !== undefined) system.minScaleX = config.minScaleX;
+		if (config.maxScaleX !== undefined) system.maxScaleX = config.maxScaleX;
+		if (config.minScaleY !== undefined) system.minScaleY = config.minScaleY;
+		if (config.maxScaleY !== undefined) system.maxScaleY = config.maxScaleY;
+	}
+
+	/**
+	 * Apply gradients (PiecewiseBezier) to both ParticleSystem and SolidParticleSystem
+	 */
+	private _applyGradients(system: EffectParticleSystem | EffectSolidParticleSystem, config: IParticleSystemConfig): void {
+		if (config.startSizeGradients) {
+			for (const grad of config.startSizeGradients) {
+				system.addStartSizeGradient(grad.gradient, grad.factor, grad.factor2);
+			}
+		}
+		if (config.lifeTimeGradients) {
+			for (const grad of config.lifeTimeGradients) {
+				system.addLifeTimeGradient(grad.gradient, grad.factor, grad.factor2);
+			}
+		}
+		if (config.emitRateGradients) {
+			for (const grad of config.emitRateGradients) {
+				system.addEmitRateGradient(grad.gradient, grad.factor, grad.factor2);
+			}
+		}
+	}
+
+	/**
+	 * Apply common rendering and behavior options
+	 */
+	private _applyCommonOptions(system: EffectParticleSystem | EffectSolidParticleSystem, config: IParticleSystemConfig): void {
+		// Rendering
+		if (config.renderOrder !== undefined) {
+			if (system instanceof EffectParticleSystem) {
+				system.renderingGroupId = config.renderOrder;
+			} else {
+				system.renderOrder = config.renderOrder;
+			}
+		}
+		if (config.layers !== undefined) {
+			if (system instanceof EffectParticleSystem) {
+				system.layerMask = config.layers;
+			} else {
+				system.layers = config.layers;
+			}
+		}
+
+		// Billboard
+		if (config.isBillboardBased !== undefined) {
+			system.isBillboardBased = config.isBillboardBased;
+		}
+
+		// Behaviors
+		if (config.behaviors) {
+			system.setBehaviors(config.behaviors);
 		}
 	}
 
 	/**
 	 * Create a ParticleSystem instance
 	 */
-	private _createParticleSystemInstance(Emitter: IEmitter, _parentGroup: Nullable<TransformNode>, cumulativeScale: Vector3, _depth: number): Nullable<EffectParticleSystem> {
-		const { name, config } = Emitter;
+	private _createParticleSystemInstance(emitter: IEmitter, _parentGroup: Nullable<TransformNode>, cumulativeScale: Vector3, _depth: number): Nullable<EffectParticleSystem> {
+		const { name, config } = emitter;
 
 		this._logger.log(`Creating ParticleSystem: ${name}`);
 
-		// Get texture and blend mode
-		const texture: Texture | undefined = Emitter.materialId ? this._materialFactory.createTexture(Emitter.materialId) || undefined : undefined;
-		const blendMode = Emitter.materialId ? this._materialFactory.getBlendMode(Emitter.materialId) : undefined;
+		// Calculate capacity
+		const duration = config.targetStopDuration !== undefined && config.targetStopDuration > 0 ? config.targetStopDuration : 5;
+		const emitRate = config.emitRate || 10;
+		const capacity = CapacityCalculator.calculateForParticleSystem(emitRate, duration);
 
-		// Extract rotation matrix from emitter matrix if available
-		const rotationMatrix = Emitter.matrix ? MatrixUtils.extractRotationMatrix(Emitter.matrix) : null;
+		// Create instance (simple constructor)
+		const particleSystem = new EffectParticleSystem(name, capacity, this._scene);
 
-		// Create instance - all configuration happens in constructor
-		const particleSystem = new EffectParticleSystem(name, this._scene, config, {
-			texture,
-			blendMode,
-		});
+		// Apply common properties and gradients
+		this._applyCommonProperties(particleSystem, config);
+		this._applyGradients(particleSystem, config);
 
-		// Create emitter using factory
-		this._emitterFactory.createParticleSystemEmitter(particleSystem, config.shape, cumulativeScale, rotationMatrix);
+		// === Настройка текстуры и blend mode ===
+		if (emitter.materialId) {
+			const texture = this._materialFactory.createTexture(emitter.materialId);
+			if (texture) {
+				particleSystem.particleTexture = texture;
+			}
+			const blendMode = this._materialFactory.getBlendMode(emitter.materialId);
+			if (blendMode !== undefined) {
+				particleSystem.blendMode = blendMode;
+			}
+		}
+
+		// === Настройка sprite tiles ===
+		if (config.uTileCount !== undefined && config.vTileCount !== undefined) {
+			if (config.uTileCount > 1 || config.vTileCount > 1) {
+				particleSystem.isAnimationSheetEnabled = true;
+				particleSystem.spriteCellWidth = config.uTileCount;
+				particleSystem.spriteCellHeight = config.vTileCount;
+				if (config.startTileIndex !== undefined) {
+					const startTile = ValueUtils.parseConstantValue(config.startTileIndex);
+					particleSystem.startSpriteCellID = Math.floor(startTile);
+					particleSystem.endSpriteCellID = Math.floor(startTile);
+				}
+			}
+		}
+
+		// Apply common rendering and behavior options
+		this._applyCommonOptions(particleSystem, config);
+
+		// ParticleSystem-specific: billboard mode
+		if (config.billboardMode !== undefined) {
+			particleSystem.billboardMode = config.billboardMode;
+		}
+
+		// === Настройка emission bursts ===
+		if (config.emissionBursts && config.emissionBursts.length > 0) {
+			const baseEmitRate = config.emitRate || 10;
+			for (const burst of config.emissionBursts) {
+				if (burst.time !== undefined && burst.count !== undefined) {
+					const burstTime = ValueUtils.parseConstantValue(burst.time);
+					const burstCount = ValueUtils.parseConstantValue(burst.count);
+					const timeRatio = Math.min(Math.max(burstTime / duration, 0), 1);
+					const windowSize = 0.02;
+					const burstEmitRate = burstCount / windowSize;
+					const beforeTime = Math.max(0, timeRatio - windowSize);
+					const afterTime = Math.min(1, timeRatio + windowSize);
+					particleSystem.addEmitRateGradient(beforeTime, baseEmitRate);
+					particleSystem.addEmitRateGradient(timeRatio, burstEmitRate);
+					particleSystem.addEmitRateGradient(afterTime, baseEmitRate);
+				}
+			}
+		}
+
+		// === Создание emitter ===
+		const rotationMatrix = emitter.matrix ? MatrixUtils.extractRotationMatrix(emitter.matrix) : null;
+		particleSystem.configureEmitterFromShape(config.shape, cumulativeScale, rotationMatrix);
 
 		this._logger.log(`ParticleSystem created: ${name}`);
 		return particleSystem;
@@ -228,13 +367,13 @@ export class SystemFactory {
 	/**
 	 * Create a SolidParticleSystem instance
 	 */
-	private _createSolidParticleSystem(Emitter: IEmitter, parentGroup: Nullable<TransformNode>): Nullable<EffectSolidParticleSystem> {
-		const { name, config } = Emitter;
+	private _createSolidParticleSystem(emitter: IEmitter, parentGroup: Nullable<TransformNode>): Nullable<EffectSolidParticleSystem> {
+		const { name, config } = emitter;
 
 		this._logger.log(`Creating SolidParticleSystem: ${name}`);
 
-		// Get  transform
-		const transform = Emitter.transform || null;
+		// Get transform
+		const transform = emitter.transform || null;
 
 		// Create or load particle mesh
 		const particleMesh = this._geometryFactory.createParticleMesh(config, name, this._scene);
@@ -243,27 +382,82 @@ export class SystemFactory {
 		}
 
 		// Apply material if provided
-		if (Emitter.materialId) {
-			const material = this._materialFactory.createMaterial(Emitter.materialId, name);
+		if (emitter.materialId) {
+			const material = this._materialFactory.createMaterial(emitter.materialId, name);
 			if (material) {
 				particleMesh.material = material;
 			}
 		}
 
-		// Create SPS instance - mesh initialization and capacity calculation happen in constructor
-		const sps = new EffectSolidParticleSystem(name, this._scene, config, {
+		// Create SPS instance (simple constructor)
+		const sps = new EffectSolidParticleSystem(name, this._scene, {
 			updatable: true,
 			isPickable: false,
 			enableDepthSort: false,
 			particleIntersection: false,
 			useModelMaterial: true,
-			parentGroup,
 			transform,
-			particleMesh,
 		});
 
-		// Create emitter using factory (similar to ParticleSystem)
-		this._emitterFactory.createSolidParticleSystemEmitter(sps, config.shape);
+		// Set particle mesh and emitter (like ParticleSystem interface)
+		sps.particleMesh = particleMesh;
+		if (parentGroup) {
+			sps.emitter = parentGroup as AbstractMesh;
+		}
+
+		// Apply common properties and gradients
+		this._applyCommonProperties(sps, config);
+		this._applyGradients(sps, config);
+
+		// Apply common rendering and behavior options
+		this._applyCommonOptions(sps, config);
+
+		// === SolidParticleSystem-specific properties ===
+		if (config.shape !== undefined) {
+			sps.shape = config.shape;
+		}
+		if (config.emissionOverDistance !== undefined) {
+			sps.emissionOverDistance = config.emissionOverDistance;
+		}
+		if (config.emissionBursts !== undefined) {
+			sps.emissionBursts = config.emissionBursts;
+		}
+		if (config.onlyUsedByOther !== undefined) {
+			sps.onlyUsedByOther = config.onlyUsedByOther;
+		}
+		if (config.instancingGeometry !== undefined) {
+			sps.instancingGeometry = config.instancingGeometry;
+		}
+		if (config.rendererEmitterSettings !== undefined) {
+			sps.rendererEmitterSettings = config.rendererEmitterSettings;
+		}
+		if (config.material !== undefined) {
+			sps.material = config.material;
+		}
+		if (config.startTileIndex !== undefined) {
+			sps.startTileIndex = config.startTileIndex;
+		}
+		if (config.uTileCount !== undefined) {
+			sps.uTileCount = config.uTileCount;
+		}
+		if (config.vTileCount !== undefined) {
+			sps.vTileCount = config.vTileCount;
+		}
+		if (config.blendTiles !== undefined) {
+			sps.blendTiles = config.blendTiles;
+		}
+		if (config.softParticles !== undefined) {
+			sps.softParticles = config.softParticles;
+		}
+		if (config.softFarFade !== undefined) {
+			sps.softFarFade = config.softFarFade;
+		}
+		if (config.softNearFade !== undefined) {
+			sps.softNearFade = config.softNearFade;
+		}
+
+		// === Создание emitter ===
+		sps.configureEmitterFromShape(config.shape);
 
 		this._logger.log(`SolidParticleSystem created: ${name}`);
 		return sps;
