@@ -83,7 +83,7 @@ export class SystemFactory {
 	 * Process a  Emitter object
 	 */
 	private _processEmitter(emitter: IEmitter, parentGroup: Nullable<TransformNode>, depth: number, particleSystems: (EffectParticleSystem | EffectSolidParticleSystem)[]): void {
-		const particleSystem = this._createParticleSystem(emitter, parentGroup, depth);
+		const particleSystem = this._createEffectSystem(emitter, parentGroup, depth);
 		if (particleSystem) {
 			particleSystems.push(particleSystem);
 		}
@@ -129,7 +129,7 @@ export class SystemFactory {
 	/**
 	 * Create a particle system from a  Emitter
 	 */
-	private _createParticleSystem(emitter: IEmitter, parentGroup: Nullable<TransformNode>, depth: number): Nullable<EffectParticleSystem | EffectSolidParticleSystem> {
+	private _createEffectSystem(emitter: IEmitter, parentGroup: Nullable<TransformNode>, depth: number): Nullable<EffectParticleSystem | EffectSolidParticleSystem> {
 		const indent = "  ".repeat(depth);
 		const parentName = parentGroup ? parentGroup.name : "none";
 		this._logger.log(`${indent}Processing emitter: ${emitter.name} (parent: ${parentName})`);
@@ -155,9 +155,9 @@ export class SystemFactory {
 
 			try {
 				if (systemType === "solid") {
-					particleSystem = this._createSolidParticleSystem(emitter, parentGroup);
+					particleSystem = this._createEffectSolidParticleSystem(emitter, parentGroup);
 				} else {
-					particleSystem = this._createParticleSystemInstance(emitter, parentGroup, cumulativeScale, depth);
+					particleSystem = this._createEffectParticleSystem(emitter, parentGroup, cumulativeScale, depth);
 				}
 			} catch (error) {
 				this._logger.error(`${indent}Failed to create ${systemType} system for emitter ${emitter.name}: ${error instanceof Error ? error.message : String(error)}`);
@@ -284,9 +284,35 @@ export class SystemFactory {
 	}
 
 	/**
+	 * Apply emission bursts by converting them to emit rate gradients
+	 * Unified approach for both ParticleSystem and SolidParticleSystem
+	 */
+	private _applyEmissionBursts(system: EffectParticleSystem | EffectSolidParticleSystem, config: IParticleSystemConfig, duration: number): void {
+		if (!config.emissionBursts || config.emissionBursts.length === 0) {
+			return;
+		}
+
+		const baseEmitRate = config.emitRate || 10;
+		for (const burst of config.emissionBursts) {
+			if (burst.time !== undefined && burst.count !== undefined) {
+				const burstTime = ValueUtils.parseConstantValue(burst.time);
+				const burstCount = ValueUtils.parseConstantValue(burst.count);
+				const timeRatio = Math.min(Math.max(burstTime / duration, 0), 1);
+				const windowSize = 0.02;
+				const burstEmitRate = burstCount / windowSize;
+				const beforeTime = Math.max(0, timeRatio - windowSize);
+				const afterTime = Math.min(1, timeRatio + windowSize);
+				system.addEmitRateGradient(beforeTime, baseEmitRate);
+				system.addEmitRateGradient(timeRatio, burstEmitRate);
+				system.addEmitRateGradient(afterTime, baseEmitRate);
+			}
+		}
+	}
+
+	/**
 	 * Create a ParticleSystem instance
 	 */
-	private _createParticleSystemInstance(emitter: IEmitter, _parentGroup: Nullable<TransformNode>, cumulativeScale: Vector3, _depth: number): Nullable<EffectParticleSystem> {
+	private _createEffectParticleSystem(emitter: IEmitter, _parentGroup: Nullable<TransformNode>, cumulativeScale: Vector3, _depth: number): Nullable<EffectParticleSystem> {
 		const { name, config } = emitter;
 
 		this._logger.log(`Creating ParticleSystem: ${name}`);
@@ -332,28 +358,12 @@ export class SystemFactory {
 		// Apply common rendering and behavior options
 		this._applyCommonOptions(particleSystem, config);
 
+		// Apply emission bursts (converted to gradients)
+		this._applyEmissionBursts(particleSystem, config, duration);
+
 		// ParticleSystem-specific: billboard mode
 		if (config.billboardMode !== undefined) {
 			particleSystem.billboardMode = config.billboardMode;
-		}
-
-		// === Настройка emission bursts ===
-		if (config.emissionBursts && config.emissionBursts.length > 0) {
-			const baseEmitRate = config.emitRate || 10;
-			for (const burst of config.emissionBursts) {
-				if (burst.time !== undefined && burst.count !== undefined) {
-					const burstTime = ValueUtils.parseConstantValue(burst.time);
-					const burstCount = ValueUtils.parseConstantValue(burst.count);
-					const timeRatio = Math.min(Math.max(burstTime / duration, 0), 1);
-					const windowSize = 0.02;
-					const burstEmitRate = burstCount / windowSize;
-					const beforeTime = Math.max(0, timeRatio - windowSize);
-					const afterTime = Math.min(1, timeRatio + windowSize);
-					particleSystem.addEmitRateGradient(beforeTime, baseEmitRate);
-					particleSystem.addEmitRateGradient(timeRatio, burstEmitRate);
-					particleSystem.addEmitRateGradient(afterTime, baseEmitRate);
-				}
-			}
 		}
 
 		// === Создание emitter ===
@@ -367,13 +377,10 @@ export class SystemFactory {
 	/**
 	 * Create a SolidParticleSystem instance
 	 */
-	private _createSolidParticleSystem(emitter: IEmitter, parentGroup: Nullable<TransformNode>): Nullable<EffectSolidParticleSystem> {
+	private _createEffectSolidParticleSystem(emitter: IEmitter, parentGroup: Nullable<TransformNode>): Nullable<EffectSolidParticleSystem> {
 		const { name, config } = emitter;
 
 		this._logger.log(`Creating SolidParticleSystem: ${name}`);
-
-		// Get transform
-		const transform = emitter.transform || null;
 
 		// Create or load particle mesh
 		const particleMesh = this._geometryFactory.createParticleMesh(config, name, this._scene);
@@ -396,7 +403,6 @@ export class SystemFactory {
 			enableDepthSort: false,
 			particleIntersection: false,
 			useModelMaterial: true,
-			transform,
 		});
 
 		// Set particle mesh and emitter (like ParticleSystem interface)
@@ -412,48 +418,14 @@ export class SystemFactory {
 		// Apply common rendering and behavior options
 		this._applyCommonOptions(sps, config);
 
+		// Apply emission bursts (converted to gradients)
+		const duration = config.targetStopDuration !== undefined && config.targetStopDuration > 0 ? config.targetStopDuration : 5;
+		this._applyEmissionBursts(sps, config, duration);
+
 		// === SolidParticleSystem-specific properties ===
-		if (config.shape !== undefined) {
-			sps.shape = config.shape;
-		}
+		// Distance-based emission
 		if (config.emissionOverDistance !== undefined) {
 			sps.emissionOverDistance = config.emissionOverDistance;
-		}
-		if (config.emissionBursts !== undefined) {
-			sps.emissionBursts = config.emissionBursts;
-		}
-		if (config.onlyUsedByOther !== undefined) {
-			sps.onlyUsedByOther = config.onlyUsedByOther;
-		}
-		if (config.instancingGeometry !== undefined) {
-			sps.instancingGeometry = config.instancingGeometry;
-		}
-		if (config.rendererEmitterSettings !== undefined) {
-			sps.rendererEmitterSettings = config.rendererEmitterSettings;
-		}
-		if (config.material !== undefined) {
-			sps.material = config.material;
-		}
-		if (config.startTileIndex !== undefined) {
-			sps.startTileIndex = config.startTileIndex;
-		}
-		if (config.uTileCount !== undefined) {
-			sps.uTileCount = config.uTileCount;
-		}
-		if (config.vTileCount !== undefined) {
-			sps.vTileCount = config.vTileCount;
-		}
-		if (config.blendTiles !== undefined) {
-			sps.blendTiles = config.blendTiles;
-		}
-		if (config.softParticles !== undefined) {
-			sps.softParticles = config.softParticles;
-		}
-		if (config.softFarFade !== undefined) {
-			sps.softFarFade = config.softFarFade;
-		}
-		if (config.softNearFade !== undefined) {
-			sps.softNearFade = config.softNearFade;
 		}
 
 		// === Создание emitter ===

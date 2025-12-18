@@ -11,7 +11,6 @@ import type {
 	PerSolidParticleBehaviorFunction,
 	ISystem,
 	SolidParticleWithSystem,
-	IShape,
 	Value,
 } from "../types";
 import { SolidPointParticleEmitter, SolidSphereParticleEmitter, SolidConeParticleEmitter } from "../emitters";
@@ -51,7 +50,6 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 	private _emissionState: IEmissionState;
 	private _behaviors: PerSolidParticleBehaviorFunction[];
 	public particleEmitterType: ISolidParticleEmitterType | null;
-	private _transform: { position: Vector3; rotation: Quaternion; scale: Vector3 } | null;
 	private _emitEnded: boolean;
 	private _emitter: AbstractMesh | null;
 
@@ -98,23 +96,11 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 	private _emitRateGradients: NumberGradientSystem;
 
 	// === Other properties ===
-	public shape?: IShape;
 	public emissionOverDistance?: Value; // For distance-based emission
-	public emissionBursts?: IEmissionBurst[];
-	public onlyUsedByOther: boolean;
-	public instancingGeometry?: string;
+	public emissionBursts?: IEmissionBurst[]; // Legacy: converted to gradients in Factory
 	public renderOrder?: number;
-	public rendererEmitterSettings?: Record<string, unknown>;
-	public material?: string;
 	public layers?: number;
 	public isBillboardBased?: boolean;
-	public startTileIndex?: Value;
-	public uTileCount?: number;
-	public vTileCount?: number;
-	public blendTiles?: boolean;
-	public softParticles: boolean;
-	public softFarFade?: number;
-	public softNearFade?: number;
 	private _behaviorConfigs: Behavior[];
 
 	/**
@@ -386,7 +372,6 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 			enableDepthSort?: boolean;
 			particleIntersection?: boolean;
 			useModelMaterial?: boolean;
-			transform?: { position: Vector3; rotation: Quaternion; scale: Vector3 } | null;
 		}
 	) {
 		super(name, scene, options);
@@ -394,8 +379,6 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 		this.name = name;
 		this._behaviors = [];
 		this.particleEmitterType = null;
-		this.onlyUsedByOther = false;
-		this.softParticles = false;
 		this._emitter = null;
 
 		// Gradient systems for "OverLife" behaviors
@@ -414,7 +397,6 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 		this._behaviorConfigs = [];
 		this._behaviors = [];
 
-		this._transform = options?.transform ?? null;
 		this._emitEnded = false;
 		this._normalMatrix = new Matrix();
 		this._tempVec = Vector3.Zero();
@@ -808,12 +790,6 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 		// Emitter is the point from which particles emit (like ParticleSystem.emitter)
 		if (this._emitter) {
 			this.mesh.setParent(this._emitter, false, true);
-		}
-
-		if (this._transform) {
-			this.mesh.position.copyFrom(this._transform.position);
-			this.mesh.rotationQuaternion = this._transform.rotation.clone();
-			this.mesh.scaling.copyFrom(this._transform.scale);
 		}
 	}
 
