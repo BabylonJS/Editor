@@ -1,67 +1,66 @@
-import { SolidParticle, Particle, Vector3 } from "babylonjs";
 import type { IColorBySpeedBehavior } from "../types/behaviors";
+import type { Particle } from "babylonjs";
+import type { EffectParticleSystem } from "../systems/effectParticleSystem";
 import { interpolateColorKeys } from "./utils";
-import { ValueUtils } from "../utils/valueParser";
 
 /**
- * Apply ColorBySpeed behavior to Particle
- * Gets currentSpeed from particle.velocity magnitude
+ * Apply ColorBySpeed behavior to ParticleSystem (per-particle)
+ * Uses unified IColorFunction structure: behavior.color = { colorFunctionType, data }
  */
-export function applyColorBySpeedPS(particle: Particle, behavior: IColorBySpeedBehavior): void {
-	if (!behavior.color || !behavior.color.keys || !particle.color || !particle.direction) {
+export function applyColorBySpeedPS(particleSystem: EffectParticleSystem, behavior: IColorBySpeedBehavior, particle: Particle): void {
+	// New structure: behavior.color.data.colorKeys
+	if (!behavior.color || !behavior.color.data?.colorKeys || !particle.color || !particle.direction) {
 		return;
 	}
 
-	// Get current speed from particle velocity/direction
-	const currentSpeed = Vector3.Distance(Vector3.Zero(), particle.direction);
+	const minSpeed = behavior.minSpeed !== undefined ? (typeof behavior.minSpeed === "number" ? behavior.minSpeed : 0) : 0;
+	const maxSpeed = behavior.maxSpeed !== undefined ? (typeof behavior.maxSpeed === "number" ? behavior.maxSpeed : 1) : 1;
+	const colorKeys = behavior.color.data.colorKeys;
 
-	const colorKeys = behavior.color.keys;
-	const minSpeed = behavior.minSpeed !== undefined ? ValueUtils.parseConstantValue(behavior.minSpeed) : 0;
-	const maxSpeed = behavior.maxSpeed !== undefined ? ValueUtils.parseConstantValue(behavior.maxSpeed) : 1;
-	const speedRatio = Math.max(0, Math.min(1, (currentSpeed - minSpeed) / (maxSpeed - minSpeed || 1)));
-
-	const interpolatedColor = interpolateColorKeys(colorKeys, speedRatio);
-	const startColor = particle.initialColor;
-
-	if (startColor) {
-		// Multiply with startColor (matching three.quarks behavior)
-		particle.color.r = interpolatedColor.r * startColor.r;
-		particle.color.g = interpolatedColor.g * startColor.g;
-		particle.color.b = interpolatedColor.b * startColor.b;
-		particle.color.a = startColor.a; // Keep original alpha
-	} else {
-		particle.color.r = interpolatedColor.r;
-		particle.color.g = interpolatedColor.g;
-		particle.color.b = interpolatedColor.b;
+	if (!colorKeys || colorKeys.length === 0) {
+		return;
 	}
+
+	const vel = particle.direction;
+	const currentSpeed = Math.sqrt(vel.x * vel.x + vel.y * vel.y + vel.z * vel.z);
+	const speedRatio = Math.max(0, Math.min(1, (currentSpeed - minSpeed) / (maxSpeed - minSpeed || 1)));
+	const interpolatedColor = interpolateColorKeys(colorKeys, speedRatio);
+
+	particle.color.r = interpolatedColor.r;
+	particle.color.g = interpolatedColor.g;
+	particle.color.b = interpolatedColor.b;
+	particle.color.a = interpolatedColor.a;
 }
 
 /**
- * Apply ColorBySpeed behavior to SolidParticle
- * Gets currentSpeed from particle.velocity magnitude
+ * Apply ColorBySpeed behavior to SolidParticleSystem (per-particle)
+ * Uses unified IColorFunction structure: behavior.color = { colorFunctionType, data }
  */
-export function applyColorBySpeedSPS(particle: SolidParticle, behavior: IColorBySpeedBehavior): void {
-	if (!behavior.color || !behavior.color.keys || !particle.color) {
+export function applyColorBySpeedSPS(behavior: IColorBySpeedBehavior, particle: any): void {
+	// New structure: behavior.color.data.colorKeys
+	if (!behavior.color || !behavior.color.data?.colorKeys || !particle.color) {
 		return;
 	}
 
-	// Get current speed from particle velocity
-	const currentSpeed = Math.sqrt(particle.velocity.x * particle.velocity.x + particle.velocity.y * particle.velocity.y + particle.velocity.z * particle.velocity.z);
+	const minSpeed = behavior.minSpeed !== undefined ? (typeof behavior.minSpeed === "number" ? behavior.minSpeed : 0) : 0;
+	const maxSpeed = behavior.maxSpeed !== undefined ? (typeof behavior.maxSpeed === "number" ? behavior.maxSpeed : 1) : 1;
+	const colorKeys = behavior.color.data.colorKeys;
 
-	const colorKeys = behavior.color.keys;
-	const minSpeed = behavior.minSpeed !== undefined ? ValueUtils.parseConstantValue(behavior.minSpeed) : 0;
-	const maxSpeed = behavior.maxSpeed !== undefined ? ValueUtils.parseConstantValue(behavior.maxSpeed) : 1;
+	if (!colorKeys || colorKeys.length === 0) {
+		return;
+	}
+
+	const vel = particle.velocity;
+	const currentSpeed = Math.sqrt(vel.x * vel.x + vel.y * vel.y + vel.z * vel.z);
 	const speedRatio = Math.max(0, Math.min(1, (currentSpeed - minSpeed) / (maxSpeed - minSpeed || 1)));
-
 	const interpolatedColor = interpolateColorKeys(colorKeys, speedRatio);
 	const startColor = particle.props?.startColor;
 
 	if (startColor) {
-		// Multiply with startColor (matching three.quarks behavior)
 		particle.color.r = interpolatedColor.r * startColor.r;
 		particle.color.g = interpolatedColor.g * startColor.g;
 		particle.color.b = interpolatedColor.b * startColor.b;
-		particle.color.a = startColor.a; // Keep original alpha
+		particle.color.a = startColor.a;
 	} else {
 		particle.color.r = interpolatedColor.r;
 		particle.color.g = interpolatedColor.g;

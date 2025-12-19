@@ -208,7 +208,20 @@ export class MaterialFactory implements IMaterialFactory {
 			return this._createUnlitMaterial(name, material, babylonTexture, materialColor);
 		}
 
-		return new PBRMaterial(name + "_material", this._scene);
+		// Create PBR material for other material types
+		// Note: Vertex colors are automatically used by PBR materials if mesh has vertex colors
+		// The VERTEXCOLOR define is set automatically based on mesh.isVerticesDataPresent(VertexBuffer.ColorKind)
+		const pbrMaterial = new PBRMaterial(name + "_material", this._scene);
+		pbrMaterial.albedoTexture = babylonTexture;
+		pbrMaterial.albedoColor = materialColor;
+
+		this._applyTransparency(pbrMaterial, material, babylonTexture);
+		this._applyDepthWrite(pbrMaterial, material);
+		this._applySideSettings(pbrMaterial, material);
+		this._applyBlendMode(pbrMaterial, material);
+
+		this._logger.log(`Created PBRMaterial with albedoTexture (vertex colors will be used automatically if mesh has them)`);
+		return pbrMaterial;
 	}
 
 	/**
@@ -220,13 +233,14 @@ export class MaterialFactory implements IMaterialFactory {
 		unlitMaterial.unlit = true;
 		unlitMaterial.albedoColor = color;
 		unlitMaterial.albedoTexture = texture;
+		// Note: Vertex colors are automatically used by PBR materials if mesh has vertex colors
 
 		this._applyTransparency(unlitMaterial, material, texture);
 		this._applyDepthWrite(unlitMaterial, material);
 		this._applySideSettings(unlitMaterial, material);
 		this._applyBlendMode(unlitMaterial, material);
 
-		this._logger.log(`Using MeshBasicMaterial: PBRMaterial with unlit=true, albedoTexture`);
+		this._logger.log(`Using MeshBasicMaterial: PBRMaterial with unlit=true, albedoTexture (vertex colors will be used automatically if mesh has them)`);
 		this._logger.log(`Material created successfully: ${name}_material`);
 
 		return unlitMaterial;

@@ -96,17 +96,40 @@ export interface IQuarksEmissionBurst {
 /**
  * Quarks/Three.js behavior types
  */
+export interface IQuarksCLinearFunction {
+	type: "CLinearFunction";
+	subType: "Color" | "Number";
+	keys: IQuarksGradientKey[];
+}
+
+export interface IQuarksGradientColor {
+	type: "Gradient";
+	color?: IQuarksCLinearFunction;
+	alpha?: IQuarksCLinearFunction;
+}
+
+export interface IQuarksConstantColorColor {
+	type: "ConstantColor";
+	color?: {
+		r: number;
+		g: number;
+		b: number;
+		a?: number;
+	};
+	value?: [number, number, number, number];
+}
+
+export interface IQuarksRandomColorBetweenGradient {
+	type: "RandomColorBetweenGradient";
+	gradient1?: IQuarksGradientColor;
+	gradient2?: IQuarksGradientColor;
+}
+
+export type IQuarksColorOverLifeColor = IQuarksGradientColor | IQuarksConstantColorColor | IQuarksRandomColorBetweenGradient;
+
 export interface IQuarksColorOverLifeBehavior {
 	type: "ColorOverLife";
-	color?: {
-		color?: {
-			keys: IQuarksGradientKey[];
-		};
-		alpha?: {
-			keys: IQuarksGradientKey[];
-		};
-		keys?: IQuarksGradientKey[];
-	};
+	color?: IQuarksColorOverLifeColor;
 }
 
 export interface IQuarksSizeOverLifeBehavior {

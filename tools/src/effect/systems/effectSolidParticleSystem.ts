@@ -825,12 +825,16 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 	/**
 	 * Override buildMesh to enable vertex colors and alpha
 	 * This is required for ColorOverLife behavior to work visually
+	 * Note: PBR materials automatically use vertex colors if mesh has them
+	 * The VERTEXCOLOR define is set automatically based on mesh.isVerticesDataPresent(VertexBuffer.ColorKind)
 	 */
 	public override buildMesh(): Mesh {
 		const mesh = super.buildMesh();
 
 		if (mesh) {
 			mesh.hasVertexAlpha = true;
+			// Vertex colors are already enabled via _computeParticleColor = true
+			// PBR materials will automatically use them if mesh has vertex color data
 		}
 
 		return mesh;
@@ -941,7 +945,8 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 					// Pre-parse min/max speed ONCE
 					const minSpeed = b.minSpeed !== undefined ? ValueUtils.parseConstantValue(b.minSpeed) : 0;
 					const maxSpeed = b.maxSpeed !== undefined ? ValueUtils.parseConstantValue(b.maxSpeed) : 1;
-					const colorKeys = b.color?.keys;
+					// New structure: b.color is IColorFunction with data.colorKeys
+					const colorKeys = b.color?.data?.colorKeys;
 
 					if (colorKeys && colorKeys.length > 0) {
 						functions.push((particle: SolidParticle) => {

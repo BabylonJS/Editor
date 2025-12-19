@@ -443,6 +443,8 @@ export class SystemFactory {
 		}
 
 		// Apply material if provided
+		// Note: Vertex colors are automatically used by PBR materials if mesh has vertex colors
+		// The SPS mesh will have vertex colors because _computeParticleColor is enabled
 		if (emitter.materialId) {
 			const material = this._materialFactory.createMaterial(emitter.materialId, name);
 			if (material) {
