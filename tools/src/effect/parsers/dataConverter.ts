@@ -1,4 +1,4 @@
-import { Vector3, Matrix, Quaternion, Color3, Texture as BabylonTexture, ParticleSystem } from "babylonjs";
+import { Vector3, Matrix, Quaternion, Color3, Texture as BabylonTexture, ParticleSystem, Color4 } from "babylonjs";
 import type { ILoaderOptions } from "../types/loader";
 import type {
 	IQuarksJSON,
@@ -327,6 +327,7 @@ export class DataConverter {
 			const colorResult = this._convertColorToColor4(IQuarksConfig.startColor);
 			Config.color1 = colorResult.color1;
 			Config.color2 = colorResult.color2;
+		} else {
 		}
 
 		// Convert emissionOverTime → emitRate, emitRateGradients
@@ -508,50 +509,95 @@ export class DataConverter {
 
 	/**
 	 * Convert IQuarks rotation to native min/max radians
+	 * Supports: number, ConstantValue, IntervalValue, Euler, AxisAngle, RandomQuat
 	 */
 	private _convertRotationToMinMax(IQuarksRotation: IQuarksRotation): { min: number; max: number } {
 		if (typeof IQuarksRotation === "number") {
 			return { min: IQuarksRotation, max: IQuarksRotation };
 		}
+
 		if (typeof IQuarksRotation === "object" && IQuarksRotation !== null && "type" in IQuarksRotation) {
-			if (IQuarksRotation.type === "ConstantValue") {
+			const rotationType = IQuarksRotation.type;
+
+			if (rotationType === "ConstantValue") {
 				const val = (IQuarksRotation as any).value ?? 0;
 				return { min: val, max: val };
 			}
-			if (IQuarksRotation.type === "IntervalValue") {
+
+			if (rotationType === "IntervalValue") {
 				return { min: (IQuarksRotation as any).a ?? 0, max: (IQuarksRotation as any).b ?? 0 };
 			}
+
+			// Handle Euler type - for 2D/billboard particles we use angleZ
+			if (rotationType === "Euler") {
+				const euler = IQuarksRotation as any;
+				// angleZ is the rotation around forward axis (most common for 2D particles)
+				const angleZ = euler.angleZ;
+				if (angleZ) {
+					if (typeof angleZ === "number") {
+						return { min: angleZ, max: angleZ };
+					}
+					if (angleZ.type === "ConstantValue") {
+						const val = angleZ.value ?? 0;
+						return { min: val, max: val };
+					}
+					if (angleZ.type === "IntervalValue") {
+						return { min: angleZ.a ?? 0, max: angleZ.b ?? 0 };
+					}
+				}
+				// Fallback to angleX if no angleZ (for different orientations)
+				const angleX = euler.angleX;
+				if (angleX) {
+					if (typeof angleX === "number") {
+						return { min: angleX, max: angleX };
+					}
+					if (angleX.type === "ConstantValue") {
+						const val = angleX.value ?? 0;
+						return { min: val, max: val };
+					}
+					if (angleX.type === "IntervalValue") {
+						return { min: angleX.a ?? 0, max: angleX.b ?? 0 };
+					}
+				}
+				return { min: 0, max: 0 };
+			}
 		}
+
 		return { min: 0, max: 0 };
 	}
 
 	/**
 	 * Convert IQuarks color to native Babylon.js Color4 (color1, color2)
 	 */
-	private _convertColorToColor4(IQuarksColor: IQuarksColor): { color1: import("babylonjs").Color4; color2: import("babylonjs").Color4 } {
-		const { Color4 } = require("babylonjs");
-
+	private _convertColorToColor4(IQuarksColor: IQuarksColor): { color1: Color4; color2: Color4 } {
 		if (Array.isArray(IQuarksColor)) {
-			const c = new Color4(IQuarksColor[0] || 1, IQuarksColor[1] || 1, IQuarksColor[2] || 1, IQuarksColor[3] ?? 1);
+			const c = new Color4(IQuarksColor[0] ?? 1, IQuarksColor[1] ?? 1, IQuarksColor[2] ?? 1, IQuarksColor[3] ?? 1);
 			return { color1: c, color2: c };
 		}
 
 		if (typeof IQuarksColor === "object" && IQuarksColor !== null && "type" in IQuarksColor) {
 			if (IQuarksColor.type === "ConstantColor") {
-				if (IQuarksColor.value && Array.isArray(IQuarksColor.value)) {
-					const c = new Color4(IQuarksColor.value[0] || 1, IQuarksColor.value[1] || 1, IQuarksColor.value[2] || 1, IQuarksColor.value[3] ?? 1);
+				const constColor = IQuarksColor as any;
+				if (constColor.value && Array.isArray(constColor.value)) {
+					const c = new Color4(constColor.value[0] ?? 1, constColor.value[1] ?? 1, constColor.value[2] ?? 1, constColor.value[3] ?? 1);
 					return { color1: c, color2: c };
 				}
-				if (IQuarksColor.color) {
-					const c = new Color4(IQuarksColor.color.r || 1, IQuarksColor.color.g || 1, IQuarksColor.color.b || 1, IQuarksColor.color.a ?? 1);
+				if (constColor.color) {
+					const colorObj = constColor.color;
+					const c = new Color4(
+						colorObj.r !== undefined ? colorObj.r : 1,
+						colorObj.g !== undefined ? colorObj.g : 1,
+						colorObj.b !== undefined ? colorObj.b : 1,
+						colorObj.a !== undefined ? colorObj.a : 1
+					);
 					return { color1: c, color2: c };
 				}
 			}
 			// Handle RandomColor (interpolation between two colors)
 			const anyColor = IQuarksColor as any;
 			if (anyColor.type === "RandomColor" && anyColor.a && anyColor.b) {
-				const color1 = new Color4(anyColor.a[0] || 1, anyColor.a[1] || 1, anyColor.a[2] || 1, anyColor.a[3] ?? 1);
-				const color2 = new Color4(anyColor.b[0] || 1, anyColor.b[1] || 1, anyColor.b[2] || 1, anyColor.b[3] ?? 1);
+				const color1 = new Color4(anyColor.a[0] ?? 1, anyColor.a[1] ?? 1, anyColor.a[2] ?? 1, anyColor.a[3] ?? 1);
+				const color2 = new Color4(anyColor.b[0] ?? 1, anyColor.b[1] ?? 1, anyColor.b[2] ?? 1, anyColor.b[3] ?? 1);
 				return { color1, color2 };
 			}
 		}
