@@ -23,17 +23,31 @@ export type SystemBehaviorFunction = (system: ParticleSystem | SolidParticleSyst
 /**
  *  behavior types (converted from Quarks)
  */
+/**
+ * Color function - unified structure for all color-related behaviors
+ */
+export interface IColorFunction {
+	colorFunctionType: "Gradient" | "ConstantColor" | "ColorRange" | "RandomColor" | "RandomColorBetweenGradient";
+	data: {
+		color?: { r: number; g: number; b: number; a: number };
+		colorA?: { r: number; g: number; b: number; a: number };
+		colorB?: { r: number; g: number; b: number; a: number };
+		colorKeys?: IGradientKey[];
+		alphaKeys?: IGradientKey[];
+		gradient1?: {
+			colorKeys?: IGradientKey[];
+			alphaKeys?: IGradientKey[];
+		};
+		gradient2?: {
+			colorKeys?: IGradientKey[];
+			alphaKeys?: IGradientKey[];
+		};
+	};
+}
+
 export interface IColorOverLifeBehavior {
 	type: "ColorOverLife";
-	color?: {
-		color?: {
-			keys: IGradientKey[];
-		};
-		alpha?: {
-			keys: IGradientKey[];
-		};
-		keys?: IGradientKey[];
-	};
+	color: IColorFunction;
 }
 
 export interface ISizeOverLifeBehavior {
@@ -106,11 +120,10 @@ export interface ILimitSpeedOverLifeBehavior {
 
 export interface IColorBySpeedBehavior {
 	type: "ColorBySpeed";
-	color?: {
-		keys: IGradientKey[];
-	};
+	color: IColorFunction;
 	minSpeed?: Value;
 	maxSpeed?: Value;
+	speedRange?: { min: number; max: number };
 }
 
 export interface ISizeBySpeedBehavior {

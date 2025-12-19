@@ -18,10 +18,91 @@ export interface IColorFunctionEditorProps {
 export function ColorFunctionEditor(props: IColorFunctionEditorProps): ReactNode {
 	const { value, onChange, label } = props;
 
-	// Initialize color function type if not set
-	if (!value || !value.colorFunctionType) {
-		value.colorFunctionType = "ConstantColor";
-		value.data = {};
+	// Convert from Quarks format to UI format if needed
+	// Quarks format: { color: { type: "Gradient" | "ConstantColor" | "RandomColorBetweenGradient", ... } }
+	// UI format: { colorFunctionType: "Gradient" | "ConstantColor" | "RandomColorBetweenGradient", data: {...} }
+	if (value && !value.colorFunctionType) {
+		// Check if this is Quarks format
+		if (value.color && typeof value.color === "object" && "type" in value.color) {
+			const colorType = value.color.type;
+
+			if (colorType === "Gradient") {
+				// Convert Gradient format
+				value.colorFunctionType = "Gradient";
+				value.data = {
+					colorKeys: value.color.color?.keys || [],
+					alphaKeys: value.color.alpha?.keys || [],
+				};
+				delete value.color;
+			} else if (colorType === "ConstantColor") {
+				// Convert ConstantColor format
+				value.colorFunctionType = "ConstantColor";
+				const color =
+					value.color.color ||
+					(value.color.value ? { r: value.color.value[0], g: value.color.value[1], b: value.color.value[2], a: value.color.value[3] } : { r: 1, g: 1, b: 1, a: 1 });
+				value.data = {
+					color: {
+						r: color.r ?? 1,
+						g: color.g ?? 1,
+						b: color.b ?? 1,
+						a: color.a !== undefined ? color.a : 1,
+					},
+				};
+				delete value.color;
+			} else if (colorType === "RandomColorBetweenGradient") {
+				// Convert RandomColorBetweenGradient format
+				value.colorFunctionType = "RandomColorBetweenGradient";
+				value.data = {
+					gradient1: {
+						colorKeys: value.color.gradient1?.color?.keys || [],
+						alphaKeys: value.color.gradient1?.alpha?.keys || [],
+					},
+					gradient2: {
+						colorKeys: value.color.gradient2?.color?.keys || [],
+						alphaKeys: value.color.gradient2?.alpha?.keys || [],
+					},
+				};
+				delete value.color;
+			} else {
+				// Fallback: try old format
+				const hasColorKeys = value.color.color?.keys && value.color.color.keys.length > 0;
+				const hasAlphaKeys = value.color.alpha?.keys && value.color.alpha.keys.length > 0;
+				const hasKeys = value.color.keys && value.color.keys.length > 0;
+
+				if (hasColorKeys || hasAlphaKeys || hasKeys) {
+					value.colorFunctionType = "Gradient";
+					value.data = {
+						colorKeys: hasColorKeys ? value.color.color.keys : hasKeys ? value.color.keys : [],
+						alphaKeys: hasAlphaKeys ? value.color.alpha.keys : [],
+					};
+					delete value.color;
+				} else {
+					value.colorFunctionType = "ConstantColor";
+					value.data = {};
+				}
+			}
+		} else if (value.color) {
+			// Old Quarks format without type
+			const hasColorKeys = value.color.color?.keys && value.color.color.keys.length > 0;
+			const hasAlphaKeys = value.color.alpha?.keys && value.color.alpha.keys.length > 0;
+			const hasKeys = value.color.keys && value.color.keys.length > 0;
+
+			if (hasColorKeys || hasAlphaKeys || hasKeys) {
+				value.colorFunctionType = "Gradient";
+				value.data = {
+					colorKeys: hasColorKeys ? value.color.color.keys : hasKeys ? value.color.keys : [],
+					alphaKeys: hasAlphaKeys ? value.color.alpha.keys : [],
+				};
+				delete value.color;
+			} else {
+				value.colorFunctionType = "ConstantColor";
+				value.data = {};
+			}
+		} else {
+			// Initialize color function type if not set
+			value.colorFunctionType = "ConstantColor";
+			value.data = {};
+		}
 	}
 
 	const functionType = value.colorFunctionType as ColorFunctionType;

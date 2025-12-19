@@ -432,6 +432,7 @@ function renderProperty(prop: IBehaviorProperty, behavior: any, onChange: () => 
 			return <EditorInspectorListField key={prop.name} object={behavior} property={prop.name} label={prop.label} items={prop.enumItems} onChange={onChange} />;
 
 		case "colorFunction":
+			// All color functions are now stored uniformly in behavior[prop.name]
 			if (!behavior[prop.name]) {
 				behavior[prop.name] = {
 					colorFunctionType: prop.colorFunctionTypes?.[0] || "ConstantColor",

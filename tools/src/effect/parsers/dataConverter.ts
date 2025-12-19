@@ -15,6 +15,9 @@ import type {
 	IQuarksGradientKey,
 	IQuarksShape,
 	IQuarksColorOverLifeBehavior,
+	IQuarksGradientColor,
+	IQuarksConstantColorColor,
+	IQuarksRandomColorBetweenGradient,
 	IQuarksSizeOverLifeBehavior,
 	IQuarksRotationOverLifeBehavior,
 	IQuarksForceOverLifeBehavior,
@@ -32,12 +35,11 @@ import type { IMaterial, ITexture, IImage, IGeometry, IGeometryData } from "../t
 import type { IParticleSystemConfig } from "../types/emitter";
 import type {
 	Behavior,
-	IColorOverLifeBehavior,
+	IColorFunction,
 	ISizeOverLifeBehavior,
 	IForceOverLifeBehavior,
 	ISpeedOverLifeBehavior,
 	ILimitSpeedOverLifeBehavior,
-	IColorBySpeedBehavior,
 	ISizeBySpeedBehavior,
 } from "../types/behaviors";
 import type { Value } from "../types/values";
@@ -645,20 +647,94 @@ export class DataConverter {
 		switch (IQuarksBehavior.type) {
 			case "ColorOverLife": {
 				const behavior = IQuarksBehavior as IQuarksColorOverLifeBehavior;
-				if (behavior.color) {
-					const Color: IColorOverLifeBehavior["color"] = {};
-					if (behavior.color.color?.keys) {
-						Color.color = { keys: behavior.color.color.keys.map((k) => this._convertGradientKey(k)) };
-					}
-					if (behavior.color.alpha?.keys) {
-						Color.alpha = { keys: behavior.color.alpha.keys.map((k) => this._convertGradientKey(k)) };
-					}
-					if (behavior.color.keys) {
-						Color.keys = behavior.color.keys.map((k) => this._convertGradientKey(k));
-					}
-					return { type: "ColorOverLife", color: Color };
+				if (!behavior.color) {
+					return {
+						type: "ColorOverLife",
+						color: {
+							colorFunctionType: "ConstantColor",
+							data: {},
+						},
+					};
 				}
-				return { type: "ColorOverLife" };
+
+				const colorType = behavior.color.type;
+
+				// Convert color to unified IColorFunction structure
+				let colorFunction: IColorFunction;
+
+				if (colorType === "Gradient") {
+					const gradientColor = behavior.color as IQuarksGradientColor;
+					colorFunction = {
+						colorFunctionType: "Gradient",
+						data: {
+							colorKeys: gradientColor.color?.keys ? gradientColor.color.keys.map((k) => this._convertGradientKey(k)) : [],
+							alphaKeys: gradientColor.alpha?.keys ? gradientColor.alpha.keys.map((k) => this._convertGradientKey(k)) : [],
+						},
+					};
+				} else if (colorType === "ConstantColor") {
+					const constantColor = behavior.color as IQuarksConstantColorColor;
+					const color =
+						constantColor.color ||
+						(constantColor.value
+							? { r: constantColor.value[0], g: constantColor.value[1], b: constantColor.value[2], a: constantColor.value[3] }
+							: { r: 1, g: 1, b: 1, a: 1 });
+					colorFunction = {
+						colorFunctionType: "ConstantColor",
+						data: {
+							color: {
+								r: color.r ?? 1,
+								g: color.g ?? 1,
+								b: color.b ?? 1,
+								a: color.a !== undefined ? color.a : 1,
+							},
+						},
+					};
+				} else if (colorType === "RandomColorBetweenGradient") {
+					const randomColor = behavior.color as IQuarksRandomColorBetweenGradient;
+					colorFunction = {
+						colorFunctionType: "RandomColorBetweenGradient",
+						data: {
+							gradient1: {
+								colorKeys: randomColor.gradient1?.color?.keys ? randomColor.gradient1.color.keys.map((k) => this._convertGradientKey(k)) : [],
+								alphaKeys: randomColor.gradient1?.alpha?.keys ? randomColor.gradient1.alpha.keys.map((k) => this._convertGradientKey(k)) : [],
+							},
+							gradient2: {
+								colorKeys: randomColor.gradient2?.color?.keys ? randomColor.gradient2.color.keys.map((k) => this._convertGradientKey(k)) : [],
+								alphaKeys: randomColor.gradient2?.alpha?.keys ? randomColor.gradient2.alpha.keys.map((k) => this._convertGradientKey(k)) : [],
+							},
+						},
+					};
+				} else {
+					// Fallback: try to detect format from keys
+					const hasColorKeys = (behavior.color as any).color?.keys && (behavior.color as any).color.keys.length > 0;
+					const hasAlphaKeys = (behavior.color as any).alpha?.keys && (behavior.color as any).alpha.keys.length > 0;
+					const hasKeys = (behavior.color as any).keys && (behavior.color as any).keys.length > 0;
+
+					if (hasColorKeys || hasAlphaKeys || hasKeys) {
+						colorFunction = {
+							colorFunctionType: "Gradient",
+							data: {
+								colorKeys: hasColorKeys
+									? (behavior.color as any).color.keys.map((k: any) => this._convertGradientKey(k))
+									: hasKeys
+										? (behavior.color as any).keys.map((k: any) => this._convertGradientKey(k))
+										: [],
+								alphaKeys: hasAlphaKeys ? (behavior.color as any).alpha.keys.map((k: any) => this._convertGradientKey(k)) : [],
+							},
+						};
+					} else {
+						// Default to ConstantColor
+						colorFunction = {
+							colorFunctionType: "ConstantColor",
+							data: {},
+						};
+					}
+				}
+
+				return {
+					type: "ColorOverLife",
+					color: colorFunction,
+				};
 			}
 
 			case "SizeOverLife": {
@@ -772,15 +848,25 @@ export class DataConverter {
 
 			case "ColorBySpeed": {
 				const behavior = IQuarksBehavior as IQuarksColorBySpeedBehavior;
-				const Behavior: IColorBySpeedBehavior = {
+				const colorFunction: IColorFunction = behavior.color?.keys
+					? {
+							colorFunctionType: "Gradient",
+							data: {
+								colorKeys: behavior.color.keys.map((k: IQuarksGradientKey) => this._convertGradientKey(k)),
+								alphaKeys: [],
+							},
+						}
+					: {
+							colorFunctionType: "ConstantColor",
+							data: {},
+						};
+
+				return {
 					type: "ColorBySpeed",
+					color: colorFunction,
 					minSpeed: behavior.minSpeed !== undefined ? this._convertValue(behavior.minSpeed) : undefined,
 					maxSpeed: behavior.maxSpeed !== undefined ? this._convertValue(behavior.maxSpeed) : undefined,
 				};
-				if (behavior.color?.keys) {
-					Behavior.color = { keys: behavior.color.keys.map((k: IQuarksGradientKey) => this._convertGradientKey(k)) };
-				}
-				return Behavior;
 			}
 
 			case "SizeBySpeed": {
