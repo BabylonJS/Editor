@@ -304,7 +304,6 @@ export class EffectEditorParticleRendererProperties extends Component<IEffectEdi
 
 		// Store reference to source mesh in a custom property
 		// Since SPS disposes the source mesh after addShape, we need to store it separately
-		// We'll use a WeakMap or store it in the system itself
 		if (!(system as any)._sourceMesh) {
 			(system as any)._sourceMesh = null;
 		}
@@ -315,23 +314,27 @@ export class EffectEditorParticleRendererProperties extends Component<IEffectEdi
 				return (system as any)._sourceMesh || null;
 			},
 			set particleMesh(value: Mesh | null) {
-				// Store reference to source mesh
+				if (!value) {
+					// Clear geometry
+					(system as any)._sourceMesh = null;
+					return;
+				}
+
+				// Clone mesh to avoid disposing the original asset
+				const clonedMesh = value.clone(`${system.name}_particleMesh_temp`, null, false, false);
+				if (!clonedMesh) {
+					console.error("[Geometry Field] Failed to clone mesh");
+					return;
+				}
+
+				// Store reference to source mesh for UI display
 				(system as any)._sourceMesh = value;
 
-				if (value) {
-					// Clone mesh to avoid disposing the original
-					const clonedMesh = value.clone(`${system.name}_particleMesh`);
-					clonedMesh.setEnabled(false); // Hide the source mesh
+				// Replace the particle mesh (this will rebuild the entire SPS)
+				system.replaceParticleMesh(clonedMesh);
 
-					// Clear existing shapes and add new one
-					// Note: SPS doesn't have a clearShapes method, so we need to rebuild
-					const capacity = (system as any).getCapacity();
-					system.addShape(clonedMesh, capacity);
-					system.buildMesh();
-					(system as any)._setupMeshProperties();
-
-					// Don't dispose cloned mesh - SPS will manage it
-				}
+				// Notify change
+				this.props.onChange();
 			},
 		};
 

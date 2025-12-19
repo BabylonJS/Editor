@@ -219,6 +219,61 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 	}
 
 	/**
+	 * Replace the current particle mesh with a new one
+	 * This completely rebuilds the SPS with the new geometry
+	 */
+	public replaceParticleMesh(newMesh: Mesh): void {
+		if (!newMesh) {
+			return;
+		}
+
+		// Stop the system before rebuilding
+		const wasStarted = this._started;
+		if (wasStarted) {
+			this.stop();
+		}
+
+		// Dispose old mesh if exists
+		if (this.mesh) {
+			this.mesh.dispose(false, true);
+		}
+
+		// Clear all particles and shapes
+		this.particles = [];
+		this.nbParticles = 0;
+
+		// Calculate capacity (same as before)
+		const isLooping = this.targetStopDuration === 0;
+		const capacity = CapacityCalculator.calculateForSolidParticleSystem(this.emitRate, this.targetStopDuration, isLooping);
+
+		// Add new shape
+		this.addShape(newMesh, capacity);
+
+		// Set billboard mode
+		if (this.isBillboardBased !== undefined) {
+			this.billboard = this.isBillboardBased;
+		} else {
+			this.billboard = false;
+		}
+
+		// Build mesh
+		this.buildMesh();
+		this._setupMeshProperties();
+
+		// Initialize all particles as dead/invisible
+		this._initializeDeadParticles();
+		this.setParticles();
+
+		// Dispose the source mesh (SPS has already cloned it)
+		newMesh.dispose();
+
+		// Restart if was running
+		if (wasStarted) {
+			this.start();
+		}
+	}
+
+	/**
 	 * Start the particle system
 	 * Overrides base class to ensure proper initialization
 	 */
