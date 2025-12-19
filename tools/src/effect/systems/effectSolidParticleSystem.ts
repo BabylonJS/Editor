@@ -23,15 +23,14 @@ import {
 } from "../emitters";
 import { ValueUtils, CapacityCalculator, ColorGradientSystem, NumberGradientSystem } from "../utils";
 import {
-	applyColorBySpeedSPS,
-	applySizeBySpeedSPS,
-	applyRotationBySpeedSPS,
-	applyOrbitOverLifeSPS,
 	applyColorOverLifeSPS,
 	applyLimitSpeedOverLifeSPS,
 	applyRotationOverLifeSPS,
 	applySizeOverLifeSPS,
 	applySpeedOverLifeSPS,
+	interpolateColorKeys,
+	interpolateGradientKeys,
+	extractNumberFromValue,
 } from "../behaviors";
 
 /**
@@ -238,9 +237,6 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 			this._emissionState.burstParticleCount = 0;
 			this._emissionState.isBursting = false;
 			this._emitEnded = false;
-
-			// Ensure particles are visible when starting (they will be updated by setParticles)
-			// Note: New particles will be spawned and visible automatically
 		}
 	}
 
@@ -907,6 +903,8 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 	 * Build per-particle behavior functions from configurations
 	 * Per-particle behaviors run each frame for each particle
 	 * "OverLife" behaviors are handled by gradients (system-level)
+	 *
+	 * IMPORTANT: Parse all values ONCE here, not every frame!
 	 */
 	private _buildPerParticleBehaviors(behaviors: Behavior[]): PerSolidParticleBehaviorFunction[] {
 		const functions: PerSolidParticleBehaviorFunction[] = [];
@@ -916,53 +914,174 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 				case "ForceOverLife":
 				case "ApplyForce": {
 					const b = behavior as IForceOverLifeBehavior;
-					functions.push((particle: SolidParticle) => {
-						const particleWithSystem = particle as SolidParticleWithSystem;
-						const updateSpeed = particleWithSystem.system?.updateSpeed ?? 0.016;
+					// Pre-parse force values ONCE (not every frame!)
+					const forceX = b.x ?? b.force?.x;
+					const forceY = b.y ?? b.force?.y;
+					const forceZ = b.z ?? b.force?.z;
+					const fx = forceX !== undefined ? ValueUtils.parseConstantValue(forceX) : 0;
+					const fy = forceY !== undefined ? ValueUtils.parseConstantValue(forceY) : 0;
+					const fz = forceZ !== undefined ? ValueUtils.parseConstantValue(forceZ) : 0;
 
-						const forceX = b.x ?? b.force?.x;
-						const forceY = b.y ?? b.force?.y;
-						const forceZ = b.z ?? b.force?.z;
-						if (forceX !== undefined || forceY !== undefined || forceZ !== undefined) {
-							const fx = forceX !== undefined ? ValueUtils.parseConstantValue(forceX) : 0;
-							const fy = forceY !== undefined ? ValueUtils.parseConstantValue(forceY) : 0;
-							const fz = forceZ !== undefined ? ValueUtils.parseConstantValue(forceZ) : 0;
-							particle.velocity.x += fx * updateSpeed;
-							particle.velocity.y += fy * updateSpeed;
-							particle.velocity.z += fz * updateSpeed;
-						}
-					});
+					if (fx !== 0 || fy !== 0 || fz !== 0) {
+						// Capture 'this' to access _scaledUpdateSpeed
+						const system = this;
+						functions.push((particle: SolidParticle) => {
+							// Use _scaledUpdateSpeed for FPS-independent force application
+							const deltaTime = system._scaledUpdateSpeed || system.updateSpeed;
+							particle.velocity.x += fx * deltaTime;
+							particle.velocity.y += fy * deltaTime;
+							particle.velocity.z += fz * deltaTime;
+						});
+					}
 					break;
 				}
 
 				case "ColorBySpeed": {
 					const b = behavior as IColorBySpeedBehavior;
-					functions.push((particle: SolidParticle) => {
-						applyColorBySpeedSPS(particle, b);
-					});
+					// Pre-parse min/max speed ONCE
+					const minSpeed = b.minSpeed !== undefined ? ValueUtils.parseConstantValue(b.minSpeed) : 0;
+					const maxSpeed = b.maxSpeed !== undefined ? ValueUtils.parseConstantValue(b.maxSpeed) : 1;
+					const colorKeys = b.color?.keys;
+
+					if (colorKeys && colorKeys.length > 0) {
+						functions.push((particle: SolidParticle) => {
+							if (!particle.color) {
+								return;
+							}
+							const vel = particle.velocity;
+							const currentSpeed = Math.sqrt(vel.x * vel.x + vel.y * vel.y + vel.z * vel.z);
+							const speedRatio = Math.max(0, Math.min(1, (currentSpeed - minSpeed) / (maxSpeed - minSpeed || 1)));
+							const interpolatedColor = interpolateColorKeys(colorKeys, speedRatio);
+							const startColor = particle.props?.startColor;
+
+							if (startColor) {
+								particle.color.r = interpolatedColor.r * startColor.r;
+								particle.color.g = interpolatedColor.g * startColor.g;
+								particle.color.b = interpolatedColor.b * startColor.b;
+								particle.color.a = startColor.a;
+							} else {
+								particle.color.r = interpolatedColor.r;
+								particle.color.g = interpolatedColor.g;
+								particle.color.b = interpolatedColor.b;
+							}
+						});
+					}
 					break;
 				}
 
 				case "SizeBySpeed": {
 					const b = behavior as ISizeBySpeedBehavior;
-					functions.push((particle: SolidParticle) => {
-						applySizeBySpeedSPS(particle, b);
-					});
+					// Pre-parse min/max speed ONCE
+					const minSpeed = b.minSpeed !== undefined ? ValueUtils.parseConstantValue(b.minSpeed) : 0;
+					const maxSpeed = b.maxSpeed !== undefined ? ValueUtils.parseConstantValue(b.maxSpeed) : 1;
+					const sizeKeys = b.size?.keys;
+
+					if (sizeKeys && sizeKeys.length > 0) {
+						functions.push((particle: SolidParticle) => {
+							const vel = particle.velocity;
+							const currentSpeed = Math.sqrt(vel.x * vel.x + vel.y * vel.y + vel.z * vel.z);
+							const speedRatio = Math.max(0, Math.min(1, (currentSpeed - minSpeed) / (maxSpeed - minSpeed || 1)));
+							const sizeMultiplier = interpolateGradientKeys(sizeKeys, speedRatio, extractNumberFromValue);
+							const startSize = particle.props?.startSize ?? 1;
+							const newSize = startSize * sizeMultiplier;
+							particle.scaling.setAll(newSize);
+						});
+					}
 					break;
 				}
 
 				case "RotationBySpeed": {
 					const b = behavior as IRotationBySpeedBehavior;
+					// Pre-parse values ONCE
+					const minSpeed = b.minSpeed !== undefined ? ValueUtils.parseConstantValue(b.minSpeed) : 0;
+					const maxSpeed = b.maxSpeed !== undefined ? ValueUtils.parseConstantValue(b.maxSpeed) : 1;
+					const angularVelocity = b.angularVelocity;
+					const hasKeys =
+						typeof angularVelocity === "object" &&
+						angularVelocity !== null &&
+						"keys" in angularVelocity &&
+						Array.isArray(angularVelocity.keys) &&
+						angularVelocity.keys.length > 0;
+
+					// Pre-parse constant angular velocity if not using keys
+					let constantAngularSpeed = 0;
+					if (!hasKeys && angularVelocity) {
+						const parsed = ValueUtils.parseIntervalValue(angularVelocity);
+						constantAngularSpeed = (parsed.min + parsed.max) / 2;
+					}
+
+					const system = this;
 					functions.push((particle: SolidParticle) => {
-						applyRotationBySpeedSPS(particle, b);
+						const vel = particle.velocity;
+						const currentSpeed = Math.sqrt(vel.x * vel.x + vel.y * vel.y + vel.z * vel.z);
+						const deltaTime = system._scaledUpdateSpeed || system.updateSpeed;
+
+						let angularSpeed = constantAngularSpeed;
+						if (hasKeys) {
+							const speedRatio = Math.max(0, Math.min(1, (currentSpeed - minSpeed) / (maxSpeed - minSpeed || 1)));
+							angularSpeed = interpolateGradientKeys((angularVelocity as any).keys, speedRatio, extractNumberFromValue);
+						}
+
+						particle.rotation.z += angularSpeed * deltaTime;
 					});
 					break;
 				}
 
 				case "OrbitOverLife": {
 					const b = behavior as IOrbitOverLifeBehavior;
+					// Pre-parse constant values ONCE
+					const speed = b.speed !== undefined ? ValueUtils.parseConstantValue(b.speed) : 1;
+					const centerX = b.center?.x ?? 0;
+					const centerY = b.center?.y ?? 0;
+					const centerZ = b.center?.z ?? 0;
+					const hasRadiusKeys =
+						b.radius !== undefined &&
+						b.radius !== null &&
+						typeof b.radius === "object" &&
+						"keys" in b.radius &&
+						Array.isArray(b.radius.keys) &&
+						b.radius.keys.length > 0;
+
+					// Pre-parse constant radius if not using keys
+					let constantRadius = 1;
+					if (!hasRadiusKeys && b.radius !== undefined) {
+						const parsed = ValueUtils.parseIntervalValue(b.radius as Value);
+						constantRadius = (parsed.min + parsed.max) / 2;
+					}
+
 					functions.push((particle: SolidParticle) => {
-						applyOrbitOverLifeSPS(particle, b);
+						if (particle.lifeTime <= 0) {
+							return;
+						}
+
+						const lifeRatio = particle.age / particle.lifeTime;
+
+						// Get radius (from keys or constant)
+						let radius = constantRadius;
+						if (hasRadiusKeys) {
+							radius = interpolateGradientKeys((b.radius as any).keys, lifeRatio, extractNumberFromValue);
+						}
+
+						const angle = lifeRatio * speed * Math.PI * 2;
+
+						// Calculate orbit offset (NOT replacement!)
+						const orbitX = Math.cos(angle) * radius;
+						const orbitY = Math.sin(angle) * radius;
+
+						// Store initial position if not stored yet
+						const props = (particle.props ||= {}) as any;
+						if (props.orbitInitialPos === undefined) {
+							props.orbitInitialPos = {
+								x: particle.position.x,
+								y: particle.position.y,
+								z: particle.position.z,
+							};
+						}
+
+						// Apply orbit as OFFSET from initial position (NOT replacement!)
+						particle.position.x = props.orbitInitialPos.x + centerX + orbitX;
+						particle.position.y = props.orbitInitialPos.y + centerY + orbitY;
+						particle.position.z = props.orbitInitialPos.z + centerZ;
 					});
 					break;
 				}
@@ -1040,10 +1159,6 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 		this._debugDeltaSum += deltaTime;
 		const now = performance.now();
 		if (now - this._debugLastLog > 1000) {
-			const aliveCount = this.particles.filter((p) => p.alive).length;
-			console.log(`[SPS] emitRate=${this.emitRate}, updateSpeed=${this.updateSpeed}`);
-			console.log(`  _scaledUpdateSpeed=${this._scaledUpdateSpeed?.toFixed(4)}, avgDelta=${(this._debugDeltaSum / this._debugFrameCount).toFixed(4)}`);
-			console.log(`  waitEmiting=${this._emissionState.waitEmiting.toFixed(2)}, alive=${aliveCount}/${this.nbParticles}`);
 			this._debugLastLog = now;
 			this._debugFrameCount = 0;
 			this._debugDeltaSum = 0;

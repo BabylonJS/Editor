@@ -34,17 +34,33 @@ export class ValueUtils {
 
 	/**
 	 * Parse a constant color
+	 * Supports formats:
+	 * - { type: "ConstantColor", value: [r, g, b, a] }
+	 * - { type: "ConstantColor", color: { r, g, b, a } }
+	 * - [r, g, b, a] (array)
 	 */
 	public static parseConstantColor(value: Color): Color4 {
 		if (value && typeof value === "object" && !Array.isArray(value)) {
 			if ("type" in value && value.type === "ConstantColor") {
+				// Format: { type: "ConstantColor", value: [r, g, b, a] }
 				if (value.value && Array.isArray(value.value)) {
 					return new Color4(value.value[0] || 0, value.value[1] || 0, value.value[2] || 0, value.value[3] !== undefined ? value.value[3] : 1);
 				}
-			} else if (Array.isArray(value) && value.length >= 3) {
-				// Array format [r, g, b, a?]
-				return new Color4(value[0] || 0, value[1] || 0, value[2] || 0, value[3] !== undefined ? value[3] : 1);
+				// Format: { type: "ConstantColor", color: { r, g, b, a } }
+				const anyValue = value as any;
+				if (anyValue.color && typeof anyValue.color === "object") {
+					return new Color4(
+						anyValue.color.r ?? 1,
+						anyValue.color.g ?? 1,
+						anyValue.color.b ?? 1,
+						anyValue.color.a !== undefined ? anyValue.color.a : 1
+					);
+				}
 			}
+		}
+		// Array format [r, g, b, a?]
+		if (Array.isArray(value) && value.length >= 3) {
+			return new Color4(value[0] || 0, value[1] || 0, value[2] || 0, value[3] !== undefined ? value[3] : 1);
 		}
 		return new Color4(1, 1, 1, 1);
 	}
