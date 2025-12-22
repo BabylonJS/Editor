@@ -88,7 +88,6 @@ import { StatRow } from "./preview/stats/row";
 import { StatsValuesType } from "./preview/stats/types";
 
 import { applySoundAsset } from "./preview/import/sound";
-import { applyImportedGuiFile } from "./preview/import/gui";
 import { applyTextureAssetToObject } from "./preview/import/texture";
 import { applyMaterialAssetToObject } from "./preview/import/material";
 import { EditorPreviewConvertProgress } from "./preview/import/progress";
@@ -1327,13 +1326,13 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 					});
 					break;
 
-				case ".gui":
-					if (this.props.editor.state.enableExperimentalFeatures) {
-						applyImportedGuiFile(this.props.editor, absolutePath).then(() => {
-							this.props.editor.layout.graph.refresh();
-						});
-					}
-					break;
+				// case ".gui":
+				// 	if (this.props.editor.state.enableExperimentalFeatures) {
+				// 		applyImportedGuiFile(this.props.editor, absolutePath).then(() => {
+				// 			this.props.editor.layout.graph.refresh();
+				// 		});
+				// 	}
+				// 	break;
 
 				case ".mp3":
 				case ".ogg":

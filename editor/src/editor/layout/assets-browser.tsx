@@ -815,12 +815,8 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 					</>
 				)}
 
-				{this.props.editor.state.enableExperimentalFeatures && (
-					<>
-						<ContextMenuSeparator />
-						<ContextMenuItem onClick={() => this._handleAddFullScreenGUI()}>Full Screen GUI</ContextMenuItem>
-					</>
-				)}
+				<ContextMenuSeparator />
+				<ContextMenuItem onClick={() => this._handleAddFullScreenGUI()}>Fullscreen GUI</ContextMenuItem>
 			</>
 		);
 	}
