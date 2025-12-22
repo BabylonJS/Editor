@@ -19,6 +19,7 @@ export function DocumentationSidebar() {
 
 				<DocumentationSidebarItem title="Customizing scripts" href="/documentation/scripting/customizing-scripts" />
 				<DocumentationSidebarItem title="Listening events" href="/documentation/scripting/listening-events" />
+				<DocumentationSidebarItem title="Linking assets" href="/documentation/scripting/linking-assets" />
 
 				<div className="font-semibold text-xl text-neutral-500 my-3">Sprites</div>
 
