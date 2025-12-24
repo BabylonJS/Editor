@@ -64,8 +64,8 @@
 		"dotenv": "16.4.5",
 		"eslint": "9.29.0",
 		"minimist": "1.2.8",
-		"rimraf": "6.0.1",
-		"prettier": "3.6.2"
+		"prettier": "3.6.2",
+		"rimraf": "6.0.1"
 	},
 	"dependencies": {},
 	"resolutions": {

@@ -26,7 +26,7 @@
 		"react": "18.2.0",
 		"react-awesome-reveal": "^4.2.11",
 		"react-dom": "18.2.0",
-		"react-icons": "^5.2.1",
+		"react-icons": "5.5.0",
 		"react-loader-spinner": "^6.1.6",
 		"shiki": "^3.7.0",
 		"sonner": "^2.0.6",

@@ -81,7 +81,7 @@ export function FabItems(props: IFabItemsProps) {
 	}
 
 	return (
-		<TooltipProvider delayDuration={0}>
+		<TooltipProvider delayDuration={300} skipDelayDuration={0}>
 			<div className="flex flex-1 w-full h-full">
 				<div
 					style={{
