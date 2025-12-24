@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
 
 	const extension = extname(file.name).toLowerCase();
 
-	let buffer: Buffer | null = null;
+	let buffer: Buffer<ArrayBuffer> | null = null;
 
 	switch (extension) {
 		case ".fbx":
