@@ -1,14 +1,15 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    reactStrictMode: false,
+	reactStrictMode: false,
 
-    webpack: (config) => {
-        config.module.rules.push({
-            test: /\.fx?$/,
-            loader: "raw-loader"
-        });
-        return config;
-    },
+	turbopack: {
+		rules: {
+			"*.{fx}": {
+				loaders: ["raw-loader"],
+				as: "*.js",
+			},
+		},
+	},
 };
 
 module.exports = nextConfig;
