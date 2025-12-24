@@ -13,8 +13,7 @@ export class MaterialFactory implements IMaterialFactory {
 	private _scene: Scene;
 	private _data: IData;
 	private _rootUrl: string;
-
-	constructor(scene: Scene, data: IData, rootUrl: string, options: ILoaderOptions) {
+	constructor(scene: Scene, data: IData, rootUrl: string, options?: ILoaderOptions) {
 		this._scene = scene;
 		this._data = data;
 		this._rootUrl = rootUrl;
@@ -24,10 +23,10 @@ export class MaterialFactory implements IMaterialFactory {
 	/**
 	 * Create a texture from material ID (for ParticleSystem - no material needed)
 	 */
-	public createTexture(materialId: string): Nullable<BabylonTexture> {
+	public createTexture(materialId: string): BabylonTexture {
 		const textureData = this._resolveTextureData(materialId);
 		if (!textureData) {
-			return null;
+			return new BabylonTexture(materialId, this._scene);
 		}
 
 		const { texture, image } = textureData;
@@ -184,12 +183,12 @@ export class MaterialFactory implements IMaterialFactory {
 	/**
 	 * Create a material with texture from material ID
 	 */
-	public createMaterial(materialId: string, name: string): Nullable<PBRMaterial> {
+	public createMaterial(materialId: string, name: string): PBRMaterial {
 		this._logger.log(`Creating material for ID: ${materialId}, name: ${name}`);
 
 		const textureData = this._resolveTextureData(materialId);
 		if (!textureData) {
-			return null;
+			return new PBRMaterial(name + "_material", this._scene);
 		}
 
 		const { material, texture, image } = textureData;

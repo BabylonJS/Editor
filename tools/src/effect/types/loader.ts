@@ -1,5 +1,5 @@
 /**
- * Options for parsing Quarks/Three.js particle JSON
+ * Options for loading effect
  */
 export interface ILoaderOptions {
 	/**

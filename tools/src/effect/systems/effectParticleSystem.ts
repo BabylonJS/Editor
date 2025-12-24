@@ -16,6 +16,7 @@ import type {
 	PerParticleBehaviorFunction,
 	ISystem,
 	ParticleWithSystem,
+	IShape,
 } from "../types";
 import {
 	applyColorOverLifePS,
@@ -40,6 +41,7 @@ import {
 export class EffectParticleSystem extends ParticleSystem implements ISystem {
 	private _perParticleBehaviors: PerParticleBehaviorFunction[];
 	private _behaviorConfigs: Behavior[];
+	private _parent: AbstractMesh | TransformNode | null;
 
 	/** Store reference to default updateFunction */
 	private _defaultUpdateFunction: (particles: Particle[]) => void;
@@ -54,6 +56,18 @@ export class EffectParticleSystem extends ParticleSystem implements ISystem {
 
 		// Override updateFunction to integrate per-particle behaviors
 		this._setupCustomUpdateFunction();
+	}
+
+	public get parent(): AbstractMesh | TransformNode | null {
+		return this._parent;
+	}
+
+	public set parent(parent: AbstractMesh | TransformNode | null) {
+		this._parent = parent;
+	}
+
+	public setParent(parent: AbstractMesh | TransformNode | null): void {
+		this._parent = parent;
 	}
 
 	/**
@@ -132,7 +146,7 @@ export class EffectParticleSystem extends ParticleSystem implements ISystem {
 			switch (behavior.type) {
 				case "ColorBySpeed": {
 					const b = behavior as IColorBySpeedBehavior;
-					functions.push((particle: Particle) => applyColorBySpeedPS(particle, b));
+					functions.push((particle: Particle) => applyColorBySpeedPS(b, particle));
 					break;
 				}
 
@@ -204,14 +218,14 @@ export class EffectParticleSystem extends ParticleSystem implements ISystem {
 	 * Configure emitter from shape config
 	 * This replaces the need for EmitterFactory
 	 */
-	public configureEmitterFromShape(shape: any, cumulativeScale: any, _rotationMatrix: any): void {
+	public configureEmitterFromShape(shape: IShape): void {
 		if (!shape || !shape.type) {
 			this.createPointEmitter(new Vector3(0, 1, 0), new Vector3(0, 1, 0));
 			return;
 		}
 
 		const shapeType = shape.type.toLowerCase();
-		const radius = (shape.radius ?? 1) * ((cumulativeScale.x + cumulativeScale.y + cumulativeScale.z) / 3);
+		const radius = shape.radius ?? 1;
 		const angle = shape.angle ?? Math.PI / 4;
 
 		switch (shapeType) {
@@ -225,7 +239,7 @@ export class EffectParticleSystem extends ParticleSystem implements ISystem {
 				this.createPointEmitter(new Vector3(0, 1, 0), new Vector3(0, 1, 0));
 				break;
 			case "box": {
-				const boxSize = (shape.size || [1, 1, 1]).map((s: number, i: number) => s * [cumulativeScale.x, cumulativeScale.y, cumulativeScale.z][i]);
+				const boxSize = shape.size || [1, 1, 1];
 				const minBox = new Vector3(-boxSize[0] / 2, -boxSize[1] / 2, -boxSize[2] / 2);
 				const maxBox = new Vector3(boxSize[0] / 2, boxSize[1] / 2, boxSize[2] / 2);
 				this.createBoxEmitter(new Vector3(0, 1, 0), new Vector3(0, 1, 0), minBox, maxBox);
@@ -235,7 +249,7 @@ export class EffectParticleSystem extends ParticleSystem implements ISystem {
 				this.createHemisphericEmitter(radius);
 				break;
 			case "cylinder": {
-				const height = (shape.height ?? 1) * cumulativeScale.y;
+				const height = shape.height ?? 1;
 				this.createCylinderEmitter(radius, height);
 				break;
 			}

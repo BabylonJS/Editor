@@ -41,9 +41,6 @@ export interface IEmitter {
  */
 export interface IData {
 	root: IGroup | IEmitter | null;
-	groups: Map<string, IGroup>;
-	emitters: Map<string, IEmitter>;
-	// Resources (converted from Quarks, ready for Babylon.js)
 	materials: IMaterial[];
 	textures: ITexture[];
 	images: IImage[];

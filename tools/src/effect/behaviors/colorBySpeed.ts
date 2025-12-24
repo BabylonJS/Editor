@@ -1,13 +1,12 @@
 import type { IColorBySpeedBehavior } from "../types/behaviors";
 import type { Particle } from "babylonjs";
-import type { EffectParticleSystem } from "../systems/effectParticleSystem";
 import { interpolateColorKeys } from "./utils";
 
 /**
  * Apply ColorBySpeed behavior to ParticleSystem (per-particle)
  * Uses unified IColorFunction structure: behavior.color = { colorFunctionType, data }
  */
-export function applyColorBySpeedPS(particleSystem: EffectParticleSystem, behavior: IColorBySpeedBehavior, particle: Particle): void {
+export function applyColorBySpeedPS(behavior: IColorBySpeedBehavior, particle: Particle): void {
 	// New structure: behavior.color.data.colorKeys
 	if (!behavior.color || !behavior.color.data?.colorKeys || !particle.color || !particle.direction) {
 		return;

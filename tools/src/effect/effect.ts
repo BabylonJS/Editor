@@ -1,50 +1,16 @@
-import { Scene, Tools, IDisposable, TransformNode, MeshBuilder, Texture, Color4, AbstractMesh } from "babylonjs";
-import type { IQuarksJSON } from "./types/quarksTypes";
-import type { ILoaderOptions } from "./types/loader";
-import { Parser } from "./parsers/parser";
+import { Scene, IDisposable, TransformNode, MeshBuilder, Texture, Color4, AbstractMesh, Tools } from "babylonjs";
 import { EffectParticleSystem } from "./systems/effectParticleSystem";
 import { EffectSolidParticleSystem } from "./systems/effectSolidParticleSystem";
-import type { IGroup, IEmitter, IData } from "./types/hierarchy";
-import type { IParticleSystemConfig } from "./types/emitter";
-import { isSystem } from "./types/system";
-
-/**
- *  Effect Node - represents either a particle system or a group
- */
-export interface IEffectNode {
-	/** Node name */
-	name: string;
-	/** Node UUID from original JSON */
-	uuid?: string;
-	/** Particle system (if this is a particle emitter) */
-	system?: EffectParticleSystem | EffectSolidParticleSystem;
-	/** Transform node (if this is a group) */
-	group?: TransformNode;
-	/** Parent node */
-	parent?: IEffectNode;
-	/** Child nodes */
-	children: IEffectNode[];
-	/** Node type */
-	type: "particle" | "group";
-}
+import { IGroup, IEmitter, IData, isSystem, IEffectNode, ILoaderOptions, IParticleSystemConfig } from "./types";
+import { NodeFactory } from "./factories";
 
 /**
  *  Effect containing multiple particle systems with hierarchy support
  * Main entry point for loading and creating  from Three.js particle JSON files
  */
 export class Effect implements IDisposable {
-	/** All particle systems in this effect */
-	private _systems: (EffectParticleSystem | EffectSolidParticleSystem)[] = [];
-
 	/** Root node of the effect hierarchy */
 	private _root: IEffectNode | null = null;
-
-	/**
-	 * Get all particle systems in this effect
-	 */
-	public get systems(): ReadonlyArray<EffectParticleSystem | EffectSolidParticleSystem> {
-		return this._systems;
-	}
 
 	/**
 	 * Get root node of the effect hierarchy
@@ -65,170 +31,26 @@ export class Effect implements IDisposable {
 	/** Map of groups by UUID */
 	private readonly _groupsByUuid = new Map<string, TransformNode>();
 
-	/** All nodes in the hierarchy */
-	private readonly _nodes = new Map<string, IEffectNode>();
-
 	/** Scene reference for creating new systems */
 	private _scene: Scene | null = null;
 
 	/**
-	 * Load a Three.js particle JSON file and create particle systems
-	 * @param url URL to the JSON file
-	 * @param scene The Babylon.js scene
-	 * @param rootUrl Root URL for loading textures
-	 * @param options Optional parsing options
-	 * @returns Promise that resolves to a Effect
-	 */
-	public static async LoadAsync(url: string, scene: Scene, rootUrl: string = "", options?: ILoaderOptions): Promise<Effect> {
-		return new Promise((resolve, reject) => {
-			Tools.LoadFile(
-				url,
-				(data) => {
-					try {
-						const jsonData = JSON.parse(data.toString());
-						const effect = Effect.Parse(jsonData, scene, rootUrl, options);
-						resolve(effect);
-					} catch (error) {
-						reject(error);
-					}
-				},
-				undefined,
-				undefined,
-				undefined,
-				(error) => {
-					reject(error);
-				}
-			);
-		});
-	}
-
-	/**
-	 * Parse a Three.js particle JSON file and create Babylon.js particle systems
-	 * @param jsonData The Three.js JSON data
-	 * @param scene The Babylon.js scene
-	 * @param rootUrl Root URL for loading textures
-	 * @param options Optional parsing options
-	 * @returns A Effect containing all particle systems
-	 */
-	public static Parse(jsonData: IQuarksJSON, scene: Scene, rootUrl: string = "", options?: ILoaderOptions): Effect {
-		return new Effect(jsonData, scene, rootUrl, options);
-	}
-
-	/**
-	 * Create a Effect directly from JSON data
-	 * @param jsonData The Three.js JSON data
-	 * @param scene The Babylon.js scene
-	 * @param rootUrl Root URL for loading textures
+	 * Create Effect from IData
+	 *
+	 *
+	 * @param data IData structure (required)
+	 * @param scene Babylon.js scene (required)
+	 * @param rootUrl Root URL for loading textures (optional)
 	 * @param options Optional parsing options
 	 */
-	constructor(jsonData?: IQuarksJSON, scene?: Scene, rootUrl: string = "", options?: ILoaderOptions) {
-		this._scene = scene || null;
-		if (jsonData && scene) {
-			const parser = new Parser(scene, rootUrl, jsonData, options);
-			const parseResult = parser.parse();
-
-			this._systems.push(...parseResult.systems);
-			if (parseResult.data && parseResult.groupNodesMap) {
-				this._buildHierarchy(parseResult.data, parseResult.groupNodesMap, parseResult.systems);
-			}
-		} else if (scene) {
-			// Create empty effect with root group
-			this._scene = scene;
-			this._createEmptyEffect();
-		}
-	}
-
-	/**
-	 * Build hierarchy from  data and group nodes map
-	 * Handles errors gracefully and continues building partial hierarchy if errors occur
-	 */
-	private _buildHierarchy(Data: IData, groupNodesMap: Map<string, TransformNode>, systems: (EffectParticleSystem | EffectSolidParticleSystem)[]): void {
-		if (!Data || !Data.root) {
-			return;
+	constructor(data: IData, scene: Scene, rootUrl: string = "", options: ILoaderOptions) {
+		if (!data || !scene) {
+			throw new Error("Effect constructor requires IData and Scene");
 		}
 
-		try {
-			// Create nodes from hierarchy
-			this._root = this._buildNodeFromHierarchy(Data.root, null, groupNodesMap, systems);
-		} catch (error) {
-			// Log error but don't throw - effect can still work with partial hierarchy
-			console.error(`Failed to build  hierarchy: ${error instanceof Error ? error.message : String(error)}`);
-		}
-	}
-
-	/**
-	 * Recursively build nodes from hierarchy
-	 */
-	private _buildNodeFromHierarchy(
-		obj: IGroup | IEmitter,
-		parent: IEffectNode | null,
-		groupNodesMap: Map<string, TransformNode>,
-		systems: (EffectParticleSystem | EffectSolidParticleSystem)[]
-	): IEffectNode | null {
-		if (!obj) {
-			return null;
-		}
-
-		try {
-			const node: IEffectNode = {
-				name: obj.name,
-				uuid: obj.uuid,
-				parent: parent || undefined,
-				children: [],
-				type: "config" in obj ? "particle" : "group",
-			};
-
-			if (node.type === "particle") {
-				// Find system by name
-				const emitter = obj as IEmitter;
-				const system = systems.find((s) => s.name === emitter.name);
-				if (system) {
-					node.system = system;
-					this._systemsByName.set(emitter.name, system);
-					if (emitter.uuid) {
-						this._systemsByUuid.set(emitter.uuid, system);
-					}
-				}
-			} else {
-				// Find group TransformNode
-				const group = obj as IGroup;
-				const groupNode = group.uuid ? groupNodesMap.get(group.uuid) : null;
-				if (groupNode) {
-					node.group = groupNode;
-					this._groupsByName.set(group.name, groupNode);
-					if (group.uuid) {
-						this._groupsByUuid.set(group.uuid, groupNode);
-					}
-				}
-			}
-
-			// Process children with error handling
-			if ("children" in obj && obj.children) {
-				for (const child of obj.children) {
-					try {
-						const childNode = this._buildNodeFromHierarchy(child, node, groupNodesMap, systems);
-						if (childNode) {
-							node.children.push(childNode);
-						}
-					} catch (error) {
-						// Log error but continue processing other children
-						console.warn(`Failed to build child node ${child.name}: ${error instanceof Error ? error.message : String(error)}`);
-					}
-				}
-			}
-
-			// Store node
-			if (obj.uuid) {
-				this._nodes.set(obj.uuid, node);
-			}
-			this._nodes.set(obj.name, node);
-
-			return node;
-		} catch (error) {
-			// Log error but return null to continue building other parts of hierarchy
-			console.error(`Failed to build node ${obj.name}: ${error instanceof Error ? error.message : String(error)}`);
-			return null;
-		}
+		this._scene = scene;
+		const nodeFactory = new NodeFactory(scene, data, rootUrl, options);
+		this._root = nodeFactory.create();
 	}
 
 	/**
@@ -478,25 +300,6 @@ export class Effect implements IDisposable {
 	}
 
 	/**
-	 * Apply prewarm to systems that have it enabled
-	 * Should be called after hierarchy is built and all systems are created
-	 * Uses Babylon.js built-in prewarm properties for ParticleSystem
-	 */
-	public applyPrewarm(): void {
-		for (const system of this._systems) {
-			if (system instanceof EffectParticleSystem && system.preWarmCycles > 0) {
-				// ParticleSystem uses native preWarmCycles/preWarmStepOffset
-				// Already configured via config.preWarmCycles, nothing more needed
-			} else if (system instanceof EffectSolidParticleSystem && system.preWarmCycles > 0) {
-				// For SolidParticleSystem, we need to manually simulate prewarm
-				// Start the system and let it run for duration
-				// Note: SPS doesn't have built-in prewarm, so we'll start it normally
-				// The prewarm effect will be visible when system starts
-			}
-		}
-	}
-
-	/**
 	 * Check if any system is started
 	 */
 	public isStarted(): boolean {
@@ -513,33 +316,6 @@ export class Effect implements IDisposable {
 			}
 		}
 		return false;
-	}
-
-	/**
-	 * Create empty effect with root group
-	 */
-	private _createEmptyEffect(): void {
-		if (!this._scene) {
-			return;
-		}
-
-		const rootGroup = new TransformNode("Root", this._scene);
-		const rootUuid = Tools.RandomId();
-		rootGroup.id = rootUuid;
-
-		const rootNode: IEffectNode = {
-			name: "Root",
-			uuid: rootUuid,
-			group: rootGroup,
-			children: [],
-			type: "group",
-		};
-
-		this._root = rootNode;
-		this._groupsByName.set("Root", rootGroup);
-		this._groupsByUuid.set(rootUuid, rootGroup);
-		this._nodes.set(rootUuid, rootNode);
-		this._nodes.set("Root", rootNode);
 	}
 
 	/**

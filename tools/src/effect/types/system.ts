@@ -52,3 +52,19 @@ export function isSystem(system: unknown): system is ISystem {
 		typeof (system as ISystem).stop === "function"
 	);
 }
+
+/**
+ *  Effect Node - represents either a particle system or a group
+ */
+export interface IEffectNode {
+	/** Node name */
+	name: string;
+	/** Node UUID from original JSON */
+	uuid: string;
+	/** Particle system (if this is a particle emitter) */
+	data: EffectParticleSystem | EffectSolidParticleSystem | TransformNode;
+	/** Child nodes */
+	children: IEffectNode[];
+	/** Node type */
+	type: "particle" | "group";
+}
