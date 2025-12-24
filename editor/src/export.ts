@@ -97,5 +97,3 @@ export * from "./ui/shadcn/ui/toolbar-radio-group";
 export * from "./ui/shadcn/ui/tooltip";
 
 export * from "./project/configuration";
-
-export * as AiIcons from "react-icons/ai";

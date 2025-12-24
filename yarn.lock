@@ -3775,7 +3775,7 @@ babylonjs-editor-tools@latest:
   resolved "https://registry.yarnpkg.com/babylonjs-editor-tools/-/babylonjs-editor-tools-5.0.0.tgz#d2e1919cc5d4defbcbcf60259a1eb73a589cf643"
   integrity sha512-AREjL0WjtjyOvud0EMG/II3zH73KlSif/u0HV965tPWmUZHrxr+g/4iX6eU0mIYlIjOuepfRAopaF04IYJOaHA==
 
-"babylonjs-editor-tools@link:../../../Library/Caches/Yarn/v6/npm-babylonjs-editor-5.2.4-3cce3a704dc0c4572a85041a993264060376230a-integrity/node_modules/tools":
+"babylonjs-editor-tools@link:../../AppData/Local/Yarn/Cache/v6/npm-babylonjs-editor-5.2.4-3cce3a704dc0c4572a85041a993264060376230a-integrity/node_modules/tools":
   version "0.0.0"
   uid ""
 
@@ -4176,9 +4176,9 @@ camelize@^1.0.0:
   integrity sha512-dU+Tx2fsypxTgtLoE36npi3UqcjSSMNYfkqgmoEhtZrraP5VWq0K7FkWVTYa8eMPtnU/G2txVsfdCJTn9uzpuQ==
 
 caniuse-lite@^1.0.30001538, caniuse-lite@^1.0.30001565, caniuse-lite@^1.0.30001579, caniuse-lite@^1.0.30001688:
-  version "1.0.30001727"
-  resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001727.tgz#22e9706422ad37aa50556af8c10e40e2d93a8b85"
-  integrity sha512-pB68nIHmbN6L/4C6MH1DokyR3bYqFwjaSs/sWDHGj4CTcFtQUQMuJftVwWkXq7mNWOybD3KhUv3oWHoGxgP14Q==
+  version "1.0.30001761"
+  resolved "https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30001761.tgz"
+  integrity sha512-JF9ptu1vP2coz98+5051jZ4PwQgd2ni8A+gYSN7EA7dPKIMf0pDlSUxhdmVOaV3/fYK5uWBkgSXJaRLr4+3A6g==
 
 capital-case@^1.0.4:
   version "1.0.4"
@@ -8013,10 +8013,10 @@ react-fast-compare@^3.0.1:
   resolved "https://registry.yarnpkg.com/react-fast-compare/-/react-fast-compare-3.2.2.tgz#929a97a532304ce9fee4bcae44234f1ce2c21d49"
   integrity sha512-nsO+KSNgo1SbJqJEYRE9ERzo7YtYbou/OqjSQKxV7jcKox7+usiUVZOAC+XnDOABXggQTno0Y1CpVnuWEc1boQ==
 
-react-icons@^5.2.1:
-  version "5.2.1"
-  resolved "https://registry.yarnpkg.com/react-icons/-/react-icons-5.2.1.tgz#28c2040917b2a2eda639b0f797bff1888e018e4a"
-  integrity sha512-zdbW5GstTzXaVKvGSyTaBalt7HSfuK5ovrzlpyiWHAFXndXTdd/1hdDHI4xBM1Mn7YriT6aqESucFl9kEXzrdw==
+react-icons@5.5.0:
+  version "5.5.0"
+  resolved "https://registry.yarnpkg.com/react-icons/-/react-icons-5.5.0.tgz#8aa25d3543ff84231685d3331164c00299cdfaf2"
+  integrity sha512-MEFcXdkP3dLo8uumGI5xN3lDFNsRtrjbOEKDLD7yv76v4wpnEq2Lt2qeHaQOr34I/wPN3s3+N08WkQ+CW37Xiw==
 
 react-icons@^5.3.0:
   version "5.3.0"

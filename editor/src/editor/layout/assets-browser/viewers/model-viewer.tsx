@@ -96,7 +96,7 @@ function AssetBrowserModelViewer(props: IAssetBrowserModelViewerProps) {
 		});
 
 		const camera = scene.activeCamera as ArcRotateCamera;
-		camera.alpha = Math.PI * 0.5;
+		camera.alpha = -Math.PI * 0.666;
 		camera.beta = Math.PI * 0.35;
 		camera.angularSensibilityX = 500;
 		camera.angularSensibilityY = 500;

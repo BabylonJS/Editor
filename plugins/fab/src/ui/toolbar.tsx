@@ -1,4 +1,6 @@
-import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarTrigger, Button, AiIcons } from "babylonjs-editor";
+import { AiOutlineArrowLeft } from "react-icons/ai";
+
+import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarTrigger, Button } from "babylonjs-editor";
 
 import { FabRoot } from "./root";
 
@@ -20,7 +22,7 @@ export function FabToolbar(props: IFabToolbarProps) {
 							})
 						}
 					>
-						<AiIcons.AiOutlineArrowLeft className="w-6 h-6 dark:text-white" />
+						<AiOutlineArrowLeft className="w-6 h-6 dark:text-white" />
 						Back
 					</Button>
 				)}
