@@ -12,7 +12,7 @@ export class GeometryFactory implements IGeometryFactory {
 	private _logger: Logger;
 	private _data: IData;
 
-	constructor(data: IData, options: ILoaderOptions) {
+	constructor(data: IData, options?: ILoaderOptions) {
 		this._data = data;
 		this._logger = new Logger("[GeometryFactory]", options);
 	}
@@ -20,12 +20,12 @@ export class GeometryFactory implements IGeometryFactory {
 	/**
 	 * Create a mesh from geometry ID
 	 */
-	public createMesh(geometryId: string, name: string, scene: Scene): Nullable<Mesh> {
+	public createMesh(geometryId: string, name: string, scene: Scene): Mesh {
 		this._logger.log(`Creating mesh from geometry ID: ${geometryId}, name: ${name}`);
 
 		const geometryData = this._findGeometry(geometryId);
 		if (!geometryData) {
-			return null;
+			return new Mesh(name, scene);
 		}
 
 		const geometryName = geometryData.type || geometryId;
@@ -34,7 +34,7 @@ export class GeometryFactory implements IGeometryFactory {
 		const mesh = this._createMeshFromGeometry(geometryData, name, scene);
 		if (!mesh) {
 			this._logger.warn(`Failed to create mesh from geometry ${geometryId}`);
-			return null;
+			return new Mesh(name, scene);
 		}
 
 		return mesh;
@@ -44,7 +44,7 @@ export class GeometryFactory implements IGeometryFactory {
 	 * Create or load particle mesh for SPS
 	 * Tries to load geometry if specified, otherwise creates default plane
 	 */
-	public createParticleMesh(config: { instancingGeometry?: string }, name: string, scene: Scene): Nullable<Mesh> {
+	public createParticleMesh(config: { instancingGeometry?: string }, name: string, scene: Scene): Mesh {
 		let particleMesh = this._loadParticleGeometry(config, name, scene);
 
 		if (!particleMesh) {

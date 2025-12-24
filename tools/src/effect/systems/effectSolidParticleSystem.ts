@@ -58,7 +58,7 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 	public particleEmitterType: ISolidParticleEmitterType | null;
 	private _emitEnded: boolean;
 	private _emitter: AbstractMesh | null;
-
+	private _parent: AbstractMesh | TransformNode | null;
 	// Gradient systems for "OverLife" behaviors (similar to ParticleSystem native gradients)
 	private _colorGradients: ColorGradientSystem;
 	private _sizeGradients: NumberGradientSystem;
@@ -195,6 +195,17 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 		return this.mesh || null;
 	}
 
+	public get parent(): AbstractMesh | TransformNode | null {
+		return this._parent;
+	}
+
+	public set parent(parent: AbstractMesh | TransformNode | null) {
+		this._parent = parent;
+	}
+
+	public setParent(parent: AbstractMesh | TransformNode | null): void {
+		this._parent = parent;
+	}
 	/**
 	 * Emitter property (like ParticleSystem)
 	 * Sets the parent for the mesh - the point from which particles emit

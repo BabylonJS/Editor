@@ -1,6 +1,17 @@
 import { Component, ReactNode } from "react";
 
-import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarSeparator, MenubarShortcut, MenubarTrigger } from "../../../ui/shadcn/ui/menubar";
+import {
+	Menubar,
+	MenubarContent,
+	MenubarItem,
+	MenubarMenu,
+	MenubarSeparator,
+	MenubarShortcut,
+	MenubarSub,
+	MenubarSubContent,
+	MenubarSubTrigger,
+	MenubarTrigger,
+} from "../../../ui/shadcn/ui/menubar";
 
 import { openSingleFileDialog, saveSingleFileDialog } from "../../../tools/dialog";
 import { ToolbarComponent } from "../../../ui/toolbar";
@@ -11,7 +22,15 @@ export interface IEffectEditorToolbarProps {
 	editor: IEffectEditor;
 }
 
-export class EffectEditorToolbar extends Component<IEffectEditorToolbarProps> {
+export interface IEffectEditorToolbarState {
+	// No state needed - modal is managed by editor
+}
+
+export class EffectEditorToolbar extends Component<IEffectEditorToolbarProps, IEffectEditorToolbarState> {
+	constructor(props: IEffectEditorToolbarProps) {
+		super(props);
+		this.state = {};
+	}
 	public render(): ReactNode {
 		return (
 			<ToolbarComponent>
@@ -38,7 +57,16 @@ export class EffectEditorToolbar extends Component<IEffectEditorToolbarProps> {
 
 							<MenubarSeparator />
 
-							<MenubarItem onClick={() => this._handleImport()}>Import...</MenubarItem>
+							{/* Import Submenu */}
+							<MenubarSub>
+								<MenubarSubTrigger>Import...</MenubarSubTrigger>
+								<MenubarSubContent>
+									<MenubarItem onClick={() => this._handleImportBabylonEffect()}>Babylon Effect JSON</MenubarItem>
+									<MenubarItem onClick={() => this._handleImportQuarks()}>Quarks JSON</MenubarItem>
+									<MenubarSeparator />
+									<MenubarItem onClick={() => this._handleImportUnity()}>Unity Assets</MenubarItem>
+								</MenubarSubContent>
+							</MenubarSub>
 						</MenubarContent>
 					</MenubarMenu>
 				</Menubar>
@@ -91,9 +119,12 @@ export class EffectEditorToolbar extends Component<IEffectEditorToolbarProps> {
 		this.props.editor.saveAs(file);
 	}
 
-	private _handleImport(): void {
+	/**
+	 * Handle import Babylon Effect JSON
+	 */
+	private _handleImportBabylonEffect(): void {
 		const file = openSingleFileDialog({
-			title: "Import Effect File",
+			title: "Import Babylon Effect JSON",
 			filters: [{ name: "Effect Files", extensions: ["Effect", "json"] }],
 		});
 
@@ -102,5 +133,28 @@ export class EffectEditorToolbar extends Component<IEffectEditorToolbarProps> {
 		}
 
 		this.props.editor.importFile(file);
+	}
+
+	/**
+	 * Handle import Quarks JSON
+	 */
+	private _handleImportQuarks(): void {
+		const file = openSingleFileDialog({
+			title: "Import Quarks JSON",
+			filters: [{ name: "Quarks Files", extensions: ["json"] }],
+		});
+
+		if (!file) {
+			return;
+		}
+
+		this.props.editor.importFile(file);
+	}
+
+	/**
+	 * Handle import Unity assets (open modal)
+	 */
+	private _handleImportUnity(): void {
+		this.props.editor.openUnityImportModal();
 	}
 }

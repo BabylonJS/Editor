@@ -19,7 +19,7 @@ import { IEffectEditor } from ".";
 import { saveSingleFileDialog } from "../../../tools/dialog";
 import { writeJSON } from "fs-extra";
 import { toast } from "sonner";
-import { Effect, type IEffectNode, EffectSolidParticleSystem } from "babylonjs-editor-tools";
+import { Effect, type IEffectNode, EffectSolidParticleSystem, type IData } from "babylonjs-editor-tools";
 
 export interface IEffectEditorGraphProps {
 	filePath: string | null;
@@ -116,11 +116,19 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 				return;
 			}
 
-			// Load  effect
+			// Load Quarks JSON and parse to IData
 			const dirname = require("path").dirname(filePath);
 			const fs = require("fs-extra");
 			const originalJsonData = await fs.readJSON(filePath);
-			const effect = await Effect.LoadAsync(filePath, this.props.editor.preview!.scene, dirname + "/");
+
+			// Use Parser to convert Quarks JSON to IData
+			const { Parser } = await import("babylonjs-editor-tools");
+			type IQuarksJSON = import("babylonjs-editor-tools").IQuarksJSON;
+			const parser = new Parser(this.props.editor.preview!.scene, dirname + "/", originalJsonData as IQuarksJSON);
+			const parseResult = parser.parse();
+
+			// Create Effect from IData
+			const effect = new Effect(parseResult.data, this.props.editor.preview!.scene, dirname + "/");
 
 			// Generate unique ID for effect
 			const effectId = `effect-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -152,6 +160,52 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 			}, 100);
 		} catch (error) {
 			console.error("Failed to load Effect file:", error);
+		}
+	}
+
+	/**
+	 * Load effect from Unity IData (converted from prefab)
+	 */
+	public async loadFromUnityData(data: any, prefabName: string): Promise<void> {
+		try {
+			if (!this.props.editor.preview?.scene) {
+				console.error("Scene is not available");
+				return;
+			}
+
+			// Create effect from IData
+			const effectName = prefabName.replace(".prefab", "").split("/").pop() || "Unity Effect";
+			const effect = new Effect(data, this.props.editor.preview.scene);
+
+			// Generate unique ID for effect
+			const effectId = `unity-effect-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+			// Store effect with data for export
+			this._effects.set(effectId, {
+				id: effectId,
+				name: effectName,
+				effect: effect,
+				originalJsonData: data,
+			});
+
+			// Rebuild tree with all effects
+			this._rebuildTree();
+
+			// Apply prewarm before starting (if any systems have prewarm enabled)
+			effect.applyPrewarm();
+
+			// Start systems
+			effect.start();
+
+			// Notify preview to sync playing state
+			setTimeout(() => {
+				if (this.props.editor?.preview) {
+					(this.props.editor.preview as any).forceUpdate?.();
+				}
+			}, 100);
+		} catch (error) {
+			console.error("Failed to load Unity prefab:", error);
+			throw error;
 		}
 	}
 
@@ -215,11 +269,10 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 		}
 
 		// Get system type label for particles
-		const secondaryLabel = Node.type === "particle" ? (
-			<span className={`text-xs px-1 rounded ${isSolid ? "bg-orange-500/20 text-orange-400" : "bg-yellow-500/20 text-yellow-400"}`}>
-				{isSolid ? "Solid" : "Base"}
-			</span>
-		) : undefined;
+		const secondaryLabel =
+			Node.type === "particle" ? (
+				<span className={`text-xs px-1 rounded ${isSolid ? "bg-orange-500/20 text-orange-400" : "bg-yellow-500/20 text-yellow-400"}`}>{isSolid ? "Solid" : "Base"}</span>
+			) : undefined;
 
 		return {
 			id: nodeId,
@@ -500,8 +553,15 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 			return;
 		}
 
-		// Create empty effect
-		const effect = new Effect(undefined, this.props.editor.preview.scene);
+		// Create empty effect with empty IData
+		const emptyData: IData = {
+			root: null,
+			materials: [],
+			textures: [],
+			images: [],
+			geometries: [],
+		};
+		const effect = new Effect(emptyData, this.props.editor.preview.scene);
 
 		// Generate unique ID and name for effect
 		const effectId = `effect-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;

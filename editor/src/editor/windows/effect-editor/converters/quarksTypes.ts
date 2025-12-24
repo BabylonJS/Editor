@@ -1,10 +1,35 @@
 /**
- * Type definitions for Quarks/Three.js  JSON structures
- * These represent the incoming format from Quarks/Three.js
+ * Type definitions for Quarks  JSON structures
+ * These represent the incoming format from Quarks
  */
 
 /**
- * Quarks/Three.js value types
+ * Common Bezier function structure used across multiple types
+ */
+export interface IQuarksBezierFunction {
+	p0: number;
+	p1: number;
+	p2: number;
+	p3: number;
+}
+
+export interface IQuarksBezierFunctionSegment {
+	function: IQuarksBezierFunction;
+	start: number;
+}
+
+/**
+ * Common RGBA color structure
+ */
+export interface IQuarksRGBA {
+	r: number;
+	g: number;
+	b: number;
+	a?: number;
+}
+
+/**
+ * Quarks value types
  */
 export interface IQuarksConstantValue {
 	type: "ConstantValue";
@@ -19,58 +44,50 @@ export interface IQuarksIntervalValue {
 
 export interface IQuarksPiecewiseBezier {
 	type: "PiecewiseBezier";
-	functions: Array<{
-		function: {
-			p0: number;
-			p1: number;
-			p2: number;
-			p3: number;
-		};
-		start: number;
-	}>;
+	functions: IQuarksBezierFunctionSegment[];
 }
 
 export type IQuarksValue = IQuarksConstantValue | IQuarksIntervalValue | IQuarksPiecewiseBezier | number;
 
 /**
- * Quarks/Three.js color types
+ * Quarks color types
  */
 export interface IQuarksConstantColor {
 	type: "ConstantColor";
-	color?: {
-		r: number;
-		g: number;
-		b: number;
-		a?: number;
-	};
+	color?: IQuarksRGBA;
 	value?: [number, number, number, number]; // RGBA array alternative
 }
 
 export type IQuarksColor = IQuarksConstantColor | [number, number, number, number] | string;
 
 /**
- * Quarks/Three.js rotation types
+ * Quarks rotation types
  */
 export interface IQuarksEulerRotation {
 	type: "Euler";
 	angleX?: IQuarksValue;
 	angleY?: IQuarksValue;
 	angleZ?: IQuarksValue;
+	eulerOrder?: string;
+	functions?: IQuarksBezierFunctionSegment[];
+	a?: number;
+	b?: number;
+	value?: number;
 }
 
 export type IQuarksRotation = IQuarksEulerRotation | IQuarksValue;
 
 /**
- * Quarks/Three.js gradient key
+ * Quarks gradient key
  */
 export interface IQuarksGradientKey {
 	time?: number;
-	value: number | [number, number, number, number] | { r: number; g: number; b: number; a?: number };
+	value: number | [number, number, number, number] | IQuarksRGBA;
 	pos?: number;
 }
 
 /**
- * Quarks/Three.js shape configuration
+ * Quarks shape configuration
  */
 export interface IQuarksShape {
 	type: string;
@@ -86,15 +103,18 @@ export interface IQuarksShape {
 }
 
 /**
- * Quarks/Three.js emission burst
+ * Quarks emission burst
  */
 export interface IQuarksEmissionBurst {
 	time: IQuarksValue;
 	count: IQuarksValue;
+	cycle?: number;
+	interval?: number;
+	probability?: number;
 }
 
 /**
- * Quarks/Three.js behavior types
+ * Quarks behavior types
  */
 export interface IQuarksCLinearFunction {
 	type: "CLinearFunction";
@@ -110,12 +130,7 @@ export interface IQuarksGradientColor {
 
 export interface IQuarksConstantColorColor {
 	type: "ConstantColor";
-	color?: {
-		r: number;
-		g: number;
-		b: number;
-		a?: number;
-	};
+	color?: IQuarksRGBA;
 	value?: [number, number, number, number];
 }
 
@@ -136,13 +151,8 @@ export interface IQuarksSizeOverLifeBehavior {
 	type: "SizeOverLife";
 	size?: {
 		keys?: IQuarksGradientKey[];
-		functions?: Array<{
-			start: number;
-			function: {
-				p0?: number;
-				p3?: number;
-			};
-		}>;
+		functions?: IQuarksBezierFunctionSegment[];
+		type?: string;
 	};
 }
 
@@ -200,29 +210,31 @@ export interface IQuarksLimitSpeedOverLifeBehavior {
 	dampen?: IQuarksValue;
 }
 
-export interface IQuarksColorBySpeedBehavior {
+/**
+ * Base interface for speed-based behaviors
+ */
+interface IQuarksSpeedBasedBehavior {
+	minSpeed?: IQuarksValue;
+	maxSpeed?: IQuarksValue;
+}
+
+export interface IQuarksColorBySpeedBehavior extends IQuarksSpeedBasedBehavior {
 	type: "ColorBySpeed";
 	color?: {
 		keys: IQuarksGradientKey[];
 	};
-	minSpeed?: IQuarksValue;
-	maxSpeed?: IQuarksValue;
 }
 
-export interface IQuarksSizeBySpeedBehavior {
+export interface IQuarksSizeBySpeedBehavior extends IQuarksSpeedBasedBehavior {
 	type: "SizeBySpeed";
 	size?: {
 		keys: IQuarksGradientKey[];
 	};
-	minSpeed?: IQuarksValue;
-	maxSpeed?: IQuarksValue;
 }
 
-export interface IQuarksRotationBySpeedBehavior {
+export interface IQuarksRotationBySpeedBehavior extends IQuarksSpeedBasedBehavior {
 	type: "RotationBySpeed";
 	angularVelocity?: IQuarksValue;
-	minSpeed?: IQuarksValue;
-	maxSpeed?: IQuarksValue;
 }
 
 export interface IQuarksOrbitOverLifeBehavior {
@@ -234,6 +246,17 @@ export interface IQuarksOrbitOverLifeBehavior {
 	};
 	radius?: IQuarksValue;
 	speed?: IQuarksValue;
+}
+
+export interface IQuarksNoiseBehavior {
+	type: "Noise";
+	frequency?: IQuarksValue;
+	power?: IQuarksValue;
+	positionAmount?: IQuarksValue;
+	rotationAmount?: IQuarksValue;
+	x?: IQuarksValue;
+	y?: IQuarksValue;
+	z?: IQuarksValue;
 }
 
 export type IQuarksBehavior =
@@ -249,10 +272,46 @@ export type IQuarksBehavior =
 	| IQuarksSizeBySpeedBehavior
 	| IQuarksRotationBySpeedBehavior
 	| IQuarksOrbitOverLifeBehavior
+	| IQuarksNoiseBehavior
 	| { type: string; [key: string]: unknown }; // Fallback for unknown behaviors
 
 /**
- * Quarks/Three.js particle emitter configuration
+ * Quarks start size with Vector3Function support
+ */
+export interface IQuarksVector3FunctionSize {
+	type: "Vector3Function";
+	x?: IQuarksValue;
+	y?: IQuarksValue;
+	z?: IQuarksValue;
+	functions?: IQuarksBezierFunctionSegment[];
+	a?: number;
+	b?: number;
+	value?: number;
+}
+
+export type IQuarksStartSize = IQuarksValue | IQuarksVector3FunctionSize;
+
+/**
+ * Quarks start color with Gradient and ColorRange support
+ */
+export interface IQuarksGradientStartColor {
+	type: "Gradient";
+	alpha?: IQuarksCLinearFunction;
+	color?: IQuarksCLinearFunction;
+}
+
+export interface IQuarksColorRangeStartColor {
+	type: "ColorRange";
+	a?: IQuarksRGBA;
+	b?: IQuarksRGBA;
+	color?: IQuarksCLinearFunction;
+	alpha?: IQuarksCLinearFunction;
+}
+
+export type IQuarksStartColor = IQuarksColor | IQuarksGradientStartColor | IQuarksColorRangeStartColor;
+
+/**
+ * Quarks particle emitter configuration
  */
 export interface IQuarksParticleEmitterConfig {
 	version?: string;
@@ -264,8 +323,8 @@ export interface IQuarksParticleEmitterConfig {
 	startLife?: IQuarksValue;
 	startSpeed?: IQuarksValue;
 	startRotation?: IQuarksRotation;
-	startSize?: IQuarksValue;
-	startColor?: IQuarksColor;
+	startSize?: IQuarksStartSize;
+	startColor?: IQuarksStartColor;
 	emissionOverTime?: IQuarksValue;
 	emissionOverDistance?: IQuarksValue;
 	emissionBursts?: IQuarksEmissionBurst[];
@@ -288,81 +347,95 @@ export interface IQuarksParticleEmitterConfig {
 }
 
 /**
- * Quarks/Three.js object types
+ * Base interface for Quarks objects with common transform properties
  */
-export interface IQuarksGroup {
+interface IQuarksObjectBase {
 	uuid: string;
-	type: "Group";
 	name: string;
-	matrix?: number[];
+	matrix: number[];
+	layers: number;
+	up: number[];
+	children: IQuarksObject[];
 	position?: number[];
 	rotation?: number[];
 	scale?: number[];
-	children?: IQuarksObject[];
 }
 
-export interface IQuarksParticleEmitter {
-	uuid: string;
+/**
+ * Quarks object types
+ */
+export interface IQuarksGroup extends IQuarksObjectBase {
+	type: "Group";
+}
+
+export interface IQuarksParticleEmitter extends IQuarksObjectBase {
 	type: "ParticleEmitter";
-	name: string;
-	matrix?: number[];
-	position?: number[];
-	rotation?: number[];
-	scale?: number[];
 	ps: IQuarksParticleEmitterConfig;
-	children?: IQuarksObject[];
 }
 
 export type IQuarksObject = IQuarksGroup | IQuarksParticleEmitter;
 
 /**
- * Quarks/Three.js material
+ * Base interface for Quarks resources (materials, textures, images, geometries)
  */
-export interface IQuarksMaterial {
+interface IQuarksResource {
 	uuid: string;
-	type: string;
 	name?: string;
-	color?: number;
-	map?: string;
-	blending?: number;
-	side?: number;
-	transparent?: boolean;
-	depthWrite?: boolean;
 }
 
 /**
- * Quarks/Three.js texture
+ * Quarks material
  */
-export interface IQuarksTexture {
-	uuid: string;
-	name?: string;
+export interface IQuarksMaterial extends IQuarksResource {
+	type: string;
+	color?: number;
+	map?: string;
+	blending?: number;
+	blendColor?: number;
+	side?: number;
+	transparent?: boolean;
+	depthWrite?: boolean;
+	envMapRotation?: number[];
+	reflectivity?: number;
+	refractionRatio?: number;
+}
+
+/**
+ * Quarks texture
+ */
+export interface IQuarksTexture extends IQuarksResource {
 	image?: string;
 	mapping?: number;
 	wrap?: number[];
 	repeat?: number[];
 	offset?: number[];
+	center?: number[];
 	rotation?: number;
 	minFilter?: number;
 	magFilter?: number;
 	flipY?: boolean;
 	generateMipmaps?: boolean;
 	format?: number;
+	internalFormat?: number | null;
+	type?: number;
 	channel?: number;
+	anisotropy?: number;
+	colorSpace?: string;
+	premultiplyAlpha?: boolean;
+	unpackAlignment?: number;
 }
 
 /**
- * Quarks/Three.js image
+ * Quarks image
  */
-export interface IQuarksImage {
-	uuid: string;
+export interface IQuarksImage extends IQuarksResource {
 	url?: string;
 }
 
 /**
- * Quarks/Three.js geometry
+ * Quarks geometry
  */
-export interface IQuarksGeometry {
-	uuid: string;
+export interface IQuarksGeometry extends IQuarksResource {
 	type: string;
 	data?: {
 		attributes?: Record<
@@ -371,6 +444,7 @@ export interface IQuarksGeometry {
 				itemSize: number;
 				type: string;
 				array: number[];
+				normalized?: boolean;
 			}
 		>;
 		index?: {
@@ -378,20 +452,30 @@ export interface IQuarksGeometry {
 			array: number[];
 		};
 	};
+	// Geometry-specific properties (for different geometry types)
+	height?: number;
+	heightSegments?: number;
+	width?: number;
+	widthSegments?: number;
+	radius?: number;
+	phiLength?: number;
+	phiStart?: number;
+	thetaLength?: number;
+	thetaStart?: number;
 }
 
 /**
- * Quarks/Three.js JSON structure
+ * Quarks JSON structure
  */
 export interface IQuarksJSON {
-	metadata?: {
-		version?: number;
-		type?: string;
-		generator?: string;
+	metadata: {
+		version: number;
+		type: string;
+		generator: string;
 	};
-	geometries?: IQuarksGeometry[];
-	materials?: IQuarksMaterial[];
-	textures?: IQuarksTexture[];
-	images?: IQuarksImage[];
-	object?: IQuarksObject;
+	geometries: IQuarksGeometry[];
+	materials: IQuarksMaterial[];
+	textures: IQuarksTexture[];
+	images: IQuarksImage[];
+	object: IQuarksObject;
 }
