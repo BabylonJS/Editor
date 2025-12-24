@@ -81,7 +81,7 @@ export class TextureUtils {
 	/**
 	 * Converts the given pixels to a readable blob image.
 	 */
-	private static async _convertPixelsToBlobImage(size: ISize, pixels: Uint8ClampedArray): Promise<Blob | null> {
+	private static async _convertPixelsToBlobImage(size: ISize, pixels: Uint8ClampedArray<ArrayBuffer>): Promise<Blob | null> {
 		// Base canvas
 		const canvas = document.createElement("canvas");
 		canvas.width = size.width;

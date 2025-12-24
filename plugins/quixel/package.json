@@ -13,7 +13,7 @@
 	"devDependencies": {
 		"@types/node": "^22",
 		"babylonjs-editor": "latest",
-		"typescript": "5.8.3"
+		"typescript": "5.9.3"
 	},
 	"dependencies": {
 		"babylonjs": "8.41.0",
