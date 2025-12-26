@@ -4,16 +4,15 @@ import { ensureDir, pathExists, readJSON, writeJSON } from "fs-extra";
 
 import { Component, ReactNode } from "react";
 
-import { Editor, Separator } from "babylonjs-editor";
+import { Editor } from "babylonjs-editor";
 
 import { importFabJson } from "../import/import";
 
 import { IFabJson } from "../typings";
 
-import { FabMeshesBrowser } from "./meshes/meshes";
-
 import { FabItems } from "./items";
 import { FabToolbar } from "./toolbar";
+import { FabCollectionComponent } from "./collection/collection";
 
 export interface IFabRootComponentProps {
 	editor: Editor;
@@ -83,54 +82,16 @@ export class FabRoot extends Component<IFabRootComponentProps, IFabRootComponent
 				)}
 
 				{this.state.browsedAsset && this.state.fabAssetsFolder && (
-					<>
-						<div className="flex justify-between items-center px-5">
-							<div className="flex flex-col gap-1 justify-start py-5">
-								<div className="text-3xl font-semibold text-center">{this.state.browsedAsset.metadata.fab.listing.title}</div>
-								<div className="flex flex-col justify-end">
-									<div className="text-muted-foreground">Meshes: {this.state.browsedAsset.meshes.length}</div>
-									<div className="text-muted-foreground">Materials: {this.state.browsedAsset.materials.length}</div>
-								</div>
-							</div>
-							<div className="flex flex-col gap-1 justify-end">
-								<div className="flex flex-col justify-end">
-									<div className="text-end text-muted-foreground">
-										Published{" "}
-										{new Date(this.state.browsedAsset.metadata.fab.listing.publishedAt).toLocaleString("en-US", {
-											day: "2-digit",
-											month: "long",
-											year: "numeric",
-										})}
-									</div>
-									<div className="text-end text-muted-foreground">
-										Updated{" "}
-										{new Date(this.state.browsedAsset.metadata.fab.listing.lastUpdatedAt).toLocaleString("en-US", {
-											day: "2-digit",
-											month: "long",
-											year: "numeric",
-										})}
-									</div>
-								</div>
-								<div className="flex flex-col justify-end">
-									{this.state.browsedAsset.metadata.fab.listing.isAiGenerated && (
-										<div className="flex justify-end items-center gap-2 text-green-500">AI Generated</div>
-									)}
-									<div
-										className={`flex justify-end items-center gap-2 ${this.state.browsedAsset.metadata.fab.listing.isAiForbidden ? "text-red-500" : "text-muted-foreground"}`}
-									>
-										{this.state.browsedAsset.metadata.fab.listing.isAiForbidden && "AI Forbidden"}
-										{!this.state.browsedAsset.metadata.fab.listing.isAiForbidden && "AI Authorized"}
-									</div>
-								</div>
-							</div>
-						</div>
-
-						<div className="px-5 py-1">
-							<Separator />
-						</div>
-
-						<FabMeshesBrowser editor={this.props.editor} json={this.state.browsedAsset} fabAssetsFolder={this.state.fabAssetsFolder} />
-					</>
+					<FabCollectionComponent
+						editor={this.props.editor}
+						fabAssetsFolder={this.state.fabAssetsFolder}
+						browsedAsset={this.state.browsedAsset}
+						onClose={() =>
+							this.setState({
+								browsedAsset: null,
+							})
+						}
+					/>
 				)}
 			</div>
 		);
@@ -176,6 +137,12 @@ export class FabRoot extends Component<IFabRootComponentProps, IFabRootComponent
 				assets.splice(i, 1);
 				--i;
 			}
+		}
+
+		if (this.state.browsedAsset && !assets.includes(this.state.browsedAsset)) {
+			this.setState({
+				browsedAsset: null,
+			});
 		}
 
 		this.setState({

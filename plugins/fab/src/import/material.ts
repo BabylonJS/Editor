@@ -1,6 +1,6 @@
 import sharp, { Sharp } from "sharp";
 import { join } from "path/posix";
-import { pathExists, readJSON, writeJSON } from "fs-extra";
+import { ensureDir, pathExists, readJSON, writeJSON } from "fs-extra";
 
 import { PBRMaterial, Texture } from "babylonjs";
 import { configureImportedMaterial, configureImportedTexture, Editor, getProjectAssetsRootUrl } from "babylonjs-editor";
@@ -44,13 +44,15 @@ export async function importMaterial(editor: Editor, parameters: IImportMaterial
 
 	const orm = parameters.json.textures.orm ? sharp(parameters.json.textures.orm) : null;
 
-	const albedoPath = join(parameters.finalAssetsFolder, `${parameters.json.name}_albedo.jpg`);
-	const bumpPath = join(parameters.finalAssetsFolder, `${parameters.json.name}_bump.png`);
-	const albedoOpacityPath = join(parameters.finalAssetsFolder, `${parameters.json.name}_albedo_opacity.png`);
+	await ensureDir(join(parameters.finalAssetsFolder, "textures"));
 
-	const occlusionPath = join(parameters.finalAssetsFolder, `${parameters.json.name}_occlusion.jpg`);
+	const albedoPath = join(parameters.finalAssetsFolder, `textures/${parameters.json.name}_albedo.jpg`);
+	const bumpPath = join(parameters.finalAssetsFolder, `textures/${parameters.json.name}_bump.png`);
+	const albedoOpacityPath = join(parameters.finalAssetsFolder, `textures/${parameters.json.name}_albedo_opacity.png`);
 
-	const ormPath = join(parameters.finalAssetsFolder, `${parameters.json.name}_orm.jpg`);
+	const occlusionPath = join(parameters.finalAssetsFolder, `textures/${parameters.json.name}_occlusion.jpg`);
+
+	const ormPath = join(parameters.finalAssetsFolder, `textures/${parameters.json.name}_orm.jpg`);
 
 	if (albedo && opacity) {
 		material.useAlphaFromAlbedoTexture = true;
