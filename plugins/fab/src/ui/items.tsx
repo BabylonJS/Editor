@@ -64,6 +64,7 @@ export function FabItems(props: IFabItemsProps) {
 
 		setDropListener(() => dropListener);
 
+		props.onClick(asset);
 		props.editor.layout.preview.canvas?.addEventListener("drop", dropListener);
 	}
 

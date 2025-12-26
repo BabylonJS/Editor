@@ -1,6 +1,4 @@
-import { AiOutlineArrowLeft } from "react-icons/ai";
-
-import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarTrigger, Button } from "babylonjs-editor";
+import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarTrigger } from "babylonjs-editor";
 
 import { FabRoot } from "./root";
 
@@ -12,21 +10,6 @@ export function FabToolbar(props: IFabToolbarProps) {
 	return (
 		<div className="relative flex justify-between items-center w-full h-10 bg-primary-foreground">
 			<Menubar className="border-none rounded-none pl-3 my-auto bg-primary-foreground h-10">
-				{props.root.state.browsedAsset && (
-					<Button
-						variant="ghost"
-						className="flex items-center gap-2 w-fit"
-						onClick={() =>
-							props.root.setState({
-								browsedAsset: null,
-							})
-						}
-					>
-						<AiOutlineArrowLeft className="w-6 h-6 dark:text-white" />
-						Back
-					</Button>
-				)}
-
 				{/* File */}
 				<MenubarMenu>
 					<MenubarTrigger>File</MenubarTrigger>
