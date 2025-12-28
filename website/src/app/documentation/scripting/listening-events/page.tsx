@@ -12,7 +12,7 @@ import {
 	onPointerEventDescendantsExample,
 	onKeyboardEventBasicExample,
 	onKeyboardEventArrayBasicExample,
-} from "./pointer-event";
+} from "./code";
 
 import { NextChapterComponent } from "../../components/next-chapter";
 
@@ -125,7 +125,7 @@ export default function DocumentationRunningProjectPage() {
 
 						<CodeBlock code={onKeyboardEventArrayBasicExample} />
 
-						<NextChapterComponent href="/documentation/sprites/using-sprite-manager" title="Using Sprite Manager" />
+						<NextChapterComponent href="/documentation/scripting/linking-assets" title="Linking assets" />
 					</div>
 				</Fade>
 			</div>

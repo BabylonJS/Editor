@@ -35,6 +35,10 @@ export interface IComputeThumbnailOptions {
 	 * Defines the absolute path to the asset to compute its thumbnail (.material, .glb, etc.).
 	 */
 	absolutePath: string;
+	/**
+	 * Defines the absolute path to the override material to render the mesh with.
+	 */
+	overrideMaterialAbsolutePath?: string;
 }
 
 /**
@@ -67,8 +71,20 @@ export async function computeOrGetThumbnail(editor: Editor, options: IComputeThu
 
 	++previewCount;
 
+	let serializedOverrideMaterial: any = null;
+	if (options.overrideMaterialAbsolutePath && (await pathExists(options.overrideMaterialAbsolutePath))) {
+		try {
+			serializedOverrideMaterial = await readJSON(options.overrideMaterialAbsolutePath, {
+				encoding: "utf-8",
+			});
+		} catch (e) {
+			// Catch silently.
+		}
+	}
+
 	const thumbnail = await getAssetThumbnailBase64(options.absolutePath, {
 		rootUrl,
+		serializedOverrideMaterial,
 		type: options.type,
 		appPath: editor.path,
 		serializedEnvironmentTexture: editor.layout.preview.scene.environmentTexture?.serialize(),
@@ -137,6 +153,10 @@ export interface IThumbnailOptions {
 	 * The serialized environment texture for the thumbnail to help rendering materials such as PBR.
 	 */
 	serializedEnvironmentTexture?: any;
+	/**
+	 * The serialized override material for the thumbnail to help rendering meshes with a specific material.
+	 */
+	serializedOverrideMaterial?: any;
 }
 
 /**

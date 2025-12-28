@@ -1,0 +1,29 @@
+{
+	"name": "babylonjs-editor-fab-plugin",
+	"version": "5.0.0",
+	"description": "",
+	"productName": "Babylon.js Editor Fab Plugin",
+	"scripts": {
+		"build": "tsc -p . && tailwindcss -i ./index.css -o ./build/index.css",
+		"watch": "concurrently -i \"tsc -p . --watch\" \"tailwindcss -i ./index.css -o ./build/index.css --watch\""
+	},
+	"main": "build/index.js",
+	"typings": "declaration/index.d.ts",
+	"license": "(Apache-2.0)",
+	"devDependencies": {
+		"@types/node": "^22",
+		"@types/react": "18.2.47",
+		"@types/react-dom": "18.2.18",
+		"babylonjs-editor": "latest",
+		"concurrently": "9.2.0",
+		"tailwindcss": "3.4.4",
+		"typescript": "5.9.3"
+	},
+	"dependencies": {
+		"babylonjs": "8.41.0",
+		"fs-extra": "11.2.0",
+		"react": "18.2.0",
+		"react-icons": "5.5.0",
+		"sharp": "0.34.3"
+	}
+}

@@ -1,70 +1,53 @@
 {
-    // See https://go.microsoft.com/fwlink/?LinkId=733558
-    // for the documentation about the tasks.json format
-    "version": "2.0.0",
-    "tasks": [
-        {
-            "label": "watch-all-editor",
-            "group": "build",
-            "problemMatcher": "$tsc-watch",
-            "dependsOn": [
-                "watch-editor",
-                "watch-editor-css",
-                "watch-tools",
-                "watch-quixel"
-            ],
-            "presentation": {
-                "panel": "shared",
-                "group": "watch",
-            }
-        },
-        {
-            "label": "watch-editor",
-            "type": "npm",
-            "script": "watch-editor",
-            "group": "build",
-            "problemMatcher": "$tsc-watch",
-            "presentation": {
-                "panel": "shared",
-                "group": "watch",
-            },
-            "isBackground": true
-        },
-        {
-            "label": "watch-editor-css",
-            "type": "npm",
-            "script": "watch-editor-css",
-            "group": "build",
-            "problemMatcher": "$tsc-watch",
-            "presentation": {
-                "panel": "shared",
-                "group": "watch",
-            },
-            "isBackground": true
-        },
-        {
-            "label": "watch-tools",
-            "type": "npm",
-            "script": "watch-tools",
-            "group": "build",
-            "problemMatcher": "$tsc-watch",
-            "presentation": {
-                "panel": "shared",
-                "group": "watch",
-            },
-            "isBackground": true
-        },
-        {
-            "label": "watch-quixel",
-            "type": "npm",
-            "script": "watch-quixel",
-            "group": "build",
-            "problemMatcher": "$tsc-watch",
-            "presentation": {
-                "panel": "shared",
-                "group": "watch",
-            },
-            "isBackground": true
-        }
-    ]
+	// See https://go.microsoft.com/fwlink/?LinkId=733558
+	// for the documentation about the tasks.json format
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "watch-all-editor",
+			"group": "build",
+			"problemMatcher": "$tsc-watch",
+			"dependsOn": ["watch-editor", "watch-tools", "watch-plugins"],
+			"presentation": {
+				"panel": "shared",
+				"group": "watch"
+			}
+		},
+		{
+			"label": "watch-editor",
+			"type": "npm",
+			"script": "watch-editor-all",
+			"group": "build",
+			"problemMatcher": "$tsc-watch",
+			"presentation": {
+				"panel": "shared",
+				"group": "watch"
+			},
+			"isBackground": true
+		},
+		{
+			"label": "watch-tools",
+			"type": "npm",
+			"script": "watch-tools",
+			"group": "build",
+			"problemMatcher": "$tsc-watch",
+			"presentation": {
+				"panel": "shared",
+				"group": "watch"
+			},
+			"isBackground": true
+		},
+		{
+			"label": "watch-plugins",
+			"type": "npm",
+			"script": "watch-plugins",
+			"group": "build",
+			"problemMatcher": "$tsc-watch",
+			"presentation": {
+				"panel": "shared",
+				"group": "watch"
+			},
+			"isBackground": true
+		}
+	]
 }

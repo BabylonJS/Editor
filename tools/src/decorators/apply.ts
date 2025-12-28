@@ -223,6 +223,7 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 
 						switch (assetType) {
 							case "json":
+							case "gui":
 							case "scene":
 							case "navmesh":
 								instance[propertyKey] = data;

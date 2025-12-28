@@ -20,7 +20,13 @@ addEventListener("message", async (event) => {
 		case "mesh":
 			let meshThumbnail: string;
 			try {
-				meshThumbnail = await meshPreview.getPreview(event.data.absolutePath, event.data.rootUrl, event.data.appPath, event.data.serializedEnvironmentTexture);
+				meshThumbnail = await meshPreview.getPreview(
+					event.data.absolutePath,
+					event.data.rootUrl,
+					event.data.appPath,
+					event.data.serializedEnvironmentTexture,
+					event.data.serializedOverrideMaterial
+				);
 			} catch (e) {
 				meshThumbnail = "";
 			}

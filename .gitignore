@@ -155,8 +155,11 @@ website/public/sitemap.xml
 website/public/robots.txt
 
 # Quixel
-quixel/build
-quixel/declaration
+plugins/quixel/build
+plugins/quixel/declaration
+
+plugins/fab/build
+plugins/fab/declaration
 
 # Test
 /test

@@ -160,7 +160,7 @@ export function DashboardProjectItem(props: IDashboardProjectItemProps) {
 
 							<div className="flex items-center gap-2">
 								<DropdownMenu>
-									<DropdownMenuTrigger>
+									<DropdownMenuTrigger asChild>
 										<Button
 											variant="ghost"
 											className={`
@@ -192,11 +192,11 @@ export function DashboardProjectItem(props: IDashboardProjectItemProps) {
 									variant="ghost"
 									onClick={() => (playingAddress ? handleStopProject() : handleLaunchProject())}
 									className={`
-                                    w-10 h-10 aspect-square p-0
-                                    ${launching || playingAddress ? "" : "opacity-0 group-hover:opacity-100"}
-                                    ${launching ? "bg-muted/50" : playingAddress ? "!bg-red-500/35" : "hover:!bg-green-500/35"}
-                                    transition-all duration-300 ease-in-out
-                                `}
+										w-10 h-10 aspect-square p-0
+										${launching || playingAddress ? "" : "opacity-0 group-hover:opacity-100"}
+										${launching ? "bg-muted/50" : playingAddress ? "!bg-red-500/35" : "hover:!bg-green-500/35"}
+										transition-all duration-300 ease-in-out
+									`}
 								>
 									{launching ? (
 										<Grid width={24} height={24} color="#ffffff" />

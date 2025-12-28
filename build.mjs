@@ -33,6 +33,7 @@ function build({ x64, arm64 } = options) {
 						},
 			win: {
 				target: "nsis",
+				verifyUpdateCodeSignature: false,
 				forceCodeSigning: args.noSign ? false : true,
 				signtoolOptions: args.noSign
 					? undefined

@@ -552,7 +552,7 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 			});
 		}
 
-		const buffer = await sharp(path).resize(128, 128).toBuffer();
+		const buffer = (await sharp(path).resize(128, 128).toBuffer()) as Buffer<ArrayBuffer>;
 
 		if (this.state.previewTemporaryUrl) {
 			URL.revokeObjectURL(this.state.previewTemporaryUrl);
