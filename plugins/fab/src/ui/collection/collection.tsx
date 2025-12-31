@@ -5,9 +5,10 @@ import { IFabJson } from "../../typings";
 
 export interface IFabCollectionRootComponentProps {
 	editor: Editor;
+	filter: string;
 	fabAssetsFolder: string;
-
 	browsedAsset: IFabJson;
+
 	onClose: () => void;
 }
 
@@ -61,7 +62,7 @@ export function FabCollectionComponent(props: IFabCollectionRootComponentProps) 
 				<Separator />
 			</div>
 
-			<FabMeshesBrowser editor={props.editor} json={props.browsedAsset} fabAssetsFolder={props.fabAssetsFolder} />
+			<FabMeshesBrowser editor={props.editor} json={props.browsedAsset} fabAssetsFolder={props.fabAssetsFolder} filter={props.filter} />
 		</>
 	);
 }
