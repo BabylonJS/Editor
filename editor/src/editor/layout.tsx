@@ -152,6 +152,8 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
 	public addLayoutTab(component: ReactNode, options: IEditorLayoutTabOptions): void {
 		options.id ??= Tools.RandomId();
 
+		const activeTabId = this._layoutRef?.props.model.getActiveTabset()?.getSelectedNode()?.getId();
+
 		let tabsetId: string | undefined;
 
 		const existingNode = this._layoutRef?.props.model.getNodeById(options.id);
@@ -175,6 +177,10 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
 			component: options.id,
 			enableClose: options.enableClose,
 		});
+
+		if (activeTabId) {
+			this._layoutRef?.props.model.doAction(Actions.selectTab(activeTabId));
+		}
 	}
 
 	/**

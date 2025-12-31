@@ -24,6 +24,9 @@ export interface IFabRootComponentState {
 
 	browsedAsset: IFabJson | null;
 	selectedAsset: IFabJson | null;
+
+	itemsFilter: string;
+	collectionFilter: string;
 }
 
 export interface IFabAssetProcessingProgress {
@@ -46,13 +49,26 @@ export class FabRoot extends Component<IFabRootComponentProps, IFabRootComponent
 
 			browsedAsset: null,
 			selectedAsset: null,
+
+			itemsFilter: "",
+			collectionFilter: "",
 		};
 	}
 
 	public render(): ReactNode {
 		return (
 			<div className="fab relative flex flex-col w-full h-full overflow-hidden">
-				<FabToolbar root={this} />
+				<FabToolbar
+					root={this}
+					filter={this.state.browsedAsset ? this.state.collectionFilter : this.state.itemsFilter}
+					onFilterChange={(value) => {
+						if (this.state.browsedAsset) {
+							this.setState({ collectionFilter: value });
+						} else {
+							this.setState({ itemsFilter: value });
+						}
+					}}
+				/>
 
 				{!this.state.assets.length && (
 					<div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center">
@@ -65,9 +81,10 @@ export class FabRoot extends Component<IFabRootComponentProps, IFabRootComponent
 					<FabItems
 						editor={this.props.editor}
 						assets={this.state.assets}
+						selectedAsset={this.state.selectedAsset}
 						fabAssetsFolder={this.state.fabAssetsFolder}
 						processingAssetIds={this._processingAssetIds}
-						selectedAsset={this.state.selectedAsset}
+						filter={this.state.itemsFilter.toLowerCase()}
 						onClick={(selectedAssetId) =>
 							this.setState({
 								selectedAsset: selectedAssetId,
@@ -84,11 +101,13 @@ export class FabRoot extends Component<IFabRootComponentProps, IFabRootComponent
 				{this.state.browsedAsset && this.state.fabAssetsFolder && (
 					<FabCollectionComponent
 						editor={this.props.editor}
-						fabAssetsFolder={this.state.fabAssetsFolder}
 						browsedAsset={this.state.browsedAsset}
+						fabAssetsFolder={this.state.fabAssetsFolder}
+						filter={this.state.collectionFilter.toLowerCase()}
 						onClose={() =>
 							this.setState({
 								browsedAsset: null,
+								collectionFilter: "",
 							})
 						}
 					/>

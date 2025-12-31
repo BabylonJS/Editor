@@ -11,6 +11,7 @@ import { importFabJson } from "../import/import";
 
 export interface IFabItemsProps {
 	editor: Editor;
+	filter: string;
 	assets: IFabJson[];
 	fabAssetsFolder: string;
 	selectedAsset: IFabJson | null;
@@ -81,6 +82,10 @@ export function FabItems(props: IFabItemsProps) {
 		}
 	}
 
+	const assets = props.assets.filter((asset) => {
+		return asset.metadata.fab.listing.title.toLowerCase().includes(props.filter);
+	});
+
 	return (
 		<TooltipProvider delayDuration={300} skipDelayDuration={0}>
 			<div className="flex flex-1 w-full h-full">
@@ -91,7 +96,7 @@ export function FabItems(props: IFabItemsProps) {
 					}}
 					className="grid justify-center gap-4 w-full h-full p-5 overflow-y-auto pb-14"
 				>
-					{props.assets.map((asset) => (
+					{assets.map((asset) => (
 						<Tooltip key={asset.id}>
 							<TooltipTrigger>
 								<div
