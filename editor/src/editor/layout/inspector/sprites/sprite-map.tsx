@@ -302,6 +302,7 @@ export class EditorSpriteMapNodeInspector extends Component<IEditorInspectorImpl
 				/>
 
 				<EditorInspectorListField
+					search
 					object={this.state.selectedTile}
 					property="tile"
 					label="Tile"
@@ -309,7 +310,7 @@ export class EditorSpriteMapNodeInspector extends Component<IEditorInspectorImpl
 						text: f.filename,
 						value: index,
 						icon: (
-							<div className="flex justify-center items-center w-[24px] h-[24px]">
+							<div className="flex justify-center items-center w-[24px] h-[24px] bg-secondary rounded-sm">
 								<img src={f["_preview"]} className="w-full h-full object-contain" />
 							</div>
 						),
