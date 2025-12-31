@@ -214,6 +214,7 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 							text: animationGroup.name,
 							value: animationGroup.name,
 						}))}
+						search={props.editor.layout.preview.scene.animationGroups.length > 5}
 					/>
 				);
 		}

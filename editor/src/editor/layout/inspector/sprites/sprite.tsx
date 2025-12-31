@@ -97,6 +97,7 @@ export class EditorSpriteInspector extends Component<IEditorInspectorImplementat
 
 					{this._spriteManagerNode?.atlasJson && (
 						<EditorInspectorListField
+							search
 							object={this.props.object}
 							property="cellRef"
 							label="Texture"
@@ -104,7 +105,7 @@ export class EditorSpriteInspector extends Component<IEditorInspectorImplementat
 								text: frame,
 								value: frame,
 								icon: (
-									<div className="flex justify-center items-center w-[24px] h-[24px]">
+									<div className="flex justify-center items-center w-[24px] h-[24px] bg-secondary rounded-sm">
 										<img src={this._spriteManagerNode!.atlasJson.frames[frame]["_preview"]} className="w-full h-full object-contain" />
 									</div>
 								),
@@ -114,6 +115,7 @@ export class EditorSpriteInspector extends Component<IEditorInspectorImplementat
 
 					{this._spriteManagerNode?.spritesheet && !this._spriteManagerNode.atlasJson && (
 						<EditorInspectorListField
+							search
 							object={this.props.object}
 							property="cellIndex"
 							label="Texture"
@@ -122,7 +124,7 @@ export class EditorSpriteInspector extends Component<IEditorInspectorImplementat
 								text: `Frame ${index}`,
 								key: `${index}_${this._spriteManagerNode?.spriteManager?.cellWidth}_${this._spriteManagerNode?.spriteManager?.cellHeight}`,
 								icon: (
-									<div className="flex justify-center items-center w-[24px] h-[24px]">
+									<div className="flex justify-center items-center w-[24px] h-[24px] bg-secondary rounded-sm">
 										<img src={f} className="w-full h-full object-contain" />
 									</div>
 								),

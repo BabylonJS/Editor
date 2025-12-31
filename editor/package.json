@@ -93,7 +93,7 @@
 		"decompress": "^4.2.1",
 		"decompress-targz": "^4.1.1",
 		"dunder-proto": "1.0.1",
-		"electron-updater": "^6.6.2",
+		"electron-updater": "6.6.2",
 		"esbuild": "0.27.2",
 		"filenamify": "4.3.0",
 		"flexlayout-react": "0.7.15",

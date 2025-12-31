@@ -68,7 +68,7 @@ export class CommandPalette extends Component<ICommandPaletteProps, ICommandPale
 
 					<CommandGroup heading="Commands">
 						{getProjectCommands(this.props.editor).map((command) => (
-							<CommandItem key={command.key} onSelect={() => this._executeCommand(command)} className="flex items-center gap-2">
+							<CommandItem key={command.key} onSelect={() => this._executeCommand(command)} className="flex items-center gap-2 !pointer-events-auto">
 								<HiMiniCommandLine className="w-10 h-10" /> {command.text}
 							</CommandItem>
 						))}
@@ -76,31 +76,56 @@ export class CommandPalette extends Component<ICommandPaletteProps, ICommandPale
 
 					<CommandGroup heading="Scene">
 						{getLightCommands(this.props.editor).map((command) => (
-							<CommandItem key={command.key} disabled={command.disabled} onSelect={() => this._executeCommand(command)} className="flex items-center gap-2">
+							<CommandItem
+								key={command.key}
+								disabled={command.disabled}
+								onSelect={() => this._executeCommand(command)}
+								className="flex items-center gap-2 !pointer-events-auto"
+							>
 								<FaCirclePlus className="w-10 h-10" /> {command.text}
 							</CommandItem>
 						))}
 
 						{getMeshCommands(this.props.editor).map((command) => (
-							<CommandItem key={command.key} disabled={command.disabled} onSelect={() => this._executeCommand(command)} className="flex items-center gap-2">
+							<CommandItem
+								key={command.key}
+								disabled={command.disabled}
+								onSelect={() => this._executeCommand(command)}
+								className="flex items-center gap-2 !pointer-events-auto"
+							>
 								<FaCirclePlus className="w-10 h-10" /> {command.text}
 							</CommandItem>
 						))}
 
 						{getCameraCommands(this.props.editor).map((command) => (
-							<CommandItem key={command.key} disabled={command.disabled} onSelect={() => this._executeCommand(command)} className="flex items-center gap-2">
+							<CommandItem
+								key={command.key}
+								disabled={command.disabled}
+								onSelect={() => this._executeCommand(command)}
+								className="flex items-center gap-2 !pointer-events-auto"
+							>
 								<FaCirclePlus className="w-10 h-10" /> {command.text}
 							</CommandItem>
 						))}
 
 						{getParticleSystemsCommands(this.props.editor).map((command) => (
-							<CommandItem key={command.key} disabled={command.disabled} onSelect={() => this._executeCommand(command)} className="flex items-center gap-2">
+							<CommandItem
+								key={command.key}
+								disabled={command.disabled}
+								onSelect={() => this._executeCommand(command)}
+								className="flex items-center gap-2 !pointer-events-auto"
+							>
 								<IoSparklesSharp className="w-10 h-10" /> {command.text}
 							</CommandItem>
 						))}
 
 						{getSpriteCommands(this.props.editor).map((command) => (
-							<CommandItem key={command.key} disabled={command.disabled} onSelect={() => this._executeCommand(command)} className="flex items-center gap-2">
+							<CommandItem
+								key={command.key}
+								disabled={command.disabled}
+								onSelect={() => this._executeCommand(command)}
+								className="flex items-center gap-2 !pointer-events-auto"
+							>
 								<FaCirclePlus className="w-10 h-10" /> {command.text}
 							</CommandItem>
 						))}
@@ -108,7 +133,7 @@ export class CommandPalette extends Component<ICommandPaletteProps, ICommandPale
 
 					<CommandGroup heading="Hierarchy">
 						{this.state.entities.map((entity) => (
-							<CommandItem key={entity.key} onSelect={() => this._executeCommand(entity)} className="flex items-center gap-2">
+							<CommandItem key={entity.key} onSelect={() => this._executeCommand(entity)} className="flex items-center gap-2 !pointer-events-auto">
 								<IoMdCube className="w-10 h-10" /> {entity.text}
 							</CommandItem>
 						))}
@@ -116,7 +141,7 @@ export class CommandPalette extends Component<ICommandPaletteProps, ICommandPale
 
 					<CommandGroup heading="Files">
 						{this.state.files.map((file) => (
-							<CommandItem key={file.key} onSelect={() => this._executeCommand(file)} className="flex items-center gap-2">
+							<CommandItem key={file.key} onSelect={() => this._executeCommand(file)} className="flex items-center gap-2 !pointer-events-auto">
 								<FaFileAlt className="w-10 h-10" /> {file.text}
 							</CommandItem>
 						))}
