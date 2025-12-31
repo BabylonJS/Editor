@@ -1,7 +1,7 @@
-import { Scene, IDisposable, TransformNode, MeshBuilder, Texture, Color4, AbstractMesh, Tools } from "babylonjs";
+import { Scene, IDisposable, TransformNode } from "babylonjs";
 import { EffectParticleSystem } from "./systems/effectParticleSystem";
 import { EffectSolidParticleSystem } from "./systems/effectSolidParticleSystem";
-import { IGroup, IEmitter, IData, isSystem, IEffectNode, ILoaderOptions, IParticleSystemConfig } from "./types";
+import { IData, IEffectNode, ILoaderOptions, IParticleSystemConfig } from "./types";
 import { NodeFactory } from "./factories";
 
 /**
@@ -19,20 +19,8 @@ export class Effect implements IDisposable {
 		return this._root;
 	}
 
-	/** Map of systems by name for quick lookup */
-	private readonly _systemsByName = new Map<string, EffectParticleSystem | EffectSolidParticleSystem>();
-
-	/** Map of systems by UUID for quick lookup */
-	private readonly _systemsByUuid = new Map<string, EffectParticleSystem | EffectSolidParticleSystem>();
-
-	/** Map of groups by name */
-	private readonly _groupsByName = new Map<string, TransformNode>();
-
-	/** Map of groups by UUID */
-	private readonly _groupsByUuid = new Map<string, TransformNode>();
-
-	/** Scene reference for creating new systems */
-	private _scene: Scene | null = null;
+	/** NodeFactory for creating groups and systems */
+	private _nodeFactory: NodeFactory | null = null;
 
 	/**
 	 * Create Effect from IData
@@ -48,51 +36,122 @@ export class Effect implements IDisposable {
 			throw new Error("Effect constructor requires IData and Scene");
 		}
 
-		this._scene = scene;
-		const nodeFactory = new NodeFactory(scene, data, rootUrl, options);
-		this._root = nodeFactory.create();
+		this._nodeFactory = new NodeFactory(scene, data, rootUrl, options);
+		this._root = this._nodeFactory.create();
+	}
+
+	/**
+	 * Recursively find a node by name in the tree
+	 */
+	private _findNodeByName(node: IEffectNode | null, name: string): IEffectNode | null {
+		if (!node) {
+			return null;
+		}
+		if (node.name === name) {
+			return node;
+		}
+		for (const child of node.children) {
+			const found = this._findNodeByName(child, name);
+			if (found) {
+				return found;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Recursively find a node by UUID in the tree
+	 */
+	private _findNodeByUuid(node: IEffectNode | null, uuid: string): IEffectNode | null {
+		if (!node) {
+			return null;
+		}
+		if (node.uuid === uuid) {
+			return node;
+		}
+		for (const child of node.children) {
+			const found = this._findNodeByUuid(child, uuid);
+			if (found) {
+				return found;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Recursively collect all systems from the tree
+	 */
+	private _collectAllSystems(node: IEffectNode | null, systems: (EffectParticleSystem | EffectSolidParticleSystem)[]): void {
+		if (!node) {
+			return;
+		}
+		if (node.type === "particle") {
+			const system = node.data as EffectParticleSystem | EffectSolidParticleSystem;
+			if (system) {
+				systems.push(system);
+			}
+		}
+		for (const child of node.children) {
+			this._collectAllSystems(child, systems);
+		}
 	}
 
 	/**
 	 * Find a particle system by name
 	 */
 	public findSystemByName(name: string): EffectParticleSystem | EffectSolidParticleSystem | null {
-		return this._systemsByName.get(name) || null;
+		const node = this._findNodeByName(this._root, name);
+		if (node && node.type === "particle") {
+			return node.data as EffectParticleSystem | EffectSolidParticleSystem;
+		}
+		return null;
 	}
 
 	/**
 	 * Find a particle system by UUID
 	 */
 	public findSystemByUuid(uuid: string): EffectParticleSystem | EffectSolidParticleSystem | null {
-		return this._systemsByUuid.get(uuid) || null;
+		const node = this._findNodeByUuid(this._root, uuid);
+		if (node && node.type === "particle") {
+			return node.data as EffectParticleSystem | EffectSolidParticleSystem;
+		}
+		return null;
 	}
 
 	/**
 	 * Find a group by name
 	 */
 	public findGroupByName(name: string): TransformNode | null {
-		return this._groupsByName.get(name) || null;
+		const node = this._findNodeByName(this._root, name);
+		if (node && node.type === "group") {
+			return node.data as TransformNode;
+		}
+		return null;
 	}
 
 	/**
 	 * Find a group by UUID
 	 */
 	public findGroupByUuid(uuid: string): TransformNode | null {
-		return this._groupsByUuid.get(uuid) || null;
+		const node = this._findNodeByUuid(this._root, uuid);
+		if (node && node.type === "group") {
+			return node.data as TransformNode;
+		}
+		return null;
 	}
 
 	/**
 	 * Find a node (system or group) by name
 	 */
 	public findNodeByName(name: string): IEffectNode | null {
-		return this._nodes.get(name) || null;
+		return this._findNodeByName(this._root, name);
 	}
 
 	/**
 	 * Find a node (system or group) by UUID
 	 */
 	public findNodeByUuid(uuid: string): IEffectNode | null {
-		return this._nodes.get(uuid) || null;
+		return this._findNodeByUuid(this._root, uuid);
 	}
 
 	/**
@@ -102,40 +161,28 @@ export class Effect implements IDisposable {
 	 * then getSystemsInGroup("Group1") will return System1.
 	 */
 	public getSystemsInGroup(groupName: string): (EffectParticleSystem | EffectSolidParticleSystem)[] {
-		const group = this.findGroupByName(groupName);
-		if (!group) {
+		const groupNode = this.findNodeByName(groupName);
+		if (!groupNode || groupNode.type !== "group") {
 			return [];
 		}
 
 		const systems: (EffectParticleSystem | EffectSolidParticleSystem)[] = [];
-		this._collectSystemsInGroup(group, systems);
+		this._collectSystemsInGroupNode(groupNode, systems);
 		return systems;
 	}
 
 	/**
-	 * Recursively collect systems in a group (including systems from all nested child groups)
-	 * This method:
-	 * 1. Collects all systems that have this group as direct parent
-	 * 2. Recursively processes all child groups and collects their systems too
+	 * Recursively collect systems in a group node (including systems from all nested child groups)
 	 */
-	private _collectSystemsInGroup(group: TransformNode, systems: (EffectParticleSystem | EffectSolidParticleSystem)[]): void {
-		// Step 1: Find systems that have this group as direct parent
-		for (const system of this._systems) {
-			if (isSystem(system)) {
-				const parentNode = system.getParentNode();
-				if (parentNode && parentNode.parent === group) {
-					systems.push(system);
-				}
+	private _collectSystemsInGroupNode(groupNode: IEffectNode, systems: (EffectParticleSystem | EffectSolidParticleSystem)[]): void {
+		if (groupNode.type === "particle") {
+			const system = groupNode.data as EffectParticleSystem | EffectSolidParticleSystem;
+			if (system) {
+				systems.push(system);
 			}
 		}
-
-		// Step 2: Recursively process all child groups
-		// This ensures systems from nested groups are also collected
-		for (const [, groupNode] of this._groupsByUuid) {
-			if (groupNode.parent === group) {
-				// Recursively collect systems from child group (and its nested groups)
-				this._collectSystemsInGroup(groupNode, systems);
-			}
+		for (const child of groupNode.children) {
+			this._collectSystemsInGroupNode(child, systems);
 		}
 	}
 
@@ -187,9 +234,12 @@ export class Effect implements IDisposable {
 	 * Start a node (system or group)
 	 */
 	public startNode(node: IEffectNode): void {
-		if (node.type === "particle" && node.system) {
-			node.system.start();
-		} else if (node.type === "group" && node.group) {
+		if (node.type === "particle") {
+			const system = node.data as EffectParticleSystem | EffectSolidParticleSystem;
+			if (system && typeof system.start === "function") {
+				system.start();
+			}
+		} else if (node.type === "group") {
 			// Find all systems in this group recursively
 			const systems = this._getSystemsInNode(node);
 			for (const system of systems) {
@@ -202,9 +252,12 @@ export class Effect implements IDisposable {
 	 * Stop a node (system or group)
 	 */
 	public stopNode(node: IEffectNode): void {
-		if (node.type === "particle" && node.system) {
-			node.system.stop();
-		} else if (node.type === "group" && node.group) {
+		if (node.type === "particle") {
+			const system = node.data as EffectParticleSystem | EffectSolidParticleSystem;
+			if (system && typeof system.stop === "function") {
+				system.stop();
+			}
+		} else if (node.type === "group") {
 			// Find all systems in this group recursively
 			const systems = this._getSystemsInNode(node);
 			for (const system of systems) {
@@ -217,9 +270,12 @@ export class Effect implements IDisposable {
 	 * Reset a node (system or group)
 	 */
 	public resetNode(node: IEffectNode): void {
-		if (node.type === "particle" && node.system) {
-			node.system.reset();
-		} else if (node.type === "group" && node.group) {
+		if (node.type === "particle") {
+			const system = node.data as EffectParticleSystem | EffectSolidParticleSystem;
+			if (system && typeof system.reset === "function") {
+				system.reset();
+			}
+		} else if (node.type === "group") {
 			// Find all systems in this group recursively
 			const systems = this._getSystemsInNode(node);
 			for (const system of systems) {
@@ -232,14 +288,15 @@ export class Effect implements IDisposable {
 	 * Check if a node is started (system or group)
 	 */
 	public isNodeStarted(node: IEffectNode): boolean {
-		if (node.type === "particle" && node.system) {
-			if (node.system instanceof EffectParticleSystem) {
-				return (node.system as any).isStarted ? (node.system as any).isStarted() : false;
-			} else if (node.system instanceof EffectSolidParticleSystem) {
-				return (node.system as any)._started && !(node.system as any)._stopped;
+		if (node.type === "particle") {
+			const system = node.data as EffectParticleSystem | EffectSolidParticleSystem;
+			if (system instanceof EffectParticleSystem) {
+				return (system as any).isStarted ? (system as any).isStarted() : false;
+			} else if (system instanceof EffectSolidParticleSystem) {
+				return (system as any)._started && !(system as any)._stopped;
 			}
 			return false;
-		} else if (node.type === "group" && node.group) {
+		} else if (node.type === "group") {
 			// Check if any system in this group is started
 			const systems = this._getSystemsInNode(node);
 			return systems.some((system) => {
@@ -260,8 +317,11 @@ export class Effect implements IDisposable {
 	private _getSystemsInNode(node: IEffectNode): (EffectParticleSystem | EffectSolidParticleSystem)[] {
 		const systems: (EffectParticleSystem | EffectSolidParticleSystem)[] = [];
 
-		if (node.type === "particle" && node.system) {
-			systems.push(node.system);
+		if (node.type === "particle") {
+			const system = node.data as EffectParticleSystem | EffectSolidParticleSystem;
+			if (system) {
+				systems.push(system);
+			}
 		} else if (node.type === "group") {
 			// Recursively collect all systems from children
 			for (const child of node.children) {
@@ -276,7 +336,9 @@ export class Effect implements IDisposable {
 	 * Start all particle systems
 	 */
 	public start(): void {
-		for (const system of this._systems) {
+		const systems: (EffectParticleSystem | EffectSolidParticleSystem)[] = [];
+		this._collectAllSystems(this._root, systems);
+		for (const system of systems) {
 			system.start();
 		}
 	}
@@ -285,7 +347,9 @@ export class Effect implements IDisposable {
 	 * Stop all particle systems
 	 */
 	public stop(): void {
-		for (const system of this._systems) {
+		const systems: (EffectParticleSystem | EffectSolidParticleSystem)[] = [];
+		this._collectAllSystems(this._root, systems);
+		for (const system of systems) {
 			system.stop();
 		}
 	}
@@ -294,7 +358,9 @@ export class Effect implements IDisposable {
 	 * Reset all particle systems (stop and clear particles)
 	 */
 	public reset(): void {
-		for (const system of this._systems) {
+		const systems: (EffectParticleSystem | EffectSolidParticleSystem)[] = [];
+		this._collectAllSystems(this._root, systems);
+		for (const system of systems) {
 			system.reset();
 		}
 	}
@@ -303,7 +369,9 @@ export class Effect implements IDisposable {
 	 * Check if any system is started
 	 */
 	public isStarted(): boolean {
-		for (const system of this._systems) {
+		const systems: (EffectParticleSystem | EffectSolidParticleSystem)[] = [];
+		this._collectAllSystems(this._root, systems);
+		for (const system of systems) {
 			if (system instanceof EffectParticleSystem) {
 				if ((system as any).isStarted && (system as any).isStarted()) {
 					return true;
@@ -325,8 +393,8 @@ export class Effect implements IDisposable {
 	 * @returns Created group node
 	 */
 	public createGroup(parentNode: IEffectNode | null = null, name: string = "Group"): IEffectNode | null {
-		if (!this._scene) {
-			console.error("Cannot create group: scene is not available");
+		if (!this._nodeFactory) {
+			console.error("Cannot create group: NodeFactory is not available");
 			return null;
 		}
 
@@ -339,37 +407,16 @@ export class Effect implements IDisposable {
 		// Ensure unique name
 		let uniqueName = name;
 		let counter = 1;
-		while (this._nodes.has(uniqueName)) {
+		while (this._findNodeByName(this._root, uniqueName)) {
 			uniqueName = `${name} ${counter}`;
 			counter++;
 		}
 
-		const groupUuid = Tools.RandomId();
-		const groupNode = new TransformNode(uniqueName, this._scene);
-		groupNode.id = groupUuid;
-
-		// Set parent transform
-		if (parent.group) {
-			groupNode.setParent(parent.group, false, true);
-		}
-
-		const newNode: IEffectNode = {
-			name: uniqueName,
-			uuid: groupUuid,
-			group: groupNode,
-			parent,
-			children: [],
-			type: "group",
-		};
+		// Create group using NodeFactory
+		const newNode = this._nodeFactory.createGroup(uniqueName, parent);
 
 		// Add to parent's children
 		parent.children.push(newNode);
-
-		// Store in maps
-		this._groupsByName.set(uniqueName, groupNode);
-		this._groupsByUuid.set(groupUuid, groupNode);
-		this._nodes.set(groupUuid, newNode);
-		this._nodes.set(uniqueName, newNode);
 
 		return newNode;
 	}
@@ -379,11 +426,17 @@ export class Effect implements IDisposable {
 	 * @param parentNode Parent node (if null, adds to root)
 	 * @param systemType Type of system ("solid" or "base")
 	 * @param name Optional name (defaults to "ParticleSystem")
+	 * @param config Optional particle system config
 	 * @returns Created particle system node
 	 */
-	public createParticleSystem(parentNode: IEffectNode | null = null, systemType: "solid" | "base" = "base", name: string = "ParticleSystem"): IEffectNode | null {
-		if (!this._scene) {
-			console.error("Cannot create particle system: scene is not available");
+	public createParticleSystem(
+		parentNode: IEffectNode | null = null,
+		systemType: "solid" | "base" = "base",
+		name: string = "ParticleSystem",
+		config?: Partial<IParticleSystemConfig>
+	): IEffectNode | null {
+		if (!this._nodeFactory) {
+			console.error("Cannot create particle system: NodeFactory is not available");
 			return null;
 		}
 
@@ -396,149 +449,16 @@ export class Effect implements IDisposable {
 		// Ensure unique name
 		let uniqueName = name;
 		let counter = 1;
-		while (this._nodes.has(uniqueName)) {
+		while (this._findNodeByName(this._root, uniqueName)) {
 			uniqueName = `${name} ${counter}`;
 			counter++;
 		}
 
-		const systemUuid = Tools.RandomId();
-
-		// Create default config
-		const config: IParticleSystemConfig = {
-			systemType,
-			targetStopDuration: 0, // looping
-			manualEmitCount: -1,
-			emitRate: 10,
-			minLifeTime: 1,
-			maxLifeTime: 1,
-			minEmitPower: 1,
-			maxEmitPower: 1,
-			minSize: 1,
-			maxSize: 1,
-			color1: new Color4(1, 1, 1, 1),
-			color2: new Color4(1, 1, 1, 1),
-			colorDead: new Color4(1, 1, 1, 0),
-			behaviors: [],
-		};
-
-		let system: EffectParticleSystem | EffectSolidParticleSystem;
-
-		// Create system instance based on type
-		if (systemType === "solid") {
-			system = new EffectSolidParticleSystem(uniqueName, this._scene, {
-				updatable: true,
-				isPickable: false,
-				enableDepthSort: false,
-				particleIntersection: false,
-				useModelMaterial: true,
-			});
-			const particleMesh = MeshBuilder.CreateSphere("particleMesh", { segments: 16, diameter: 1 }, this._scene);
-			system.particleMesh = particleMesh;
-		} else {
-			const capacity = 500;
-			system = new EffectParticleSystem(uniqueName, capacity, this._scene);
-			system.particleTexture = new Texture("https://assets.babylonjs.com/core/textures/flare.png", this._scene);
-		}
-
-		// Set system name
-		system.name = uniqueName;
-		system.emitter = parent.group as AbstractMesh;
-		// === Assign native properties (shared by both systems) ===
-		if (config.minSize !== undefined) {
-			system.minSize = config.minSize;
-		}
-		if (config.maxSize !== undefined) {
-			system.maxSize = config.maxSize;
-		}
-		if (config.minLifeTime !== undefined) {
-			system.minLifeTime = config.minLifeTime;
-		}
-		if (config.maxLifeTime !== undefined) {
-			system.maxLifeTime = config.maxLifeTime;
-		}
-		if (config.minEmitPower !== undefined) {
-			system.minEmitPower = config.minEmitPower;
-		}
-		if (config.maxEmitPower !== undefined) {
-			system.maxEmitPower = config.maxEmitPower;
-		}
-		if (config.emitRate !== undefined) {
-			system.emitRate = config.emitRate;
-		}
-		if (config.targetStopDuration !== undefined) {
-			system.targetStopDuration = config.targetStopDuration;
-		}
-		if (config.manualEmitCount !== undefined) {
-			system.manualEmitCount = config.manualEmitCount;
-		}
-		if (config.preWarmCycles !== undefined) {
-			system.preWarmCycles = config.preWarmCycles;
-		}
-		if (config.preWarmStepOffset !== undefined) {
-			system.preWarmStepOffset = config.preWarmStepOffset;
-		}
-		if (config.color1 !== undefined) {
-			system.color1 = config.color1;
-		}
-		if (config.color2 !== undefined) {
-			system.color2 = config.color2;
-		}
-		if (config.colorDead !== undefined) {
-			system.colorDead = config.colorDead;
-		}
-		if (config.minInitialRotation !== undefined) {
-			system.minInitialRotation = config.minInitialRotation;
-		}
-		if (config.maxInitialRotation !== undefined) {
-			system.maxInitialRotation = config.maxInitialRotation;
-		}
-		if (config.isLocal !== undefined) {
-			system.isLocal = config.isLocal;
-		}
-		if (config.disposeOnStop !== undefined) {
-			system.disposeOnStop = config.disposeOnStop;
-		}
-
-		// === Apply gradients (shared by both systems) ===
-		if (config.startSizeGradients) {
-			for (const grad of config.startSizeGradients) {
-				system.addStartSizeGradient(grad.gradient, grad.factor, grad.factor2);
-			}
-		}
-		if (config.lifeTimeGradients) {
-			for (const grad of config.lifeTimeGradients) {
-				system.addLifeTimeGradient(grad.gradient, grad.factor, grad.factor2);
-			}
-		}
-		if (config.emitRateGradients) {
-			for (const grad of config.emitRateGradients) {
-				system.addEmitRateGradient(grad.gradient, grad.factor, grad.factor2);
-			}
-		}
-
-		// === Apply behaviors (shared by both systems) ===
-		if (config.behaviors !== undefined) {
-			system.setBehaviors(config.behaviors);
-		}
-
-		const newNode: IEffectNode = {
-			name: uniqueName,
-			uuid: systemUuid,
-			system,
-			parent,
-			children: [],
-			type: "particle",
-		};
+		// Create particle system using NodeFactory
+		const newNode = this._nodeFactory.createParticleSystem(uniqueName, systemType, config, parent);
 
 		// Add to parent's children
 		parent.children.push(newNode);
-
-		// Store in maps
-		this._systems.push(system);
-		this._systemsByName.set(uniqueName, system);
-		this._systemsByUuid.set(systemUuid, system);
-		this._nodes.set(systemUuid, newNode);
-		this._nodes.set(uniqueName, newNode);
 
 		return newNode;
 	}
@@ -547,15 +467,11 @@ export class Effect implements IDisposable {
 	 * Dispose all resources
 	 */
 	public dispose(): void {
-		for (const system of this._systems) {
+		const systems: (EffectParticleSystem | EffectSolidParticleSystem)[] = [];
+		this._collectAllSystems(this._root, systems);
+		for (const system of systems) {
 			system.dispose();
 		}
-		this._systems = [];
 		this._root = null;
-		this._systemsByName.clear();
-		this._systemsByUuid.clear();
-		this._groupsByName.clear();
-		this._groupsByUuid.clear();
-		this._nodes.clear();
 	}
 }

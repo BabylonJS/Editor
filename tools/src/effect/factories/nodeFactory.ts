@@ -1,8 +1,8 @@
-import { Nullable, Vector3, TransformNode, Scene, AbstractMesh, Tools } from "babylonjs";
+import { Vector3, TransformNode, Scene, AbstractMesh, Tools, Quaternion, Color4 } from "babylonjs";
 import { EffectParticleSystem, EffectSolidParticleSystem } from "../systems";
 import { IData, IGroup, IEmitter, ITransform, IParticleSystemConfig, ILoaderOptions, IMaterialFactory, IGeometryFactory, IEffectNode, isSystem } from "../types";
 import { Logger } from "../loggers/logger";
-import { CapacityCalculator, ValueUtils, MatrixUtils } from "../utils";
+import { CapacityCalculator, ValueUtils } from "../utils";
 import { MaterialFactory } from "./materialFactory";
 import { GeometryFactory } from "./geometryFactory";
 /**
@@ -404,23 +404,6 @@ export class NodeFactory {
 	}
 
 	/**
-	 * Calculate cumulative scale from parent groups
-	 */
-	private _calculateCumulativeScale(parent: Nullable<TransformNode>): Vector3 {
-		const cumulativeScale = new Vector3(1, 1, 1);
-		let current = parent;
-
-		while (current) {
-			cumulativeScale.x *= current.scaling.x;
-			cumulativeScale.y *= current.scaling.y;
-			cumulativeScale.z *= current.scaling.z;
-			current = current.parent as TransformNode;
-		}
-
-		return cumulativeScale;
-	}
-
-	/**
 	 * Apply transform to a node
 	 */
 	private _applyTransform(node: IEffectNode, transform: ITransform): void {
@@ -463,5 +446,69 @@ export class NodeFactory {
 		}
 
 		this._logger.log(`Set parent: ${node.name} -> ${parent?.name || "none"}`);
+	}
+
+	/**
+	 * Create a new group node
+	 * @param name Group name
+	 * @param parentNode Parent node (optional)
+	 * @returns Created group node
+	 */
+	public createGroup(name: string, parentNode: IEffectNode | null = null): IEffectNode {
+		const groupUuid = Tools.RandomId();
+		const group: IGroup = {
+			uuid: groupUuid,
+			name,
+			transform: {
+				position: Vector3.Zero(),
+				rotation: Quaternion.Identity(),
+				scale: Vector3.One(),
+			},
+			children: [],
+		};
+
+		return this._createGroupNode(group, parentNode);
+	}
+
+	/**
+	 * Create a new particle system node
+	 * @param name System name
+	 * @param systemType Type of system ("solid" or "base")
+	 * @param config Optional particle system config
+	 * @param parentNode Parent node (optional)
+	 * @returns Created particle system node
+	 */
+	public createParticleSystem(name: string, systemType: "solid" | "base" = "base", config?: Partial<IParticleSystemConfig>, parentNode: IEffectNode | null = null): IEffectNode {
+		const systemUuid = Tools.RandomId();
+		const defaultConfig: IParticleSystemConfig = {
+			systemType,
+			targetStopDuration: 0, // looping
+			manualEmitCount: -1,
+			emitRate: 10,
+			minLifeTime: 1,
+			maxLifeTime: 1,
+			minEmitPower: 1,
+			maxEmitPower: 1,
+			minSize: 1,
+			maxSize: 1,
+			color1: new Color4(1, 1, 1, 1),
+			color2: new Color4(1, 1, 1, 1),
+			behaviors: [],
+			...config,
+		};
+
+		const emitter: IEmitter = {
+			uuid: systemUuid,
+			name,
+			transform: {
+				position: Vector3.Zero(),
+				rotation: Quaternion.Identity(),
+				scale: Vector3.One(),
+			},
+			config: defaultConfig,
+			systemType,
+		};
+
+		return this._createParticleNode(emitter, parentNode);
 	}
 }
