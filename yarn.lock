@@ -3997,7 +3997,7 @@ babylonjs-editor@latest:
     axios "1.12.0"
     babylonjs "8.41.0"
     babylonjs-addons "8.41.0"
-    babylonjs-editor-tools "link:../../AppData/Local/Yarn/Cache/v6/npm-babylonjs-editor-5.2.4-3cce3a704dc0c4572a85041a993264060376230a-integrity/node_modules/tools"
+    babylonjs-editor-tools "link:../../../Library/Caches/Yarn/v6/npm-babylonjs-editor-5.2.4-3cce3a704dc0c4572a85041a993264060376230a-integrity/node_modules/tools"
     babylonjs-gui "8.41.0"
     babylonjs-gui-editor "8.41.0"
     babylonjs-loaders "8.41.0"
