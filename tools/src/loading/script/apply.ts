@@ -12,6 +12,7 @@ import { applyDecorators } from "../../decorators/apply";
 import { isAnyParticleSystem, isNode, isScene } from "../../tools/guards";
 
 import { ScriptMap } from "../loader";
+import { applyConfig } from "./config";
 
 /**
  * @internal
@@ -40,6 +41,10 @@ export function _applyScriptsForObject(scene: Scene, object: any, scriptsMap: Sc
 
 			const decoratorsResult = applyDecorators(scene, object, script, result, rootUrl);
 			Object.assign(observers, decoratorsResult?.observers ?? {});
+		}
+
+		if (exports.config) {
+			applyConfig(scene, exports.config, script.values, rootUrl);
 		}
 
 		if (result.onStart) {
