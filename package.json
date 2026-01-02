@@ -38,6 +38,7 @@
 		"build-website": "yarn workspace babylonjs-editor-website build",
 		"build": "yarn build-tools && yarn build-editor && yarn build-plugins",
 		"build-all": "yarn build && yarn build-templates && yarn build-website",
+		"build-concurrently": "yarn build-tools && yarn build-editor && concurrently \"yarn workspace babylonjs-editor-plugins build-concurrently\" \"yarn workspace babylonjs-editor-templates build-concurrently\" \"yarn workspace babylonjs-editor-website build\" -c bgYellow.bold,bgBlue.bold,bgGreen.bold --names plugins,templates,website",
 		"start": "yarn workspace babylonjs-editor start",
 		"package": "yarn clean && yarn clean:node_modules && yarn && yarn lint && yarn build-all && yarn test && node build.mjs",
 		"clean": "rimraf editor/build editor/declaration editor/electron-packages editor/coverage tools/build tools/declaration tools/coverage website/.next && yarn workspace babylonjs-editor-plugins clean && yarn workspace babylonjs-editor-templates clean",
@@ -82,5 +83,6 @@
 		"babylonjs-node-particle-editor": "8.41.0",
 		"babylonjs-post-process": "8.41.0",
 		"babylonjs-procedural-textures": "8.41.0"
-	}
+	},
+	"packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }

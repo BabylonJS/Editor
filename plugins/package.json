@@ -5,6 +5,7 @@
 	"scripts": {
 		"postinstall": "rimraf --glob ./**/node_modules/babylonjs-editor-tools && rimraf --glob ./**/node_modules/babylonjs-editor",
 		"clean": "rimraf quixel/build quixel/declaration fab/build fab/declaration",
-		"build": "yarn workspace babylonjs-editor-quixel-plugin build && yarn workspace babylonjs-editor-fab-plugin build"
+		"build": "yarn workspace babylonjs-editor-quixel-plugin build && yarn workspace babylonjs-editor-fab-plugin build",
+		"build-concurrently": "concurrently \"yarn workspace babylonjs-editor-quixel-plugin build\" \"yarn workspace babylonjs-editor-fab-plugin build\" -c bgYellow.bold,bgBlue.bold --names quixel,fab"
 	}
 }
