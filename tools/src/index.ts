@@ -26,6 +26,8 @@ export * from "./decorators/inspector";
 export * from "./decorators/events";
 export * from "./decorators/sprite";
 
+export * from "./loading/script/config";
+
 export * from "./script";
 
 export * from "./cinematic/parse";
