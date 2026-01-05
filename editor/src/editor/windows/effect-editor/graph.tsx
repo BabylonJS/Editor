@@ -20,6 +20,8 @@ import { saveSingleFileDialog } from "../../../tools/dialog";
 import { writeJSON } from "fs-extra";
 import { toast } from "sonner";
 import { Effect, type IEffectNode, EffectSolidParticleSystem, type IData } from "babylonjs-editor-tools";
+import { IQuarksJSON } from "./converters/quarksTypes";
+import { QuarksConverter } from "./converters";
 
 export interface IEffectEditorGraphProps {
 	filePath: string | null;
@@ -122,13 +124,12 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 			const originalJsonData = await fs.readJSON(filePath);
 
 			// Use Parser to convert Quarks JSON to IData
-			const { Parser } = await import("babylonjs-editor-tools");
-			type IQuarksJSON = import("babylonjs-editor-tools").IQuarksJSON;
-			const parser = new Parser(this.props.editor.preview!.scene, dirname + "/", originalJsonData as IQuarksJSON);
-			const parseResult = parser.parse();
+
+			const parser = new QuarksConverter();
+			const parseResult = parser.convert(originalJsonData as IQuarksJSON);
 
 			// Create Effect from IData
-			const effect = new Effect(parseResult.data, this.props.editor.preview!.scene, dirname + "/");
+			const effect = new Effect(parseResult, this.props.editor.preview!.scene, dirname + "/");
 
 			// Generate unique ID for effect
 			const effectId = `effect-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -144,9 +145,6 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 
 			// Rebuild tree with all effects
 			this._rebuildTree();
-
-			// Apply prewarm before starting (if any systems have prewarm enabled)
-			effect.applyPrewarm();
 
 			// Start systems
 			effect.start();
@@ -190,9 +188,6 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 
 			// Rebuild tree with all effects
 			this._rebuildTree();
-
-			// Apply prewarm before starting (if any systems have prewarm enabled)
-			effect.applyPrewarm();
 
 			// Start systems
 			effect.start();
@@ -256,7 +251,7 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 		const childNodes = Node.children.length > 0 ? Node.children.map((child) => this._convertNodeToTreeNode(child, false)) : undefined;
 
 		// Check if solid particle system
-		const isSolid = Node.system instanceof EffectSolidParticleSystem;
+		const isSolid = Node.data instanceof EffectSolidParticleSystem;
 
 		// Determine icon based on node type (sparkles for all particles, with color coding)
 		let icon: JSX.Element;
@@ -800,12 +795,12 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 		}
 
 		// Dispose system if it's a particle system
-		if (node.system) {
-			node.system.dispose();
+		if (node.data) {
+			node.data.dispose();
 		}
 		// Dispose group if it's a group
-		if (node.group) {
-			node.group.dispose();
+		if (node.data) {
+			node.data.dispose();
 		}
 
 		// Clear the node ID from our map

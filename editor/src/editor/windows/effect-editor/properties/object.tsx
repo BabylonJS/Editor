@@ -55,23 +55,23 @@ export function EffectEditorObjectProperties(props: IEffectEditorObjectPropertie
 	const { nodeData, onChange } = props;
 
 	// For groups, use transformNode directly
-	if (nodeData.type === "group" && nodeData.group) {
-		const group = nodeData.group;
+	if (nodeData.type === "group" && nodeData.data) {
+		const group = nodeData.data;
 
 		return (
 			<>
 				<EditorInspectorStringField object={nodeData} property="name" label="Name" onChange={onChange} />
 				<EditorInspectorSwitchField object={group} property="isVisible" label="Visibility" />
-				{group.position && <EditorInspectorVectorField object={group} property="position" label="Position" onChange={onChange} />}
+				{(group as any).position && <EditorInspectorVectorField object={group} property="position" label="Position" onChange={onChange} />}
 				{getRotationInspector(group, onChange)}
-				{group.scaling && <EditorInspectorVectorField object={group} property="scaling" label="Scale" onChange={onChange} />}
+				{(group as any).scaling && <EditorInspectorVectorField object={group} property="scaling" label="Scale" onChange={onChange} />}
 			</>
 		);
 	}
 
 	// For particles, use system.emitter for VEffectParticleSystem or system.mesh for VEffectSolidParticleSystem
-	if (nodeData.type === "particle" && nodeData.system) {
-		const system = nodeData.system;
+	if (nodeData.type === "particle" && nodeData.data) {
+		const system = nodeData.data;
 
 		// For VEffectSolidParticleSystem, use mesh (common mesh for all particles)
 		if (system instanceof EffectSolidParticleSystem) {

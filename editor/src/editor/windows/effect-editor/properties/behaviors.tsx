@@ -481,11 +481,11 @@ export interface IEffectEditorBehaviorsPropertiesProps {
 export function EffectEditorBehaviorsProperties(props: IEffectEditorBehaviorsPropertiesProps): ReactNode {
 	const { nodeData, onChange } = props;
 
-	if (nodeData.type !== "particle" || !nodeData.system) {
+	if (nodeData.type !== "particle" || !nodeData.data) {
 		return null;
 	}
 
-	const system = nodeData.system;
+	const system = nodeData.data;
 	const behaviorConfigs: any[] = system instanceof EffectParticleSystem || system instanceof EffectSolidParticleSystem ? system.behaviorConfigs || [] : [];
 
 	const handleAddBehavior = (behaviorType: string): void => {
