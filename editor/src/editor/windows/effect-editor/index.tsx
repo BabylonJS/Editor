@@ -119,7 +119,6 @@ export default class EffectEditorWindow extends Component<IEffectEditorWindowPro
 
 	public async importFile(filePath: string): Promise<void> {
 		try {
-			// Get graph component reference from layout
 			if (this.editor.graph) {
 				await this.editor.graph.loadFromFile(filePath);
 				toast.success("Effect imported");
@@ -129,6 +128,20 @@ export default class EffectEditorWindow extends Component<IEffectEditorWindowPro
 		} catch (error) {
 			console.error("Failed to import Effect:", error);
 			toast.error("Failed to import Effect");
+		}
+	}
+
+	public async importQuarksFile(filePath: string): Promise<void> {
+		try {
+			if (this.editor.graph) {
+				await this.editor.graph.loadFromQuarksFile(filePath);
+				toast.success("Quarks file imported");
+			} else {
+				toast.error("Failed to import Quarks file: Graph not available");
+			}
+		} catch (error) {
+			console.error("Failed to import Quarks file:", error);
+			toast.error("Failed to import Quarks file");
 		}
 	}
 
