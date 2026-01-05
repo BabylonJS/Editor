@@ -331,11 +331,11 @@ function renderParticleSystemEmitter(system: EffectParticleSystem, onChange: () 
  * Renders emitter shape properties
  */
 function renderEmitterShape(nodeData: IEffectNode, onChange: () => void): ReactNode {
-	if (nodeData.type !== "particle" || !nodeData.system) {
+	if (nodeData.type !== "particle" || !nodeData.data) {
 		return null;
 	}
 
-	const system = nodeData.system;
+	const system = nodeData.data;
 
 	if (system instanceof EffectSolidParticleSystem) {
 		return renderSolidParticleSystemEmitter(system, onChange);
@@ -420,22 +420,22 @@ function renderBursts(system: EffectParticleSystem | EffectSolidParticleSystem, 
  * Renders emission parameters (looping, duration, emit over time/distance, bursts)
  */
 function renderEmissionParameters(nodeData: IEffectNode, onChange: () => void): ReactNode {
-	if (nodeData.type !== "particle" || !nodeData.system) {
+	if (nodeData.type !== "particle" || !nodeData.data) {
 		return null;
 	}
 
-	const system = nodeData.system;
+	const system = nodeData.data;
 
 	// Proxy for looping (targetStopDuration === 0 means looping)
 	const loopingProxy = {
 		get isLooping() {
-			return system.targetStopDuration === 0;
+			return (system as any).targetStopDuration === 0;
 		},
 		set isLooping(value: boolean) {
 			if (value) {
-				system.targetStopDuration = 0;
-			} else if (system.targetStopDuration === 0) {
-				system.targetStopDuration = 5; // Default duration
+				(system as any).targetStopDuration = 0;
+			} else if ((system as any).targetStopDuration === 0) {
+				(system as any).targetStopDuration = 5; // Default duration
 			}
 		},
 	};
@@ -443,14 +443,14 @@ function renderEmissionParameters(nodeData: IEffectNode, onChange: () => void): 
 	// Proxy for prewarm (preWarmCycles > 0 means prewarm enabled)
 	const prewarmProxy = {
 		get prewarm() {
-			return system.preWarmCycles > 0;
+			return (system as any).preWarmCycles > 0;
 		},
 		set prewarm(value: boolean) {
-			if (value && system.preWarmCycles === 0) {
-				system.preWarmCycles = Math.ceil((system.targetStopDuration || 5) * 60);
-				system.preWarmStepOffset = 1 / 60;
+			if (value && (system as any).preWarmCycles === 0) {
+				(system as any).preWarmCycles = Math.ceil((system as any).targetStopDuration || 5) * 60;
+				(system as any).preWarmStepOffset = 1 / 60;
 			} else if (!value) {
-				system.preWarmCycles = 0;
+				(system as any).preWarmCycles = 0;
 			}
 		},
 	};
@@ -458,11 +458,11 @@ function renderEmissionParameters(nodeData: IEffectNode, onChange: () => void): 
 	return (
 		<>
 			<EditorInspectorSwitchField object={loopingProxy} property="isLooping" label="Looping" onChange={onChange} />
-			<EditorInspectorNumberField object={system} property="targetStopDuration" label="Duration" min={0} step={0.1} onChange={onChange} />
+			<EditorInspectorNumberField object={system as any} property="targetStopDuration" label="Duration" min={0} step={0.1} onChange={onChange} />
 			<EditorInspectorSwitchField object={prewarmProxy} property="prewarm" label="Prewarm" onChange={onChange} />
 
 			{/* Emit Rate (native Babylon.js property) */}
-			<EditorInspectorNumberField object={system} property="emitRate" label="Emit Rate" min={0} step={1} onChange={onChange} />
+			<EditorInspectorNumberField object={system as any} property="emitRate" label="Emit Rate" min={0} step={1} onChange={onChange} />
 
 			{/* Emit Over Distance - only for SolidParticleSystem */}
 			{system instanceof EffectSolidParticleSystem && (
@@ -490,7 +490,7 @@ function renderEmissionParameters(nodeData: IEffectNode, onChange: () => void): 
 export function EffectEditorEmissionProperties(props: IEffectEditorEmissionPropertiesProps): ReactNode {
 	const { nodeData, onChange } = props;
 
-	if (nodeData.type !== "particle" || !nodeData.system) {
+	if (nodeData.type !== "particle" || !nodeData.data) {
 		return null;
 	}
 

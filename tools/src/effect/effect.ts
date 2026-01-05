@@ -32,7 +32,7 @@ export class Effect implements IDisposable {
 	 * @param rootUrl Root URL for loading textures (optional)
 	 * @param options Optional parsing options
 	 */
-	constructor(data: IData, scene: Scene, rootUrl: string = "", options: ILoaderOptions) {
+	constructor(data: IData, scene: Scene, rootUrl: string = "", options?: ILoaderOptions) {
 		if (!data || !scene) {
 			throw new Error("Effect constructor requires IData and Scene");
 		}

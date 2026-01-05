@@ -7,7 +7,9 @@ import { EditorInspectorListField } from "../../../layout/inspector/fields/list"
 import { EditorInspectorTextureField } from "../../../layout/inspector/fields/texture";
 import { EditorInspectorGeometryField } from "../../../layout/inspector/fields/geometry";
 
-import { PBRMaterial, StandardMaterial, NodeMaterial, MultiMaterial, Material, ParticleSystem, Mesh } from "babylonjs";
+import { Material } from "@babylonjs/core/Materials/material";
+import { ParticleSystem } from "@babylonjs/core/Particles/particleSystem";
+import { Mesh } from "@babylonjs/core/Meshes/mesh";
 
 import { EditorPBRMaterialInspector } from "../../../layout/inspector/material/pbr";
 import { EditorStandardMaterialInspector } from "../../../layout/inspector/material/standard";
@@ -25,7 +27,6 @@ import { EditorGradientMaterialInspector } from "../../../layout/inspector/mater
 
 import { type IEffectNode, EffectSolidParticleSystem, EffectParticleSystem } from "babylonjs-editor-tools";
 import { IEffectEditor } from "..";
-import { CellMaterial, FireMaterial, GradientMaterial, GridMaterial, LavaMaterial, NormalMaterial, SkyMaterial, TriPlanarMaterial, WaterMaterial } from "babylonjs-materials";
 
 export interface IEffectEditorParticleRendererPropertiesProps {
 	nodeData: IEffectNode;
@@ -48,11 +49,11 @@ export class EffectEditorParticleRendererProperties extends Component<IEffectEdi
 	public render(): ReactNode {
 		const { nodeData } = this.props;
 
-		if (nodeData.type !== "particle" || !nodeData.system) {
+		if (nodeData.type !== "particle" || !nodeData.data) {
 			return null;
 		}
 
-		const system = nodeData.system;
+		const system = nodeData.data;
 		const isEffectSolidParticleSystem = system instanceof EffectSolidParticleSystem;
 		const isEffectParticleSystem = system instanceof EffectParticleSystem;
 		const systemType = isEffectSolidParticleSystem ? "solid" : "base";
@@ -85,10 +86,10 @@ export class EffectEditorParticleRendererProperties extends Component<IEffectEdi
 				{(() => {
 					const proxy = {
 						get worldSpace() {
-							return !system.isLocal;
+							return !(system as any).isLocal;
 						},
 						set worldSpace(value: boolean) {
-							system.isLocal = !value;
+							(system as any).isLocal = !value;
 						},
 					};
 					return <EditorInspectorSwitchField object={proxy} property="worldSpace" label="World Space" onChange={() => this.props.onChange()} />;
@@ -138,11 +139,11 @@ export class EffectEditorParticleRendererProperties extends Component<IEffectEdi
 	private _getMaterialInspector(): ReactNode {
 		const { nodeData } = this.props;
 
-		if (nodeData.type !== "particle" || !nodeData.system) {
+		if (nodeData.type !== "particle" || !nodeData.data) {
 			return null;
 		}
 
-		const system = nodeData.system;
+		const system = nodeData.data;
 
 		// Получаем material только для VEffectSolidParticleSystem
 		if (!(system instanceof EffectSolidParticleSystem) || !system.mesh || !system.mesh.material) {
@@ -156,43 +157,43 @@ export class EffectEditorParticleRendererProperties extends Component<IEffectEdi
 	private _getMaterialInspectorComponent(material: Material, mesh?: any): ReactNode {
 		switch (material.getClassName()) {
 			case "PBRMaterial":
-				return <EditorPBRMaterialInspector mesh={mesh} material={material as PBRMaterial} />;
+				return <EditorPBRMaterialInspector mesh={mesh} material={material as any} />;
 
 			case "StandardMaterial":
-				return <EditorStandardMaterialInspector mesh={mesh} material={material as StandardMaterial} />;
+				return <EditorStandardMaterialInspector mesh={mesh} material={material as any} />;
 
 			case "NodeMaterial":
-				return <EditorNodeMaterialInspector mesh={mesh} material={material as NodeMaterial} />;
+				return <EditorNodeMaterialInspector mesh={mesh} material={material as any} />;
 
 			case "MultiMaterial":
-				return <EditorMultiMaterialInspector material={material as MultiMaterial} />;
+				return <EditorMultiMaterialInspector material={material as any} />;
 
 			case "SkyMaterial":
-				return <EditorSkyMaterialInspector mesh={mesh} material={material as SkyMaterial} />;
+				return <EditorSkyMaterialInspector mesh={mesh} material={material as any} />;
 
 			case "GridMaterial":
-				return <EditorGridMaterialInspector mesh={mesh} material={material as GridMaterial} />;
+				return <EditorGridMaterialInspector mesh={mesh} material={material as any} />;
 
 			case "NormalMaterial":
-				return <EditorNormalMaterialInspector mesh={mesh} material={material as NormalMaterial} />;
+				return <EditorNormalMaterialInspector mesh={mesh} material={material as any} />;
 
 			case "WaterMaterial":
-				return <EditorWaterMaterialInspector mesh={mesh} material={material as WaterMaterial} />;
+				return <EditorWaterMaterialInspector mesh={mesh} material={material as any} />;
 
 			case "LavaMaterial":
-				return <EditorLavaMaterialInspector mesh={mesh} material={material as LavaMaterial} />;
+				return <EditorLavaMaterialInspector mesh={mesh} material={material as any} />;
 
 			case "TriPlanarMaterial":
-				return <EditorTriPlanarMaterialInspector mesh={mesh} material={material as TriPlanarMaterial} />;
+				return <EditorTriPlanarMaterialInspector mesh={mesh} material={material as any} />;
 
 			case "CellMaterial":
-				return <EditorCellMaterialInspector mesh={mesh} material={material as CellMaterial} />;
+				return <EditorCellMaterialInspector mesh={mesh} material={material as any} />;
 
 			case "FireMaterial":
-				return <EditorFireMaterialInspector mesh={mesh} material={material as FireMaterial} />;
+				return <EditorFireMaterialInspector mesh={mesh} material={material as any} />;
 
 			case "GradientMaterial":
-				return <EditorGradientMaterialInspector mesh={mesh} material={material as GradientMaterial} />;
+				return <EditorGradientMaterialInspector mesh={mesh} material={material as any} />;
 
 			default:
 				return null;
@@ -202,16 +203,24 @@ export class EffectEditorParticleRendererProperties extends Component<IEffectEdi
 	private _getTextureField(): ReactNode {
 		const { nodeData, editor } = this.props;
 
-		if (nodeData.type !== "particle" || !nodeData.system || !editor.preview?.scene) {
+		if (nodeData.type !== "particle" || !nodeData.data || !editor.preview?.scene) {
 			return null;
 		}
 
-		const system = nodeData.system;
+		const system = nodeData.data;
 
 		// For VEffectParticleSystem, use particleTexture
 		// For VEffectSolidParticleSystem, textures are handled by the material inspector
 		if (system instanceof EffectParticleSystem) {
-			return <EditorInspectorTextureField object={system} property="particleTexture" title="Texture" scene={editor.preview.scene} onChange={() => this.props.onChange()} />;
+			return (
+				<EditorInspectorTextureField
+					object={system}
+					property="particleTexture"
+					title="Texture"
+					scene={editor.preview.scene as any}
+					onChange={() => this.props.onChange()}
+				/>
+			);
 		}
 
 		return null;
@@ -220,11 +229,11 @@ export class EffectEditorParticleRendererProperties extends Component<IEffectEdi
 	private _getRenderOrderField(): ReactNode {
 		const { nodeData } = this.props;
 
-		if (nodeData.type !== "particle" || !nodeData.system) {
+		if (nodeData.type !== "particle" || !nodeData.data) {
 			return null;
 		}
 
-		const system = nodeData.system;
+		const system = nodeData.data;
 
 		// Для VEffectParticleSystem, renderOrder хранится в renderingGroupId
 		if (system instanceof EffectParticleSystem) {
@@ -255,11 +264,11 @@ export class EffectEditorParticleRendererProperties extends Component<IEffectEdi
 	private _getUVTileSection(): ReactNode {
 		const { nodeData } = this.props;
 
-		if (nodeData.type !== "particle" || !nodeData.system) {
+		if (nodeData.type !== "particle" || !nodeData.data) {
 			return null;
 		}
 
-		const system = nodeData.system;
+		const system = nodeData.data;
 
 		// UV Tile only available for ParticleSystem (sprite sheets)
 		if (system instanceof EffectParticleSystem) {
@@ -278,11 +287,11 @@ export class EffectEditorParticleRendererProperties extends Component<IEffectEdi
 	private _getStartTileIndexField(): ReactNode {
 		const { nodeData } = this.props;
 
-		if (nodeData.type !== "particle" || !nodeData.system) {
+		if (nodeData.type !== "particle" || !nodeData.data) {
 			return null;
 		}
 
-		const system = nodeData.system;
+		const system = nodeData.data;
 
 		// Start Tile Index only available for ParticleSystem (sprite sheets)
 		if (system instanceof EffectParticleSystem) {
@@ -296,11 +305,11 @@ export class EffectEditorParticleRendererProperties extends Component<IEffectEdi
 	private _getGeometryField(): ReactNode {
 		const { nodeData, editor } = this.props;
 
-		if (nodeData.type !== "particle" || !nodeData.system || !(nodeData.system instanceof EffectSolidParticleSystem) || !editor.preview?.scene) {
+		if (nodeData.type !== "particle" || !nodeData.data || !(nodeData.data instanceof EffectSolidParticleSystem) || !editor.preview?.scene) {
 			return null;
 		}
 
-		const system = nodeData.system as EffectSolidParticleSystem;
+		const system = nodeData.data as EffectSolidParticleSystem;
 
 		// Store reference to source mesh in a custom property
 		// Since SPS disposes the source mesh after addShape, we need to store it separately
@@ -338,6 +347,6 @@ export class EffectEditorParticleRendererProperties extends Component<IEffectEdi
 			},
 		};
 
-		return <EditorInspectorGeometryField object={proxy} property="particleMesh" title="Geometry" scene={editor.preview.scene} onChange={() => this.props.onChange()} />;
+		return <EditorInspectorGeometryField object={proxy} property="particleMesh" title="Geometry" scene={editor.preview.scene as any} onChange={() => this.props.onChange()} />;
 	}
 }

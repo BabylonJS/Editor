@@ -1,4 +1,11 @@
-import { Vector3, Matrix, Quaternion, Color3, Texture as BabylonTexture, ParticleSystem, Color4, Tools } from "babylonjs";
+import { Matrix, Vector3 } from "@babylonjs/core/Maths/math.vector";
+
+import { Quaternion } from "@babylonjs/core/Maths/math.vector";
+import { Color3 } from "@babylonjs/core/Maths/math.color";
+import { Texture as BabylonTexture } from "@babylonjs/core/Materials/Textures";
+import { ParticleSystem } from "@babylonjs/core/Particles/particleSystem";
+import { Color4 } from "@babylonjs/core/Maths/math.color";
+import { Tools } from "@babylonjs/core/Misc/tools";
 import type {
 	IQuarksJSON,
 	IQuarksMaterial,

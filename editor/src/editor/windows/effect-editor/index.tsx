@@ -16,6 +16,7 @@ import { EffectEditorAnimation } from "./animation";
 import { EffectEditorGraph } from "./graph";
 import { EffectEditorPreview } from "./preview";
 import { EffectEditorResources } from "./resources";
+import { convertUnityPrefabToData } from "./converters";
 
 export interface IEffectEditorWindowProps {
 	filePath?: string;
@@ -138,15 +139,12 @@ export default class EffectEditorWindow extends Component<IEffectEditorWindowPro
 	 */
 	public async importUnityData(contexts: any[], prefabNames: string[]): Promise<void> {
 		try {
-			// Import Unity converter
-			const { convertUnityPrefabToData } = await import("babylonjs-editor-tools");
-
 			// Get Scene from preview for model loading
-			let scene = this.editor.preview?.scene || null;
+			let scene = this.editor.preview?.scene || undefined;
 			if (!scene) {
 				// Try waiting a bit for preview to initialize
 				await new Promise((resolve) => setTimeout(resolve, 100));
-				scene = this.editor.preview?.scene || null;
+				scene = this.editor.preview?.scene || undefined;
 			}
 			if (!scene) {
 				console.warn("Scene not available for model loading, models will be placeholders");
@@ -179,7 +177,7 @@ export default class EffectEditorWindow extends Component<IEffectEditorWindowPro
 					}
 
 					// Convert to IData (pass already parsed components, dependencies, and Scene for model parsing)
-					const data = await convertUnityPrefabToData(context.prefabComponents, context.dependencies, scene);
+					const data = await convertUnityPrefabToData(context.prefabComponents, context.dependencies, scene as any);
 
 					// Import into graph
 					if (this.editor.graph) {

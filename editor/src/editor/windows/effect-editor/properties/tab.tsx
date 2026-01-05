@@ -48,7 +48,7 @@ export class EffectEditorPropertiesTab extends Component<IEffectEditorProperties
 		}
 
 		// For particles, check if system exists
-		if (nodeData.type === "particle" && !nodeData.system && tabType !== "object") {
+		if (nodeData.type === "particle" && !nodeData.data && tabType !== "object") {
 			return (
 				<div className="flex items-center justify-center w-full h-full bg-tertiary">
 					<p className="text-tertiary-foreground">Select a particle system</p>

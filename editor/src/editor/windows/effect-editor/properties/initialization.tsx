@@ -15,29 +15,29 @@ export function EffectEditorParticleInitializationProperties(props: IEffectEdito
 	const { nodeData } = props;
 	const onChange = props.onChange || (() => {});
 
-	if (nodeData.type !== "particle" || !nodeData.system) {
+	if (nodeData.type !== "particle" || !nodeData.data) {
 		return null;
 	}
 
-	const system = nodeData.system;
+	const system = nodeData.data;
 
 	// Helper to get/set startLife - both systems use native minLifeTime/maxLifeTime
 	const getStartLife = (): Value | undefined => {
 		// Both systems have native minLifeTime/maxLifeTime properties
-		return { type: "IntervalValue", min: system.minLifeTime, max: system.maxLifeTime };
+		return { type: "IntervalValue", min: (system as any).minLifeTime, max: (system as any).maxLifeTime };
 	};
 
 	const setStartLife = (value: Value): void => {
 		const interval = ValueUtils.parseIntervalValue(value);
-		system.minLifeTime = interval.min;
-		system.maxLifeTime = interval.max;
+		(system as any).minLifeTime = interval.min;
+		(system as any).maxLifeTime = interval.max;
 		onChange();
 	};
 
 	// Helper to get/set startSize - both systems use native minSize/maxSize
 	const getStartSize = (): Value | IVec3Function | undefined => {
 		// Both systems have native minSize/maxSize properties
-		return { type: "IntervalValue", min: system.minSize, max: system.maxSize };
+		return { type: "IntervalValue", min: (system as any).minSize, max: (system as any).maxSize };
 	};
 
 	const setStartSize = (value: Value | IVec3Function): void => {
@@ -47,12 +47,12 @@ export function EffectEditorParticleInitializationProperties(props: IEffectEdito
 			const y = ValueUtils.parseConstantValue(value.y);
 			const z = ValueUtils.parseConstantValue(value.z);
 			const avg = (x + y + z) / 3;
-			system.minSize = avg;
-			system.maxSize = avg;
+			(system as any).minSize = avg;
+			(system as any).maxSize = avg;
 		} else {
 			const interval = ValueUtils.parseIntervalValue(value as Value);
-			system.minSize = interval.min;
-			system.maxSize = interval.max;
+			(system as any).minSize = interval.min;
+			(system as any).maxSize = interval.max;
 		}
 		onChange();
 	};
@@ -60,28 +60,28 @@ export function EffectEditorParticleInitializationProperties(props: IEffectEdito
 	// Helper to get/set startSpeed - both systems use native minEmitPower/maxEmitPower
 	const getStartSpeed = (): Value | undefined => {
 		// Both systems have native minEmitPower/maxEmitPower properties
-		return { type: "IntervalValue", min: system.minEmitPower, max: system.maxEmitPower };
+		return { type: "IntervalValue", min: (system as any).minEmitPower, max: (system as any).maxEmitPower };
 	};
 
 	const setStartSpeed = (value: Value): void => {
 		const interval = ValueUtils.parseIntervalValue(value);
-		system.minEmitPower = interval.min;
-		system.maxEmitPower = interval.max;
+		(system as any).minEmitPower = interval.min;
+		(system as any).maxEmitPower = interval.max;
 		onChange();
 	};
 
 	// Helper to get/set startColor - both systems use native color1
 	const getStartColor = (): Color | undefined => {
 		// Both systems have native color1 property
-		if (system.color1) {
-			return { type: "ConstantColor", value: [system.color1.r, system.color1.g, system.color1.b, system.color1.a] };
+		if ((system as any).color1) {
+			return { type: "ConstantColor", value: [(system as any).color1.r, (system as any).color1.g, (system as any).color1.b, (system as any).color1.a] };
 		}
 		return undefined;
 	};
 
 	const setStartColor = (value: Color): void => {
 		const color = ValueUtils.parseConstantColor(value);
-		system.color1 = color;
+		(system as any).color1 = color;
 		onChange();
 	};
 
@@ -90,7 +90,7 @@ export function EffectEditorParticleInitializationProperties(props: IEffectEdito
 		// Both systems have native minInitialRotation/maxInitialRotation properties
 		return {
 			type: "Euler",
-			angleZ: { type: "IntervalValue", min: system.minInitialRotation, max: system.maxInitialRotation },
+			angleZ: { type: "IntervalValue", min: (system as any).minInitialRotation, max: (system as any).maxInitialRotation },
 			order: "xyz",
 		};
 	};
@@ -99,52 +99,52 @@ export function EffectEditorParticleInitializationProperties(props: IEffectEdito
 		// Extract angleZ from rotation
 		if (typeof value === "object" && "type" in value && value.type === "Euler" && value.angleZ) {
 			const interval = ValueUtils.parseIntervalValue(value.angleZ);
-			system.minInitialRotation = interval.min;
-			system.maxInitialRotation = interval.max;
+			(system as any).minInitialRotation = interval.min;
+			(system as any).maxInitialRotation = interval.max;
 		} else if (
 			typeof value === "number" ||
 			(typeof value === "object" && "type" in value && (value.type === "ConstantValue" || value.type === "IntervalValue" || value.type === "PiecewiseBezier"))
 		) {
 			const interval = ValueUtils.parseIntervalValue(value as Value);
-			system.minInitialRotation = interval.min;
-			system.maxInitialRotation = interval.max;
+			(system as any).minInitialRotation = interval.min;
+			(system as any).maxInitialRotation = interval.max;
 		}
 		onChange();
 	};
 
 	// Helper to get/set angular speed - both systems use native minAngularSpeed/maxAngularSpeed
 	const getAngularSpeed = (): Value | undefined => {
-		return { type: "IntervalValue", min: system.minAngularSpeed, max: system.maxAngularSpeed };
+		return { type: "IntervalValue", min: (system as any).minAngularSpeed, max: (system as any).maxAngularSpeed };
 	};
 
 	const setAngularSpeed = (value: Value): void => {
 		const interval = ValueUtils.parseIntervalValue(value);
-		system.minAngularSpeed = interval.min;
-		system.maxAngularSpeed = interval.max;
+		(system as any).minAngularSpeed = interval.min;
+		(system as any).maxAngularSpeed = interval.max;
 		onChange();
 	};
 
 	// Helper to get/set scale X - both systems use native minScaleX/maxScaleX
 	const getScaleX = (): Value | undefined => {
-		return { type: "IntervalValue", min: system.minScaleX, max: system.maxScaleX };
+		return { type: "IntervalValue", min: (system as any).minScaleX, max: (system as any).maxScaleX };
 	};
 
 	const setScaleX = (value: Value): void => {
 		const interval = ValueUtils.parseIntervalValue(value);
-		system.minScaleX = interval.min;
-		system.maxScaleX = interval.max;
+		(system as any).minScaleX = interval.min;
+		(system as any).maxScaleX = interval.max;
 		onChange();
 	};
 
 	// Helper to get/set scale Y - both systems use native minScaleY/maxScaleY
 	const getScaleY = (): Value | undefined => {
-		return { type: "IntervalValue", min: system.minScaleY, max: system.maxScaleY };
+		return { type: "IntervalValue", min: (system as any).minScaleY, max: (system as any).maxScaleY };
 	};
 
 	const setScaleY = (value: Value): void => {
 		const interval = ValueUtils.parseIntervalValue(value);
-		system.minScaleY = interval.min;
-		system.maxScaleY = interval.max;
+		(system as any).minScaleY = interval.min;
+		(system as any).maxScaleY = interval.max;
 		onChange();
 	};
 
