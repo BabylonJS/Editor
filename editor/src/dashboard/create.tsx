@@ -182,6 +182,7 @@ export function DashboardCreateProjectDialog(props: IDashboardCreateProjectDialo
 											{getTemplateSelectItem("nextjs")}
 											{getTemplateSelectItem("solidjs")}
 											{getTemplateSelectItem("vanillajs")}
+											{getTemplateSelectItem("electron")}
 										</SelectContent>
 									</Select>
 								</div>

@@ -52,6 +52,14 @@ Module["_load"] = function (request: string, parent: typeof Module, isMain: bool
 		return originalLoad(join(__dirname.replace(/\\/g, "/"), "../../recast-generators.js"), parent, isMain);
 	}
 
+	if (request.startsWith("react")) {
+		return originalLoad(resolveFilename(request, module, false), parent, isMain);
+	}
+
+	if (request.startsWith("react-dom")) {
+		return originalLoad(resolveFilename(request, module, false), parent, isMain);
+	}
+
 	return originalLoad(request, parent, isMain);
 };
 

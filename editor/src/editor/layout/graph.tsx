@@ -15,7 +15,7 @@ import { FaCamera, FaImage, FaLightbulb, FaBone } from "react-icons/fa";
 import { SiAdobeindesign, SiBabylondotjs } from "react-icons/si";
 
 import { AdvancedDynamicTexture } from "babylonjs-gui";
-import { BaseTexture, Node, Scene, Sound, Tools, IParticleSystem, Sprite, Skeleton } from "babylonjs";
+import { BaseTexture, Node, Scene, Sound, Tools, IParticleSystem, Sprite, Skeleton, TransformNode } from "babylonjs";
 
 import { Editor } from "../main";
 
@@ -43,6 +43,7 @@ import { isAdvancedDynamicTexture } from "../../tools/guards/texture";
 import { updateIblShadowsRenderPipeline } from "../../tools/light/ibl";
 import { UniqueNumber, waitNextAnimationFrame } from "../../tools/tools";
 import { getSpriteManagerNodeFromSprite } from "../../tools/sprite/tools";
+import { applyTransformNodeParentingConfiguration } from "../../tools/node/parenting";
 import { isSprite, isSpriteManagerNode, isSpriteMapNode } from "../../tools/guards/sprites";
 import { isAnyParticleSystem, isGPUParticleSystem, isParticleSystem } from "../../tools/guards/particles";
 import {
@@ -405,7 +406,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 	/**
 	 * Pastes the previously copied nodes.
 	 */
-	public pasteSelectedNodes(parent?: Node): void {
+	public pasteSelectedNodes(parent?: Node, shift?: boolean): void {
 		if (!this._objectsToCopy.length) {
 			return;
 		}
@@ -439,10 +440,12 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 				newNodes.splice(0, newNodes.length);
 			},
 			redo: () => {
-				nodesToCopy.forEach((object) => {
-					let node: Node | IParticleSystem | Sprite | null = null;
+				const tempTransfromNode = new TransformNode("tempParent", this.props.editor.layout.preview.scene);
 
-					defer: {
+				try {
+					nodesToCopy.forEach((object) => {
+						let node: Node | IParticleSystem | Sprite | null = null;
+
 						if (isAbstractMesh(object)) {
 							const suffix = "(Instanced Mesh)";
 							const name = isInstancedMesh(object) ? object.name : `${object.name.replace(` ${suffix}`, "")} ${suffix}`;
@@ -456,45 +459,45 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 
 							const collisionMesh = getCollisionMeshFor(instance.sourceMesh);
 							collisionMesh?.updateInstances(instance.sourceMesh);
-
-							break defer;
-						}
-
-						if (isParticleSystem(object) && isAbstractMesh(parent)) {
+						} else if (isParticleSystem(object) && isAbstractMesh(parent)) {
 							const suffix = "(Clone)";
 							const name = `${object.name.replace(` ${suffix}`, "")} ${suffix}`;
 
 							node = object.clone(name, parent, false);
-
-							break defer;
-						}
-
-						if (isNode(object) || isSprite(object)) {
+						} else if (isNode(object) || isSprite(object)) {
 							node = cloneNode(this.props.editor, object);
-							break defer;
-						}
-					}
-
-					if (node) {
-						if (!isSprite(node)) {
-							node.id = Tools.RandomId();
 						}
 
-						node.uniqueId = UniqueNumber.Get();
+						if (node) {
+							if (!isSprite(node)) {
+								node.id = Tools.RandomId();
+							}
 
-						if (parent && isNode(node)) {
-							node.parent = parent;
+							node.uniqueId = UniqueNumber.Get();
+
+							if (parent && isNode(node)) {
+								if (shift && isNode(object)) {
+									node.parent = object.parent;
+									applyTransformNodeParentingConfiguration(node, parent, tempTransfromNode);
+								} else {
+									node.parent = parent;
+								}
+							}
+
+							if (isAbstractMesh(node)) {
+								this.props.editor.layout.preview.scene.lights
+									.map((light) => light.getShadowGenerator())
+									.forEach((generator) => generator?.getShadowMap()?.renderList?.push(node));
+							}
+
+							newNodes.push(node);
 						}
+					});
+				} catch (e) {
+					console.error(e);
+				}
 
-						if (isAbstractMesh(node)) {
-							this.props.editor.layout.preview.scene.lights
-								.map((light) => light.getShadowGenerator())
-								.forEach((generator) => generator?.getShadowMap()?.renderList?.push(node));
-						}
-
-						newNodes.push(node);
-					}
-				});
+				tempTransfromNode.dispose(false, true);
 			},
 		});
 	}

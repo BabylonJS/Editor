@@ -30,6 +30,8 @@ export * from "./tools/undoredo";
 export * from "./tools/observables";
 
 export * from "./tools/assets/ktx";
+export * from "./tools/assets/thumbnail";
+export * from "./tools/assets/extensions";
 
 export * from "./tools/maths/scalar";
 export * from "./tools/maths/projection";
@@ -59,3 +61,39 @@ export * from "./editor/rendering/vls";
 export * from "./editor/rendering/ssao";
 export * from "./editor/rendering/motion-blur";
 export * from "./editor/rendering/default-pipeline";
+
+export * from "./ui/spinner";
+export * from "./ui/color-picker";
+export * from "./ui/dialog";
+
+export * from "./ui/shadcn/ui/alert-dialog";
+export * from "./ui/shadcn/ui/badge";
+export * from "./ui/shadcn/ui/breadcrumb";
+export * from "./ui/shadcn/ui/button";
+export * from "./ui/shadcn/ui/checkbox";
+export * from "./ui/shadcn/ui/command";
+export * from "./ui/shadcn/ui/context-menu";
+export * from "./ui/shadcn/ui/dialog";
+export * from "./ui/shadcn/ui/dropdown-menu";
+export * from "./ui/shadcn/ui/hover-card";
+export * from "./ui/shadcn/ui/input";
+export * from "./ui/shadcn/ui/label";
+export * from "./ui/shadcn/ui/menubar";
+export * from "./ui/shadcn/ui/popover";
+export * from "./ui/shadcn/ui/progress";
+export * from "./ui/shadcn/ui/radio-group";
+export * from "./ui/shadcn/ui/resizable";
+export * from "./ui/shadcn/ui/select";
+export * from "./ui/shadcn/ui/separator";
+export * from "./ui/shadcn/ui/slider";
+export * from "./ui/shadcn/ui/sonner";
+export * from "./ui/shadcn/ui/switch";
+export * from "./ui/shadcn/ui/table";
+export * from "./ui/shadcn/ui/tabs";
+export * from "./ui/shadcn/ui/textarea";
+export * from "./ui/shadcn/ui/toggle-group";
+export * from "./ui/shadcn/ui/toggle";
+export * from "./ui/shadcn/ui/toolbar-radio-group";
+export * from "./ui/shadcn/ui/tooltip";
+
+export * from "./project/configuration";

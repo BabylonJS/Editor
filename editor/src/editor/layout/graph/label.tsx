@@ -5,7 +5,7 @@ import { DragEvent, useEffect, useRef, useState } from "react";
 import { FaLock } from "react-icons/fa";
 import { useEventListener } from "usehooks-ts";
 
-import { Node, TransformNode, AbstractMesh, Vector3 } from "babylonjs";
+import { TransformNode, AbstractMesh, Vector3 } from "babylonjs";
 
 import { Input } from "../../../ui/shadcn/ui/input";
 
@@ -16,6 +16,7 @@ import { registerUndoRedo } from "../../../tools/undoredo";
 import { isAnyParticleSystem } from "../../../tools/guards/particles";
 import { isNodeSerializable, isNodeLocked } from "../../../tools/node/metadata";
 import { isAbstractMesh, isInstancedMesh, isMesh, isNode, isTransformNode } from "../../../tools/guards/nodes";
+import { applyNodeParentingConfiguration, applyTransformNodeParentingConfiguration, IOldNodeHierarchyConfiguration } from "../../../tools/node/parenting";
 
 import { applySoundAsset } from "../preview/import/sound";
 import { applyTextureAssetToObject } from "../preview/import/texture";
@@ -115,7 +116,7 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
 
 		const node = ev.dataTransfer.getData("graph/node");
 		if (node) {
-			return dropNodeFromGraph();
+			return dropNodeFromGraph(ev.shiftKey);
 		}
 
 		const asset = ev.dataTransfer.getData("assets");
@@ -124,7 +125,7 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
 		}
 	}
 
-	function dropNodeFromGraph() {
+	function dropNodeFromGraph(shift: boolean) {
 		const nodesToMove = props.editor.layout.graph.getSelectedNodes();
 
 		const newParent = props.object;
@@ -138,7 +139,13 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
 						return;
 					}
 
-					return oldHierarchyMap.set(n.nodeData, n.nodeData.parent);
+					return oldHierarchyMap.set(n.nodeData, {
+						parent: n.nodeData.parent,
+						position: n.nodeData["position"]?.clone(),
+						rotation: n.nodeData["rotation"]?.clone(),
+						scaling: n.nodeData["scaling"]?.clone(),
+						rotationQuaternion: n.nodeData["rotationQuaternion"]?.clone(),
+					} as IOldNodeHierarchyConfiguration);
 				}
 
 				if (isSound(n.nodeData)) {
@@ -161,7 +168,7 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
 				nodesToMove.forEach((n) => {
 					if (n.nodeData && oldHierarchyMap.has(n.nodeData)) {
 						if (isNode(n.nodeData)) {
-							return (n.nodeData.parent = oldHierarchyMap.get(n.nodeData) as Node);
+							return applyNodeParentingConfiguration(n.nodeData, oldHierarchyMap.get(n.nodeData) as IOldNodeHierarchyConfiguration);
 						}
 
 						if (isSound(n.nodeData)) {
@@ -184,36 +191,48 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
 				});
 			},
 			redo: () => {
-				nodesToMove.forEach((n) => {
-					if (n.nodeData === props.object) {
-						return;
-					}
+				const tempTransfromNode = new TransformNode("tempParent", props.editor.layout.preview.scene);
 
-					if (n.nodeData && oldHierarchyMap.has(n.nodeData)) {
-						if (isNode(n.nodeData)) {
-							return (n.nodeData.parent = isScene(props.object) ? null : newParent);
+				try {
+					nodesToMove.forEach((n) => {
+						if (n.nodeData === props.object) {
+							return;
 						}
 
-						if (isSound(n.nodeData)) {
-							if (isTransformNode(newParent) || isMesh(newParent) || isInstancedMesh(newParent)) {
-								return n.nodeData.attachToMesh(newParent);
+						if (n.nodeData && oldHierarchyMap.has(n.nodeData)) {
+							if (isNode(n.nodeData)) {
+								if (shift) {
+									return applyTransformNodeParentingConfiguration(n.nodeData, newParent, tempTransfromNode);
+								}
+
+								return (n.nodeData.parent = isScene(props.object) ? null : newParent);
 							}
 
-							if (isScene(newParent)) {
-								n.nodeData.detachFromMesh();
-								n.nodeData.spatialSound = false;
-								n.nodeData.setPosition(Vector3.Zero());
-								return (n.nodeData["_connectedTransformNode"] = null);
-							}
-						}
+							if (isSound(n.nodeData)) {
+								if (isTransformNode(newParent) || isMesh(newParent) || isInstancedMesh(newParent)) {
+									return n.nodeData.attachToMesh(newParent);
+								}
 
-						if (isAnyParticleSystem(n.nodeData)) {
-							if (isAbstractMesh(newParent)) {
-								return (n.nodeData.emitter = newParent);
+								if (isScene(newParent)) {
+									n.nodeData.detachFromMesh();
+									n.nodeData.spatialSound = false;
+									n.nodeData.setPosition(Vector3.Zero());
+									return (n.nodeData["_connectedTransformNode"] = null);
+								}
+							}
+
+							if (isAnyParticleSystem(n.nodeData)) {
+								if (isAbstractMesh(newParent)) {
+									return (n.nodeData.emitter = newParent);
+								}
 							}
 						}
-					}
-				});
+					});
+				} catch (e) {
+					console.error(e);
+				}
+
+				tempTransfromNode.dispose(false, true);
 			},
 		});
 

@@ -64,7 +64,9 @@ export function EditorAnimationAddTrackPrompt(props: IEditorAnimationAddTrackPro
 						<CommandEmpty>Animate "{value}"</CommandEmpty>
 						<CommandGroup heading="Suggestions">
 							{properties.map((property) => (
-								<CommandItem onSelect={() => props.onSelectProperty(property)}>{property}</CommandItem>
+								<CommandItem className="!pointer-events-auto" onSelect={() => props.onSelectProperty(property)}>
+									{property}
+								</CommandItem>
 							))}
 						</CommandGroup>
 					</CommandList>

@@ -107,6 +107,9 @@ export default function DocumentationCreatingProjectPage() {
 								<li>
 									<b>Vanilla</b>: a basic template suitable for custom setups.
 								</li>
+								<li>
+									<b>Electron</b>: a minimal template preconfigured to use Electron. It includes a minimal setup with a single window and a simple scene.
+								</li>
 							</ul>
 						</div>
 

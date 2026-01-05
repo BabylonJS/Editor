@@ -88,7 +88,6 @@ import { StatRow } from "./preview/stats/row";
 import { StatsValuesType } from "./preview/stats/types";
 
 import { applySoundAsset } from "./preview/import/sound";
-import { applyImportedGuiFile } from "./preview/import/gui";
 import { applyTextureAssetToObject } from "./preview/import/texture";
 import { applyMaterialAssetToObject } from "./preview/import/material";
 import { EditorPreviewConvertProgress } from "./preview/import/progress";
@@ -165,13 +164,17 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	 */
 	public statistics: Stats;
 
+	/**
+	 * Defines the reference to the canvas drawn in the preview.
+	 */
+	public canvas: HTMLCanvasElement | null = null;
+
 	private _renderScene: boolean = true;
 	private _mouseDownPosition: Vector2 = Vector2.Zero();
 
 	private _objectUnderPointer: AbstractMesh | Sprite | null;
 
 	private _workingCanvas: HTMLCanvasElement | null = null;
-	private _mainCanvas: HTMLCanvasElement | null = null;
 	private _mainView: EngineView | null = null;
 
 	/** @internal */
@@ -289,7 +292,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	 * Resets the preview component by re-creating the engine and an empty scene.
 	 */
 	public async reset(): Promise<void> {
-		if (!this._mainCanvas) {
+		if (!this.canvas) {
 			return;
 		}
 
@@ -322,7 +325,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
 		this._previewCamera = null;
 
-		return this._onGotCanvasRef(this._mainCanvas);
+		return this._onGotCanvasRef(this.canvas);
 	}
 
 	/**
@@ -334,7 +337,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 			fixedDimensions,
 		});
 
-		if (!this.engine || !this._mainView || !this._mainCanvas) {
+		if (!this.engine || !this._mainView || !this.canvas) {
 			return;
 		}
 
@@ -342,24 +345,24 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
 		switch (fixedDimensions) {
 			case "720p":
-				this._mainCanvas!.width = 1280;
-				this._mainCanvas!.height = 720;
+				this.canvas!.width = 1280;
+				this.canvas!.height = 720;
 
 				this._mainView!.customResize = () => {
 					this.engine.setSize(1280, 720);
 				};
 				break;
 			case "1080p":
-				this._mainCanvas!.width = 1920;
-				this._mainCanvas!.height = 1080;
+				this.canvas!.width = 1920;
+				this.canvas!.height = 1080;
 
 				this._mainView!.customResize = () => {
 					this.engine.setSize(1920, 1080);
 				};
 				break;
 			case "4k":
-				this._mainCanvas!.width = 3840;
-				this._mainCanvas!.height = 2160;
+				this.canvas!.width = 3840;
+				this.canvas!.height = 2160;
 
 				this._mainView!.customResize = () => {
 					this.engine.setSize(3840, 2160);
@@ -477,7 +480,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 			return;
 		}
 
-		this._mainCanvas ??= canvas;
+		this.canvas ??= canvas;
 		this._workingCanvas ??= document.createElement("canvas");
 
 		await waitUntil(() => this.props.editor.path);
@@ -509,7 +512,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		}
 
 		this.engine.disableContextMenu = false;
-		this.engine.inputElement = this._mainCanvas;
+		this.engine.inputElement = this.canvas;
 
 		this.scene = new Scene(this.engine);
 		this.scene.autoClear = true;
@@ -527,7 +530,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		this.gizmo = new EditorPreviewGizmo(this.scene);
 
 		this.engine.hideLoadingUI();
-		this._mainView = this.engine.registerView(this._mainCanvas);
+		this._mainView = this.engine.registerView(this.canvas);
 
 		this.engine.runRenderLoop(() => {
 			if (this._renderScene && !this.play.state.playing) {
@@ -1323,13 +1326,13 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 					});
 					break;
 
-				case ".gui":
-					if (this.props.editor.state.enableExperimentalFeatures) {
-						applyImportedGuiFile(this.props.editor, absolutePath).then(() => {
-							this.props.editor.layout.graph.refresh();
-						});
-					}
-					break;
+				// case ".gui":
+				// 	if (this.props.editor.state.enableExperimentalFeatures) {
+				// 		applyImportedGuiFile(this.props.editor, absolutePath).then(() => {
+				// 			this.props.editor.layout.graph.refresh();
+				// 		});
+				// 	}
+				// 	break;
 
 				case ".mp3":
 				case ".ogg":

@@ -70,7 +70,7 @@ export function EditorEditProjectPluginItemComponent(props: IEditorEditProjectPl
 
 		try {
 			const result = require(requireId);
-			result.close?.();
+			await result.close?.(props.editor);
 		} catch (e) {
 			console.error("Failed to remove plugin", e);
 			props.editor.layout.console.error(`Failed to remove plugin: ${e.message}`);

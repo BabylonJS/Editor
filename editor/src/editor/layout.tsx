@@ -25,6 +25,13 @@ export interface IEditorLayoutProps {
 	editor: Editor;
 }
 
+export interface IEditorLayoutTabOptions {
+	id?: string;
+	title: string;
+
+	enableClose?: boolean;
+}
+
 export class EditorLayout extends Component<IEditorLayoutProps> {
 	/**
 	 * The preview of the editor.
@@ -139,18 +146,52 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
 
 	/**
 	 * Adds a new tab to the layout.
-	 * @param title defines the title of the tab.
 	 * @param component defines the reference to the React component to draw in.
+	 * @param options defines the options of the tab such as the title etc.
 	 */
-	public addLayoutTab(title: string, component: ReactNode): void {
-		const id = Tools.RandomId();
+	public addLayoutTab(component: ReactNode, options: IEditorLayoutTabOptions): void {
+		options.id ??= Tools.RandomId();
 
-		this._components[id] = component;
-		this._layoutRef?.addTabToActiveTabSet({
-			id,
-			name: title,
+		const activeTabId = this._layoutRef?.props.model.getActiveTabset()?.getSelectedNode()?.getId();
+
+		let tabsetId: string | undefined;
+
+		const existingNode = this._layoutRef?.props.model.getNodeById(options.id);
+		if (existingNode) {
+			tabsetId = existingNode.getParent()?.getId();
+
+			if (tabsetId) {
+				this._layoutRef?.props.model.doAction(Actions.deleteTab(options.id));
+			}
+		}
+
+		if (!tabsetId) {
+			tabsetId = this._layoutRef?.props.model.getActiveTabset()?.getId();
+		}
+
+		this._components[options.id!] = component;
+		this._layoutRef?.addTabToTabSet(tabsetId!, {
+			id: options.id,
+			name: options.title,
 			type: "tab",
-			component: id,
+			component: options.id,
+			enableClose: options.enableClose,
 		});
+
+		if (activeTabId) {
+			this._layoutRef?.props.model.doAction(Actions.selectTab(activeTabId));
+		}
+	}
+
+	/**
+	 * Removes the tab identified by the given id from the layout. The react component mounted in the tab will be unmounted
+	 * before the tab is removed completely to ensure proper resource cleanup.
+	 * @param tabId defines the id of the tab to remove from the layout.
+	 */
+	public removeLayoutTab(tabId: string): void {
+		const existingNode = this._layoutRef?.props.model.getNodeById(tabId);
+		if (existingNode) {
+			this._layoutRef?.props.model.doAction(Actions.deleteTab(tabId));
+		}
 	}
 }

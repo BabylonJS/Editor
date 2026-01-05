@@ -26,3 +26,6 @@ gitignore
 # System Files
 .DS_Store
 Thumbs.db
+
+# Editor directories and files
+.bjseditor
