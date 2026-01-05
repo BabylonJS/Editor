@@ -1,8 +1,7 @@
-import type { IRotationOverLifeBehavior } from "../types/behaviors";
-import { ValueUtils } from "../utils/valueParser";
+import type { IRotationOverLifeBehavior } from "../types";
+import { ValueUtils } from "../utils";
 import { extractNumberFromValue } from "./utils";
-import type { EffectSolidParticleSystem } from "../systems/effectSolidParticleSystem";
-import type { EffectParticleSystem } from "../systems/effectParticleSystem";
+import type { EffectSolidParticleSystem, EffectParticleSystem } from "../systems";
 /**
  * Apply RotationOverLife behavior to ParticleSystem
  * Uses addAngularSpeedGradient for gradient support (Babylon.js native)

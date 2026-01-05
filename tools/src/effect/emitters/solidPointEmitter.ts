@@ -1,4 +1,5 @@
-import { SolidParticle, Vector3 } from "babylonjs";
+import { SolidParticle } from "@babylonjs/core/Particles/solidParticle";
+import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { ISolidParticleEmitterType } from "../types";
 
 /**

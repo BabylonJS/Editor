@@ -1,4 +1,5 @@
-import { SolidParticle, Vector3 } from "babylonjs";
+import { SolidParticle } from "@babylonjs/core/Particles/solidParticle";
+import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { ISolidParticleEmitterType } from "../types";
 
 /**
@@ -71,13 +72,8 @@ export class SolidCylinderParticleEmitter implements ISolidParticleEmitterType {
 		let dirAngle = Math.atan2(this._tempVector.x, this._tempVector.z);
 		dirAngle += this._randomRange(-Math.PI / 2, Math.PI / 2) * this.directionRandomizer;
 
-		particle.velocity.set(
-			Math.sin(dirAngle),
-			randY,
-			Math.cos(dirAngle)
-		);
+		particle.velocity.set(Math.sin(dirAngle), randY, Math.cos(dirAngle));
 		particle.velocity.normalize();
 		particle.velocity.scaleInPlace(startSpeed);
 	}
 }
-

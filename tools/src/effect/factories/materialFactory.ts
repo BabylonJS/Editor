@@ -1,9 +1,13 @@
-import { Nullable, Texture as BabylonTexture, PBRMaterial, Material as BabylonMaterial, Constants, Tools, Scene, Color3 } from "babylonjs";
-import type { IMaterialFactory } from "../types/factories";
+import { Texture as BabylonTexture } from "@babylonjs/core/Materials/Textures/texture";
+import { PBRMaterial } from "@babylonjs/core/Materials/PBR/pbrMaterial";
+import { Material as BabylonMaterial } from "@babylonjs/core/Materials/material";
+import { Constants } from "@babylonjs/core/Engines/constants";
+import { Tools } from "@babylonjs/core/Misc/tools";
+import { Scene } from "@babylonjs/core/scene";
+import { Color3 } from "@babylonjs/core/Maths/math.color";
+
 import { Logger } from "../loggers/logger";
-import type { ILoaderOptions } from "../types/loader";
-import type { IData } from "../types/hierarchy";
-import type { IMaterial, ITexture, IImage } from "../types/resources";
+import type { IMaterialFactory, ILoaderOptions, IData, IMaterial, ITexture, IImage } from "../types";
 
 /**
  * Factory for creating materials and textures from Three.js JSON data

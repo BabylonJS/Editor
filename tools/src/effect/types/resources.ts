@@ -1,4 +1,4 @@
-import { Color3 } from "babylonjs";
+import { Color3 } from "@babylonjs/core/Maths/math.color";
 
 /**
  *  Material (converted from Quarks, ready for Babylon.js)

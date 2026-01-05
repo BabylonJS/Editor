@@ -1,7 +1,7 @@
-import { Vector3 } from "babylonjs";
-import type { IForceOverLifeBehavior, IGravityForceBehavior } from "../types/behaviors";
-import { ValueUtils } from "../utils/valueParser";
-import type { EffectParticleSystem } from "../systems/effectParticleSystem";
+import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import type { IForceOverLifeBehavior, IGravityForceBehavior } from "../types";
+import { ValueUtils } from "../utils";
+import type { EffectParticleSystem } from "../systems";
 /**
  * Apply ForceOverLife behavior to ParticleSystem
  */

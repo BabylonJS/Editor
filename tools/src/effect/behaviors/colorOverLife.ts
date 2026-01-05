@@ -1,9 +1,7 @@
-import { Color4 } from "babylonjs";
-import type { IColorOverLifeBehavior } from "../types/behaviors";
+import { Color4 } from "@babylonjs/core/Maths/math.color";
+import type { IColorOverLifeBehavior } from "../types";
 import { extractColorFromValue, extractAlphaFromValue } from "./utils";
-import type { EffectSolidParticleSystem } from "../systems/effectSolidParticleSystem";
-import type { EffectParticleSystem } from "../systems/effectParticleSystem";
-
+import type { EffectSolidParticleSystem, EffectParticleSystem } from "../systems";
 /**
  * Apply ColorOverLife behavior to ParticleSystem
  * Uses unified IColorFunction structure: behavior.color = { colorFunctionType, data }

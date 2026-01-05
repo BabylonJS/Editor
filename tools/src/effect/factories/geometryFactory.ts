@@ -1,9 +1,11 @@
-import { Mesh, VertexData, CreatePlane, Nullable, Scene } from "babylonjs";
-import type { IGeometryFactory } from "../types/factories";
+import { Mesh } from "@babylonjs/core/Meshes/mesh";
+import { VertexData } from "@babylonjs/core/Meshes/mesh.vertexData";
+import { CreatePlane } from "@babylonjs/core/Meshes/Builders/planeBuilder";
+import { Scene } from "@babylonjs/core/scene";
+import type { IGeometryFactory } from "../types";
 import { Logger } from "../loggers/logger";
-import type { IData } from "../types/hierarchy";
-import type { IGeometry } from "../types/resources";
-import type { ILoaderOptions } from "../types/loader";
+import type { IData, IGeometry, ILoaderOptions } from "../types";
+import { Nullable } from "@babylonjs/core/types";
 
 /**
  * Factory for creating meshes from Three.js geometry data

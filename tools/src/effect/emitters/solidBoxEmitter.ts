@@ -1,4 +1,5 @@
-import { SolidParticle, Vector3 } from "babylonjs";
+import { SolidParticle } from "@babylonjs/core/Particles/solidParticle";
+import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { ISolidParticleEmitterType } from "../types";
 
 /**
@@ -26,12 +27,7 @@ export class SolidBoxParticleEmitter implements ISolidParticleEmitterType {
 	 */
 	public maxEmitBox: Vector3 = new Vector3(0.5, 0.5, 0.5);
 
-	constructor(
-		direction1?: Vector3,
-		direction2?: Vector3,
-		minEmitBox?: Vector3,
-		maxEmitBox?: Vector3
-	) {
+	constructor(direction1?: Vector3, direction2?: Vector3, minEmitBox?: Vector3, maxEmitBox?: Vector3) {
 		if (direction1) {
 			this.direction1 = direction1;
 		}
@@ -72,4 +68,3 @@ export class SolidBoxParticleEmitter implements ISolidParticleEmitterType {
 		particle.velocity.set(dirX * startSpeed, dirY * startSpeed, dirZ * startSpeed);
 	}
 }
-

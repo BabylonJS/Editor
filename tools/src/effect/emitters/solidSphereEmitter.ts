@@ -1,4 +1,4 @@
-import { SolidParticle } from "babylonjs";
+import { SolidParticle } from "@babylonjs/core/Particles/solidParticle";
 import { ISolidParticleEmitterType } from "../types";
 
 /**

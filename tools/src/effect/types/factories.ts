@@ -1,4 +1,7 @@
-import { Mesh, PBRMaterial, Texture, Scene } from "babylonjs";
+import { Mesh } from "@babylonjs/core/Meshes/mesh";
+import { PBRMaterial } from "@babylonjs/core/Materials/PBR/pbrMaterial";
+import { Texture } from "@babylonjs/core/Materials/Textures/texture";
+import { Scene } from "@babylonjs/core/scene";
 
 /**
  * Factory interfaces for dependency injection

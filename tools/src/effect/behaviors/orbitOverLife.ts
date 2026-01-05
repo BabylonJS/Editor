@@ -1,8 +1,8 @@
-import { Particle, SolidParticle } from "babylonjs";
-import type { IOrbitOverLifeBehavior } from "../types/behaviors";
+import { Particle } from "@babylonjs/core/Particles/particle";
+import { SolidParticle } from "@babylonjs/core/Particles/solidParticle";
+import type { IOrbitOverLifeBehavior, Value } from "../types";
 import { extractNumberFromValue, interpolateGradientKeys } from "./utils";
-import { ValueUtils } from "../utils/valueParser";
-import type { Value } from "../types/values";
+import { ValueUtils } from "../utils";
 
 /**
  * Apply OrbitOverLife behavior to Particle

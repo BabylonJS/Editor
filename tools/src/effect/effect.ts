@@ -1,4 +1,5 @@
-import { Scene, IDisposable, TransformNode } from "babylonjs";
+import { IDisposable, Scene } from "@babylonjs/core/scene";
+import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { EffectParticleSystem } from "./systems/effectParticleSystem";
 import { EffectSolidParticleSystem } from "./systems/effectSolidParticleSystem";
 import { IData, IEffectNode, ILoaderOptions, IParticleSystemConfig } from "./types";

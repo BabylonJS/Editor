@@ -1,6 +1,6 @@
-import type { IFrameOverLifeBehavior } from "../types/behaviors";
-import { ValueUtils } from "../utils/valueParser";
-import type { EffectParticleSystem } from "../systems/effectParticleSystem";
+import type { IFrameOverLifeBehavior } from "../types";
+import { ValueUtils } from "../utils";
+import type { EffectParticleSystem } from "../systems";
 /**
  * Apply FrameOverLife behavior to ParticleSystem
  */
