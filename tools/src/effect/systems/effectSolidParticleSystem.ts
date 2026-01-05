@@ -1,4 +1,10 @@
-import { Vector3, Quaternion, Matrix, Color4, SolidParticle, TransformNode, Mesh, AbstractMesh, SolidParticleSystem } from "babylonjs";
+import { Quaternion, Vector3, Matrix } from "@babylonjs/core/Maths/math.vector";
+import { Color4 } from "@babylonjs/core/Maths/math.color";
+import { SolidParticle } from "@babylonjs/core/Particles/solidParticle";
+import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
+import { Mesh } from "@babylonjs/core/Meshes/mesh";
+import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
+import { SolidParticleSystem } from "@babylonjs/core/Particles/solidParticleSystem";
 import type {
 	Behavior,
 	IForceOverLifeBehavior,

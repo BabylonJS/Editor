@@ -1,5 +1,5 @@
-import type { IColorBySpeedBehavior } from "../types/behaviors";
-import type { Particle } from "babylonjs";
+import type { IColorBySpeedBehavior } from "../types";
+import type { Particle } from "@babylonjs/core/Particles/particle";
 import { interpolateColorKeys } from "./utils";
 
 /**

@@ -1,4 +1,11 @@
-import { Vector3, TransformNode, Scene, AbstractMesh, Tools, Quaternion, Color4 } from "babylonjs";
+import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
+import { Scene } from "@babylonjs/core/scene";
+import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
+import { Tools } from "@babylonjs/core/Misc/tools";
+import { Quaternion } from "@babylonjs/core/Maths/math.vector";
+import { Color4 } from "@babylonjs/core/Maths/math.color";
+
 import { EffectParticleSystem, EffectSolidParticleSystem } from "../systems";
 import { IData, IGroup, IEmitter, ITransform, IParticleSystemConfig, ILoaderOptions, IMaterialFactory, IGeometryFactory, IEffectNode, isSystem } from "../types";
 import { Logger } from "../loggers/logger";
@@ -302,7 +309,7 @@ export class NodeFactory {
 	/**
 	 * Create a ParticleSystem instance
 	 */
-	private _createEffectParticleSystem(emitter: IEmitter, parentNode: IEffectNode | null): EffectParticleSystem {
+	private _createEffectParticleSystem(emitter: IEmitter, _parentNode: IEffectNode | null): EffectParticleSystem {
 		const { name, config } = emitter;
 
 		this._logger.log(`Creating ParticleSystem: ${name}`);
@@ -369,7 +376,7 @@ export class NodeFactory {
 	/**
 	 * Create a SolidParticleSystem instance
 	 */
-	private _createEffectSolidParticleSystem(emitter: IEmitter, parentNode: IEffectNode | null): EffectSolidParticleSystem {
+	private _createEffectSolidParticleSystem(emitter: IEmitter, _parentNode: IEffectNode | null): EffectSolidParticleSystem {
 		const { name, config } = emitter;
 
 		this._logger.log(`Creating SolidParticleSystem: ${name}`);

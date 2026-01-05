@@ -1,4 +1,4 @@
-import type { IGradientKey } from "../types/gradients";
+import type { IGradientKey } from "../types";
 
 /**
  * Extract RGB color from gradient key value

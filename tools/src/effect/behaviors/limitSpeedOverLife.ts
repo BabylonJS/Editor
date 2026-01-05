@@ -1,8 +1,7 @@
-import type { ILimitSpeedOverLifeBehavior } from "../types/behaviors";
+import type { ILimitSpeedOverLifeBehavior } from "../types";
 import { extractNumberFromValue } from "./utils";
-import { ValueUtils } from "../utils/valueParser";
-import type { EffectSolidParticleSystem } from "../systems/effectSolidParticleSystem";
-import type { EffectParticleSystem } from "../systems/effectParticleSystem";
+import { ValueUtils } from "../utils";
+import type { EffectSolidParticleSystem, EffectParticleSystem } from "../systems";
 /**
  * Apply LimitSpeedOverLife behavior to ParticleSystem
  */

@@ -1,8 +1,9 @@
-import { Particle, SolidParticle, Vector3 } from "babylonjs";
-import type { IRotationBySpeedBehavior } from "../types/behaviors";
+import { Particle } from "@babylonjs/core/Particles/particle";
+import { SolidParticle } from "@babylonjs/core/Particles/solidParticle";
+import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { extractNumberFromValue, interpolateGradientKeys } from "./utils";
-import { ValueUtils } from "../utils/valueParser";
-import { ParticleWithSystem, SolidParticleWithSystem } from "../types/system";
+import { ValueUtils } from "../utils";
+import { ParticleWithSystem, SolidParticleWithSystem, type IRotationBySpeedBehavior } from "../types";
 
 /**
  * Apply RotationBySpeed behavior to Particle

@@ -1,4 +1,5 @@
-import { Vector3, Quaternion } from "babylonjs";
+import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { Quaternion } from "@babylonjs/core/Maths/math.vector";
 import type { IParticleSystemConfig } from "./emitter";
 import type { IMaterial, ITexture, IImage, IGeometry } from "./resources";
 

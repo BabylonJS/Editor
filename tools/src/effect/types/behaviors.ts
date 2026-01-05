@@ -1,6 +1,9 @@
 import type { Value } from "./values";
 import type { IGradientKey } from "./gradients";
-import { Particle, ParticleSystem, SolidParticle, SolidParticleSystem } from "babylonjs";
+import { Particle } from "@babylonjs/core/Particles/particle";
+import { ParticleSystem } from "@babylonjs/core/Particles/particleSystem";
+import { SolidParticle } from "@babylonjs/core/Particles/solidParticle";
+import { SolidParticleSystem } from "@babylonjs/core/Particles/solidParticleSystem";
 
 /**
  * Per-particle behavior function for ParticleSystem

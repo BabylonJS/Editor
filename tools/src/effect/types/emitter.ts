@@ -1,4 +1,8 @@
-import { Nullable, SolidParticle, TransformNode, Vector3 } from "babylonjs";
+import { Nullable } from "@babylonjs/core/types";
+import { SolidParticle } from "@babylonjs/core/Particles/solidParticle";
+import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
+import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { Color4 } from "@babylonjs/core/Maths/math.color";
 import type { IEmitter } from "./hierarchy";
 import type { Value } from "./values";
 import type { IShape } from "./shapes";
@@ -43,9 +47,9 @@ export interface IParticleSystemConfig {
 	maxAngularSpeed?: number;
 
 	// Color
-	color1?: import("babylonjs").Color4;
-	color2?: import("babylonjs").Color4;
-	colorDead?: import("babylonjs").Color4;
+	color1?: Color4;
+	color2?: Color4;
+	colorDead?: Color4;
 
 	// Duration & Looping
 	targetStopDuration?: number; // 0 = infinite (looping), >0 = duration
@@ -56,8 +60,8 @@ export interface IParticleSystemConfig {
 	preWarmStepOffset?: number;
 
 	// Physics
-	gravity?: import("babylonjs").Vector3;
-	noiseStrength?: import("babylonjs").Vector3;
+	gravity?: Vector3;
+	noiseStrength?: Vector3;
 	updateSpeed?: number;
 
 	// World space

@@ -1,4 +1,9 @@
-import { ParticleSystem, Scene, AbstractMesh, TransformNode, Particle, Vector3 } from "babylonjs";
+import { ParticleSystem } from "@babylonjs/core/Particles/particleSystem";
+import { Scene } from "@babylonjs/core/scene";
+import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
+import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
+import { Particle } from "@babylonjs/core/Particles/particle";
+import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import type {
 	Behavior,
 	IColorOverLifeBehavior,

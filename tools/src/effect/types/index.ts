@@ -6,7 +6,6 @@ export * from "./shapes";
 export * from "./behaviors";
 export * from "./emitter";
 export * from "./system";
-export * from "./quarksTypes";
 export * from "./loader";
 export * from "./hierarchy";
 export * from "./resources";

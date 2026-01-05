@@ -1,7 +1,9 @@
-import { Particle, SolidParticle, Vector3 } from "babylonjs";
-import type { ISizeBySpeedBehavior } from "../types/behaviors";
+import { Particle } from "@babylonjs/core/Particles/particle";
+import { SolidParticle } from "@babylonjs/core/Particles/solidParticle";
+import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import type { ISizeBySpeedBehavior } from "../types";
 import { extractNumberFromValue, interpolateGradientKeys } from "./utils";
-import { ValueUtils } from "../utils/valueParser";
+import { ValueUtils } from "../utils";
 
 /**
  * Apply SizeBySpeed behavior to Particle

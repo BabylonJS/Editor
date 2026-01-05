@@ -1,6 +1,8 @@
-import { TransformNode, AbstractMesh, Particle, SolidParticle } from "babylonjs";
-import type { EffectParticleSystem } from "../systems/effectParticleSystem";
-import type { EffectSolidParticleSystem } from "../systems/effectSolidParticleSystem";
+import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
+import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
+import { Particle } from "@babylonjs/core/Particles/particle";
+import { SolidParticle } from "@babylonjs/core/Particles/solidParticle";
+import type { EffectParticleSystem, EffectSolidParticleSystem } from "../systems";
 
 /**
  * Common interface for all  particle systems
