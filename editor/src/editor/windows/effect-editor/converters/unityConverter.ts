@@ -7,7 +7,13 @@
  * Based on extracted Unity → Quarks converter logic, but outputs IData format.
  */
 
-import { Vector3, Color4, Quaternion, Color3, Scene, Mesh, VertexData, SceneLoader, Tools } from "babylonjs";
+import { Vector3, Quaternion } from "@babylonjs/core/Maths/math.vector";
+import { Color4, Color3 } from "@babylonjs/core/Maths/math.color";
+import { Scene } from "@babylonjs/core/scene";
+import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
+import { Mesh } from "@babylonjs/core/Meshes/mesh";
+import { VertexData } from "@babylonjs/core/Meshes/mesh.vertexData";
+import { Tools } from "@babylonjs/core/Misc/tools";
 import type {
 	IData,
 	IEmitter,
@@ -19,8 +25,11 @@ import type {
 	IGradientColor,
 	IRandomColor,
 	IRandomColorBetweenGradient,
+	IMaterial,
+	ITexture,
+	IImage,
+	IGeometry,
 } from "babylonjs-editor-tools/src/effect/types";
-import type { IMaterial, ITexture, IImage, IGeometry } from "babylonjs-editor-tools/src/effect/types/resources";
 import * as yaml from "js-yaml";
 
 // Note: Babylon.js loaders (FBXFileLoader, OBJFileLoader) are imported in toolbar.tsx

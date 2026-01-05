@@ -17,11 +17,12 @@ import {
 } from "../../../ui/shadcn/ui/context-menu";
 import { IEffectEditor } from ".";
 import { saveSingleFileDialog } from "../../../tools/dialog";
-import { writeJSON } from "fs-extra";
+import { readJSON, writeJSON } from "fs-extra";
 import { toast } from "sonner";
 import { Effect, type IEffectNode, EffectSolidParticleSystem, type IData } from "babylonjs-editor-tools";
 import { IQuarksJSON } from "./converters/quarksTypes";
 import { QuarksConverter } from "./converters";
+import { basename, dirname } from "path";
 
 export interface IEffectEditorGraphProps {
 	filePath: string | null;
@@ -109,7 +110,48 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 	public componentDidUpdate(_prevProps: IEffectEditorGraphProps): void {}
 
 	/**
-	 * Loads nodes from converted Three.js JSON data using Effect
+	 * Loads nodes from Quarks JSON file
+	 */
+	public async loadFromQuarksFile(filePath: string): Promise<void> {
+		try {
+			if (!this.props.editor.preview?.scene) {
+				console.error("Scene is not available");
+				return;
+			}
+
+			const dirnamePath = dirname(filePath);
+			const originalJsonData = await readJSON(filePath);
+
+			const parser = new QuarksConverter();
+			const parseResult = parser.convert(originalJsonData as IQuarksJSON);
+
+			const effect = new Effect(parseResult, this.props.editor.preview.scene, dirnamePath + "/");
+
+			const effectId = `effect-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+			const effectName = basename(filePath, ".json") || "Effect";
+			console.log(effect);
+			this._effects.set(effectId, {
+				id: effectId,
+				name: effectName,
+				effect: effect,
+				originalJsonData,
+			});
+
+			this._rebuildTree();
+
+			effect.start();
+
+			setTimeout(() => {
+				if (this.props.editor?.preview) {
+					(this.props.editor.preview as any).forceUpdate?.();
+				}
+			}, 100);
+		} catch (error) {
+			console.error("Failed to load Effect file:", error);
+		}
+	}
+	/**
+	 * Loads nodes from JSON file
 	 */
 	public async loadFromFile(filePath: string): Promise<void> {
 		try {
@@ -119,23 +161,14 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 			}
 
 			// Load Quarks JSON and parse to IData
-			const dirname = require("path").dirname(filePath);
-			const fs = require("fs-extra");
-			const originalJsonData = await fs.readJSON(filePath);
+			const dirnamePath = dirname(filePath);
+			const originalJsonData = await readJSON(filePath);
 
-			// Use Parser to convert Quarks JSON to IData
+			const effect = new Effect(originalJsonData, this.props.editor.preview!.scene, dirnamePath + "/");
 
-			const parser = new QuarksConverter();
-			const parseResult = parser.convert(originalJsonData as IQuarksJSON);
+			const effectId = `effect-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+			const effectName = basename(filePath, ".json") || "Effect";
 
-			// Create Effect from IData
-			const effect = new Effect(parseResult, this.props.editor.preview!.scene, dirname + "/");
-
-			// Generate unique ID for effect
-			const effectId = `effect-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-			const effectName = require("path").basename(filePath, ".json") || "Effect";
-
-			// Store effect with original JSON data for export
 			this._effects.set(effectId, {
 				id: effectId,
 				name: effectName,
@@ -143,14 +176,10 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 				originalJsonData,
 			});
 
-			// Rebuild tree with all effects
 			this._rebuildTree();
 
-			// Start systems
 			effect.start();
 
-			// Notify preview to sync playing state after a short delay
-			// This ensures the effect state is properly synchronized
 			setTimeout(() => {
 				if (this.props.editor?.preview) {
 					(this.props.editor.preview as any).forceUpdate?.();
@@ -176,7 +205,7 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 			const effect = new Effect(data, this.props.editor.preview.scene);
 
 			// Generate unique ID for effect
-			const effectId = `unity-effect-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+			const effectId = `unity-effect-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
 			// Store effect with data for export
 			this._effects.set(effectId, {

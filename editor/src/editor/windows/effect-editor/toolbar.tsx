@@ -125,7 +125,7 @@ export class EffectEditorToolbar extends Component<IEffectEditorToolbarProps, IE
 	private _handleImportBabylonEffect(): void {
 		const file = openSingleFileDialog({
 			title: "Import Babylon Effect JSON",
-			filters: [{ name: "Effect Files", extensions: ["Effect", "json"] }],
+			filters: [{ name: "Effect Files", extensions: ["effect"] }],
 		});
 
 		if (!file) {
@@ -148,7 +148,7 @@ export class EffectEditorToolbar extends Component<IEffectEditorToolbarProps, IE
 			return;
 		}
 
-		this.props.editor.importFile(file);
+		this.props.editor.importQuarksFile(file);
 	}
 
 	/**
