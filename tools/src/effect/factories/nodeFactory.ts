@@ -1,7 +1,6 @@
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { Scene } from "@babylonjs/core/scene";
-import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { Tools } from "@babylonjs/core/Misc/tools";
 import { Quaternion } from "@babylonjs/core/Maths/math.vector";
 import { Color4 } from "@babylonjs/core/Maths/math.color";
@@ -39,20 +38,87 @@ export class NodeFactory {
 	public create(): IEffectNode {
 		if (!this._data.root) {
 			this._logger.warn("No root object found in  data");
-			const rootGroup = new TransformNode("Root", this._scene);
-			const rootUuid = Tools.RandomId();
-			rootGroup.id = rootUuid;
-
-			const rootNode: IEffectNode = {
-				name: "Root",
-				uuid: rootUuid,
-				data: rootGroup,
-				children: [],
-				type: "group",
-			};
-			return rootNode;
+			return this._createRootNode();
 		}
 		return this._createNode(this._data.root, null);
+	}
+
+	/**
+	 * Create a new group node
+	 * @param name Group name
+	 * @param parentNode Parent node (optional)
+	 * @returns Created group node
+	 */
+	public createGroup(name: string, parentNode: IEffectNode | null = null): IEffectNode {
+		const groupUuid = Tools.RandomId();
+		const group: IGroup = {
+			uuid: groupUuid,
+			name,
+			transform: {
+				position: Vector3.Zero(),
+				rotation: Quaternion.Identity(),
+				scale: Vector3.One(),
+			},
+			children: [],
+		};
+
+		return this._createGroupNode(group, parentNode);
+	}
+
+	/**
+	 * Create a new particle system node
+	 * @param name System name
+	 * @param systemType Type of system ("solid" or "base")
+	 * @param config Optional particle system config
+	 * @param parentNode Parent node (optional)
+	 * @returns Created particle system node
+	 */
+	public createParticleSystem(name: string, systemType: "solid" | "base" = "base", config?: Partial<IParticleSystemConfig>, parentNode: IEffectNode | null = null): IEffectNode {
+		const systemUuid = Tools.RandomId();
+		const defaultConfig: IParticleSystemConfig = {
+			systemType,
+			targetStopDuration: 0, // looping
+			manualEmitCount: -1,
+			emitRate: 10,
+			minLifeTime: 1,
+			maxLifeTime: 1,
+			minEmitPower: 1,
+			maxEmitPower: 1,
+			minSize: 1,
+			maxSize: 1,
+			color1: new Color4(1, 1, 1, 1),
+			color2: new Color4(1, 1, 1, 1),
+			behaviors: [],
+			...config,
+		};
+
+		const emitter: IEmitter = {
+			uuid: systemUuid,
+			name,
+			transform: {
+				position: Vector3.Zero(),
+				rotation: Quaternion.Identity(),
+				scale: Vector3.One(),
+			},
+			config: defaultConfig,
+			systemType,
+		};
+
+		return this._createParticleNode(emitter, parentNode);
+	}
+
+	private _createRootNode(): IEffectNode {
+		const rootGroup = new TransformNode("Root", this._scene);
+		const rootUuid = Tools.RandomId();
+		rootGroup.id = rootUuid;
+		const rootNode: IEffectNode = {
+			name: "Root",
+			uuid: rootUuid,
+			data: rootGroup,
+			children: [],
+			type: "group",
+		};
+		return rootNode;
 	}
 	/**
 	 * Recursively process  object hierarchy
@@ -63,26 +129,11 @@ export class NodeFactory {
 
 		if ("children" in obj && obj.children) {
 			const groupNode = this._createGroupNode(obj as IGroup, parentNode);
-			groupNode.children = this._createChildrenNodes(obj.children, groupNode);
+			groupNode.children = obj.children.map((child) => this._createNode(child, groupNode));
 			return groupNode;
 		} else {
-			const emitterNode = this._createParticleNode(obj as IEmitter, parentNode);
-			return emitterNode;
+			return this._createParticleNode(obj as IEmitter, parentNode);
 		}
-	}
-
-	/**
-	 * Process children of a group recursively
-	 */
-	private _createChildrenNodes(children: (IGroup | IEmitter)[] | undefined, parentNode: IEffectNode | null): IEffectNode[] {
-		if (!children || children.length === 0) {
-			return [];
-		}
-
-		this._logger.log(`Processing ${children.length} children for parent node: ${parentNode?.name || "none"}`);
-		return children.map((child) => {
-			return this._createNode(child, parentNode);
-		});
 	}
 
 	/**
@@ -102,7 +153,7 @@ export class NodeFactory {
 		this._applyTransform(node, group.transform);
 
 		if (parentNode) {
-			this._setParent(node, parentNode);
+			node.data.parent = parentNode.data as TransformNode;
 		}
 
 		this._logger.log(`Created group node: ${group.name}`);
@@ -113,18 +164,12 @@ export class NodeFactory {
 	 * Create a particle system from a  Emitter
 	 */
 	private _createParticleNode(emitter: IEmitter, parentNode: IEffectNode | null): IEffectNode {
-		const parentName = parentNode ? parentNode.name : "none";
-		const systemType = emitter.systemType;
-		this._logger.log(`Processing emitter: ${emitter.name} (parent: ${parentName})`);
-
-		// const cumulativeScale = this._calculateCumulativeScale(parentGroup);
-
 		let particleSystem: EffectParticleSystem | EffectSolidParticleSystem;
 
-		if (systemType === "solid") {
-			particleSystem = this._createEffectSolidParticleSystem(emitter, parentNode);
+		if (emitter.config.systemType === "solid") {
+			particleSystem = this._createEffectSolidParticleSystem(emitter);
 		} else {
-			particleSystem = this._createEffectParticleSystem(emitter, parentNode);
+			particleSystem = this._createEffectParticleSystem(emitter);
 		}
 
 		const node: IEffectNode = {
@@ -134,6 +179,10 @@ export class NodeFactory {
 			data: particleSystem,
 			type: "particle",
 		};
+
+		if (parentNode) {
+			node.data.parent = parentNode.data as TransformNode;
+		}
 
 		this._logger.log(`Created particle system: ${emitter.name}`);
 
@@ -309,7 +358,7 @@ export class NodeFactory {
 	/**
 	 * Create a ParticleSystem instance
 	 */
-	private _createEffectParticleSystem(emitter: IEmitter, _parentNode: IEffectNode | null): EffectParticleSystem {
+	private _createEffectParticleSystem(emitter: IEmitter): EffectParticleSystem {
 		const { name, config } = emitter;
 
 		this._logger.log(`Creating ParticleSystem: ${name}`);
@@ -376,12 +425,11 @@ export class NodeFactory {
 	/**
 	 * Create a SolidParticleSystem instance
 	 */
-	private _createEffectSolidParticleSystem(emitter: IEmitter, _parentNode: IEffectNode | null): EffectSolidParticleSystem {
+	private _createEffectSolidParticleSystem(emitter: IEmitter): EffectSolidParticleSystem {
 		const { name, config } = emitter;
 
 		this._logger.log(`Creating SolidParticleSystem: ${name}`);
 
-		// Create or load particle mesh
 		const particleMesh = this._geometryFactory.createParticleMesh(config, name, this._scene);
 
 		if (emitter.materialId) {
@@ -393,7 +441,12 @@ export class NodeFactory {
 
 		const sps = new EffectSolidParticleSystem(name, this._scene, {
 			updatable: true,
+			expandable: true,
+			useModelMaterial: true,
 		});
+
+		// Set particle mesh (only adds shape, doesn't build mesh or dispose)
+		sps.particleMesh = particleMesh;
 
 		this._applyCommonProperties(sps, config);
 		this._applyGradients(sps, config);
@@ -404,7 +457,13 @@ export class NodeFactory {
 			sps.emissionOverDistance = config.emissionOverDistance;
 		}
 
-		sps.configureEmitterFromShape(config.shape);
+		if (config.shape) {
+			sps.configureEmitterFromShape(config.shape);
+		}
+
+		// Dispose source mesh after it's been added as shape
+		// SPS will clone it in buildMesh() during start()
+		particleMesh.dispose();
 
 		this._logger.log(`SolidParticleSystem created: ${name}`);
 		return sps;
@@ -436,86 +495,5 @@ export class NodeFactory {
 		this._logger.log(
 			`Applied transform: pos=(${transform.position.x.toFixed(2)}, ${transform.position.y.toFixed(2)}, ${transform.position.z.toFixed(2)}), scale=(${transform.scale.x.toFixed(2)}, ${transform.scale.y.toFixed(2)}, ${transform.scale.z.toFixed(2)})`
 		);
-	}
-
-	/**
-	 * Set parent for a node
-	 */
-	private _setParent(node: IEffectNode, parent: IEffectNode | null): void {
-		if (!parent) {
-			return;
-		}
-		if (isSystem(parent.data)) {
-			// to-do emmiter as vector3
-			node.data.setParent(parent.data.emitter as AbstractMesh | null);
-		} else {
-			node.data.setParent(parent.data);
-		}
-
-		this._logger.log(`Set parent: ${node.name} -> ${parent?.name || "none"}`);
-	}
-
-	/**
-	 * Create a new group node
-	 * @param name Group name
-	 * @param parentNode Parent node (optional)
-	 * @returns Created group node
-	 */
-	public createGroup(name: string, parentNode: IEffectNode | null = null): IEffectNode {
-		const groupUuid = Tools.RandomId();
-		const group: IGroup = {
-			uuid: groupUuid,
-			name,
-			transform: {
-				position: Vector3.Zero(),
-				rotation: Quaternion.Identity(),
-				scale: Vector3.One(),
-			},
-			children: [],
-		};
-
-		return this._createGroupNode(group, parentNode);
-	}
-
-	/**
-	 * Create a new particle system node
-	 * @param name System name
-	 * @param systemType Type of system ("solid" or "base")
-	 * @param config Optional particle system config
-	 * @param parentNode Parent node (optional)
-	 * @returns Created particle system node
-	 */
-	public createParticleSystem(name: string, systemType: "solid" | "base" = "base", config?: Partial<IParticleSystemConfig>, parentNode: IEffectNode | null = null): IEffectNode {
-		const systemUuid = Tools.RandomId();
-		const defaultConfig: IParticleSystemConfig = {
-			systemType,
-			targetStopDuration: 0, // looping
-			manualEmitCount: -1,
-			emitRate: 10,
-			minLifeTime: 1,
-			maxLifeTime: 1,
-			minEmitPower: 1,
-			maxEmitPower: 1,
-			minSize: 1,
-			maxSize: 1,
-			color1: new Color4(1, 1, 1, 1),
-			color2: new Color4(1, 1, 1, 1),
-			behaviors: [],
-			...config,
-		};
-
-		const emitter: IEmitter = {
-			uuid: systemUuid,
-			name,
-			transform: {
-				position: Vector3.Zero(),
-				rotation: Quaternion.Identity(),
-				scale: Vector3.One(),
-			},
-			config: defaultConfig,
-			systemType,
-		};
-
-		return this._createParticleNode(emitter, parentNode);
 	}
 }
