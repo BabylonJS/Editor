@@ -1,4 +1,4 @@
-import { Matrix } from "babylonjs";
+import { Matrix } from "@babylonjs/core/Maths/math.vector";
 
 /**
  * Utility functions for matrix operations

@@ -1,4 +1,4 @@
-import { Logger as BabylonLogger } from "babylonjs";
+import { Logger as BabylonLogger } from "@babylonjs/core/Misc/logger";
 import type { ILoaderOptions } from "../types";
 
 /**
