@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { Vector3 } from "babylonjs";
+import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 
 import { EditorInspectorNumberField } from "../../../layout/inspector/fields/number";
 import { EditorInspectorVectorField } from "../../../layout/inspector/fields/vector";

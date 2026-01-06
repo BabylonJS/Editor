@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { Color4 } from "babylonjs";
+import { Color4 } from "@babylonjs/core/Maths/math.color";
 
 import { EditorInspectorColorField } from "../../../layout/inspector/fields/color";
 import { EditorInspectorColorGradientField } from "../../../layout/inspector/fields/gradient";

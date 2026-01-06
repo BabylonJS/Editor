@@ -1,5 +1,4 @@
 import { Matrix, Vector3 } from "@babylonjs/core/Maths/math.vector";
-
 import { Quaternion } from "@babylonjs/core/Maths/math.vector";
 import { Color3 } from "@babylonjs/core/Maths/math.color";
 import { Texture as BabylonTexture } from "@babylonjs/core/Materials/Textures";

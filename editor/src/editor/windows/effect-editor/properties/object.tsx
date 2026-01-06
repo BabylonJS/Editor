@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { Quaternion } from "babylonjs";
+import { Quaternion } from "@babylonjs/core/Maths/math.vector";
 
 import { EditorInspectorStringField } from "../../../layout/inspector/fields/string";
 import { EditorInspectorVectorField } from "../../../layout/inspector/fields/vector";
