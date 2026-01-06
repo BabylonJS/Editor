@@ -44,22 +44,13 @@ import {
  * into the native Babylon.js particle update loop
  */
 export class EffectParticleSystem extends ParticleSystem implements ISystem {
-	private _perParticleBehaviors: PerParticleBehaviorFunction[];
-	private _behaviorConfigs: Behavior[];
+	private _perParticleBehaviors: PerParticleBehaviorFunction[] = [];
+	private _behaviorConfigs: Behavior[] = [];
 	private _parent: AbstractMesh | TransformNode | null;
-
-	/** Store reference to default updateFunction */
-	private _defaultUpdateFunction: (particles: Particle[]) => void;
 
 	constructor(name: string, capacity: number, scene: Scene) {
 		super(name, capacity, scene);
-		this._perParticleBehaviors = [];
-		this._behaviorConfigs = [];
-
-		// Store reference to the default updateFunction created by ParticleSystem
-		this._defaultUpdateFunction = this.updateFunction;
-
-		// Override updateFunction to integrate per-particle behaviors
+		this._setupEmitter();
 		this._setupCustomUpdateFunction();
 	}
 
@@ -69,10 +60,14 @@ export class EffectParticleSystem extends ParticleSystem implements ISystem {
 
 	public set parent(parent: AbstractMesh | TransformNode | null) {
 		this._parent = parent;
+		// Set emitter's parent (emitter is a TransformNode)
+		if (this.emitter && this.emitter instanceof TransformNode) {
+			this.emitter.parent = parent;
+		}
 	}
 
-	public setParent(parent: AbstractMesh | TransformNode | null): void {
-		this._parent = parent;
+	private _setupEmitter(): void {
+		this.emitter = new TransformNode("Emitter", this._scene) as AbstractMesh;
 	}
 
 	/**
@@ -80,10 +75,11 @@ export class EffectParticleSystem extends ParticleSystem implements ISystem {
 	 * with per-particle behavior execution
 	 */
 	private _setupCustomUpdateFunction(): void {
+		const defaultUpdateFunction = this.updateFunction;
 		this.updateFunction = (particles: Particle[]): void => {
 			// First, run the default Babylon.js update logic
 			// This handles: age, gradients (color, size, angular speed, velocity), position, gravity, etc.
-			this._defaultUpdateFunction(particles);
+			defaultUpdateFunction(particles);
 
 			// Then apply per-particle behaviors if any exist
 			if (this._perParticleBehaviors.length === 0) {
@@ -104,18 +100,10 @@ export class EffectParticleSystem extends ParticleSystem implements ISystem {
 	}
 
 	/**
-	 * Get the parent node (emitter) for hierarchy operations
-	 * Required by ISystem interface
-	 */
-	public getParentNode(): AbstractMesh | TransformNode | null {
-		return this.emitter instanceof AbstractMesh ? this.emitter : null;
-	}
-
-	/**
-	 * Get current behavior configurations
+	 * Get current behavior configurations (read-only copy)
 	 */
 	public get behaviorConfigs(): Behavior[] {
-		return this._behaviorConfigs;
+		return [...this._behaviorConfigs];
 	}
 
 	/**
@@ -123,7 +111,7 @@ export class EffectParticleSystem extends ParticleSystem implements ISystem {
 	 * System-level behaviors configure gradients, per-particle behaviors run each frame
 	 */
 	public setBehaviors(behaviors: Behavior[]): void {
-		this._behaviorConfigs = behaviors;
+		this._behaviorConfigs = [...behaviors]; // Copy array
 
 		// Apply system-level behaviors (gradients) to ParticleSystem
 		this._applySystemLevelBehaviors(behaviors);

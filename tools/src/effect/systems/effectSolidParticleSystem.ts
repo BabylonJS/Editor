@@ -63,7 +63,6 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 	private _behaviors: PerSolidParticleBehaviorFunction[];
 	public particleEmitterType: ISolidParticleEmitterType | null;
 	private _emitEnded: boolean;
-	private _emitter: AbstractMesh | null;
 	private _parent: AbstractMesh | TransformNode | null;
 	// Gradient systems for "OverLife" behaviors (similar to ParticleSystem native gradients)
 	private _colorGradients: ColorGradientSystem;
@@ -117,18 +116,18 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 	private _behaviorConfigs: Behavior[];
 
 	/**
-	 * Get current behavior configurations
+	 * Get current behavior configurations (read-only copy)
 	 */
 	public get behaviorConfigs(): Behavior[] {
-		return this._behaviorConfigs;
+		return [...this._behaviorConfigs];
 	}
 
 	/**
 	 * Set behaviors and apply them to the system
 	 */
 	public setBehaviors(behaviors: Behavior[]): void {
-		this._behaviorConfigs = behaviors;
-		this._applyBehaviors();
+		this._behaviorConfigs = [...behaviors]; // Copy array
+		this._rebuildBehaviors();
 	}
 
 	/**
@@ -136,13 +135,13 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 	 */
 	public addBehavior(behavior: Behavior): void {
 		this._behaviorConfigs.push(behavior);
-		this._applyBehaviors();
+		this._rebuildBehaviors();
 	}
 
 	/**
-	 * Apply behaviors - system-level (gradients) and per-particle
+	 * Rebuild all behavior functions and gradients
 	 */
-	private _applyBehaviors(): void {
+	private _rebuildBehaviors(): void {
 		// Clear existing gradients
 		this._colorGradients.clear();
 		this._sizeGradients.clear();
@@ -193,14 +192,6 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 		}
 	}
 
-	/**
-	 * Get the parent node (mesh) for hierarchy operations
-	 * Implements ISystem interface
-	 */
-	public getParentNode(): AbstractMesh | TransformNode | null {
-		return this.mesh || null;
-	}
-
 	public get parent(): AbstractMesh | TransformNode | null {
 		return this._parent;
 	}
@@ -209,30 +200,14 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 		this._parent = parent;
 	}
 
-	public setParent(parent: AbstractMesh | TransformNode | null): void {
-		this._parent = parent;
-	}
-	/**
-	 * Emitter property (like ParticleSystem)
-	 * Sets the parent for the mesh - the point from which particles emit
-	 */
-	public get emitter(): AbstractMesh | null {
-		return this._emitter;
-	}
-	public set emitter(value: AbstractMesh | null) {
-		this._emitter = value;
-		// If mesh is already created, set its parent
-		if (this.mesh && value) {
-			this.mesh.setParent(value, false, true);
-		}
-	}
-
 	/**
 	 * Set particle mesh to use for rendering
-	 * Initializes the SPS with this mesh
+	 * Only adds shape and configures billboard mode.
+	 * Does NOT build mesh - building happens in start().
+	 * Does NOT dispose source mesh - disposal is caller's responsibility.
 	 */
 	public set particleMesh(mesh: Mesh) {
-		this._initializeMesh(mesh);
+		this._addParticleMeshShape(mesh);
 	}
 
 	/**
@@ -259,19 +234,15 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 		this.particles = [];
 		this.nbParticles = 0;
 
-		// Calculate capacity (same as before)
+		// Calculate capacity
 		const isLooping = this.targetStopDuration === 0;
 		const capacity = CapacityCalculator.calculateForSolidParticleSystem(this.emitRate, this.targetStopDuration, isLooping);
 
 		// Add new shape
 		this.addShape(newMesh, capacity);
 
-		// Set billboard mode
-		if (this.isBillboardBased !== undefined) {
-			this.billboard = this.isBillboardBased;
-		} else {
-			this.billboard = false;
-		}
+		// Configure billboard mode
+		this._configureBillboard();
 
 		// Build mesh
 		this.buildMesh();
@@ -411,32 +382,53 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 	}
 
 	/**
-	 * Initialize mesh for SPS (internal use)
-	 * Adds the mesh as a shape and configures billboard mode
+	 * Add particle mesh as shape to SPS
+	 * Only adds shape and configures billboard - does NOT build mesh
 	 */
-	private _initializeMesh(particleMesh: Mesh): void {
+	private _addParticleMeshShape(particleMesh: Mesh): void {
 		if (!particleMesh) {
 			return;
 		}
 
+		// Stop if already running
+		const wasStarted = this._started;
+		if (wasStarted) {
+			this.stop();
+		}
+
+		// Dispose old mesh if exists
+		if (this.mesh) {
+			this.mesh.dispose(false, true);
+		}
+
+		// Clear existing shapes
+		this.particles = [];
+		this.nbParticles = 0;
+
+		// Calculate capacity and add shape
 		const isLooping = this.targetStopDuration === 0;
 		const capacity = CapacityCalculator.calculateForSolidParticleSystem(this.emitRate, this.targetStopDuration, isLooping);
 		this.addShape(particleMesh, capacity);
 
+		// Configure billboard mode before buildMesh()
+		this._configureBillboard();
+
+		// Restart if was running (start() will call buildMesh())
+		if (wasStarted) {
+			this.start();
+		}
+	}
+
+	/**
+	 * Configure billboard mode based on isBillboardBased property
+	 * Must be called after addShape() but before buildMesh()
+	 */
+	private _configureBillboard(): void {
 		if (this.isBillboardBased !== undefined) {
 			this.billboard = this.isBillboardBased;
 		} else {
 			this.billboard = false;
 		}
-
-		this.buildMesh();
-		this._setupMeshProperties();
-
-		// Initialize all particles as dead/invisible immediately after build
-		this._initializeDeadParticles();
-		this.setParticles(); // Apply visibility changes to mesh
-
-		particleMesh.dispose();
 	}
 
 	private _normalMatrix: Matrix;
@@ -466,7 +458,7 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 		this.name = name;
 		this._behaviors = [];
 		this.particleEmitterType = new SolidBoxParticleEmitter(); // Default emitter (like ParticleSystem)
-		this._emitter = null;
+		this._parent = null;
 
 		// Gradient systems for "OverLife" behaviors
 		this._colorGradients = new ColorGradientSystem();
@@ -901,43 +893,32 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 	}
 
 	/**
-	 * Override buildMesh to enable vertex colors and alpha
-	 * This is required for ColorOverLife behavior to work visually
-	 * Note: PBR materials automatically use vertex colors if mesh has them
-	 * The VERTEXCOLOR define is set automatically based on mesh.isVerticesDataPresent(VertexBuffer.ColorKind)
+	 * Setup mesh properties after buildMesh()
+	 * Sets parent, rendering group, layers, vertex alpha
 	 */
-	public override buildMesh(): Mesh {
-		const mesh = super.buildMesh();
-
-		if (mesh) {
-			mesh.hasVertexAlpha = true;
-			// Vertex colors are already enabled via _computeParticleColor = true
-			// PBR materials will automatically use them if mesh has vertex color data
-		}
-
-		return mesh;
-	}
-
 	private _setupMeshProperties(): void {
 		if (!this.mesh) {
 			return;
 		}
 
+		// Enable vertex alpha for color blending
 		if (!this.mesh.hasVertexAlpha) {
 			this.mesh.hasVertexAlpha = true;
 		}
 
+		// Set rendering group
 		if (this.renderOrder !== undefined) {
 			this.mesh.renderingGroupId = this.renderOrder;
 		}
 
+		// Set layer mask
 		if (this.layers !== undefined) {
 			this.mesh.layerMask = this.layers;
 		}
 
-		// Emitter is the point from which particles emit (like ParticleSystem.emitter)
-		if (this._emitter) {
-			this.mesh.setParent(this._emitter, false, true);
+		// Set parent (transform hierarchy)
+		if (this._parent) {
+			this.mesh.parent = this._parent;
 		}
 	}
 

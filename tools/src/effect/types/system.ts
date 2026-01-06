@@ -1,5 +1,4 @@
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
-import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { Particle } from "@babylonjs/core/Particles/particle";
 import { SolidParticle } from "@babylonjs/core/Particles/solidParticle";
 import type { EffectParticleSystem, EffectSolidParticleSystem } from "../systems";
@@ -11,8 +10,6 @@ import type { EffectParticleSystem, EffectSolidParticleSystem } from "../systems
 export interface ISystem {
 	/** System name */
 	name: string;
-	/** Get the parent node (mesh or emitter) for hierarchy operations */
-	getParentNode(): AbstractMesh | TransformNode | null;
 	/** Start the particle system */
 	start(): void;
 	/** Stop the particle system */
@@ -46,8 +43,6 @@ export function isSystem(system: unknown): system is ISystem {
 	return (
 		typeof system === "object" &&
 		system !== null &&
-		"getParentNode" in system &&
-		typeof (system as ISystem).getParentNode === "function" &&
 		"start" in system &&
 		typeof (system as ISystem).start === "function" &&
 		"stop" in system &&
