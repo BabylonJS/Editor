@@ -1,7 +1,6 @@
-import { Color4, ColorGradient } from "babylonjs";
-import type { IPiecewiseBezier, Value } from "../types/values";
-import type { Color } from "../types/colors";
-import type { IGradientKey } from "../types/gradients";
+import { Color4 } from "@babylonjs/core/Maths/math.color";
+import { ColorGradient } from "@babylonjs/core/Misc/gradients";
+import type { IPiecewiseBezier, Value, Color, IGradientKey } from "../types";
 
 /**
  * Static utility functions for parsing  values
@@ -49,12 +48,7 @@ export class ValueUtils {
 				// Format: { type: "ConstantColor", color: { r, g, b, a } }
 				const anyValue = value as any;
 				if (anyValue.color && typeof anyValue.color === "object") {
-					return new Color4(
-						anyValue.color.r ?? 1,
-						anyValue.color.g ?? 1,
-						anyValue.color.b ?? 1,
-						anyValue.color.a !== undefined ? anyValue.color.a : 1
-					);
+					return new Color4(anyValue.color.r ?? 1, anyValue.color.g ?? 1, anyValue.color.b ?? 1, anyValue.color.a !== undefined ? anyValue.color.a : 1);
 				}
 			}
 		}

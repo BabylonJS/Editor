@@ -1,4 +1,4 @@
-import { Color4 } from "babylonjs";
+import { Color4 } from "@babylonjs/core/Maths/math.color";
 
 /**
  * Generic gradient system for storing and interpolating gradient values
