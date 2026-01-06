@@ -452,7 +452,13 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 			isPickable?: boolean;
 			enableDepthSort?: boolean;
 			particleIntersection?: boolean;
+			boundingSphereOnly?: boolean;
+			bSphereRadiusFactor?: number;
+			expandable?: boolean;
 			useModelMaterial?: boolean;
+			enableMultiMaterial?: boolean;
+			computeBoundingBox?: boolean;
+			autoFixFaceOrientation?: boolean;
 		}
 	) {
 		super(name, scene, options);
