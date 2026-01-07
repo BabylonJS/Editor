@@ -62,14 +62,12 @@ export async function processAssetFile(editor: Editor, file: string, options: Pr
 
 	let isNewFile = false;
 
-	if (options.optimize) {
-		const fileStat = await stat(file);
-		const hash = fileStat.mtimeMs.toString();
+	const fileStat = await stat(file);
+	const hash = fileStat.mtimeMs.toString();
 
-		isNewFile = !options.cache[relativePath] || options.cache[relativePath] !== hash;
+	isNewFile = !options.cache[relativePath] || options.cache[relativePath] !== hash;
 
-		options.cache[relativePath] = hash;
-	}
+	options.cache[relativePath] = hash;
 
 	const finalPath = join(options.scenePath, relativePath);
 	const finalPathExists = await pathExists(finalPath);

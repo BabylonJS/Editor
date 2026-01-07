@@ -60,7 +60,7 @@ export async function _preloadScriptsAssets(rootUrl: string, scene: Scene, scrip
 			}
 
 			const obj = script.values[key];
-			if (obj.type === "asset" && obj.value) {
+			if (obj.type === "asset" && obj.value && !scriptAssetsCache.get(obj.value)) {
 				scriptAssetsCache.set(obj.value, null);
 			}
 		}
