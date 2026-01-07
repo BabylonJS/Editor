@@ -428,9 +428,9 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 			this._requireCompiledScripts();
 		}
 
-		if (oldScriptExports) {
-			Object.assign(this._compiledScriptExports.scriptAssetsCache, oldScriptExports.scriptAssetsCache);
-		}
+		oldScriptExports?.scriptAssetsCache.forEach((value: any, key: string) => {
+			this._compiledScriptExports.scriptAssetsCache.set(key, value);
+		});
 
 		const allNodes = [this.scene, ...this.scene.meshes, ...this.scene.transformNodes, ...this.scene.lights, ...this.scene.cameras] as (Node | Scene | Sprite)[];
 
@@ -450,8 +450,6 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 				if (script.key !== scriptKey) {
 					return;
 				}
-
-				oldScriptExports._removeRegisteredScriptInstance(n, script);
 
 				let sourceObject: Node | Scene | Sprite | null | undefined;
 				if (isScene(n)) {
@@ -479,7 +477,7 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 			});
 		});
 
-		this._compiledScriptExports._preloadScriptsAssets(this.scene, rootUrl).then(() => {
+		this._compiledScriptExports._preloadScriptsAssets(rootUrl, this.scene, this._compiledScriptExports.scriptsMap).then(() => {
 			allNodes.forEach((n) => {
 				this._compiledScriptExports._applyScriptsForObject(this.scene!, n, this._compiledScriptExports.scriptsMap, rootUrl);
 			});
