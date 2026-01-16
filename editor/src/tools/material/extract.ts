@@ -12,6 +12,8 @@ export async function extractNodeMaterialTextures(editor: Editor, options: IExtr
 		(block: any) => (block.customType === "BABYLON.TextureBlock" || block.customType === "BABYLON.ImageSourceBlock") && block.texture?.name
 	);
 
+	const relativePaths: string[] = [];
+
 	await Promise.all(
 		blocks.map(async (block: any) => {
 			if (block.texture?.name?.startsWith("http://") || block.texture.name.startsWith("https://")) {
@@ -21,6 +23,7 @@ export async function extractNodeMaterialTextures(editor: Editor, options: IExtr
 				});
 
 				if (relativePath) {
+					relativePaths.push(relativePath);
 					block.texture.name = block.texture.url = relativePath;
 				}
 			}
@@ -32,9 +35,12 @@ export async function extractNodeMaterialTextures(editor: Editor, options: IExtr
 				});
 
 				if (relativePath) {
+					relativePaths.push(relativePath);
 					block.texture.name = block.texture.url = relativePath;
 				}
 			}
 		})
 	);
+
+	return relativePaths;
 }
