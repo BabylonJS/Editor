@@ -29,7 +29,7 @@
 		"@types/pngjs": "6.0.5",
 		"@types/react": "18.2.47",
 		"@types/react-dom": "18.2.18",
-		"@vitest/coverage-v8": "4.0.13",
+		"@vitest/coverage-v8": "4.0.17",
 		"concurrently": "9.2.0",
 		"electron": "39.2.7",
 		"electron-builder": "26.0.12",
@@ -37,7 +37,7 @@
 		"postcss-import": "16.1.0",
 		"tailwindcss": "3.4.4",
 		"typescript": "5.9.3",
-		"vitest": "4.0.13"
+		"vitest": "4.0.17"
 	},
 	"dependencies": {
 		"@babylonjs/addons": "8.41.0",
