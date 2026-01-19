@@ -28,10 +28,10 @@
 		"@babylonjs/addons": "8.41.0",
 		"@babylonjs/core": "8.41.0",
 		"@babylonjs/gui": "8.41.0",
-		"@vitest/coverage-v8": "4.0.13",
+		"@vitest/coverage-v8": "4.0.17",
 		"esbuild": "0.27.2",
 		"typescript": "5.9.3",
-		"vitest": "4.0.13"
+		"vitest": "4.0.17"
 	},
 	"dependencies": {}
 }
