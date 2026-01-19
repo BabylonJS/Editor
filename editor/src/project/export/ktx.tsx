@@ -154,6 +154,8 @@ export async function compressFileToKtxFormat(editor: Editor, absolutePath: stri
 		});
 
 		options.exportedAssets?.push(options.destinationFolder);
+
+		return options.destinationFolder;
 	} catch (e) {
 		log.setState({
 			error: true,
