@@ -142,7 +142,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 							delete mesh.parentId;
 						}
 
-						if (!instantiatedMesh?.material) {
+						if (!instantiatedMesh?.material || instantiatedMesh.material === scene.defaultMaterial) {
 							delete mesh.materialUniqueId;
 						}
 
@@ -169,6 +169,15 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 							mesh.metadata ??= {};
 							mesh.metadata.physicsAggregate = serializePhysicsAggregate(instantiatedMesh.physicsAggregate);
 						}
+					});
+
+					data.materials = data.materials?.filter((material) => {
+						const instantiatedMaterial = scene.getMaterialById(material.id);
+						if (instantiatedMaterial && instantiatedMaterial !== scene.defaultMaterial) {
+							return true;
+						}
+
+						return false;
 					});
 
 					const lodLevel = mesh.getLODLevels().find((lodLevel) => lodLevel.mesh === meshToSerialize);
