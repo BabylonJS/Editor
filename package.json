@@ -32,6 +32,7 @@
 		"watch-editor-all": "yarn workspace babylonjs-editor watch-all",
 		"watch-tools": "yarn workspace babylonjs-editor-tools watch",
 		"watch-plugins": "concurrently \"yarn workspace babylonjs-editor-quixel-plugin watch\" \"yarn workspace babylonjs-editor-fab-plugin watch\" -c bgYellow.bold,bgBlue.bold --names quixel,fab",
+		"watch-cli": "yarn workspace babylonjs-editor-cli watch",
 		"build-editor": "yarn workspace babylonjs-editor build",
 		"build-tools": "yarn workspace babylonjs-editor-tools build",
 		"build-plugins": "yarn workspace babylonjs-editor-plugins build",
