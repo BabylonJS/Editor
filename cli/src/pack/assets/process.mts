@@ -2,7 +2,8 @@ import { basename, extname, join } from "node:path/posix";
 
 import fs from "fs-extra";
 
-import { normalizedGlob } from "../tools/fs.mjs";
+import { ICreateAssetsParams } from "./assets.mjs";
+import { processExportedTexture } from "./texture.mjs";
 
 const supportedImagesExtensions: string[] = [".jpg", ".jpeg", ".webp", ".png", ".bmp"];
 const supportedCubeTexturesExtensions: string[] = [".env", ".dds"];
@@ -18,59 +19,10 @@ const supportedExtensions: string[] = [
 	...supportedMiscExtensions,
 ];
 
-export interface ICreateAssetsParams {
-	projectDir: string;
-	publicDir: string;
-}
-
-export async function createAssets(options: ICreateAssetsParams) {
-	const baseAssetsDir = join(options.projectDir, "assets");
-	const outputAssetsDir = join(options.publicDir, "assets");
-
-	await fs.ensureDir(outputAssetsDir);
-
-	const files = await normalizedGlob(join(baseAssetsDir, "**/*"), {
-		nodir: true,
-		ignore: {
-			childrenIgnored: (p) => extname(p.name) === ".scene",
-		},
-	});
-
-	const promises: Promise<void>[] = [];
-	const exportedAssets: string[] = [];
-
-	for (const file of files) {
-		if (promises.length >= 5) {
-			await Promise.all(promises);
-			promises.length = 0;
-		}
-
-		promises.push(
-			processAssetFile(file, {
-				...options,
-				outputAssetsDir,
-				exportedAssets,
-			})
-		);
-	}
-
-	await Promise.all(promises);
-
-	// Clean
-	const publicFiles = await normalizedGlob(join(outputAssetsDir, "**/*"), {
-		nodir: true,
-	});
-
-	publicFiles.forEach((file) => {
-		if (!exportedAssets.includes(file.toString())) {
-			fs.remove(file);
-		}
-	});
-}
-
 export interface IProcessAssetFileOptions extends ICreateAssetsParams {
 	outputAssetsDir: string;
 	exportedAssets: string[];
+	cache: Record<string, string>;
 }
 
 export async function processAssetFile(file: string, options: IProcessAssetFileOptions) {
@@ -99,9 +51,28 @@ export async function processAssetFile(file: string, options: IProcessAssetFileO
 		path = join(path, split[i]);
 	}
 
-	const finalPath = join(options.publicDir, relativePath);
+	let isNewFile = false;
 
-	await fs.copyFile(file, finalPath);
+	const fileStat = await fs.stat(file);
+	const hash = fileStat.mtimeMs.toString();
+
+	isNewFile = !options.cache[relativePath] || options.cache[relativePath] !== hash;
+
+	options.cache[relativePath] = hash;
+
+	const finalPath = join(options.publicDir, relativePath);
+	const finalPathExists = await fs.pathExists(finalPath);
+
+	if (isNewFile || !finalPathExists) {
+		await fs.copyFile(file, finalPath);
+	}
 
 	options.exportedAssets.push(finalPath);
+
+	if (supportedImagesExtensions.includes(extension)) {
+		await processExportedTexture(finalPath, {
+			force: isNewFile,
+			exportedAssets: options.exportedAssets,
+		});
+	}
 }
