@@ -8,7 +8,7 @@ import cliSpinners from "cli-spinners";
 import { normalizedGlob } from "../tools/fs.mjs";
 import { ensureSceneDirectories, readSceneDirectories } from "../tools/scene.mjs";
 
-import { createAssets } from "./assets.mjs";
+import { createAssets } from "./assets/assets.mjs";
 import { createBabylonScene } from "./scene.mjs";
 import { createGeometryFiles } from "./geometry.mjs";
 

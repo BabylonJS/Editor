@@ -215,6 +215,6 @@ export async function createBabylonScene(options: ICreateBabylonSceneParams) {
 
 	await fs.writeJSON(join(options.publicDir, `${options.sceneName}.babylon`), scene, {
 		encoding: "utf-8",
-		spaces: "\t",
+		// spaces: "\t", // Useful for debug
 	});
 }
