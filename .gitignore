@@ -144,6 +144,11 @@ tools/build
 tools/declaration
 tools/coverage
 
+# Babylon.js Editor CLI
+cli/build
+cli/declaration
+!cli/bin
+
 # Template
 templates/nextjs/.next
 
