@@ -12,7 +12,11 @@ import { createAssets } from "./assets/assets.mjs";
 import { createBabylonScene } from "./scene.mjs";
 import { createGeometryFiles } from "./geometry.mjs";
 
-export async function pack(projectDir: string) {
+export interface IPackOptions {
+	optimize: boolean;
+}
+
+export async function pack(projectDir: string, options: IPackOptions) {
 	const cwd = process.cwd();
 
 	if (projectDir !== cwd) {
@@ -32,6 +36,7 @@ export async function pack(projectDir: string) {
 	assetsLog.start();
 
 	await createAssets({
+		...options,
 		projectDir,
 		publicDir,
 	});

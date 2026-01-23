@@ -2,8 +2,10 @@ import { basename, extname, join } from "node:path/posix";
 
 import fs from "fs-extra";
 
-import { ICreateAssetsParams } from "./assets.mjs";
+import { ICreateAssetsOptions } from "./assets.mjs";
 import { processExportedTexture } from "./texture.mjs";
+import { processExportedMaterial } from "./material.mjs";
+import { processExportedParticleSystem } from "./particle-system.mjs";
 
 const supportedImagesExtensions: string[] = [".jpg", ".jpeg", ".webp", ".png", ".bmp"];
 const supportedCubeTexturesExtensions: string[] = [".env", ".dds"];
@@ -19,9 +21,10 @@ const supportedExtensions: string[] = [
 	...supportedMiscExtensions,
 ];
 
-export interface IProcessAssetFileOptions extends ICreateAssetsParams {
+export interface IProcessAssetFileOptions extends ICreateAssetsOptions {
 	outputAssetsDir: string;
 	exportedAssets: string[];
+	optimize: boolean;
 	cache: Record<string, string>;
 }
 
@@ -69,10 +72,31 @@ export async function processAssetFile(file: string, options: IProcessAssetFileO
 
 	options.exportedAssets.push(finalPath);
 
-	if (supportedImagesExtensions.includes(extension)) {
-		await processExportedTexture(finalPath, {
-			force: isNewFile,
-			exportedAssets: options.exportedAssets,
-		});
+	if (options.optimize) {
+		// await compressFileToKtx(editor, finalPath, {
+		// 	force: isNewFile,
+		// 	exportedAssets: options.exportedAssets,
+		// });
+	}
+
+	if (options.optimize) {
+		if (supportedImagesExtensions.includes(extension)) {
+			await processExportedTexture(finalPath, {
+				force: isNewFile,
+				exportedAssets: options.exportedAssets,
+			});
+		} else if (extension === ".material") {
+			await processExportedMaterial(finalPath, {
+				force: isNewFile,
+				publicDir: options.publicDir,
+				exportedAssets: options.exportedAssets,
+			});
+		} else if (extension === ".npss") {
+			await processExportedParticleSystem(finalPath, {
+				force: isNewFile,
+				publicDir: options.publicDir,
+				exportedAssets: options.exportedAssets,
+			});
+		}
 	}
 }
