@@ -7,6 +7,7 @@ import { RenderTargetTexture, SceneSerializer } from "babylonjs";
 
 import { Editor } from "../../editor/main";
 
+import { isTexture } from "../../tools/guards/texture";
 import { isSceneLinkNode } from "../../tools/guards/scene";
 import { applyAssetsCache } from "../../tools/assets/cache";
 import { isNodeVisibleInGraph } from "../../tools/node/metadata";
@@ -98,6 +99,16 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 					if (!meshToSerialize) {
 						return null;
 					}
+
+					meshToSerialize.material?.getActiveTextures().forEach((texture) => {
+						if (isTexture(texture)) {
+							texture.metadata ??= {};
+							texture.metadata.baseSize = {
+								width: texture.getBaseSize().width,
+								height: texture.getBaseSize().height,
+							};
+						}
+					});
 
 					const data = await SceneSerializer.SerializeMesh(meshToSerialize, false, false);
 					delete data.skeletons;
