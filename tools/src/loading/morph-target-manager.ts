@@ -23,6 +23,11 @@ export function registerMorphTargetManagerParser() {
 				return;
 			}
 
+			const shouldExit = morphTargetManagerData.targets.find((target) => !target.delayLoadingFile);
+			if (shouldExit) {
+				return;
+			}
+
 			const promises: Promise<ArrayBuffer | null>[] = [];
 
 			morphTargetManagerData.targets.forEach((target) => {
@@ -53,11 +58,7 @@ export function registerMorphTargetManagerParser() {
 				for (let i = 0, len = morphTargetManager.numTargets; i < len; ++i) {
 					const instancedTarget = morphTargetManager.getTarget(i);
 					const sourceTargetData = morphTargetManagerData.targets[i];
-
-					const buffer = allBuffers[i];
-					if (!buffer) {
-						return;
-					}
+					const buffer = allBuffers[i]!;
 
 					if (sourceTargetData.positionsCount) {
 						const positions = new Float32Array(buffer, sourceTargetData.positionsOffset, sourceTargetData.positionsCount);
