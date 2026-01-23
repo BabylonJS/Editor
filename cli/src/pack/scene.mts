@@ -27,6 +27,16 @@ export async function createBabylonScene(options: ICreateBabylonSceneParams) {
 				mesh.delayLoadingFile = join(options.sceneName, basename(mesh.delayLoadingFile));
 			}
 
+			if (mesh.metadata?.parentId) {
+				mesh.parentId = mesh.metadata.parentId;
+			}
+
+			mesh.instances?.forEach((instance) => {
+				if (instance.metadata?.parentId) {
+					instance.parentId = instance.metadata.parentId;
+				}
+			});
+
 			if (data.basePoseMatrix) {
 				mesh.basePoseMatrix = data.basePoseMatrix;
 			}
@@ -52,23 +62,23 @@ export async function createBabylonScene(options: ICreateBabylonSceneParams) {
 					const buffer = (await fs.readFile(binaryFileData)).buffer;
 
 					if (target.positionsCount) {
-						target.positions = Array.from(new Float32Array(buffer, target.positionsOffset, target.positionsCount));
+						target.positions = Array.prototype.slice.call(new Float32Array(buffer, target.positionsOffset, target.positionsCount));
 					}
 
 					if (target.normalsCount) {
-						target.normals = Array.from(new Float32Array(buffer, target.normalsOffset, target.normalsCount));
+						target.normals = Array.prototype.slice.call(new Float32Array(buffer, target.normalsOffset, target.normalsCount));
 					}
 
 					if (target.tangentsCount) {
-						target.tangents = Array.from(new Float32Array(buffer, target.tangentsOffset, target.tangentsCount));
+						target.tangents = Array.prototype.slice.call(new Float32Array(buffer, target.tangentsOffset, target.tangentsCount));
 					}
 
 					if (target.uvsCount) {
-						target.uvs = Array.from(new Float32Array(buffer, target.uvsOffset, target.uvsCount));
+						target.uvs = Array.prototype.slice.call(new Float32Array(buffer, target.uvsOffset, target.uvsCount));
 					}
 
 					if (target.uv2sCount) {
-						target.uv2s = Array.from(new Float32Array(buffer, target.uv2sOffset, target.uv2sCount));
+						target.uv2s = Array.prototype.slice.call(new Float32Array(buffer, target.uv2sOffset, target.uv2sCount));
 					}
 
 					delete target.delayLoadingFile;
@@ -145,6 +155,12 @@ export async function createBabylonScene(options: ICreateBabylonSceneParams) {
 		meshes,
 		materials,
 		morphTargetManagers,
+
+		animationGroups: await Promise.all(
+			options.directories.animationGroupFiles.map(async (file) => {
+				return fs.readJSON(join(options.sceneFile, "animationGroups", file));
+			})
+		),
 		skeletons: await Promise.all(
 			options.directories.skeletonFiles.map(async (file) => {
 				return fs.readJSON(join(options.sceneFile, "skeletons", file));
@@ -152,17 +168,32 @@ export async function createBabylonScene(options: ICreateBabylonSceneParams) {
 		),
 		transformNodes: await Promise.all(
 			options.directories.nodesFiles.map(async (file) => {
-				return fs.readJSON(join(options.sceneFile, "nodes", file));
+				const data = await fs.readJSON(join(options.sceneFile, "nodes", file));
+				if (data.metadata?.parentId) {
+					data.parentId = data.metadata.parentId;
+				}
+
+				return data;
 			})
 		),
 		cameras: await Promise.all(
 			options.directories.cameraFiles.map(async (file) => {
-				return fs.readJSON(join(options.sceneFile, "cameras", file));
+				const data = await fs.readJSON(join(options.sceneFile, "cameras", file));
+				if (data.metadata?.parentId) {
+					data.parentId = data.metadata.parentId;
+				}
+
+				return data;
 			})
 		),
 		lights: await Promise.all(
 			options.directories.lightsFiles.map(async (file) => {
-				return fs.readJSON(join(options.sceneFile, "lights", file));
+				const data = await fs.readJSON(join(options.sceneFile, "lights", file));
+				if (data.metadata?.parentId) {
+					data.parentId = data.metadata.parentId;
+				}
+
+				return data;
 			})
 		),
 		shadowGenerators: await Promise.all(
@@ -178,11 +209,6 @@ export async function createBabylonScene(options: ICreateBabylonSceneParams) {
 		sounds: await Promise.all(
 			options.directories.soundFiles.map(async (file) => {
 				return fs.readJSON(join(options.sceneFile, "sounds", file));
-			})
-		),
-		animationGroups: await Promise.all(
-			options.directories.animationGroupFiles.map(async (file) => {
-				return fs.readJSON(join(options.sceneFile, "animationGroups", file));
 			})
 		),
 	};
