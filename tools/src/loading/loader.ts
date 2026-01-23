@@ -20,6 +20,7 @@ import { _preloadScriptsAssets } from "./script/preload";
 import { registerAudioParser } from "./sound";
 import { registerTextureParser } from "./texture";
 import { registerShadowGeneratorParser } from "./shadows";
+import { registerMorphTargetManagerParser } from "./morph-target-manager";
 
 import { registerSpriteMapParser } from "./sprite-map";
 import { registerSpriteManagerParser } from "./sprite-manager";
@@ -97,6 +98,8 @@ export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scen
 	registerAudioParser();
 	registerTextureParser();
 	registerShadowGeneratorParser();
+
+	registerMorphTargetManagerParser();
 
 	registerSpriteMapParser();
 	registerSpriteManagerParser();

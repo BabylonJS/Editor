@@ -16,18 +16,22 @@ export interface ICreateBabylonSceneParams {
 export async function createBabylonScene(options: ICreateBabylonSceneParams) {
 	const meshes: any[] = [];
 	const materials: any[] = [];
+	const morphTargetManagers: any[] = [];
 
 	await Promise.all(
 		options.directories.meshesFiles.map(async (file) => {
 			const data = await fs.readJSON(join(options.sceneFile, "meshes", file));
+			const mesh = data.meshes[0];
 
-			data.meshes.forEach((mesh) => {
-				if (mesh.delayLoadingFile) {
-					mesh.delayLoadingFile = join(options.sceneName, basename(mesh.delayLoadingFile));
-				}
-			});
+			if (mesh.delayLoadingFile) {
+				mesh.delayLoadingFile = join(options.sceneName, basename(mesh.delayLoadingFile));
+			}
 
-			meshes.push(...data.meshes);
+			if (data.basePoseMatrix) {
+				mesh.basePoseMatrix = data.basePoseMatrix;
+			}
+
+			meshes.push(mesh);
 
 			data.materials.forEach((material) => {
 				const existingMaterial = materials.find((m) => m.id === material.id);
@@ -35,6 +39,62 @@ export async function createBabylonScene(options: ICreateBabylonSceneParams) {
 					materials.push(material);
 				}
 			});
+		})
+	);
+
+	await Promise.all(
+		options.directories.morphTargetManagerFiles.map(async (file) => {
+			const data = await fs.readJSON(join(options.sceneFile, "morphTargetManagers", file));
+
+			await Promise.all(
+				data.targets.map(async (target) => {
+					const binaryFileData = join(options.sceneFile, "morphTargets", basename(target.delayLoadingFile));
+					const buffer = (await fs.readFile(binaryFileData)).buffer;
+
+					if (target.positionsCount) {
+						target.positions = Array.from(new Float32Array(buffer, target.positionsOffset, target.positionsCount));
+					}
+
+					if (target.normalsCount) {
+						target.normals = Array.from(new Float32Array(buffer, target.normalsOffset, target.normalsCount));
+					}
+
+					if (target.tangentsCount) {
+						target.tangents = Array.from(new Float32Array(buffer, target.tangentsOffset, target.tangentsCount));
+					}
+
+					if (target.uvsCount) {
+						target.uvs = Array.from(new Float32Array(buffer, target.uvsOffset, target.uvsCount));
+					}
+
+					if (target.uv2sCount) {
+						target.uv2s = Array.from(new Float32Array(buffer, target.uv2sOffset, target.uv2sCount));
+					}
+
+					delete target.delayLoadingFile;
+
+					delete target.positionsCount;
+					delete target.normalsCount;
+					delete target.tangentsCount;
+					delete target.uvsCount;
+					delete target.uv2sCount;
+
+					delete target.positionsOffset;
+					delete target.normalsOffset;
+					delete target.tangentsOffset;
+					delete target.uvsOffset;
+					delete target.uv2sOffset;
+				})
+			);
+
+			// TODO: allow incremental loading of morph target data
+			// data.targets.forEach((target) => {
+			// 	if (target.delayLoadingFile) {
+			// 		target.delayLoadingFile = join(options.sceneName, "morphTargets", basename(target.delayLoadingFile));
+			// 	}
+			// });
+
+			morphTargetManagers.push(data);
 		})
 	);
 
@@ -77,8 +137,14 @@ export async function createBabylonScene(options: ICreateBabylonSceneParams) {
 
 		animations: options.config.animations,
 
+		postProcesses: [],
+		multiMaterials: [],
+		spriteManagers: [],
+		reflectionProbes: [],
+
 		meshes,
 		materials,
+		morphTargetManagers,
 		skeletons: await Promise.all(
 			options.directories.skeletonFiles.map(async (file) => {
 				return fs.readJSON(join(options.sceneFile, "skeletons", file));
@@ -112,11 +178,6 @@ export async function createBabylonScene(options: ICreateBabylonSceneParams) {
 		sounds: await Promise.all(
 			options.directories.soundFiles.map(async (file) => {
 				return fs.readJSON(join(options.sceneFile, "sounds", file));
-			})
-		),
-		morphTargetManagers: await Promise.all(
-			options.directories.morphTargetManagerFiles.map(async (file) => {
-				return fs.readJSON(join(options.sceneFile, "morphTargetManagers", file));
 			})
 		),
 		animationGroups: await Promise.all(

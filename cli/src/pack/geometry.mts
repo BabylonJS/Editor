@@ -14,9 +14,17 @@ export interface ICreateGeometryFilesParams {
 
 export async function createGeometryFiles(options: ICreateGeometryFilesParams) {
 	await fs.ensureDir(join(options.publicDir, options.sceneName));
+	await fs.ensureDir(join(options.publicDir, options.sceneName, "morphTargets"));
+
 	await Promise.all(
 		options.directories.geometryFiles.map(async (file) => {
 			await fs.copyFile(join(options.sceneFile, "geometries", file), join(options.publicDir, options.sceneName, file));
+		})
+	);
+
+	await Promise.all(
+		options.directories.morphTargetFiles.map(async (file) => {
+			await fs.copyFile(join(options.sceneFile, "morphTargets", file), join(options.publicDir, options.sceneName, "morphTargets", file));
 		})
 	);
 }
