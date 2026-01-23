@@ -47,9 +47,10 @@ export async function pack(projectDir: string) {
 	});
 
 	for (const sceneFile of sceneFiles) {
+		const sceneFilename = basename(sceneFile);
 		const sceneName = basename(sceneFile, extname(sceneFile));
 
-		const sceneLog = ora(`Packing ${sceneName}...`);
+		const sceneLog = ora(`Packing ${sceneFilename}...`);
 		sceneLog.spinner = cliSpinners.dots14;
 		sceneLog.start();
 
@@ -74,6 +75,6 @@ export async function pack(projectDir: string) {
 			sceneName,
 		});
 
-		sceneLog.succeed(`Packed ${sceneName}`);
+		sceneLog.succeed(`Packed ${sceneFilename}`);
 	}
 }

@@ -41,6 +41,13 @@
 			"cwd": "${workspaceFolder}/editor",
 			"request": "launch",
 			"command": "yarn watch-test"
+		},
+		{
+			"name": "Debug Editor CLI",
+			"type": "node-terminal",
+			"cwd": "${workspaceFolder}/cli",
+			"request": "launch",
+			"command": "node ./build/src/index.mjs pack ../templates/nextjs"
 		}
 	],
 	"compounds": [
