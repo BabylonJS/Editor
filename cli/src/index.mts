@@ -17,7 +17,9 @@ program
 	.description("Packs the project located in the specified directory. Current directory is used by default.")
 	.argument("[projectDir]", "The root directory of the project to package", process.cwd())
 	.action((projectDir: string) => {
-		pack(projectDir);
+		pack(projectDir, {
+			optimize: true,
+		});
 	});
 
 program.parse();

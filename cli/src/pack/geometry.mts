@@ -4,7 +4,7 @@ import fs from "fs-extra";
 
 import { readSceneDirectories } from "../tools/scene.mjs";
 
-export interface ICreateGeometryFilesParams {
+export interface ICreateGeometryFilesOptions {
 	sceneFile: string;
 	sceneName: string;
 	publicDir: string;
@@ -12,7 +12,7 @@ export interface ICreateGeometryFilesParams {
 	directories: Awaited<ReturnType<typeof readSceneDirectories>>;
 }
 
-export async function createGeometryFiles(options: ICreateGeometryFilesParams) {
+export async function createGeometryFiles(options: ICreateGeometryFilesOptions) {
 	await fs.ensureDir(join(options.publicDir, options.sceneName));
 	await fs.ensureDir(join(options.publicDir, options.sceneName, "morphTargets"));
 

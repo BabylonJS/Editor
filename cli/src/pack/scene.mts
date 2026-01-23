@@ -4,7 +4,11 @@ import fs from "fs-extra";
 
 import { readSceneDirectories } from "../tools/scene.mjs";
 
-export interface ICreateBabylonSceneParams {
+import { extractNodeMaterialTextures } from "./assets/material.mjs";
+import { getExtractedTextureOutputPath } from "./assets/texture.mjs";
+import { extractParticleSystemTextures } from "./assets/particle-system.mjs";
+
+export interface ICreateBabylonSceneOptions {
 	sceneFile: string;
 	sceneName: string;
 	publicDir: string;
@@ -13,11 +17,12 @@ export interface ICreateBabylonSceneParams {
 	directories: Awaited<ReturnType<typeof readSceneDirectories>>;
 }
 
-export async function createBabylonScene(options: ICreateBabylonSceneParams) {
+export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 	const meshes: any[] = [];
 	const materials: any[] = [];
 	const morphTargetManagers: any[] = [];
 
+	// Meshes
 	await Promise.all(
 		options.directories.meshesFiles.map(async (file) => {
 			const data = await fs.readJSON(join(options.sceneFile, "meshes", file));
@@ -52,6 +57,7 @@ export async function createBabylonScene(options: ICreateBabylonSceneParams) {
 		})
 	);
 
+	// Morph targets
 	await Promise.all(
 		options.directories.morphTargetManagerFiles.map(async (file) => {
 			const data = await fs.readJSON(join(options.sceneFile, "morphTargetManagers", file));
@@ -108,6 +114,33 @@ export async function createBabylonScene(options: ICreateBabylonSceneParams) {
 		})
 	);
 
+	// Extract materials
+	const extractedTexturesOutputPath = getExtractedTextureOutputPath(options.publicDir);
+	await fs.ensureDir(extractedTexturesOutputPath);
+
+	await Promise.all(
+		materials.map(async (material) => {
+			if (material.customType === "BABYLON.NodeMaterial") {
+				await extractNodeMaterialTextures(material, {
+					extractedTexturesOutputPath,
+				});
+			}
+		})
+	);
+
+	// Particle systems
+	const particleSystems = await Promise.all(
+		options.directories.particleSystemFiles.map(async (file) => {
+			const data = await fs.readJSON(join(options.sceneFile, "particleSystems", file));
+
+			await extractParticleSystemTextures(data, {
+				extractedTexturesOutputPath,
+			});
+
+			return data;
+		})
+	);
+
 	const scene = {
 		autoClear: true,
 		physicsEnabled: true,
@@ -155,6 +188,7 @@ export async function createBabylonScene(options: ICreateBabylonSceneParams) {
 		meshes,
 		materials,
 		morphTargetManagers,
+		particleSystems,
 
 		animationGroups: await Promise.all(
 			options.directories.animationGroupFiles.map(async (file) => {
@@ -199,11 +233,6 @@ export async function createBabylonScene(options: ICreateBabylonSceneParams) {
 		shadowGenerators: await Promise.all(
 			options.directories.shadowGeneratorFiles.map(async (file) => {
 				return fs.readJSON(join(options.sceneFile, "shadowGenerators", file));
-			})
-		),
-		particleSystems: await Promise.all(
-			options.directories.particleSystemFiles.map(async (file) => {
-				return fs.readJSON(join(options.sceneFile, "particleSystems", file));
 			})
 		),
 		sounds: await Promise.all(

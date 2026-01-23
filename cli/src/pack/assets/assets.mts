@@ -6,12 +6,13 @@ import { normalizedGlob } from "../../tools/fs.mjs";
 
 import { processAssetFile } from "./process.mjs";
 
-export interface ICreateAssetsParams {
+export interface ICreateAssetsOptions {
 	projectDir: string;
 	publicDir: string;
+	optimize: boolean;
 }
 
-export async function createAssets(options: ICreateAssetsParams) {
+export async function createAssets(options: ICreateAssetsOptions) {
 	const baseAssetsDir = join(options.projectDir, "assets");
 	const outputAssetsDir = join(options.publicDir, "assets");
 
@@ -51,6 +52,11 @@ export async function createAssets(options: ICreateAssetsParams) {
 	}
 
 	await Promise.all(promises);
+
+	await fs.writeJSON(join(options.projectDir, "assets/.export-cache.json"), cache, {
+		encoding: "utf-8",
+		spaces: "\t",
+	});
 
 	// Clean
 	const publicFiles = await normalizedGlob(join(outputAssetsDir, "**/*"), {

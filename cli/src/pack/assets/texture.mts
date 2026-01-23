@@ -5,6 +5,10 @@ import fs from "fs-extra";
 
 import { getPowerOfTwoUntil } from "../../tools/scalar.mjs";
 
+export function getExtractedTextureOutputPath(publicDir: string) {
+	return join(publicDir, "assets", "editor-generated_extracted-textures");
+}
+
 export interface IComputeExportedTextureOptions {
 	force: boolean;
 	exportedAssets: string[];
