@@ -43,7 +43,6 @@ export async function loadParticleSystems(editor: Editor, particleSystemFiles: s
 				}
 
 				particleSystem!.uniqueId = data.uniqueId;
-				particleSystem!.sourceParticleSystemSetId = data.sourceParticleSystemSetId;
 
 				options.loadResult.particleSystems.push(particleSystem!);
 

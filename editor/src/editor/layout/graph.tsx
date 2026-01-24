@@ -43,6 +43,7 @@ import { isAdvancedDynamicTexture } from "../../tools/guards/texture";
 import { updateIblShadowsRenderPipeline } from "../../tools/light/ibl";
 import { UniqueNumber, waitNextAnimationFrame } from "../../tools/tools";
 import { getSpriteManagerNodeFromSprite } from "../../tools/sprite/tools";
+import { isParticleSystemVisibleInGraph } from "../../tools/particles/metadata";
 import { applyTransformNodeParentingConfiguration } from "../../tools/node/parenting";
 import { isSprite, isSpriteManagerNode, isSpriteMapNode } from "../../tools/guards/sprites";
 import { isAnyParticleSystem, isGPUParticleSystem, isParticleSystem } from "../../tools/guards/particles";
@@ -949,7 +950,11 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			if (isAbstractMesh(node) && !noChildren) {
 				const particleSystems = this.props.editor.layout.preview.scene.particleSystems.filter((ps) => ps.emitter === node);
 				particleSystems.forEach((particleSystem) => {
-					if (particleSystem.name.toLowerCase().includes(this.state.search.toLowerCase())) {
+					if (
+						(isParticleSystem(particleSystem) || isGPUParticleSystem(particleSystem)) &&
+						isParticleSystemVisibleInGraph(particleSystem) &&
+						particleSystem.name.toLowerCase().includes(this.state.search.toLowerCase())
+					) {
 						info.childNodes?.push(this._getParticleSystemNode(particleSystem));
 					}
 				});
