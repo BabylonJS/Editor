@@ -5,7 +5,7 @@ import { Scene } from "babylonjs";
 
 import { Editor } from "../../../editor/main";
 
-import { NodeParticleSystemMesh } from "../../../editor/nodes/node-particle-system";
+import { NodeParticleSystemSetMesh } from "../../../editor/nodes/node-particle-system";
 
 import { ISceneLoaderPluginOptions } from "../scene";
 
@@ -23,7 +23,7 @@ export async function loadNodeParticleSystemSets(editor: Editor, nodeParticleSys
 					return;
 				}
 
-				const node = NodeParticleSystemMesh.Parse(data, scene, join(options.projectPath, "/"));
+				const node = NodeParticleSystemSetMesh.Parse(data, scene, join(options.projectPath, "/"));
 				node.uniqueId = data.uniqueId;
 				node.metadata ??= {};
 				node.metadata._waitingParentId = data.metadata?.parentId;
