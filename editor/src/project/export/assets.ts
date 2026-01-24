@@ -7,6 +7,7 @@ import { Editor } from "../../editor/main";
 
 import { compressFileToKtx } from "./ktx";
 import { processExportedTexture } from "./texture";
+import { processExportedMaterial } from "./materials";
 
 const supportedImagesExtensions: string[] = [".jpg", ".jpeg", ".webp", ".png", ".bmp"];
 
@@ -62,14 +63,12 @@ export async function processAssetFile(editor: Editor, file: string, options: Pr
 
 	let isNewFile = false;
 
-	if (options.optimize) {
-		const fileStat = await stat(file);
-		const hash = fileStat.mtimeMs.toString();
+	const fileStat = await stat(file);
+	const hash = fileStat.mtimeMs.toString();
 
-		isNewFile = !options.cache[relativePath] || options.cache[relativePath] !== hash;
+	isNewFile = !options.cache[relativePath] || options.cache[relativePath] !== hash;
 
-		options.cache[relativePath] = hash;
-	}
+	options.cache[relativePath] = hash;
 
 	const finalPath = join(options.scenePath, relativePath);
 	const finalPathExists = await pathExists(finalPath);
@@ -87,10 +86,18 @@ export async function processAssetFile(editor: Editor, file: string, options: Pr
 		});
 	}
 
-	if (options.optimize && supportedImagesExtensions.includes(extension)) {
-		await processExportedTexture(editor, finalPath, {
-			force: isNewFile,
-			exportedAssets: options.exportedAssets,
-		});
+	if (options.optimize) {
+		if (supportedImagesExtensions.includes(extension)) {
+			await processExportedTexture(editor, finalPath, {
+				force: isNewFile,
+				exportedAssets: options.exportedAssets,
+			});
+		} else if (extension === ".material") {
+			await processExportedMaterial(editor, finalPath, {
+				force: isNewFile,
+				scenePath: options.scenePath,
+				exportedAssets: options.exportedAssets,
+			});
+		}
 	}
 }
