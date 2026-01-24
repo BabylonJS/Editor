@@ -2,8 +2,8 @@ import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { Scene } from "@babylonjs/core/scene";
 import { Tools } from "@babylonjs/core/Misc/tools";
-import { Quaternion } from "@babylonjs/core/Maths/math.vector";
 import { Color4 } from "@babylonjs/core/Maths/math.color";
+import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 
 import { EffectParticleSystem, EffectSolidParticleSystem } from "../systems";
 import { IData, IGroup, IEmitter, ITransform, IParticleSystemConfig, ILoaderOptions, IMaterialFactory, IGeometryFactory, IEffectNode, isSystem } from "../types";
@@ -56,7 +56,7 @@ export class NodeFactory {
 			name,
 			transform: {
 				position: Vector3.Zero(),
-				rotation: Quaternion.Identity(),
+				rotation: Vector3.Zero(),
 				scale: Vector3.One(),
 			},
 			children: [],
@@ -97,7 +97,7 @@ export class NodeFactory {
 			name,
 			transform: {
 				position: Vector3.Zero(),
-				rotation: Quaternion.Identity(),
+				rotation: Vector3.Zero(),
 				scale: Vector3.One(),
 			},
 			config: defaultConfig,
@@ -153,7 +153,7 @@ export class NodeFactory {
 		this._applyTransform(node, group.transform);
 
 		if (parentNode) {
-			node.data.parent = parentNode.data as TransformNode;
+			(node.data as TransformNode).parent = parentNode.data as TransformNode;
 		}
 
 		this._logger.log(`Created group node: ${group.name}`);
@@ -180,8 +180,10 @@ export class NodeFactory {
 			type: "particle",
 		};
 
+		particleSystem.emitter = new TransformNode(emitter.name + "_emitter", this._scene) as AbstractMesh;
+
 		if (parentNode) {
-			node.data.parent = parentNode.data as TransformNode;
+			particleSystem.emitter.parent = parentNode.data as TransformNode;
 		}
 
 		this._logger.log(`Created particle system: ${emitter.name}`);
@@ -483,8 +485,9 @@ export class NodeFactory {
 				node.data.position.copyFrom(transform.position);
 			}
 
-			if (transform.rotation) {
-				node.data.rotationQuaternion = transform.rotation.clone();
+			if (transform.rotation && node.data.rotation) {
+				node.data.rotationQuaternion = null;
+				node.data.rotation.copyFrom(transform.rotation);
 			}
 
 			if (transform.scale && node.data.scaling) {

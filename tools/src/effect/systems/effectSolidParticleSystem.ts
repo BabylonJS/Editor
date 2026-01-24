@@ -1,7 +1,6 @@
 import { Quaternion, Vector3, Matrix } from "@babylonjs/core/Maths/math.vector";
 import { Color4 } from "@babylonjs/core/Maths/math.color";
 import { SolidParticle } from "@babylonjs/core/Particles/solidParticle";
-import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { SolidParticleSystem } from "@babylonjs/core/Particles/solidParticleSystem";
@@ -63,7 +62,7 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 	private _behaviors: PerSolidParticleBehaviorFunction[];
 	public particleEmitterType: ISolidParticleEmitterType | null;
 	private _emitEnded: boolean;
-	private _parent: AbstractMesh | TransformNode | null;
+	private _emitter: AbstractMesh | Vector3 | null;
 	// Gradient systems for "OverLife" behaviors (similar to ParticleSystem native gradients)
 	private _colorGradients: ColorGradientSystem;
 	private _sizeGradients: NumberGradientSystem;
@@ -192,12 +191,12 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 		}
 	}
 
-	public get parent(): AbstractMesh | TransformNode | null {
-		return this._parent;
+	public get emitter(): AbstractMesh | Vector3 | null {
+		return this._emitter;
 	}
 
-	public set parent(parent: AbstractMesh | TransformNode | null) {
-		this._parent = parent;
+	public set emitter(emitter: AbstractMesh | Vector3 | null) {
+		this._emitter = emitter;
 	}
 
 	/**
@@ -458,7 +457,7 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 		this.name = name;
 		this._behaviors = [];
 		this.particleEmitterType = new SolidBoxParticleEmitter(); // Default emitter (like ParticleSystem)
-		this._parent = null;
+		this._emitter = null;
 
 		// Gradient systems for "OverLife" behaviors
 		this._colorGradients = new ColorGradientSystem();
@@ -917,8 +916,8 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 		}
 
 		// Set parent (transform hierarchy)
-		if (this._parent) {
-			this.mesh.parent = this._parent;
+		if (this._emitter) {
+			this.mesh.parent = this._emitter as AbstractMesh;
 		}
 	}
 

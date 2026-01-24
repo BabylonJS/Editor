@@ -176,41 +176,35 @@ export class QuarksConverter {
 	 */
 	private _convertTransform(matrixArray?: number[], positionArray?: number[], rotationArray?: number[], scaleArray?: number[]): ITransform {
 		const position = Vector3.Zero();
-		const rotation = Quaternion.Identity();
+		const rotation = Vector3.Zero();
 		const scale = Vector3.One();
 
 		if (matrixArray && Array.isArray(matrixArray) && matrixArray.length >= 16) {
-			// Use matrix (most accurate)
 			const matrix = Matrix.FromArray(matrixArray);
 			const tempPos = Vector3.Zero();
 			const tempRot = Quaternion.Zero();
 			const tempScale = Vector3.Zero();
 			matrix.decompose(tempScale, tempRot, tempPos);
 
-			// Convert from right-handed to left-handed
 			position.copyFrom(tempPos);
-			position.z = -position.z; // Negate Z position
+			position.z = -position.z;
 
-			rotation.copyFrom(tempRot);
-			// Convert rotation quaternion: invert X component for proper X-axis rotation conversion
-			// This handles the case where X=-90° in RH looks like X=0° in LH
-			rotation.x *= -1;
+			tempRot.x *= -1;
+			const eulerAngles = tempRot.toEulerAngles();
+			rotation.copyFrom(eulerAngles);
 
 			scale.copyFrom(tempScale);
 		} else {
-			// Use individual components
 			if (positionArray && Array.isArray(positionArray)) {
 				position.set(positionArray[0] || 0, positionArray[1] || 0, positionArray[2] || 0);
-				position.z = -position.z; // Convert to left-handed
+				position.z = -position.z;
 			}
 
 			if (rotationArray && Array.isArray(rotationArray)) {
-				// If rotation is Euler angles, convert to quaternion
 				const eulerX = rotationArray[0] || 0;
 				const eulerY = rotationArray[1] || 0;
 				const eulerZ = rotationArray[2] || 0;
-				Quaternion.RotationYawPitchRollToRef(eulerY, eulerX, -eulerZ, rotation); // Negate Z for handedness
-				rotation.x *= -1; // Adjust X rotation component
+				rotation.set(eulerX, eulerY, -eulerZ);
 			}
 
 			if (scaleArray && Array.isArray(scaleArray)) {
