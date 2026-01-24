@@ -14,7 +14,7 @@ import { isNodeVisibleInGraph } from "../../tools/node/metadata";
 import { getBufferSceneScreenshot } from "../../tools/scene/screenshot";
 import { createDirectoryIfNotExist, normalizedGlob } from "../../tools/fs";
 import { isSpriteManagerNode, isSpriteMapNode } from "../../tools/guards/sprites";
-import { isGPUParticleSystem, isParticleSystem } from "../../tools/guards/particles";
+import { isGPUParticleSystem, isNodeParticleSystemMesh, isParticleSystem } from "../../tools/guards/particles";
 import { serializePhysicsAggregate } from "../../tools/physics/serialization/aggregate";
 import { isAnimationGroupFromSceneLink, isFromSceneLink } from "../../tools/scene/scene-link";
 import { isAnyTransformNode, isCollisionMesh, isEditorCamera, isMesh, isTransformNode } from "../../tools/guards/nodes";
@@ -60,6 +60,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 		createDirectoryIfNotExist(join(scenePath, "animationGroups")),
 		createDirectoryIfNotExist(join(scenePath, "sprite-maps")),
 		createDirectoryIfNotExist(join(scenePath, "sprite-managers")),
+		createDirectoryIfNotExist(join(scenePath, "nodeParticleSystemSets")),
 	]);
 
 	const scene = editor.layout.preview.scene;
@@ -567,6 +568,10 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 	// Write particle systems
 	await Promise.all(
 		scene.particleSystems.map(async (particleSystem) => {
+			if (particleSystem.isNodeGenerated) {
+				return;
+			}
+
 			const particleSystemPath = join(scenePath, "particleSystems", `${particleSystem.id}.json`);
 
 			const emitter = particleSystem.emitter;
@@ -582,7 +587,6 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 				}
 
 				data.className = particleSystem.getClassName();
-				data.sourceParticleSystemSetId = particleSystem.sourceParticleSystemSetId;
 
 				await writeJSON(particleSystemPath, data, {
 					spaces: 4,
@@ -591,6 +595,36 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 				editor.layout.console.error(`Failed to write particle system ${particleSystem.name}`);
 			} finally {
 				savedFiles.push(particleSystemPath);
+			}
+
+			dialog.step(progressStep);
+		})
+	);
+
+	// Write node particle systems
+	await Promise.all(
+		scene.meshes.map(async (mesh) => {
+			if (!isNodeParticleSystemMesh(mesh) || isFromSceneLink(mesh)) {
+				return;
+			}
+
+			const nodeParticleSystemMeshPath = join(scenePath, "nodeParticleSystemSets", `${mesh.id}.json`);
+
+			try {
+				const data = mesh.serialize();
+
+				data.metadata ??= {};
+				data.metadata.parentId = mesh.parent?.uniqueId;
+
+				delete data.parentId;
+
+				await writeJSON(nodeParticleSystemMeshPath, data, {
+					spaces: 4,
+				});
+			} catch (e) {
+				editor.layout.console.error(`Failed to write transform node ${mesh.name}`);
+			} finally {
+				savedFiles.push(nodeParticleSystemMeshPath);
 			}
 
 			dialog.step(progressStep);
