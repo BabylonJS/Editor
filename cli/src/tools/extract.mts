@@ -36,7 +36,8 @@ export async function extractTextureAssetFromDataString(dataString: string, opti
 				break;
 
 			default:
-				return console.error(`Unsupported embedded texture format while extracting texture: ${metadata.format}`);
+				console.error(`Unsupported embedded texture format while extracting texture: ${metadata.format}`);
+				return null;
 		}
 
 		const outputFilename = join(options.extractedTexturesOutputPath, filename);
@@ -68,4 +69,6 @@ export async function extractTextureAssetFromUrl(url: string, options: IExtractT
 	} catch (e) {
 		console.error(`Failed to extract texture from url "${url}": ${e.message}`);
 	}
+
+	return null;
 }

@@ -59,6 +59,15 @@
 				"group": "Editor",
 				"order": 1
 			}
+		},
+		{
+			"name": "Debug Editor & CLI",
+			"configurations": ["Electron With Devtools", "Debug Editor CLI"],
+			"stopAll": true,
+			"presentation": {
+				"group": "Editor",
+				"order": 1
+			}
 		}
 	]
 }
