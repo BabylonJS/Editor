@@ -44,6 +44,7 @@ import { loadParticleSystems } from "./plugins/particle-systems";
 import { loadAnimationGroups } from "./plugins/animation-groups";
 import { loadMorphTargetManagers } from "./plugins/morph-targets";
 import { loadShadowGenerators } from "./plugins/shadow-generators";
+import { loadNodeParticleSystemSets } from "./plugins/node-particle-system-sets";
 
 import "./texture";
 
@@ -124,6 +125,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 		createDirectoryIfNotExist(join(scenePath, "animationGroups")),
 		createDirectoryIfNotExist(join(scenePath, "sprite-maps")),
 		createDirectoryIfNotExist(join(scenePath, "sprite-managers")),
+		createDirectoryIfNotExist(join(scenePath, "nodeParticleSystemSets")),
 	]);
 
 	const [
@@ -142,6 +144,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 		animationGroupFiles,
 		spriteMapFiles,
 		spriteManagerFiles,
+		nodeParticleSystemSetFiles,
 	] = await Promise.all([
 		readdir(join(scenePath, "nodes")),
 		readdir(join(scenePath, "meshes")),
@@ -158,6 +161,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 		readdir(join(scenePath, "animationGroups")),
 		readdir(join(scenePath, "sprite-maps")),
 		readdir(join(scenePath, "sprite-managers")),
+		readdir(join(scenePath, "nodeParticleSystemSets")),
 	]);
 
 	const progress = await showLoadSceneProgressDialog(`Loading ${basename(scenePath)}...`);
@@ -177,7 +181,8 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 			morphTargetManagerFiles.length +
 			animationGroupFiles.length +
 			spriteMapFiles.length +
-			spriteManagerFiles.length);
+			spriteManagerFiles.length +
+			nodeParticleSystemSetFiles.length);
 
 	SceneLoaderFlags.ForceFullSceneLoadingForIncremental = true;
 
@@ -275,6 +280,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 	await loadAnimationGroups(editor, animationGroupFiles, scene, pluginLoadOptions);
 	await loadSpriteMaps(editor, spriteMapFiles, scene, pluginLoadOptions);
 	await loadSpriteManagers(editor, spriteManagerFiles, scene, pluginLoadOptions);
+	await loadNodeParticleSystemSets(editor, nodeParticleSystemSetFiles, scene, pluginLoadOptions);
 
 	// Configure textures urls
 	scene.textures.forEach((texture) => {

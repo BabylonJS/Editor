@@ -96,11 +96,15 @@ export default class NodeMaterialEditorWindow extends Component<INodeMaterialEdi
 		NodeParticleEditor["_CurrentState"].stateManager.onRebuildRequiredObservable.notifyObservers();
 
 		const data = {
+			...this._nodeParticleSystem.serialize(),
 			id: this._nodeParticleSystem.id,
 			uniqueId: this._nodeParticleSystem.uniqueId,
-			...this._nodeParticleSystem.serialize(),
 		};
-		await writeJSON(this.props.filePath, data, { spaces: 4 });
+
+		await writeJSON(this.props.filePath, data, {
+			spaces: 4,
+			encoding: "utf-8",
+		});
 
 		toast.success("Particle System saved");
 
