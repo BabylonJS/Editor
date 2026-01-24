@@ -7,7 +7,7 @@
  * Based on extracted Unity → Quarks converter logic, but outputs IData format.
  */
 
-import { Vector3, Quaternion } from "@babylonjs/core/Maths/math.vector";
+import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { Color4, Color3 } from "@babylonjs/core/Maths/math.color";
 import { Scene } from "@babylonjs/core/scene";
 import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
@@ -790,7 +790,7 @@ function _convertToIDataFormat(converted: IIntermediateGameObject): IGroup | IEm
 			name: converted.name,
 			transform: {
 				position: new Vector3(converted.position[0], converted.position[1], converted.position[2]),
-				rotation: new Quaternion(converted.rotation[0], converted.rotation[1], converted.rotation[2], converted.rotation[3]),
+				rotation: new Vector3(converted.rotation[0], converted.rotation[1], converted.rotation[2]),
 				scale: new Vector3(converted.scale[0], converted.scale[1], converted.scale[2]),
 			},
 			children: children,
@@ -806,7 +806,7 @@ function _convertToIDataFormat(converted: IIntermediateGameObject): IGroup | IEm
 			name: converted.name,
 			transform: {
 				position: new Vector3(converted.position[0], converted.position[1], converted.position[2]),
-				rotation: new Quaternion(converted.rotation[0], converted.rotation[1], converted.rotation[2], converted.rotation[3]),
+				rotation: new Vector3(converted.rotation[0], converted.rotation[1], converted.rotation[2]),
 				scale: new Vector3(converted.scale[0], converted.scale[1], converted.scale[2]),
 			},
 			config: converted.emitter,
