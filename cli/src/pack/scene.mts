@@ -12,6 +12,7 @@ export interface ICreateBabylonSceneOptions {
 	sceneFile: string;
 	sceneName: string;
 	publicDir: string;
+	babylonjsEditorToolsVersion: string;
 
 	config: any;
 	directories: Awaited<ReturnType<typeof readSceneDirectories>>;
@@ -48,7 +49,7 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 
 			meshes.push(mesh);
 
-			data.materials.forEach((material) => {
+			data.materials?.forEach((material) => {
 				const existingMaterial = materials.find((m) => m.id === material.id);
 				if (!existingMaterial) {
 					materials.push(material);
@@ -62,53 +63,54 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 		options.directories.morphTargetManagerFiles.map(async (file) => {
 			const data = await fs.readJSON(join(options.sceneFile, "morphTargetManagers", file));
 
-			await Promise.all(
-				data.targets.map(async (target) => {
-					const binaryFileData = join(options.sceneFile, "morphTargets", basename(target.delayLoadingFile));
-					const buffer = (await fs.readFile(binaryFileData)).buffer;
-
-					if (target.positionsCount) {
-						target.positions = Array.prototype.slice.call(new Float32Array(buffer, target.positionsOffset, target.positionsCount));
+			if (options.babylonjsEditorToolsVersion >= "5.2.6") {
+				data.targets.forEach((target) => {
+					if (target.delayLoadingFile) {
+						target.delayLoadingFile = join(options.sceneName, "morphTargets", basename(target.delayLoadingFile));
 					}
+				});
+			} else {
+				await Promise.all(
+					data.targets.map(async (target) => {
+						const binaryFileData = join(options.sceneFile, "morphTargets", basename(target.delayLoadingFile));
+						const buffer = (await fs.readFile(binaryFileData)).buffer;
 
-					if (target.normalsCount) {
-						target.normals = Array.prototype.slice.call(new Float32Array(buffer, target.normalsOffset, target.normalsCount));
-					}
+						if (target.positionsCount) {
+							target.positions = Array.prototype.slice.call(new Float32Array(buffer, target.positionsOffset, target.positionsCount));
+						}
 
-					if (target.tangentsCount) {
-						target.tangents = Array.prototype.slice.call(new Float32Array(buffer, target.tangentsOffset, target.tangentsCount));
-					}
+						if (target.normalsCount) {
+							target.normals = Array.prototype.slice.call(new Float32Array(buffer, target.normalsOffset, target.normalsCount));
+						}
 
-					if (target.uvsCount) {
-						target.uvs = Array.prototype.slice.call(new Float32Array(buffer, target.uvsOffset, target.uvsCount));
-					}
+						if (target.tangentsCount) {
+							target.tangents = Array.prototype.slice.call(new Float32Array(buffer, target.tangentsOffset, target.tangentsCount));
+						}
 
-					if (target.uv2sCount) {
-						target.uv2s = Array.prototype.slice.call(new Float32Array(buffer, target.uv2sOffset, target.uv2sCount));
-					}
+						if (target.uvsCount) {
+							target.uvs = Array.prototype.slice.call(new Float32Array(buffer, target.uvsOffset, target.uvsCount));
+						}
 
-					delete target.delayLoadingFile;
+						if (target.uv2sCount) {
+							target.uv2s = Array.prototype.slice.call(new Float32Array(buffer, target.uv2sOffset, target.uv2sCount));
+						}
 
-					delete target.positionsCount;
-					delete target.normalsCount;
-					delete target.tangentsCount;
-					delete target.uvsCount;
-					delete target.uv2sCount;
+						delete target.delayLoadingFile;
 
-					delete target.positionsOffset;
-					delete target.normalsOffset;
-					delete target.tangentsOffset;
-					delete target.uvsOffset;
-					delete target.uv2sOffset;
-				})
-			);
+						delete target.positionsCount;
+						delete target.normalsCount;
+						delete target.tangentsCount;
+						delete target.uvsCount;
+						delete target.uv2sCount;
 
-			// TODO: allow incremental loading of morph target data
-			// data.targets.forEach((target) => {
-			// 	if (target.delayLoadingFile) {
-			// 		target.delayLoadingFile = join(options.sceneName, "morphTargets", basename(target.delayLoadingFile));
-			// 	}
-			// });
+						delete target.positionsOffset;
+						delete target.normalsOffset;
+						delete target.tangentsOffset;
+						delete target.uvsOffset;
+						delete target.uv2sOffset;
+					})
+				);
+			}
 
 			morphTargetManagers.push(data);
 		})

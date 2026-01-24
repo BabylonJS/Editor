@@ -43,6 +43,15 @@ export async function pack(projectDir: string, options: IPackOptions) {
 
 	assetsLog.succeed(`Packed assets`);
 
+	// Get babylonjs-editor-tools version
+	let babylonjsEditorToolsVersion = "5.0.0";
+	try {
+		const pkg = await fs.readJSON(join(projectDir, "node_modules/babylonjs-editor-tools/package.json"));
+		babylonjsEditorToolsVersion = pkg.version;
+	} catch (e) {
+		// Catch silently.
+	}
+
 	// Pack scenes
 	const sceneFiles = await normalizedGlob(`${assetsDirectory}/**/*`, {
 		nodir: false,
@@ -70,6 +79,7 @@ export async function pack(projectDir: string, options: IPackOptions) {
 			publicDir,
 			sceneFile,
 			sceneName,
+			babylonjsEditorToolsVersion,
 		});
 
 		// Copy geometry files
@@ -78,6 +88,7 @@ export async function pack(projectDir: string, options: IPackOptions) {
 			publicDir,
 			sceneFile,
 			sceneName,
+			babylonjsEditorToolsVersion,
 		});
 
 		sceneLog.succeed(`Packed ${sceneFilename}`);

@@ -83,7 +83,7 @@ import { AssetBrowserParticleSystemItem } from "./assets-browser/items/particle-
 import { listenGuiAssetsEvents } from "./assets-browser/events/gui";
 import { listenSceneAssetsEvents } from "./assets-browser/events/scene";
 import { listenMaterialAssetsEvents } from "./assets-browser/events/material";
-import { listenParticleAssetsEvents } from "./assets-browser/events/particles";
+// import { listenParticleAssetsEvents } from "./assets-browser/events/particles";
 
 import { openEnvViewer } from "./assets-browser/viewers/env-viewer";
 import { openModelViewer } from "./assets-browser/viewers/model-viewer";
@@ -238,7 +238,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 		listenGuiAssetsEvents(this.props.editor);
 		listenSceneAssetsEvents(this.props.editor);
 		listenMaterialAssetsEvents(this.props.editor);
-		listenParticleAssetsEvents(this.props.editor);
+		// listenParticleAssetsEvents(this.props.editor);
 	}
 
 	/**

@@ -1,3 +1,4 @@
+import { cpus } from "node:os";
 import { extname, join } from "node:path/posix";
 
 import fs from "fs-extra";
@@ -35,8 +36,11 @@ export async function createAssets(options: ICreateAssetsOptions) {
 		// Catch silently.
 	}
 
+	const cpusCount = cpus().length;
+	console.log(`Using ${cpusCount} cpus to process assets...`);
+
 	for (const file of files) {
-		if (promises.length >= 5) {
+		if (promises.length >= cpusCount) {
 			await Promise.all(promises);
 			promises.length = 0;
 		}
