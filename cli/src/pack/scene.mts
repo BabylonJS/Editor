@@ -21,6 +21,7 @@ export interface ICreateBabylonSceneOptions {
 export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 	const meshes: any[] = [];
 	const materials: any[] = [];
+	const transformNodes: any[] = [];
 	const morphTargetManagers: any[] = [];
 
 	// Meshes
@@ -116,6 +117,40 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 		})
 	);
 
+	// Transform nodes
+	await Promise.all(
+		options.directories.nodesFiles.map(async (file) => {
+			const data = await fs.readJSON(join(options.sceneFile, "nodes", file));
+			if (data.metadata?.parentId) {
+				data.parentId = data.metadata.parentId;
+			}
+
+			transformNodes.push(data);
+		})
+	);
+
+	await Promise.all(
+		options.directories.spriteManagerFiles.map(async (file) => {
+			const data = await fs.readJSON(join(options.sceneFile, "sprite-managers", file));
+			if (data.metadata?.parentId) {
+				data.parentId = data.metadata.parentId;
+			}
+
+			transformNodes.push(data);
+		})
+	);
+
+	await Promise.all(
+		options.directories.spriteMapFiles.map(async (file) => {
+			const data = await fs.readJSON(join(options.sceneFile, "sprite-maps", file));
+			if (data.metadata?.parentId) {
+				data.parentId = data.metadata.parentId;
+			}
+
+			transformNodes.push(data);
+		})
+	);
+
 	// Extract materials
 	const extractedTexturesOutputPath = getExtractedTextureOutputPath(options.publicDir);
 	await fs.ensureDir(extractedTexturesOutputPath);
@@ -190,6 +225,7 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 		meshes,
 		materials,
 		morphTargetManagers,
+		transformNodes,
 		particleSystems,
 
 		animationGroups: await Promise.all(
@@ -200,16 +236,6 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 		skeletons: await Promise.all(
 			options.directories.skeletonFiles.map(async (file) => {
 				return fs.readJSON(join(options.sceneFile, "skeletons", file));
-			})
-		),
-		transformNodes: await Promise.all(
-			options.directories.nodesFiles.map(async (file) => {
-				const data = await fs.readJSON(join(options.sceneFile, "nodes", file));
-				if (data.metadata?.parentId) {
-					data.parentId = data.metadata.parentId;
-				}
-
-				return data;
 			})
 		),
 		cameras: await Promise.all(
