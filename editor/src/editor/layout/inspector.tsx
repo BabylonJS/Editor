@@ -42,6 +42,7 @@ import { EditorDecalsInspector } from "./inspector/decals/decals";
 
 import { EditorParticleSystemInspector } from "./inspector/particles/particle-system";
 import { EditorGPUParticleSystemInspector } from "./inspector/particles/gpu-particle-system";
+import { EditorNodeParticleSystemSetMeshInspector } from "./inspector/particles/node-particle-system-set";
 
 import { EditorSpriteInspector } from "./inspector/sprites/sprite";
 import { EditorSpriteMapNodeInspector } from "./inspector/sprites/sprite-map";
@@ -86,6 +87,7 @@ export class EditorInspector extends Component<IEditorInspectorProps, IEditorIns
 
 		EditorParticleSystemInspector,
 		EditorGPUParticleSystemInspector,
+		EditorNodeParticleSystemSetMeshInspector,
 
 		EditorSpriteMapNodeInspector,
 		EditorSpriteManagerNodeInspector,

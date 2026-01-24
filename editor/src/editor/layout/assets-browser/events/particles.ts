@@ -1,9 +1,9 @@
 import { ipcRenderer } from "electron";
 
-import { isNodeParticleSystemMesh } from "../../../../tools/guards/particles";
+import { isNodeParticleSystemSetMesh } from "../../../../tools/guards/particles";
 import { normalizeNodeParticleSystemSetUniqueIds } from "../../../../tools/particles/particle";
 
-import { NodeParticleSystemMesh } from "../../../nodes/node-particle-system";
+import { NodeParticleSystemSetMesh } from "../../../nodes/node-particle-system";
 
 import { Editor } from "../../../main";
 
@@ -14,8 +14,8 @@ export function listenParticleAssetsEvents(editor: Editor) {
 		}
 
 		const nodeParticleSystemSet = editor.layout.preview.scene.meshes.find((m) => {
-			return isNodeParticleSystemMesh(m) && m.nodeParticleSystemSet?.id === particlesData.id;
-		}) as NodeParticleSystemMesh | undefined;
+			return isNodeParticleSystemSetMesh(m) && m.nodeParticleSystemSet?.id === particlesData.id;
+		}) as NodeParticleSystemSetMesh | undefined;
 
 		if (nodeParticleSystemSet && nodeParticleSystemSet.nodeParticleSystemSet) {
 			normalizeNodeParticleSystemSetUniqueIds(nodeParticleSystemSet.nodeParticleSystemSet, particlesData);

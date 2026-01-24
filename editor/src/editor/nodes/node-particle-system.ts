@@ -4,7 +4,7 @@ import { UniqueNumber } from "../../tools/tools";
 import { setParticleSystemVisibleInGraph } from "../../tools/particles/metadata";
 import { isParticleSystem, isGPUParticleSystem } from "../../tools/guards/particles";
 
-export class NodeParticleSystemMesh extends Mesh {
+export class NodeParticleSystemSetMesh extends Mesh {
 	/**
 	 * Defines the reference to the associated Particle System Set created from the node particle system set.
 	 */
@@ -66,7 +66,7 @@ export class NodeParticleSystemMesh extends Mesh {
 	 * @return the class name
 	 */
 	public getClassName(): string {
-		return "NodeParticleSystemMesh";
+		return "NodeParticleSystemSetMesh";
 	}
 
 	public serialize(serializationObject: any = {}): any {
@@ -84,8 +84,8 @@ export class NodeParticleSystemMesh extends Mesh {
 		return serializationObject;
 	}
 
-	public static override Parse(parsedMesh: any, scene: Scene, _rootUrl: string): NodeParticleSystemMesh {
-		const mesh = new NodeParticleSystemMesh(parsedMesh.name, scene);
+	public static override Parse(parsedMesh: any, scene: Scene, _rootUrl: string): NodeParticleSystemSetMesh {
+		const mesh = new NodeParticleSystemSetMesh(parsedMesh.name, scene);
 
 		if (parsedMesh.nodeParticleSystemSet) {
 			mesh.buildNodeParticleSystemSet(parsedMesh.nodeParticleSystemSet);
