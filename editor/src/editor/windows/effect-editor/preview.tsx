@@ -16,6 +16,13 @@ import { IoPlay, IoStop, IoRefresh } from "react-icons/io5";
 import type { IEffectEditor } from ".";
 import { Effect, type IEffectNode } from "babylonjs-editor-tools";
 
+// don't like because it's not a good practice, but it's the only way to load the shaders
+import "@babylonjs/core/Particles/particleSystemComponent";
+import "@babylonjs/core/Shaders/particles.vertex";
+import "@babylonjs/core/Shaders/particles.fragment";
+import "@babylonjs/core/Shaders/rgbdDecode.fragment";
+
+
 export interface IEffectEditorPreviewProps {
 	filePath: string | null;
 	onSceneReady?: (scene: Scene) => void;
