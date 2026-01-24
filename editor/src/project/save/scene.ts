@@ -14,9 +14,9 @@ import { isNodeVisibleInGraph } from "../../tools/node/metadata";
 import { getBufferSceneScreenshot } from "../../tools/scene/screenshot";
 import { createDirectoryIfNotExist, normalizedGlob } from "../../tools/fs";
 import { isSpriteManagerNode, isSpriteMapNode } from "../../tools/guards/sprites";
-import { isGPUParticleSystem, isNodeParticleSystemMesh, isParticleSystem } from "../../tools/guards/particles";
 import { serializePhysicsAggregate } from "../../tools/physics/serialization/aggregate";
 import { isAnimationGroupFromSceneLink, isFromSceneLink } from "../../tools/scene/scene-link";
+import { isGPUParticleSystem, isNodeParticleSystemSetMesh, isParticleSystem } from "../../tools/guards/particles";
 import { isAnyTransformNode, isCollisionMesh, isEditorCamera, isMesh, isTransformNode } from "../../tools/guards/nodes";
 
 import { vlsPostProcessCameraConfigurations } from "../../editor/rendering/vls";
@@ -604,7 +604,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 	// Write node particle systems
 	await Promise.all(
 		scene.meshes.map(async (mesh) => {
-			if (!isNodeParticleSystemMesh(mesh) || isFromSceneLink(mesh)) {
+			if (!isNodeParticleSystemSetMesh(mesh) || isFromSceneLink(mesh)) {
 				return;
 			}
 
