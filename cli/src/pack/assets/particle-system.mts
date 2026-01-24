@@ -48,26 +48,21 @@ export interface IExtractParticleSystemTexturesOptions {
 }
 
 export async function extractParticleSystemTextures(particleSystemData: any, options: IExtractParticleSystemTexturesOptions) {
-	if (particleSystemData.particleTexture?.name.startsWith("data:")) {
-		const relativePath = await extractTextureAssetFromDataString(particleSystemData.particleTexture.name, {
+	let relativePath: string | null = null;
+
+	if (particleSystemData.texture?.name.startsWith("http://") || particleSystemData.texture?.name.startsWith("https://")) {
+		relativePath = await extractTextureAssetFromUrl(particleSystemData.texture.name, {
 			...options,
 		});
-
-		if (relativePath) {
-			particleSystemData.particleTexture.name = relativePath;
-			particleSystemData.particleTexture.url = particleSystemData.particleTexture.name;
-		}
+	} else if (particleSystemData.texture?.name.startsWith("data:")) {
+		relativePath = await extractTextureAssetFromDataString(particleSystemData.texture.name, {
+			...options,
+		});
 	}
 
-	if (particleSystemData.texture?.name.startsWith("data:")) {
-		const relativePath = await extractTextureAssetFromDataString(particleSystemData.texture.name, {
-			...options,
-		});
-
-		if (relativePath) {
-			particleSystemData.texture.name = relativePath;
-			particleSystemData.texture.url = particleSystemData.texture.name;
-		}
+	if (relativePath) {
+		particleSystemData.texture.name = relativePath;
+		particleSystemData.texture.url = particleSystemData.texture.name;
 	}
 }
 
@@ -78,7 +73,7 @@ export async function extractNodeParticleSystemSetTextures(particleSystemData: a
 
 	await Promise.all(
 		blocks.map(async (block: any) => {
-			if (block.url) {
+			if (block.url?.startsWith("http://") || block.url.startsWith("https://")) {
 				const relativePath = await extractTextureAssetFromUrl(block.url, {
 					...options,
 				});
