@@ -30,6 +30,20 @@ export async function pack(projectDir: string, options: IPackOptions) {
 
 	await fs.ensureDir(publicDir);
 
+	const baseAssetsDir = join(projectDir, "assets");
+	const outputAssetsDir = join(publicDir, "assets");
+
+	await fs.ensureDir(outputAssetsDir);
+
+	const exportedAssets: string[] = [];
+
+	let cache: Record<string, string> = {};
+	try {
+		cache = await fs.readJSON(join(projectDir, "assets/.export-cache.json"));
+	} catch (e) {
+		// Catch silently.
+	}
+
 	// Pack assets
 	const assetsLog = ora(`Packing assets...`);
 	assetsLog.spinner = cliSpinners.dots14;
@@ -37,8 +51,12 @@ export async function pack(projectDir: string, options: IPackOptions) {
 
 	await createAssets({
 		...options,
+		cache,
 		projectDir,
 		publicDir,
+		baseAssetsDir,
+		outputAssetsDir,
+		exportedAssets,
 	});
 
 	assetsLog.succeed(`Packed assets`);
@@ -79,6 +97,7 @@ export async function pack(projectDir: string, options: IPackOptions) {
 			publicDir,
 			sceneFile,
 			sceneName,
+			exportedAssets,
 			babylonjsEditorToolsVersion,
 		});
 
@@ -88,9 +107,27 @@ export async function pack(projectDir: string, options: IPackOptions) {
 			publicDir,
 			sceneFile,
 			sceneName,
+			exportedAssets,
 			babylonjsEditorToolsVersion,
 		});
 
 		sceneLog.succeed(`Packed ${sceneFilename}`);
 	}
+
+	// Save cache
+	await fs.writeJSON(join(projectDir, "assets/.export-cache.json"), cache, {
+		encoding: "utf-8",
+		spaces: "\t",
+	});
+
+	// Clean
+	const publicFiles = await normalizedGlob(join(publicDir, "**/*"), {
+		nodir: true,
+	});
+
+	publicFiles.forEach((file) => {
+		if (!exportedAssets.includes(file.toString())) {
+			fs.remove(file);
+		}
+	});
 }

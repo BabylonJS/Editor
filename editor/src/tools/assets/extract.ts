@@ -47,7 +47,13 @@ export async function extractTextureAssetFromDataString(editor: Editor, options:
 			await writeFile(outputFilename, buffer);
 		}
 
-		return join("assets", "editor-generated_extracted-textures", filename).replace(/\\/g, "/");
+		return {
+			baseSize: {
+				width: metadata.width,
+				height: metadata.height,
+			},
+			relativePath: join("assets", "editor-generated_extracted-textures", filename).replace(/\\/g, "/"),
+		};
 	}
 
 	return null;
