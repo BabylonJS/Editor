@@ -5,14 +5,16 @@ import fs from "fs-extra";
 import { readSceneDirectories } from "../tools/scene.mjs";
 
 import { extractNodeMaterialTextures } from "./assets/material.mjs";
-import { getExtractedTextureOutputPath } from "./assets/texture.mjs";
-import { extractParticleSystemTextures } from "./assets/particle-system.mjs";
+import { getExtractedTextureOutputPath, processExportedTexture } from "./assets/texture.mjs";
+import { extractNodeParticleSystemSetTextures, extractParticleSystemTextures } from "./assets/particle-system.mjs";
 
 export interface ICreateBabylonSceneOptions {
 	sceneFile: string;
 	sceneName: string;
 	publicDir: string;
 	babylonjsEditorToolsVersion: string;
+
+	exportedAssets: string[];
 
 	config: any;
 	directories: Awaited<ReturnType<typeof readSceneDirectories>>;
@@ -158,9 +160,21 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 	await Promise.all(
 		materials.map(async (material) => {
 			if (material.customType === "BABYLON.NodeMaterial") {
-				await extractNodeMaterialTextures(material, {
+				const result = await extractNodeMaterialTextures(material, {
 					extractedTexturesOutputPath,
 				});
+
+				await Promise.all(
+					result.map(async (relativePath) => {
+						const finalPath = join(options.publicDir, relativePath);
+						options.exportedAssets.push(finalPath);
+
+						await processExportedTexture(finalPath, {
+							force: true,
+							exportedAssets: options.exportedAssets,
+						});
+					})
+				);
 			}
 		})
 	);
@@ -170,11 +184,47 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 		options.directories.particleSystemFiles.map(async (file) => {
 			const data = await fs.readJSON(join(options.sceneFile, "particleSystems", file));
 
-			await extractParticleSystemTextures(data, {
+			const result = await extractParticleSystemTextures(data, {
 				extractedTexturesOutputPath,
 			});
 
+			if (result) {
+				const finalPath = join(options.publicDir, result);
+				options.exportedAssets.push(finalPath);
+
+				await processExportedTexture(finalPath, {
+					force: true,
+					exportedAssets: options.exportedAssets,
+				});
+			}
+
 			return data;
+		})
+	);
+
+	// Node particle system sets
+	await Promise.all(
+		options.directories.nodeParticleSystemSetFiles.map(async (file) => {
+			const data = await fs.readJSON(join(options.sceneFile, "nodeParticleSystemSets", file));
+			if (data.nodeParticleSystemSet) {
+				const result = await extractNodeParticleSystemSetTextures(data.nodeParticleSystemSet, {
+					extractedTexturesOutputPath,
+				});
+
+				await Promise.all(
+					result.map(async (relativePath) => {
+						const finalPath = join(options.publicDir, relativePath);
+						options.exportedAssets.push(finalPath);
+
+						await processExportedTexture(finalPath, {
+							force: true,
+							exportedAssets: options.exportedAssets,
+						});
+					})
+				);
+			}
+
+			meshes.push(data);
 		})
 	);
 
@@ -270,8 +320,11 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 		),
 	};
 
-	await fs.writeJSON(join(options.publicDir, `${options.sceneName}.babylon`), scene, {
+	const destination = join(options.publicDir, `${options.sceneName}.babylon`);
+	await fs.writeJSON(destination, scene, {
 		encoding: "utf-8",
 		// spaces: "\t", // Useful for debug
 	});
+
+	options.exportedAssets.push(destination);
 }
