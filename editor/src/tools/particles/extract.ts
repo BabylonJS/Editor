@@ -14,13 +14,13 @@ export async function extractParticleSystemTextures(editor: Editor, options: IEx
 	await Promise.all(
 		particleSystems.map(async (ps) => {
 			if (ps.particleTexture?.name.startsWith("data:")) {
-				const relativePath = await extractTextureAssetFromDataString(editor, {
+				const result = await extractTextureAssetFromDataString(editor, {
 					dataString: ps.particleTexture.name,
 					assetsDirectory: options.assetsDirectory,
 				});
 
-				if (relativePath) {
-					ps.particleTexture.name = relativePath;
+				if (result) {
+					ps.particleTexture.name = result.relativePath;
 					if (isTexture(ps.particleTexture)) {
 						ps.particleTexture.url = ps.particleTexture.name;
 					}
@@ -40,25 +40,29 @@ export async function extractNodeParticleSystemSetTextures(editor: Editor, optio
 	await Promise.all(
 		blocks.map(async (block: any) => {
 			if (block.url) {
-				const relativePath = await extractTextureAssetFromUrl(editor, {
+				const result = await extractTextureAssetFromUrl(editor, {
 					url: block.url,
 					assetsDirectory: options.assetsDirectory,
 				});
 
-				if (relativePath) {
-					block.url = relativePath;
+				if (result) {
+					block.metadata ??= {};
+					block.metadata.baseSize = result.baseSize;
+					block.url = result.relativePath;
 				}
 			}
 
 			if (block.textureDataUrl?.startsWith("data:")) {
-				const relativePath = await extractTextureAssetFromDataString(editor, {
+				const result = await extractTextureAssetFromDataString(editor, {
 					dataString: block.textureDataUrl,
 					assetsDirectory: options.assetsDirectory,
 				});
 
-				if (relativePath) {
+				if (result) {
 					delete block.textureDataUrl;
-					block.url = relativePath;
+					block.metadata ??= {};
+					block.metadata.baseSize = result.baseSize;
+					block.url = result.relativePath;
 				}
 			}
 		})

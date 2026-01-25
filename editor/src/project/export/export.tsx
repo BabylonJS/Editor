@@ -10,8 +10,8 @@ import { isNodeMaterial } from "../../tools/guards/material";
 import { getCollisionMeshFor } from "../../tools/mesh/collision";
 import { extractNodeMaterialTextures } from "../../tools/material/extract";
 import { createDirectoryIfNotExist, normalizedGlob } from "../../tools/fs";
-import { extractParticleSystemTextures } from "../../tools/particles/extract";
 import { isCollisionMesh, isEditorCamera, isMesh } from "../../tools/guards/nodes";
+import { extractNodeParticleSystemSetTextures, extractParticleSystemTextures } from "../../tools/particles/extract";
 
 import { saveRenderingConfigurationForCamera } from "../../editor/rendering/tools";
 import { serializeVLSPostProcess, vlsPostProcessCameraConfigurations } from "../../editor/rendering/vls";
@@ -297,6 +297,23 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 				extractNodeMaterialTextures(editor, {
 					materialData,
 					assetsDirectory: extractedTexturesOutputPath,
+				})
+			)
+		);
+	}
+
+	// Extract texture from node particle systems.
+	const nodeParticleSystems = data.meshes?.filter((meshData) => {
+		return meshData.isNodeParticleSystemMesh && meshData.nodeParticleSystemSet;
+	});
+
+	if (nodeParticleSystems.length) {
+		await createDirectoryIfNotExist(extractedTexturesOutputPath);
+		await Promise.all(
+			nodeParticleSystems.map(async (meshData) =>
+				extractNodeParticleSystemSetTextures(editor, {
+					assetsDirectory: extractedTexturesOutputPath,
+					particlesData: meshData.nodeParticleSystemSet,
 				})
 			)
 		);
