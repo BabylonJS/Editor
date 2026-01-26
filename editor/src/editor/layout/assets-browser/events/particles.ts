@@ -13,13 +13,17 @@ export function listenParticleAssetsEvents(editor: Editor) {
 			return;
 		}
 
-		const nodeParticleSystemSet = editor.layout.preview.scene.meshes.find((m) => {
+		const nodeParticleSystemSets = editor.layout.preview.scene.meshes.filter((m) => {
 			return isNodeParticleSystemSetMesh(m) && m.nodeParticleSystemSet?.id === particlesData.id;
-		}) as NodeParticleSystemSetMesh | undefined;
+		}) as NodeParticleSystemSetMesh[];
 
-		if (nodeParticleSystemSet && nodeParticleSystemSet.nodeParticleSystemSet) {
-			normalizeNodeParticleSystemSetUniqueIds(nodeParticleSystemSet.nodeParticleSystemSet, particlesData);
-			await nodeParticleSystemSet.buildNodeParticleSystemSet(particlesData);
-		}
+		await Promise.all(
+			nodeParticleSystemSets?.map(async (nodeParticleSystemSet) => {
+				await nodeParticleSystemSet.buildNodeParticleSystemSet(particlesData);
+				if (nodeParticleSystemSet.nodeParticleSystemSet) {
+					normalizeNodeParticleSystemSetUniqueIds(nodeParticleSystemSet.nodeParticleSystemSet, particlesData);
+				}
+			})
+		);
 	});
 }

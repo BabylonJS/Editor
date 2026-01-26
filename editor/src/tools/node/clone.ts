@@ -14,7 +14,7 @@ import { UniqueNumber } from "../tools";
 import { cloneSprite } from "../sprite/tools";
 
 import { isTexture } from "../guards/texture";
-import { isAnyParticleSystem } from "../guards/particles";
+import { isAnyParticleSystem, isNodeParticleSystemSetMesh } from "../guards/particles";
 import { isSprite, isSpriteManagerNode, isSpriteMapNode } from "../guards/sprites";
 import { isCamera, isInstancedMesh, isLight, isMesh, isNode, isTransformNode } from "../guards/nodes";
 
@@ -32,63 +32,37 @@ export function cloneNode(editor: Editor, node: Node | Sprite | ParticleSystem |
 
 	let clone: Node | Sprite | ParticleSystem | GPUParticleSystem | null = null;
 
-	defer: {
-		if (isMesh(node)) {
-			const name = `${node.name.replace(` ${suffix}`, "")} ${suffix}`;
-			clone = node.clone(name, {
-				parent: node.parent,
-				doNotCloneChildren: false,
-				clonePhysicsImpostor: true,
-				cloneThinInstances: options?.cloneThinInstances ?? true,
-			});
-			break defer;
-		}
+	const name = `${node.name?.replace(` ${suffix}`, "")} ${suffix}`;
 
-		if (isLight(node) || isCamera(node)) {
-			const name = `${node.name.replace(` ${suffix}`, "")} ${suffix}`;
-			clone = node.clone(name, node.parent);
-			break defer;
-		}
+	if (isMesh(node)) {
+		clone = node.clone(name, {
+			parent: node.parent,
+			doNotCloneChildren: false,
+			clonePhysicsImpostor: true,
+			cloneThinInstances: options?.cloneThinInstances ?? true,
+		});
+	} else if (isLight(node) || isCamera(node)) {
+		clone = node.clone(name, node.parent);
+	} else if (isTransformNode(node) || isInstancedMesh(node)) {
+		clone = node.clone(name, node.parent, false);
+	} else if (isSprite(node)) {
+		clone = cloneSprite(node);
+	} else if (isSpriteManagerNode(node)) {
+		const serializationData = node.serialize();
 
-		if (isTransformNode(node) || isInstancedMesh(node)) {
-			const name = `${node.name.replace(` ${suffix}`, "")} ${suffix}`;
-			clone = node.clone(name, node.parent, false);
-			break defer;
-		}
+		clone = SpriteManagerNode.Parse(serializationData, editor.layout.preview.scene, getProjectAssetsRootUrl()!);
+		clone.name = name;
+		clone.parent = node.parent;
+	} else if (isSpriteMapNode(node)) {
+		const serializationData = node.serialize();
 
-		if (isSprite(node)) {
-			clone = cloneSprite(node);
-			break defer;
-		}
-
-		if (isSpriteManagerNode(node)) {
-			const name = `${node.name.replace(` ${suffix}`, "")} ${suffix}`;
-			const serializationData = node.serialize();
-
-			clone = SpriteManagerNode.Parse(serializationData, editor.layout.preview.scene, getProjectAssetsRootUrl()!);
-			clone.name = name;
-			clone.parent = node.parent;
-
-			break defer;
-		}
-
-		if (isSpriteMapNode(node)) {
-			const name = `${node.name.replace(` ${suffix}`, "")} ${suffix}`;
-			const serializationData = node.serialize();
-
-			clone = SpriteMapNode.Parse(serializationData, editor.layout.preview.scene, getProjectAssetsRootUrl()!);
-			clone.name = name;
-			clone.parent = node.parent;
-
-			break defer;
-		}
-
-		if (isAnyParticleSystem(node)) {
-			const name = `${node.name.replace(` ${suffix}`, "")} ${suffix}`;
-			clone = node.clone(name, node.emitter);
-
-			break defer;
-		}
+		clone = SpriteMapNode.Parse(serializationData, editor.layout.preview.scene, getProjectAssetsRootUrl()!);
+		clone.name = name;
+		clone.parent = node.parent;
+	} else if (isAnyParticleSystem(node)) {
+		clone = node.clone(name, node.emitter);
+	} else if (isNodeParticleSystemSetMesh(node)) {
+		clone = node.clone(name, node.parent, false, true);
 	}
 
 	if (!clone) {

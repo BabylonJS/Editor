@@ -12,7 +12,7 @@ export interface IProcessExportedMaterialOptions {
 	exportedAssets: string[];
 }
 
-export async function processExportedParticleSystem(absolutePath: string, options: IProcessExportedMaterialOptions) {
+export async function processExportedNodeParticleSystemSet(absolutePath: string, options: IProcessExportedMaterialOptions) {
 	const particleSystemData = await fs.readJSON(absolutePath);
 	if (particleSystemData.customType !== "BABYLON.NodeParticleSystemSet") {
 		return;
@@ -75,14 +75,14 @@ export async function extractNodeParticleSystemSetTextures(particleSystemData: a
 
 	await Promise.all(
 		blocks.map(async (block: any) => {
-			if (block.url?.startsWith("http://") || block.url.startsWith("https://")) {
+			if (block.url?.startsWith("http://") || block.url?.startsWith("https://")) {
 				const relativePath = await extractTextureAssetFromUrl(block.url, {
 					...options,
 				});
 
 				if (relativePath) {
 					relativePaths.push(relativePath);
-					block.url = relativePath;
+					block.url = `/scene/${relativePath}`;
 				}
 			}
 
@@ -94,7 +94,7 @@ export async function extractNodeParticleSystemSetTextures(particleSystemData: a
 				if (relativePath) {
 					relativePaths.push(relativePath);
 					delete block.textureDataUrl;
-					block.url = `scene/${relativePath}`;
+					block.url = `/scene/${relativePath}`;
 					block.serializedCachedData = false;
 				}
 			}

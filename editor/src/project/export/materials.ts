@@ -1,7 +1,6 @@
 import { join } from "path/posix";
 import { readJSON, writeJSON } from "fs-extra";
 
-import { createDirectoryIfNotExist } from "../../tools/fs";
 import { extractNodeMaterialTextures } from "../../tools/material/extract";
 
 import { Editor } from "../../editor/main";
@@ -22,25 +21,23 @@ export function configureMaterials(data: any) {
 	});
 }
 
-export type ComputeExportedMaterialOptions = {
+export type ProcessExportedMaterialOptions = {
 	force: boolean;
 	scenePath: string;
 	exportedAssets: string[];
 };
 
-export async function processExportedMaterial(editor: Editor, absolutePath: string, options: ComputeExportedMaterialOptions) {
+export async function processExportedMaterial(editor: Editor, absolutePath: string, options: ProcessExportedMaterialOptions) {
 	const materialData = await readJSON(absolutePath);
 	if (materialData.customType !== "BABYLON.NodeMaterial") {
 		return;
 	}
 
-	const extractedTexturesOutputPath = join(options.scenePath, "assets", "editor-generated_extracted-textures");
-
-	await createDirectoryIfNotExist(extractedTexturesOutputPath);
+	const assetsDirectory = join(options.scenePath, "assets", "editor-generated_extracted-textures");
 
 	const relativePaths = await extractNodeMaterialTextures(editor, {
 		materialData,
-		assetsDirectory: join(options.scenePath, "assets", "editor-generated_extracted-textures"),
+		assetsDirectory,
 	});
 
 	await writeJSON(absolutePath, materialData, {

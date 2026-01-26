@@ -206,6 +206,11 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 	await Promise.all(
 		options.directories.nodeParticleSystemSetFiles.map(async (file) => {
 			const data = await fs.readJSON(join(options.sceneFile, "nodeParticleSystemSets", file));
+
+			if (data.metadata?.parentId) {
+				data.parentId = data.metadata.parentId;
+			}
+
 			if (data.nodeParticleSystemSet) {
 				const result = await extractNodeParticleSystemSetTextures(data.nodeParticleSystemSet, {
 					extractedTexturesOutputPath,
