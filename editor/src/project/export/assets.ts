@@ -8,6 +8,7 @@ import { Editor } from "../../editor/main";
 import { compressFileToKtx } from "./ktx";
 import { processExportedTexture } from "./texture";
 import { processExportedMaterial } from "./materials";
+import { processExportedNodeParticleSystemSet } from "./particles";
 
 const supportedImagesExtensions: string[] = [".jpg", ".jpeg", ".webp", ".png", ".bmp"];
 
@@ -94,6 +95,12 @@ export async function processAssetFile(editor: Editor, file: string, options: Pr
 			});
 		} else if (extension === ".material") {
 			await processExportedMaterial(editor, finalPath, {
+				force: isNewFile,
+				scenePath: options.scenePath,
+				exportedAssets: options.exportedAssets,
+			});
+		} else if (extension === ".npss") {
+			await processExportedNodeParticleSystemSet(editor, finalPath, {
 				force: isNewFile,
 				scenePath: options.scenePath,
 				exportedAssets: options.exportedAssets,

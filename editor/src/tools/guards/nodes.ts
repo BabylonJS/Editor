@@ -32,6 +32,7 @@ export function isAbstractMesh(object: any): object is Mesh {
 		case "LineMesh":
 		case "GroundMesh":
 		case "InstancedMesh":
+		case "NodeParticleSystemSetMesh":
 			return true;
 	}
 

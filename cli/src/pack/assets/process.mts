@@ -5,7 +5,7 @@ import fs from "fs-extra";
 import { ICreateAssetsOptions } from "./assets.mjs";
 import { processExportedTexture } from "./texture.mjs";
 import { processExportedMaterial } from "./material.mjs";
-import { processExportedParticleSystem } from "./particle-system.mjs";
+import { processExportedNodeParticleSystemSet } from "./particle-system.mjs";
 
 const supportedImagesExtensions: string[] = [".jpg", ".jpeg", ".webp", ".png", ".bmp"];
 const supportedCubeTexturesExtensions: string[] = [".env", ".dds"];
@@ -92,7 +92,7 @@ export async function processAssetFile(file: string, options: IProcessAssetFileO
 				exportedAssets: options.exportedAssets,
 			});
 		} else if (extension === ".npss") {
-			await processExportedParticleSystem(finalPath, {
+			await processExportedNodeParticleSystemSet(finalPath, {
 				force: isNewFile,
 				publicDir: options.publicDir,
 				exportedAssets: options.exportedAssets,

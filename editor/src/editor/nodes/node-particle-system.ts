@@ -19,8 +19,8 @@ export class NodeParticleSystemSetMesh extends Mesh {
 	 * @param name defines the name of mesh.
 	 * @param scene defines the scene the mesh belongs to.
 	 */
-	public constructor(name: string, scene: Scene) {
-		super(name, scene);
+	public constructor(name: string, scene: Scene, parent?: Node | null, source?: Mesh, doNotCloneChildren?: boolean, clonePhysicsImpostor?: boolean) {
+		super(name, scene, parent, source, doNotCloneChildren, clonePhysicsImpostor);
 	}
 
 	public async buildNodeParticleSystemSet(data: any): Promise<void> {
@@ -67,6 +67,20 @@ export class NodeParticleSystemSetMesh extends Mesh {
 	 */
 	public getClassName(): string {
 		return "NodeParticleSystemSetMesh";
+	}
+
+	public clone(name?: string, newParent?: Node | null, doNotCloneChildren?: boolean, clonePhysicsImpostor?: boolean): NodeParticleSystemSetMesh {
+		const clone = new NodeParticleSystemSetMesh(name ?? this.name, this.getScene(), newParent, this, doNotCloneChildren, clonePhysicsImpostor);
+
+		if (this.nodeParticleSystemSet) {
+			clone.buildNodeParticleSystemSet({
+				...this.nodeParticleSystemSet.serialize(),
+				id: this.nodeParticleSystemSet.id,
+				uniqueId: this.nodeParticleSystemSet.uniqueId,
+			});
+		}
+
+		return clone;
 	}
 
 	public serialize(serializationObject: any = {}): any {
