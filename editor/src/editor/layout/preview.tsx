@@ -402,8 +402,8 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
 			position = getCameraFocusPositionFor(center, camera, {
 				distance: 2,
-				minimum: bb.boundingBox.minimumWorld,
-				maximum: bb.boundingBox.maximumWorld,
+				minimum: selectedNode.geometry ? bb.boundingBox.minimumWorld : new Vector3(-75, -75, -75),
+				maximum: selectedNode.geometry ? bb.boundingBox.maximumWorld : new Vector3(75, 75, 75),
 			});
 			target = bb.boundingBox.centerWorld;
 		} else if (isLight(selectedNode) || isAnyTransformNode(selectedNode)) {
