@@ -215,9 +215,14 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 		}
 
 		const wasLoadingError = texture.loadingError;
-
 		const projectDir = join(dirname(projectConfiguration.path));
-		const texturePath = texture.url.startsWith(projectDir) ? texture.url : join(projectDir, texture.url);
+
+		let texturePath: string;
+		if (texture.url.startsWith("data:")) {
+			texturePath = texture.url;
+		} else {
+			texturePath = texture.url.startsWith(projectDir) ? texture.url : join(projectDir, texture.url);
+		}
 
 		texture.updateURL(texturePath, undefined, () => {
 			texture["_loadingError"] = false;
@@ -274,6 +279,8 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 			return;
 		}
 
+		const isDataString = texture.url.startsWith("data:");
+
 		return (
 			<div className="flex flex-col gap-2 h-full">
 				<EditorInspectorSectionField title="Common">
@@ -281,10 +288,13 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 						<div className="w-1/2">Path</div>
 
 						<div
-							onClick={() => onSelectedAssetChanged.notifyObservers(join(dirname(projectConfiguration.path!), texture.name))}
-							className="text-white/50 w-full text-end overflow-hidden whitespace-nowrap text-ellipsis underline-offset-2 cursor-pointer hover:underline"
+							onClick={() => !isDataString && onSelectedAssetChanged.notifyObservers(join(dirname(projectConfiguration.path!), texture.name))}
+							className={`
+								text-white/50 w-full text-end overflow-hidden whitespace-nowrap
+								${isDataString ? "" : "text-ellipsis underline-offset-2 cursor-pointer hover:underline"}
+							`}
 						>
-							{texture.name}
+							{isDataString ? texture.name.substring(0, 64) : texture.name}
 						</div>
 					</div>
 
@@ -336,6 +346,8 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 			return;
 		}
 
+		const isDataString = texture.name.startsWith("data:");
+
 		return (
 			<div className="flex flex-col gap-2 h-full">
 				<EditorInspectorSectionField title="Common">
@@ -343,10 +355,13 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 						<div className="w-1/2">Path</div>
 
 						<div
-							onClick={() => onSelectedAssetChanged.notifyObservers(join(dirname(projectConfiguration.path!), texture.name))}
-							className="text-white/50 w-full text-end overflow-hidden whitespace-nowrap text-ellipsis underline-offset-2 cursor-pointer hover:underline"
+							onClick={() => !isDataString && onSelectedAssetChanged.notifyObservers(join(dirname(projectConfiguration.path!), texture.name))}
+							className={`
+								text-white/50 w-full text-end overflow-hidden whitespace-nowrap text-ellipsis
+								${isDataString ? "" : "underline-offset-2 cursor-pointer hover:underline"}
+							`}
 						>
-							{texture.name}
+							{isDataString ? texture.name.substring(0, 64) : texture.name}
 						</div>
 					</div>
 				</EditorInspectorSectionField>
@@ -359,6 +374,8 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 		if (!isTexture(texture)) {
 			return;
 		}
+
+		const isDataString = texture.name.startsWith("data:");
 
 		const o = {
 			samplingMode: texture.samplingMode,
@@ -378,10 +395,13 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 						<div className="w-1/2">Path</div>
 
 						<div
-							onClick={() => onSelectedAssetChanged.notifyObservers(join(dirname(projectConfiguration.path!), texture.name))}
-							className="text-white/50 w-full text-end overflow-hidden whitespace-nowrap text-ellipsis underline-offset-2 cursor-pointer hover:underline"
+							onClick={() => !isDataString && onSelectedAssetChanged.notifyObservers(join(dirname(projectConfiguration.path!), texture.name))}
+							className={`
+								text-white/50 w-full text-end overflow-hidden whitespace-nowrap text-ellipsis
+								${isDataString ? "" : "underline-offset-2 cursor-pointer hover:underline"}
+							`}
 						>
-							{texture.name}
+							{isDataString ? texture.name.substring(0, 64) : texture.name}
 						</div>
 					</div>
 					<EditorInspectorSwitchField
@@ -538,6 +558,10 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 			return;
 		}
 
+		if (texture.url.startsWith("data:")) {
+			return this._computeTemporaryPreviewFromDataString(texture.url);
+		}
+
 		const path = join(dirname(projectConfiguration.path!), texture.url);
 
 		if (!(await pathExists(path))) {
@@ -562,6 +586,29 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 			previewError: false,
 			previewTemporaryUrl: URL.createObjectURL(new Blob([buffer])),
 		});
+	}
+
+	private async _computeTemporaryPreviewFromDataString(dataString: string): Promise<void> {
+		const split = dataString.split(",");
+		const header = split[0];
+
+		const headerSplit = header.split(";");
+		const dataType = headerSplit[1];
+
+		const byteString = split[1];
+
+		if (dataType === "base64") {
+			const buffer = (await sharp(Buffer.from(byteString, "base64")).resize(128, 128).toBuffer()) as Buffer<ArrayBuffer>;
+
+			if (this.state.previewTemporaryUrl) {
+				URL.revokeObjectURL(this.state.previewTemporaryUrl);
+			}
+
+			this.setState({
+				previewError: false,
+				previewTemporaryUrl: URL.createObjectURL(new Blob([buffer])),
+			});
+		}
 	}
 
 	private _handleDragOver(ev: DragEvent<HTMLDivElement>): void {
