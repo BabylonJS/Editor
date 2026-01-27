@@ -101,28 +101,28 @@ export class EditorNodeParticleSystemSetMeshInspector extends Component<
 		});
 
 		const projectPath = dirname(projectConfiguration.path!);
-		const materialFiles = await normalizedGlob(join(projectPath, "assets/**/*.npss"), {
+		const nodeParticleSystemSetFiles = await normalizedGlob(join(projectPath, "assets/**/*.npss"), {
 			nodir: true,
 		});
 
-		await Promise.all(
-			materialFiles.map(async (filePath) => {
-				try {
-					const data = await readJSON(filePath, {
-						encoding: "utf-8",
+		for (const filePath of nodeParticleSystemSetFiles) {
+			try {
+				const data = await readJSON(filePath as string, {
+					encoding: "utf-8",
+				});
+
+				if (data.customType === "BABYLON.NodeParticleSystemSet" && data.id === this.props.object.nodeParticleSystemSet!.id) {
+					ipcRenderer.send("window:open", "build/src/editor/windows/npe", {
+						filePath,
+						rootUrl: getProjectAssetsRootUrl() ?? undefined,
 					});
 
-					if (data.customType === "BABYLON.NodeParticleSystemSet" && data.id === this.props.object.nodeParticleSystemSet!.id) {
-						ipcRenderer.send("window:open", "build/src/editor/windows/npe", {
-							filePath,
-							rootUrl: getProjectAssetsRootUrl() ?? undefined,
-						});
-					}
-				} catch (e) {
-					// Catch silently
+					break;
 				}
-			})
-		);
+			} catch (e) {
+				// Catch silently
+			}
+		}
 
 		this.setState({
 			searchingToEdit: false,
