@@ -107,7 +107,7 @@
 		"motion": "12.23.24",
 		"next-themes": "^0.3.0",
 		"node-pty": "1.1.0-beta43",
-		"pngjs": "^7.0.0",
+		"pngjs": "7.0.0",
 		"react": "18.2.0",
 		"react-awesome-reveal": "4.2.14",
 		"react-dom": "18.2.0",
