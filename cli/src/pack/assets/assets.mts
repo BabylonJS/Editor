@@ -13,6 +13,7 @@ export interface ICreateAssetsOptions {
 	optimize: boolean;
 	exportedAssets: string[];
 	cache: Record<string, string>;
+	compressedTexturesEnabled: boolean;
 }
 
 export async function createAssets(options: ICreateAssetsOptions) {

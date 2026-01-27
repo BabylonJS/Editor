@@ -4,8 +4,9 @@ import fs from "fs-extra";
 
 import { readSceneDirectories } from "../tools/scene.mjs";
 
+import { compressFileToKtx } from "./assets/ktx.mjs";
 import { extractNodeMaterialTextures } from "./assets/material.mjs";
-import { getExtractedTextureOutputPath, processExportedTexture } from "./assets/texture.mjs";
+import { getExtractedTextureOutputPath } from "./assets/texture.mjs";
 import { extractNodeParticleSystemSetTextures, extractParticleSystemTextures } from "./assets/particle-system.mjs";
 
 export interface ICreateBabylonSceneOptions {
@@ -13,8 +14,9 @@ export interface ICreateBabylonSceneOptions {
 	sceneName: string;
 	publicDir: string;
 	babylonjsEditorToolsVersion: string;
-
 	exportedAssets: string[];
+	optimize: boolean;
+	compressedTexturesEnabled: boolean;
 
 	config: any;
 	directories: Awaited<ReturnType<typeof readSceneDirectories>>;
@@ -169,10 +171,13 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 						const finalPath = join(options.publicDir, relativePath);
 						options.exportedAssets.push(finalPath);
 
-						await processExportedTexture(finalPath, {
-							force: true,
-							exportedAssets: options.exportedAssets,
-						});
+						if (options.optimize && options.compressedTexturesEnabled) {
+							await compressFileToKtx(finalPath, {
+								...options,
+								force: false,
+								exportedAssets: options.exportedAssets,
+							});
+						}
 					})
 				);
 			}
@@ -192,10 +197,13 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 				const finalPath = join(options.publicDir, result);
 				options.exportedAssets.push(finalPath);
 
-				await processExportedTexture(finalPath, {
-					force: true,
-					exportedAssets: options.exportedAssets,
-				});
+				if (options.optimize && options.compressedTexturesEnabled) {
+					await compressFileToKtx(finalPath, {
+						...options,
+						force: false,
+						exportedAssets: options.exportedAssets,
+					});
+				}
 			}
 
 			return data;
@@ -221,10 +229,13 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 						const finalPath = join(options.publicDir, relativePath);
 						options.exportedAssets.push(finalPath);
 
-						await processExportedTexture(finalPath, {
-							force: true,
-							exportedAssets: options.exportedAssets,
-						});
+						if (options.optimize && options.compressedTexturesEnabled) {
+							await compressFileToKtx(finalPath, {
+								...options,
+								force: false,
+								exportedAssets: options.exportedAssets,
+							});
+						}
 					})
 				);
 			}

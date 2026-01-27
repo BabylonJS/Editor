@@ -6,6 +6,7 @@ import ora from "ora";
 import cliSpinners from "cli-spinners";
 
 import { normalizedGlob } from "../tools/fs.mjs";
+import { locatePVRTexTool } from "../tools/ktx.mjs";
 import { ensureSceneDirectories, readSceneDirectories } from "../tools/scene.mjs";
 
 import { createAssets } from "./assets/assets.mjs";
@@ -24,6 +25,23 @@ export async function pack(projectDir: string, options: IPackOptions) {
 	}
 
 	projectDir = projectDir.replace(/\\/g, "/");
+
+	// Load project configuration
+	const projectFiles = await fs.readdir(projectDir);
+	const projectConfigurationFile = projectFiles.find((file) => extname(file).toLowerCase() === ".bjseditor");
+
+	let projectConfiguration = {
+		compressedTexturesEnabled: false,
+	};
+
+	if (projectConfigurationFile) {
+		projectConfiguration = await fs.readJSON(join(projectDir, projectConfigurationFile));
+	}
+
+	// Locate PVRTexToolCLI
+	if (projectConfiguration.compressedTexturesEnabled) {
+		await locatePVRTexTool();
+	}
 
 	const assetsDirectory = join(projectDir, "assets");
 	const publicDir = join(projectDir, "public/scene");
@@ -51,6 +69,7 @@ export async function pack(projectDir: string, options: IPackOptions) {
 
 	await createAssets({
 		...options,
+		...projectConfiguration,
 		cache,
 		projectDir,
 		publicDir,
@@ -92,6 +111,8 @@ export async function pack(projectDir: string, options: IPackOptions) {
 		const config = await fs.readJSON(join(sceneFile, "config.json"));
 
 		await createBabylonScene({
+			...options,
+			...projectConfiguration,
 			config,
 			directories,
 			publicDir,

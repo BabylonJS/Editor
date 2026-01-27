@@ -2,6 +2,7 @@ import { basename, extname, join } from "node:path/posix";
 
 import fs from "fs-extra";
 
+import { compressFileToKtx } from "./ktx.mjs";
 import { ICreateAssetsOptions } from "./assets.mjs";
 import { processExportedTexture } from "./texture.mjs";
 import { processExportedMaterial } from "./material.mjs";
@@ -26,6 +27,7 @@ export interface IProcessAssetFileOptions extends ICreateAssetsOptions {
 	exportedAssets: string[];
 	optimize: boolean;
 	cache: Record<string, string>;
+	compressedTexturesEnabled: boolean;
 }
 
 export async function processAssetFile(file: string, options: IProcessAssetFileOptions) {
@@ -72,30 +74,28 @@ export async function processAssetFile(file: string, options: IProcessAssetFileO
 
 	options.exportedAssets.push(finalPath);
 
-	if (options.optimize) {
-		// await compressFileToKtx(editor, finalPath, {
-		// 	force: isNewFile,
-		// 	exportedAssets: options.exportedAssets,
-		// });
+	if (options.optimize && options.compressedTexturesEnabled) {
+		await compressFileToKtx(finalPath, {
+			force: isNewFile,
+			exportedAssets: options.exportedAssets,
+		});
 	}
 
 	if (options.optimize) {
 		if (supportedImagesExtensions.includes(extension)) {
 			await processExportedTexture(finalPath, {
+				...options,
 				force: isNewFile,
-				exportedAssets: options.exportedAssets,
 			});
 		} else if (extension === ".material") {
 			await processExportedMaterial(finalPath, {
+				...options,
 				force: isNewFile,
-				publicDir: options.publicDir,
-				exportedAssets: options.exportedAssets,
 			});
 		} else if (extension === ".npss") {
 			await processExportedNodeParticleSystemSet(finalPath, {
+				...options,
 				force: isNewFile,
-				publicDir: options.publicDir,
-				exportedAssets: options.exportedAssets,
 			});
 		}
 	}
