@@ -1,8 +1,11 @@
+import dotEnv from "dotenv";
 import { Command } from "commander";
 
 import packageJson from "../package.json" with { type: "json" };
 
 import { pack } from "./pack/pack.mjs";
+
+dotEnv.config();
 
 const program = new Command();
 

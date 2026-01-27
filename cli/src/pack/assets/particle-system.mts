@@ -4,12 +4,14 @@ import fs from "fs-extra";
 
 import { extractTextureAssetFromDataString, extractTextureAssetFromUrl } from "../../tools/extract.mjs";
 
+import { compressFileToKtx } from "./ktx.mjs";
 import { getExtractedTextureOutputPath } from "./texture.mjs";
 
 export interface IProcessExportedMaterialOptions {
 	force: boolean;
 	publicDir: string;
 	exportedAssets: string[];
+	optimize: boolean;
 }
 
 export async function processExportedNodeParticleSystemSet(absolutePath: string, options: IProcessExportedMaterialOptions) {
@@ -35,10 +37,12 @@ export async function processExportedNodeParticleSystemSet(absolutePath: string,
 
 			options.exportedAssets.push(finalPath);
 
-			// await compressFileToKtx(editor, finalPath, {
-			// 	force: options.force,
-			// 	exportedAssets: options.exportedAssets,
-			// });
+			if (options.optimize) {
+				await compressFileToKtx(finalPath, {
+					force: options.force,
+					exportedAssets: options.exportedAssets,
+				});
+			}
 		})
 	);
 }

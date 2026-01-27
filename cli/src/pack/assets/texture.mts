@@ -5,6 +5,8 @@ import fs from "fs-extra";
 
 import { getPowerOfTwoUntil } from "../../tools/scalar.mjs";
 
+import { compressFileToKtx } from "./ktx.mjs";
+
 export function getExtractedTextureOutputPath(publicDir: string) {
 	return join(publicDir, "assets", "editor-generated_extracted-textures");
 }
@@ -12,6 +14,7 @@ export function getExtractedTextureOutputPath(publicDir: string) {
 export interface IComputeExportedTextureOptions {
 	force: boolean;
 	exportedAssets: string[];
+	compressedTexturesEnabled: boolean;
 }
 
 export async function processExportedTexture(absolutePath: string, options: IComputeExportedTextureOptions): Promise<void> {
@@ -79,9 +82,10 @@ export async function processExportedTexture(absolutePath: string, options: ICom
 			}
 		}
 
-		// await compressFileToKtx(editor, finalPath, {
-		// 	force: options.force,
-		// 	exportedAssets: options.exportedAssets,
-		// });
+		if (options.compressedTexturesEnabled) {
+			await compressFileToKtx(finalPath, {
+				...options,
+			});
+		}
 	}
 }
