@@ -19,8 +19,10 @@ export async function locatePVRTexTool() {
 	switch (platform) {
 		case "darwin":
 			absolutePathToCheck = "/Applications/Imagination/";
+			break;
 		case "win32":
 			absolutePathToCheck = "C:/Imagination Technologies/";
+			break;
 		default:
 			break;
 	}
