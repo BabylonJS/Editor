@@ -47,7 +47,7 @@
 			"type": "node-terminal",
 			"cwd": "${workspaceFolder}/cli",
 			"request": "launch",
-			"command": "node ./build/src/index.mjs pack ../templates/nextjs"
+			"command": "node ./build/src/index.mjs"
 		}
 	],
 	"compounds": [
