@@ -8,6 +8,7 @@
 		"start": "vite",
 		"dev": "vite",
 		"build": "vite build",
+		"generate": "babylonjs-editor-cli pack",
 		"serve": "vite preview"
 	},
 	"license": "MIT",
