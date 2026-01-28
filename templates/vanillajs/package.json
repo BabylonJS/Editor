@@ -11,21 +11,20 @@
 		"generate": "babylonjs-editor-cli pack",
 		"serve": "vite preview"
 	},
-	"license": "MIT",
-	"devDependencies": {
-		"@tailwindcss/vite": "4.1.18",
-		"tailwindcss": "4.1.18",
-		"typescript": "5.9.3",
-		"vite": "7.3.1",
-		"@types/node": "^22"
-	},
 	"dependencies": {
 		"@babylonjs/addons": "8.41.0",
 		"@babylonjs/core": "8.41.0",
 		"@babylonjs/gui": "8.41.0",
 		"@babylonjs/havok": "1.3.10",
 		"@babylonjs/materials": "8.41.0",
-		"babylonjs-editor-cli": "latest",
 		"babylonjs-editor-tools": "latest"
+	},
+	"devDependencies": {
+		"@tailwindcss/vite": "4.1.18",
+		"babylonjs-editor-cli": "latest",
+		"tailwindcss": "4.1.18",
+		"typescript": "5.9.3",
+		"vite": "7.3.1",
+		"@types/node": "^22"
 	}
 }
