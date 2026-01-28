@@ -4,14 +4,20 @@
 	"description": "Babylon.js Editor CLI is a command line interface to help you package your scenes made using the Babylon.js Editor",
 	"productName": "Babylon.js Editor CLI",
 	"scripts": {
-		"build": "tsc -p .",
-		"watch": "tsc -p . --watch"
+		"build": "tsc -p . && node esbuild.mjs",
+		"watch": "concurrently \"tsc -p . --watch\" \"node esbuild.mjs --watch\" -c bgYellow.bold,bgBlue.bold --names cli-ts,editor-dependencies"
 	},
-	"main": "build/src/index.mjs",
-	"typings": "declaration/src/index.d.ts",
+	"typings": "declaration/src/export.d.mts",
 	"license": "(Apache-2.0)",
 	"bin": {
 		"babylonjs-editor-cli": "./bin/babylonjs-editor-cli.js"
+	},
+	"exports": {
+		".": {
+			"types": "./declaration/src/export.d.ts",
+			"import": "./build/src/export.mjs",
+			"require": "./build/index.node.js"
+		}
 	},
 	"devDependencies": {},
 	"dependencies": {
