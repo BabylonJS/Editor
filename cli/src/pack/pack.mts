@@ -1,11 +1,10 @@
 import fs from "fs-extra";
-import { resolve } from "node:path";
 import { basename, extname, join } from "node:path/posix";
 
 import ora from "ora";
 import cliSpinners from "cli-spinners";
 
-import { normalizedGlob } from "../tools/fs.mjs";
+import { getProjectDir, normalizedGlob } from "../tools/fs.mjs";
 import { locatePVRTexTool, setPVRTexToolAbsolutePath } from "../tools/ktx.mjs";
 import { ensureSceneDirectories, readSceneDirectories } from "../tools/scene.mjs";
 
@@ -19,13 +18,7 @@ export interface IPackOptions {
 }
 
 export async function pack(projectDir: string, options: IPackOptions) {
-	const cwd = process.cwd();
-
-	if (projectDir !== cwd) {
-		projectDir = resolve(cwd, projectDir);
-	}
-
-	projectDir = projectDir.replace(/\\/g, "/");
+	projectDir = getProjectDir(projectDir);
 
 	// Load project configuration
 	const projectFiles = await fs.readdir(projectDir);
@@ -68,7 +61,7 @@ export async function pack(projectDir: string, options: IPackOptions) {
 	}
 
 	// Pack assets
-	const assetsLog = ora(`Packing assets...`);
+	const assetsLog = ora("Packing assets...");
 	assetsLog.spinner = cliSpinners.dots14;
 	assetsLog.start();
 
@@ -83,7 +76,7 @@ export async function pack(projectDir: string, options: IPackOptions) {
 		exportedAssets,
 	});
 
-	assetsLog.succeed(`Packed assets`);
+	assetsLog.succeed("Packed assets");
 
 	// Get babylonjs-editor-tools version
 	let babylonjsEditorToolsVersion = "5.0.0";
