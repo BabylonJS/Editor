@@ -8,16 +8,8 @@
 		"start": "vite",
 		"dev": "vite",
 		"build": "vite build",
+		"generate": "babylonjs-editor-cli pack",
 		"serve": "vite preview"
-	},
-	"license": "MIT",
-	"devDependencies": {
-		"@tailwindcss/vite": "4.1.18",
-		"tailwindcss": "4.1.18",
-		"typescript": "5.9.3",
-		"vite": "6.4.1",
-		"vite-plugin-solid": "^2.11.6",
-		"@types/node": "^22"
 	},
 	"dependencies": {
 		"@babylonjs/addons": "8.41.0",
@@ -28,5 +20,14 @@
 		"@solidjs/router": "^0.15.3",
 		"babylonjs-editor-tools": "latest",
 		"solid-js": "^1.9.5"
+	},
+	"devDependencies": {
+		"@tailwindcss/vite": "4.1.18",
+		"babylonjs-editor-cli": "latest",
+		"tailwindcss": "4.1.18",
+		"typescript": "5.9.3",
+		"vite": "7.3.1",
+		"vite-plugin-solid": "^2.11.6",
+		"@types/node": "^22"
 	}
 }

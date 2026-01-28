@@ -6,11 +6,11 @@ import { IoMdCube } from "react-icons/io";
 import { BsSoundwave } from "react-icons/bs";
 import { AiOutlinePlus } from "react-icons/ai";
 import { HiSpeakerWave } from "react-icons/hi2";
-import { TbGhost2Filled } from "react-icons/tb";
 import { MdOutlineQuestionMark } from "react-icons/md";
 import { GiBrickWall, GiSparkles } from "react-icons/gi";
 import { HiOutlineCubeTransparent } from "react-icons/hi";
 import { IoCheckmark, IoSparklesSharp } from "react-icons/io5";
+import { TbGhost2Filled, TbServerSpark } from "react-icons/tb";
 import { FaCamera, FaImage, FaLightbulb, FaBone } from "react-icons/fa";
 import { SiAdobeindesign, SiBabylondotjs } from "react-icons/si";
 
@@ -43,9 +43,10 @@ import { isAdvancedDynamicTexture } from "../../tools/guards/texture";
 import { updateIblShadowsRenderPipeline } from "../../tools/light/ibl";
 import { UniqueNumber, waitNextAnimationFrame } from "../../tools/tools";
 import { getSpriteManagerNodeFromSprite } from "../../tools/sprite/tools";
+import { isParticleSystemVisibleInGraph } from "../../tools/particles/metadata";
 import { applyTransformNodeParentingConfiguration } from "../../tools/node/parenting";
 import { isSprite, isSpriteManagerNode, isSpriteMapNode } from "../../tools/guards/sprites";
-import { isAnyParticleSystem, isGPUParticleSystem, isParticleSystem } from "../../tools/guards/particles";
+import { isAnyParticleSystem, isGPUParticleSystem, isNodeParticleSystemSetMesh, isParticleSystem } from "../../tools/guards/particles";
 import {
 	isAbstractMesh,
 	isAnyTransformNode,
@@ -446,7 +447,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 					nodesToCopy.forEach((object) => {
 						let node: Node | IParticleSystem | Sprite | null = null;
 
-						if (isAbstractMesh(object)) {
+						if (isAbstractMesh(object) && !isNodeParticleSystemSetMesh(object)) {
 							const suffix = "(Instanced Mesh)";
 							const name = isInstancedMesh(object) ? object.name : `${object.name.replace(` ${suffix}`, "")} ${suffix}`;
 
@@ -949,7 +950,11 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			if (isAbstractMesh(node) && !noChildren) {
 				const particleSystems = this.props.editor.layout.preview.scene.particleSystems.filter((ps) => ps.emitter === node);
 				particleSystems.forEach((particleSystem) => {
-					if (particleSystem.name.toLowerCase().includes(this.state.search.toLowerCase())) {
+					if (
+						(isParticleSystem(particleSystem) || isGPUParticleSystem(particleSystem)) &&
+						isParticleSystemVisibleInGraph(particleSystem) &&
+						particleSystem.name.toLowerCase().includes(this.state.search.toLowerCase())
+					) {
 						info.childNodes?.push(this._getParticleSystemNode(particleSystem));
 					}
 				});
@@ -1036,6 +1041,10 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 	private _getIcon(object: any): ReactNode {
 		if (isTransformNode(object)) {
 			return <HiOutlineCubeTransparent className="w-4 h-4" />;
+		}
+
+		if (isNodeParticleSystemSetMesh(object)) {
+			return <TbServerSpark className="w-4 h-4" />;
 		}
 
 		if (isAbstractMesh(object)) {

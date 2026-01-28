@@ -1,18 +1,8 @@
 import { describe, expect, test, vi } from "vitest";
 
-import { wait, waitNextAnimationFrame, waitUntil, unique, UniqueNumber, sortAlphabetically, getCurrentCallStack } from "../../src/tools/tools";
+import { waitNextAnimationFrame, unique, UniqueNumber, sortAlphabetically, getCurrentCallStack } from "../../src/tools/tools";
 
 describe("tools/tools", () => {
-	describe("wait", () => {
-		test("should wait the given time", async () => {
-			const previousTime = performance.now();
-			await wait(150);
-			const now = performance.now();
-
-			expect(now - previousTime).toBeGreaterThanOrEqual(150);
-		});
-	});
-
 	describe("waitNextAnimationFrame", () => {
 		test("should call requestAnimationFrame to wait", async () => {
 			(globalThis as any).requestAnimationFrame = vi.fn((callback) => {
@@ -23,23 +13,6 @@ describe("tools/tools", () => {
 			await waitNextAnimationFrame();
 			expect(requestAnimationFrameSpy).toHaveBeenCalled();
 			requestAnimationFrameSpy.mockRestore();
-		});
-	});
-
-	describe("waitUntil", () => {
-		test("should wait until the predicate returns true", async () => {
-			let counter = 0;
-			const predicate = () => counter === 3;
-
-			setTimeout(() => {
-				counter = 3;
-			}, 150);
-
-			const previousTime = performance.now();
-			await waitUntil(predicate);
-			const now = performance.now();
-
-			expect(now - previousTime).toBeGreaterThanOrEqual(150);
 		});
 	});
 

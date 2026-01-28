@@ -41,12 +41,28 @@
 			"cwd": "${workspaceFolder}/editor",
 			"request": "launch",
 			"command": "yarn watch-test"
+		},
+		{
+			"name": "Debug Editor CLI",
+			"type": "node-terminal",
+			"cwd": "${workspaceFolder}/cli",
+			"request": "launch",
+			"command": "node ./build/src/index.mjs"
 		}
 	],
 	"compounds": [
 		{
 			"name": "Debug Editor & Website",
 			"configurations": ["Electron With Devtools", "Website"],
+			"stopAll": true,
+			"presentation": {
+				"group": "Editor",
+				"order": 1
+			}
+		},
+		{
+			"name": "Debug Editor & CLI",
+			"configurations": ["Electron With Devtools", "Debug Editor CLI"],
 			"stopAll": true,
 			"presentation": {
 				"group": "Editor",

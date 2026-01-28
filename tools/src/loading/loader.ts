@@ -20,9 +20,11 @@ import { _preloadScriptsAssets } from "./script/preload";
 import { registerAudioParser } from "./sound";
 import { registerTextureParser } from "./texture";
 import { registerShadowGeneratorParser } from "./shadows";
+import { registerMorphTargetManagerParser } from "./morph-target-manager";
 
 import { registerSpriteMapParser } from "./sprite-map";
 import { registerSpriteManagerParser } from "./sprite-manager";
+import { registerNodeParticleSystemSetParser } from "./node-particle-system-set";
 
 /**
  * Defines the possible output type of a script.
@@ -98,8 +100,12 @@ export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scen
 	registerTextureParser();
 	registerShadowGeneratorParser();
 
+	registerMorphTargetManagerParser();
+
 	registerSpriteMapParser();
 	registerSpriteManagerParser();
+
+	registerNodeParticleSystemSetParser();
 
 	await AppendSceneAsync(`${rootUrl}${sceneFilename}`, scene, {
 		pluginExtension: ".babylon",
