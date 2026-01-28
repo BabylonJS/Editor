@@ -16,7 +16,6 @@ export interface ICreateGeometryFilesOptions {
 
 export async function createGeometryFiles(options: ICreateGeometryFilesOptions) {
 	await fs.ensureDir(join(options.publicDir, options.sceneName));
-	await fs.ensureDir(join(options.publicDir, options.sceneName, "morphTargets"));
 
 	await Promise.all(
 		options.directories.geometryFiles.map(async (file) => {
@@ -27,6 +26,8 @@ export async function createGeometryFiles(options: ICreateGeometryFilesOptions) 
 	);
 
 	if (options.babylonjsEditorToolsVersion >= "5.2.6") {
+		await fs.ensureDir(join(options.publicDir, options.sceneName, "morphTargets"));
+
 		await Promise.all(
 			options.directories.morphTargetFiles.map(async (file) => {
 				const destination = join(options.publicDir, options.sceneName, "morphTargets", file);
