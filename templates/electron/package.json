@@ -8,6 +8,7 @@
 	"scripts": {
 		"dev": "DEV=1 concurrently \"vite\" \"tsc-watch -p tsconfig-electron.json --onSuccess \\\"electron .\\\"\"",
 		"build": "vite build && tsc -p tsconfig-electron.json",
+		"generate": "babylonjs-editor-cli pack",
 		"start": "electron .",
 		"package": "node build.mjs"
 	},

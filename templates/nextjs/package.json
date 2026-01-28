@@ -5,6 +5,7 @@
 	"scripts": {
 		"dev": "next dev",
 		"build": "next build",
+		"generate": "babylonjs-editor-cli pack",
 		"start": "next start",
 		"lint": "next lint"
 	},
