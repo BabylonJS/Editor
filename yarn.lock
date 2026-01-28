@@ -3843,6 +3843,21 @@ babylonjs-addons@8.41.0:
   dependencies:
     babylonjs "^8.41.0"
 
+babylonjs-editor-cli@latest:
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/babylonjs-editor-cli/-/babylonjs-editor-cli-5.0.0.tgz#860ec093d8a4eea71b405adf8a984320d2f893de"
+  integrity sha512-9fNSNr6oXg11Cgj24+2uDc9XtmkelaBx13rMWIWh8mon6gnD9OiHfO+XgQWasVwKGs1wni0UlWO5edjmN0MDzw==
+  dependencies:
+    chalk "5.6.2"
+    cli-spinners "3.4.0"
+    commander "14.0.2"
+    dotenv "17.2.3"
+    fs-extra "11.2.0"
+    glob "11.1.0"
+    ora "9.1.0"
+    pngjs "7.0.0"
+    sharp "0.34.3"
+
 babylonjs-editor-tools@latest:
   version "5.0.0"
   resolved "https://registry.yarnpkg.com/babylonjs-editor-tools/-/babylonjs-editor-tools-5.0.0.tgz#d2e1919cc5d4defbcbcf60259a1eb73a589cf643"

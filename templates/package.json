@@ -3,7 +3,7 @@
 	"version": "0.1.0",
 	"private": true,
 	"scripts": {
-		"postinstall": "rimraf --glob ./**/node_modules/babylonjs-editor-tools",
+		"postinstall": "rimraf --glob ./**/node_modules/babylonjs-editor-tools ./**/node_modules/babylonjs-editor-cli",
 		"clean": "rimraf nextjs/.next */dist */public/scene electron/electron-packages",
 		"build": "yarn workspace babylonjs-editor-nextjs-template build && yarn workspace babylonjs-editor-solidjs-template build && yarn workspace babylonjs-editor-vanillajs-template build && yarn workspace babylonjs-editor-electron-template build",
 		"build-concurrently": "concurrently \"yarn workspace babylonjs-editor-nextjs-template build\" \"yarn workspace babylonjs-editor-solidjs-template build\" \"yarn workspace babylonjs-editor-vanillajs-template build\" \"yarn workspace babylonjs-editor-electron-template build\" -c bgMagenta.bold,bgCyan.bold,bgYellow.bold,bgBlue.bold --names nextjs,solidjs,vanillajs,electron"
