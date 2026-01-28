@@ -4,6 +4,10 @@ import { join } from "node:path/posix";
 
 export let pvrTexToolAbsolutePath: string | undefined;
 
+export function setPVRTexToolAbsolutePath(absolutePath: string) {
+	pvrTexToolAbsolutePath = absolutePath;
+}
+
 export async function locatePVRTexTool() {
 	if (process.env.PVRTexToolCLI) {
 		return (pvrTexToolAbsolutePath = process.env.PVRTexToolCLI);

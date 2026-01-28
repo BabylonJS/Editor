@@ -6,7 +6,7 @@ import ora from "ora";
 import cliSpinners from "cli-spinners";
 
 import { normalizedGlob } from "../tools/fs.mjs";
-import { locatePVRTexTool } from "../tools/ktx.mjs";
+import { locatePVRTexTool, setPVRTexToolAbsolutePath } from "../tools/ktx.mjs";
 import { ensureSceneDirectories, readSceneDirectories } from "../tools/scene.mjs";
 
 import { createAssets } from "./assets/assets.mjs";
@@ -15,6 +15,7 @@ import { createGeometryFiles } from "./geometry.mjs";
 
 export interface IPackOptions {
 	optimize: boolean;
+	pvrTexToolAbsolutePath?: string;
 }
 
 export async function pack(projectDir: string, options: IPackOptions) {
@@ -40,7 +41,11 @@ export async function pack(projectDir: string, options: IPackOptions) {
 
 	// Locate PVRTexToolCLI
 	if (projectConfiguration.compressedTexturesEnabled) {
-		await locatePVRTexTool();
+		if (options.pvrTexToolAbsolutePath) {
+			setPVRTexToolAbsolutePath(options.pvrTexToolAbsolutePath);
+		} else {
+			await locatePVRTexTool();
+		}
 	}
 
 	const assetsDirectory = join(projectDir, "assets");
