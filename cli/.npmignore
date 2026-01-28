@@ -1,0 +1,8 @@
+node_modules
+src
+!build/src
+!declaration/src
+
+tsconfig.json
+test
+esbuild.mjs
