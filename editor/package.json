@@ -10,7 +10,7 @@
 		"url": "https://twitter.com/luaacro"
 	},
 	"scripts": {
-		"postinstall": "rimraf --glob ./node_modules/babylonjs-editor-tools",
+		"postinstall": "rimraf --glob ./node_modules/babylonjs-editor-tools ./node_modules/babylonjs-editor-cli",
 		"build": "tsc -p . && tailwindcss -i ./index.css -o ./build/index.css && node esbuild.mjs",
 		"watch": "concurrently -i \"tsc -p . --watch\" \"node esbuild.mjs --watch\" -c bgYellow.bold,bgBlue.bold --names editor-ts,editor-dependencies",
 		"watch-css": "tailwindcss -i ./index.css -o ./build/index.css --watch",
