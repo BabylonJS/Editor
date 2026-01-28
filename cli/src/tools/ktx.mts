@@ -15,6 +15,8 @@ export async function locatePVRTexTool() {
 	switch (platform) {
 		case "darwin":
 			absolutePathToCheck = "/Applications/Imagination/";
+		case "win32":
+			absolutePathToCheck = "C:/Imagination Technologies/";
 		default:
 			break;
 	}
@@ -30,6 +32,8 @@ export async function locatePVRTexTool() {
 	switch (platform) {
 		case "darwin":
 			return (pvrTexToolAbsolutePath = files.find((file) => file.endsWith("macOS/PVRTexToolCLI")));
+		case "win32":
+			return (pvrTexToolAbsolutePath = files.find((file) => file.endsWith("Windows_x86_64/PVRTexToolCLI.exe")));
 	}
 
 	return undefined;
