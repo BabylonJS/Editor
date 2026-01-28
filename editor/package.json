@@ -104,7 +104,7 @@
 		"glob": "11.1.0",
 		"markdown-to-jsx": "7.6.2",
 		"math-expression-evaluator": "^2.0.6",
-		"md5": "^2.3.0",
+		"md5": "2.3.0",
 		"motion": "12.23.24",
 		"next-themes": "^0.3.0",
 		"node-pty": "1.1.0-beta43",
