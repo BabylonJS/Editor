@@ -30,6 +30,7 @@ export interface IEditorLayoutTabOptions {
 	title: string;
 
 	enableClose?: boolean;
+	setAsActiveTab?: boolean;
 }
 
 export class EditorLayout extends Component<IEditorLayoutProps> {
@@ -178,7 +179,7 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
 			enableClose: options.enableClose,
 		});
 
-		if (activeTabId) {
+		if (activeTabId && !options.setAsActiveTab) {
 			this._layoutRef?.props.model.doAction(Actions.selectTab(activeTabId));
 		}
 	}

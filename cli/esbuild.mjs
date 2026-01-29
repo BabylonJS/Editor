@@ -1,7 +1,7 @@
-import esbuild from "esbuild";
-
 import { argv, exit } from "node:process";
 import { readFile } from "node:fs/promises";
+
+import esbuild from "esbuild";
 
 const args = argv.slice(2);
 const isWatch = args.includes("--watch");
@@ -12,7 +12,10 @@ const replaceImportMetaDirname = {
 		build.onLoad({ filter: /.*/ }, async (args) => {
 			const source = await readFile(args.path, "utf8");
 
-			const transformedSource = source.replace(/import.meta.dirname/g, '"__dirname"');
+			const transformedSource = source
+				.replace(/import.meta.dirname/g, "__dirname")
+				.replace(/import.meta.filename/g, "__filename")
+				.replace(/workers\/md5.mjs/g, "workers/md5.js");
 
 			return {
 				loader: "default",
