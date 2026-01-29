@@ -11,6 +11,7 @@ import { isTexture } from "../../tools/guards/texture";
 import { isSceneLinkNode } from "../../tools/guards/scene";
 import { applyAssetsCache } from "../../tools/assets/cache";
 import { isNodeVisibleInGraph } from "../../tools/node/metadata";
+import { storeTexturesBaseSize } from "../../tools/material/texture";
 import { getBufferSceneScreenshot } from "../../tools/scene/screenshot";
 import { createDirectoryIfNotExist, normalizedGlob } from "../../tools/fs";
 import { isSpriteManagerNode, isSpriteMapNode } from "../../tools/guards/sprites";
@@ -85,6 +86,8 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 
 	const savedFiles: string[] = [];
 	const savedGeometryIds: string[] = [];
+
+	storeTexturesBaseSize(scene);
 
 	// Write geometries and meshes
 	await Promise.all(

@@ -5,9 +5,9 @@ import { RenderTargetTexture, SceneSerializer } from "babylonjs";
 
 import { toast } from "sonner";
 
-import { isTexture } from "../../tools/guards/texture";
 import { isNodeMaterial } from "../../tools/guards/material";
 import { getCollisionMeshFor } from "../../tools/mesh/collision";
+import { storeTexturesBaseSize } from "../../tools/material/texture";
 import { extractNodeMaterialTextures } from "../../tools/material/extract";
 import { createDirectoryIfNotExist, normalizedGlob } from "../../tools/fs";
 import { isCollisionMesh, isEditorCamera, isMesh } from "../../tools/guards/nodes";
@@ -107,17 +107,7 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 	const savedGeometries: string[] = [];
 	const savedGeometryIds: string[] = [];
 
-	// Configure textures to store base size. This will be useful for the scene loader located
-	// in the `babylonjs-editor-tools` package.
-	scene.textures.forEach((texture) => {
-		if (isTexture(texture)) {
-			texture.metadata ??= {};
-			texture.metadata.baseSize = {
-				width: texture.getBaseSize().width,
-				height: texture.getBaseSize().height,
-			};
-		}
-	});
+	storeTexturesBaseSize(scene);
 
 	scene.meshes.forEach((mesh) => (mesh.doNotSerialize = mesh.metadata?.doNotSerialize ?? false));
 	scene.lights.forEach((light) => (light.doNotSerialize = light.metadata?.doNotSerialize ?? false));
