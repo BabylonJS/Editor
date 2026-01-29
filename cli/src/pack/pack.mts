@@ -23,6 +23,7 @@ export interface IPackOptions {
 	optimize: boolean;
 	pvrTexToolAbsolutePath?: string;
 
+	onProgress?: (progress: number) => void;
 	onStepChanged?: (step: PackStepType, detail?: IPackStepDetails) => void;
 }
 
@@ -87,6 +88,10 @@ export async function pack(projectDir: string, options: IPackOptions) {
 		baseAssetsDir,
 		outputAssetsDir,
 		exportedAssets,
+		onProgress: (progress) => {
+			assetsLog.text = `Packing assets... ${progress.toFixed(2)}%`;
+			options.onProgress?.(progress);
+		},
 	});
 
 	assetsLog.succeed("Packed assets");
