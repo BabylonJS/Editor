@@ -12,9 +12,18 @@ import { createAssets } from "./assets/assets.mjs";
 import { createBabylonScene } from "./scene.mjs";
 import { createGeometryFiles } from "./geometry.mjs";
 
+export type PackStepType = "assets" | "scenes" | "upload";
+
+export interface IPackStepDetails {
+	message?: string;
+	success?: boolean;
+}
+
 export interface IPackOptions {
 	optimize: boolean;
 	pvrTexToolAbsolutePath?: string;
+
+	onStepChanged?: (step: PackStepType, detail?: IPackStepDetails) => void;
 }
 
 export async function pack(projectDir: string, options: IPackOptions) {
@@ -65,6 +74,10 @@ export async function pack(projectDir: string, options: IPackOptions) {
 	assetsLog.spinner = cliSpinners.dots14;
 	assetsLog.start();
 
+	options.onStepChanged?.("assets", {
+		message: "Packing assets...",
+	});
+
 	await createAssets({
 		...options,
 		...projectConfiguration,
@@ -77,6 +90,10 @@ export async function pack(projectDir: string, options: IPackOptions) {
 	});
 
 	assetsLog.succeed("Packed assets");
+	options.onStepChanged?.("assets", {
+		success: true,
+		message: "Packed assets",
+	});
 
 	// Get babylonjs-editor-tools version
 	let babylonjsEditorToolsVersion = "5.0.0";
@@ -108,6 +125,10 @@ export async function pack(projectDir: string, options: IPackOptions) {
 		const directories = await readSceneDirectories(sceneFile);
 		const config = await fs.readJSON(join(sceneFile, "config.json"));
 
+		options.onStepChanged?.("scenes", {
+			message: `Packing scene ${sceneName}...`,
+		});
+
 		await createBabylonScene({
 			...options,
 			...projectConfiguration,
@@ -118,6 +139,10 @@ export async function pack(projectDir: string, options: IPackOptions) {
 			sceneName,
 			exportedAssets,
 			babylonjsEditorToolsVersion,
+		});
+
+		options.onStepChanged?.("scenes", {
+			message: `Packing scene ${sceneName} geometries...`,
 		});
 
 		// Copy geometry files
@@ -132,6 +157,11 @@ export async function pack(projectDir: string, options: IPackOptions) {
 
 		sceneLog.succeed(`Packed ${sceneFilename}`);
 	}
+
+	options.onStepChanged?.("scenes", {
+		success: true,
+		message: "Packed scenes",
+	});
 
 	// Save cache
 	await fs.writeJSON(join(projectDir, "assets/.export-cache.json"), cache, {

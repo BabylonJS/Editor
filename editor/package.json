@@ -93,6 +93,7 @@
 		"cmdk": "^1.0.0",
 		"decompress": "^4.2.1",
 		"decompress-targz": "^4.1.1",
+		"dotenv": "17.2.3",
 		"dunder-proto": "1.0.1",
 		"electron-updater": "6.6.2",
 		"esbuild": "0.27.2",

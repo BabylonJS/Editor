@@ -6,12 +6,13 @@ import fs from "fs-extra";
 import { getPowerOfTwoUntil } from "../../tools/scalar.mjs";
 
 import { compressFileToKtx } from "./ktx.mjs";
+import { IProcessAssetFileOptions } from "./process.mjs";
 
 export function getExtractedTextureOutputPath(publicDir: string) {
 	return join(publicDir, "assets", "editor-generated_extracted-textures");
 }
 
-export interface IComputeExportedTextureOptions {
+export interface IComputeExportedTextureOptions extends IProcessAssetFileOptions {
 	force: boolean;
 	exportedAssets: string[];
 	compressedTexturesEnabled: boolean;
@@ -77,6 +78,10 @@ export async function processExportedTexture(absolutePath: string, options: ICom
 				await fs.writeFile(finalPath, buffer);
 
 				console.log(`Exported scaled texture "${finalName}"`);
+
+				options.onStepChanged?.("assets", {
+					message: `Exported scaled texture "${finalName}"`,
+				});
 			} catch (e) {
 				console.error(`Failed to export image scaled image "${finalName}"`);
 			}

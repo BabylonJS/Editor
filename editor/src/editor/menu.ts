@@ -48,9 +48,16 @@ export function setupEditorMenu(): void {
 						click: () => BrowserWindow.getFocusedWindow()?.webContents.send("save"),
 					},
 					{
+						type: "separator",
+					},
+					{
 						label: "Generate",
 						accelerator: "CommandOrControl+G",
 						click: () => BrowserWindow.getFocusedWindow()?.webContents.send("generate"),
+					},
+					{
+						label: "Generate Project...",
+						click: () => BrowserWindow.getFocusedWindow()?.webContents.send("editor:generate-project"),
 					},
 					{
 						type: "separator",
