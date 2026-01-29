@@ -72,6 +72,10 @@ export async function processAssetFile(file: string, options: IProcessAssetFileO
 		await fs.copyFile(file, finalPath);
 	}
 
+	options.onStepChanged?.("assets", {
+		message: `Processed asset: ${relativePath}`,
+	});
+
 	options.exportedAssets.push(finalPath);
 
 	if (options.optimize && options.compressedTexturesEnabled) {

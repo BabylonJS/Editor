@@ -3,6 +3,8 @@ import { extname, join } from "node:path/posix";
 
 import { normalizedGlob } from "../../tools/fs.mjs";
 
+import { IPackStepDetails, PackStepType } from "../pack.mjs";
+
 import { processAssetFile } from "./process.mjs";
 
 export interface ICreateAssetsOptions {
@@ -14,6 +16,8 @@ export interface ICreateAssetsOptions {
 	exportedAssets: string[];
 	cache: Record<string, string>;
 	compressedTexturesEnabled: boolean;
+
+	onStepChanged?: (step: PackStepType, detail?: IPackStepDetails) => void;
 }
 
 export async function createAssets(options: ICreateAssetsOptions) {

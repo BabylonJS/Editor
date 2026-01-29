@@ -1,4 +1,4 @@
-import { extname, join } from "node:path/posix";
+import { basename, extname, join } from "node:path/posix";
 
 import fs from "fs-extra";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
@@ -12,7 +12,9 @@ import { pack, IPackOptions } from "../pack/pack.mjs";
 import { executeSimpleWorker } from "../tools/worker.mjs";
 import { getProjectDir, normalizedGlob } from "../tools/fs.mjs";
 
-export interface IS3Options extends IPackOptions {
+export interface IS3Options extends Partial<IPackOptions> {
+	noPack?: boolean;
+
 	maxConnections?: number;
 
 	region?: string;
@@ -52,7 +54,12 @@ export async function s3(projectDir: string, options: IS3Options) {
 
 	projectDir = getProjectDir(projectDir);
 
-	await pack(projectDir, options);
+	if (!options.noPack) {
+		await pack(projectDir, {
+			...options,
+			optimize: options.optimize ?? false,
+		});
+	}
 
 	const client = new S3Client({
 		region,
@@ -133,6 +140,10 @@ export async function s3(projectDir: string, options: IS3Options) {
 						})
 					);
 
+					options.onStepChanged?.("upload", {
+						message: `Successfully uploaded ${basename(file)}.`,
+					});
+
 					console.log(`${chalk.green("Successfully")} uploaded ${s3Key}.`);
 					cache[relativeFilePath] = hash;
 				} catch (e) {
@@ -154,6 +165,11 @@ export async function s3(projectDir: string, options: IS3Options) {
 	} else {
 		assetsLog.succeed("Uploaded all assets successfully.");
 	}
+
+	options.onStepChanged?.("upload", {
+		success: true,
+		message: "Uploaded all assets successfully.",
+	});
 
 	// Save cache
 	await fs.writeJSON(join(projectDir, "assets/.s3-cache.json"), cache, {
