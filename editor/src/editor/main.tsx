@@ -155,7 +155,7 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 
 			editProject: false,
 			editPreferences: false,
-			generateProject: true,
+			generateProject: false,
 
 			nodeJSAvailable: false,
 			visualStudioCodeAvailable: false,

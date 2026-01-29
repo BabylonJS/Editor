@@ -1,20 +1,12 @@
 import { Component, ReactNode } from "react";
 
-import {
-	AlertDialog,
-	AlertDialogAction,
-	AlertDialogCancel,
-	AlertDialogContent,
-	AlertDialogDescription,
-	AlertDialogFooter,
-	AlertDialogHeader,
-	AlertDialogTitle,
-} from "../../../ui/shadcn/ui/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../../../ui/shadcn/ui/alert-dialog";
 
 import { Editor } from "../../main";
 
-import { EditorGenerateOptionsComponent } from "./options";
 import { EditorGenerateComponent } from "./generate";
+import { EditorGenerateOptionsComponent } from "./options";
+import { EditorGenerateCompleteComponent } from "./complete";
 
 export interface IEditorGenerateProjectComponentProps {
 	editor: Editor;
@@ -48,33 +40,41 @@ export class EditorGenerateProjectComponent extends Component<IEditorGeneratePro
 	public render(): ReactNode {
 		return (
 			<AlertDialog open={this.props.open}>
-				<AlertDialogContent>
-					<AlertDialogHeader>
-						<AlertDialogTitle className="text-3xl font-[400]">Generate Project</AlertDialogTitle>
-						<AlertDialogDescription className="flex flex-col w-full py-5">
-							{this.state.step === "options" && <EditorGenerateOptionsComponent options={this._options} />}
-							{this.state.step === "generation" && <EditorGenerateComponent options={this._options} />}
-						</AlertDialogDescription>
-					</AlertDialogHeader>
-					<AlertDialogFooter>
-						<AlertDialogCancel className="w-20" onClick={() => this._close()}>
-							Cancel
-						</AlertDialogCancel>
-						<AlertDialogAction className="w-20" onClick={() => this._next()}>
-							Next
-						</AlertDialogAction>
-					</AlertDialogFooter>
+				<AlertDialogContent className="transition-all duration-300 ease-in-out">
+					<AlertDialogHeader>{this.state.step !== "complete" && <AlertDialogTitle className="text-3xl font-[400]">Generate Project</AlertDialogTitle>}</AlertDialogHeader>
+
+					<div className="flex flex-col w-full py-5">
+						{this.state.step === "options" && <EditorGenerateOptionsComponent options={this._options} />}
+						{this.state.step === "generation" && <EditorGenerateComponent options={this._options} onComplete={() => this._next()} />}
+						{this.state.step === "complete" && <EditorGenerateCompleteComponent />}
+					</div>
+
+					{this.state.step !== "generation" && (
+						<AlertDialogFooter className="flex items-center gap-2">
+							{this.state.step === "options" && (
+								<AlertDialogCancel className="w-32" onClick={() => this._close()}>
+									Cancel
+								</AlertDialogCancel>
+							)}
+
+							<AlertDialogAction className="w-32" onClick={() => this._next()}>
+								{this.state.step === "options" ? "Next" : "Close"}
+							</AlertDialogAction>
+						</AlertDialogFooter>
+					)}
 				</AlertDialogContent>
 			</AlertDialog>
 		);
 	}
 
 	private _close(): void {
-		this.setState({
-			step: "options",
-		});
-
 		this.props.onClose();
+
+		setTimeout(() => {
+			this.setState({
+				step: "options",
+			});
+		}, 300);
 	}
 
 	private _next(): void {
@@ -82,6 +82,16 @@ export class EditorGenerateProjectComponent extends Component<IEditorGeneratePro
 			return this.setState({
 				step: "generation",
 			});
+		}
+
+		if (this.state.step === "generation") {
+			return this.setState({
+				step: "complete",
+			});
+		}
+
+		if (this.state.step === "complete") {
+			return this._close();
 		}
 	}
 }

@@ -86,8 +86,10 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 
 							<MenubarSeparator />
 
-							<MenubarItem onClick={() => exportProject(this.props.editor, { optimize: false })}>Generate</MenubarItem>
-							<MenubarItem onClick={() => this.props.editor.setState({ generateProject: true })}>Generate Project...</MenubarItem>
+							<MenubarItem onClick={() => exportProject(this.props.editor, { optimize: false })}>
+								Generate Current Scene <MenubarShortcut>CTRL+G</MenubarShortcut>
+							</MenubarItem>
+							<MenubarItem onClick={() => this.props.editor.setState({ generateProject: true })}>Generate All Scenes and Assets...</MenubarItem>
 
 							<MenubarSeparator />
 

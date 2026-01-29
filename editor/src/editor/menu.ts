@@ -51,12 +51,12 @@ export function setupEditorMenu(): void {
 						type: "separator",
 					},
 					{
-						label: "Generate",
+						label: "Generate Current Scene",
 						accelerator: "CommandOrControl+G",
 						click: () => BrowserWindow.getFocusedWindow()?.webContents.send("generate"),
 					},
 					{
-						label: "Generate Project...",
+						label: "Generate All Scenes and Assets...",
 						click: () => BrowserWindow.getFocusedWindow()?.webContents.send("editor:generate-project"),
 					},
 					{

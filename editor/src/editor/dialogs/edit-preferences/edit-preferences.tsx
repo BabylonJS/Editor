@@ -4,15 +4,7 @@ import { Label } from "../../../ui/shadcn/ui/label";
 import { Switch } from "../../../ui/shadcn/ui/switch";
 import { Separator } from "../../../ui/shadcn/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../ui/shadcn/ui/select";
-import {
-	AlertDialog,
-	AlertDialogCancel,
-	AlertDialogContent,
-	AlertDialogDescription,
-	AlertDialogFooter,
-	AlertDialogHeader,
-	AlertDialogTitle,
-} from "../../../ui/shadcn/ui/alert-dialog";
+import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../../../ui/shadcn/ui/alert-dialog";
 
 import { trySetExperimentalFeaturesEnabledInLocalStorage } from "../../../tools/local-storage";
 
@@ -52,15 +44,17 @@ export class EditorEditPreferencesComponent extends Component<IEditorEditPrefere
 				<AlertDialogContent>
 					<AlertDialogHeader>
 						<AlertDialogTitle className="text-3xl font-[400]">Edit Preferences</AlertDialogTitle>
-						<AlertDialogDescription className="flex flex-col gap-[20px]">
-							<Separator />
-							{this._getThemesComponent()}
-							<Separator />
-							{this._getCameraControlPreferences()}
-							<Separator />
-							{this._getExperimentalComponent()}
-						</AlertDialogDescription>
 					</AlertDialogHeader>
+
+					<div className="flex flex-col gap-[20px]">
+						<Separator />
+						{this._getThemesComponent()}
+						<Separator />
+						{this._getCameraControlPreferences()}
+						<Separator />
+						{this._getExperimentalComponent()}
+					</div>
+
 					<AlertDialogFooter>
 						<AlertDialogCancel onClick={() => this.props.onClose()}>Close</AlertDialogCancel>
 					</AlertDialogFooter>

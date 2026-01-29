@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import { Grid } from "react-loader-spinner";
 import { FaCheckCircle } from "react-icons/fa";
 
-import { IPackStepDetails, pack, PackStepType, s3 } from "babylonjs-editor-cli";
+import { IPackStepDetails, pack, PackStepType, s3, overrideWorkerMethods } from "babylonjs-editor-cli";
 
 import { Alert, AlertDescription, AlertTitle } from "../../../ui/shadcn/ui/alert";
 
@@ -16,9 +16,11 @@ import { getProjectAssetsRootUrl } from "../../../project/configuration";
 import { getCompressedTexturesCliPath } from "../../../project/export/ktx";
 
 import { IEditorGenerateOptions } from "./generate-project";
+import { executeSimpleWorker, loadWorker } from "../../../tools/worker";
 
 export interface IEditorGenerateComponentProps {
 	options: IEditorGenerateOptions;
+	onComplete: () => void;
 }
 
 export function EditorGenerateComponent(props: IEditorGenerateComponentProps) {
@@ -37,6 +39,8 @@ export function EditorGenerateComponent(props: IEditorGenerateComponentProps) {
 		if (!projectDir) {
 			return;
 		}
+
+		overrideWorkerMethods(loadWorker, executeSimpleWorker);
 
 		await pack(projectDir, {
 			optimize: props.options.optimize,
@@ -75,6 +79,8 @@ export function EditorGenerateComponent(props: IEditorGenerateComponentProps) {
 				});
 			}
 		}
+
+		props.onComplete();
 	}
 
 	return (
@@ -83,7 +89,7 @@ export function EditorGenerateComponent(props: IEditorGenerateComponentProps) {
 				variant="default"
 				className={`
                     flex gap-4 items-center
-                    ${status.assets.success ? "bg-green-500/10" : ""}
+                    ${status.assets.success ? "bg-green-900/35" : ""}
                     ${status.assets.message ? "opacity-100" : "opacity-35"}
                     transition-all duration-300 ease-in-out
                 `}

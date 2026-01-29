@@ -1,6 +1,7 @@
 import os from "node:os";
-import { normalizedGlob } from "./fs.mjs";
 import { join } from "node:path/posix";
+
+import { normalizedGlob } from "./fs.mjs";
 
 export let pvrTexToolAbsolutePath: string | undefined;
 

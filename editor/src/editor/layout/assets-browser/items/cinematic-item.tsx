@@ -25,6 +25,7 @@ export class AssetBrowserCinematicItem extends AssetsBrowserItem {
 		const cinematic = parseCinematic(data, this.props.editor.layout.preview.scene);
 
 		this.props.editor.layout.addLayoutTab(<CinematicEditor cinematic={cinematic} editor={this.props.editor} absolutePath={this.props.absolutePath} />, {
+			setAsActiveTab: true,
 			title: "Cinematic Editor",
 		});
 	}

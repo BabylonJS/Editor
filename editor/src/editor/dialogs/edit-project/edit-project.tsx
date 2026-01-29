@@ -2,16 +2,7 @@ import { toast } from "sonner";
 import { Component, ReactNode } from "react";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../ui/shadcn/ui/tabs";
-import {
-	AlertDialog,
-	AlertDialogAction,
-	AlertDialogCancel,
-	AlertDialogContent,
-	AlertDialogDescription,
-	AlertDialogFooter,
-	AlertDialogHeader,
-	AlertDialogTitle,
-} from "../../../ui/shadcn/ui/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../../../ui/shadcn/ui/alert-dialog";
 
 import { Editor } from "../../main";
 
@@ -42,26 +33,28 @@ export class EditorEditProjectComponent extends Component<IEditorEditProjectComp
 				<AlertDialogContent>
 					<AlertDialogHeader>
 						<AlertDialogTitle className="text-3xl font-[400]">Edit Project</AlertDialogTitle>
-						<AlertDialogDescription className="py-5" asChild>
-							<Tabs defaultValue="editor" className="w-full">
-								<TabsList className="w-full">
-									<TabsTrigger className="w-full" value="editor">
-										Editor
-									</TabsTrigger>
-									<TabsTrigger className="w-full" value="plugins">
-										Plugins
-									</TabsTrigger>
-								</TabsList>
-
-								<TabsContent value="editor">
-									<EditorEditProjectTextureComponent editor={this.props.editor} />
-								</TabsContent>
-								<TabsContent value="plugins">
-									<EditorEditProjectPluginComponent editor={this.props.editor} />
-								</TabsContent>
-							</Tabs>
-						</AlertDialogDescription>
 					</AlertDialogHeader>
+
+					<div className="py-5">
+						<Tabs defaultValue="editor" className="w-full">
+							<TabsList className="w-full">
+								<TabsTrigger className="w-full" value="editor">
+									Editor
+								</TabsTrigger>
+								<TabsTrigger className="w-full" value="plugins">
+									Plugins
+								</TabsTrigger>
+							</TabsList>
+
+							<TabsContent value="editor">
+								<EditorEditProjectTextureComponent editor={this.props.editor} />
+							</TabsContent>
+							<TabsContent value="plugins">
+								<EditorEditProjectPluginComponent editor={this.props.editor} />
+							</TabsContent>
+						</Tabs>
+					</div>
+
 					<AlertDialogFooter>
 						<AlertDialogCancel className="w-20" onClick={() => this.props.onClose()}>
 							Cancel

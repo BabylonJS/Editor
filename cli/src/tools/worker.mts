@@ -5,12 +5,12 @@ import { Worker } from "node:worker_threads";
  * Creates a new worker and returns its reference.
  * @param path defines the relative path to the worker entry point relative to THIS file.
  */
-export function loadWorker(path: string, workerData: WorkerMessageData) {
+export let loadWorker = (path: string, workerData?: WorkerMessageData) => {
 	path = join(import.meta.dirname.replace(/\\/g, "/"), path);
 	return new Worker(path, {
 		workerData,
 	});
-}
+};
 
 export type WorkerMessageData = { id?: string } & Record<string, any>;
 
@@ -22,7 +22,7 @@ export type WorkerMessageData = { id?: string } & Record<string, any>;
  * @param transfer defines the optional transferable objects to pass to the worker.
  * @returns a promise that resolves with the data posted by the worker.
  */
-export async function executeSimpleWorker<T>(pathOrWorker: string, data: WorkerMessageData) {
+export let executeSimpleWorker = async <T,>(pathOrWorker: string, data: WorkerMessageData) => {
 	const worker = loadWorker(pathOrWorker, data);
 
 	return new Promise<T>((resolve) => {
@@ -36,4 +36,9 @@ export async function executeSimpleWorker<T>(pathOrWorker: string, data: WorkerM
 			resolve(result);
 		});
 	});
+};
+
+export function overrideWorkerMethods(newLoadWorker: any, newExecuteSimpleWorker: any) {
+	loadWorker = newLoadWorker;
+	executeSimpleWorker = newExecuteSimpleWorker;
 }
