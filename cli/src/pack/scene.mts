@@ -29,7 +29,7 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 	const morphTargetManagers: any[] = [];
 
 	// Meshes
-	await Promise.all(
+	const meshesResult = await Promise.all(
 		options.directories.meshesFiles.map(async (file) => {
 			const data = await fs.readJSON(join(options.sceneFile, "meshes", file));
 			const mesh = data.meshes[0];
@@ -52,19 +52,31 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 				mesh.basePoseMatrix = data.basePoseMatrix;
 			}
 
-			meshes.push(mesh);
+			let effectiveMaterial: any;
 
 			data.materials?.forEach((material) => {
 				const existingMaterial = materials.find((m) => m.id === material.id);
 				if (!existingMaterial) {
-					materials.push(material);
+					effectiveMaterial = material;
 				}
 			});
+
+			return {
+				mesh,
+				effectiveMaterial,
+			};
 		})
 	);
 
+	meshesResult.forEach(({ mesh, effectiveMaterial }) => {
+		meshes.push(mesh);
+		if (effectiveMaterial) {
+			materials.push(effectiveMaterial);
+		}
+	});
+
 	// Morph targets
-	await Promise.all(
+	const morphTargetResult = await Promise.all(
 		options.directories.morphTargetManagerFiles.map(async (file) => {
 			const data = await fs.readJSON(join(options.sceneFile, "morphTargetManagers", file));
 
@@ -117,43 +129,51 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 				);
 			}
 
-			morphTargetManagers.push(data);
+			return data;
 		})
 	);
 
+	morphTargetManagers.push(...morphTargetResult);
+
 	// Transform nodes
-	await Promise.all(
+	const transformNodesResult = await Promise.all(
 		options.directories.nodesFiles.map(async (file) => {
 			const data = await fs.readJSON(join(options.sceneFile, "nodes", file));
 			if (data.metadata?.parentId) {
 				data.parentId = data.metadata.parentId;
 			}
 
-			transformNodes.push(data);
+			return data;
 		})
 	);
 
-	await Promise.all(
+	transformNodes.push(...transformNodesResult);
+
+	const spriteManagersResult = await Promise.all(
 		options.directories.spriteManagerFiles.map(async (file) => {
 			const data = await fs.readJSON(join(options.sceneFile, "sprite-managers", file));
 			if (data.metadata?.parentId) {
 				data.parentId = data.metadata.parentId;
 			}
 
-			transformNodes.push(data);
+			return data;
 		})
 	);
 
-	await Promise.all(
+	transformNodes.push(...spriteManagersResult);
+
+	const spriteMapsResult = await Promise.all(
 		options.directories.spriteMapFiles.map(async (file) => {
 			const data = await fs.readJSON(join(options.sceneFile, "sprite-maps", file));
 			if (data.metadata?.parentId) {
 				data.parentId = data.metadata.parentId;
 			}
 
-			transformNodes.push(data);
+			return data;
 		})
 	);
+
+	transformNodes.push(...spriteMapsResult);
 
 	// Extract materials
 	const extractedTexturesOutputPath = getExtractedTextureOutputPath(options.publicDir);
@@ -184,7 +204,7 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 		})
 	);
 
-	// Particle systems
+	// Extract particle systems
 	const particleSystems = await Promise.all(
 		options.directories.particleSystemFiles.map(async (file) => {
 			const data = await fs.readJSON(join(options.sceneFile, "particleSystems", file));
@@ -210,8 +230,8 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 		})
 	);
 
-	// Node particle system sets
-	await Promise.all(
+	// Extract node particle system sets
+	const nodeParticleSystemSetsResult = await Promise.all(
 		options.directories.nodeParticleSystemSetFiles.map(async (file) => {
 			const data = await fs.readJSON(join(options.sceneFile, "nodeParticleSystemSets", file));
 
@@ -240,9 +260,11 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 				);
 			}
 
-			meshes.push(data);
+			return data;
 		})
 	);
+
+	meshes.push(...nodeParticleSystemSetsResult);
 
 	const scene = {
 		autoClear: true,

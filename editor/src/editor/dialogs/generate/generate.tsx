@@ -24,6 +24,9 @@ export interface IEditorGenerateComponentProps {
 }
 
 export function EditorGenerateComponent(props: IEditorGenerateComponentProps) {
+	const [packProgress, setPackProgress] = useState(0);
+	const [uploadProgress, setUploadProgress] = useState(0);
+
 	const [status, setStatus] = useState<Record<PackStepType, IPackStepDetails>>({
 		assets: {},
 		scenes: {},
@@ -45,6 +48,7 @@ export function EditorGenerateComponent(props: IEditorGenerateComponentProps) {
 		await pack(projectDir, {
 			optimize: props.options.optimize,
 			pvrTexToolAbsolutePath: getCompressedTexturesCliPath() ?? undefined,
+			onProgress: (progress) => setPackProgress(progress),
 			onStepChanged: (step: PackStepType, detail?: IPackStepDetails) => {
 				setStatus((prevStatus) => ({
 					...prevStatus,
@@ -70,6 +74,7 @@ export function EditorGenerateComponent(props: IEditorGenerateComponentProps) {
 					accessKeyId: result.parsed?.SPACE_KEY,
 					secretAccessKey: result.parsed?.SPACE_SECRET,
 					rootKey: result.parsed?.SPACE_ROOT_KEY,
+					onProgress: (progress) => setUploadProgress(progress),
 					onStepChanged: (step: PackStepType, detail?: IPackStepDetails) => {
 						setStatus((prevStatus) => ({
 							...prevStatus,
@@ -88,12 +93,19 @@ export function EditorGenerateComponent(props: IEditorGenerateComponentProps) {
 			<Alert
 				variant="default"
 				className={`
-                    flex gap-4 items-center
+                    relative flex gap-4 items-center
                     ${status.assets.success ? "bg-green-900/35" : ""}
-                    ${status.assets.message ? "opacity-100" : "opacity-35"}
+                    ${status.assets.message ? "opacity-100" : "opacity-20"}
                     transition-all duration-300 ease-in-out
                 `}
 			>
+				<div
+					className="absolute top-0 left-0 w-full h-full bg-secondary/35 z-[0]"
+					style={{
+						maskImage: `linear-gradient(to right, white 0%, white ${packProgress}%, #00000010 ${packProgress}%, #00000010 100%)`,
+					}}
+				/>
+
 				{status.assets.success && <FaCheckCircle />}
 				{!status.assets.success && status.assets.message && <Grid width={24} height={24} color="gray" />}
 
@@ -108,7 +120,7 @@ export function EditorGenerateComponent(props: IEditorGenerateComponentProps) {
 				className={`
                     flex gap-4 items-center
                     ${status.scenes.success ? "bg-green-500/10" : ""}
-                    ${status.scenes.message ? "opacity-100" : "opacity-35"}
+                    ${status.scenes.message ? "opacity-100" : "opacity-20"}
                     transition-all duration-300 ease-in-out
                 `}
 			>
@@ -125,12 +137,19 @@ export function EditorGenerateComponent(props: IEditorGenerateComponentProps) {
 				<Alert
 					variant="default"
 					className={`
-                        flex gap-4 items-center
+                        relative flex gap-4 items-center
                         ${status.upload.success ? "bg-green-500/10" : ""}
-                        ${status.upload.message ? "opacity-100" : "opacity-35"}
+                        ${status.upload.message ? "opacity-100" : "opacity-20"}
                         transition-all duration-300 ease-in-out
                     `}
 				>
+					<div
+						className="absolute top-0 left-0 w-full h-full bg-secondary/35 z-[0]"
+						style={{
+							maskImage: `linear-gradient(to right, white 0%, white ${uploadProgress}%, #00000010 ${uploadProgress}%, #00000010 100%)`,
+						}}
+					/>
+
 					{status.upload.success && <FaCheckCircle />}
 					{!status.upload.success && status.upload.message && <Grid width={24} height={24} color="gray" />}
 

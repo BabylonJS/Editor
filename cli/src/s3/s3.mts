@@ -82,6 +82,10 @@ export async function s3(projectDir: string, options: IS3Options) {
 	assetsLog.spinner = cliSpinners.dots14;
 	assetsLog.start();
 
+	options.onStepChanged?.("upload", {
+		message: "Checking assets...",
+	});
+
 	const step = 100 / files.length;
 
 	let currentStep = 0;
@@ -95,7 +99,10 @@ export async function s3(projectDir: string, options: IS3Options) {
 	}
 
 	function notifyStep() {
-		assetsLog.text = `Uploading assets... ${(currentStep += step).toFixed(2)}%`;
+		currentStep += step;
+
+		options.onProgress?.(currentStep);
+		assetsLog.text = `Uploading assets... ${currentStep.toFixed(2)}%`;
 	}
 
 	for (const file of files) {
