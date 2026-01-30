@@ -40,6 +40,10 @@ export async function createAssets(options: ICreateAssetsOptions) {
 			promises.length = 0;
 		}
 
+		if (options.cancellationToken?.isCanceled) {
+			break;
+		}
+
 		promises.push(
 			new Promise<void>(async (resolve) => {
 				await processAssetFile(file, {

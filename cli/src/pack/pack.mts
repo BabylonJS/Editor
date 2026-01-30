@@ -4,6 +4,7 @@ import { basename, extname, join } from "node:path/posix";
 import ora from "ora";
 import cliSpinners from "cli-spinners";
 
+import { CancellationToken } from "../tools/cancel.mjs";
 import { getProjectDir, normalizedGlob } from "../tools/fs.mjs";
 import { locatePVRTexTool, setPVRTexToolAbsolutePath } from "../tools/ktx.mjs";
 import { ensureSceneDirectories, readSceneDirectories } from "../tools/scene.mjs";
@@ -22,6 +23,7 @@ export interface IPackStepDetails {
 export interface IPackOptions {
 	optimize: boolean;
 	pvrTexToolAbsolutePath?: string;
+	cancellationToken?: CancellationToken;
 
 	onProgress?: (progress: number) => void;
 	onStepChanged?: (step: PackStepType, detail?: IPackStepDetails) => void;
@@ -118,6 +120,10 @@ export async function pack(projectDir: string, options: IPackOptions) {
 	});
 
 	for (const sceneFile of sceneFiles) {
+		if (options.cancellationToken?.isCanceled) {
+			break;
+		}
+
 		const sceneFilename = basename(sceneFile);
 		const sceneName = basename(sceneFile, extname(sceneFile));
 

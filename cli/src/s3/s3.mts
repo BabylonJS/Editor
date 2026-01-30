@@ -111,6 +111,10 @@ export async function s3(projectDir: string, options: IS3Options) {
 			promises.splice(0, promises.length);
 		}
 
+		if (options.cancellationToken?.isCanceled) {
+			break;
+		}
+
 		const relativeFilePath = file.replace(`${sceneFolder}/`, "");
 		const s3Key = join(rootKey, relativeFilePath);
 

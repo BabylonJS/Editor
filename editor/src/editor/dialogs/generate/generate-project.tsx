@@ -1,5 +1,7 @@
 import { Component, ReactNode } from "react";
 
+import { CancellationToken } from "babylonjs-editor-cli";
+
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../../../ui/shadcn/ui/alert-dialog";
 
 import { Editor } from "../../main";
@@ -16,6 +18,7 @@ export interface IEditorGenerateProjectComponentProps {
 
 export interface IEditorGenerateProjectComponentState {
 	step: "options" | "generation" | "complete";
+	cancellationToken: CancellationToken | null;
 }
 
 export interface IEditorGenerateOptions {
@@ -34,6 +37,7 @@ export class EditorGenerateProjectComponent extends Component<IEditorGeneratePro
 
 		this.state = {
 			step: "options",
+			cancellationToken: null,
 		};
 	}
 
@@ -45,23 +49,36 @@ export class EditorGenerateProjectComponent extends Component<IEditorGeneratePro
 
 					<div className="flex flex-col w-full py-5">
 						{this.state.step === "options" && <EditorGenerateOptionsComponent options={this._options} />}
-						{this.state.step === "generation" && <EditorGenerateComponent options={this._options} onComplete={() => this._next()} />}
-						{this.state.step === "complete" && <EditorGenerateCompleteComponent />}
+						{this.state.step === "generation" && (
+							<EditorGenerateComponent
+								editor={this.props.editor}
+								options={this._options}
+								cancellationToken={this.state.cancellationToken}
+								onComplete={() => this._next()}
+							/>
+						)}
+						{this.state.step === "complete" && <EditorGenerateCompleteComponent cancellationToken={this.state.cancellationToken} />}
 					</div>
 
-					{this.state.step !== "generation" && (
-						<AlertDialogFooter className="flex items-center gap-2">
-							{this.state.step === "options" && (
-								<AlertDialogCancel className="w-32" onClick={() => this._close()}>
-									Cancel
-								</AlertDialogCancel>
-							)}
+					<AlertDialogFooter className="flex items-center gap-2">
+						{this.state.step === "options" && (
+							<AlertDialogCancel className="w-32" onClick={() => this._close()}>
+								Cancel
+							</AlertDialogCancel>
+						)}
 
+						{this.state.step === "generation" && (
+							<AlertDialogCancel disabled={this.state.cancellationToken?.isCanceled} className="w-32 hover:bg-red-500" onClick={() => this._cancel()}>
+								Stop
+							</AlertDialogCancel>
+						)}
+
+						{this.state.step !== "generation" && (
 							<AlertDialogAction className="w-32" onClick={() => this._next()}>
 								{this.state.step === "options" ? "Next" : "Close"}
 							</AlertDialogAction>
-						</AlertDialogFooter>
-					)}
+						)}
+					</AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>
 		);
@@ -81,6 +98,7 @@ export class EditorGenerateProjectComponent extends Component<IEditorGeneratePro
 		if (this.state.step === "options") {
 			return this.setState({
 				step: "generation",
+				cancellationToken: new CancellationToken(),
 			});
 		}
 
@@ -93,5 +111,10 @@ export class EditorGenerateProjectComponent extends Component<IEditorGeneratePro
 		if (this.state.step === "complete") {
 			return this._close();
 		}
+	}
+
+	private _cancel(): void {
+		this.state.cancellationToken?.cancel();
+		this.forceUpdate();
 	}
 }
