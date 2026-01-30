@@ -23,9 +23,14 @@ export interface ICreateBabylonSceneOptions {
 }
 
 export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
+	const lights: any[] = [];
 	const meshes: any[] = [];
+	const cameras: any[] = [];
 	const materials: any[] = [];
+	const skeletons: any[] = [];
 	const transformNodes: any[] = [];
+	const particleSystems: any[] = [];
+	const shadowGenerators: any[] = [];
 	const morphTargetManagers: any[] = [];
 
 	// Meshes
@@ -33,6 +38,10 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 		options.directories.meshesFiles.map(async (file) => {
 			const data = await fs.readJSON(join(options.sceneFile, "meshes", file));
 			const mesh = data.meshes[0];
+
+			if (mesh.metadata?.doNotSerialize) {
+				return null;
+			}
 
 			if (mesh.delayLoadingFile) {
 				mesh.delayLoadingFile = join(options.sceneName, basename(mesh.delayLoadingFile));
@@ -46,6 +55,14 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 				if (instance.metadata?.parentId) {
 					instance.parentId = instance.metadata.parentId;
 				}
+			});
+
+			mesh.instances = mesh.instances?.filter((instance) => {
+				if (instance.metadata?.doNotSerialize) {
+					return null;
+				}
+
+				return instance;
 			});
 
 			if (data.basePoseMatrix) {
@@ -68,10 +85,13 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 		})
 	);
 
-	meshesResult.forEach(({ mesh, effectiveMaterial }) => {
-		meshes.push(mesh);
-		if (effectiveMaterial) {
-			materials.push(effectiveMaterial);
+	meshesResult.forEach((result) => {
+		if (result) {
+			meshes.push(result.mesh);
+
+			if (result.effectiveMaterial) {
+				materials.push(result.effectiveMaterial);
+			}
 		}
 	});
 
@@ -139,6 +159,10 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 	const transformNodesResult = await Promise.all(
 		options.directories.nodesFiles.map(async (file) => {
 			const data = await fs.readJSON(join(options.sceneFile, "nodes", file));
+			if (data.metadata?.doNotSerialize) {
+				return null;
+			}
+
 			if (data.metadata?.parentId) {
 				data.parentId = data.metadata.parentId;
 			}
@@ -147,11 +171,20 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 		})
 	);
 
-	transformNodes.push(...transformNodesResult);
+	transformNodes.push(
+		...transformNodesResult.filter((transformNode) => {
+			return transformNode !== null;
+		})
+	);
 
 	const spriteManagersResult = await Promise.all(
 		options.directories.spriteManagerFiles.map(async (file) => {
 			const data = await fs.readJSON(join(options.sceneFile, "sprite-managers", file));
+
+			if (data.metadata?.doNotSerialize) {
+				return null;
+			}
+
 			if (data.metadata?.parentId) {
 				data.parentId = data.metadata.parentId;
 			}
@@ -160,11 +193,20 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 		})
 	);
 
-	transformNodes.push(...spriteManagersResult);
+	transformNodes.push(
+		...spriteManagersResult.filter((spriteManager) => {
+			return spriteManager !== null;
+		})
+	);
 
 	const spriteMapsResult = await Promise.all(
 		options.directories.spriteMapFiles.map(async (file) => {
 			const data = await fs.readJSON(join(options.sceneFile, "sprite-maps", file));
+
+			if (data.metadata?.doNotSerialize) {
+				return null;
+			}
+
 			if (data.metadata?.parentId) {
 				data.parentId = data.metadata.parentId;
 			}
@@ -173,7 +215,57 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 		})
 	);
 
-	transformNodes.push(...spriteMapsResult);
+	transformNodes.push(
+		...spriteMapsResult.filter((spriteMap) => {
+			return spriteMap !== null;
+		})
+	);
+
+	// Lights
+	const lightsResult = await Promise.all(
+		options.directories.lightsFiles.map(async (file) => {
+			const data = await fs.readJSON(join(options.sceneFile, "lights", file));
+
+			if (data.metadata?.doNotSerialize) {
+				return null;
+			}
+
+			if (data.metadata?.parentId) {
+				data.parentId = data.metadata.parentId;
+			}
+
+			return data;
+		})
+	);
+
+	lights.push(
+		...lightsResult.filter((light) => {
+			return light !== null;
+		})
+	);
+
+	// Cameras
+	const camerasResult = await Promise.all(
+		options.directories.cameraFiles.map(async (file) => {
+			const data = await fs.readJSON(join(options.sceneFile, "cameras", file));
+
+			if (data.metadata?.doNotSerialize) {
+				return null;
+			}
+
+			if (data.metadata?.parentId) {
+				data.parentId = data.metadata.parentId;
+			}
+
+			return data;
+		})
+	);
+
+	cameras.push(
+		...camerasResult.filter((camera) => {
+			return camera !== null;
+		})
+	);
 
 	// Extract materials
 	const extractedTexturesOutputPath = getExtractedTextureOutputPath(options.publicDir);
@@ -205,9 +297,13 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 	);
 
 	// Extract particle systems
-	const particleSystems = await Promise.all(
+	const particleSystemsResult = await Promise.all(
 		options.directories.particleSystemFiles.map(async (file) => {
 			const data = await fs.readJSON(join(options.sceneFile, "particleSystems", file));
+
+			if (data.metadata?.doNotSerialize) {
+				return null;
+			}
 
 			const result = await extractParticleSystemTextures(data, {
 				extractedTexturesOutputPath,
@@ -230,10 +326,20 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 		})
 	);
 
+	particleSystems.push(
+		...particleSystemsResult.filter((ps) => {
+			return ps !== null;
+		})
+	);
+
 	// Extract node particle system sets
 	const nodeParticleSystemSetsResult = await Promise.all(
 		options.directories.nodeParticleSystemSetFiles.map(async (file) => {
 			const data = await fs.readJSON(join(options.sceneFile, "nodeParticleSystemSets", file));
+
+			if (data.metadata?.doNotSerialize) {
+				return null;
+			}
 
 			if (data.metadata?.parentId) {
 				data.parentId = data.metadata.parentId;
@@ -264,7 +370,50 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 		})
 	);
 
-	meshes.push(...nodeParticleSystemSetsResult);
+	meshes.push(
+		...nodeParticleSystemSetsResult.filter((node) => {
+			return node !== null;
+		})
+	);
+
+	// Shadow generators
+	const shadowGeneratorsResult = await Promise.all(
+		options.directories.shadowGeneratorFiles.map(async (file) => {
+			const data = await fs.readJSON(join(options.sceneFile, "shadowGenerators", file));
+
+			const light = lights.find((l) => l.id === data.lightId);
+			if (!light) {
+				return null;
+			}
+
+			return data;
+		})
+	);
+
+	shadowGenerators.push(
+		...shadowGeneratorsResult.filter((sg) => {
+			return sg !== null;
+		})
+	);
+
+	// Skeletons
+	const skeletonsResult = await Promise.all(
+		options.directories.skeletonFiles.map(async (file) => {
+			const data = await fs.readJSON(join(options.sceneFile, "skeletons", file));
+			const mesh = meshes.find((m) => m.skeletonId === data.id);
+			if (!mesh) {
+				return null;
+			}
+
+			return data;
+		})
+	);
+
+	skeletons.push(
+		...skeletonsResult.filter((skeleton) => {
+			return skeleton !== null;
+		})
+	);
 
 	const scene = {
 		autoClear: true,
@@ -289,26 +438,8 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 		metadata: options.config.metadata,
 
 		morphTargetManagers,
-		lights: await Promise.all(
-			options.directories.lightsFiles.map(async (file) => {
-				const data = await fs.readJSON(join(options.sceneFile, "lights", file));
-				if (data.metadata?.parentId) {
-					data.parentId = data.metadata.parentId;
-				}
-
-				return data;
-			})
-		),
-		cameras: await Promise.all(
-			options.directories.cameraFiles.map(async (file) => {
-				const data = await fs.readJSON(join(options.sceneFile, "cameras", file));
-				if (data.metadata?.parentId) {
-					data.parentId = data.metadata.parentId;
-				}
-
-				return data;
-			})
-		),
+		lights,
+		cameras,
 
 		animations: options.config.animations,
 		materials,
@@ -318,11 +449,7 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 		environmentIntensity: options.config.environment.environmentIntensity,
 		iblIntensity: 1,
 
-		skeletons: await Promise.all(
-			options.directories.skeletonFiles.map(async (file) => {
-				return fs.readJSON(join(options.sceneFile, "skeletons", file));
-			})
-		),
+		skeletons,
 		transformNodes,
 
 		geometries: {
@@ -345,11 +472,7 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 			})
 		),
 
-		shadowGenerators: await Promise.all(
-			options.directories.shadowGeneratorFiles.map(async (file) => {
-				return fs.readJSON(join(options.sceneFile, "shadowGenerators", file));
-			})
-		),
+		shadowGenerators,
 
 		animationGroups: await Promise.all(
 			options.directories.animationGroupFiles.map(async (file) => {
