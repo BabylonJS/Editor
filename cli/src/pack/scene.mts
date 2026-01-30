@@ -268,62 +268,35 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 
 	const scene = {
 		autoClear: true,
-		physicsEnabled: true,
-		collisionsEnabled: true,
-		useRightHandedSystem: false,
-		physicsEngine: "HavokPlugin",
-		iblIntensity: 1,
-
 		clearColor: options.config.clearColor,
 		ambientColor: options.config.ambientColor,
 
-		geometries: {
-			boxes: [],
-			spheres: [],
-			cylinders: [],
-			toruses: [],
-			grounds: [],
-			planes: [],
-			torusKnots: [],
-			vertexData: [],
-		},
-
 		gravity: options.config.gravity ?? [0, -9.81, 0],
 
+		collisionsEnabled: true,
+		useRightHandedSystem: false,
+
+		fogMode: options.config.fog.fogMode,
 		fogColor: options.config.fog.fogColor,
 		fogStart: options.config.fog.fogStart,
 		fogEnd: options.config.fog.fogEnd,
 		fogDensity: options.config.fog.fogDensity,
-		fogMode: options.config.fog.fogMode,
 
+		physicsEnabled: true,
 		physicsGravity: options.config.physics.gravity,
-
-		environmentIntensity: options.config.environment.environmentIntensity,
-		environmentTexture: options.config.environment.environmentTexture,
+		physicsEngine: "HavokPlugin",
 
 		metadata: options.config.metadata,
 
-		animations: options.config.animations,
-
-		postProcesses: [],
-		multiMaterials: [],
-		spriteManagers: [],
-		reflectionProbes: [],
-
-		meshes,
-		materials,
 		morphTargetManagers,
-		transformNodes,
-		particleSystems,
+		lights: await Promise.all(
+			options.directories.lightsFiles.map(async (file) => {
+				const data = await fs.readJSON(join(options.sceneFile, "lights", file));
+				if (data.metadata?.parentId) {
+					data.parentId = data.metadata.parentId;
+				}
 
-		animationGroups: await Promise.all(
-			options.directories.animationGroupFiles.map(async (file) => {
-				return fs.readJSON(join(options.sceneFile, "animationGroups", file));
-			})
-		),
-		skeletons: await Promise.all(
-			options.directories.skeletonFiles.map(async (file) => {
-				return fs.readJSON(join(options.sceneFile, "skeletons", file));
+				return data;
 			})
 		),
 		cameras: await Promise.all(
@@ -336,32 +309,79 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 				return data;
 			})
 		),
-		lights: await Promise.all(
-			options.directories.lightsFiles.map(async (file) => {
-				const data = await fs.readJSON(join(options.sceneFile, "lights", file));
-				if (data.metadata?.parentId) {
-					data.parentId = data.metadata.parentId;
-				}
 
-				return data;
+		animations: options.config.animations,
+		materials,
+		multiMaterials: [],
+
+		environmentTexture: options.config.environment.environmentTexture,
+		environmentIntensity: options.config.environment.environmentIntensity,
+		iblIntensity: 1,
+
+		skeletons: await Promise.all(
+			options.directories.skeletonFiles.map(async (file) => {
+				return fs.readJSON(join(options.sceneFile, "skeletons", file));
 			})
 		),
-		shadowGenerators: await Promise.all(
-			options.directories.shadowGeneratorFiles.map(async (file) => {
-				return fs.readJSON(join(options.sceneFile, "shadowGenerators", file));
-			})
-		),
+		transformNodes,
+
+		geometries: {
+			boxes: [],
+			spheres: [],
+			cylinders: [],
+			toruses: [],
+			grounds: [],
+			planes: [],
+			torusKnots: [],
+			vertexData: [],
+		},
+
+		meshes,
+		particleSystems,
+
 		sounds: await Promise.all(
 			options.directories.soundFiles.map(async (file) => {
 				return fs.readJSON(join(options.sceneFile, "sounds", file));
 			})
 		),
+
+		shadowGenerators: await Promise.all(
+			options.directories.shadowGeneratorFiles.map(async (file) => {
+				return fs.readJSON(join(options.sceneFile, "shadowGenerators", file));
+			})
+		),
+
+		animationGroups: await Promise.all(
+			options.directories.animationGroupFiles.map(async (file) => {
+				return fs.readJSON(join(options.sceneFile, "animationGroups", file));
+			})
+		),
+
+		postProcesses: [],
+		spriteManagers: [],
+		reflectionProbes: [],
 	};
 
+	// Resolve parenting for mesh instances.
+	const allNodes = [...scene.meshes, ...scene.cameras, ...scene.lights, ...scene.transformNodes, ...scene.meshes.map((m) => m.instances ?? []).flat()];
+
+	allNodes.forEach((node) => {
+		if (node.parentId !== undefined && node.parentInstanceIndex !== undefined) {
+			const effectiveMesh = scene.meshes.find((mesh) => {
+				return mesh.instances?.find((instance) => instance.uniqueId === node.parentId);
+			});
+
+			if (effectiveMesh) {
+				node.parentId = effectiveMesh.uniqueId;
+			}
+		}
+	});
+
+	// Write final scene file.
 	const destination = join(options.publicDir, `${options.sceneName}.babylon`);
 	await fs.writeJSON(destination, scene, {
 		encoding: "utf-8",
-		// spaces: "\t", // Useful for debug
+		spaces: "\t", // Useful for debug
 	});
 
 	options.exportedAssets.push(destination);
