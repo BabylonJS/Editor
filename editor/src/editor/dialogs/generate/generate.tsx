@@ -8,18 +8,23 @@ import { useEffect, useState } from "react";
 import { Grid } from "react-loader-spinner";
 import { FaCheckCircle } from "react-icons/fa";
 
-import { IPackStepDetails, pack, PackStepType, s3, overrideWorkerMethods } from "babylonjs-editor-cli";
+import { IPackStepDetails, pack, PackStepType, s3, overrideWorkerMethods, CancellationToken } from "babylonjs-editor-cli";
 
 import { Alert, AlertDescription, AlertTitle } from "../../../ui/shadcn/ui/alert";
+
+import { executeSimpleWorker, loadWorker } from "../../../tools/worker";
 
 import { getProjectAssetsRootUrl } from "../../../project/configuration";
 import { getCompressedTexturesCliPath } from "../../../project/export/ktx";
 
+import { Editor } from "../../main";
+
 import { IEditorGenerateOptions } from "./generate-project";
-import { executeSimpleWorker, loadWorker } from "../../../tools/worker";
 
 export interface IEditorGenerateComponentProps {
+	editor: Editor;
 	options: IEditorGenerateOptions;
+	cancellationToken: CancellationToken | null;
 	onComplete: () => void;
 }
 
@@ -45,47 +50,61 @@ export function EditorGenerateComponent(props: IEditorGenerateComponentProps) {
 
 		overrideWorkerMethods(loadWorker, executeSimpleWorker);
 
-		await pack(projectDir, {
-			optimize: props.options.optimize,
-			pvrTexToolAbsolutePath: getCompressedTexturesCliPath() ?? undefined,
-			onProgress: (progress) => setPackProgress(progress),
-			onStepChanged: (step: PackStepType, detail?: IPackStepDetails) => {
-				setStatus((prevStatus) => ({
-					...prevStatus,
-					[step]: detail,
-				}));
-			},
-		});
+		props.editor.layout.preview.setRenderScene(false);
 
-		if (props.options.uploadToS3) {
-			const dotEnvPath = join(projectDir, ".env");
+		try {
+			await pack(projectDir, {
+				optimize: props.options.optimize,
+				cancellationToken: props.cancellationToken ?? undefined,
+				pvrTexToolAbsolutePath: getCompressedTexturesCliPath() ?? undefined,
+				onProgress: (progress) => setPackProgress(progress),
+				onStepChanged: (step: PackStepType, detail?: IPackStepDetails) => {
+					setStatus((prevStatus) => ({
+						...prevStatus,
+						[step]: detail,
+					}));
+				},
+			});
 
-			if (await pathExists(dotEnvPath)) {
-				const result = dotEnv.config({
-					processEnv: {},
-					path: dotEnvPath,
-				});
-
-				await s3(projectDir, {
-					noPack: true,
-					optimize: true,
-					region: result.parsed?.SPACE_REGION,
-					endpoint: result.parsed?.SPACE_END_POINT,
-					accessKeyId: result.parsed?.SPACE_KEY,
-					secretAccessKey: result.parsed?.SPACE_SECRET,
-					rootKey: result.parsed?.SPACE_ROOT_KEY,
-					onProgress: (progress) => setUploadProgress(progress),
-					onStepChanged: (step: PackStepType, detail?: IPackStepDetails) => {
-						setStatus((prevStatus) => ({
-							...prevStatus,
-							[step]: detail,
-						}));
-					},
-				});
+			if (props.options.uploadToS3) {
+				await handleUploadToS3(projectDir);
 			}
+		} catch (e) {
+			// Catch silently.
 		}
 
+		props.editor.layout.preview.setRenderScene(true);
+
 		props.onComplete();
+	}
+
+	async function handleUploadToS3(projectDir: string) {
+		const dotEnvPath = join(projectDir, ".env");
+
+		if (await pathExists(dotEnvPath)) {
+			const result = dotEnv.config({
+				processEnv: {},
+				path: dotEnvPath,
+			});
+
+			await s3(projectDir, {
+				noPack: true,
+				optimize: true,
+				region: result.parsed?.SPACE_REGION,
+				endpoint: result.parsed?.SPACE_END_POINT,
+				accessKeyId: result.parsed?.SPACE_KEY,
+				secretAccessKey: result.parsed?.SPACE_SECRET,
+				rootKey: result.parsed?.SPACE_ROOT_KEY,
+				cancellationToken: props.cancellationToken ?? undefined,
+				onProgress: (progress) => setUploadProgress(progress),
+				onStepChanged: (step: PackStepType, detail?: IPackStepDetails) => {
+					setStatus((prevStatus) => ({
+						...prevStatus,
+						[step]: detail,
+					}));
+				},
+			});
+		}
 	}
 
 	return (
