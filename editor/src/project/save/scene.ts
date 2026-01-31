@@ -732,6 +732,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 				clearColor: scene.clearColor.asArray(),
 				ambientColor: scene.ambientColor.asArray(),
 				environment: {
+					iblIntensity: scene.iblIntensity,
 					environmentIntensity: scene.environmentIntensity,
 					environmentTexture: scene.environmentTexture
 						? {

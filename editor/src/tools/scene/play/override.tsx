@@ -33,7 +33,7 @@ const savedEngineMethods: Record<string, any> = {
 };
 
 const savedTextureMethods: Record<string, any> = {
-	textureParser: SerializationHelper._TextureParser,
+	textureParser: null,
 };
 
 const savedObservableMethods: Record<string, any> = {
@@ -285,6 +285,9 @@ export function applyOverrides(editor: Editor) {
 
 		return savedEngineMethods.createTexture.call(editor.layout.preview.engine, url, ...args);
 	};
+
+	// Textures
+	savedTextureMethods.textureParser = SerializationHelper._TextureParser;
 
 	// Observable
 	Observable.prototype.add = function (callback: any, ...args: any[]) {

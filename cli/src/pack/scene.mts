@@ -447,7 +447,7 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 
 		environmentTexture: options.config.environment.environmentTexture,
 		environmentIntensity: options.config.environment.environmentIntensity,
-		iblIntensity: 1,
+		iblIntensity: options.config.environment.iblIntensity ?? 1,
 
 		skeletons,
 		transformNodes,
