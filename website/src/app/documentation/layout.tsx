@@ -5,7 +5,7 @@ import { PropsWithChildren } from "react";
 
 import { Toaster } from "@/components/ui/sonner";
 
-import { DocumentationSidebar } from "./sidebar/sidebar";
+import { DocumentationSidebar } from "./sidebar";
 
 export const metadata: Metadata = {
 	title: "Babylon.js Editor Documentation",
