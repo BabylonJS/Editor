@@ -14,7 +14,7 @@ import { createAssets } from "./assets/assets.mjs";
 import { createScriptsFile } from "./scripts.mjs";
 import { createGeometryFiles } from "./geometry.mjs";
 
-export type PackStepType = "assets" | "scenes" | "upload";
+export type PackStepType = "assets" | "scenes" | "scripts" | "upload";
 
 export interface IPackStepDetails {
 	message?: string;
@@ -186,9 +186,18 @@ export async function pack(projectDir: string, options: IPackOptions) {
 	scriptsLog.spinner = cliSpinners.dots14;
 	scriptsLog.start();
 
+	options.onStepChanged?.("scripts", {
+		message: "Collecting scripts...",
+	});
+
 	await createScriptsFile(projectDir);
 
 	scriptsLog.succeed("Collected scripts");
+
+	options.onStepChanged?.("scripts", {
+		success: true,
+		message: "Collected scripts",
+	});
 
 	// Clean
 	const publicFiles = await normalizedGlob(join(publicDir, "**/*"), {
