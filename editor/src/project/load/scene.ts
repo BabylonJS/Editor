@@ -28,6 +28,7 @@ import { checkProjectCachedCompressedTextures } from "../../tools/assets/ktx";
 import { isAbstractMesh, isEditorCamera, isMesh } from "../../tools/guards/nodes";
 import { updateAllLights, updatePointLightShadowMapRenderListPredicate } from "../../tools/light/shadows";
 
+import { registerTextureParser } from "./texture";
 import { createNewSceneDefaultNodes } from "./default";
 import { LoadSceneProgressComponent, showLoadSceneProgressDialog } from "./progress";
 
@@ -45,8 +46,6 @@ import { loadAnimationGroups } from "./plugins/animation-groups";
 import { loadMorphTargetManagers } from "./plugins/morph-targets";
 import { loadShadowGenerators } from "./plugins/shadow-generators";
 import { loadNodeParticleSystemSets } from "./plugins/node-particle-system-sets";
-
-import "./texture";
 
 /**
  * Defines the list of all loaded scenes. This is used to detect cycle references
@@ -86,6 +85,8 @@ export type ISceneLoaderPluginOptions = SceneLoaderOptions & {
 };
 
 export async function loadScene(editor: Editor, projectPath: string, scenePath: string, options?: SceneLoaderOptions): Promise<SceneLoadResult> {
+	registerTextureParser(editor);
+
 	const scene = editor.layout.preview.scene;
 	const relativeScenePath = scenePath.replace(join(projectPath, "/"), "");
 
@@ -205,6 +206,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 		}
 
 		// Load environment
+		scene.iblIntensity = config.environment.iblIntensity ?? 1;
 		scene.environmentIntensity = config.environment.environmentIntensity;
 
 		const environmentTexture = config.environment.environmentTexture;

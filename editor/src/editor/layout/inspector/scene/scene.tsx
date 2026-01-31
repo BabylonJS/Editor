@@ -104,6 +104,7 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 						title="Environment Texture"
 						onChange={() => this.forceUpdate()}
 					/>
+					<EditorInspectorNumberField object={this.props.object} property="iblIntensity" label="IBL Intensity" />
 				</EditorInspectorSectionField>
 
 				<EditorInspectorSectionField title="Fog">
