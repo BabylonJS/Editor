@@ -9,8 +9,9 @@ import { getProjectDir, normalizedGlob } from "../tools/fs.mjs";
 import { locatePVRTexTool, setPVRTexToolAbsolutePath } from "../tools/ktx.mjs";
 import { ensureSceneDirectories, readSceneDirectories } from "../tools/scene.mjs";
 
-import { createAssets } from "./assets/assets.mjs";
 import { createBabylonScene } from "./scene.mjs";
+import { createAssets } from "./assets/assets.mjs";
+import { createScriptsFile } from "./scripts.mjs";
 import { createGeometryFiles } from "./geometry.mjs";
 
 export type PackStepType = "assets" | "scenes" | "upload";
@@ -179,6 +180,15 @@ export async function pack(projectDir: string, options: IPackOptions) {
 		encoding: "utf-8",
 		spaces: "\t",
 	});
+
+	// Configure scripts
+	const scriptsLog = ora("Collecting scripts...");
+	scriptsLog.spinner = cliSpinners.dots14;
+	scriptsLog.start();
+
+	await createScriptsFile(projectDir);
+
+	scriptsLog.succeed("Collected scripts");
 
 	// Clean
 	const publicFiles = await normalizedGlob(join(publicDir, "**/*"), {

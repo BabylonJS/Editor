@@ -504,7 +504,7 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 	const destination = join(options.publicDir, `${options.sceneName}.babylon`);
 	await fs.writeJSON(destination, scene, {
 		encoding: "utf-8",
-		spaces: "\t", // Useful for debug
+		// spaces: "\t", // Useful for debug
 	});
 
 	options.exportedAssets.push(destination);
