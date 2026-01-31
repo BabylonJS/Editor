@@ -16,7 +16,7 @@ import {
 	visibleAsVector3DecoratorsExample,
 } from "./visible-as";
 
-import { NextChapterComponent } from "../../components/next-chapter";
+import { NextChapterComponent } from "../../next-chapter";
 
 export default function DocumentationRunningProjectPage() {
 	return (
