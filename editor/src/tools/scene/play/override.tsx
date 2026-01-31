@@ -276,10 +276,11 @@ export function applyOverrides(editor: Editor) {
 		}
 
 		const temporaryTextureIndex = url?.indexOf(".bjseditor") ?? -1;
+		const isExtractedTexture = url.includes("assets/editor-generated_extracted-textures");
 
 		if (temporaryTextureIndex !== -1) {
 			url = join(publicDir, "..", url.substring(temporaryTextureIndex));
-		} else if (url?.includes(publicScene)) {
+		} else if (url?.includes(publicScene) && !isExtractedTexture) {
 			url = url.replace(publicScene, projectDir);
 		}
 

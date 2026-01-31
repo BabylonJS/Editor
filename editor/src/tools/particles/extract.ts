@@ -49,7 +49,7 @@ export async function extractNodeParticleSystemSetTextures(editor: Editor, optio
 				if (result) {
 					block.metadata ??= {};
 					block.metadata.baseSize = result.baseSize;
-					block.url = `/scene/${result.relativePath}`;
+					block.url = result.relativePath;
 					relativePaths.push(result.relativePath);
 				}
 			} else if (block.textureDataUrl?.startsWith("data:")) {
@@ -62,11 +62,11 @@ export async function extractNodeParticleSystemSetTextures(editor: Editor, optio
 					delete block.textureDataUrl;
 					block.metadata ??= {};
 					block.metadata.baseSize = result.baseSize;
-					block.url = `/scene/${result.relativePath}`;
+					block.url = result.relativePath;
 					relativePaths.push(result.relativePath);
 				}
 			} else {
-				relativePaths.push(block.url.replace("/scene", ""));
+				relativePaths.push(block.url);
 			}
 		})
 	);
