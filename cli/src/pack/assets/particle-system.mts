@@ -86,7 +86,7 @@ export async function extractNodeParticleSystemSetTextures(particleSystemData: a
 
 				if (relativePath) {
 					relativePaths.push(relativePath);
-					block.url = `/scene/${relativePath}`;
+					block.url = relativePath;
 				}
 			}
 
@@ -98,7 +98,7 @@ export async function extractNodeParticleSystemSetTextures(particleSystemData: a
 				if (relativePath) {
 					relativePaths.push(relativePath);
 					delete block.textureDataUrl;
-					block.url = `/scene/${relativePath}`;
+					block.url = relativePath;
 					block.serializedCachedData = false;
 				}
 			}

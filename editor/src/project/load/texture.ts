@@ -25,7 +25,9 @@ function textureParser(editor: Editor, source: any, scene: Scene, rootUrl: strin
 	if (play.state.loading) {
 		// Re-write rootUrl to exclude public/scene in order to
 		// reuse already loaded textures and save video memory.
-		rootUrl = join(resolve(rootUrl, "../../"), "/");
+		if (!source.url?.includes("assets/editor-generated_extracted-textures")) {
+			rootUrl = join(resolve(rootUrl, "../../"), "/");
+		}
 	}
 
 	const assetsCache = loadSavedAssetsCache();
