@@ -65,6 +65,7 @@ import {
 	onNodesAddedObservable,
 	onParticleSystemAddedObservable,
 	onParticleSystemModifiedObservable,
+	onSkeletonModifiedObservable,
 	onSpriteModifiedObservable,
 	onTextureModifiedObservable,
 } from "../../tools/observables";
@@ -143,6 +144,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		onNodeModifiedObservable.add((node) => this._handleObjectModified(node));
 		onSpriteModifiedObservable.add((node) => this._handleObjectModified(node));
 		onTextureModifiedObservable.add((texture) => this._handleObjectModified(texture));
+		onSkeletonModifiedObservable.add((skeleton) => this._handleObjectModified(skeleton));
 		onParticleSystemModifiedObservable.add((particleSystem) => this._handleObjectModified(particleSystem));
 
 		document.addEventListener("copy", () => !isDomTextInputFocused() && this.copySelectedNodes());
@@ -1108,7 +1110,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		);
 	}
 
-	private _handleObjectModified(node: Node | BaseTexture | IParticleSystem | Sprite): void {
+	private _handleObjectModified(node: Node | BaseTexture | IParticleSystem | Sprite | Skeleton): void {
 		this._forEachNode(this.state.nodes, (n) => {
 			if (n.nodeData === node) {
 				n.label = this._getNodeLabelComponent(node, node.name);

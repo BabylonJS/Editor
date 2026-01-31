@@ -146,6 +146,7 @@ export async function s3(projectDir: string, options: IS3Options) {
 						new PutObjectCommand({
 							Key: s3Key,
 							Body: fileContent,
+							ACL: "public-read",
 							Bucket: "babylonjs-editor",
 							ContentType: "application/octet-stream",
 						})

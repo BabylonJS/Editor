@@ -35,6 +35,7 @@ export function EditorGenerateComponent(props: IEditorGenerateComponentProps) {
 	const [status, setStatus] = useState<Record<PackStepType, IPackStepDetails>>({
 		assets: {},
 		scenes: {},
+		scripts: {},
 		upload: {},
 	});
 
@@ -75,7 +76,9 @@ export function EditorGenerateComponent(props: IEditorGenerateComponentProps) {
 
 		props.editor.layout.preview.setRenderScene(true);
 
-		props.onComplete();
+		setTimeout(() => {
+			props.onComplete();
+		}, 300);
 	}
 
 	async function handleUploadToS3(projectDir: string) {
@@ -149,6 +152,24 @@ export function EditorGenerateComponent(props: IEditorGenerateComponentProps) {
 				<div className="flex flex-col">
 					<AlertTitle>Scenes</AlertTitle>
 					<AlertDescription className="w-72 overflow-hidden text-ellipsis whitespace-nowrap">{status.scenes.message ?? "..."}</AlertDescription>
+				</div>
+			</Alert>
+
+			<Alert
+				variant="default"
+				className={`
+                    flex gap-4 items-center
+                    ${status.scripts.success ? "bg-green-500/10" : ""}
+                    ${status.scripts.message ? "opacity-100" : "opacity-20"}
+                    transition-all duration-300 ease-in-out
+                `}
+			>
+				{status.scripts.success && <FaCheckCircle />}
+				{!status.scripts.success && status.scripts.message && <Grid width={24} height={24} color="gray" />}
+
+				<div className="flex flex-col">
+					<AlertTitle>Scripts</AlertTitle>
+					<AlertDescription className="w-72 overflow-hidden text-ellipsis whitespace-nowrap">{status.scripts.message ?? "..."}</AlertDescription>
 				</div>
 			</Alert>
 
