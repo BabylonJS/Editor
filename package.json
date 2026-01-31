@@ -67,7 +67,7 @@
 		"concurrently": "9.2.0",
 		"cross-env": "7.0.3",
 		"dotenv": "17.2.3",
-		"eslint": "9.29.0",
+		"eslint": "9.26.0",
 		"minimist": "1.2.8",
 		"prettier": "3.6.2",
 		"rimraf": "6.0.1"

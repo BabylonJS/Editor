@@ -26,7 +26,7 @@
 		"@types/react-dom": "^18",
 		"autoprefixer": "^10.0.1",
 		"babylonjs-editor-cli": "latest",
-		"eslint": "^8",
+		"eslint": "^9",
 		"eslint-config-next": "14.0.4",
 		"postcss": "^8",
 		"raw-loader": "^4.0.2",
