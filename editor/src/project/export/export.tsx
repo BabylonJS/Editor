@@ -267,6 +267,10 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 		if (instantiatedSound) {
 			sound.id = instantiatedSound.id;
 			sound.uniqueId = instantiatedSound.uniqueId;
+
+			// TODO: Find a better way to handle spatial sound property in Babylon.js.
+			// sound.spatialSound is always overridden to true on sound.serialize().
+			instantiatedSound.spatialSound = sound.spatialSound;
 		}
 	});
 

@@ -546,18 +546,22 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 				soundtrack.soundCollection.map(async (sound) => {
 					const soundPath = join(scenePath, "sounds", `${sound.id}.json`);
 
+					// TODO: Find a better way to handle spatial sound property in Babylon.js.
+					// sound.spatialSound is always overridden to true on sound.serialize().
+					const spatialSound = sound.spatialSound;
+
+					const soundData = {
+						...sound.serialize(),
+						id: sound.id,
+						uniqueId: sound.uniqueId,
+					};
+
+					sound.spatialSound = spatialSound;
+
 					try {
-						await writeJSON(
-							soundPath,
-							{
-								...sound.serialize(),
-								id: sound.id,
-								uniqueId: sound.uniqueId,
-							},
-							{
-								spaces: 4,
-							}
-						);
+						await writeJSON(soundPath, soundData, {
+							spaces: 4,
+						});
 					} catch (e) {
 						editor.layout.console.error(`Failed to write scene link node ${sound.name}`);
 					} finally {
