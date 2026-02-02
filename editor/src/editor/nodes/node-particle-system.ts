@@ -21,6 +21,9 @@ export class NodeParticleSystemSetMesh extends Mesh {
 	 */
 	public constructor(name: string, scene: Scene, parent?: Node | null, source?: Mesh, doNotCloneChildren?: boolean, clonePhysicsImpostor?: boolean) {
 		super(name, scene, parent, source, doNotCloneChildren, clonePhysicsImpostor);
+
+		// Set scale to 100 as default unit size is centimeters and particles are in meters
+		this.scaling.setAll(100);
 	}
 
 	public async buildNodeParticleSystemSet(data: any): Promise<void> {
@@ -46,6 +49,17 @@ export class NodeParticleSystemSetMesh extends Mesh {
 		particleSystemSet.systems.forEach((particleSystem) => {
 			particleSystem.id = Tools.RandomId();
 			particleSystem.uniqueId = UniqueNumber.Get();
+
+			if (isParticleSystem(particleSystem)) {
+				const sizeCreationProcess = particleSystem._sizeCreation.process;
+				if (sizeCreationProcess) {
+					particleSystem._sizeCreation.process = (particle, system) => {
+						sizeCreationProcess(particle, system);
+						particle.scale.x *= 100;
+						particle.scale.y *= 100;
+					};
+				}
+			}
 
 			if (isParticleSystem(particleSystem) || isGPUParticleSystem(particleSystem)) {
 				setParticleSystemVisibleInGraph(particleSystem, false);
