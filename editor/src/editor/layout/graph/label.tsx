@@ -263,7 +263,7 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
 				case ".ogg":
 				case ".wav":
 				case ".wave":
-					if (isScene(props.object) || isTransformNode(props.object) || isMesh(props.object) || isInstancedMesh(props.object)) {
+					if (isScene(props.object) || isMesh(props.object) || isInstancedMesh(props.object)) {
 						applySoundAsset(props.editor, props.object, absolutePath).then(() => {
 							props.editor.layout.graph.refresh();
 						});

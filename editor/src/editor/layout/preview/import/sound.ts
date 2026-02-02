@@ -6,7 +6,7 @@ import { showAlert } from "../../../../ui/dialog";
 
 import { UniqueNumber } from "../../../../tools/tools";
 import { isScene } from "../../../../tools/guards/scene";
-import { isInstancedMesh, isMesh, isTransformNode } from "../../../../tools/guards/nodes";
+import { isInstancedMesh, isMesh } from "../../../../tools/guards/nodes";
 
 import { projectConfiguration } from "../../../../project/configuration";
 
@@ -35,7 +35,7 @@ export async function applySoundAsset(editor: Editor, object: any, absolutePath:
 
 		sound["_url"] = relativePath;
 
-		if (isTransformNode(object) || isMesh(object) || isInstancedMesh(object)) {
+		if (isMesh(object) || isInstancedMesh(object)) {
 			sound.attachToMesh(object);
 		}
 	});

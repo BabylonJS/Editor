@@ -30,6 +30,12 @@ export async function loadSounds(editor: Editor, soundFiles: string[], scene: Sc
 				sound.id = data.id;
 				sound.uniqueId = data.uniqueId;
 
+				scene.onBeforeRenderObservable.addOnce(() => {
+					// TODO: Find a better way to handle spatial sound property in Babylon.js.
+					// sound.spatialSound is always overridden to true on sound.serialize().
+					sound.spatialSound = data.spatialSound;
+				});
+
 				return sound;
 			} catch (e) {
 				editor.layout.console.error(`Failed to load sound file "${file}": ${e.message}`);

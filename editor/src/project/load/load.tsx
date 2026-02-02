@@ -61,7 +61,10 @@ export async function loadProject(editor: Editor, path: string) {
 
 		await loadScene(editor, directory, absolutePath);
 
-		editor.layout.graph.refresh();
+		editor.layout.preview.scene.onBeforeRenderObservable.addOnce(() => {
+			editor.layout.graph.refresh();
+		});
+
 		editor.layout.inspector.setEditedObject(editor.layout.preview.scene);
 	}
 }
