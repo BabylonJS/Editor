@@ -78,10 +78,10 @@ export async function processAssetFile(file: string, options: IProcessAssetFileO
 
 	options.exportedAssets.push(finalPath);
 
-	if (options.optimize && options.compressedTexturesEnabled) {
+	if (options.optimize) {
 		await compressFileToKtx(finalPath, {
 			force: isNewFile,
-			exportedAssets: options.exportedAssets,
+			...options,
 		});
 	}
 

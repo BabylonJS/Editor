@@ -1,5 +1,7 @@
 import { Component, ReactNode } from "react";
 
+import { Grid } from "react-loader-spinner";
+
 import { CancellationToken } from "babylonjs-editor-cli";
 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../../../ui/shadcn/ui/alert-dialog";
@@ -69,7 +71,13 @@ export class EditorGenerateProjectComponent extends Component<IEditorGeneratePro
 
 						{this.state.step === "generation" && (
 							<AlertDialogCancel disabled={this.state.cancellationToken?.isCanceled} className="w-32 hover:bg-red-500" onClick={() => this._cancel()}>
-								Stop
+								{this.state.cancellationToken?.isCanceled && (
+									<div className="flex items-center gap-2">
+										<Grid width={16} height={16} color="gray" />
+										<div>Stopping...</div>
+									</div>
+								)}
+								{!this.state.cancellationToken?.isCanceled && "Stop"}
 							</AlertDialogCancel>
 						)}
 

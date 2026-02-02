@@ -53,6 +53,7 @@ export function getCompressedTextureFilename(path: string, format: KTXToolsType)
 
 export type CompressFileToKtxOptions = {
 	format: KTXToolsType;
+	compressedTexturesEnabled: boolean;
 	force?: boolean;
 	exportedAssets?: string[];
 	destinationFolder?: string;
@@ -67,7 +68,7 @@ export async function compressFileToKtx(absolutePath: string, options: Partial<C
 				compressFileToKtxFormat(absolutePath, {
 					...options,
 					format: f,
-				})
+				} as CompressFileToKtxOptions)
 			)
 		);
 	}
@@ -86,10 +87,10 @@ export async function compressFileToKtxFormat(absolutePath: string, options: Com
 	options.destinationFolder ??= dirname(absolutePath);
 	options.destinationFolder = join(options.destinationFolder, filename);
 
-	// if (!editor.state.compressedTexturesEnabled) {
-	// 	options.exportedAssets?.push(options.destinationFolder);
-	// 	return null;
-	// }
+	if (!options.compressedTexturesEnabled) {
+		options.exportedAssets?.push(options.destinationFolder);
+		return null;
+	}
 
 	if ((await fs.pathExists(options.destinationFolder)) && !options.force) {
 		options.exportedAssets?.push(options.destinationFolder);

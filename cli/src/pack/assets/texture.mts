@@ -87,10 +87,8 @@ export async function processExportedTexture(absolutePath: string, options: ICom
 			}
 		}
 
-		if (options.compressedTexturesEnabled) {
-			await compressFileToKtx(finalPath, {
-				...options,
-			});
-		}
+		await compressFileToKtx(finalPath, {
+			...options,
+		});
 	}
 }

@@ -131,8 +131,10 @@ export function EditorGenerateComponent(props: IEditorGenerateComponentProps) {
 				{status.assets.success && <FaCheckCircle />}
 				{!status.assets.success && status.assets.message && <Grid width={24} height={24} color="gray" />}
 
-				<div className="flex flex-col">
-					<AlertTitle>Assets</AlertTitle>
+				<div className="flex flex-col w-full">
+					<AlertTitle className="flex justify-between">
+						<div>Assets</div> ({packProgress.toFixed(2)}%)
+					</AlertTitle>
 					<AlertDescription className="w-72 overflow-hidden text-ellipsis whitespace-nowrap">{status.assets.message ?? "..."}</AlertDescription>
 				</div>
 			</Alert>
@@ -194,7 +196,9 @@ export function EditorGenerateComponent(props: IEditorGenerateComponentProps) {
 					{!status.upload.success && status.upload.message && <Grid width={24} height={24} color="gray" />}
 
 					<div className="flex flex-col">
-						<AlertTitle>Upload to S3</AlertTitle>
+						<AlertTitle className="flex justify-between">
+							<div>Upload to S3</div> ({uploadProgress.toFixed(2)}%)
+						</AlertTitle>
 						<AlertDescription className="w-72 overflow-hidden text-ellipsis whitespace-nowrap">{status.upload.message ?? "..."}</AlertDescription>
 					</div>
 				</Alert>
