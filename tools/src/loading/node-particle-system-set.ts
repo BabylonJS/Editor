@@ -3,6 +3,7 @@ import { AssetContainer } from "@babylonjs/core/assetContainer";
 import { AddParser } from "@babylonjs/core/Loading/Plugins/babylonFileParser.function";
 import { NodeParticleSystemSet } from "@babylonjs/core/Particles/Node/nodeParticleSystemSet";
 
+import { isParticleSystem } from "../tools/guards";
 import { NodeParticleSystemMesh } from "../tools/particle";
 
 let registered = false;
@@ -39,6 +40,19 @@ export function registerNodeParticleSystemSetParser() {
 			instance.nodeParticleSystemSet.buildAsync(scene, false).then((particleSystemSet) => {
 				scene.removePendingData(mesh.id);
 				instance.particleSystemSet = particleSystemSet;
+
+				particleSystemSet.systems.forEach((particleSystem) => {
+					if (isParticleSystem(particleSystem)) {
+						const sizeCreationProcess = particleSystem._sizeCreation.process;
+						if (sizeCreationProcess) {
+							particleSystem._sizeCreation.process = (particle, system) => {
+								sizeCreationProcess(particle, system);
+								particle.scale.x *= 100;
+								particle.scale.y *= 100;
+							};
+						}
+					}
+				});
 
 				particleSystemSet.emitterNode = instance;
 				particleSystemSet.start();
