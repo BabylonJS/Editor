@@ -200,13 +200,15 @@ export async function pack(projectDir: string, options: IPackOptions) {
 	});
 
 	// Clean
-	const publicFiles = await normalizedGlob(join(publicDir, "**/*"), {
-		nodir: true,
-	});
+	if (options.optimize) {
+		const publicFiles = await normalizedGlob(join(publicDir, "**/*"), {
+			nodir: true,
+		});
 
-	publicFiles.forEach((file) => {
-		if (!exportedAssets.includes(file.toString())) {
-			fs.remove(file);
-		}
-	});
+		publicFiles.forEach((file) => {
+			if (!exportedAssets.includes(file.toString())) {
+				fs.remove(file);
+			}
+		});
+	}
 }

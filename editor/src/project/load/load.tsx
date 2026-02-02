@@ -14,7 +14,7 @@ import { projectConfiguration } from "../configuration";
 
 import { loadScene } from "./scene";
 import { LoadScenePrepareComponent } from "./prepare";
-import { installBabylonJSEditorTools, installDependencies } from "./install";
+import { installBabylonJSEditorCLI, installBabylonJSEditorTools, installDependencies } from "./install";
 
 /**
  * Loads an editor project located at the given path. Typically called at startup when opening
@@ -93,24 +93,43 @@ export async function checkDependencies(
 		toast.warning(`Package manager "${packageManager}" is not available on your system. Dependencies will not be updated.`);
 	}
 
+	const cliPackageJsonPath = join(directory, "node_modules/babylonjs-editor-cli/package.json");
 	const toolsPackageJsonPath = join(directory, "node_modules/babylonjs-editor-tools/package.json");
 
-	let matchesVersion = false;
+	let matchesToolsVersion = false;
 	try {
 		const toolsPackageJson = await readJSON(toolsPackageJsonPath, "utf-8");
 		if (toolsPackageJson.version === packageJson.version) {
-			matchesVersion = true;
+			matchesToolsVersion = true;
+		}
+	} catch (e) {
+		// Catch silently
+	}
+
+	let matchesCliVersion = false;
+	try {
+		const cliPackageJson = await readJSON(cliPackageJsonPath, "utf-8");
+		if (cliPackageJson.version === packageJson.version) {
+			matchesCliVersion = true;
 		}
 	} catch (e) {
 		// Catch silently
 	}
 
 	let toolsCode = 0;
-	if (!matchesVersion) {
+	if (!matchesToolsVersion) {
 		toolsCode = await installBabylonJSEditorTools(packageManager, directory, packageJson.version);
 		if (toolsCode !== 0) {
 			toast.warning(`Package manager "${packageManager}" is not available on your system. Can't install "babylonjs-editor-tools" package dependency.`);
 		}
+	}
+
+	if (!matchesCliVersion) {
+		installBabylonJSEditorCLI(packageManager, directory, packageJson.version).then((code) => {
+			if (code !== 0) {
+				toast.warning(`Package manager "${packageManager}" is not available on your system. Can't install "babylonjs-editor-cli" package dependency.`);
+			}
+		});
 	}
 
 	toast.dismiss(toastId);
