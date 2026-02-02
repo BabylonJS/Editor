@@ -127,7 +127,6 @@ export class QuarksConverter {
 			return null;
 		}
 
-		// Convert transform from right-handed to left-handed
 		const transform = this._convertTransform(obj.matrix, obj.position, obj.rotation, obj.scale);
 
 		if (obj.type === "Group") {
@@ -171,8 +170,21 @@ export class QuarksConverter {
 	}
 
 	/**
-	 * Convert transform from IQuarks (right-handed) to Babylon.js  (left-handed)
-	 * This is the ONLY place where handedness conversion happens
+	 * Converts Three.js/Quarks column-major matrix array to row-major for Babylon.js
+	 */
+	private _columnMajorToRowMajor(columnMajor: number[]): number[] {
+		const rowMajor: number[] = [];
+		for (let i = 0; i < 4; i++) {
+			for (let j = 0; j < 4; j++) {
+				rowMajor[i * 4 + j] = columnMajor[j * 4 + i];
+			}
+		}
+		return rowMajor;
+	}
+
+	/**
+	 * Convert transform from IQuarks (right-handed) to Babylon.js (left-handed).
+	 * This is the ONLY place where handedness conversion happens.
 	 */
 	private _convertTransform(matrixArray?: number[], positionArray?: number[], rotationArray?: number[], scaleArray?: number[]): ITransform {
 		const position = Vector3.Zero();
@@ -180,7 +192,8 @@ export class QuarksConverter {
 		const scale = Vector3.One();
 
 		if (matrixArray && Array.isArray(matrixArray) && matrixArray.length >= 16) {
-			const matrix = Matrix.FromArray(matrixArray);
+			const rowMajor = this._columnMajorToRowMajor(matrixArray);
+			const matrix = Matrix.FromArray(rowMajor);
 			const tempPos = Vector3.Zero();
 			const tempRot = Quaternion.Zero();
 			const tempScale = Vector3.Zero();
@@ -192,7 +205,6 @@ export class QuarksConverter {
 			tempRot.x *= -1;
 			const eulerAngles = tempRot.toEulerAngles();
 			rotation.copyFrom(eulerAngles);
-
 			scale.copyFrom(tempScale);
 		} else {
 			if (positionArray && Array.isArray(positionArray)) {

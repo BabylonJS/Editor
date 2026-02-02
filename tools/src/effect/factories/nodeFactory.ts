@@ -186,6 +186,11 @@ export class NodeFactory {
 			particleSystem.emitter.parent = parentNode.data as TransformNode;
 		}
 
+		this._applyTransform(
+			{ name: emitter.name, uuid: emitter.uuid, children: [], data: particleSystem.emitter, type: "particle" } as IEffectNode,
+			emitter.transform
+		);
+
 		this._logger.log(`Created particle system: ${emitter.name}`);
 
 		return node;
