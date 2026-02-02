@@ -94,6 +94,11 @@ export async function loadMeshes(meshesFiles: string[], scene: Scene, options: I
 						if (data.isCollisionMesh) {
 							const collisionMesh = CollisionMesh.CreateFromSourceMesh(m, data.collisionMeshType);
 
+							const indexInResult = result.meshes.indexOf(m);
+							if (indexInResult !== -1) {
+								result.meshes[indexInResult] = collisionMesh;
+							}
+
 							m.dispose(true, false);
 							m = collisionMesh;
 
