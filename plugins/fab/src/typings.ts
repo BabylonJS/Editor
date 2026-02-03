@@ -38,6 +38,7 @@ export interface IFabMeshJson {
 
 export interface IFabMetadataJson {
 	fab: {
+		format: "texture-set" | (string & {});
 		listing: {
 			title: string;
 			thumbnail: string;
