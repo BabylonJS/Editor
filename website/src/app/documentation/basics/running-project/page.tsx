@@ -87,31 +87,6 @@ export default function DocumentationRunningProjectPage() {
 								<source src="/documentation/basics/running-project/running-project.mp4" />
 							</video>
 						</div>
-
-						<div className="text-3xl md:text-2xl lg:text-3xl my-3">Playing as-is</div>
-
-						<div>
-							To play the project as-is, simply select <b>"Run Project..."</b> in the main toolbar of the editor.
-							<br />
-							On macOS, use the toolbar of the app.
-						</div>
-
-						<div>
-							By default, projects are based on <b>Next.JS</b> and the <b>dev</b> command will start a new server. When playing as-is and once the server is ready the
-							editor will open the default browser to display the game / application.
-						</div>
-
-						<div className="flex gap-2 items-center">
-							<IoIosWarning size="32px" color="orange" />
-
-							<div className="italic">
-								In case of a first launch, the process can take a few seconds to start the server until the the project is displayed in the panel.
-							</div>
-						</div>
-
-						<div className="mx-auto p-10 w-full object-contain">
-							<img src="/documentation/running-project/running-as-is.png" className="rounded-lg" />
-						</div>
 					</div>
 				</Fade>
 			</div>
