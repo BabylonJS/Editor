@@ -30,6 +30,7 @@ const savedWebRequestMethods: Record<string, any> = {
 
 const savedEngineMethods: Record<string, any> = {
 	createTexture: Engine.prototype.createTexture,
+	createCubeTexture: Engine.prototype.createCubeTexture,
 };
 
 const savedTextureMethods: Record<string, any> = {
@@ -104,7 +105,9 @@ export function restorePlayOverrides(editor: Editor) {
 	savedIntervalIds.splice(0, savedIntervalIds.length);
 
 	WebRequest.prototype.open = savedWebRequestMethods.open;
+
 	Engine.prototype.createTexture = savedEngineMethods.createTexture;
+	Engine.prototype.createCubeTexture = savedEngineMethods.createCubeTexture;
 
 	SerializationHelper._TextureParser = savedTextureMethods.textureParser;
 
@@ -269,19 +272,29 @@ export function applyOverrides(editor: Editor) {
 	};
 
 	// Engine
-	Engine.prototype.createTexture = (url: string, ...args: any[]) => {
-		if (!isAbsolute(url) && !url.startsWith("data:")) {
-			url = normalizeUrl(url);
-			url = join(publicScene, url);
+	Engine.prototype.createCubeTexture = (rootUrl: string, ...args: any[]) => {
+		if (rootUrl && rootUrl.includes(publicScene)) {
+			rootUrl = rootUrl.replace(publicScene, projectDir);
 		}
 
-		const temporaryTextureIndex = url?.indexOf(".bjseditor") ?? -1;
-		const isExtractedTexture = url.includes("assets/editor-generated_extracted-textures");
+		return savedEngineMethods.createCubeTexture.call(editor.layout.preview.engine, rootUrl, ...args);
+	};
 
-		if (temporaryTextureIndex !== -1) {
-			url = join(publicDir, "..", url.substring(temporaryTextureIndex));
-		} else if (url?.includes(publicScene) && !isExtractedTexture) {
-			url = url.replace(publicScene, projectDir);
+	Engine.prototype.createTexture = (url: string, ...args: any[]) => {
+		if (url) {
+			if (!isAbsolute(url) && !url.startsWith("data:")) {
+				url = normalizeUrl(url);
+				url = join(publicScene, url);
+			}
+
+			const temporaryTextureIndex = url?.indexOf(".bjseditor") ?? -1;
+			const isExtractedTexture = url.includes("assets/editor-generated_extracted-textures");
+
+			if (temporaryTextureIndex !== -1) {
+				url = join(publicDir, "..", url.substring(temporaryTextureIndex));
+			} else if (url?.includes(publicScene) && !isExtractedTexture) {
+				url = url.replace(publicScene, projectDir);
+			}
 		}
 
 		return savedEngineMethods.createTexture.call(editor.layout.preview.engine, url, ...args);
