@@ -3,6 +3,7 @@ import { Component, ReactNode } from "react";
 export interface ICinematicEditorTrackerProps {
 	scale: number;
 	currentTime: number;
+	translationX?: number;
 }
 
 export class CinematicEditorTracker extends Component<ICinematicEditorTrackerProps> {
@@ -14,7 +15,7 @@ export class CinematicEditorTracker extends Component<ICinematicEditorTrackerPro
 		return (
 			<div
 				style={{
-					left: `${currentTime * this.props.scale}px`,
+					left: `${currentTime * this.props.scale + (this.props.translationX ?? 0)}px`,
 				}}
 				className="absolute w-[1px] ml-2 mt-10 bg-muted h-full pointer-events-none"
 			>

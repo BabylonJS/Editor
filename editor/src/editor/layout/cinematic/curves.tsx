@@ -47,7 +47,7 @@ export class CinematicEditorCurves extends Component<ICinematicEditorCurvesProps
 				onMouseDown={(ev) => this._handleMainDivPointerDown(ev)}
 			>
 				<CinematicEditorCurvesRoot scale={this.props.scale} translation={this.state.translation} cinematicEditor={this.props.cinematicEditor} />
-				<CinematicEditorTracker ref={(r) => (this.tracker = r!)} scale={this.props.scale} currentTime={this.props.currentTime} />
+				<CinematicEditorTracker ref={(r) => (this.tracker = r!)} scale={this.props.scale} translationX={this.state.translation.x} currentTime={this.props.currentTime} />
 			</div>
 		);
 	}
