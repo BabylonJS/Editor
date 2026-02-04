@@ -195,7 +195,7 @@ export function EditorGenerateComponent(props: IEditorGenerateComponentProps) {
 					{status.upload.success && <FaCheckCircle />}
 					{!status.upload.success && status.upload.message && <Grid width={24} height={24} color="gray" />}
 
-					<div className="flex flex-col">
+					<div className="flex flex-col w-full">
 						<AlertTitle className="flex justify-between">
 							<div>Upload to S3</div> ({uploadProgress.toFixed(2)}%)
 						</AlertTitle>
