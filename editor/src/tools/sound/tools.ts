@@ -6,6 +6,8 @@ import { Editor } from "../../editor/main";
 
 import { projectConfiguration } from "../../project/configuration";
 
+import { waitUntil } from "../tools";
+
 /**
  * Searches for a sound by its id in the scene by traversing all soundtracks.
  * @param id defines the id of the sound to retrieve.
@@ -38,15 +40,28 @@ export function reloadSound(editor: Editor, sound: Sound) {
 		return null;
 	}
 
+	const scene = editor.layout.preview.scene;
+
+	const spatialSound = sound.spatialSound;
 	const serializationObject = sound.serialize();
 
-	const newSound = Sound.Parse(serializationObject, editor.layout.preview.scene, join(dirname(projectConfiguration.path), "/"));
+	const newSound = Sound.Parse(serializationObject, scene, join(dirname(projectConfiguration.path), "/"));
 
 	newSound["_url"] = serializationObject.url;
 	newSound.id = sound.id;
 	newSound.uniqueId = sound.uniqueId;
 
 	sound.dispose();
+
+	scene.mainSoundTrack?.addSound(newSound);
+
+	if (!spatialSound) {
+		// TODO: Find a better way to handle spatial sound property in Babylon.js.
+		// sound.spatialSound is always overridden to true on sound.serialize().
+		waitUntil(() => newSound.spatialSound).then(() => {
+			newSound.spatialSound = false;
+		});
+	}
 
 	editor.layout.graph.refresh();
 
