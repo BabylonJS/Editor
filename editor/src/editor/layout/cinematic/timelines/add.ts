@@ -17,16 +17,38 @@ export function addAnimationKey(
 	positionX: number | null,
 	keyFrameAnimations?: (ICinematicKey | ICinematicKeyCut)[]
 ) {
-	keyFrameAnimations ??= track.keyFrameAnimations!;
+	if (track.keyFrameAnimations) {
+		keyFrameAnimations = track.keyFrameAnimations;
+	} else if ((track.animationGroupWeight?.length ?? 0) > 0) {
+		keyFrameAnimations = track.animationGroupWeight;
+	} else if ((track.soundVolume?.length ?? 0) > 0) {
+		keyFrameAnimations = track.soundVolume;
+	}
 
-	const node = track.defaultRenderingPipeline ? getDefaultRenderingPipeline() : track.node;
-
-	if (positionX === null || !node || !track.propertyPath) {
+	if (positionX === null || !keyFrameAnimations) {
 		return;
 	}
 
+	let value: any = null;
 	const frame = Math.round(positionX / cinematicEditor.state.timelinesScale);
-	const value = getInspectorPropertyValue(node, track.propertyPath);
+
+	if (keyFrameAnimations === track.keyFrameAnimations) {
+		const node = track.defaultRenderingPipeline ? getDefaultRenderingPipeline() : track.node;
+
+		if (positionX === null || !node || !track.propertyPath) {
+			return;
+		}
+
+		value = getInspectorPropertyValue(node, track.propertyPath);
+	} else if (keyFrameAnimations === track.animationGroupWeight && track.animationGroup) {
+		value = track.animationGroup.weight;
+	} else if (keyFrameAnimations === track.soundVolume && track.sound) {
+		value = track.sound.getVolume();
+	}
+
+	if (value === null) {
+		return;
+	}
 
 	const existingKey = keyFrameAnimations.find((k) => {
 		if (isCinematicKeyCut(k)) {

@@ -275,6 +275,20 @@ export class CinematicEditorTimelines extends Component<ICinematicEditorTimeline
 				return frameA - frameB;
 			});
 
+			track.animationGroupWeight?.sort((a, b) => {
+				const frameA = isCinematicKeyCut(a) ? a.key1.frame : a.frame;
+				const frameB = isCinematicKeyCut(b) ? b.key1.frame : b.frame;
+
+				return frameA - frameB;
+			});
+
+			track.soundVolume?.sort((a, b) => {
+				const frameA = isCinematicKeyCut(a) ? a.key1.frame : a.frame;
+				const frameB = isCinematicKeyCut(b) ? b.key1.frame : b.frame;
+
+				return frameA - frameB;
+			});
+
 			track.keyFrameEvents?.sort((a, b) => {
 				return a.frame - b.frame;
 			});
