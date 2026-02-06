@@ -73,11 +73,11 @@ export function CinematicEditorToolbar(props: ICinematicEditorToolbarProps) {
 					max={5}
 					step={0.01}
 					className="w-32"
-					value={[props.cinematicEditor.state.scale]}
+					value={[props.cinematicEditor.state.timelinesScale]}
 					onValueChange={(v) => {
 						props.cinematicEditor.setState(
 							{
-								scale: v[0],
+								timelinesScale: v[0],
 							},
 							() => {
 								props.cinematicEditor.forceUpdate();

@@ -25,7 +25,7 @@ export function addAnimationKey(
 		return;
 	}
 
-	const frame = Math.round(positionX / cinematicEditor.state.scale);
+	const frame = Math.round(positionX / cinematicEditor.state.timelinesScale);
 	const value = getInspectorPropertyValue(node, track.propertyPath);
 
 	const existingKey = keyFrameAnimations.find((k) => {
@@ -85,7 +85,7 @@ export function addSoundKey(cinematicEditor: CinematicEditor, track: ICinematicT
 		return;
 	}
 
-	const frame = Math.round(positionX / cinematicEditor.state.scale);
+	const frame = Math.round(positionX / cinematicEditor.state.timelinesScale);
 	const existingKey = track.sounds!.find((k) => k.frame === frame);
 
 	if (existingKey) {
@@ -138,7 +138,7 @@ export function addEventKey(cinematicEditor: CinematicEditor, track: ICinematicT
 		return;
 	}
 
-	const frame = Math.round(positionX / cinematicEditor.state.scale);
+	const frame = Math.round(positionX / cinematicEditor.state.timelinesScale);
 
 	const existingKey = track.keyFrameEvents!.find((k) => {
 		return k.frame === frame;
@@ -178,7 +178,7 @@ export function addAnimationGroupKey(cinematicEditor: CinematicEditor, track: IC
 		return;
 	}
 
-	const frame = Math.round(positionX / cinematicEditor.state.scale);
+	const frame = Math.round(positionX / cinematicEditor.state.timelinesScale);
 	const existingKey = track.animationGroups!.find((k) => k.frame === frame);
 
 	if (existingKey) {

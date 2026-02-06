@@ -53,7 +53,7 @@ export class CinematicEditorCurves extends Component<ICinematicEditorCurvesProps
 	}
 
 	private _handleMainDivPointerDown(event: MouseEvent<HTMLDivElement>): void {
-		if (event.button !== 0 || !isDomElementDescendantOf(event.nativeEvent.target as HTMLElement, this._divRef!)) {
+		if (event.button !== 0 || event.altKey || !isDomElementDescendantOf(event.nativeEvent.target as HTMLElement, this._divRef!)) {
 			return;
 		}
 

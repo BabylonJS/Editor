@@ -45,6 +45,7 @@ export function CinematicEditorAnimationGroupTrack(props: ICinematicEditorAnimat
 						className={`
                             border-accent/70 w-full h-8 bg-accent/35
                             [&>span]:text-center [&>span]:w-full [&>span]:text-xs [&>svg]:invisible [&>svg]:hover:visible
+							${props.cinematicEditor.state.selectedTrack !== props.track ? "pointer-events-none" : ""}
                         `}
 					>
 						<SelectValue placeholder="Animation Group..." />
