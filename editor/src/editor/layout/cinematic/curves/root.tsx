@@ -327,7 +327,11 @@ export class CinematicEditorCurvesRoot extends Component<ICinematicEditorCurvesR
 	}
 
 	private _handlePointerDown(event: PointerEvent<SVGElement>): void {
-		if (event.target !== this._rootSvgRef || event.button !== 1) {
+		if (event.target !== this._rootSvgRef) {
+			return;
+		}
+
+		if (event.button !== 1 && (event.button !== 0 || !event.altKey)) {
 			return;
 		}
 
@@ -386,7 +390,7 @@ export class CinematicEditorCurvesRoot extends Component<ICinematicEditorCurvesR
 		translation.y = p.y - contentY * scale;
 
 		this.props.cinematicEditor.setState({
-			scale,
+			curvesZoom: scale,
 		});
 
 		this.props.cinematicEditor.curves.setState({

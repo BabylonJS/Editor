@@ -119,7 +119,7 @@ export function configureDivEvents(options: IConfigureDivEventsOptions) {
 
 				animationsKeyConfigurationsToMove.forEach((trackConfiguration) => {
 					trackConfiguration.forEach((keyConfiguration) => {
-						const frame = Math.round(Math.max(0, keyConfiguration.startPosition - delta / options.cinematicEditor.state.scale));
+						const frame = Math.round(Math.max(0, keyConfiguration.startPosition - delta / options.cinematicEditor.state.timelinesScale));
 
 						if (isCinematicKeyCut(keyConfiguration.key)) {
 							keyConfiguration.key.key1.frame = frame;

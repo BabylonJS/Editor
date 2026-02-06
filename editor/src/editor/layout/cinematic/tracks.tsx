@@ -1,7 +1,11 @@
 import { Component, ReactNode } from "react";
 
+import { FaMagnifyingGlass } from "react-icons/fa6";
+
 import { Tools } from "babylonjs";
 import { ICinematicTrack } from "babylonjs-editor-tools";
+
+import { Input } from "../../../ui/shadcn/ui/input";
 
 import { registerUndoRedo } from "../../../tools/undoredo";
 import { getInspectorPropertyValue } from "../../../tools/property";
@@ -10,6 +14,8 @@ import { getDefaultRenderingPipeline } from "../../rendering/default-pipeline";
 
 import { CinematicEditor } from "./editor";
 
+import { isTrackInFilter } from "./tools/tracks";
+
 import { CinematicEditorTrackAdd } from "./tracks/add";
 import { CinematicEditorSoundTrack } from "./tracks/sound";
 import { CinematicEditorEventTrack } from "./tracks/event";
@@ -17,6 +23,7 @@ import { CinematicEditorPropertyTrack } from "./tracks/property";
 import { CinematicEditorAnimationGroupTrack } from "./tracks/animation-group";
 
 export interface ICinematicEditorTracksProps {
+	tracksFilter: string;
 	cinematicEditor: CinematicEditor;
 }
 
@@ -38,16 +45,39 @@ export class CinematicEditorTracks extends Component<ICinematicEditorTracksProps
 			>
 				<div className="flex w-full h-10 py-5" />
 
-				{cinematic.tracks.map((track, index) => {
-					return this._getTrack(track, index === 0);
-				})}
+				{cinematic.tracks
+					.filter((track) => isTrackInFilter(track, this.props.tracksFilter))
+					.map((track, index) => {
+						return this._getTrack(track, index === 0);
+					})}
 
 				<div className="fixed flex justify-between items-center w-96 h-10 bg-background px-2 border-r-2 border-r-border">
 					<div className="italic font-thin">
 						{cinematic.tracks.length} track{cinematic.tracks.length !== 1 ? "s" : ""}
 					</div>
 
-					<CinematicEditorTrackAdd cinematicEditor={this.props.cinematicEditor} />
+					<div className="flex items-center gap-2">
+						<div className="relative">
+							<Input
+								placeholder="Filter..."
+								value={this.props.tracksFilter}
+								onChange={(e) =>
+									this.props.cinematicEditor.setState({
+										tracksFilter: e.currentTarget.value,
+									})
+								}
+								className={`
+									max-w-52 w-full h-7 !border-none pl-7 bg-primary-foreground
+									hover:border-border focus:border-border
+									transition-all duration-300 ease-in-out    
+								`}
+							/>
+
+							<FaMagnifyingGlass className="absolute top-1/2 -translate-y-1/2 left-2 w-4 h-4" />
+						</div>
+
+						<CinematicEditorTrackAdd cinematicEditor={this.props.cinematicEditor} />
+					</div>
 				</div>
 			</div>
 		);

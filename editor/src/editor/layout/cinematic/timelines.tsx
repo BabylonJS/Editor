@@ -12,6 +12,8 @@ import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator,
 import { CinematicEditor } from "./editor";
 import { CinematicEditorTracker } from "./tracker";
 
+import { isTrackInFilter } from "./tools/tracks";
+
 import { CinematicEditorKeyBase } from "./timelines/keys/base";
 import { addAnimationGroupKey, addAnimationKey, addEventKey, addSoundKey } from "./timelines/add";
 import { removeAnimationGroupKey, removeAnimationKey, removeEventKey, removeSoundKey } from "./timelines/remove";
@@ -19,6 +21,7 @@ import { removeAnimationGroupKey, removeAnimationKey, removeEventKey, removeSoun
 export interface ICinematicEditorTimelinesProps {
 	scale: number;
 	currentTime: number;
+	tracksFilter: string;
 
 	cinematicEditor: CinematicEditor;
 }
@@ -60,9 +63,11 @@ export class CinematicEditorTimelines extends Component<ICinematicEditorTimeline
 					className="relative min-w-full h-10 mx-2 py-2"
 				/>
 
-				{cinematic.tracks.map((track, index) => {
-					return this._getTrack(track, width, index === 0);
-				})}
+				{cinematic.tracks
+					.filter((track) => isTrackInFilter(track, this.props.tracksFilter))
+					.map((track, index) => {
+						return this._getTrack(track, width, index === 0);
+					})}
 
 				<div
 					style={{
@@ -89,7 +94,8 @@ export class CinematicEditorTimelines extends Component<ICinematicEditorTimeline
                             border-b border-b-border/50
                             border-r border-r-border/50
                             border-l border-l-border/50
-                            ${this.props.cinematicEditor.state.hoverTrack === track ? "bg-primary-foreground" : ""}
+                            ${this.props.cinematicEditor.state.hoverTrack === track ? "bg-primary-foreground/35" : ""}
+                            ${this.props.cinematicEditor.state.selectedTrack === track ? "bg-primary-foreground" : ""}
                             transition-all duration-300 ease-in-out
                         `}
 						style={{

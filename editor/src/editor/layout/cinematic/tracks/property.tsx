@@ -189,7 +189,12 @@ export function CinematicEditorPropertyTrack(props: ICinematicEditorPropertyTrac
 			</div>
 
 			<div className="flex-1">
-				<Button variant="ghost" className="w-full h-8 bg-accent/35" onClick={() => selectPropertyToAnimate()}>
+				<Button
+					variant="ghost"
+					className="w-full h-8 bg-accent/35"
+					disabled={props.cinematicEditor.state.selectedTrack !== props.track}
+					onClick={() => selectPropertyToAnimate()}
+				>
 					<span className="w-full text-xs whitespace-nowrap overflow-hidden overflow-ellipsis">{props.track.propertyPath?.split(".").pop() ?? "No property"}</span>
 				</Button>
 			</div>

@@ -54,10 +54,14 @@ export interface ICinematicEditorProps {
 }
 
 export interface ICinematicEditorState {
-	scale: number;
+	timelinesScale: number;
+	curvesZoom: number;
+
 	currentTime: number;
 
 	editType: "keyframes" | "curves";
+
+	tracksFilter: string;
 
 	hoverTrack: ICinematicTrack | null;
 	selectedTrack: ICinematicTrack | null;
@@ -116,8 +120,11 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 		this.cinematic = props.cinematic;
 
 		this.state = {
-			scale: 1,
+			curvesZoom: 1,
+			timelinesScale: 1,
 			currentTime: 0,
+
+			tracksFilter: "",
 
 			hoverTrack: null,
 			selectedTrack: null,
@@ -149,18 +156,19 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 
 						<div className={`flex flex-1 ${this.state.editType === "keyframes" ? "overflow-y-auto" : "overflow-hidden"}`}>
 							<TooltipProvider>
-								<CinematicEditorTracks cinematicEditor={this} ref={(ref) => (this.tracks = ref!)} />
+								<CinematicEditorTracks ref={(ref) => (this.tracks = ref!)} cinematicEditor={this} tracksFilter={this.state.tracksFilter} />
 
 								<CinematicEditorTimelines
 									ref={(ref) => (this.timelines = ref!)}
 									cinematicEditor={this}
-									scale={this.state.scale}
+									scale={this.state.timelinesScale}
 									currentTime={this.state.currentTime}
+									tracksFilter={this.state.tracksFilter}
 								/>
 								<CinematicEditorCurves
 									ref={(ref) => (this.curves = ref!)}
 									cinematicEditor={this}
-									scale={this.state.scale}
+									scale={this.state.curvesZoom}
 									currentTime={this.state.currentTime}
 									selectedTrack={this.state.selectedTrack}
 								/>
@@ -295,7 +303,7 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 		this._currentTimeBeforePlay = this.state.currentTime;
 
 		const currentTime = this.state.currentTime;
-		const maxFrame = this.timelines.getMaxWidthForTimelines() / this.state.scale;
+		const maxFrame = this.timelines.getMaxWidthForTimelines() / this.state.timelinesScale;
 
 		this._playAnimation ??= new Animation("editor-currentTime", "_animatedCurrentTime", 60, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CYCLE);
 		this._playAnimation.setKeys([
