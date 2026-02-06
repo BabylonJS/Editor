@@ -3,7 +3,7 @@ import { MdOutlineInfo } from "react-icons/md";
 
 import { Button, Popover } from "@blueprintjs/core";
 
-import { Color3, Color4 } from "babylonjs";
+import { Color3, Color4, Scalar } from "babylonjs";
 
 import { Color } from "@jniac/color-xplr";
 
@@ -26,6 +26,10 @@ export interface IEditorInspectorColorFieldProps extends IEditorInspectorFieldPr
 
 export function EditorInspectorColorField(props: IEditorInspectorColorFieldProps) {
 	const color = getInspectorPropertyValue(props.object, props.property) as Color3 | Color4;
+
+	color.r = Scalar.Clamp(color.r, 0, 1);
+	color.g = Scalar.Clamp(color.g, 0, 1);
+	color.b = Scalar.Clamp(color.b, 0, 1);
 
 	const [value, setValue] = useState(color);
 	const [oldValue, setOldValue] = useState(color?.clone());
@@ -88,6 +92,7 @@ export function EditorInspectorColorField(props: IEditorInspectorColorFieldProps
 
 			<div className="flex">
 				<EditorInspectorNumberField
+					key={`${props.property}.r=${color.r}`}
 					object={props.object}
 					property={`${props.property}.r`}
 					min={props.noClamp ? undefined : 0}
@@ -95,6 +100,7 @@ export function EditorInspectorColorField(props: IEditorInspectorColorFieldProps
 					onChange={(v) => handleChanelChange(v, "r")}
 				/>
 				<EditorInspectorNumberField
+					key={`${props.property}.g=${color.g}`}
 					object={props.object}
 					property={`${props.property}.g`}
 					min={props.noClamp ? undefined : 0}
@@ -102,6 +108,7 @@ export function EditorInspectorColorField(props: IEditorInspectorColorFieldProps
 					onChange={(v) => handleChanelChange(v, "g")}
 				/>
 				<EditorInspectorNumberField
+					key={`${props.property}.b=${color.b}`}
 					object={props.object}
 					property={`${props.property}.b`}
 					min={props.noClamp ? undefined : 0}
@@ -111,6 +118,7 @@ export function EditorInspectorColorField(props: IEditorInspectorColorFieldProps
 
 				{props.noColorPicker && color.getClassName() === "Color4" && (
 					<EditorInspectorNumberField
+						key={`${props.property}.a=${(color as Color4).a}`}
 						object={props.object}
 						property={`${props.property}.a`}
 						min={props.noClamp ? undefined : 0}
@@ -125,7 +133,11 @@ export function EditorInspectorColorField(props: IEditorInspectorColorFieldProps
 							style={{
 								backgroundColor: `rgba(${value.r * 255}, ${value.g * 255}, ${value.b * 255}, ${(value as Color4).a ?? 1})`,
 							}}
-							className="h-full aspect-square rounded-lg p-1"
+							className={`
+								h-full aspect-square !rounded-lg !border-[1px] !border-solid !border-neutral-500 p-1
+								hover:!border-neutral-950 hover:dark:!border-neutral-50
+								transition-[border] duration-300 ease-in-out	
+							`}
 						/>
 					</Popover>
 				)}
