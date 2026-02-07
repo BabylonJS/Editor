@@ -98,7 +98,11 @@ export class CinematicEditorCurvesRoot extends Component<ICinematicEditorCurvesR
 							onPointerDown={(ev) => this._handlePointerDown(ev)}
 							onPointerMove={(ev) => this._handlePointerMove(ev)}
 							onPointerUp={(ev) => this._handlePointerUp(ev)}
-							onContextMenu={(ev) => this.setState({ rightClickPositionX: ev.nativeEvent.offsetX })}
+							onContextMenu={(ev) =>
+								this.setState({
+									rightClickPositionX: ev.nativeEvent.offsetX - this.props.translation.x,
+								})
+							}
 						>
 							<g transform={`translate(${this.props.translation.x} ${this.props.translation.y}) scale(${this.props.scale})`}>
 								<line

@@ -30,7 +30,9 @@ export function addAnimationKey(
 	}
 
 	let value: any = null;
-	const frame = Math.round(positionX / cinematicEditor.state.timelinesScale);
+
+	const scale = cinematicEditor.state.editType === "keyframes" ? cinematicEditor.state.timelinesScale : cinematicEditor.state.curvesZoom;
+	const frame = Math.round(positionX / scale);
 
 	if (keyFrameAnimations === track.keyFrameAnimations) {
 		const node = track.defaultRenderingPipeline ? getDefaultRenderingPipeline() : track.node;
