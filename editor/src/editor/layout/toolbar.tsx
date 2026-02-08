@@ -39,6 +39,7 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 		super(props);
 
 		ipcRenderer.on("editor:open-project", () => this._handleOpenProject());
+		ipcRenderer.on("editor:open-default-ide", () => this._handleOpenInDefaultIde());
 		ipcRenderer.on("editor:open-vscode", () => this._handleOpenVisualStudioCode());
 
 		this._nodeCommands = getNodeCommands(this.props.editor);
@@ -92,6 +93,10 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 							<MenubarItem onClick={() => this.props.editor.setState({ generateProject: true })}>Generate All Scenes and Assets...</MenubarItem>
 
 							<MenubarSeparator />
+
+							<MenubarItem disabled={!this.props.editor.state.projectPath} onClick={() => this._handleOpenInDefaultIde()}>
+								Open in Default IDE
+							</MenubarItem>
 
 							<MenubarItem disabled={!this.props.editor.state.visualStudioCodeAvailable} onClick={() => this._handleOpenVisualStudioCode()}>
 								Open in Visual Studio Code
@@ -260,5 +265,14 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 
 		const p = await execNodePty(`code "${join(dirname(this.props.editor.state.projectPath), "/")}"`);
 		await p.wait();
+	}
+
+	private _handleOpenInDefaultIde(): void {
+		if (!this.props.editor.state.projectPath) {
+			return;
+		}
+
+		const projectDir = dirname(this.props.editor.state.projectPath);
+		ipcRenderer.send("editor:open-with", projectDir);
 	}
 }

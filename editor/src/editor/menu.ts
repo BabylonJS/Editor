@@ -63,6 +63,10 @@ export function setupEditorMenu(): void {
 						type: "separator",
 					},
 					{
+						label: "Open in Default IDE",
+						click: () => BrowserWindow.getFocusedWindow()?.webContents.send("editor:open-default-ide"),
+					},
+					{
 						label: "Open in Visual Studio Code",
 						click: () => BrowserWindow.getFocusedWindow()?.webContents.send("editor:open-vscode"),
 					},
