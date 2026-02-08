@@ -77,7 +77,10 @@ export function generateCinematicAnimationGroup(cinematic: ICinematic, scene: Sc
 						effectiveAnimationGroup.speedRatio = configuration.speed;
 						effectiveAnimationGroup.stop();
 						effectiveAnimationGroup.play(repeatCount > 0);
-						effectiveAnimationGroup.goToFrame(configuration.startFrame);
+
+						if (effectiveAnimationGroup.from !== configuration.startFrame) {
+							effectiveAnimationGroup.goToFrame(configuration.startFrame);
+						}
 
 						if (repeatCount) {
 							let currentRepeatCount = 0;
@@ -96,35 +99,45 @@ export function generateCinematicAnimationGroup(cinematic: ICinematic, scene: Sc
 			result.addTargetedAnimation(animationGroupsAnimation, dummyObject);
 
 			if ((track.animationGroupWeight?.length ?? 0) >= 2) {
-				const dummyObject = {
-					weight: 0,
-				};
-
-				const weightAnimation = new Animation(
-					`${effectiveAnimationGroup.name}-weights`,
-					"weight",
-					60,
-					Animation.ANIMATIONTYPE_FLOAT,
-					Animation.ANIMATIONLOOPMODE_CYCLE,
-					false
-				);
-				const weightKeys: IAnimationKey[] = [];
-
-				track.animationGroupWeight!.forEach((keyFrame) => {
-					if (isCinematicKeyCut(keyFrame)) {
-						weightKeys.push(keyFrame.key1);
-						weightKeys.push(keyFrame.key2);
-					} else {
-						weightKeys.push(keyFrame);
+				const hasWeightVarianceKeyframe = track.animationGroupWeight!.find((keyframe) => {
+					if (isCinematicKeyCut(keyframe)) {
+						return keyframe.key1.value !== 1 || keyframe.key2.value !== 1;
 					}
+
+					return keyframe.value !== 1;
 				});
 
-				weightAnimation.setKeys(weightKeys);
-				result.addTargetedAnimation(weightAnimation, dummyObject);
+				if (hasWeightVarianceKeyframe) {
+					const dummyObject = {
+						weight: 0,
+					};
 
-				registerAfterAnimationCallback(result, scene, () => {
-					effectiveAnimationGroup.weight = dummyObject.weight;
-				});
+					const weightAnimation = new Animation(
+						`${effectiveAnimationGroup.name}-weights`,
+						"weight",
+						60,
+						Animation.ANIMATIONTYPE_FLOAT,
+						Animation.ANIMATIONLOOPMODE_CYCLE,
+						false
+					);
+					const weightKeys: IAnimationKey[] = [];
+
+					track.animationGroupWeight!.forEach((keyFrame) => {
+						if (isCinematicKeyCut(keyFrame)) {
+							weightKeys.push(keyFrame.key1);
+							weightKeys.push(keyFrame.key2);
+						} else {
+							weightKeys.push(keyFrame);
+						}
+					});
+
+					weightAnimation.setKeys(weightKeys);
+					result.addTargetedAnimation(weightAnimation, dummyObject);
+
+					registerAfterAnimationCallback(result, scene, () => {
+						effectiveAnimationGroup.weight = dummyObject.weight;
+					});
+				}
 			}
 		}
 
