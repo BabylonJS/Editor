@@ -22,7 +22,6 @@ import "@babylonjs/core/Shaders/particles.vertex";
 import "@babylonjs/core/Shaders/particles.fragment";
 import "@babylonjs/core/Shaders/rgbdDecode.fragment";
 
-
 export interface IEffectEditorPreviewProps {
 	filePath: string | null;
 	onSceneReady?: (scene: Scene) => void;

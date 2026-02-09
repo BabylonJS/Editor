@@ -8,15 +8,7 @@
  */
 
 import { Scene } from "@babylonjs/core/scene";
-import type {
-	IData,
-	IEmitter,
-	IGroup,
-	IMaterial,
-	ITexture,
-	IImage,
-	IGeometry,
-} from "babylonjs-editor-tools/src/effect/types";
+import type { IData, IEmitter, IGroup, IMaterial, ITexture, IImage, IGeometry } from "babylonjs-editor-tools/src/effect/types";
 import { findRootGameObject } from "./unity/utils";
 import { convertGameObject, convertToIDataFormat } from "./unity/gameObjectConverter";
 import { convertUnityModel, convertUnityMaterial } from "./unity/resourceConverter";

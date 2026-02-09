@@ -1,6 +1,6 @@
 import type { ISpeedOverLifeBehavior } from "../types";
 import { extractNumberFromValue } from "./utils";
-import { ValueUtils } from "../utils";
+import { parseIntervalValue } from "../utils";
 import type { EffectSolidParticleSystem, EffectParticleSystem } from "../systems";
 /**
  * Apply SpeedOverLife behavior to ParticleSystem
@@ -34,7 +34,7 @@ export function applySpeedOverLifePS(particleSystem: EffectParticleSystem, behav
 				}
 			}
 		} else if (typeof behavior.speed === "number" || (typeof behavior.speed === "object" && behavior.speed !== null && "type" in behavior.speed)) {
-			const speedValue = ValueUtils.parseIntervalValue(behavior.speed);
+			const speedValue = parseIntervalValue(behavior.speed);
 			particleSystem.addVelocityGradient(0, speedValue.min);
 			particleSystem.addVelocityGradient(1, speedValue.max);
 		}
@@ -77,7 +77,7 @@ export function applySpeedOverLifeSPS(system: EffectSolidParticleSystem, behavio
 			}
 		}
 	} else if (typeof behavior.speed === "number" || (typeof behavior.speed === "object" && behavior.speed !== null && "type" in behavior.speed)) {
-		const speedValue = ValueUtils.parseIntervalValue(behavior.speed);
+		const speedValue = parseIntervalValue(behavior.speed);
 		system.addVelocityGradient(0, speedValue.min);
 		system.addVelocityGradient(1, speedValue.max);
 	}

@@ -1,5 +1,5 @@
 import type { IFrameOverLifeBehavior } from "../types";
-import { ValueUtils } from "../utils";
+import { parseConstantValue } from "../utils";
 import type { EffectParticleSystem } from "../systems";
 /**
  * Apply FrameOverLife behavior to ParticleSystem
@@ -27,7 +27,7 @@ export function applyFrameOverLifePS(particleSystem: EffectParticleSystem, behav
 			particleSystem.endSpriteCellID = Math.floor(frames[frames.length - 1] || frames[0]);
 		}
 	} else if (typeof behavior.frame === "number" || (typeof behavior.frame === "object" && behavior.frame !== null && "type" in behavior.frame)) {
-		const frameValue = ValueUtils.parseConstantValue(behavior.frame);
+		const frameValue = parseConstantValue(behavior.frame);
 		particleSystem.startSpriteCellID = Math.floor(frameValue);
 		particleSystem.endSpriteCellID = Math.floor(frameValue);
 	}

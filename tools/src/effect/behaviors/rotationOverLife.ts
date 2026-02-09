@@ -1,5 +1,5 @@
 import type { IRotationOverLifeBehavior } from "../types";
-import { ValueUtils } from "../utils";
+import { parseIntervalValue } from "../utils";
 import { extractNumberFromValue } from "./utils";
 import type { EffectSolidParticleSystem, EffectParticleSystem } from "../systems";
 /**
@@ -48,7 +48,7 @@ export function applyRotationOverLifePS(particleSystem: EffectParticleSystem, be
 		}
 	} else {
 		// Fallback to interval (min/max) - use gradient with min at 0 and max at 1
-		const angularVel = ValueUtils.parseIntervalValue(behavior.angularVelocity);
+		const angularVel = parseIntervalValue(behavior.angularVelocity);
 		particleSystem.addAngularSpeedGradient(0, angularVel.min);
 		particleSystem.addAngularSpeedGradient(1, angularVel.max);
 	}
@@ -100,7 +100,7 @@ export function applyRotationOverLifeSPS(system: EffectSolidParticleSystem, beha
 		}
 	} else {
 		// Fallback to interval (min/max) - use gradient with min at 0 and max at 1
-		const angularVel = ValueUtils.parseIntervalValue(behavior.angularVelocity);
+		const angularVel = parseIntervalValue(behavior.angularVelocity);
 		system.addAngularSpeedGradient(0, angularVel.min);
 		system.addAngularSpeedGradient(1, angularVel.max);
 	}

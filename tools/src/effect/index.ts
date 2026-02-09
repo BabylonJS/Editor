@@ -5,4 +5,3 @@ export * from "./systems";
 export * from "./effect";
 export * from "./emitters";
 export * from "./behaviors";
-export * from "./loggers";

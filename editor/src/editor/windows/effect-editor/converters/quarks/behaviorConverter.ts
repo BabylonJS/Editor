@@ -17,14 +17,7 @@ import type {
 	IQuarksRandomColorBetweenGradient,
 	IQuarksGradientKey,
 } from "./types";
-import type {
-	Behavior,
-	IColorFunction,
-	IForceOverLifeBehavior,
-	ISpeedOverLifeBehavior,
-	ILimitSpeedOverLifeBehavior,
-	ISizeBySpeedBehavior,
-} from "babylonjs-editor-tools";
+import type { Behavior, IColorFunction, IForceOverLifeBehavior, ISpeedOverLifeBehavior, ILimitSpeedOverLifeBehavior, ISizeBySpeedBehavior } from "babylonjs-editor-tools";
 import { convertOptionalValue } from "./valueConverter";
 import { convertGradientKeys, convertSpeedOrFrameValue } from "./resourceConverter";
 import { extractConstantColor } from "./colorConverter";
@@ -133,11 +126,7 @@ function convertColorOverLifeBehavior(behavior: IQuarksColorOverLifeBehavior): B
 		const hasKeys = colorData.keys && colorData.keys.length > 0;
 
 		if (hasColorKeys || hasAlphaKeys || hasKeys) {
-			const colorKeys = hasColorKeys
-				? convertGradientKeys(colorData.color?.keys)
-				: hasKeys
-					? convertGradientKeys(colorData.keys)
-					: [];
+			const colorKeys = hasColorKeys ? convertGradientKeys(colorData.color?.keys) : hasKeys ? convertGradientKeys(colorData.keys) : [];
 			const alphaKeys = hasAlphaKeys ? convertGradientKeys(colorData.alpha?.keys) : [];
 			colorFunction = {
 				colorFunctionType: "Gradient",

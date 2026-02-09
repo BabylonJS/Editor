@@ -2,7 +2,7 @@ import { Particle } from "@babylonjs/core/Particles/particle";
 import { SolidParticle } from "@babylonjs/core/Particles/solidParticle";
 import type { IOrbitOverLifeBehavior, Value } from "../types";
 import { extractNumberFromValue, interpolateGradientKeys } from "./utils";
-import { ValueUtils } from "../utils";
+import { parseConstantValue, parseIntervalValue } from "../utils";
 
 /**
  * Apply OrbitOverLife behavior to Particle
@@ -32,11 +32,11 @@ export function applyOrbitOverLifePS(particle: Particle, behavior: IOrbitOverLif
 		radius = interpolateGradientKeys(radiusValue.keys, lifeRatio, extractNumberFromValue);
 	} else if (radiusValue !== undefined && radiusValue !== null) {
 		// Parse as Value (number, ConstantValue, or IntervalValue)
-		const parsedRadius = ValueUtils.parseIntervalValue(radiusValue as Value);
+		const parsedRadius = parseIntervalValue(radiusValue as Value);
 		radius = parsedRadius.min + (parsedRadius.max - parsedRadius.min) * lifeRatio;
 	}
 
-	const speed = behavior.speed !== undefined ? ValueUtils.parseConstantValue(behavior.speed) : 1;
+	const speed = behavior.speed !== undefined ? parseConstantValue(behavior.speed) : 1;
 	const angle = lifeRatio * speed * Math.PI * 2;
 
 	// Calculate orbit offset relative to center
@@ -84,11 +84,11 @@ export function applyOrbitOverLifeSPS(particle: SolidParticle, behavior: IOrbitO
 		radius = interpolateGradientKeys(radiusValue.keys, lifeRatio, extractNumberFromValue);
 	} else if (radiusValue !== undefined && radiusValue !== null) {
 		// Parse as Value (number, ConstantValue, or IntervalValue)
-		const parsedRadius = ValueUtils.parseIntervalValue(radiusValue as Value);
+		const parsedRadius = parseIntervalValue(radiusValue as Value);
 		radius = parsedRadius.min + (parsedRadius.max - parsedRadius.min) * lifeRatio;
 	}
 
-	const speed = behavior.speed !== undefined ? ValueUtils.parseConstantValue(behavior.speed) : 1;
+	const speed = behavior.speed !== undefined ? parseConstantValue(behavior.speed) : 1;
 	const angle = lifeRatio * speed * Math.PI * 2;
 
 	// Calculate orbit offset relative to center

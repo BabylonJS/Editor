@@ -6,7 +6,9 @@
  * Helper to get component by type from GameObject
  */
 export function getComponentByType(gameObject: any, componentType: string, components: Map<string, any>): any | null {
-	if (!gameObject.m_Component) return null;
+	if (!gameObject.m_Component) {
+		return null;
+	}
 
 	for (const compRef of gameObject.m_Component) {
 		const compId = compRef.component?.fileID || compRef.component;
@@ -31,8 +33,12 @@ export function findRootGameObject(components: Map<string, any>): string | null 
 	let gameObjectCount = 0;
 
 	for (const [_id, comp] of components) {
-		if (comp.Transform) transformCount++;
-		if (comp.GameObject) gameObjectCount++;
+		if (comp.Transform) {
+			transformCount++;
+		}
+		if (comp.GameObject) {
+			gameObjectCount++;
+		}
 
 		// Check if this component is a Transform
 		if (comp.Transform) {
@@ -57,9 +63,8 @@ export function findRootGameObject(components: Map<string, any>): string | null 
 								`[findRootGameObject] Found root Transform with m_Father === "0", GameObject fileID: ${gameObjectFileIDStr}, component ID: ${gameObjectFileIDStr}`
 							);
 							return gameObjectFileIDStr; // This is the component ID/key
-						} else {
-							console.warn(`[findRootGameObject] GameObject ${gameObjectFileIDStr} not found in components map`);
 						}
+						console.warn(`[findRootGameObject] GameObject ${gameObjectFileIDStr} not found in components map`);
 					}
 				}
 			} else if (comp.Transform.m_GameObject) {

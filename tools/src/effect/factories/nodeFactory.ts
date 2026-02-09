@@ -6,9 +6,8 @@ import { Color4 } from "@babylonjs/core/Maths/math.color";
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 
 import { EffectParticleSystem, EffectSolidParticleSystem } from "../systems";
-import { IData, IGroup, IEmitter, ITransform, IParticleSystemConfig, ILoaderOptions, IMaterialFactory, IGeometryFactory, IEffectNode, isSystem } from "../types";
-import { Logger } from "../loggers/logger";
-import { CapacityCalculator, ValueUtils } from "../utils";
+import { IData, IGroup, IEmitter, ITransform, IParticleSystemConfig, IMaterialFactory, IGeometryFactory, IEffectNode, isSystem } from "../types";
+import { calculateForParticleSystem, parseConstantValue } from "../utils";
 import { MaterialFactory } from "./materialFactory";
 import { GeometryFactory } from "./geometryFactory";
 /**
@@ -16,19 +15,17 @@ import { GeometryFactory } from "./geometryFactory";
  * Creates all nodes, sets parents, and applies transformations in a single pass
  */
 export class NodeFactory {
-	private _logger: Logger;
 	private _scene: Scene;
 	private _data: IData;
 
 	private _materialFactory: IMaterialFactory;
 	private _geometryFactory: IGeometryFactory;
 
-	constructor(scene: Scene, data: IData, rootUrl: string, options?: ILoaderOptions) {
+	constructor(scene: Scene, data: IData, rootUrl: string) {
 		this._scene = scene;
 		this._data = data;
-		this._logger = new Logger("[SystemFactory]", options);
-		this._materialFactory = new MaterialFactory(scene, data, rootUrl, options);
-		this._geometryFactory = new GeometryFactory(data, options);
+		this._materialFactory = new MaterialFactory(scene, data, rootUrl);
+		this._geometryFactory = new GeometryFactory(data);
 	}
 
 	/**
@@ -37,7 +34,7 @@ export class NodeFactory {
 	 */
 	public create(): IEffectNode {
 		if (!this._data.root) {
-			this._logger.warn("No root object found in  data");
+			Tools.Warn("No root object found in  data");
 			return this._createRootNode();
 		}
 		return this._createNode(this._data.root, null);
@@ -125,15 +122,12 @@ export class NodeFactory {
 	 * Creates nodes, sets parents, and applies transformations in one pass
 	 */
 	private _createNode(obj: IGroup | IEmitter, parentNode: IEffectNode | null): IEffectNode {
-		this._logger.log(`Processing object: ${obj.name}`);
-
 		if ("children" in obj && obj.children) {
 			const groupNode = this._createGroupNode(obj as IGroup, parentNode);
 			groupNode.children = obj.children.map((child) => this._createNode(child, groupNode));
 			return groupNode;
-		} else {
-			return this._createParticleNode(obj as IEmitter, parentNode);
 		}
+		return this._createParticleNode(obj as IEmitter, parentNode);
 	}
 
 	/**
@@ -156,7 +150,6 @@ export class NodeFactory {
 			(node.data as TransformNode).parent = parentNode.data as TransformNode;
 		}
 
-		this._logger.log(`Created group node: ${group.name}`);
 		return node;
 	}
 
@@ -186,12 +179,7 @@ export class NodeFactory {
 			particleSystem.emitter.parent = parentNode.data as TransformNode;
 		}
 
-		this._applyTransform(
-			{ name: emitter.name, uuid: emitter.uuid, children: [], data: particleSystem.emitter, type: "particle" } as IEffectNode,
-			emitter.transform
-		);
-
-		this._logger.log(`Created particle system: ${emitter.name}`);
+		this._applyTransform({ name: emitter.name, uuid: emitter.uuid, children: [], data: particleSystem.emitter, type: "particle" } as IEffectNode, emitter.transform);
 
 		return node;
 	}
@@ -348,8 +336,8 @@ export class NodeFactory {
 		const baseEmitRate = config.emitRate || 10;
 		for (const burst of config.emissionBursts) {
 			if (burst.time !== undefined && burst.count !== undefined) {
-				const burstTime = ValueUtils.parseConstantValue(burst.time);
-				const burstCount = ValueUtils.parseConstantValue(burst.count);
+				const burstTime = parseConstantValue(burst.time);
+				const burstCount = parseConstantValue(burst.count);
 				const timeRatio = Math.min(Math.max(burstTime / duration, 0), 1);
 				const windowSize = 0.02;
 				const burstEmitRate = burstCount / windowSize;
@@ -368,12 +356,10 @@ export class NodeFactory {
 	private _createEffectParticleSystem(emitter: IEmitter): EffectParticleSystem {
 		const { name, config } = emitter;
 
-		this._logger.log(`Creating ParticleSystem: ${name}`);
-
 		// Calculate capacity
 		const duration = config.targetStopDuration !== undefined && config.targetStopDuration > 0 ? config.targetStopDuration : 5;
 		const emitRate = config.emitRate || 10;
-		const capacity = CapacityCalculator.calculateForParticleSystem(emitRate, duration);
+		const capacity = calculateForParticleSystem(emitRate, duration);
 
 		// Create instance (simple constructor)
 		const particleSystem = new EffectParticleSystem(name, capacity, this._scene);
@@ -401,7 +387,7 @@ export class NodeFactory {
 				particleSystem.spriteCellWidth = config.uTileCount;
 				particleSystem.spriteCellHeight = config.vTileCount;
 				if (config.startTileIndex !== undefined) {
-					const startTile = ValueUtils.parseConstantValue(config.startTileIndex);
+					const startTile = parseConstantValue(config.startTileIndex);
 					particleSystem.startSpriteCellID = Math.floor(startTile);
 					particleSystem.endSpriteCellID = Math.floor(startTile);
 				}
@@ -419,13 +405,10 @@ export class NodeFactory {
 			particleSystem.billboardMode = config.billboardMode;
 		}
 
-		// // === Создание emitter ===
-		// const rotationMatrix = emitter.matrix ? MatrixUtils.extractRotationMatrix(emitter.matrix) : null;
 		if (config.shape) {
 			particleSystem.configureEmitterFromShape(config.shape);
 		}
 
-		this._logger.log(`ParticleSystem created: ${name}`);
 		return particleSystem;
 	}
 
@@ -434,8 +417,6 @@ export class NodeFactory {
 	 */
 	private _createEffectSolidParticleSystem(emitter: IEmitter): EffectSolidParticleSystem {
 		const { name, config } = emitter;
-
-		this._logger.log(`Creating SolidParticleSystem: ${name}`);
 
 		const particleMesh = this._geometryFactory.createParticleMesh(config, name, this._scene);
 
@@ -468,11 +449,8 @@ export class NodeFactory {
 			sps.configureEmitterFromShape(config.shape);
 		}
 
-		// Dispose source mesh after it's been added as shape
-		// SPS will clone it in buildMesh() during start()
 		particleMesh.dispose();
 
-		this._logger.log(`SolidParticleSystem created: ${name}`);
 		return sps;
 	}
 
@@ -481,26 +459,24 @@ export class NodeFactory {
 	 */
 	private _applyTransform(node: IEffectNode, transform: ITransform): void {
 		if (!transform) {
-			this._logger.warn(`Transform is undefined for node: ${node.name}`);
+			Tools.Warn(`Transform is undefined for node: ${node.name}`);
 			return;
 		}
 
-		if (!isSystem(node.data)) {
-			if (transform.position && node.data.position) {
-				node.data.position.copyFrom(transform.position);
-			}
+		const object = isSystem(node.data) ? node.data.emitter : node.data;
 
-			if (transform.rotation && node.data.rotationQuaternion) {
-				node.data.rotationQuaternion.copyFrom(transform.rotation);
-			}
+		if (transform.position && object && "position" in object) {
+			object.position.copyFrom(transform.position);
+		}
 
-			if (transform.scale && node.data.scaling) {
-				node.data.scaling.copyFrom(transform.scale);
+		if (transform.rotation) {
+			if (object && "rotationQuaternion" in object) {
+				object.rotationQuaternion = new Quaternion().copyFrom(transform.rotation);
 			}
 		}
 
-		this._logger.log(
-			`Applied transform: pos=(${transform.position.x.toFixed(2)}, ${transform.position.y.toFixed(2)}, ${transform.position.z.toFixed(2)}), scale=(${transform.scale.x.toFixed(2)}, ${transform.scale.y.toFixed(2)}, ${transform.scale.z.toFixed(2)})`
-		);
+		if (transform.scale && object && "scaling" in object) {
+			object.scaling.copyFrom(transform.scale);
+		}
 	}
 }

@@ -16,7 +16,7 @@ export interface IEffectEditorObjectPropertiesProps {
 export function EffectEditorObjectProperties(props: IEffectEditorObjectPropertiesProps): ReactNode {
 	const { nodeData, onChange } = props;
 
-	if(!nodeData.data) {
+	if (!nodeData.data) {
 		return (
 			<>
 				<EditorInspectorStringField object={nodeData} property="name" label="Name" onChange={onChange} />
@@ -28,6 +28,7 @@ export function EffectEditorObjectProperties(props: IEffectEditorObjectPropertie
 	const object = isSystem(nodeData.data) ? nodeData.data.emitter : nodeData.data;
 
 	const GetRotationInspector = (object: TransformNode | AbstractMesh, onFinishChange?: () => void): ReactNode => {
+		console.log(object.rotationQuaternion, "rotationQuaternion");
 		if (object.rotationQuaternion) {
 			const valueRef = object.rotationQuaternion.toEulerAngles();
 
@@ -56,7 +57,7 @@ export function EffectEditorObjectProperties(props: IEffectEditorObjectPropertie
 				/>
 			);
 		}
-
+		console.log(object.rotation, "rotation");
 		return (
 			<EditorInspectorVectorField
 				label={<div className="w-14">Rotation</div>}
@@ -67,7 +68,7 @@ export function EffectEditorObjectProperties(props: IEffectEditorObjectPropertie
 				onFinishChange={() => onFinishChange?.()}
 			/>
 		);
-	}
+	};
 
 	return (
 		<>

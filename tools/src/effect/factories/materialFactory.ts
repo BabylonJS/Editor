@@ -6,22 +6,19 @@ import { Tools } from "@babylonjs/core/Misc/tools";
 import { Scene } from "@babylonjs/core/scene";
 import { Color3 } from "@babylonjs/core/Maths/math.color";
 
-import { Logger } from "../loggers/logger";
-import type { IMaterialFactory, ILoaderOptions, IData, IMaterial, ITexture, IImage } from "../types";
+import type { IMaterialFactory, IData, IMaterial, ITexture, IImage } from "../types";
 
 /**
  * Factory for creating materials and textures from Three.js JSON data
  */
 export class MaterialFactory implements IMaterialFactory {
-	private _logger: Logger;
 	private _scene: Scene;
 	private _data: IData;
 	private _rootUrl: string;
-	constructor(scene: Scene, data: IData, rootUrl: string, options?: ILoaderOptions) {
+	constructor(scene: Scene, data: IData, rootUrl: string) {
 		this._scene = scene;
 		this._data = data;
 		this._rootUrl = rootUrl;
-		this._logger = new Logger("[MaterialFactory]", options);
 	}
 
 	/**
@@ -62,7 +59,7 @@ export class MaterialFactory implements IMaterialFactory {
 	 */
 	private _resolveTextureData(materialId: string): { material: IMaterial; texture: ITexture; image: IImage } | null {
 		if (!this._hasRequiredData()) {
-			this._logger.warn(`Missing materials/textures/images data for material ${materialId}`);
+			Tools.Warn(`Missing materials/textures/images data for material ${materialId}`);
 			return null;
 		}
 
@@ -97,7 +94,7 @@ export class MaterialFactory implements IMaterialFactory {
 	private _findMaterial(materialId: string): IMaterial | null {
 		const material = this._data.materials?.find((m) => m.uuid === materialId);
 		if (!material) {
-			this._logger.warn(`Material not found: ${materialId}`);
+			Tools.Warn(`Material not found: ${materialId}`);
 			return null;
 		}
 		return material;
@@ -109,7 +106,7 @@ export class MaterialFactory implements IMaterialFactory {
 	private _findTexture(textureId: string): ITexture | null {
 		const texture = this._data.textures?.find((t) => t.uuid === textureId);
 		if (!texture) {
-			this._logger.warn(`Texture not found: ${textureId}`);
+			Tools.Warn(`Texture not found: ${textureId}`);
 			return null;
 		}
 		return texture;
@@ -121,7 +118,7 @@ export class MaterialFactory implements IMaterialFactory {
 	private _findImage(imageId: string): IImage | null {
 		const image = this._data.images?.find((img) => img.uuid === imageId);
 		if (!image) {
-			this._logger.warn(`Image not found: ${imageId}`);
+			Tools.Warn(`Image not found: ${imageId}`);
 			return null;
 		}
 		return image;
@@ -188,8 +185,6 @@ export class MaterialFactory implements IMaterialFactory {
 	 * Create a material with texture from material ID
 	 */
 	public createMaterial(materialId: string, name: string): PBRMaterial {
-		this._logger.log(`Creating material for ID: ${materialId}, name: ${name}`);
-
 		const textureData = this._resolveTextureData(materialId);
 		if (!textureData) {
 			return new PBRMaterial(name + "_material", this._scene);
@@ -197,11 +192,6 @@ export class MaterialFactory implements IMaterialFactory {
 
 		const { material, texture, image } = textureData;
 		const materialType = material.type || "MeshStandardMaterial";
-
-		this._logger.log(`Found material: type=${materialType}, uuid=${material.uuid}, transparent=${material.transparent}, blending=${material.blending}`);
-		this._logger.log(`Found texture: ${JSON.stringify({ uuid: texture.uuid, image: texture.image })}`);
-		const imageInfo = image.url ? (image.url.split("/").pop() || image.url).substring(0, 50) : "unknown";
-		this._logger.log(`Found image: file: ${imageInfo}`);
 
 		const textureUrl = this._buildTextureUrl(image);
 		const babylonTexture = this._createTextureFromData(textureUrl, texture);
@@ -223,7 +213,6 @@ export class MaterialFactory implements IMaterialFactory {
 		this._applySideSettings(pbrMaterial, material);
 		this._applyBlendMode(pbrMaterial, material);
 
-		this._logger.log(`Created PBRMaterial with albedoTexture (vertex colors will be used automatically if mesh has them)`);
 		return pbrMaterial;
 	}
 
@@ -243,9 +232,6 @@ export class MaterialFactory implements IMaterialFactory {
 		this._applySideSettings(unlitMaterial, material);
 		this._applyBlendMode(unlitMaterial, material);
 
-		this._logger.log(`Using MeshBasicMaterial: PBRMaterial with unlit=true, albedoTexture (vertex colors will be used automatically if mesh has them)`);
-		this._logger.log(`Material created successfully: ${name}_material`);
-
 		return unlitMaterial;
 	}
 
@@ -258,7 +244,6 @@ export class MaterialFactory implements IMaterialFactory {
 			material.needDepthPrePass = false;
 			texture.hasAlpha = true;
 			material.useAlphaFromAlbedoTexture = true;
-			this._logger.log(`Material is transparent (transparencyMode: ALPHABLEND, alphaMode: COMBINE)`);
 		} else {
 			material.transparencyMode = BabylonMaterial.MATERIAL_OPAQUE;
 			material.alpha = 1.0;
@@ -271,7 +256,6 @@ export class MaterialFactory implements IMaterialFactory {
 	private _applyDepthWrite(material: PBRMaterial, Material: IMaterial): void {
 		if (Material.depthWrite !== undefined) {
 			material.disableDepthWrite = !Material.depthWrite;
-			this._logger.log(`Set disableDepthWrite: ${!Material.depthWrite}`);
 		} else {
 			material.disableDepthWrite = true;
 		}
@@ -285,7 +269,6 @@ export class MaterialFactory implements IMaterialFactory {
 
 		if (Material.side !== undefined) {
 			material.sideOrientation = Material.side;
-			this._logger.log(`Set sideOrientation: ${Material.side}`);
 		}
 	}
 
@@ -306,12 +289,6 @@ export class MaterialFactory implements IMaterialFactory {
 		const alphaMode = blendModeMap[Material.blending];
 		if (alphaMode !== undefined) {
 			material.alphaMode = alphaMode;
-			const modeNames: Record<number, string> = {
-				0: "NO_BLENDING",
-				1: "NORMAL",
-				2: "ADDITIVE",
-			};
-			this._logger.log(`Set blend mode: ${modeNames[Material.blending]}`);
 		}
 	}
 }

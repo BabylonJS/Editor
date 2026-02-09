@@ -1,11 +1,5 @@
 import { Color4 } from "@babylonjs/core/Maths/math.color";
-import type {
-	IQuarksColor,
-	IQuarksStartColor,
-	IQuarksGradientKey,
-	IQuarksGradientColor,
-	IQuarksConstantColorColor,
-} from "./types";
+import type { IQuarksColor, IQuarksStartColor, IQuarksGradientKey, IQuarksGradientColor, IQuarksConstantColorColor } from "./types";
 import type { IGradientKey } from "babylonjs-editor-tools";
 import { DEFAULT_COLOR } from "./constants";
 
