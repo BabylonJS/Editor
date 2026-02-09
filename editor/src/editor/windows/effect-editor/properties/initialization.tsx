@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 
 import { EditorInspectorBlockField } from "../../../layout/inspector/fields/block";
 
-import { type IEffectNode, ValueUtils, Value, Color, Rotation } from "babylonjs-editor-tools";
+import { type IEffectNode, parseConstantValue, parseIntervalValue, parseConstantColor, Value, Color, Rotation } from "babylonjs-editor-tools";
 import { EffectValueEditor, type IVec3Function } from "../editors/value";
 import { EffectColorEditor } from "../editors/color";
 
@@ -28,7 +28,7 @@ export function EffectEditorParticleInitializationProperties(props: IEffectEdito
 	};
 
 	const setStartLife = (value: Value): void => {
-		const interval = ValueUtils.parseIntervalValue(value);
+		const interval = parseIntervalValue(value);
 		(system as any).minLifeTime = interval.min;
 		(system as any).maxLifeTime = interval.max;
 		onChange();
@@ -43,14 +43,14 @@ export function EffectEditorParticleInitializationProperties(props: IEffectEdito
 	const setStartSize = (value: Value | IVec3Function): void => {
 		if (typeof value === "object" && "type" in value && value.type === "Vec3Function") {
 			// For Vec3Function, use average of x, y, z
-			const x = ValueUtils.parseConstantValue(value.x);
-			const y = ValueUtils.parseConstantValue(value.y);
-			const z = ValueUtils.parseConstantValue(value.z);
+			const x = parseConstantValue(value.x);
+			const y = parseConstantValue(value.y);
+			const z = parseConstantValue(value.z);
 			const avg = (x + y + z) / 3;
 			(system as any).minSize = avg;
 			(system as any).maxSize = avg;
 		} else {
-			const interval = ValueUtils.parseIntervalValue(value as Value);
+			const interval = parseIntervalValue(value as Value);
 			(system as any).minSize = interval.min;
 			(system as any).maxSize = interval.max;
 		}
@@ -64,7 +64,7 @@ export function EffectEditorParticleInitializationProperties(props: IEffectEdito
 	};
 
 	const setStartSpeed = (value: Value): void => {
-		const interval = ValueUtils.parseIntervalValue(value);
+		const interval = parseIntervalValue(value);
 		(system as any).minEmitPower = interval.min;
 		(system as any).maxEmitPower = interval.max;
 		onChange();
@@ -80,7 +80,7 @@ export function EffectEditorParticleInitializationProperties(props: IEffectEdito
 	};
 
 	const setStartColor = (value: Color): void => {
-		const color = ValueUtils.parseConstantColor(value);
+		const color = parseConstantColor(value);
 		(system as any).color1 = color;
 		onChange();
 	};
@@ -98,14 +98,14 @@ export function EffectEditorParticleInitializationProperties(props: IEffectEdito
 	const setStartRotation = (value: Rotation): void => {
 		// Extract angleZ from rotation
 		if (typeof value === "object" && "type" in value && value.type === "Euler" && value.angleZ) {
-			const interval = ValueUtils.parseIntervalValue(value.angleZ);
+			const interval = parseIntervalValue(value.angleZ);
 			(system as any).minInitialRotation = interval.min;
 			(system as any).maxInitialRotation = interval.max;
 		} else if (
 			typeof value === "number" ||
 			(typeof value === "object" && "type" in value && (value.type === "ConstantValue" || value.type === "IntervalValue" || value.type === "PiecewiseBezier"))
 		) {
-			const interval = ValueUtils.parseIntervalValue(value as Value);
+			const interval = parseIntervalValue(value as Value);
 			(system as any).minInitialRotation = interval.min;
 			(system as any).maxInitialRotation = interval.max;
 		}
@@ -118,7 +118,7 @@ export function EffectEditorParticleInitializationProperties(props: IEffectEdito
 	};
 
 	const setAngularSpeed = (value: Value): void => {
-		const interval = ValueUtils.parseIntervalValue(value);
+		const interval = parseIntervalValue(value);
 		(system as any).minAngularSpeed = interval.min;
 		(system as any).maxAngularSpeed = interval.max;
 		onChange();
@@ -130,7 +130,7 @@ export function EffectEditorParticleInitializationProperties(props: IEffectEdito
 	};
 
 	const setScaleX = (value: Value): void => {
-		const interval = ValueUtils.parseIntervalValue(value);
+		const interval = parseIntervalValue(value);
 		(system as any).minScaleX = interval.min;
 		(system as any).maxScaleX = interval.max;
 		onChange();
@@ -142,7 +142,7 @@ export function EffectEditorParticleInitializationProperties(props: IEffectEdito
 	};
 
 	const setScaleY = (value: Value): void => {
-		const interval = ValueUtils.parseIntervalValue(value);
+		const interval = parseIntervalValue(value);
 		(system as any).minScaleY = interval.min;
 		(system as any).maxScaleY = interval.max;
 		onChange();

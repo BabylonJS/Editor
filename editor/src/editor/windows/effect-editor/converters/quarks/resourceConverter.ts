@@ -1,14 +1,6 @@
 import { Color3 } from "@babylonjs/core/Maths/math.color";
 import { Texture as BabylonTexture } from "@babylonjs/core/Materials/Textures";
-import type {
-	IQuarksMaterial,
-	IQuarksTexture,
-	IQuarksImage,
-	IQuarksGeometry,
-	IQuarksShape,
-	IQuarksGradientKey,
-	IQuarksValue,
-} from "./types";
+import type { IQuarksMaterial, IQuarksTexture, IQuarksImage, IQuarksGeometry, IQuarksShape, IQuarksGradientKey, IQuarksValue } from "./types";
 import type { IMaterial, ITexture, IImage, IGeometry, IGeometryData, IGradientKey, IShape, Value } from "babylonjs-editor-tools";
 import {
 	THREE_REPEAT_WRAPPING,

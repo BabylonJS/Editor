@@ -3,7 +3,7 @@ import { SolidParticle } from "@babylonjs/core/Particles/solidParticle";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import type { ISizeBySpeedBehavior } from "../types";
 import { extractNumberFromValue, interpolateGradientKeys } from "./utils";
-import { ValueUtils } from "../utils";
+import { parseConstantValue } from "../utils";
 
 /**
  * Apply SizeBySpeed behavior to Particle
@@ -18,8 +18,8 @@ export function applySizeBySpeedPS(particle: Particle, behavior: ISizeBySpeedBeh
 	const currentSpeed = Vector3.Distance(Vector3.Zero(), particle.direction);
 
 	const sizeKeys = behavior.size.keys;
-	const minSpeed = behavior.minSpeed !== undefined ? ValueUtils.parseConstantValue(behavior.minSpeed) : 0;
-	const maxSpeed = behavior.maxSpeed !== undefined ? ValueUtils.parseConstantValue(behavior.maxSpeed) : 1;
+	const minSpeed = behavior.minSpeed !== undefined ? parseConstantValue(behavior.minSpeed) : 0;
+	const maxSpeed = behavior.maxSpeed !== undefined ? parseConstantValue(behavior.maxSpeed) : 1;
 	const speedRatio = Math.max(0, Math.min(1, (currentSpeed - minSpeed) / (maxSpeed - minSpeed || 1)));
 
 	const sizeMultiplier = interpolateGradientKeys(sizeKeys, speedRatio, extractNumberFromValue);
@@ -40,8 +40,8 @@ export function applySizeBySpeedSPS(particle: SolidParticle, behavior: ISizeBySp
 	const currentSpeed = Math.sqrt(particle.velocity.x * particle.velocity.x + particle.velocity.y * particle.velocity.y + particle.velocity.z * particle.velocity.z);
 
 	const sizeKeys = behavior.size.keys;
-	const minSpeed = behavior.minSpeed !== undefined ? ValueUtils.parseConstantValue(behavior.minSpeed) : 0;
-	const maxSpeed = behavior.maxSpeed !== undefined ? ValueUtils.parseConstantValue(behavior.maxSpeed) : 1;
+	const minSpeed = behavior.minSpeed !== undefined ? parseConstantValue(behavior.minSpeed) : 0;
+	const maxSpeed = behavior.maxSpeed !== undefined ? parseConstantValue(behavior.maxSpeed) : 1;
 	const speedRatio = Math.max(0, Math.min(1, (currentSpeed - minSpeed) / (maxSpeed - minSpeed || 1)));
 
 	const sizeMultiplier = interpolateGradientKeys(sizeKeys, speedRatio, extractNumberFromValue);

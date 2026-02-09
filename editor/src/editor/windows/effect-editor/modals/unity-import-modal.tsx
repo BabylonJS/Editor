@@ -27,11 +27,17 @@ function processUnityInlineObjects(obj: any): any {
 			for (const pair of pairs) {
 				const [key, value] = pair.split(":").map((s) => s.trim());
 				if (key && value !== undefined) {
-					if (value === "true") result[key] = true;
-					else if (value === "false") result[key] = false;
-					else if (/^-?\d+$/.test(value)) result[key] = parseInt(value, 10);
-					else if (/^-?\d*\.\d+$/.test(value)) result[key] = parseFloat(value);
-					else result[key] = value.replace(/^["']|["']$/g, "");
+					if (value === "true") {
+						result[key] = true;
+					} else if (value === "false") {
+						result[key] = false;
+					} else if (/^-?\d+$/.test(value)) {
+						result[key] = parseInt(value, 10);
+					} else if (/^-?\d*\.\d+$/.test(value)) {
+						result[key] = parseFloat(value);
+					} else {
+						result[key] = value.replace(/^["']|["']$/g, "");
+					}
 				}
 			}
 			return result;
@@ -69,7 +75,9 @@ function parseUnityYAML(yamlContent: string): Map<string, any> {
 
 	for (const doc of documents) {
 		const match = doc.match(/^!u!(\d+)\s+&(\d+)/);
-		if (!match) continue;
+		if (!match) {
+			continue;
+		}
 
 		const [, componentType, componentId] = match;
 		const yamlWithoutTag = doc.replace(/^!u!(\d+)\s+&(\d+)\s*\n/, "");
@@ -385,8 +393,12 @@ export class UnityImportModal extends Component<IUnityImportModalProps, IUnityIm
 		const sortNode = (node: IUnityPrefabNode): void => {
 			if (node.children) {
 				node.children.sort((a, b) => {
-					if (a.type === "folder" && b.type === "prefab") return -1;
-					if (a.type === "prefab" && b.type === "folder") return 1;
+					if (a.type === "folder" && b.type === "prefab") {
+						return -1;
+					}
+					if (a.type === "prefab" && b.type === "folder") {
+						return 1;
+					}
 					return a.name.localeCompare(b.name);
 				});
 				node.children.forEach(sortNode);
@@ -1100,8 +1112,12 @@ export class UnityImportModal extends Component<IUnityImportModalProps, IUnityIm
 	 * Format file size
 	 */
 	private _formatFileSize(bytes: number): string {
-		if (bytes < 1024) return `${bytes} B`;
-		if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+		if (bytes < 1024) {
+			return `${bytes} B`;
+		}
+		if (bytes < 1024 * 1024) {
+			return `${(bytes / 1024).toFixed(1)} KB`;
+		}
 		return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 	}
 }

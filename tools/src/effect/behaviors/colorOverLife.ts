@@ -106,7 +106,6 @@ export function applyColorOverLifePS(particleSystem: EffectParticleSystem, behav
 				}
 			}
 		}
-		return;
 	}
 }
 

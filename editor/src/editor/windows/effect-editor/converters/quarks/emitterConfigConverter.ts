@@ -1,17 +1,8 @@
 import { ParticleSystem } from "@babylonjs/core/Particles/particleSystem";
 import type { IQuarksParticleEmitterConfig } from "./types";
 import type { IParticleSystemConfig } from "babylonjs-editor-tools";
-import {
-	DEFAULT_DURATION,
-	DEFAULT_PREWARM_STEP_OFFSET,
-	PREWARM_FPS,
-} from "./constants";
-import {
-	convertValue,
-	convertValueToMinMax,
-	convertStartSizeToMinMax,
-	convertRotationToMinMax,
-} from "./valueConverter";
+import { DEFAULT_DURATION, DEFAULT_PREWARM_STEP_OFFSET, PREWARM_FPS } from "./constants";
+import { convertValue, convertValueToMinMax, convertStartSizeToMinMax, convertRotationToMinMax } from "./valueConverter";
 import { convertStartColorToColor4 } from "./colorConverter";
 import { convertShape } from "./resourceConverter";
 import { convertBehavior } from "./behaviorConverter";

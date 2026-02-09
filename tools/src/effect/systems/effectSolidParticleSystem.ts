@@ -26,7 +26,7 @@ import {
 	SolidHemisphericParticleEmitter,
 	SolidCylinderParticleEmitter,
 } from "../emitters";
-import { ValueUtils, CapacityCalculator, ColorGradientSystem, NumberGradientSystem } from "../utils";
+import { parseConstantValue, parseIntervalValue, calculateForSolidParticleSystem, ColorGradientSystem, NumberGradientSystem } from "../utils";
 import {
 	applyColorOverLifeSPS,
 	applyLimitSpeedOverLifeSPS,
@@ -235,7 +235,7 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 
 		// Calculate capacity
 		const isLooping = this.targetStopDuration === 0;
-		const capacity = CapacityCalculator.calculateForSolidParticleSystem(this.emitRate, this.targetStopDuration, isLooping);
+		const capacity = calculateForSolidParticleSystem(this.emitRate, this.targetStopDuration, isLooping);
 
 		// Add new shape
 		this.addShape(newMesh, capacity);
@@ -406,7 +406,7 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 
 		// Calculate capacity and add shape
 		const isLooping = this.targetStopDuration === 0;
-		const capacity = CapacityCalculator.calculateForSolidParticleSystem(this.emitRate, this.targetStopDuration, isLooping);
+		const capacity = calculateForSolidParticleSystem(this.emitRate, this.targetStopDuration, isLooping);
 		this.addShape(particleMesh, capacity);
 
 		// Configure billboard mode before buildMesh()
@@ -826,7 +826,7 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 
 		while (emissionState.burstIndex < this.emissionBursts.length && this._getBurstTime(this.emissionBursts[emissionState.burstIndex]) <= emissionState.time) {
 			const burst = this.emissionBursts[emissionState.burstIndex];
-			const burstCount = ValueUtils.parseConstantValue(burst.count);
+			const burstCount = parseConstantValue(burst.count);
 			emissionState.isBursting = true;
 			emissionState.burstParticleCount = burstCount;
 			this._spawn(burstCount);
@@ -864,7 +864,7 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 		emissionState.waitEmiting += delta * emissionRate;
 
 		if (this.emissionOverDistance !== undefined && this.mesh && this.mesh.position) {
-			const emitPerMeter = ValueUtils.parseConstantValue(this.emissionOverDistance);
+			const emitPerMeter = parseConstantValue(this.emissionOverDistance);
 			if (emitPerMeter > 0 && emissionState.previousWorldPos) {
 				const distance = Vector3.Distance(emissionState.previousWorldPos, this.mesh.position);
 				emissionState.travelDistance += distance;
@@ -888,7 +888,7 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 	}
 
 	private _getBurstTime(burst: IEmissionBurst): number {
-		return ValueUtils.parseConstantValue(burst.time);
+		return parseConstantValue(burst.time);
 	}
 
 	/**
@@ -980,9 +980,9 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 					const forceX = b.x ?? b.force?.x;
 					const forceY = b.y ?? b.force?.y;
 					const forceZ = b.z ?? b.force?.z;
-					const fx = forceX !== undefined ? ValueUtils.parseConstantValue(forceX) : 0;
-					const fy = forceY !== undefined ? ValueUtils.parseConstantValue(forceY) : 0;
-					const fz = forceZ !== undefined ? ValueUtils.parseConstantValue(forceZ) : 0;
+					const fx = forceX !== undefined ? parseConstantValue(forceX) : 0;
+					const fy = forceY !== undefined ? parseConstantValue(forceY) : 0;
+					const fz = forceZ !== undefined ? parseConstantValue(forceZ) : 0;
 
 					if (fx !== 0 || fy !== 0 || fz !== 0) {
 						// Capture 'this' to access _scaledUpdateSpeed
@@ -1001,8 +1001,8 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 				case "ColorBySpeed": {
 					const b = behavior as IColorBySpeedBehavior;
 					// Pre-parse min/max speed ONCE
-					const minSpeed = b.minSpeed !== undefined ? ValueUtils.parseConstantValue(b.minSpeed) : 0;
-					const maxSpeed = b.maxSpeed !== undefined ? ValueUtils.parseConstantValue(b.maxSpeed) : 1;
+					const minSpeed = b.minSpeed !== undefined ? parseConstantValue(b.minSpeed) : 0;
+					const maxSpeed = b.maxSpeed !== undefined ? parseConstantValue(b.maxSpeed) : 1;
 					// New structure: b.color is IColorFunction with data.colorKeys
 					const colorKeys = b.color?.data?.colorKeys;
 
@@ -1035,8 +1035,8 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 				case "SizeBySpeed": {
 					const b = behavior as ISizeBySpeedBehavior;
 					// Pre-parse min/max speed ONCE
-					const minSpeed = b.minSpeed !== undefined ? ValueUtils.parseConstantValue(b.minSpeed) : 0;
-					const maxSpeed = b.maxSpeed !== undefined ? ValueUtils.parseConstantValue(b.maxSpeed) : 1;
+					const minSpeed = b.minSpeed !== undefined ? parseConstantValue(b.minSpeed) : 0;
+					const maxSpeed = b.maxSpeed !== undefined ? parseConstantValue(b.maxSpeed) : 1;
 					const sizeKeys = b.size?.keys;
 
 					if (sizeKeys && sizeKeys.length > 0) {
@@ -1056,8 +1056,8 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 				case "RotationBySpeed": {
 					const b = behavior as IRotationBySpeedBehavior;
 					// Pre-parse values ONCE
-					const minSpeed = b.minSpeed !== undefined ? ValueUtils.parseConstantValue(b.minSpeed) : 0;
-					const maxSpeed = b.maxSpeed !== undefined ? ValueUtils.parseConstantValue(b.maxSpeed) : 1;
+					const minSpeed = b.minSpeed !== undefined ? parseConstantValue(b.minSpeed) : 0;
+					const maxSpeed = b.maxSpeed !== undefined ? parseConstantValue(b.maxSpeed) : 1;
 					const angularVelocity = b.angularVelocity;
 					const hasKeys =
 						typeof angularVelocity === "object" &&
@@ -1069,7 +1069,7 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 					// Pre-parse constant angular velocity if not using keys
 					let constantAngularSpeed = 0;
 					if (!hasKeys && angularVelocity) {
-						const parsed = ValueUtils.parseIntervalValue(angularVelocity);
+						const parsed = parseIntervalValue(angularVelocity);
 						constantAngularSpeed = (parsed.min + parsed.max) / 2;
 					}
 
@@ -1093,7 +1093,7 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 				case "OrbitOverLife": {
 					const b = behavior as IOrbitOverLifeBehavior;
 					// Pre-parse constant values ONCE
-					const speed = b.speed !== undefined ? ValueUtils.parseConstantValue(b.speed) : 1;
+					const speed = b.speed !== undefined ? parseConstantValue(b.speed) : 1;
 					const centerX = b.center?.x ?? 0;
 					const centerY = b.center?.y ?? 0;
 					const centerZ = b.center?.z ?? 0;
@@ -1108,7 +1108,7 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 					// Pre-parse constant radius if not using keys
 					let constantRadius = 1;
 					if (!hasRadiusKeys && b.radius !== undefined) {
-						const parsed = ValueUtils.parseIntervalValue(b.radius as Value);
+						const parsed = parseIntervalValue(b.radius as Value);
 						constantRadius = (parsed.min + parsed.max) / 2;
 					}
 

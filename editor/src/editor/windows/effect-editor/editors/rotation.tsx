@@ -3,7 +3,7 @@ import { ReactNode } from "react";
 import { EditorInspectorListField } from "../../../layout/inspector/fields/list";
 import { EditorInspectorBlockField } from "../../../layout/inspector/fields/block";
 
-import { type Rotation, type IEulerRotation, type IAxisAngleRotation, type IRandomQuatRotation, ValueUtils, type Value } from "babylonjs-editor-tools";
+import { type Rotation, type IEulerRotation, type IAxisAngleRotation, type IRandomQuatRotation, parseConstantValue, type Value } from "babylonjs-editor-tools";
 import { EffectValueEditor } from "./value";
 
 export type EffectRotationType = IEulerRotation["type"] | IAxisAngleRotation["type"] | IRandomQuatRotation["type"];
@@ -61,7 +61,7 @@ export function EffectRotationEditor(props: IEffectRotationEditorProps): ReactNo
 				if (value && typeof value === "object" && "type" in value && value.type === "Euler") {
 					newValue = value;
 				} else {
-					const angleZ = value ? (typeof value === "number" ? value : ValueUtils.parseConstantValue(value as Value)) : 0;
+					const angleZ = value ? (typeof value === "number" ? value : parseConstantValue(value as Value)) : 0;
 					newValue = {
 						type: "Euler",
 						angleZ: { type: "ConstantValue", value: angleZ },
@@ -70,7 +70,7 @@ export function EffectRotationEditor(props: IEffectRotationEditorProps): ReactNo
 				}
 			} else if (newType === "AxisAngle") {
 				// Convert to AxisAngle
-				const angle = value ? (typeof value === "number" ? value : ValueUtils.parseConstantValue(value as Value)) : 0;
+				const angle = value ? (typeof value === "number" ? value : parseConstantValue(value as Value)) : 0;
 				newValue = {
 					type: "AxisAngle",
 					x: { type: "ConstantValue", value: 0 },

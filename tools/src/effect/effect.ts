@@ -1,7 +1,7 @@
 import { IDisposable, Scene } from "@babylonjs/core/scene";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { EffectParticleSystem, EffectSolidParticleSystem } from "./systems";
-import { IData, IEffectNode, ILoaderOptions, IParticleSystemConfig } from "./types";
+import { IData, IEffectNode, IParticleSystemConfig } from "./types";
 import { NodeFactory } from "./factories";
 
 /**
@@ -29,14 +29,13 @@ export class Effect implements IDisposable {
 	 * @param data IData structure (required)
 	 * @param scene Babylon.js scene (required)
 	 * @param rootUrl Root URL for loading textures (optional)
-	 * @param options Optional parsing options
 	 */
-	constructor(data: IData, scene: Scene, rootUrl: string = "", options?: ILoaderOptions) {
+	constructor(data: IData, scene: Scene, rootUrl: string = "") {
 		if (!data || !scene) {
 			throw new Error("Effect constructor requires IData and Scene");
 		}
 
-		this._nodeFactory = new NodeFactory(scene, data, rootUrl, options);
+		this._nodeFactory = new NodeFactory(scene, data, rootUrl);
 		this._root = this._nodeFactory.create();
 	}
 

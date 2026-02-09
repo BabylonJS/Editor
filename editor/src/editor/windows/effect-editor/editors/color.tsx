@@ -6,7 +6,7 @@ import { EditorInspectorColorGradientField } from "../../../layout/inspector/fie
 import { EditorInspectorListField } from "../../../layout/inspector/fields/list";
 import { EditorInspectorBlockField } from "../../../layout/inspector/fields/block";
 
-import { type Color, ValueUtils } from "babylonjs-editor-tools";
+import { type Color, parseConstantColor } from "babylonjs-editor-tools";
 
 export type EffectColorType = "ConstantColor" | "ColorRange" | "Gradient" | "RandomColor" | "RandomColorBetweenGradient";
 
@@ -60,7 +60,7 @@ export function EffectColorEditor(props: IEffectColorEditorProps): ReactNode {
 			currentType = newType;
 			// Convert value to new type
 			let newValue: Color;
-			const currentColor = value ? ValueUtils.parseConstantColor(value) : new Color4(1, 1, 1, 1);
+			const currentColor = value ? parseConstantColor(value) : new Color4(1, 1, 1, 1);
 			if (newType === "ConstantColor") {
 				newValue = { type: "ConstantColor", value: [currentColor.r, currentColor.g, currentColor.b, currentColor.a] };
 			} else if (newType === "ColorRange") {
@@ -132,7 +132,7 @@ export function EffectColorEditor(props: IEffectColorEditorProps): ReactNode {
 			{currentType === "ConstantColor" && (
 				<>
 					{(() => {
-						const constantColor = value ? ValueUtils.parseConstantColor(value) : new Color4(1, 1, 1, 1);
+						const constantColor = value ? parseConstantColor(value) : new Color4(1, 1, 1, 1);
 						const wrapperColor = {
 							get color() {
 								return constantColor;

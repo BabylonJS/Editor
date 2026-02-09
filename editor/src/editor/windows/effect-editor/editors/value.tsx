@@ -4,7 +4,7 @@ import { EditorInspectorNumberField } from "../../../layout/inspector/fields/num
 import { EditorInspectorListField } from "../../../layout/inspector/fields/list";
 import { EditorInspectorBlockField } from "../../../layout/inspector/fields/block";
 
-import { type Value, type IConstantValue, type IIntervalValue, ValueUtils } from "babylonjs-editor-tools";
+import { type Value, type IConstantValue, type IIntervalValue, parseConstantValue, parseIntervalValue } from "babylonjs-editor-tools";
 
 type PiecewiseBezier = Extract<Value, { type: "PiecewiseBezier" }>;
 import { BezierEditor } from "./bezier";
@@ -72,19 +72,18 @@ export function EffectValueEditor(props: IEffectValueEditorProps): ReactNode {
 			if (newType === "ConstantValue") {
 				const currentValue =
 					value && typeof value !== "number" && "type" in value && value.type !== "Vec3Function"
-						? ValueUtils.parseConstantValue(value as Value)
+						? parseConstantValue(value as Value)
 						: typeof value === "number"
 							? value
 							: 1;
 				newValue = { type: "ConstantValue", value: currentValue };
 			} else if (newType === "IntervalValue") {
-				const interval =
-					value && typeof value !== "number" && "type" in value && value.type !== "Vec3Function" ? ValueUtils.parseIntervalValue(value as Value) : { min: 0, max: 1 };
+				const interval = value && typeof value !== "number" && "type" in value && value.type !== "Vec3Function" ? parseIntervalValue(value as Value) : { min: 0, max: 1 };
 				newValue = { type: "IntervalValue", min: interval.min, max: interval.max };
 			} else if (newType === "Vec3Function") {
 				const currentValue =
 					value && typeof value !== "number" && "type" in value && value.type !== "Vec3Function"
-						? ValueUtils.parseConstantValue(value as Value)
+						? parseConstantValue(value as Value)
 						: typeof value === "number"
 							? value
 							: 1;
@@ -98,7 +97,7 @@ export function EffectValueEditor(props: IEffectValueEditorProps): ReactNode {
 				// PiecewiseBezier - convert from current value
 				const currentValue =
 					value && typeof value !== "number" && "type" in value && value.type !== "Vec3Function"
-						? ValueUtils.parseConstantValue(value as Value)
+						? parseConstantValue(value as Value)
 						: typeof value === "number"
 							? value
 							: 1;
@@ -133,7 +132,7 @@ export function EffectValueEditor(props: IEffectValueEditorProps): ReactNode {
 					{(() => {
 						const constantValue =
 							value && typeof value !== "number" && "type" in value && value.type !== "Vec3Function"
-								? ValueUtils.parseConstantValue(value as Value)
+								? parseConstantValue(value as Value)
 								: typeof value === "number"
 									? value
 									: 1;
@@ -165,9 +164,7 @@ export function EffectValueEditor(props: IEffectValueEditorProps): ReactNode {
 				<>
 					{(() => {
 						const interval =
-							value && typeof value !== "number" && "type" in value && value.type !== "Vec3Function"
-								? ValueUtils.parseIntervalValue(value as Value)
-								: { min: 0, max: 1 };
+							value && typeof value !== "number" && "type" in value && value.type !== "Vec3Function" ? parseIntervalValue(value as Value) : { min: 0, max: 1 };
 						const wrapperInterval = {
 							get min() {
 								return interval.min;

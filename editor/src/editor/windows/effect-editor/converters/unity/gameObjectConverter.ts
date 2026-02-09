@@ -89,38 +89,36 @@ export function convertGameObject(gameObject: any, components: Map<string, any>)
 		};
 
 		return emitter;
-	} else {
-		// It's a group (container)
-		const group: IIntermediateGameObject = {
-			type: "group",
-			name: gameObject.m_Name || "Group",
-			position,
-			scale,
-			rotation,
-			children: [],
-		};
+	}
+	const group: IIntermediateGameObject = {
+		type: "group",
+		name: gameObject.m_Name || "Group",
+		position,
+		scale,
+		rotation,
+		children: [],
+	};
 
-		// Recursively convert children
-		if (transform && transform.m_Children) {
-			for (const childRef of transform.m_Children) {
-				const childTransform = components.get(childRef.fileID);
-				if (childTransform && childTransform.Transform) {
-					const childGORef = childTransform.Transform.m_GameObject;
-					const childGOId = childGORef?.fileID || childGORef;
-					const childGO = components.get(childGOId);
+	// Recursively convert children
+	if (transform && transform.m_Children) {
+		for (const childRef of transform.m_Children) {
+			const childTransform = components.get(childRef.fileID);
+			if (childTransform && childTransform.Transform) {
+				const childGORef = childTransform.Transform.m_GameObject;
+				const childGOId = childGORef?.fileID || childGORef;
+				const childGO = components.get(childGOId);
 
-					if (childGO && childGO.GameObject) {
-						if (!group.children) {
-							group.children = [];
-						}
-						group.children.push(convertGameObject(childGO.GameObject, components));
+				if (childGO && childGO.GameObject) {
+					if (!group.children) {
+						group.children = [];
 					}
+					group.children.push(convertGameObject(childGO.GameObject, components));
 				}
 			}
 		}
-
-		return group;
 	}
+
+	return group;
 }
 
 /**
@@ -157,23 +155,22 @@ export function convertToIDataFormat(converted: IIntermediateGameObject): IGroup
 			children: children,
 		};
 		return group;
-	} else {
-		if (!converted.emitter) {
-			console.warn("Emitter config is missing for", converted.name);
-			return null;
-		}
-		const emitter: IEmitter = {
-			uuid,
-			name: converted.name,
-			transform: {
-				position: new Vector3(converted.position[0], converted.position[1], converted.position[2]),
-				rotation: new Quaternion(converted.rotation[0], converted.rotation[1], converted.rotation[2], converted.rotation[3]),
-				scale: new Vector3(converted.scale[0], converted.scale[1], converted.scale[2]),
-			},
-			config: converted.emitter,
-			systemType: converted.renderMode === 4 ? "solid" : "base", // Mesh = solid, others = base
-			materialId: converted.materialId, // Link material to emitter
-		};
-		return emitter;
 	}
+	if (!converted.emitter) {
+		console.warn("Emitter config is missing for", converted.name);
+		return null;
+	}
+	const emitter: IEmitter = {
+		uuid,
+		name: converted.name,
+		transform: {
+			position: new Vector3(converted.position[0], converted.position[1], converted.position[2]),
+			rotation: new Quaternion(converted.rotation[0], converted.rotation[1], converted.rotation[2], converted.rotation[3]),
+			scale: new Vector3(converted.scale[0], converted.scale[1], converted.scale[2]),
+		},
+		config: converted.emitter,
+		systemType: converted.renderMode === 4 ? "solid" : "base", // Mesh = solid, others = base
+		materialId: converted.materialId, // Link material to emitter
+	};
+	return emitter;
 }
