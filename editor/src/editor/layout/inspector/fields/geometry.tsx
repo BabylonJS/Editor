@@ -12,7 +12,6 @@ import { isScene } from "../../../../tools/guards/scene";
 import { registerUndoRedo } from "../../../../tools/undoredo";
 
 import { configureImportedNodeIds, loadImportedSceneFile } from "../../preview/import/import";
-import { EditorInspectorNumberField } from "./number";
 
 export interface IEditorInspectorGeometryFieldProps extends PropsWithChildren {
 	title: string;
@@ -61,13 +60,18 @@ export class EditorInspectorGeometryField extends Component<IEditorInspectorGeom
 
 						{mesh && (
 							<div className="flex flex-col gap-1 mt-1 w-full">
-								<EditorInspectorNumberField noUndoRedo={this.props.noUndoRedo} label="Vertices" object={{ count: mesh.getTotalVertices() }} property="count" />
-								<EditorInspectorNumberField
-									noUndoRedo={this.props.noUndoRedo}
-									label="Faces"
-									object={{ count: mesh.getTotalIndices() ? mesh.getTotalIndices()! / 3 : 0 }}
-									property="count"
-								/>
+								<div className="flex justify-between items-center px-2 py-2">
+									<div className="w-1/2">Vertices</div>
+									<div className="flex justify-between items-center w-full">
+										<div className="text-white/50">{mesh.getTotalVertices()}</div>
+									</div>
+								</div>
+								<div className="flex justify-between items-center px-2 py-2">
+									<div className="w-1/2">Faces</div>
+									<div className="flex justify-between items-center w-full">
+										<div className="text-white/50">{mesh.getTotalIndices() ? mesh.getTotalIndices() / 3 : 0}</div>
+									</div>
+								</div>
 							</div>
 						)}
 					</div>
