@@ -5,6 +5,8 @@ import { EditorInspectorVectorField } from "../../../layout/inspector/fields/vec
 import { EditorInspectorSwitchField } from "../../../layout/inspector/fields/switch";
 
 import { type IEffectNode, isSystem } from "babylonjs-editor-tools";
+import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
+import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 
 export interface IEffectEditorObjectPropertiesProps {
 	nodeData: IEffectNode;
@@ -25,12 +27,54 @@ export function EffectEditorObjectProperties(props: IEffectEditorObjectPropertie
 
 	const object = isSystem(nodeData.data) ? nodeData.data.emitter : nodeData.data;
 
+	const GetRotationInspector = (object: TransformNode | AbstractMesh, onFinishChange?: () => void): ReactNode => {
+		if (object.rotationQuaternion) {
+			const valueRef = object.rotationQuaternion.toEulerAngles();
+
+			const proxy = new Proxy(valueRef, {
+				get(target, prop) {
+					return target[prop];
+				},
+				set(obj, prop, value) {
+					obj[prop] = value;
+					object.rotationQuaternion?.copyFrom(obj.toQuaternion());
+
+					return true;
+				},
+			});
+
+			const o = { proxy };
+
+			return (
+				<EditorInspectorVectorField
+					label={<div className="w-14">Rotation</div>}
+					object={o}
+					property="proxy"
+					asDegrees
+					step={0.1}
+					onFinishChange={() => onFinishChange?.()}
+				/>
+			);
+		}
+
+		return (
+			<EditorInspectorVectorField
+				label={<div className="w-14">Rotation</div>}
+				object={object}
+				property="rotation"
+				asDegrees
+				step={0.1}
+				onFinishChange={() => onFinishChange?.()}
+			/>
+		);
+	}
+
 	return (
 		<>
 			<EditorInspectorStringField object={nodeData} property="name" label="Name" onChange={onChange} />
 			<EditorInspectorSwitchField object={object} property="isVisible" label="Visibility" />
 			<EditorInspectorVectorField object={object} property="position" label="Position" onChange={onChange} />
-			<EditorInspectorVectorField object={object} property="rotation" label="Rotation" asDegrees onChange={onChange} />
+			{GetRotationInspector(object as TransformNode, onChange)}
 			<EditorInspectorVectorField object={object} property="scaling" label="Scale" onChange={onChange} />
 		</>
 	);

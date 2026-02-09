@@ -20,7 +20,7 @@ import { saveSingleFileDialog } from "../../../tools/dialog";
 import { readJSON, writeJSON } from "fs-extra";
 import { toast } from "sonner";
 import { Effect, type IEffectNode, EffectSolidParticleSystem, type IData } from "babylonjs-editor-tools";
-import { IQuarksJSON } from "./converters/quarksTypes";
+import { IQuarksJSON } from "./converters/quarks/types";
 import { QuarksConverter } from "./converters";
 import { basename, dirname } from "path";
 
