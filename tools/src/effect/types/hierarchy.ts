@@ -1,4 +1,4 @@
-import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { Quaternion, Vector3 } from "@babylonjs/core/Maths/math.vector";
 import type { IParticleSystemConfig } from "./emitter";
 import type { IMaterial, ITexture, IImage, IGeometry } from "./resources";
 
@@ -7,7 +7,7 @@ import type { IMaterial, ITexture, IImage, IGeometry } from "./resources";
  */
 export interface ITransform {
 	position: Vector3;
-	rotation: Vector3;
+	rotation: Quaternion;
 	scale: Vector3;
 }
 

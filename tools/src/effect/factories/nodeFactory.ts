@@ -1,4 +1,4 @@
-import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { Quaternion, Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { Scene } from "@babylonjs/core/scene";
 import { Tools } from "@babylonjs/core/Misc/tools";
@@ -56,7 +56,7 @@ export class NodeFactory {
 			name,
 			transform: {
 				position: Vector3.Zero(),
-				rotation: Vector3.Zero(),
+				rotation: Quaternion.Identity(),
 				scale: Vector3.One(),
 			},
 			children: [],
@@ -97,7 +97,7 @@ export class NodeFactory {
 			name,
 			transform: {
 				position: Vector3.Zero(),
-				rotation: Vector3.Zero(),
+				rotation: Quaternion.Identity(),
 				scale: Vector3.One(),
 			},
 			config: defaultConfig,
@@ -490,9 +490,8 @@ export class NodeFactory {
 				node.data.position.copyFrom(transform.position);
 			}
 
-			if (transform.rotation && node.data.rotation) {
-				node.data.rotationQuaternion = null;
-				node.data.rotation.copyFrom(transform.rotation);
+			if (transform.rotation && node.data.rotationQuaternion) {
+				node.data.rotationQuaternion.copyFrom(transform.rotation);
 			}
 
 			if (transform.scale && node.data.scaling) {
