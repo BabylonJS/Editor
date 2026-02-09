@@ -247,6 +247,10 @@ export class EditorParticleSystemInspector extends Component<IEditorInspectorImp
 						</>
 					)}
 				</EditorInspectorSectionField>
+
+				<EditorInspectorSectionField title="Misc">
+					<EditorInspectorSwitchField object={this.props.object} property="useLogarithmicDepth" label="Use Logarithmic Depth" />
+				</EditorInspectorSectionField>
 			</>
 		);
 	}

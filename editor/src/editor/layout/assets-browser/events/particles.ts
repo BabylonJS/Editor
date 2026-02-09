@@ -1,12 +1,11 @@
-import { join } from "path/posix";
 import { ipcRenderer } from "electron";
 
+import { isNodeParticleSystemSetMesh } from "../../../../tools/guards/particles";
+import { normalizeNodeParticleSystemSetUniqueIds } from "../../../../tools/particles/particle";
+
+import { NodeParticleSystemSetMesh } from "../../../nodes/node-particle-system";
+
 import { Editor } from "../../../main";
-
-import { getProjectAssetsRootUrl } from "../../../../project/configuration";
-
-import { createDirectoryIfNotExist } from "../../../../tools/fs";
-import { extractNodeParticleSystemSetTextures } from "../../../../tools/particles/extract";
 
 export function listenParticleAssetsEvents(editor: Editor) {
 	ipcRenderer.on("editor:asset-updated", async (_, type, particlesData) => {
@@ -14,37 +13,17 @@ export function listenParticleAssetsEvents(editor: Editor) {
 			return;
 		}
 
-		const rootUrl = getProjectAssetsRootUrl();
-		if (rootUrl) {
-			const outputPath = join(rootUrl, "assets", "editor-generated_extracted-textures");
+		const nodeParticleSystemSets = editor.layout.preview.scene.meshes.filter((m) => {
+			return isNodeParticleSystemSetMesh(m) && m.nodeParticleSystemSet?.id === particlesData.id;
+		}) as NodeParticleSystemSetMesh[];
 
-			await createDirectoryIfNotExist(outputPath);
-			await extractNodeParticleSystemSetTextures(editor, {
-				particlesData,
-				assetsDirectory: outputPath,
-			});
-		}
-
-		// const particleSystems = editor.layout.preview.scene.particleSystems;
-		// await Promise.all(
-		// 	particleSystems.map(async (ps) => {
-		// 		if (ps.sourceParticleSystemSetId !== particlesData.id) {
-		// 			return;
-		// 		}
-
-		// 		const rootUrl = getProjectAssetsRootUrl();
-		// 		if (rootUrl) {
-		// 			const outputPath = join(rootUrl, "assets", "editor-generated_extracted-textures");
-
-		// 			await createDirectoryIfNotExist(outputPath);
-		// 			await extractNodeParticleSystemSetTextures(editor, {
-		// 				particlesData,
-		// 				assetsDirectory: outputPath,
-		// 			});
-		// 		}
-
-		// 		// TODO: update already instantiated particle systems sets?
-		// 	})
-		// );
+		await Promise.all(
+			nodeParticleSystemSets?.map(async (nodeParticleSystemSet) => {
+				await nodeParticleSystemSet.buildNodeParticleSystemSet(particlesData);
+				if (nodeParticleSystemSet.nodeParticleSystemSet) {
+					normalizeNodeParticleSystemSetUniqueIds(nodeParticleSystemSet.nodeParticleSystemSet, particlesData);
+				}
+			})
+		);
 	});
 }

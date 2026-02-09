@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Fade } from "react-awesome-reveal";
 
 import { CodeBlock } from "../../code";
-import { NextChapterComponent } from "../../components/next-chapter";
+import { NextChapterComponent } from "../../next-chapter";
 
 import { assignScriptSprite, assignScriptSpriteManager, getAnimationSprite, playAnimationSprite } from "./scripts";
 

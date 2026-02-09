@@ -28,6 +28,7 @@ import { disposeMotionBlurPostProcess } from "./rendering/motion-blur";
 import { disposeDefaultRenderingPipeline } from "./rendering/default-pipeline";
 
 import { CommandPalette } from "./dialogs/command-palette/command-palette";
+import { EditorGenerateProjectComponent } from "./dialogs/generate/generate-project";
 import { EditorEditProjectComponent } from "./dialogs/edit-project/edit-project";
 import { EditorEditPreferencesComponent } from "./dialogs/edit-preferences/edit-preferences";
 
@@ -109,6 +110,10 @@ export interface IEditorState {
 	 * Defines if the preferences are being edited.
 	 */
 	editPreferences: boolean;
+	/**
+	 * Defines if the project generator dialog is opened.
+	 */
+	generateProject: boolean;
 
 	/**
 	 * Defines wether or not NodeJS is available.
@@ -150,6 +155,7 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 
 			editProject: false,
 			editPreferences: false,
+			generateProject: false,
 
 			nodeJSAvailable: false,
 			visualStudioCodeAvailable: false,
@@ -190,8 +196,8 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 				</HotkeysTarget2>
 
 				<EditorEditProjectComponent editor={this} open={this.state.editProject} onClose={() => this.setState({ editProject: false })} />
-
 				<EditorEditPreferencesComponent editor={this} open={this.state.editPreferences} onClose={() => this.setState({ editPreferences: false })} />
+				<EditorGenerateProjectComponent editor={this} open={this.state.generateProject} onClose={() => this.setState({ generateProject: false })} />
 
 				<CommandPalette ref={(r) => (this.commandPalette = r!)} editor={this} />
 				<Toaster />
@@ -201,10 +207,11 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 
 	public async componentDidMount(): Promise<void> {
 		ipcRenderer.on("save", () => saveProject(this));
-		ipcRenderer.on("generate", () => exportProject(this, { optimize: true }));
+		ipcRenderer.on("generate", () => exportProject(this, { optimize: false }));
 
 		ipcRenderer.on("editor:edit-project", () => this.setState({ editProject: true }));
 		ipcRenderer.on("editor:edit-preferences", () => this.setState({ editPreferences: true }));
+		ipcRenderer.on("editor:generate-project", () => this.setState({ generateProject: true }));
 
 		ipcRenderer.on("editor:open", (_, path) => this.openProject(join(path)));
 

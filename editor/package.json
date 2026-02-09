@@ -1,6 +1,6 @@
 {
 	"name": "babylonjs-editor",
-	"version": "5.2.5",
+	"version": "5.3.0",
 	"description": "Babylon.js Editor is a Web Application helping artists to work with Babylon.js",
 	"productName": "Babylon.js Editor",
 	"main": "build/src/index.js",
@@ -10,7 +10,7 @@
 		"url": "https://twitter.com/luaacro"
 	},
 	"scripts": {
-		"postinstall": "rimraf --glob ./node_modules/babylonjs-editor-tools",
+		"postinstall": "rimraf --glob ./node_modules/babylonjs-editor-tools ./node_modules/babylonjs-editor-cli",
 		"build": "tsc -p . && tailwindcss -i ./index.css -o ./build/index.css && node esbuild.mjs",
 		"watch": "concurrently -i \"tsc -p . --watch\" \"node esbuild.mjs --watch\" -c bgYellow.bold,bgBlue.bold --names editor-ts,editor-dependencies",
 		"watch-css": "tailwindcss -i ./index.css -o ./build/index.css --watch",
@@ -30,7 +30,7 @@
 		"@types/pngjs": "6.0.5",
 		"@types/react": "18.2.47",
 		"@types/react-dom": "18.2.18",
-		"@vitest/coverage-v8": "4.0.13",
+		"@vitest/coverage-v8": "4.0.17",
 		"concurrently": "9.2.0",
 		"electron": "39.2.7",
 		"electron-builder": "26.0.12",
@@ -38,7 +38,7 @@
 		"postcss-import": "16.1.0",
 		"tailwindcss": "3.4.4",
 		"typescript": "5.9.3",
-		"vitest": "4.0.13"
+		"vitest": "4.0.17"
 	},
 	"dependencies": {
 		"@babylonjs/addons": "8.41.0",
@@ -81,6 +81,7 @@
 		"babylonjs": "8.41.0",
 		"babylonjs-addons": "8.41.0",
 		"babylonjs-editor-tools": "latest",
+		"babylonjs-editor-cli": "latest",
 		"babylonjs-gui": "8.41.0",
 		"babylonjs-gui-editor": "8.41.0",
 		"babylonjs-loaders": "8.41.0",
@@ -95,6 +96,7 @@
 		"cmdk": "^1.0.0",
 		"decompress": "^4.2.1",
 		"decompress-targz": "^4.1.1",
+		"dotenv": "17.2.3",
 		"dunder-proto": "1.0.1",
 		"electron-updater": "6.6.2",
 		"esbuild": "0.27.2",
@@ -107,11 +109,11 @@
 		"js-yaml": "^4.1.1",
 		"markdown-to-jsx": "7.6.2",
 		"math-expression-evaluator": "^2.0.6",
-		"md5": "^2.3.0",
+		"md5": "2.3.0",
 		"motion": "12.23.24",
 		"next-themes": "^0.3.0",
 		"node-pty": "1.1.0-beta43",
-		"pngjs": "^7.0.0",
+		"pngjs": "7.0.0",
 		"react": "18.2.0",
 		"react-awesome-reveal": "4.2.14",
 		"react-dom": "18.2.0",

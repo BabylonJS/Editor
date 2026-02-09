@@ -1,39 +1,11 @@
 import { join, basename } from "path/posix";
-import { readFile, readJSON, readdir } from "fs-extra";
+import { readJSON, readdir } from "fs-extra";
 
-import {
-	AbstractMesh,
-	AnimationGroup,
-	Camera,
-	CascadedShadowGenerator,
-	Color3,
-	Constants,
-	Light,
-	Matrix,
-	Mesh,
-	MorphTargetManager,
-	RenderTargetTexture,
-	SceneLoader,
-	SceneLoaderFlags,
-	ShadowGenerator,
-	Skeleton,
-	Texture,
-	TransformNode,
-	MultiMaterial,
-	Animation,
-	Sound,
-	Color4,
-	IParticleSystem,
-	ParticleSystem,
-	GPUParticleSystem,
-	Vector3,
-	Geometry,
-} from "babylonjs";
+import { AbstractMesh, AnimationGroup, Camera, Color3, Light, SceneLoaderFlags, Texture, TransformNode, Animation, Color4, IParticleSystem, Vector3 } from "babylonjs";
 
 import { Editor } from "../../editor/main";
 
 import { EditorCamera } from "../../editor/nodes/camera";
-import { CollisionMesh } from "../../editor/nodes/collision";
 import { SceneLinkNode } from "../../editor/nodes/scene-link";
 import { SpriteMapNode } from "../../editor/nodes/sprite-map";
 import { SpriteManagerNode } from "../../editor/nodes/sprite-manager";
@@ -45,28 +17,35 @@ import { parseMotionBlurPostProcess, motionBlurPostProcessCameraConfigurations }
 import { parseDefaultRenderingPipeline, defaultPipelineCameraConfigurations } from "../../editor/rendering/default-pipeline";
 import { iblShadowsRenderingPipelineCameraConfigurations, parseIblShadowsRenderingPipeline } from "../../editor/rendering/ibl-shadows";
 
-import { applyImportedGuiFile } from "../../editor/layout/preview/import/gui";
-
-import { wait } from "../../tools/tools";
 import { createDirectoryIfNotExist } from "../../tools/fs";
 
 import { createSceneLink } from "../../tools/scene/scene-link";
-import { loadSavedAssetsCache } from "../../tools/assets/cache";
-import { isGPUParticleSystem } from "../../tools/guards/particles";
 import { isCubeTexture, isTexture } from "../../tools/guards/texture";
 import { updateIblShadowsRenderPipeline } from "../../tools/light/ibl";
 import { forceCompileAllSceneMaterials } from "../../tools/scene/materials";
+import { IAssetCache, loadSavedAssetsCache } from "../../tools/assets/cache";
 import { checkProjectCachedCompressedTextures } from "../../tools/assets/ktx";
-import { isMultiMaterial, isNodeMaterial } from "../../tools/guards/material";
-import { parsePhysicsAggregate } from "../../tools/physics/serialization/aggregate";
-import { isAbstractMesh, isCollisionMesh, isEditorCamera, isMesh } from "../../tools/guards/nodes";
+import { isAbstractMesh, isEditorCamera, isMesh } from "../../tools/guards/nodes";
 import { updateAllLights, updatePointLightShadowMapRenderListPredicate } from "../../tools/light/shadows";
-import { configureSimultaneousLightsForMaterial, normalizeNodeMaterialUniqueIds } from "../../tools/material/material";
 
+import { registerTextureParser } from "./texture";
 import { createNewSceneDefaultNodes } from "./default";
-import { showLoadSceneProgressDialog } from "./progress";
+import { LoadSceneProgressComponent, showLoadSceneProgressDialog } from "./progress";
 
-import "./texture";
+import { loadGuis } from "./plugins/gui";
+import { loadMeshes } from "./plugins/meshes";
+import { loadLights } from "./plugins/lights";
+import { loadSounds } from "./plugins/sounds";
+import { loadCameras } from "./plugins/cameras";
+import { loadSkeletons } from "./plugins/skeletons";
+import { loadSpriteMaps } from "./plugins/sprite-maps";
+import { loadSpriteManagers } from "./plugins/sprite-managers";
+import { loadTransformNodes } from "./plugins/transform-nodes";
+import { loadParticleSystems } from "./plugins/particle-systems";
+import { loadAnimationGroups } from "./plugins/animation-groups";
+import { loadMorphTargetManagers } from "./plugins/morph-targets";
+import { loadShadowGenerators } from "./plugins/shadow-generators";
+import { loadNodeParticleSystemSets } from "./plugins/node-particle-system-sets";
 
 /**
  * Defines the list of all loaded scenes. This is used to detect cycle references
@@ -93,7 +72,21 @@ export type SceneLoadResult = {
 	spriteManagers: SpriteManagerNode[];
 };
 
+export type ISceneLoaderPluginOptions = SceneLoaderOptions & {
+	scenePath: string;
+	relativeScenePath: string;
+	projectPath: string;
+	loadResult: SceneLoadResult;
+
+	progress: LoadSceneProgressComponent;
+	progressStep: number;
+
+	assetsCache: Record<string, IAssetCache>;
+};
+
 export async function loadScene(editor: Editor, projectPath: string, scenePath: string, options?: SceneLoaderOptions): Promise<SceneLoadResult> {
+	registerTextureParser(editor);
+
 	const scene = editor.layout.preview.scene;
 	const relativeScenePath = scenePath.replace(join(projectPath, "/"), "");
 
@@ -133,6 +126,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 		createDirectoryIfNotExist(join(scenePath, "animationGroups")),
 		createDirectoryIfNotExist(join(scenePath, "sprite-maps")),
 		createDirectoryIfNotExist(join(scenePath, "sprite-managers")),
+		createDirectoryIfNotExist(join(scenePath, "nodeParticleSystemSets")),
 	]);
 
 	const [
@@ -147,10 +141,11 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 		guiFiles,
 		soundFiles,
 		particleSystemFiles,
-		morphTargetManagers,
-		animationGroups,
-		spriteMaps,
-		spriteManagers,
+		morphTargetManagerFiles,
+		animationGroupFiles,
+		spriteMapFiles,
+		spriteManagerFiles,
+		nodeParticleSystemSetFiles,
 	] = await Promise.all([
 		readdir(join(scenePath, "nodes")),
 		readdir(join(scenePath, "meshes")),
@@ -167,6 +162,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 		readdir(join(scenePath, "animationGroups")),
 		readdir(join(scenePath, "sprite-maps")),
 		readdir(join(scenePath, "sprite-managers")),
+		readdir(join(scenePath, "nodeParticleSystemSets")),
 	]);
 
 	const progress = await showLoadSceneProgressDialog(`Loading ${basename(scenePath)}...`);
@@ -183,10 +179,11 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 			guiFiles.length +
 			soundFiles.length +
 			particleSystemFiles.length +
-			morphTargetManagers.length +
-			animationGroups.length +
-			spriteMaps.length +
-			spriteManagers.length);
+			morphTargetManagerFiles.length +
+			animationGroupFiles.length +
+			spriteMapFiles.length +
+			spriteManagerFiles.length +
+			nodeParticleSystemSetFiles.length);
 
 	SceneLoaderFlags.ForceFullSceneLoadingForIncremental = true;
 
@@ -209,6 +206,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 		}
 
 		// Load environment
+		scene.iblIntensity = config.environment.iblIntensity ?? 1;
 		scene.environmentIntensity = config.environment.environmentIntensity;
 
 		const environmentTexture = config.environment.environmentTexture;
@@ -256,580 +254,35 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 		delete config.newScene;
 	}
 
-	// Load transform nodes
-	await Promise.all(
-		nodesFiles.map(async (file) => {
-			if (file.startsWith(".")) {
-				return;
-			}
+	const pluginLoadOptions: ISceneLoaderPluginOptions = {
+		projectPath,
+		scenePath,
+		relativeScenePath,
+		loadResult,
+		progress,
+		progressStep,
+		assetsCache,
+		asLink: options.asLink,
+	};
+
+	await loadTransformNodes(editor, nodesFiles, scene, pluginLoadOptions);
+	await loadSkeletons(editor, skeletonFiles, scene, pluginLoadOptions);
+	await loadMeshes(meshesFiles, scene, pluginLoadOptions);
+	await loadMorphTargetManagers(editor, morphTargetManagerFiles, scene, pluginLoadOptions);
+	await loadLights(editor, lightsFiles, scene, pluginLoadOptions);
+	await loadCameras(editor, cameraFiles, scene, pluginLoadOptions);
 
-			try {
-				const data = await readJSON(join(scenePath, "nodes", file), "utf-8");
-
-				if (options?.asLink && data.metadata?.doNotSerialize) {
-					return;
-				}
-
-				const transformNode = TransformNode.Parse(data, scene, join(projectPath, "/"));
-				transformNode.uniqueId = data.uniqueId;
-				transformNode.metadata ??= {};
-				transformNode.metadata._waitingParentId = data.metadata?.parentId;
-
-				loadResult.transformNodes.push(transformNode);
-			} catch (e) {
-				editor.layout.console.error(`Failed to load transform node file "${file}": ${e.message}`);
-			}
-
-			progress.step(progressStep);
-		})
-	);
-
-	// Load skeletons
-	await Promise.all(
-		skeletonFiles.map(async (file) => {
-			if (file.startsWith(".")) {
-				return;
-			}
-
-			try {
-				const data = await readJSON(join(scenePath, "skeletons", file), "utf-8");
-				Skeleton.Parse(data, scene);
-			} catch (e) {
-				editor.layout.console.error(`Failed to load skeleton file "${file}": ${e.message}`);
-			}
-		})
-	);
-
-	// Load meshes
-	await Promise.all(
-		meshesFiles.map(async (file) => {
-			if (file.startsWith(".")) {
-				return;
-			}
-
-			const initialData = await readJSON(join(scenePath, "meshes", file), "utf-8");
-
-			if (options?.asLink && initialData.metadata?.doNotSerialize) {
-				return;
-			}
-
-			const filesToLoad = [join(relativeScenePath, "meshes", file), ...(initialData.lods?.map((file) => join(relativeScenePath, "lods", file)) ?? [])];
-
-			await Promise.all(
-				filesToLoad.map(async (filename, index) => {
-					const result = await SceneLoader.ImportMeshAsync("", join(projectPath, "/"), filename, scene, null, ".babylon");
-					const meshes = result.meshes.filter((m) => isMesh(m)) as Mesh[];
-
-					const data = index === 0 ? initialData : await readJSON(join(projectPath, filename), "utf-8");
-
-					while (meshes.find((m) => m.delayLoadState && m.delayLoadState !== Constants.DELAYLOADSTATE_LOADED)) {
-						await wait(150);
-					}
-
-					result.meshes.forEach((m) => {
-						if (!isMesh(m)) {
-							return;
-						}
-
-						const meshData = data.meshes?.find((d) => d.id === m.id);
-
-						if (data.basePoseMatrix) {
-							m.updatePoseMatrix(Matrix.FromArray(data.basePoseMatrix));
-						}
-
-						if ((meshData?.uniqueId ?? null) !== null) {
-							m.uniqueId = meshData.uniqueId;
-
-							m.metadata ??= {};
-							m.metadata._waitingParentId = meshData.metadata?.parentId;
-
-							delete m.metadata.parentId;
-						}
-
-						// Handle physics
-						if (meshData?.metadata?.physicsAggregate) {
-							m.physicsAggregate = parsePhysicsAggregate(m, meshData.metadata.physicsAggregate);
-							m.physicsAggregate.body.disableSync = true;
-						}
-
-						m.instances.forEach((instance) => {
-							const instanceData = meshData.instances?.find((d) => d.id === instance.id);
-							if (instanceData) {
-								if ((instanceData?.uniqueId ?? null) !== null) {
-									instance.id = instanceData.id;
-								}
-
-								if ((instanceData?.uniqueId ?? null) !== null) {
-									instance.uniqueId = instanceData.uniqueId;
-								}
-
-								instance.metadata ??= {};
-								instance.metadata._waitingParentId = instanceData.metadata?.parentId;
-
-								delete instance.metadata.parentId;
-
-								if (instanceData.metadata?.physicsAggregate) {
-									instance.physicsAggregate = parsePhysicsAggregate(instance, instanceData.metadata.physicsAggregate);
-									instance.physicsAggregate.body.disableSync = true;
-								}
-							}
-
-							loadResult.meshes.push(instance);
-						});
-
-						// Handle case the data is a collision mesh
-						if (data.isCollisionMesh) {
-							const collisionMesh = CollisionMesh.CreateFromSourceMesh(m, data.collisionMeshType);
-
-							m.dispose(true, false);
-							m = collisionMesh;
-
-							if (!isCollisionMesh(m)) {
-								return;
-							}
-						}
-
-						loadResult.meshes.push(m);
-
-						if (m.material) {
-							const material = isMultiMaterial(m.material)
-								? data.multiMaterials?.find((d) => d.id === m.material!.id)
-								: data.materials?.find((d) => d.id === m.material!.id);
-
-							if (material) {
-								m.material.uniqueId = material.uniqueId;
-							}
-
-							if (isMultiMaterial(m.material)) {
-								m.material.subMaterials.forEach((subMaterial, index) => {
-									if (!subMaterial) {
-										return;
-									}
-
-									const material = data.materials?.find((d) => d.id === subMaterial.id);
-									if (material) {
-										subMaterial.uniqueId = material.uniqueId;
-									}
-
-									configureSimultaneousLightsForMaterial(subMaterial);
-
-									const existingMaterial = scene.materials.find((material) => {
-										return material !== m.material && material.uniqueId === m.material!.uniqueId;
-									});
-
-									if (existingMaterial) {
-										subMaterial.dispose(false, true);
-										(m.material as MultiMaterial).subMaterials[index] = existingMaterial;
-									}
-								});
-							} else {
-								configureSimultaneousLightsForMaterial(m.material);
-
-								const existingMaterial = scene.materials.find((material) => {
-									return material !== m.material && material.uniqueId === m.material!.uniqueId;
-								});
-
-								if (existingMaterial) {
-									m.material.dispose(false, false);
-									m.material = existingMaterial;
-								} else if (isNodeMaterial(m.material)) {
-									normalizeNodeMaterialUniqueIds(m.material, material);
-								}
-							}
-						}
-
-						if (m.geometry) {
-							if (meshData?.geometryId) {
-								m.geometry.id = meshData.geometryId;
-							}
-
-							if (meshData?.geometryUniqueId) {
-								m.geometry.uniqueId = meshData.geometryUniqueId;
-							}
-						}
-					});
-
-					if (index > 0) {
-						// const data = await readJSON(join(projectPath, filename), "utf-8");
-
-						if (data.masterMeshId && data.distanceOrScreenCoverage !== undefined) {
-							meshes[0]._waitingData.lods = {
-								masterMeshId: data.masterMeshId,
-								distanceOrScreenCoverage: data.distanceOrScreenCoverage,
-							};
-						}
-					}
-
-					progress.step(progressStep);
-				})
-			);
-		})
-	);
-
-	// Make geometries unique for those one that are shared
-	const mappedGeometries = new Map<string, Geometry[]>();
-	scene.geometries.forEach((geometry) => {
-		if (!mappedGeometries.has(geometry.id)) {
-			mappedGeometries.set(geometry.id, [geometry]);
-		} else {
-			mappedGeometries.get(geometry.id)!.push(geometry);
-		}
-	});
-
-	mappedGeometries.forEach((geometries) => {
-		if (geometries.length <= 1) {
-			return;
-		}
-
-		for (let i = 1, len = geometries.length; i < len; ++i) {
-			const geometry = geometries[i];
-			const meshes = scene.meshes.filter((mesh) => isMesh(mesh) && mesh.geometry === geometry) as Mesh[];
-
-			meshes.forEach((mesh) => {
-				geometry.releaseForMesh(mesh, true);
-				if (geometry.isDisposed()) {
-					scene.removeGeometry(geometry);
-				}
-
-				geometries[0].applyToMesh(mesh);
-			});
-		}
-	});
-
-	// Load morph target managers
-	await Promise.all(
-		morphTargetManagers.map(async (file) => {
-			if (file.startsWith(".")) {
-				return;
-			}
-
-			try {
-				const data = await readJSON(join(scenePath, "morphTargetManagers", file), "utf-8");
-
-				await Promise.all(
-					data.targets.map(async (target) => {
-						const binaryFileData = join(scenePath, "morphTargets", basename(target.delayLoadingFile));
-						const buffer = (await readFile(binaryFileData)).buffer;
-
-						if (target.positionsCount) {
-							target.positions = new Float32Array(buffer, target.positionsOffset, target.positionsCount);
-						}
-
-						if (target.normalsCount) {
-							target.normals = new Float32Array(buffer, target.normalsOffset, target.normalsCount);
-						}
-
-						if (target.tangentsCount) {
-							target.tangents = new Float32Array(buffer, target.tangentsOffset, target.tangentsCount);
-						}
-
-						if (target.uvsCount) {
-							target.uvs = new Float32Array(buffer, target.uvsOffset, target.uvsCount);
-						}
-
-						if (target.uv2sCount) {
-							target.uv2s = new Float32Array(buffer, target.uv2sOffset, target.uv2sCount);
-						}
-					})
-				);
-
-				const mesh = scene.getMeshById(data.meshId);
-				if (mesh) {
-					const morphTargetManager = MorphTargetManager.Parse(data, scene);
-					morphTargetManager["_uniqueId"] = data.uniqueId;
-
-					for (let i = 0, len = morphTargetManager.numTargets; i < len; i++) {
-						const target = morphTargetManager.getTarget(i);
-						target["_uniqueId"] = data.targets[i].uniqueId;
-					}
-
-					mesh.morphTargetManager = morphTargetManager;
-				}
-			} catch (e) {
-				editor.layout.console.error(`Failed to load morph target manager file "${file}": ${e.message}`);
-			}
-
-			progress.step(progressStep);
-		})
-	);
-
-	// Load lights
-	await Promise.all(
-		lightsFiles.map(async (file) => {
-			if (file.startsWith(".")) {
-				return;
-			}
-
-			try {
-				const data = await readJSON(join(scenePath, "lights", file), "utf-8");
-
-				if (options?.asLink && data.metadata?.doNotSerialize) {
-					return;
-				}
-
-				const light = Light.Parse(data, scene);
-				if (light) {
-					light.uniqueId = data.uniqueId;
-					light.metadata ??= {};
-					light.metadata._waitingParentId = data.metadata?.parentId;
-
-					loadResult.lights.push(light);
-				}
-			} catch (e) {
-				editor.layout.console.error(`Failed to load light file "${file}": ${e.message}`);
-			}
-
-			progress.step(progressStep);
-		})
-	);
-
-	// Load cameras
-	await Promise.all(
-		cameraFiles.map(async (file) => {
-			if (file.startsWith(".")) {
-				return;
-			}
-
-			try {
-				const data = await readJSON(join(scenePath, "cameras", file), "utf-8");
-
-				if (options?.asLink && data.metadata?.doNotSerialize) {
-					return;
-				}
-
-				const camera = Camera.Parse(data, scene);
-				camera.uniqueId = data.uniqueId;
-				camera._waitingParentId = data.parentId;
-				camera.metadata ??= {};
-				camera.metadata._waitingParentId = data.metadata?.parentId;
-
-				loadResult.cameras.push(camera);
-			} catch (e) {
-				editor.layout.console.error(`Failed to load camera file "${file}": ${e.message}`);
-			}
-
-			progress.step(progressStep);
-		})
-	);
-
-	// Load shadow generators
 	if (!options?.asLink) {
-		await Promise.all(
-			shadowGeneratorFiles.map(async (file) => {
-				if (file.startsWith(".")) {
-					return;
-				}
-
-				try {
-					const data = await readJSON(join(scenePath, "shadowGenerators", file), "utf-8");
-
-					const light = scene.lights.find((light) => light.id === data.lightId);
-					if (!light) {
-						return;
-					}
-
-					let shadowGenerator: ShadowGenerator;
-
-					if (data.className === CascadedShadowGenerator.CLASSNAME) {
-						shadowGenerator = CascadedShadowGenerator.Parse(data, scene);
-					} else {
-						shadowGenerator = ShadowGenerator.Parse(data, scene);
-					}
-
-					const shadowMap = shadowGenerator.getShadowMap();
-					if (shadowMap) {
-						shadowMap.refreshRate = data.refreshRate ?? RenderTargetTexture.REFRESHRATE_RENDER_ONEVERYFRAME;
-					}
-				} catch (e) {
-					editor.layout.console.error(`Failed to load shadow generator file "${file}": ${e.message}`);
-				}
-
-				progress.step(progressStep);
-			})
-		);
+		await loadShadowGenerators(editor, shadowGeneratorFiles, scene, pluginLoadOptions);
 	}
 
-	// Load GUI files
-	await Promise.all(
-		guiFiles.map(async (file) => {
-			if (file.startsWith(".")) {
-				return;
-			}
-
-			try {
-				const data = await readJSON(join(scenePath, "gui", file), "utf-8");
-
-				const gui = await applyImportedGuiFile(editor, join(projectPath, "assets", data.relativePath));
-
-				if (gui) {
-					gui.name = data.name;
-				}
-			} catch (e) {
-				editor.layout.console.error(`Failed to load GUI file "${file}": ${e.message}`);
-			}
-
-			progress.step(progressStep);
-		})
-	);
-
-	// Load sound files
-	await Promise.all(
-		soundFiles.map(async (file) => {
-			if (file.startsWith(".")) {
-				return;
-			}
-
-			try {
-				const data = await readJSON(join(scenePath, "sounds", file), "utf-8");
-
-				if (data.name && assetsCache[data.name]) {
-					data.name = assetsCache[data.name].newRelativePath;
-				}
-
-				if (data.url && assetsCache[data.url]) {
-					data.url = assetsCache[data.url].newRelativePath;
-				}
-
-				const sound = Sound.Parse(data, scene, join(projectPath, "/"));
-				sound["_url"] = data.url;
-				sound.id = data.id;
-				sound.uniqueId = data.uniqueId;
-
-				// TODO: due to recent change in sound parsing in Babylon.js, sounds are not
-				// automatically added to the main soundtrack. Remove this when fixed in Babylon.js or by switching to audio v2.
-				if (!scene.mainSoundTrack.soundCollection.includes(sound)) {
-					scene.mainSoundTrack.addSound(sound);
-				}
-			} catch (e) {
-				editor.layout.console.error(`Failed to load sound file "${file}": ${e.message}`);
-			}
-
-			progress.step(progressStep);
-		})
-	);
-
-	// Load particle systems
-	await Promise.all(
-		particleSystemFiles.map(async (file) => {
-			if (file.startsWith(".")) {
-				return;
-			}
-
-			try {
-				const data = await readJSON(join(scenePath, "particleSystems", file), "utf-8");
-
-				let particleSystem: ParticleSystem | GPUParticleSystem;
-
-				switch (data.className) {
-					case "GPUParticleSystem":
-						particleSystem = GPUParticleSystem.Parse(data, scene, join(projectPath, "/"));
-						break;
-
-					default:
-						particleSystem = ParticleSystem.Parse(data, scene, join(projectPath, "/"));
-						break;
-				}
-
-				if (!particleSystem.emitter) {
-					editor.layout.console.warn(`No emitter found for particle system "${particleSystem.name}". Skipping.`);
-					if (isGPUParticleSystem(particleSystem)) {
-						particleSystem.dispose(true);
-					} else {
-						particleSystem.dispose(true, true, true);
-					}
-
-					return;
-				}
-
-				particleSystem!.uniqueId = data.uniqueId;
-				particleSystem!.sourceParticleSystemSetId = data.sourceParticleSystemSetId;
-
-				loadResult.particleSystems.push(particleSystem!);
-			} catch (e) {
-				editor.layout.console.error(`Failed to particle system file "${file}": ${e.message}`);
-			}
-
-			progress.step(progressStep);
-		})
-	);
-
-	// Load animation groups
-	await Promise.all(
-		animationGroups.map(async (file) => {
-			if (file.startsWith(".")) {
-				return;
-			}
-
-			try {
-				const data = await readJSON(join(scenePath, "animationGroups", file), "utf-8");
-
-				const animationGroup = AnimationGroup.Parse(data, scene);
-				animationGroup.uniqueId = data.uniqueId;
-
-				if (animationGroup.targetedAnimations.length === 0) {
-					animationGroup.dispose();
-				} else {
-					loadResult.animationGroups.push(animationGroup);
-				}
-			} catch (e) {
-				editor.layout.console.error(`Failed to load animation group file "${file}": ${e.message}`);
-			}
-
-			progress.step(progressStep);
-		})
-	);
-
-	// Load sprite maps
-	await Promise.all(
-		spriteMaps.map(async (file) => {
-			if (file.startsWith(".")) {
-				return;
-			}
-
-			try {
-				const data = await readJSON(join(scenePath, "sprite-maps", file), "utf-8");
-
-				const node = SpriteMapNode.Parse(data, scene, join(projectPath, "/"));
-				node.uniqueId = data.uniqueId;
-				node.metadata ??= {};
-				node.metadata._waitingParentId = data.metadata?.parentId;
-
-				loadResult.spriteMaps.push(node);
-			} catch (e) {
-				editor.layout.console.error(`Failed to load sprite map file "${file}": ${e.message}`);
-			}
-
-			progress.step(progressStep);
-		})
-	);
-
-	// Load sprite managers
-	await Promise.all(
-		spriteManagers.map(async (file) => {
-			if (file.startsWith(".")) {
-				return;
-			}
-
-			try {
-				const data = await readJSON(join(scenePath, "sprite-managers", file), "utf-8");
-
-				if (data.spriteManager?.textureUrl && assetsCache[data.spriteManager.textureUrl]) {
-					data.spriteManager.textureUrl = assetsCache[data.spriteManager.textureUrl].newRelativePath;
-				}
-
-				const node = SpriteManagerNode.Parse(data, scene, join(projectPath, "/"));
-				node.uniqueId = data.uniqueId;
-				node.metadata ??= {};
-				node.metadata._waitingParentId = data.metadata?.parentId;
-
-				loadResult.spriteManagers.push(node);
-			} catch (e) {
-				editor.layout.console.error(`Failed to load sprite map file "${file}": ${e.message}`);
-			}
-
-			progress.step(progressStep);
-		})
-	);
+	await loadGuis(editor, guiFiles, pluginLoadOptions);
+	await loadSounds(editor, soundFiles, scene, pluginLoadOptions);
+	await loadParticleSystems(editor, particleSystemFiles, scene, pluginLoadOptions);
+	await loadAnimationGroups(editor, animationGroupFiles, scene, pluginLoadOptions);
+	await loadSpriteMaps(editor, spriteMapFiles, scene, pluginLoadOptions);
+	await loadSpriteManagers(editor, spriteManagerFiles, scene, pluginLoadOptions);
+	await loadNodeParticleSystemSets(editor, nodeParticleSystemSetFiles, scene, pluginLoadOptions);
 
 	// Configure textures urls
 	scene.textures.forEach((texture) => {
@@ -878,36 +331,35 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 	// Load scene links
 	loadedScenes.push(relativeScenePath);
 
-	await Promise.all(
-		sceneLinkFiles.map(async (file) => {
-			try {
-				const data = await readJSON(join(scenePath, "sceneLinks", file), "utf-8");
+	for (const file of sceneLinkFiles) {
+		try {
+			const data = await readJSON(join(scenePath, "sceneLinks", file), "utf-8");
 
-				if (options?.asLink && data.metadata?.doNotSerialize) {
-					return;
-				}
-
-				if (loadedScenes.includes(data._relativePath)) {
-					return editor.layout.console.error(`Can't load scene "${data._relativePath}": cycle references detected.`);
-				}
-
-				const sceneLink = await createSceneLink(editor, join(projectPath, data._relativePath));
-				if (sceneLink) {
-					sceneLink.parse(data);
-
-					sceneLink.uniqueId = data.uniqueId;
-					sceneLink.metadata ??= {};
-					sceneLink.metadata._waitingParentId = data.parentId;
-
-					loadResult.sceneLinks.push(sceneLink);
-				}
-			} catch (e) {
-				editor.layout.console.error(`Failed to load scene link file "${file}": ${e.message}`);
+			if (options?.asLink && data.metadata?.doNotSerialize) {
+				continue;
 			}
 
-			progress.step(progressStep);
-		})
-	);
+			if (loadedScenes.includes(data._relativePath)) {
+				editor.layout.console.error(`Can't load scene "${data._relativePath}": cycle references detected.`);
+				continue;
+			}
+
+			const sceneLink = await createSceneLink(editor, join(projectPath, data._relativePath));
+			if (sceneLink) {
+				sceneLink.parse(data);
+
+				sceneLink.uniqueId = data.uniqueId;
+				sceneLink.metadata ??= {};
+				sceneLink.metadata._waitingParentId = data.parentId;
+
+				loadResult.sceneLinks.push(sceneLink);
+			}
+		} catch (e) {
+			editor.layout.console.error(`Failed to load scene link file "${file}": ${e.message}`);
+		}
+
+		progress.step(progressStep);
+	}
 
 	loadedScenes.pop();
 

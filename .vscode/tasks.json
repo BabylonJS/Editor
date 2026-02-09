@@ -7,7 +7,7 @@
 			"label": "watch-all-editor",
 			"group": "build",
 			"problemMatcher": "$tsc-watch",
-			"dependsOn": ["watch-editor", "watch-tools", "watch-plugins"],
+			"dependsOn": ["watch-editor", "watch-tools", "watch-plugins", "watch-cli"],
 			"presentation": {
 				"panel": "shared",
 				"group": "watch"
@@ -41,6 +41,18 @@
 			"label": "watch-plugins",
 			"type": "npm",
 			"script": "watch-plugins",
+			"group": "build",
+			"problemMatcher": "$tsc-watch",
+			"presentation": {
+				"panel": "shared",
+				"group": "watch"
+			},
+			"isBackground": true
+		},
+		{
+			"label": "watch-cli",
+			"type": "npm",
+			"script": "watch-cli",
 			"group": "build",
 			"problemMatcher": "$tsc-watch",
 			"presentation": {

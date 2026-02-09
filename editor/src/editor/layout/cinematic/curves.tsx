@@ -47,13 +47,13 @@ export class CinematicEditorCurves extends Component<ICinematicEditorCurvesProps
 				onMouseDown={(ev) => this._handleMainDivPointerDown(ev)}
 			>
 				<CinematicEditorCurvesRoot scale={this.props.scale} translation={this.state.translation} cinematicEditor={this.props.cinematicEditor} />
-				<CinematicEditorTracker ref={(r) => (this.tracker = r!)} scale={this.props.scale} currentTime={this.props.currentTime} />
+				<CinematicEditorTracker ref={(r) => (this.tracker = r!)} scale={this.props.scale} translationX={this.state.translation.x} currentTime={this.props.currentTime} />
 			</div>
 		);
 	}
 
 	private _handleMainDivPointerDown(event: MouseEvent<HTMLDivElement>): void {
-		if (event.button !== 0 || !isDomElementDescendantOf(event.nativeEvent.target as HTMLElement, this._divRef!)) {
+		if (event.button !== 0 || event.altKey || !isDomElementDescendantOf(event.nativeEvent.target as HTMLElement, this._divRef!)) {
 			return;
 		}
 

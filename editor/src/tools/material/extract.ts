@@ -17,26 +17,32 @@ export async function extractNodeMaterialTextures(editor: Editor, options: IExtr
 	await Promise.all(
 		blocks.map(async (block: any) => {
 			if (block.texture?.name?.startsWith("http://") || block.texture.name.startsWith("https://")) {
-				const relativePath = await extractTextureAssetFromUrl(editor, {
+				const result = await extractTextureAssetFromUrl(editor, {
 					url: block.texture.name,
 					assetsDirectory: options.assetsDirectory,
 				});
 
-				if (relativePath) {
-					relativePaths.push(relativePath);
-					block.texture.name = block.texture.url = relativePath;
+				if (result) {
+					block.texture.metadata ??= {};
+					block.texture.metadata.baseSize = result.baseSize;
+					block.texture.name = block.texture.url = result.relativePath;
+
+					relativePaths.push(result.relativePath);
 				}
 			}
 
 			if (block.texture.name?.startsWith("data:")) {
-				const relativePath = await extractTextureAssetFromDataString(editor, {
+				const result = await extractTextureAssetFromDataString(editor, {
 					dataString: block.texture.name,
 					assetsDirectory: options.assetsDirectory,
 				});
 
-				if (relativePath) {
-					relativePaths.push(relativePath);
-					block.texture.name = block.texture.url = relativePath;
+				if (result) {
+					block.texture.metadata ??= {};
+					block.texture.metadata.baseSize = result.baseSize;
+					block.texture.name = block.texture.url = result.relativePath;
+
+					relativePaths.push(result.relativePath);
 				}
 			}
 		})

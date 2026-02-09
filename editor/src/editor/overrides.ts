@@ -12,6 +12,10 @@ Module["_load"] = function (request: string, parent: typeof Module, isMain: bool
 		return originalLoad(resolveFilename("babylonjs-editor-tools", module, false), parent, isMain);
 	}
 
+	if (request.startsWith("babylonjs-editor-cli")) {
+		return originalLoad(resolveFilename("babylonjs-editor-cli", module, false), parent, isMain);
+	}
+
 	if (request.startsWith("babylonjs-editor")) {
 		return originalLoad(join(__dirname.replace(/\\/g, "/"), "../export.js"), parent, isMain);
 	}

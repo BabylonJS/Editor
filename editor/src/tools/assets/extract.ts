@@ -3,6 +3,8 @@ import { pathExists, writeFile } from "fs-extra";
 
 import sharp from "sharp";
 
+import { ISize } from "babylonjs";
+
 import { Editor } from "../../editor/main";
 
 import { executeSimpleWorker } from "../worker";
@@ -10,6 +12,11 @@ import { executeSimpleWorker } from "../worker";
 export interface IExtractTextureAssetFromDataStringOptions {
 	dataString: string;
 	assetsDirectory: string;
+}
+
+export interface IExtractTextureAssetFromDataStringResult {
+	baseSize: ISize;
+	relativePath: string;
 }
 
 export async function extractTextureAssetFromDataString(editor: Editor, options: IExtractTextureAssetFromDataStringOptions) {
@@ -39,7 +46,8 @@ export async function extractTextureAssetFromDataString(editor: Editor, options:
 				break;
 
 			default:
-				return editor.layout.console.error(`Unsupported embedded texture format while extracting texture: ${metadata.format}`);
+				editor.layout.console.error(`Unsupported embedded texture format while extracting texture: ${metadata.format}`);
+				return null;
 		}
 
 		const outputFilename = join(options.assetsDirectory, filename);
@@ -47,7 +55,13 @@ export async function extractTextureAssetFromDataString(editor: Editor, options:
 			await writeFile(outputFilename, buffer);
 		}
 
-		return join("assets", "editor-generated_extracted-textures", filename).replace(/\\/g, "/");
+		return {
+			baseSize: {
+				width: metadata.width,
+				height: metadata.height,
+			},
+			relativePath: join("assets", "editor-generated_extracted-textures", filename).replace(/\\/g, "/"),
+		};
 	}
 
 	return null;
@@ -73,4 +87,6 @@ export async function extractTextureAssetFromUrl(editor: Editor, options: IExtra
 	} catch (e) {
 		editor.layout.console.error(`Failed to extract texture from url "${options.url}": ${e.message}`);
 	}
+
+	return null;
 }

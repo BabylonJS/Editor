@@ -21,7 +21,7 @@ export function createAnimationGroupGhostRect(ag: ICinematicAnimationGroup, scal
 			key={`animation-group-${ag.frame}-ghost`}
 			x={ag.frame}
 			y={height * 0.5 - 8 / scale}
-			width={ag.endFrame - ag.startFrame}
+			width={((ag.endFrame - ag.startFrame) * ((ag.repeatCount ?? 0) + 1)) / ag.speed}
 			height={16 / scale}
 			rx={8 / scale}
 			ry={8 / scale}

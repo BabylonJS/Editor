@@ -10,6 +10,8 @@ import { useEffect, useState } from "react";
 import { RxCross2 } from "react-icons/rx";
 import { Grid } from "react-loader-spinner";
 
+import { pack } from "babylonjs-editor-cli";
+
 import { showAlert, showConfirm } from "../ui/dialog";
 
 import { Input } from "../ui/shadcn/ui/input";
@@ -64,6 +66,7 @@ export function DashboardCreateProjectDialog(props: IDashboardCreateProjectDialo
 		const templateBlob = await fetch(templatePath).then((r) => r.blob());
 		const buffer = Buffer.from(await templateBlob.arrayBuffer());
 
+		// Extract template.
 		await decompress(buffer, destination, {
 			plugins: [decompressTargz()],
 			map: (file) => {
@@ -74,13 +77,20 @@ export function DashboardCreateProjectDialog(props: IDashboardCreateProjectDialo
 
 		await remove(join(destination, "package"));
 
+		// Configure project file.
 		const projectAbsolutePath = join(destination, "project.bjseditor");
 
 		const projectContent = (await readJSON(projectAbsolutePath)) as IEditorProject;
 		projectContent.packageManager = packageManager;
+
 		await writeJSON(projectAbsolutePath, projectContent, {
 			spaces: "\t",
 			encoding: "utf-8",
+		});
+
+		// Generate public/scene.
+		await pack(destination, {
+			optimize: false,
 		});
 	}
 

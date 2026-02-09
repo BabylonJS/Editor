@@ -17,16 +17,40 @@ export function addAnimationKey(
 	positionX: number | null,
 	keyFrameAnimations?: (ICinematicKey | ICinematicKeyCut)[]
 ) {
-	keyFrameAnimations ??= track.keyFrameAnimations!;
+	if (track.keyFrameAnimations) {
+		keyFrameAnimations = track.keyFrameAnimations;
+	} else if ((track.animationGroupWeight?.length ?? 0) > 0) {
+		keyFrameAnimations = track.animationGroupWeight;
+	} else if ((track.soundVolume?.length ?? 0) > 0) {
+		keyFrameAnimations = track.soundVolume;
+	}
 
-	const node = track.defaultRenderingPipeline ? getDefaultRenderingPipeline() : track.node;
-
-	if (positionX === null || !node || !track.propertyPath) {
+	if (positionX === null || !keyFrameAnimations) {
 		return;
 	}
 
-	const frame = Math.round(positionX / cinematicEditor.state.scale);
-	const value = getInspectorPropertyValue(node, track.propertyPath);
+	let value: any = null;
+
+	const scale = cinematicEditor.state.editType === "keyframes" ? cinematicEditor.state.timelinesScale : cinematicEditor.state.curvesZoom;
+	const frame = Math.round(positionX / scale);
+
+	if (keyFrameAnimations === track.keyFrameAnimations) {
+		const node = track.defaultRenderingPipeline ? getDefaultRenderingPipeline() : track.node;
+
+		if (positionX === null || !node || !track.propertyPath) {
+			return;
+		}
+
+		value = getInspectorPropertyValue(node, track.propertyPath);
+	} else if (keyFrameAnimations === track.animationGroupWeight && track.animationGroup) {
+		value = track.animationGroup.weight;
+	} else if (keyFrameAnimations === track.soundVolume && track.sound) {
+		value = track.sound.getVolume();
+	}
+
+	if (value === null) {
+		return;
+	}
 
 	const existingKey = keyFrameAnimations.find((k) => {
 		if (isCinematicKeyCut(k)) {
@@ -85,7 +109,7 @@ export function addSoundKey(cinematicEditor: CinematicEditor, track: ICinematicT
 		return;
 	}
 
-	const frame = Math.round(positionX / cinematicEditor.state.scale);
+	const frame = Math.round(positionX / cinematicEditor.state.timelinesScale);
 	const existingKey = track.sounds!.find((k) => k.frame === frame);
 
 	if (existingKey) {
@@ -138,7 +162,7 @@ export function addEventKey(cinematicEditor: CinematicEditor, track: ICinematicT
 		return;
 	}
 
-	const frame = Math.round(positionX / cinematicEditor.state.scale);
+	const frame = Math.round(positionX / cinematicEditor.state.timelinesScale);
 
 	const existingKey = track.keyFrameEvents!.find((k) => {
 		return k.frame === frame;
@@ -178,7 +202,7 @@ export function addAnimationGroupKey(cinematicEditor: CinematicEditor, track: IC
 		return;
 	}
 
-	const frame = Math.round(positionX / cinematicEditor.state.scale);
+	const frame = Math.round(positionX / cinematicEditor.state.timelinesScale);
 	const existingKey = track.animationGroups!.find((k) => k.frame === frame);
 
 	if (existingKey) {

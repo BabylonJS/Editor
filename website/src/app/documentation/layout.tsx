@@ -5,7 +5,7 @@ import { PropsWithChildren } from "react";
 
 import { Toaster } from "@/components/ui/sonner";
 
-import { DocumentationSidebar } from "./sidebar/sidebar";
+import { DocumentationSidebar } from "./sidebar";
 
 export const metadata: Metadata = {
 	title: "Babylon.js Editor Documentation",
@@ -18,7 +18,7 @@ export default function DocumentationLayout(props: PropsWithChildren) {
 			<DocumentationSidebar />
 
 			<div className="absolute 2xl:fixed top-0 left-0 flex justify-between items-center w-full px-5">
-				<Link href="/" className="flex justify-between items-center w-full">
+				<Link href="/" className="flex justify-between items-center w-full bg-black">
 					<img alt="" src="/logo.svg" className="h-14 lg:h-20 -ml-12" />
 				</Link>
 

@@ -85,9 +85,12 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 								Save <MenubarShortcut>CTRL+S</MenubarShortcut>
 							</MenubarItem>
 
-							<MenubarItem onClick={() => exportProject(this.props.editor, { optimize: true })}>
-								Generate <MenubarShortcut>CTRL+G</MenubarShortcut>
+							<MenubarSeparator />
+
+							<MenubarItem onClick={() => exportProject(this.props.editor, { optimize: false })}>
+								Generate Current Scene <MenubarShortcut>CTRL+G</MenubarShortcut>
 							</MenubarItem>
+							<MenubarItem onClick={() => this.props.editor.setState({ generateProject: true })}>Generate All Scenes and Assets...</MenubarItem>
 
 							<MenubarSeparator />
 

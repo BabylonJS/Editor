@@ -63,14 +63,14 @@ export function registerSpriteManagerParser() {
 
 				scene.addPendingData(atlasJsonAbsolutePath);
 
-				const atlasRequest = new WebRequest();
-				atlasRequest.open("GET", atlasJsonAbsolutePath);
-				atlasRequest.send();
+				const request = new WebRequest();
+				request.open("GET", atlasJsonAbsolutePath);
+				request.send();
 
-				atlasRequest.addEventListener("load", () => {
+				request.addEventListener("load", () => {
 					scene.removePendingData(atlasJsonAbsolutePath);
 
-					const atlasJson = JSON.parse(atlasRequest.responseText);
+					const atlasJson = JSON.parse(request.responseText);
 					const imagePath = `${Tools.GetFolderPath(atlasJsonAbsolutePath)}${atlasJson.meta.image}`;
 
 					const spriteManager = new SpriteManager(instance.name, imagePath, 1000, 64, scene, undefined, undefined, true, atlasJson);

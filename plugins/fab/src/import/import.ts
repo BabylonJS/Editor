@@ -1,8 +1,8 @@
 import { basename, join } from "path/posix";
 import { copyFile, ensureDir, pathExists } from "fs-extra";
 
-import { PBRMaterial, Vector3 } from "babylonjs";
-import { Editor, checkProjectCachedCompressedTextures, computeOrGetThumbnail } from "babylonjs-editor";
+import { AbstractMesh, Mesh, PBRMaterial, Vector3 } from "babylonjs";
+import { Editor, checkProjectCachedCompressedTextures, computeOrGetThumbnail, isInstancedMesh, registerUndoRedo, isMesh } from "babylonjs-editor";
 
 import { IFabJson } from "../typings";
 import { checkAwaitPromises } from "../tools";
@@ -18,6 +18,7 @@ export interface IImportParameters {
 	importMaterials: boolean;
 
 	position?: Vector3;
+	pickedMesh?: AbstractMesh;
 	meshesPredicate?: (meshFile: string) => boolean;
 
 	onProgress?: (progress: number) => void;
@@ -65,6 +66,26 @@ export async function importFabJson(editor: Editor, parameters: IImportParameter
 		}
 
 		await checkAwaitPromises(promises, true);
+	}
+
+	// Check is texture-set to assign material to picked mesh
+	if (parameters.importMaterials && parameters.json.metadata.fab.format === "texture-set" && parameters.pickedMesh) {
+		let mesh: Mesh | null = null;
+		if (isInstancedMesh(parameters.pickedMesh)) {
+			mesh = parameters.pickedMesh.sourceMesh;
+		} else if (isMesh(parameters.pickedMesh)) {
+			mesh = parameters.pickedMesh;
+		}
+
+		if (mesh) {
+			const oldMaterial = mesh.material;
+
+			registerUndoRedo({
+				executeRedo: true,
+				undo: () => (mesh.material = oldMaterial),
+				redo: () => (mesh.material = materialsMap.get(0) || null),
+			});
+		}
 	}
 
 	// Import meshes

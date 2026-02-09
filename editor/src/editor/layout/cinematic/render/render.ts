@@ -41,12 +41,18 @@ export async function renderCinematic(cinematicEditor: CinematicEditor, options:
 
 	const scalingLevel = engine._hardwareScalingLevel;
 	const fixedDimensionsType = preview.state.fixedDimensions;
+	const drawAxisHelper = preview.axis.enabled;
 
 	preview.setRenderScene(false);
 	engine.renderEvenInBackground = true;
 	scene.useConstantAnimationDeltaTime = true;
 
-	engine.setHardwareScalingLevel(scalingLevel * 0.25);
+	if (drawAxisHelper) {
+		preview.axis.stop();
+	}
+
+	// engine.setHardwareScalingLevel(scalingLevel * 0.25);
+	engine.setHardwareScalingLevel(0.5);
 	preview.setFixedDimensions(options.type);
 	preview.scene.render();
 
@@ -112,6 +118,10 @@ export async function renderCinematic(cinematicEditor: CinematicEditor, options:
 	preview.setRenderScene(true);
 	engine.renderEvenInBackground = false;
 	scene.useConstantAnimationDeltaTime = false;
+
+	if (drawAxisHelper) {
+		preview.axis.start();
+	}
 
 	engine.setHardwareScalingLevel(scalingLevel);
 	preview.setFixedDimensions(fixedDimensionsType);

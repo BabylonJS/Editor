@@ -144,8 +144,17 @@ tools/build
 tools/declaration
 tools/coverage
 
+# Babylon.js Editor CLI
+cli/build
+cli/declaration
+!cli/bin
+
 # Template
 templates/nextjs/.next
+templates/electron/public/scene
+templates/nextjs/public/scene
+templates/solidjs/public/scene
+templates/vanillajs/public/scene
 
 # Website
 website/.next

@@ -98,7 +98,11 @@ export class CinematicEditorCurvesRoot extends Component<ICinematicEditorCurvesR
 							onPointerDown={(ev) => this._handlePointerDown(ev)}
 							onPointerMove={(ev) => this._handlePointerMove(ev)}
 							onPointerUp={(ev) => this._handlePointerUp(ev)}
-							onContextMenu={(ev) => this.setState({ rightClickPositionX: ev.nativeEvent.offsetX })}
+							onContextMenu={(ev) =>
+								this.setState({
+									rightClickPositionX: ev.nativeEvent.offsetX - this.props.translation.x,
+								})
+							}
 						>
 							<g transform={`translate(${this.props.translation.x} ${this.props.translation.y}) scale(${this.props.scale})`}>
 								<line
@@ -327,7 +331,11 @@ export class CinematicEditorCurvesRoot extends Component<ICinematicEditorCurvesR
 	}
 
 	private _handlePointerDown(event: PointerEvent<SVGElement>): void {
-		if (event.target !== this._rootSvgRef || event.button !== 1) {
+		if (event.target !== this._rootSvgRef) {
+			return;
+		}
+
+		if (event.button !== 1 && (event.button !== 0 || !event.altKey)) {
 			return;
 		}
 
@@ -386,7 +394,7 @@ export class CinematicEditorCurvesRoot extends Component<ICinematicEditorCurvesR
 		translation.y = p.y - contentY * scale;
 
 		this.props.cinematicEditor.setState({
-			scale,
+			curvesZoom: scale,
 		});
 
 		this.props.cinematicEditor.curves.setState({

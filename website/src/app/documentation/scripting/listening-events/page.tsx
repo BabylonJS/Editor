@@ -14,7 +14,7 @@ import {
 	onKeyboardEventArrayBasicExample,
 } from "./code";
 
-import { NextChapterComponent } from "../../components/next-chapter";
+import { NextChapterComponent } from "../../next-chapter";
 
 export default function DocumentationRunningProjectPage() {
 	return (

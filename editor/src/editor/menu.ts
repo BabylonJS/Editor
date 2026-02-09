@@ -48,9 +48,16 @@ export function setupEditorMenu(): void {
 						click: () => BrowserWindow.getFocusedWindow()?.webContents.send("save"),
 					},
 					{
-						label: "Generate",
+						type: "separator",
+					},
+					{
+						label: "Generate Current Scene",
 						accelerator: "CommandOrControl+G",
 						click: () => BrowserWindow.getFocusedWindow()?.webContents.send("generate"),
+					},
+					{
+						label: "Generate All Scenes and Assets...",
+						click: () => BrowserWindow.getFocusedWindow()?.webContents.send("editor:generate-project"),
 					},
 					{
 						type: "separator",

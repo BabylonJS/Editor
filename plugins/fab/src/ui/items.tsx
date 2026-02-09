@@ -51,6 +51,7 @@ export function FabItems(props: IFabItemsProps) {
 			importMeshes: true,
 			importMaterials: true,
 			position: pick?.pickedPoint ?? undefined,
+			pickedMesh: pick?.pickedMesh ?? undefined,
 		});
 
 		props.editor.layout.graph.refresh();

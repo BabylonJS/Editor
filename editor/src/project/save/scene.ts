@@ -7,15 +7,17 @@ import { RenderTargetTexture, SceneSerializer } from "babylonjs";
 
 import { Editor } from "../../editor/main";
 
+import { isTexture } from "../../tools/guards/texture";
 import { isSceneLinkNode } from "../../tools/guards/scene";
 import { applyAssetsCache } from "../../tools/assets/cache";
 import { isNodeVisibleInGraph } from "../../tools/node/metadata";
+import { storeTexturesBaseSize } from "../../tools/material/texture";
 import { getBufferSceneScreenshot } from "../../tools/scene/screenshot";
 import { createDirectoryIfNotExist, normalizedGlob } from "../../tools/fs";
 import { isSpriteManagerNode, isSpriteMapNode } from "../../tools/guards/sprites";
-import { isGPUParticleSystem, isParticleSystem } from "../../tools/guards/particles";
 import { serializePhysicsAggregate } from "../../tools/physics/serialization/aggregate";
 import { isAnimationGroupFromSceneLink, isFromSceneLink } from "../../tools/scene/scene-link";
+import { isGPUParticleSystem, isNodeParticleSystemSetMesh, isParticleSystem } from "../../tools/guards/particles";
 import { isAnyTransformNode, isCollisionMesh, isEditorCamera, isMesh, isTransformNode } from "../../tools/guards/nodes";
 
 import { vlsPostProcessCameraConfigurations } from "../../editor/rendering/vls";
@@ -59,6 +61,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 		createDirectoryIfNotExist(join(scenePath, "animationGroups")),
 		createDirectoryIfNotExist(join(scenePath, "sprite-maps")),
 		createDirectoryIfNotExist(join(scenePath, "sprite-managers")),
+		createDirectoryIfNotExist(join(scenePath, "nodeParticleSystemSets")),
 	]);
 
 	const scene = editor.layout.preview.scene;
@@ -84,6 +87,8 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 	const savedFiles: string[] = [];
 	const savedGeometryIds: string[] = [];
 
+	storeTexturesBaseSize(scene);
+
 	// Write geometries and meshes
 	await Promise.all(
 		meshesToSave.map(async (mesh) => {
@@ -98,6 +103,16 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 					if (!meshToSerialize) {
 						return null;
 					}
+
+					meshToSerialize.material?.getActiveTextures().forEach((texture) => {
+						if (isTexture(texture)) {
+							texture.metadata ??= {};
+							texture.metadata.baseSize = {
+								width: texture.getBaseSize().width,
+								height: texture.getBaseSize().height,
+							};
+						}
+					});
 
 					const data = await SceneSerializer.SerializeMesh(meshToSerialize, false, false);
 					delete data.skeletons;
@@ -142,7 +157,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 							delete mesh.parentId;
 						}
 
-						if (!instantiatedMesh?.material) {
+						if (!instantiatedMesh?.material || instantiatedMesh.material === scene.defaultMaterial) {
 							delete mesh.materialUniqueId;
 						}
 
@@ -169,6 +184,15 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 							mesh.metadata ??= {};
 							mesh.metadata.physicsAggregate = serializePhysicsAggregate(instantiatedMesh.physicsAggregate);
 						}
+					});
+
+					data.materials = data.materials?.filter((material) => {
+						const instantiatedMaterial = scene.getMaterialById(material.id);
+						if (instantiatedMaterial && instantiatedMaterial !== scene.defaultMaterial) {
+							return true;
+						}
+
+						return false;
 					});
 
 					const lodLevel = mesh.getLODLevels().find((lodLevel) => lodLevel.mesh === meshToSerialize);
@@ -522,18 +546,22 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 				soundtrack.soundCollection.map(async (sound) => {
 					const soundPath = join(scenePath, "sounds", `${sound.id}.json`);
 
+					// TODO: Find a better way to handle spatial sound property in Babylon.js.
+					// sound.spatialSound is always overridden to true on sound.serialize().
+					const spatialSound = sound.spatialSound;
+
+					const soundData = {
+						...sound.serialize(),
+						id: sound.id,
+						uniqueId: sound.uniqueId,
+					};
+
+					sound.spatialSound = spatialSound;
+
 					try {
-						await writeJSON(
-							soundPath,
-							{
-								...sound.serialize(),
-								id: sound.id,
-								uniqueId: sound.uniqueId,
-							},
-							{
-								spaces: 4,
-							}
-						);
+						await writeJSON(soundPath, soundData, {
+							spaces: 4,
+						});
 					} catch (e) {
 						editor.layout.console.error(`Failed to write scene link node ${sound.name}`);
 					} finally {
@@ -547,6 +575,10 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 	// Write particle systems
 	await Promise.all(
 		scene.particleSystems.map(async (particleSystem) => {
+			if (particleSystem.isNodeGenerated) {
+				return;
+			}
+
 			const particleSystemPath = join(scenePath, "particleSystems", `${particleSystem.id}.json`);
 
 			const emitter = particleSystem.emitter;
@@ -562,7 +594,6 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 				}
 
 				data.className = particleSystem.getClassName();
-				data.sourceParticleSystemSetId = particleSystem.sourceParticleSystemSetId;
 
 				await writeJSON(particleSystemPath, data, {
 					spaces: 4,
@@ -571,6 +602,36 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 				editor.layout.console.error(`Failed to write particle system ${particleSystem.name}`);
 			} finally {
 				savedFiles.push(particleSystemPath);
+			}
+
+			dialog.step(progressStep);
+		})
+	);
+
+	// Write node particle systems
+	await Promise.all(
+		scene.meshes.map(async (mesh) => {
+			if (!isNodeParticleSystemSetMesh(mesh) || isFromSceneLink(mesh)) {
+				return;
+			}
+
+			const nodeParticleSystemMeshPath = join(scenePath, "nodeParticleSystemSets", `${mesh.id}.json`);
+
+			try {
+				const data = mesh.serialize();
+
+				data.metadata ??= {};
+				data.metadata.parentId = mesh.parent?.uniqueId;
+
+				delete data.parentId;
+
+				await writeJSON(nodeParticleSystemMeshPath, data, {
+					spaces: 4,
+				});
+			} catch (e) {
+				editor.layout.console.error(`Failed to write transform node ${mesh.name}`);
+			} finally {
+				savedFiles.push(nodeParticleSystemMeshPath);
 			}
 
 			dialog.step(progressStep);
@@ -675,6 +736,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 				clearColor: scene.clearColor.asArray(),
 				ambientColor: scene.ambientColor.asArray(),
 				environment: {
+					iblIntensity: scene.iblIntensity,
 					environmentIntensity: scene.environmentIntensity,
 					environmentTexture: scene.environmentTexture
 						? {

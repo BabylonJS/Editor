@@ -1,17 +1,21 @@
 import { readJSON } from "fs-extra";
+import { basename } from "path/posix";
 
-import { Scene, ParticleSystemSet, AbstractMesh, NodeParticleSystemSet } from "babylonjs";
+import { Scene, AbstractMesh, Tools } from "babylonjs";
 
-export async function loadImportedParticleSystemFile(scene: Scene, targetMesh: AbstractMesh, absolutePath: string): Promise<ParticleSystemSet | null> {
+import { UniqueNumber } from "../../../../tools/tools";
+
+import { NodeParticleSystemSetMesh } from "../../../nodes/node-particle-system";
+
+export async function loadImportedParticleSystemFile(scene: Scene, targetMesh: AbstractMesh, absolutePath: string) {
 	const data = await readJSON(absolutePath);
-	const npe = NodeParticleSystemSet.Parse(data);
 
-	const particleSystemSet = await npe.buildAsync(scene, false);
-	particleSystemSet.emitterNode = targetMesh;
-	particleSystemSet.systems.forEach((particleSystem) => {
-		particleSystem.sourceParticleSystemSetId = data.id;
-	});
-	particleSystemSet.start();
+	const node = new NodeParticleSystemSetMesh(basename(absolutePath, ".npss"), scene);
+	node.id = Tools.RandomId();
+	node.uniqueId = UniqueNumber.Get();
+	node.parent = targetMesh;
 
-	return particleSystemSet;
+	await node.buildNodeParticleSystemSet(data);
+
+	return node;
 }

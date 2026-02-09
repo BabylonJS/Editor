@@ -5,8 +5,6 @@ import { IoIosWarning } from "react-icons/io";
 
 import { CodeBlock } from "../../code";
 
-import { NextChapterComponent } from "../../components/next-chapter";
-
 import { linkingGuiExample, linkingJsonExample, linkingMaterialExample, linkingRestrictedMaterialExample } from "./code";
 
 export default function DocumentationLinkingAssetsPage() {
@@ -97,8 +95,6 @@ export default function DocumentationLinkingAssetsPage() {
 						</div>
 
 						<CodeBlock code={linkingGuiExample} />
-
-						<NextChapterComponent href="/documentation/sprites/using-sprite-manager" title="Using Sprite Manager" />
 					</div>
 				</Fade>
 			</div>

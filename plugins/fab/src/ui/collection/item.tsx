@@ -63,6 +63,7 @@ export function FabMeshesBrowserItem(props: IFabMeshesBrowserItemProps) {
 			importMaterials: true,
 			finalAssetsFolder: props.finalAssetsFolder,
 			position: pick?.pickedPoint ?? undefined,
+			pickedMesh: pick?.pickedMesh ?? undefined,
 			meshesPredicate: (meshFile: string) => meshFile === props.meshJson.file,
 		});
 
