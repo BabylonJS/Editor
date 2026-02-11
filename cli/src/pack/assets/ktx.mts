@@ -14,34 +14,6 @@ export const allKtxFormats: KTXToolsType[] = ["-astc.ktx", "-dxt.ktx", "-pvrtc.k
 export const ktxSupportedextensions: string[] = [".png", ".jpg", ".jpeg", ".bmp"];
 
 /**
- * Returns the absolute path to the compressed textures CLI path (PVRTexTool).
- * The value is retrieved from the local storage so it's per computer and not per project.
- */
-export function getCompressedTexturesCliPath() {
-	let value = "";
-
-	try {
-		value = localStorage.getItem("editor-compressed-textures-cli-path") ?? "";
-	} catch (e) {
-		// Catch silently.
-	}
-
-	return value || null;
-}
-
-/**
- * Sets the absolute path to the compressed textures CLI path (PVRTexTool).
- * The value is stored in the local storage so it's per computer and not per project.
- */
-export function setCompressedTexturesCliPath(absolutePath: string) {
-	try {
-		localStorage.setItem("editor-compressed-textures-cli-path", absolutePath);
-	} catch (e) {
-		// Catch silently.
-	}
-}
-
-/**
  * Returns the filename of the compressed texture according to the given path and the destination format.
  * @param path defines the path of the texture to get its final name.
  * @param format defines the destination format of the texture.
