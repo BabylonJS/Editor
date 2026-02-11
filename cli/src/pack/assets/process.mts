@@ -69,7 +69,13 @@ export async function processAssetFile(file: string, options: IProcessAssetFileO
 	const finalPathExists = await fs.pathExists(finalPath);
 
 	if (isNewFile || !finalPathExists) {
-		await fs.copyFile(file, finalPath);
+		if (supportedJsonExtensions.includes(extension)) {
+			fs.writeJSON(finalPath, await fs.readJSON(file), {
+				encoding: "utf-8",
+			});
+		} else {
+			await fs.copyFile(file, finalPath);
+		}
 	}
 
 	options.onStepChanged?.("assets", {
