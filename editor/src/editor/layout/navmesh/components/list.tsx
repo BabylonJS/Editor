@@ -133,38 +133,41 @@ export function NavMeshEditorListComponent<T extends INavMeshStaticMeshConfigura
 	}
 
 	return (
-		<div className="flex flex-1 flex-col w-full h-full" onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}>
-			<div className="flex flex-col h-full bg-black/50 text-white/75 rounded-lg overflow-y-auto">
-				{meshes
-					.filter((mesh) => mesh.name.toLowerCase().includes(props.search.toLowerCase()))
-					.map((mesh) => (
-						<ContextMenu key={mesh.id}>
-							<ContextMenuTrigger>
-								<div
-									onClick={(ev) => handleMeshClick(ev, mesh, false)}
-									onContextMenu={(ev) => handleMeshClick(ev, mesh, true)}
-									className={`
-                                        flex items-center gap-2 p-2
+		<div
+			onDragOver={handleDragOver}
+			onDragLeave={handleDragLeave}
+			onDrop={handleDrop}
+			className="flex flex-col flex-1 w-full bg-black/50 text-white/75 rounded-lg overflow-x-hidden overflow-y-auto"
+		>
+			{meshes
+				.filter((mesh) => mesh.name.toLowerCase().includes(props.search.toLowerCase()))
+				.map((mesh) => (
+					<ContextMenu key={mesh.id}>
+						<ContextMenuTrigger>
+							<div
+								onClick={(ev) => handleMeshClick(ev, mesh, false)}
+								onContextMenu={(ev) => handleMeshClick(ev, mesh, true)}
+								className={`
+                                        flex items-center gap-2 p-2 whitespace-nowrap
                                         ${selectedMeshes.includes(mesh) ? "bg-muted" : "hover:bg-muted/35"}
                                         transition-all duration-300 ease-in-out
                                     `}
-								>
-									<div className="cursor-pointer" onClick={() => handleSetMeshEnabled(mesh)}>
-										<IoMdCube className={`w-4 h-4 ${props.items.find((m) => m.id === mesh.id)?.enabled ? "" : "opacity-35"}`} />
-									</div>
-
-									{mesh.name}
+							>
+								<div className="cursor-pointer" onClick={() => handleSetMeshEnabled(mesh)}>
+									<IoMdCube className={`w-4 h-4 ${props.items.find((m) => m.id === mesh.id)?.enabled ? "" : "opacity-35"}`} />
 								</div>
-							</ContextMenuTrigger>
 
-							<ContextMenuContent>
-								<ContextMenuItem className="flex items-center gap-2 !text-red-400" onClick={() => handleRemoveMeshes()}>
-									<AiOutlineClose className="w-5 h-5" fill="rgb(248, 113, 113)" /> Remove
-								</ContextMenuItem>
-							</ContextMenuContent>
-						</ContextMenu>
-					))}
-			</div>
+								{mesh.name}
+							</div>
+						</ContextMenuTrigger>
+
+						<ContextMenuContent>
+							<ContextMenuItem className="flex items-center gap-2 !text-red-400" onClick={() => handleRemoveMeshes()}>
+								<AiOutlineClose className="w-5 h-5" fill="rgb(248, 113, 113)" /> Remove
+							</ContextMenuItem>
+						</ContextMenuContent>
+					</ContextMenu>
+				))}
 		</div>
 	);
 }

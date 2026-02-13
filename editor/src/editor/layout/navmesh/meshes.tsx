@@ -19,8 +19,8 @@ export function NavMeshEditorMeshesList(props: INavMeshEditorMeshesListProps) {
 	const [search, setSearch] = useState("");
 
 	return (
-		<div className="flex flex-col gap-2 w-full h-full p-2">
-			<div className="flex justify-between items-center">
+		<div className="flex flex-col gap-2 w-80 h-full p-2">
+			<div className="flex justify-between items-center h-10">
 				<div>Static meshes</div>
 
 				<NavMeshEditorSearchComponent search={search} setSearch={setSearch} />

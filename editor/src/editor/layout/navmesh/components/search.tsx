@@ -15,7 +15,7 @@ export function NavMeshEditorSearchComponent(props: INavMeshEditorSearchComponen
 				value={props.search}
 				onChange={(e) => props.setSearch(e.currentTarget.value)}
 				className={`
-                    max-w-52 w-full h-8 pl-7
+                    max-w-44 w-full h-8 pl-7
                     border-border/35 focus:border-border
                     transition-all duration-300 ease-in-out    
                 `}
