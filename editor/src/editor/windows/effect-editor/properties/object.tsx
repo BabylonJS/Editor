@@ -56,7 +56,7 @@ export function EffectEditorObjectProperties(props: IEffectEditorObjectPropertie
 				/>
 			);
 		}
-		console.log(object.rotation, "rotation");
+
 		return (
 			<EditorInspectorVectorField
 				label={<div className="w-14">Rotation</div>}

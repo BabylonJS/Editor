@@ -963,14 +963,6 @@ export class UnityImportModal extends Component<IUnityImportModalProps, IUnityIm
 			}
 		}
 
-		console.log(`Collected dependencies for ${prefabPath}:`, {
-			textures: dependencies.textures.size,
-			materials: dependencies.materials.size,
-			models: dependencies.models.size,
-			sounds: dependencies.sounds.size,
-			meta: dependencies.meta.size,
-		});
-
 		return dependencies;
 	}
 

@@ -55,17 +55,6 @@ export async function convertUnityPrefabToData(
 
 	const rootComponent = components.get(rootGameObjectId);
 	if (!rootComponent) {
-		console.warn(`[convertUnityPrefabToData] Root GameObject component ${rootGameObjectId} not found in components map`);
-		console.log("[convertUnityPrefabToData] Available component IDs (first 20):", Array.from(components.keys()).slice(0, 20));
-		console.log("[convertUnityPrefabToData] Component structure samples:");
-		for (const [id, comp] of Array.from(components.entries()).slice(0, 5)) {
-			console.log(`  Component ${id}:`, {
-				keys: Object.keys(comp),
-				hasTransform: !!comp.Transform,
-				hasGameObject: !!comp.GameObject,
-				__type: comp.__type,
-			});
-		}
 		return {
 			root: null,
 			materials: [],
@@ -75,27 +64,14 @@ export async function convertUnityPrefabToData(
 		};
 	}
 
-	console.log(`[convertUnityPrefabToData] Found root component ${rootGameObjectId}:`, {
-		keys: Object.keys(rootComponent),
-		hasGameObject: !!rootComponent.GameObject,
-		hasTransform: !!rootComponent.Transform,
-		__type: rootComponent.__type,
-	});
-
 	// Get GameObject from component (could be rootComponent.GameObject or rootComponent itself)
 	const gameObject = rootComponent.GameObject || rootComponent;
 	if (!gameObject || (typeof gameObject === "object" && !gameObject.m_Name && !gameObject.m_Component)) {
-		console.warn(`[convertUnityPrefabToData] Root GameObject ${rootGameObjectId} structure invalid:`, rootComponent);
-		console.log("[convertUnityPrefabToData] Available keys in rootComponent:", Object.keys(rootComponent));
-		console.log("[convertUnityPrefabToData] gameObject:", gameObject);
-
 		// Try to find GameObject component directly
 		for (const [_id, comp] of components) {
 			if (comp.GameObject && comp.GameObject.m_Name) {
-				console.log(`[convertUnityPrefabToData] Found GameObject component ${_id} with name:`, comp.GameObject.m_Name);
 				const foundGameObject = comp.GameObject;
 				if (foundGameObject.m_Component) {
-					console.log(`[convertUnityPrefabToData] Using GameObject from component ${_id}`);
 					const converted = convertGameObject(foundGameObject, components);
 					root = convertToIDataFormat(converted);
 					break;
@@ -114,7 +90,6 @@ export async function convertUnityPrefabToData(
 		}
 	} else {
 		// Convert root GameObject and its hierarchy recursively
-		console.log(`[convertUnityPrefabToData] Converting GameObject:`, gameObject.m_Name);
 		const converted = convertGameObject(gameObject, components);
 		root = convertToIDataFormat(converted);
 	}

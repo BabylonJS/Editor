@@ -26,8 +26,6 @@ export function getComponentByType(gameObject: any, componentType: string, compo
  * Based on original Unity converter logic
  */
 export function findRootGameObject(components: Map<string, any>): string | null {
-	console.log(`[findRootGameObject] Searching in ${components.size} components`);
-
 	// Look for Transform component with m_Father.fileID === "0"
 	let transformCount = 0;
 	let gameObjectCount = 0;
@@ -59,12 +57,8 @@ export function findRootGameObject(components: Map<string, any>): string | null 
 						// Components are stored with their YAML anchor ID as the key (e.g., "195608")
 						const gameObjectComponent = components.get(gameObjectFileIDStr);
 						if (gameObjectComponent && gameObjectComponent.GameObject) {
-							console.log(
-								`[findRootGameObject] Found root Transform with m_Father === "0", GameObject fileID: ${gameObjectFileIDStr}, component ID: ${gameObjectFileIDStr}`
-							);
 							return gameObjectFileIDStr; // This is the component ID/key
 						}
-						console.warn(`[findRootGameObject] GameObject ${gameObjectFileIDStr} not found in components map`);
 					}
 				}
 			} else if (comp.Transform.m_GameObject) {
@@ -85,25 +79,19 @@ export function findRootGameObject(components: Map<string, any>): string | null 
 					}
 				}
 				if (!hasExplicitRoot) {
-					console.log(`[findRootGameObject] Using Transform without m_Father as root, GameObject fileID: ${candidate}`);
 					return candidate;
 				}
 			}
 		}
 	}
 
-	console.log(`[findRootGameObject] No Transform with m_Father === "0" found. Transform count: ${transformCount}, GameObject count: ${gameObjectCount}`);
-
 	// Fallback: find first GameObject if no root Transform found
 	for (const [_id, comp] of components) {
 		if (comp.GameObject) {
-			console.log(`[findRootGameObject] Fallback: Using first GameObject found, component ID: ${_id}`);
 			return _id; // Use component ID as GameObject ID
 		}
 	}
 
-	console.warn(`[findRootGameObject] No GameObject found at all! Component keys:`, Array.from(components.keys()).slice(0, 10));
-	console.log(`[findRootGameObject] Sample component structure:`, Array.from(components.entries())[0]);
 	return null;
 }
 
