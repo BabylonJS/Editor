@@ -19,10 +19,23 @@ import { IEffectEditor } from ".";
 import { saveSingleFileDialog } from "../../../tools/dialog";
 import { readJSON, writeJSON } from "fs-extra";
 import { toast } from "sonner";
-import { Effect, type IEffectNode, EffectSolidParticleSystem, type IData } from "babylonjs-editor-tools";
+import {
+	Effect,
+	type IEffectNode,
+	EffectSolidParticleSystem,
+	EffectParticleSystem,
+	type IData,
+	type IGroup,
+	type IEmitter,
+	type ITransform,
+	type IParticleSystemConfig,
+} from "babylonjs-editor-tools";
 import { IQuarksJSON } from "./converters/quarks/types";
 import { QuarksConverter } from "./converters";
 import { basename, dirname } from "path";
+import { Vector3, Quaternion } from "@babylonjs/core/Maths/math.vector";
+import { Color4 } from "@babylonjs/core/Maths/math.color";
+import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 
 export interface IEffectEditorGraphProps {
 	filePath: string | null;
@@ -40,6 +53,23 @@ interface IEffectInfo {
 	name: string;
 	effect: Effect;
 	originalJsonData?: any; // Store original JSON data for export
+}
+
+/**
+ * Effect file format with metadata and multiple effects
+ */
+export interface IEffectFile {
+	version: string;
+	effects: IEffectData[];
+}
+
+/**
+ * Single effect data in the file
+ */
+interface IEffectData {
+	id: string;
+	name: string;
+	data: IData;
 }
 
 export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffectEditorGraphState> {
@@ -160,25 +190,45 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 				return;
 			}
 
-			// Load Quarks JSON and parse to IData
 			const dirnamePath = dirname(filePath);
-			const originalJsonData = await readJSON(filePath);
+			const fileData = await readJSON(filePath);
 
-			const effect = new Effect(originalJsonData, this.props.editor.preview!.scene, dirnamePath + "/");
+			// Check if it's new format (IEffectFile) or old format (IData)
+			if (fileData.version && fileData.effects) {
+				// New format: IEffectFile
+				const effectFile = fileData as IEffectFile;
+				this._effects.clear();
 
-			const effectId = `effect-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-			const effectName = basename(filePath, ".json") || "Effect";
+				for (const effectData of effectFile.effects) {
+					const effect = new Effect(effectData.data, this.props.editor.preview!.scene, dirnamePath + "/");
+					this._effects.set(effectData.id, {
+						id: effectData.id,
+						name: effectData.name,
+						effect: effect,
+						originalJsonData: effectData.data,
+					});
+					effect.start();
+				}
+			} else {
+				// Old format: IData (backward compatibility)
+				const data = fileData as IData;
+				const effect = new Effect(data, this.props.editor.preview!.scene, dirnamePath + "/");
 
-			this._effects.set(effectId, {
-				id: effectId,
-				name: effectName,
-				effect: effect,
-				originalJsonData,
-			});
+				const effectId = `effect-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+				const fileName = basename(filePath);
+				const effectName = fileName.replace(/\.(fx|json)$/, "") || "Effect";
+
+				this._effects.set(effectId, {
+					id: effectId,
+					name: effectName,
+					effect: effect,
+					originalJsonData: data,
+				});
+
+				effect.start();
+			}
 
 			this._rebuildTree();
-
-			effect.start();
 
 			setTimeout(() => {
 				if (this.props.editor?.preview) {
@@ -187,6 +237,7 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 			}, 100);
 		} catch (error) {
 			console.error("Failed to load Effect file:", error);
+			toast.error(`Failed to load Effect file: ${error instanceof Error ? error.message : String(error)}`);
 		}
 	}
 
@@ -569,6 +620,132 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 			console.error("Failed to export effect:", error);
 			toast.error(`Failed to export effect: ${error instanceof Error ? error.message : String(error)}`);
 		}
+	}
+
+	/**
+	 * Serialize IEffectNode tree back to IData format
+	 */
+	private _serializeNodeToData(node: IEffectNode): IGroup | IEmitter | null {
+		if (node.type === "group") {
+			const transformNode = node.data as TransformNode;
+			const transform: ITransform = {
+				position: transformNode.position.clone(),
+				rotation: transformNode.rotationQuaternion ? transformNode.rotationQuaternion.clone() : Quaternion.Identity(),
+				scale: transformNode.scaling.clone(),
+			};
+
+			const group: IGroup = {
+				uuid: node.uuid,
+				name: node.name,
+				transform,
+				children: node.children.map((child) => this._serializeNodeToData(child)).filter((child): child is IGroup | IEmitter => child !== null),
+			};
+
+			return group;
+		} else if (node.type === "particle") {
+			const system = node.data as EffectParticleSystem | EffectSolidParticleSystem;
+			const emitter = system.emitter as TransformNode;
+			const transform: ITransform = {
+				position: emitter.position.clone(),
+				rotation: emitter.rotationQuaternion ? emitter.rotationQuaternion.clone() : Quaternion.Identity(),
+				scale: emitter.scaling.clone(),
+			};
+
+			const config = this._serializeSystemToConfig(system);
+
+			const emitterData: IEmitter = {
+				uuid: node.uuid,
+				name: node.name,
+				transform,
+				config,
+				systemType: system instanceof EffectSolidParticleSystem ? "solid" : "base",
+			};
+
+			return emitterData;
+		}
+
+		return null;
+	}
+
+	/**
+	 * Serialize particle system to IParticleSystemConfig
+	 */
+	private _serializeSystemToConfig(system: EffectParticleSystem | EffectSolidParticleSystem): IParticleSystemConfig {
+		const config: IParticleSystemConfig = {
+			systemType: system instanceof EffectSolidParticleSystem ? "solid" : "base",
+			minSize: system.minSize,
+			maxSize: system.maxSize,
+			minLifeTime: system.minLifeTime,
+			maxLifeTime: system.maxLifeTime,
+			minEmitPower: system.minEmitPower,
+			maxEmitPower: system.maxEmitPower,
+			emitRate: system.emitRate,
+			targetStopDuration: system.targetStopDuration,
+			manualEmitCount: system.manualEmitCount,
+			preWarmCycles: system.preWarmCycles,
+			preWarmStepOffset: system.preWarmStepOffset,
+			color1: system.color1 ? new Color4(system.color1.r, system.color1.g, system.color1.b, system.color1.a) : undefined,
+			color2: system.color2 ? new Color4(system.color2.r, system.color2.g, system.color2.b, system.color2.a) : undefined,
+			colorDead: system.colorDead ? new Color4(system.colorDead.r, system.colorDead.g, system.colorDead.b, system.colorDead.a) : undefined,
+			minInitialRotation: system.minInitialRotation,
+			maxInitialRotation: system.maxInitialRotation,
+			isLocal: system.isLocal,
+			disposeOnStop: system.disposeOnStop,
+			gravity: system.gravity ? new Vector3(system.gravity.x, system.gravity.y, system.gravity.z) : undefined,
+			noiseStrength: system.noiseStrength ? new Vector3(system.noiseStrength.x, system.noiseStrength.y, system.noiseStrength.z) : undefined,
+			minAngularSpeed: system.minAngularSpeed,
+			maxAngularSpeed: system.maxAngularSpeed,
+			minScaleX: system.minScaleX,
+			maxScaleX: system.maxScaleX,
+			minScaleY: system.minScaleY,
+			maxScaleY: system.maxScaleY,
+		};
+
+		// Add behaviors
+		if (system.behaviorConfigs && system.behaviorConfigs.length > 0) {
+			config.behaviors = [...system.behaviorConfigs];
+		}
+
+		// Add gradients if available (would need to extract from gradient systems)
+		// For now, we'll rely on behaviors for gradient data
+
+		return config;
+	}
+
+	/**
+	 * Serialize all effects to file format
+	 */
+	public serializeToFileFormat(): IEffectFile {
+		const effects: IEffectData[] = [];
+
+		for (const [effectId, effectInfo] of this._effects.entries()) {
+			if (effectInfo.effect.root) {
+				const rootData = this._serializeNodeToData(effectInfo.effect.root);
+				if (rootData) {
+					const effectData: IData = {
+						root: rootData,
+						materials: [],
+						textures: [],
+						images: [],
+						geometries: [],
+					};
+
+					effects.push({
+						id: effectId,
+						name: effectInfo.name,
+						data: effectData,
+					});
+
+					// Update originalJsonData for export functionality
+					effectInfo.originalJsonData = effectData;
+				}
+			}
+		}
+
+		return {
+			version: "1.0.0",
+			effects,
+		};
 	}
 
 	private _handleCreateEffect(): void {

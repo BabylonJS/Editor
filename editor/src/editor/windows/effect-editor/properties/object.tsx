@@ -28,7 +28,6 @@ export function EffectEditorObjectProperties(props: IEffectEditorObjectPropertie
 	const object = isSystem(nodeData.data) ? nodeData.data.emitter : nodeData.data;
 
 	const GetRotationInspector = (object: TransformNode | AbstractMesh, onFinishChange?: () => void): ReactNode => {
-		console.log(object.rotationQuaternion, "rotationQuaternion");
 		if (object.rotationQuaternion) {
 			const valueRef = object.rotationQuaternion.toEulerAngles();
 

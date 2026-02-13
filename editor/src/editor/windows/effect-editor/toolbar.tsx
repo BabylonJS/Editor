@@ -61,8 +61,8 @@ export class EffectEditorToolbar extends Component<IEffectEditorToolbarProps, IE
 							<MenubarSub>
 								<MenubarSubTrigger>Import...</MenubarSubTrigger>
 								<MenubarSubContent>
-									<MenubarItem onClick={() => this._handleImportBabylonEffect()}>Babylon Effect JSON</MenubarItem>
-									<MenubarItem onClick={() => this._handleImportQuarks()}>Quarks JSON</MenubarItem>
+									<MenubarItem onClick={() => this._handleImportBabylonEffect()}>Babylon Effect</MenubarItem>
+									<MenubarItem onClick={() => this._handleImportQuarks()}>Quarks Effect</MenubarItem>
 									<MenubarSeparator />
 									<MenubarItem onClick={() => this._handleImportUnity()}>Unity Assets</MenubarItem>
 								</MenubarSubContent>
