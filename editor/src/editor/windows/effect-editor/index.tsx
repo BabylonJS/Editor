@@ -1,5 +1,5 @@
 import { ipcRenderer } from "electron";
-import { readJSON, writeJSON } from "fs-extra";
+import { writeJSON } from "fs-extra";
 
 import { toast } from "sonner";
 
@@ -86,6 +86,16 @@ export default class EffectEditorWindow extends Component<IEffectEditorWindowPro
 			projectConfiguration.compressedTexturesEnabled = this.props.projectConfiguration.compressedTexturesEnabled;
 			onProjectConfigurationChangedObservable.notifyObservers(projectConfiguration);
 		}
+
+		// Load file if filePath is provided (wait for graph to be ready)
+		if (this.props.filePath) {
+			// Wait a bit for graph component to mount
+			setTimeout(async () => {
+				if (this.editor.graph) {
+					await this.editor.graph.loadFromFile(this.props.filePath!);
+				}
+			}, 100);
+		}
 	}
 
 	public close(): void {
@@ -98,16 +108,17 @@ export default class EffectEditorWindow extends Component<IEffectEditorWindowPro
 	}
 
 	public async save(): Promise<void> {
-		if (!this.state.filePath) {
+		if (!this.state.filePath || !this.editor.graph) {
 			return;
 		}
 
 		try {
-			const data = await readJSON(this.state.filePath);
-			await writeJSON(this.state.filePath, data, { spaces: 4 });
+			const fileData = this.editor.graph.serializeToFileFormat();
+			await writeJSON(this.state.filePath, fileData, { spaces: "\t", encoding: "utf-8" });
 			toast.success("Effect saved");
-			ipcRenderer.send("editor:asset-updated", "Effect", data);
+			ipcRenderer.send("editor:asset-updated", "Effect", fileData);
 		} catch (error) {
+			console.error("Failed to save Effect:", error);
 			toast.error("Failed to save Effect");
 		}
 	}
