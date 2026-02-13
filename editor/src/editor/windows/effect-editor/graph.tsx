@@ -29,12 +29,12 @@ import {
 	type IEmitter,
 	type ITransform,
 	type IParticleSystemConfig,
+	deserializeData,
 } from "babylonjs-editor-tools";
 import { IQuarksJSON } from "./converters/quarks/types";
 import { QuarksConverter } from "./converters";
 import { basename, dirname } from "path";
-import { Vector3, Quaternion } from "@babylonjs/core/Maths/math.vector";
-import { Color4 } from "@babylonjs/core/Maths/math.color";
+import { Quaternion } from "@babylonjs/core/Maths/math.vector";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 
 export interface IEffectEditorGraphProps {
@@ -200,19 +200,22 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 				this._effects.clear();
 
 				for (const effectData of effectFile.effects) {
-					const effect = new Effect(effectData.data, this.props.editor.preview!.scene, dirnamePath + "/");
+					// Deserialize data to ensure proper Color4, Vector3, Quaternion instances
+					const deserializedData = deserializeData(effectData.data);
+					const effect = new Effect(deserializedData, this.props.editor.preview!.scene, dirnamePath + "/");
 					this._effects.set(effectData.id, {
 						id: effectData.id,
 						name: effectData.name,
 						effect: effect,
-						data: effectData.data,
+						data: deserializedData,
 					});
 					effect.start();
 				}
 			} else {
 				// Old format: IData (backward compatibility)
-				const data = fileData as IData;
-				const effect = new Effect(data, this.props.editor.preview!.scene, dirnamePath + "/");
+				// Deserialize data to ensure proper Color4, Vector3, Quaternion instances
+				const deserializedData = deserializeData(fileData as IData);
+				const effect = new Effect(deserializedData, this.props.editor.preview!.scene, dirnamePath + "/");
 
 				const effectId = `effect-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 				const fileName = basename(filePath);
@@ -222,7 +225,7 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 					id: effectId,
 					name: effectName,
 					effect: effect,
-					data: data,
+					data: deserializedData,
 				});
 
 				effect.start();
@@ -686,15 +689,15 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 			manualEmitCount: system.manualEmitCount,
 			preWarmCycles: system.preWarmCycles,
 			preWarmStepOffset: system.preWarmStepOffset,
-			color1: system.color1 ? new Color4(system.color1.r, system.color1.g, system.color1.b, system.color1.a) : undefined,
-			color2: system.color2 ? new Color4(system.color2.r, system.color2.g, system.color2.b, system.color2.a) : undefined,
-			colorDead: system.colorDead ? new Color4(system.colorDead.r, system.colorDead.g, system.colorDead.b, system.colorDead.a) : undefined,
+			color1: system.color1,
+			color2: system.color2,
+			colorDead: system.colorDead,
 			minInitialRotation: system.minInitialRotation,
 			maxInitialRotation: system.maxInitialRotation,
 			isLocal: system.isLocal,
 			disposeOnStop: system.disposeOnStop,
-			gravity: system.gravity ? new Vector3(system.gravity.x, system.gravity.y, system.gravity.z) : undefined,
-			noiseStrength: system.noiseStrength ? new Vector3(system.noiseStrength.x, system.noiseStrength.y, system.noiseStrength.z) : undefined,
+			gravity: system.gravity,
+			noiseStrength: system.noiseStrength,
 			minAngularSpeed: system.minAngularSpeed,
 			maxAngularSpeed: system.maxAngularSpeed,
 			minScaleX: system.minScaleX,
