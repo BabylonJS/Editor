@@ -52,7 +52,7 @@ interface IEffectInfo {
 	id: string;
 	name: string;
 	effect: Effect;
-	originalJsonData?: any; // Store original JSON data for export
+	data: IData; // Store full IData including resources for serialization
 }
 
 /**
@@ -159,12 +159,12 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 
 			const effectId = `effect-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 			const effectName = basename(filePath, ".json") || "Effect";
-			console.log(effect);
+
 			this._effects.set(effectId, {
 				id: effectId,
 				name: effectName,
 				effect: effect,
-				originalJsonData,
+				data: parseResult,
 			});
 
 			this._rebuildTree();
@@ -205,7 +205,7 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 						id: effectData.id,
 						name: effectData.name,
 						effect: effect,
-						originalJsonData: effectData.data,
+						data: effectData.data,
 					});
 					effect.start();
 				}
@@ -222,7 +222,7 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 					id: effectId,
 					name: effectName,
 					effect: effect,
-					originalJsonData: data,
+					data: data,
 				});
 
 				effect.start();
@@ -258,12 +258,12 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 			// Generate unique ID for effect
 			const effectId = `unity-effect-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
-			// Store effect with data for export
+			// Store effect with data
 			this._effects.set(effectId, {
 				id: effectId,
 				name: effectName,
 				effect: effect,
-				originalJsonData: data,
+				data: data,
 			});
 
 			// Rebuild tree with all effects
@@ -594,8 +594,8 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 		}
 
 		const effectInfo = this._effects.get(nodeData.uuid);
-		if (!effectInfo || !effectInfo.originalJsonData) {
-			toast.error("Cannot export effect: original data not available");
+		if (!effectInfo || !effectInfo.data) {
+			toast.error("Cannot export effect: data not available");
 			return;
 		}
 
@@ -610,7 +610,9 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 		}
 
 		try {
-			await writeJSON(filePath, effectInfo.originalJsonData, {
+			// Serialize current state of the effect
+			const serializedData = this._serializeEffectToData(effectInfo);
+			await writeJSON(filePath, serializedData, {
 				spaces: "\t",
 				encoding: "utf-8",
 			});
@@ -713,33 +715,46 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 	}
 
 	/**
+	 * Serialize a single effect to IData format
+	 */
+	private _serializeEffectToData(effectInfo: IEffectInfo): IData {
+		if (!effectInfo.effect.root) {
+			return {
+				root: null,
+				materials: effectInfo.data.materials || [],
+				textures: effectInfo.data.textures || [],
+				images: effectInfo.data.images || [],
+				geometries: effectInfo.data.geometries || [],
+			};
+		}
+
+		const rootData = this._serializeNodeToData(effectInfo.effect.root);
+		return {
+			root: rootData,
+			materials: effectInfo.data.materials || [],
+			textures: effectInfo.data.textures || [],
+			images: effectInfo.data.images || [],
+			geometries: effectInfo.data.geometries || [],
+		};
+	}
+
+	/**
 	 * Serialize all effects to file format
 	 */
 	public serializeToFileFormat(): IEffectFile {
 		const effects: IEffectData[] = [];
 
 		for (const [effectId, effectInfo] of this._effects.entries()) {
-			if (effectInfo.effect.root) {
-				const rootData = this._serializeNodeToData(effectInfo.effect.root);
-				if (rootData) {
-					const effectData: IData = {
-						root: rootData,
-						materials: [],
-						textures: [],
-						images: [],
-						geometries: [],
-					};
+			const effectData = this._serializeEffectToData(effectInfo);
 
-					effects.push({
-						id: effectId,
-						name: effectInfo.name,
-						data: effectData,
-					});
+			effects.push({
+				id: effectId,
+				name: effectInfo.name,
+				data: effectData,
+			});
 
-					// Update originalJsonData for export functionality
-					effectInfo.originalJsonData = effectData;
-				}
-			}
+			// Update stored data with serialized version
+			effectInfo.data = effectData;
 		}
 
 		return {
@@ -773,11 +788,12 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 			counter++;
 		}
 
-		// Store effect
+		// Store effect with the same empty data
 		this._effects.set(effectId, {
 			id: effectId,
 			name: effectName,
 			effect: effect,
+			data: emptyData,
 		});
 
 		// Rebuild tree with all effects
