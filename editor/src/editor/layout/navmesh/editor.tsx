@@ -19,10 +19,11 @@ import { Editor } from "../../main";
 
 import { INavMeshConfiguration } from "./types";
 import { NavMeshEditorToolbar } from "./toolbar";
+import { NavMeshEditorPreview } from "./preview";
 import { NavMeshEditorMeshesList } from "./meshes";
 import { NavMeshEditorObstacles } from "./obstacles";
-import { getObstacleMeshes, getStaticMeshes } from "./tools";
 import { NavMeshEditorInspector } from "./inspector";
+import { getObstacleMeshes, getStaticMeshes } from "./tools";
 
 export interface INavmeshEditorProps {
 	editor: Editor;
@@ -60,10 +61,12 @@ export class NavMeshEditor extends Component<INavmeshEditorProps, INavmeshEditor
 		}
 
 		return (
-			<div className="flex flex-col w-full h-full">
+			<div className="flex flex-col w-full h-full overflow-hidden">
 				<NavMeshEditorToolbar navMeshEditor={this} />
 
-				<div className="flex flex-1">
+				<div className="flex flex-1 h-full pb-10">
+					<NavMeshEditorPreview mesh={this._debugNavMesh} plugin={this.plugin} />
+
 					<NavMeshEditorMeshesList editor={this.props.editor} navMeshEditor={this} />
 					<NavMeshEditorObstacles editor={this.props.editor} navMeshEditor={this} />
 					<NavMeshEditorInspector editor={this.props.editor} navMeshEditor={this} />
@@ -252,6 +255,8 @@ export class NavMeshEditor extends Component<INavmeshEditorProps, INavmeshEditor
 		debugMaterial.alpha = 0.35;
 		debugMaterial.zOffset = -10;
 		this._debugNavMesh.material = debugMaterial;
+
+		this.forceUpdate();
 	}
 
 	private _disposeDebugNavMesh(): void {
