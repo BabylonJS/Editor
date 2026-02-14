@@ -26,6 +26,7 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 	const lights: any[] = [];
 	const meshes: any[] = [];
 	const cameras: any[] = [];
+	const lodMeshes: any[] = [];
 	const materials: any[] = [];
 	const skeletons: any[] = [];
 	const transformNodes: any[] = [];
@@ -78,6 +79,38 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 				}
 			});
 
+			// LODs
+			if (data.lods) {
+				mesh.lodMeshIds = [];
+				mesh.lodDistances = [];
+
+				const lodsResult = await Promise.all(
+					data.lods?.map(async (lodFile) => {
+						const lodData = await fs.readJSON(join(options.sceneFile, "lods", lodFile));
+						const lodMesh = lodData.meshes[0];
+
+						if (lodMesh.delayLoadingFile) {
+							lodMesh.delayLoadingFile = join(options.sceneName, basename(lodMesh.delayLoadingFile));
+						}
+
+						if (data.basePoseMatrix) {
+							lodMesh.basePoseMatrix = data.basePoseMatrix;
+						}
+
+						return {
+							lodMesh,
+							distanceOrScreenCoverage: lodData.distanceOrScreenCoverage,
+						};
+					})
+				);
+
+				lodsResult.forEach((lodData) => {
+					lodMeshes.push(lodData.lodMesh);
+					mesh.lodMeshIds.push(lodData.lodMesh.id);
+					mesh.lodDistances.push(lodData.distanceOrScreenCoverage);
+				});
+			}
+
 			return {
 				mesh,
 				effectiveMaterial,
@@ -94,6 +127,8 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 			}
 		}
 	});
+
+	meshes.push(...lodMeshes);
 
 	// Morph targets
 	const morphTargetResult = await Promise.all(
