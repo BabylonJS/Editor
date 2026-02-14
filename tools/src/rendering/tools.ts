@@ -2,6 +2,7 @@ import { Camera } from "@babylonjs/core/Cameras/camera";
 
 import { disposeVLSPostProcess, parseVLSPostProcess, serializeVLSPostProcess, vlsPostProcessCameraConfigurations } from "./vls";
 import { disposeSSRRenderingPipeline, parseSSRRenderingPipeline, serializeSSRRenderingPipeline, ssrRenderingPipelineCameraConfigurations } from "./ssr";
+import { disposeTAARenderingPipeline, parseTAARenderingPipeline, serializeTAARenderingPipeline, taaRenderingPipelineCameraConfigurations } from "./taa";
 import { disposeSSAO2RenderingPipeline, parseSSAO2RenderingPipeline, serializeSSAO2RenderingPipeline, ssaoRenderingPipelineCameraConfigurations } from "./ssao";
 import { disposeMotionBlurPostProcess, motionBlurPostProcessCameraConfigurations, parseMotionBlurPostProcess, serializeMotionBlurPostProcess } from "./motion-blur";
 import { defaultPipelineCameraConfigurations, disposeDefaultRenderingPipeline, parseDefaultRenderingPipeline, serializeDefaultRenderingPipeline } from "./default-pipeline";
@@ -17,6 +18,7 @@ export function saveRenderingConfigurationForCamera(camera: Camera) {
 	ssrRenderingPipelineCameraConfigurations.set(camera, serializeSSRRenderingPipeline());
 	motionBlurPostProcessCameraConfigurations.set(camera, serializeMotionBlurPostProcess());
 	defaultPipelineCameraConfigurations.set(camera, serializeDefaultRenderingPipeline());
+	taaRenderingPipelineCameraConfigurations.set(camera, serializeTAARenderingPipeline());
 }
 
 /**
@@ -32,6 +34,7 @@ export function applyRenderingConfigurationForCamera(camera: Camera, rootUrl: st
 	disposeSSRRenderingPipeline();
 	disposeMotionBlurPostProcess();
 	disposeDefaultRenderingPipeline();
+	disposeTAARenderingPipeline();
 
 	const ssao2RenderingPipeline = ssaoRenderingPipelineCameraConfigurations.get(camera);
 	if (ssao2RenderingPipeline) {
@@ -56,5 +59,10 @@ export function applyRenderingConfigurationForCamera(camera: Camera, rootUrl: st
 	const defaultRenderingPipeline = defaultPipelineCameraConfigurations.get(camera);
 	if (defaultRenderingPipeline) {
 		parseDefaultRenderingPipeline(camera.getScene(), camera, defaultRenderingPipeline, rootUrl);
+	}
+
+	const taaRenderingPipeline = taaRenderingPipelineCameraConfigurations.get(camera);
+	if (taaRenderingPipeline) {
+		parseTAARenderingPipeline(camera.getScene(), camera, taaRenderingPipeline);
 	}
 }

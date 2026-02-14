@@ -1,10 +1,11 @@
 import { Camera } from "babylonjs";
 
 import { serializeVLSPostProcess, vlsPostProcessCameraConfigurations } from "./vls";
+import { serializeTAARenderingPipeline, taaPipelineCameraConfigurations } from "./taa";
 import { serializeSSRRenderingPipeline, ssrRenderingPipelineCameraConfigurations } from "./ssr";
 import { serializeSSAO2RenderingPipeline, ssaoRenderingPipelineCameraConfigurations } from "./ssao";
-import { defaultPipelineCameraConfigurations, serializeDefaultRenderingPipeline } from "./default-pipeline";
 import { motionBlurPostProcessCameraConfigurations, serializeMotionBlurPostProcess } from "./motion-blur";
+import { defaultPipelineCameraConfigurations, serializeDefaultRenderingPipeline } from "./default-pipeline";
 import { iblShadowsRenderingPipelineCameraConfigurations, serializeIblShadowsRenderingPipeline } from "./ibl-shadows";
 
 /**
@@ -18,5 +19,6 @@ export function saveRenderingConfigurationForCamera(camera: Camera) {
 	ssrRenderingPipelineCameraConfigurations.set(camera, serializeSSRRenderingPipeline());
 	motionBlurPostProcessCameraConfigurations.set(camera, serializeMotionBlurPostProcess());
 	defaultPipelineCameraConfigurations.set(camera, serializeDefaultRenderingPipeline());
+	taaPipelineCameraConfigurations.set(camera, serializeTAARenderingPipeline());
 	iblShadowsRenderingPipelineCameraConfigurations.set(camera, serializeIblShadowsRenderingPipeline());
 }
