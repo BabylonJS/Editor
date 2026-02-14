@@ -26,7 +26,6 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 	const lights: any[] = [];
 	const meshes: any[] = [];
 	const cameras: any[] = [];
-	const lodMeshes: any[] = [];
 	const materials: any[] = [];
 	const skeletons: any[] = [];
 	const transformNodes: any[] = [];
@@ -80,6 +79,7 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 			});
 
 			// LODs
+			let lodMeshes: any[] = [];
 			if (data.lods) {
 				mesh.lodMeshIds = [];
 				mesh.lodDistances = [];
@@ -106,6 +106,7 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 
 				lodsResult.forEach((lodData) => {
 					lodMeshes.push(lodData.lodMesh);
+
 					mesh.lodMeshIds.push(lodData.lodMesh.id);
 					mesh.lodDistances.push(lodData.distanceOrScreenCoverage);
 				});
@@ -113,6 +114,7 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 
 			return {
 				mesh,
+				lodMeshes,
 				effectiveMaterial,
 			};
 		})
@@ -122,13 +124,15 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 		if (result) {
 			meshes.push(result.mesh);
 
+			result.lodMeshes.forEach((lodMesh) => {
+				meshes.push(lodMesh);
+			});
+
 			if (result.effectiveMaterial) {
 				materials.push(result.effectiveMaterial);
 			}
 		}
 	});
-
-	meshes.push(...lodMeshes);
 
 	// Morph targets
 	const morphTargetResult = await Promise.all(

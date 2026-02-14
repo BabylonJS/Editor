@@ -11,6 +11,7 @@ import { SpriteMapNode } from "../../editor/nodes/sprite-map";
 import { SpriteManagerNode } from "../../editor/nodes/sprite-manager";
 
 import { parseVLSPostProcess, vlsPostProcessCameraConfigurations } from "../../editor/rendering/vls";
+import { parseTAARenderingPipeline, taaPipelineCameraConfigurations } from "../../editor/rendering/taa";
 import { parseSSRRenderingPipeline, ssrRenderingPipelineCameraConfigurations } from "../../editor/rendering/ssr";
 import { parseSSAO2RenderingPipeline, ssaoRenderingPipelineCameraConfigurations } from "../../editor/rendering/ssao";
 import { parseMotionBlurPostProcess, motionBlurPostProcessCameraConfigurations } from "../../editor/rendering/motion-blur";
@@ -417,6 +418,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 			ssrRenderingPipelineCameraConfigurations.set(camera, configuration.ssrRenderingPipeline);
 			motionBlurPostProcessCameraConfigurations.set(camera, configuration.motionBlurPostProcess);
 			defaultPipelineCameraConfigurations.set(camera, configuration.defaultRenderingPipeline);
+			taaPipelineCameraConfigurations.set(camera, configuration.taaRenderingPipeline);
 			iblShadowsRenderingPipelineCameraConfigurations.set(camera, configuration.iblShadowsRenderPipeline);
 
 			if (isEditorCamera(camera)) {
@@ -442,6 +444,10 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 
 				if (configuration.defaultRenderingPipeline) {
 					parseDefaultRenderingPipeline(editor, configuration.defaultRenderingPipeline);
+				}
+
+				if (configuration.taaRenderingPipeline) {
+					parseTAARenderingPipeline(editor, configuration.taaRenderingPipeline);
 				}
 			}
 		});

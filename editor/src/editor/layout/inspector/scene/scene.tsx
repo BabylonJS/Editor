@@ -16,6 +16,7 @@ import { updateIblShadowsRenderPipeline } from "../../../../tools/light/ibl";
 
 import { createVLSPostProcess, disposeVLSPostProcess, getVLSPostProcess, parseVLSPostProcess, serializeVLSPostProcess } from "../../../rendering/vls";
 import { createSSRRenderingPipeline, disposeSSRRenderingPipeline, getSSRRenderingPipeline, parseSSRRenderingPipeline, serializeSSRRenderingPipeline } from "../../../rendering/ssr";
+import { createTAARenderingPipeline, disposeTAARenderingPipeline, getTAARenderingPipeline, parseTAARenderingPipeline, serializeTAARenderingPipeline } from "../../../rendering/taa";
 import {
 	createSSAO2RenderingPipeline,
 	disposeSSAO2RenderingPipeline,
@@ -146,6 +147,7 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 				{this._getPhysicsComponent()}
 
 				{this._getDefaultRenderingPipelineComponent()}
+				{this._getTAARenderingPipelineComponent()}
 				{this._getSSAO2RenderingPipelineComponent()}
 				{this._getMotionBlurPostProcessComponent()}
 				{this._getSSRPipelineComponent()}
@@ -603,6 +605,60 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 					</>
 				)}
 			</>
+		);
+	}
+
+	private _getTAARenderingPipelineComponent(): ReactNode {
+		const taaRenderingPipeline = getTAARenderingPipeline();
+
+		const config = {
+			enabled: taaRenderingPipeline ? true : false,
+		};
+
+		return (
+			<EditorInspectorSectionField title="Temporal Anti-aliasing (TAA)">
+				<EditorInspectorSwitchField
+					object={config}
+					property="enabled"
+					label="Enabled"
+					noUndoRedo
+					onChange={() => {
+						const pipeline = taaRenderingPipeline;
+						const serializedPipeline = serializeTAARenderingPipeline();
+
+						registerUndoRedo({
+							executeRedo: true,
+							undo: () => {
+								if (!pipeline) {
+									disposeTAARenderingPipeline();
+								} else if (serializedPipeline) {
+									parseTAARenderingPipeline(this.props.editor, serializedPipeline);
+								}
+							},
+							redo: () => {
+								if (pipeline) {
+									disposeTAARenderingPipeline();
+								} else if (serializedPipeline) {
+									parseTAARenderingPipeline(this.props.editor, serializedPipeline);
+								} else {
+									createTAARenderingPipeline(this.props.editor);
+								}
+							},
+						});
+
+						this.forceUpdate();
+					}}
+				/>
+
+				{taaRenderingPipeline && (
+					<>
+						<EditorInspectorSwitchField object={taaRenderingPipeline} property="disableOnCameraMove" label="Disable On Camera Move" />
+						<EditorInspectorSwitchField object={taaRenderingPipeline} property="reprojectHistory" label="Reproject History" />
+						<EditorInspectorSwitchField object={taaRenderingPipeline} property="clampHistory" label="Clamp History" />
+						<EditorInspectorNumberField object={taaRenderingPipeline} property="factor" label="Factor" min={0.005} max={0.3} step={0.001} />
+					</>
+				)}
+			</EditorInspectorSectionField>
 		);
 	}
 

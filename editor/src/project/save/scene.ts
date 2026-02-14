@@ -20,6 +20,7 @@ import { isAnimationGroupFromSceneLink, isFromSceneLink } from "../../tools/scen
 import { isGPUParticleSystem, isNodeParticleSystemSetMesh, isParticleSystem } from "../../tools/guards/particles";
 import { isAnyTransformNode, isCollisionMesh, isEditorCamera, isMesh, isTransformNode } from "../../tools/guards/nodes";
 
+import { taaPipelineCameraConfigurations } from "../../editor/rendering/taa";
 import { vlsPostProcessCameraConfigurations } from "../../editor/rendering/vls";
 import { saveRenderingConfigurationForCamera } from "../../editor/rendering/tools";
 import { ssrRenderingPipelineCameraConfigurations } from "../../editor/rendering/ssr";
@@ -763,6 +764,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 					ssrRenderingPipeline: ssrRenderingPipelineCameraConfigurations.get(camera),
 					motionBlurPostProcess: motionBlurPostProcessCameraConfigurations.get(camera),
 					defaultRenderingPipeline: defaultPipelineCameraConfigurations.get(camera),
+					taaRenderingPipeline: taaPipelineCameraConfigurations.get(camera),
 					iblShadowsRenderPipeline: iblShadowsRenderingPipelineCameraConfigurations.get(camera),
 				})),
 				metadata: scene.metadata,

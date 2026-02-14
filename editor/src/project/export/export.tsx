@@ -15,10 +15,11 @@ import { extractNodeParticleSystemSetTextures, extractParticleSystemTextures } f
 
 import { saveRenderingConfigurationForCamera } from "../../editor/rendering/tools";
 import { serializeVLSPostProcess, vlsPostProcessCameraConfigurations } from "../../editor/rendering/vls";
+import { serializeTAARenderingPipeline, taaPipelineCameraConfigurations } from "../../editor/rendering/taa";
 import { serializeSSRRenderingPipeline, ssrRenderingPipelineCameraConfigurations } from "../../editor/rendering/ssr";
 import { serializeSSAO2RenderingPipeline, ssaoRenderingPipelineCameraConfigurations } from "../../editor/rendering/ssao";
-import { motionBlurPostProcessCameraConfigurations, serializeMotionBlurPostProcess } from "../../editor/rendering/motion-blur";
-import { defaultPipelineCameraConfigurations, serializeDefaultRenderingPipeline } from "../../editor/rendering/default-pipeline";
+import { serializeMotionBlurPostProcess, motionBlurPostProcessCameraConfigurations } from "../../editor/rendering/motion-blur";
+import { serializeDefaultRenderingPipeline, defaultPipelineCameraConfigurations } from "../../editor/rendering/default-pipeline";
 
 import { Editor } from "../../editor/main";
 
@@ -128,6 +129,7 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 
 	data.metadata ??= {};
 	data.metadata.rendering = {
+		taaRenderingPipeline: serializeTAARenderingPipeline(),
 		ssrRenderingPipeline: serializeSSRRenderingPipeline(),
 		motionBlurPostProcess: serializeMotionBlurPostProcess(),
 		ssao2RenderingPipeline: serializeSSAO2RenderingPipeline(),
@@ -144,6 +146,7 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 			ssrRenderingPipeline: ssrRenderingPipelineCameraConfigurations.get(camera),
 			motionBlurPostProcess: motionBlurPostProcessCameraConfigurations.get(camera),
 			defaultRenderingPipeline: defaultPipelineCameraConfigurations.get(camera),
+			taaRenderingPipeline: taaPipelineCameraConfigurations.get(camera),
 		}));
 
 	delete data.postProcesses;

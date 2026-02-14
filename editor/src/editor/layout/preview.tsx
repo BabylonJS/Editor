@@ -70,6 +70,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../
 
 import { saveRenderingConfigurationForCamera } from "../rendering/tools";
 import { disposeVLSPostProcess, parseVLSPostProcess, vlsPostProcessCameraConfigurations } from "../rendering/vls";
+import { disposeTAARenderingPipeline, parseTAARenderingPipeline, taaPipelineCameraConfigurations } from "../rendering/taa";
 import { disposeSSRRenderingPipeline, parseSSRRenderingPipeline, ssrRenderingPipelineCameraConfigurations } from "../rendering/ssr";
 import { disposeSSAO2RenderingPipeline, parseSSAO2RenderingPipeline, ssaoRenderingPipelineCameraConfigurations } from "../rendering/ssao";
 import { disposeMotionBlurPostProcess, motionBlurPostProcessCameraConfigurations, parseMotionBlurPostProcess } from "../rendering/motion-blur";
@@ -303,6 +304,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		disposeMotionBlurPostProcess();
 		disposeSSAO2RenderingPipeline();
 		disposeDefaultRenderingPipeline();
+		disposeTAARenderingPipeline();
 
 		this.scene?.dispose();
 
@@ -1088,6 +1090,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		disposeSSRRenderingPipeline();
 		disposeMotionBlurPostProcess();
 		disposeDefaultRenderingPipeline();
+		disposeTAARenderingPipeline();
 
 		const ssao2Pipeline = ssaoRenderingPipelineCameraConfigurations.get(camera);
 		if (ssao2Pipeline) {
@@ -1112,6 +1115,11 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		const defaultRenderingPipeline = defaultPipelineCameraConfigurations.get(camera);
 		if (defaultRenderingPipeline) {
 			parseDefaultRenderingPipeline(this.props.editor, defaultRenderingPipeline);
+		}
+
+		const taaRenderingPipeline = taaPipelineCameraConfigurations.get(camera);
+		if (taaRenderingPipeline) {
+			parseTAARenderingPipeline(this.props.editor, taaRenderingPipeline);
 		}
 
 		this.scene.lights.forEach((light) => {
