@@ -182,9 +182,12 @@ export class MaterialFactory implements IMaterialFactory {
 	}
 
 	/**
-	 * Create a material with texture from material ID
+	 * Create a material from material ID, or default PBR material when materialId is undefined (like default geometry).
 	 */
-	public createMaterial(materialId: string, name: string): PBRMaterial {
+	public createMaterial(materialId: string | undefined, name: string): PBRMaterial {
+		if (!materialId) {
+			return new PBRMaterial(name + "_material", this._scene);
+		}
 		const textureData = this._resolveTextureData(materialId);
 		if (!textureData) {
 			return new PBRMaterial(name + "_material", this._scene);

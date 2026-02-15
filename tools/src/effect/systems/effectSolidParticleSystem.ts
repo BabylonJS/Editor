@@ -4,6 +4,7 @@ import { SolidParticle } from "@babylonjs/core/Particles/solidParticle";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { SolidParticleSystem } from "@babylonjs/core/Particles/solidParticleSystem";
+import type { Material } from "@babylonjs/core/Materials/material";
 import type {
 	Behavior,
 	IForceOverLifeBehavior,
@@ -63,6 +64,7 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 	public particleEmitterType: ISolidParticleEmitterType | null;
 	private _emitEnded: boolean;
 	private _emitter: AbstractMesh | Vector3 | null;
+	private _meshMaterial: Material | null = null;
 	// Gradient systems for "OverLife" behaviors (similar to ParticleSystem native gradients)
 	private _colorGradients: ColorGradientSystem;
 	private _sizeGradients: NumberGradientSystem;
@@ -207,6 +209,21 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 	 */
 	public set particleMesh(mesh: Mesh) {
 		this._addParticleMeshShape(mesh);
+	}
+
+	/**
+	 * Set material for the SPS mesh (applied when mesh is built in start() or after replaceParticleMesh).
+	 * Caller's responsibility to dispose when no longer needed.
+	 */
+	public set meshMaterial(material: Material | null) {
+		this._meshMaterial = material;
+		if (this.mesh) {
+			this.mesh.material = material;
+		}
+	}
+
+	public get meshMaterial(): Material | null {
+		return this._meshMaterial;
 	}
 
 	/**
@@ -918,6 +935,11 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 		// Set parent (transform hierarchy)
 		if (this._emitter) {
 			this.mesh.parent = this._emitter as AbstractMesh;
+		}
+
+		// Apply mesh material (set via meshMaterial before start())
+		if (this._meshMaterial) {
+			this.mesh.material = this._meshMaterial;
 		}
 	}
 

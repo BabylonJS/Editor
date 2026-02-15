@@ -35,11 +35,11 @@ export class GeometryFactory implements IGeometryFactory {
 	}
 
 	/**
-	 * Create or load particle mesh for SPS
-	 * Tries to load geometry if specified, otherwise creates default plane
+	 * Create or load particle mesh for SPS.
+	 * Uses instancingGeometry ID if provided, otherwise creates default plane.
 	 */
-	public createParticleMesh(config: { instancingGeometry?: string }, name: string, scene: Scene): Mesh {
-		let particleMesh = this._loadParticleGeometry(config, name, scene);
+	public createParticleMesh(name: string, scene: Scene, instancingGeometry?: string): Mesh {
+		let particleMesh = this._loadParticleGeometry(name, scene, instancingGeometry);
 
 		if (!particleMesh) {
 			particleMesh = this._createDefaultPlaneMesh(name, scene);
@@ -53,16 +53,16 @@ export class GeometryFactory implements IGeometryFactory {
 	}
 
 	/**
-	 * Loads particle geometry if specified
+	 * Loads particle geometry if instancingGeometry ID is specified
 	 */
-	private _loadParticleGeometry(config: { instancingGeometry?: string }, name: string, scene: Scene): Nullable<Mesh> {
-		if (!config.instancingGeometry) {
+	private _loadParticleGeometry(name: string, scene: Scene, instancingGeometry?: string): Nullable<Mesh> {
+		if (!instancingGeometry) {
 			return null;
 		}
 
-		const mesh = this.createMesh(config.instancingGeometry, name + "_shape", scene);
+		const mesh = this.createMesh(instancingGeometry, name + "_shape", scene);
 		if (!mesh) {
-			Tools.Warn(`Failed to load geometry ${config.instancingGeometry}, will create default plane`);
+			Tools.Warn(`Failed to load geometry ${instancingGeometry}, will create default plane`);
 		}
 
 		return mesh;
