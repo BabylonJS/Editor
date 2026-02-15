@@ -1,4 +1,4 @@
-import { clipboard, webUtils } from "electron";
+import { clipboard, webUtils, ipcRenderer } from "electron";
 import { dirname, join, extname, basename } from "path/posix";
 import { copyFile, copy, mkdir, move, pathExists, readdir, stat, writeFile, writeJSON } from "fs-extra";
 
@@ -818,6 +818,8 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 
 				<ContextMenuSeparator />
 				<ContextMenuItem onClick={() => this._handleAddFullScreenGUI()}>Fullscreen GUI</ContextMenuItem>
+				<ContextMenuSeparator />
+				<ContextMenuItem onClick={() => this._handleAddFX()}>FX</ContextMenuItem>
 			</>
 		);
 	}
@@ -1259,6 +1261,25 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 		return this._refreshItems(this.state.browsedPath);
 	}
 
+	private async _handleAddFX(): Promise<void> {
+		if (!this.state.browsedPath) {
+			return;
+		}
+
+		const name = await findAvailableFilename(this.state.browsedPath, "New Effect", ".fx");
+		const defaultEffectFile = {
+			version: "1.0.0",
+			effects: [],
+		};
+
+		await writeJSON(join(this.state.browsedPath, name), defaultEffectFile, {
+			spaces: "\t",
+			encoding: "utf-8",
+		});
+
+		return this._refreshItems(this.state.browsedPath);
+	}
+
 	private async _handleAddFullScreenGUI(): Promise<void> {
 		if (!this.state.browsedPath) {
 			return;
@@ -1421,9 +1442,14 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 			case ".tsx":
 			case ".js":
 			case ".jsx":
-			case ".fx":
 			case ".json":
 				return execNodePty(`code "${item.props.absolutePath}"`);
+
+			case ".fx":
+				return ipcRenderer.send("window:open", "build/src/editor/windows/effect-editor", {
+					filePath: item.props.absolutePath,
+					projectConfiguration: { ...projectConfiguration },
+				});
 		}
 	}
 
