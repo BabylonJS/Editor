@@ -416,25 +416,14 @@ export class NodeFactory {
 	 * Create a SolidParticleSystem instance
 	 */
 	private _createEffectSolidParticleSystem(emitter: IEmitter): EffectSolidParticleSystem {
-		const { name, config } = emitter;
+		const { name, config, materialId } = emitter;
 
-		const particleMesh = this._geometryFactory.createParticleMesh(config, name, this._scene);
+		const particleMesh = this._geometryFactory.createParticleMesh(name, this._scene, config.instancingGeometry);
 
-		if (emitter.materialId) {
-			const material = this._materialFactory.createMaterial(emitter.materialId, name);
-			if (material) {
-				particleMesh.material = material;
-			}
-		}
+		const sps = new EffectSolidParticleSystem(name, this._scene);
 
-		const sps = new EffectSolidParticleSystem(name, this._scene, {
-			updatable: true,
-			expandable: true,
-			useModelMaterial: true,
-		});
-
-		// Set particle mesh (only adds shape, doesn't build mesh or dispose)
 		sps.particleMesh = particleMesh;
+		sps.meshMaterial = this._materialFactory.createMaterial(materialId, name);
 
 		this._applyCommonProperties(sps, config);
 		this._applyGradients(sps, config);
