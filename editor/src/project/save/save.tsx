@@ -113,7 +113,7 @@ async function _saveProject(editor: Editor) {
 
 	exportProject(editor, {
 		optimize: false,
-		noProgress: false,
-		noDialog: true,
+		noProgress: true,
+		noDialog: false,
 	});
 }
