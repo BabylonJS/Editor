@@ -175,40 +175,44 @@ export async function pack(projectDir: string, options: IPackOptions) {
 		message: "Packed scenes",
 	});
 
-	// Save cache
-	await fs.writeJSON(join(projectDir, "assets/.export-cache.json"), cache, {
-		encoding: "utf-8",
-		spaces: "\t",
-	});
-
-	// Configure scripts
-	const scriptsLog = ora("Collecting scripts...");
-	scriptsLog.spinner = cliSpinners.dots14;
-	scriptsLog.start();
-
-	options.onStepChanged?.("scripts", {
-		message: "Collecting scripts...",
-	});
-
-	await createScriptsFile(projectDir);
-
-	scriptsLog.succeed("Collected scripts");
-
-	options.onStepChanged?.("scripts", {
-		success: true,
-		message: "Collected scripts",
-	});
-
-	// Clean
-	if (options.optimize) {
-		const publicFiles = await normalizedGlob(join(publicDir, "**/*"), {
-			nodir: true,
+	if (!options.cancellationToken?.isCanceled) {
+		// Save cache
+		await fs.writeJSON(join(projectDir, "assets/.export-cache.json"), cache, {
+			encoding: "utf-8",
+			spaces: "\t",
 		});
 
-		publicFiles.forEach((file) => {
-			if (!exportedAssets.includes(file.toString())) {
-				fs.remove(file);
-			}
-		});
+		// Configure scripts
+		if (!options.cancellationToken?.isCanceled) {
+			const scriptsLog = ora("Collecting scripts...");
+			scriptsLog.spinner = cliSpinners.dots14;
+			scriptsLog.start();
+
+			options.onStepChanged?.("scripts", {
+				message: "Collecting scripts...",
+			});
+
+			await createScriptsFile(projectDir);
+
+			scriptsLog.succeed("Collected scripts");
+
+			options.onStepChanged?.("scripts", {
+				success: true,
+				message: "Collected scripts",
+			});
+		}
+
+		// Clean
+		if (options.optimize) {
+			const publicFiles = await normalizedGlob(join(publicDir, "**/*"), {
+				nodir: true,
+			});
+
+			publicFiles.forEach((file) => {
+				if (!exportedAssets.includes(file.toString())) {
+					fs.remove(file);
+				}
+			});
+		}
 	}
 }
