@@ -25,6 +25,7 @@ import { registerMorphTargetManagerParser } from "./morph-target-manager";
 import { registerSpriteMapParser } from "./sprite-map";
 import { registerSpriteManagerParser } from "./sprite-manager";
 import { registerNodeParticleSystemSetParser } from "./node-particle-system-set";
+import { configureTransformNodes } from "./transform-node";
 
 /**
  * Defines the possible output type of a script.
@@ -184,4 +185,6 @@ export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scen
 			_applyScriptsForObject(scene, sprite, scriptsMap, rootUrl);
 		});
 	});
+
+	configureTransformNodes(scene);
 }

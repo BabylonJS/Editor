@@ -1,8 +1,10 @@
 import { Scene } from "@babylonjs/core/scene";
-import { LoadAssetContainerAsync } from "@babylonjs/core/Loading/sceneLoader";
 import { SceneLoaderFlags } from "@babylonjs/core/Loading/sceneLoaderFlags";
+import { LoadAssetContainerAsync } from "@babylonjs/core/Loading/sceneLoader";
 
 import { isMesh } from "../../../tools/guards";
+
+import { configureTransformNodes } from "../../transform-node";
 
 export async function preloadSceneScriptAsset(key: string, rootUrl: string, scene: Scene) {
 	const filename = key.split("/").pop()!;
@@ -20,6 +22,8 @@ export async function preloadSceneScriptAsset(key: string, rootUrl: string, scen
 	}
 
 	container.addAllToScene();
+
+	configureTransformNodes(scene);
 
 	return container;
 }

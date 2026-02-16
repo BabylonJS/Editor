@@ -7,6 +7,7 @@ import { cloneJSObject } from "../tools/tools";
 
 import { ScriptMap } from "./loader";
 import { _applyScriptsForObject } from "./script/apply";
+import { configureTransformNodes } from "./transform-node";
 
 export interface IAdvancedAssetContainerInstantiateOptions {
 	/**
@@ -111,6 +112,8 @@ export class AdvancedAssetContainer {
 		newDescendants.forEach((node) => {
 			_applyScriptsForObject(this.container.scene, node, this._scriptsMap, this._rootUrl);
 		});
+
+		configureTransformNodes(this.container.scene);
 
 		return entries;
 	}
