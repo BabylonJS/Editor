@@ -86,6 +86,18 @@ export function EditorInspectorAssetField(props: IEditorInspectorAssetFieldProps
 			return showAlert("Can't assign asset", "Only Scene files (.scene) are supported.");
 		}
 
+		if (props.assetType === "cinematic" && extension !== ".cinematic") {
+			return showAlert("Can't assign asset", "Only Cinematic files (.cinematic) are supported.");
+		}
+
+		if (props.assetType === "navmesh" && extension !== ".navmesh") {
+			return showAlert("Can't assign asset", "Only NavMesh files (.navmesh) are supported.");
+		}
+
+		if (props.assetType === "ragdoll" && extension !== ".ragdoll") {
+			return showAlert("Can't assign asset", "Only Ragdoll configuration files (.ragdoll) are supported.");
+		}
+
 		if (props.assetType === "material") {
 			if (extension !== ".material") {
 				return showAlert("Can't assign asset", "Only Material files (.material) are supported.");

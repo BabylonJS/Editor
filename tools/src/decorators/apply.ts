@@ -17,6 +17,7 @@ import { AdvancedDynamicTexture } from "@babylonjs/gui/2D/advancedDynamicTexture
 import type { AudioSceneComponent as _AudioSceneComponent } from "@babylonjs/core/Audio/audioSceneComponent";
 
 import { getSoundById } from "../tools/sound";
+import { copyAndParseRagdollConfiguration } from "../tools/ragdoll";
 import { ISpriteAnimation, SpriteManagerNode } from "../tools/sprite";
 import { isAbstractMesh, isNode, isSprite, isTransformNode } from "../tools/guards";
 
@@ -227,6 +228,10 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 							case "scene":
 							case "navmesh":
 								instance[propertyKey] = data;
+								break;
+
+							case "ragdoll":
+								instance[propertyKey] = copyAndParseRagdollConfiguration(data);
 								break;
 
 							case "nodeParticleSystemSet":
