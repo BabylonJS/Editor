@@ -46,6 +46,7 @@ import { getSpriteManagerNodeFromSprite } from "../../tools/sprite/tools";
 import { isParticleSystemVisibleInGraph } from "../../tools/particles/metadata";
 import { applyTransformNodeParentingConfiguration } from "../../tools/node/parenting";
 import { isSprite, isSpriteManagerNode, isSpriteMapNode } from "../../tools/guards/sprites";
+import { parsePhysicsAggregate, serializePhysicsAggregate } from "../../tools/physics/serialization/aggregate";
 import { isAnyParticleSystem, isGPUParticleSystem, isNodeParticleSystemSetMesh, isParticleSystem } from "../../tools/guards/particles";
 import {
 	isAbstractMesh,
@@ -379,7 +380,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 	 * Sets the given node selected in the graph. All other selected nodes remain selected.
 	 * @param node defines the reference to the node to select in the graph.
 	 */
-	public addToSelectedNodes(node: Node): void {
+	public addToSelectedNodes(node: Node | Sound | IParticleSystem | Sprite): void {
 		this._forEachNode(this.state.nodes, (n) => {
 			if (n.nodeData === node) {
 				n.isSelected = true;
@@ -454,11 +455,17 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 							const name = isInstancedMesh(object) ? object.name : `${object.name.replace(` ${suffix}`, "")} ${suffix}`;
 
 							const instance = (node = object.createInstance(name));
+							instance.isPickable = object.isPickable;
 							instance.position.copyFrom(object.position);
 							instance.rotation.copyFrom(object.rotation);
 							instance.scaling.copyFrom(object.scaling);
 							instance.rotationQuaternion = object.rotationQuaternion?.clone() ?? null;
 							instance.parent = object.parent;
+
+							if (object.physicsAggregate) {
+								instance.physicsAggregate = parsePhysicsAggregate(instance, serializePhysicsAggregate(object.physicsAggregate));
+								instance.physicsAggregate.body.disableSync = true;
+							}
 
 							const collisionMesh = getCollisionMeshFor(instance.sourceMesh);
 							collisionMesh?.updateInstances(instance.sourceMesh);
