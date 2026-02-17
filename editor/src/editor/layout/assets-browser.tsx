@@ -8,7 +8,7 @@ import { AdvancedDynamicTexture } from "babylonjs-gui";
 import { INavMeshParametersV2 } from "babylonjs-addons/navigation/types";
 import { Material, NodeMaterial, Tools, NodeParticleSystemSet, RegisterSceneLoaderPlugin } from "babylonjs";
 
-import { ICinematic } from "babylonjs-editor-tools";
+import { ICinematic, IRagDollConfiguration } from "babylonjs-editor-tools";
 
 import { Fade } from "react-awesome-reveal";
 import { Grid } from "react-loader-spinner";
@@ -72,6 +72,7 @@ import { AssetBrowserGUIItem } from "./assets-browser/items/gui-item";
 import { AssetBrowserHDRItem } from "./assets-browser/items/hdr-item";
 import { AssetBrowserJsonItem } from "./assets-browser/items/json-item";
 import { AssetBrowserMeshItem } from "./assets-browser/items/mesh-item";
+import { AssetBrowserRagdollItem } from "./assets-browser/items/ragdoll";
 import { AssetBrowserSceneItem } from "./assets-browser/items/scene-item";
 import { AssetBrowserImageItem } from "./assets-browser/items/image-item";
 import { AssetBrowserNavmeshItem } from "./assets-browser/items/navmesh-item";
@@ -102,6 +103,7 @@ const MeshSelectable = createSelectable(AssetBrowserMeshItem);
 const ImageSelectable = createSelectable(AssetBrowserImageItem);
 const SceneSelectable = createSelectable(AssetBrowserSceneItem);
 const NavmeshSelectable = createSelectable(AssetBrowserNavmeshItem);
+const RagdollSelectable = createSelectable(AssetBrowserRagdollItem);
 const MaterialSelectable = createSelectable(AssetBrowserMaterialItem);
 const CinematicSelectable = createSelectable(AssetBrowserCinematicItem);
 const ParticleSystemSelectable = createSelectable(AssetBrowserParticleSystemItem);
@@ -813,6 +815,8 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 						<ContextMenuItem onClick={() => this._handleAddCinematic()}>Cinematic</ContextMenuItem>
 						<ContextMenuSeparator />
 						<ContextMenuItem onClick={() => this._handleAddNavmesh()}>Navmesh</ContextMenuItem>
+						<ContextMenuSeparator />
+						<ContextMenuItem onClick={() => this._handleAddRagdoll()}>Ragdoll</ContextMenuItem>
 					</>
 				)}
 
@@ -891,6 +895,9 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 
 			case ".navmesh":
 				return <NavmeshSelectable {...props} />;
+
+			case ".ragdoll":
+				return <RagdollSelectable {...props} />;
 
 			default:
 				return <DefaultSelectable {...props} />;
@@ -1252,6 +1259,26 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 
 		await mkdir(join(this.state.browsedPath, name));
 		await writeJSON(join(this.state.browsedPath, name, "config.json"), configuration, {
+			spaces: "\t",
+			encoding: "utf-8",
+		});
+
+		return this._refreshItems(this.state.browsedPath);
+	}
+
+	private async _handleAddRagdoll(): Promise<void> {
+		if (!this.state.browsedPath) {
+			return;
+		}
+
+		const configuration: IRagDollConfiguration = {
+			rootNodeId: "",
+			scalingFactor: 100,
+			runtimeConfiguration: [],
+		};
+
+		const name = await findAvailableFilename(this.state.browsedPath, "New Ragdoll", ".ragdoll");
+		await writeJSON(join(this.state.browsedPath, name), configuration, {
 			spaces: "\t",
 			encoding: "utf-8",
 		});

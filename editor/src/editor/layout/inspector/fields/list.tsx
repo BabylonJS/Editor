@@ -13,7 +13,7 @@ import { getInspectorPropertyValue, setInspectorEffectivePropertyValue } from ".
 import { IEditorInspectorFieldProps } from "./field";
 
 export interface IEditorInspectorListFieldItem {
-	key?: string;
+	key?: string | number;
 	text: string;
 	value: any;
 
@@ -75,7 +75,7 @@ export function EditorInspectorListField(props: IEditorInspectorListFieldProps) 
 		return (
 			<Select value={selectedItem?.value} onValueChange={(v) => handleSetValue(v)}>
 				<SelectTrigger className={`${props.label ? "w-2/3" : "w-full"}`}>
-					<SelectValue placeholder="Select Value..." />
+					<SelectValue placeholder="Select Value...">{selectedItem?.text ?? ""}</SelectValue>
 				</SelectTrigger>
 				<SelectContent>
 					{props.items.map((item) => (
@@ -96,14 +96,10 @@ export function EditorInspectorListField(props: IEditorInspectorListFieldProps) 
 			<Popover open={open} onOpenChange={setOpen}>
 				<PopoverTrigger asChild>
 					<Button variant="outline" role="combobox" aria-expanded={open} className={`${props.label ? "w-2/3" : "w-full"} justify-between`}>
-						{selectedItem ? (
-							<div className="flex gap-2 items-center">
-								{selectedItem.icon}
-								<div className={`!text-foreground ${selectedItem?.value === selectedItem.value ? "font-semibold" : ""}`}>{selectedItem.text}</div>
-							</div>
-						) : (
-							"Select value..."
-						)}
+						<div className="flex gap-2 items-center">
+							{selectedItem?.icon}
+							<div className="!text-foreground font-semibold">{selectedItem?.text ?? "Select Value..."}</div>
+						</div>
 						<ChevronDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
 					</Button>
 				</PopoverTrigger>
