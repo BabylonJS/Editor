@@ -715,8 +715,13 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		}
 
 		if (effectivePickedObject) {
+			if (event.shiftKey) {
+				this.props.editor.layout.graph.addToSelectedNodes(effectivePickedObject);
+			} else {
+				this.props.editor.layout.graph.setSelectedNode(effectivePickedObject);
+			}
+
 			this.gizmo.setAttachedObject(effectivePickedObject);
-			this.props.editor.layout.graph.setSelectedNode(effectivePickedObject);
 			this.props.editor.layout.inspector.setEditedObject(effectivePickedObject);
 			this.props.editor.layout.animations.setEditedObject(effectivePickedObject);
 		}
