@@ -116,6 +116,13 @@ export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scen
 		},
 	});
 
+	if (!options?.skipAssetsPreload) {
+		// Do it once for all existing assets.
+		await _preloadScriptsAssets(rootUrl, scene, scriptsMap);
+		// Do it again to ensure assets linked to .scene are loaded too. TODO: fix THAT
+		await _preloadScriptsAssets(rootUrl, scene, scriptsMap);
+	}
+
 	// Ensure all meshes perform their delay state check
 	if (SceneLoaderFlags.ForceFullSceneLoadingForIncremental) {
 		scene.meshes.forEach((m) => isMesh(m) && m._checkDelayState());
@@ -138,10 +145,6 @@ export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scen
 		}
 
 		options?.onProgress?.(0.5 + (loadedItemsCount / waitingItemsCount) * 0.5);
-	}
-
-	if (!options?.skipAssetsPreload) {
-		await _preloadScriptsAssets(rootUrl, scene, scriptsMap);
 	}
 
 	options?.onProgress?.(1);
