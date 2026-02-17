@@ -29,6 +29,8 @@ export interface IEditorLayoutTabOptions {
 	id?: string;
 	title: string;
 
+	neighborId?: "inspector" | "assets-browser";
+
 	enableClose?: boolean;
 	setAsActiveTab?: boolean;
 }
@@ -163,6 +165,13 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
 
 			if (tabsetId) {
 				this._layoutRef?.props.model.doAction(Actions.deleteTab(options.id));
+			}
+		}
+
+		if (!tabsetId && options.neighborId) {
+			const neighborNode = this._layoutRef?.props.model.getNodeById(options.neighborId);
+			if (neighborNode) {
+				tabsetId = neighborNode.getParent()?.getId();
 			}
 		}
 
