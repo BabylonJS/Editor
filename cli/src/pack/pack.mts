@@ -178,29 +178,27 @@ export async function pack(projectDir: string, options: IPackOptions) {
 	if (!options.cancellationToken?.isCanceled) {
 		// Save cache
 		await fs.writeJSON(join(projectDir, "assets/.export-cache.json"), cache, {
-			encoding: "utf-8",
 			spaces: "\t",
+			encoding: "utf-8",
 		});
 
 		// Configure scripts
-		if (!options.cancellationToken?.isCanceled) {
-			const scriptsLog = ora("Collecting scripts...");
-			scriptsLog.spinner = cliSpinners.dots14;
-			scriptsLog.start();
+		const scriptsLog = ora("Collecting scripts...");
+		scriptsLog.spinner = cliSpinners.dots14;
+		scriptsLog.start();
 
-			options.onStepChanged?.("scripts", {
-				message: "Collecting scripts...",
-			});
+		options.onStepChanged?.("scripts", {
+			message: "Collecting scripts...",
+		});
 
-			await createScriptsFile(projectDir);
+		await createScriptsFile(projectDir);
 
-			scriptsLog.succeed("Collected scripts");
+		scriptsLog.succeed("Collected scripts");
 
-			options.onStepChanged?.("scripts", {
-				success: true,
-				message: "Collected scripts",
-			});
-		}
+		options.onStepChanged?.("scripts", {
+			success: true,
+			message: "Collected scripts",
+		});
 
 		// Clean
 		if (options.optimize) {
