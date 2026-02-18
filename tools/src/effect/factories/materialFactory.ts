@@ -220,6 +220,16 @@ export class MaterialFactory implements IMaterialFactory {
 	}
 
 	/**
+	 * Create a material for SolidParticleSystem with unlit enabled (so vertex colors show as defined).
+	 * Vertex colors need to be in linear space (use toLinearSpaceToRef on particle.color).
+	 */
+	public createMaterialForSPS(materialId: string | undefined, name: string): PBRMaterial {
+		const material = this.createMaterial(materialId, name);
+		material.unlit = true;
+		return material;
+	}
+
+	/**
 	 * Creates unlit material (MeshBasicMaterial equivalent)
 	 */
 	private _createUnlitMaterial(name: string, material: IMaterial, texture: BabylonTexture, color: Color3): PBRMaterial {

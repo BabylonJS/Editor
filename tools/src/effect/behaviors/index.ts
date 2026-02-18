@@ -16,3 +16,4 @@ export * from "./orbitOverLife";
 export * from "./frameOverLife";
 export * from "./limitSpeedOverLife";
 export * from "./utils";
+export * from "./behaviorApplier";

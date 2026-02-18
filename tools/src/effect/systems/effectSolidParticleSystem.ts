@@ -5,20 +5,7 @@ import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { SolidParticleSystem } from "@babylonjs/core/Particles/solidParticleSystem";
 import type { Material } from "@babylonjs/core/Materials/material";
-import type {
-	Behavior,
-	IForceOverLifeBehavior,
-	IColorBySpeedBehavior,
-	ISizeBySpeedBehavior,
-	IRotationBySpeedBehavior,
-	IOrbitOverLifeBehavior,
-	IEmissionBurst,
-	ISolidParticleEmitterType,
-	PerSolidParticleBehaviorFunction,
-	ISystem,
-	SolidParticleWithSystem,
-	Value,
-} from "../types";
+import type { Behavior, IEmissionBurst, ISolidParticleEmitterType, PerSolidParticleBehaviorFunction, ISystem, SolidParticleWithSystem, Value } from "../types";
 import {
 	SolidPointParticleEmitter,
 	SolidSphereParticleEmitter,
@@ -27,17 +14,8 @@ import {
 	SolidHemisphericParticleEmitter,
 	SolidCylinderParticleEmitter,
 } from "../emitters";
-import { parseConstantValue, parseIntervalValue, calculateForSolidParticleSystem, ColorGradientSystem, NumberGradientSystem } from "../utils";
-import {
-	applyColorOverLifeSPS,
-	applyLimitSpeedOverLifeSPS,
-	applyRotationOverLifeSPS,
-	applySizeOverLifeSPS,
-	applySpeedOverLifeSPS,
-	interpolateColorKeys,
-	interpolateGradientKeys,
-	extractNumberFromValue,
-} from "../behaviors";
+import { parseConstantValue, calculateForSolidParticleSystem, ColorGradientSystem, NumberGradientSystem } from "../utils";
+import { applySystemLevelBehaviorsSPS, buildPerParticleBehaviorsSPS } from "../behaviors";
 
 /**
  * Emission state matching three.quarks EmissionState structure
@@ -123,6 +101,10 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 		return [...this._behaviorConfigs];
 	}
 
+	public get scaledUpdateSpeed(): number {
+		return this._scaledUpdateSpeed;
+	}
+
 	/**
 	 * Set behaviors and apply them to the system
 	 */
@@ -143,18 +125,13 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 	 * Rebuild all behavior functions and gradients
 	 */
 	private _rebuildBehaviors(): void {
-		// Clear existing gradients
 		this._colorGradients.clear();
 		this._sizeGradients.clear();
 		this._velocityGradients.clear();
 		this._angularSpeedGradients.clear();
 		this._limitVelocityGradients.clear();
-
-		// Apply system-level behaviors (gradients)
-		this._applySystemLevelBehaviors();
-
-		// Build per-particle behavior functions
-		this._behaviors = this._buildPerParticleBehaviors(this._behaviorConfigs);
+		applySystemLevelBehaviorsSPS(this, this._behaviorConfigs);
+		this._behaviors = buildPerParticleBehaviorsSPS(this, this._behaviorConfigs);
 	}
 
 	/**
@@ -554,6 +531,7 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 	 */
 	private _initializeParticleColor(particle: SolidParticle): void {
 		const props = particle.props!;
+		// color1 is already in linear space (converted when set)
 		props.startColor = this.color1.clone();
 		if (particle.color) {
 			particle.color.copyFrom(this.color1);
@@ -917,10 +895,9 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 			return;
 		}
 
-		// Enable vertex alpha for color blending
-		if (!this.mesh.hasVertexAlpha) {
-			this.mesh.hasVertexAlpha = true;
-		}
+		// So PBR material uses vertex color (startColor, colorOverLife, colorBySpeed)
+		this.mesh.useVertexColors = true;
+		this.mesh.hasVertexAlpha = true;
 
 		// Set rendering group
 		if (this.renderOrder !== undefined) {
@@ -981,231 +958,6 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 		this._setupMeshProperties();
 		this._initializeDeadParticles();
 		this._resetEmissionState();
-	}
-
-	/**
-	 * Build per-particle behavior functions from configurations
-	 * Per-particle behaviors run each frame for each particle
-	 * "OverLife" behaviors are handled by gradients (system-level)
-	 *
-	 * IMPORTANT: Parse all values ONCE here, not every frame!
-	 */
-	private _buildPerParticleBehaviors(behaviors: Behavior[]): PerSolidParticleBehaviorFunction[] {
-		const functions: PerSolidParticleBehaviorFunction[] = [];
-
-		for (const behavior of behaviors) {
-			switch (behavior.type) {
-				case "ForceOverLife":
-				case "ApplyForce": {
-					const b = behavior as IForceOverLifeBehavior;
-					// Pre-parse force values ONCE (not every frame!)
-					const forceX = b.x ?? b.force?.x;
-					const forceY = b.y ?? b.force?.y;
-					const forceZ = b.z ?? b.force?.z;
-					const fx = forceX !== undefined ? parseConstantValue(forceX) : 0;
-					const fy = forceY !== undefined ? parseConstantValue(forceY) : 0;
-					const fz = forceZ !== undefined ? parseConstantValue(forceZ) : 0;
-
-					if (fx !== 0 || fy !== 0 || fz !== 0) {
-						// Capture 'this' to access _scaledUpdateSpeed
-						const system = this;
-						functions.push((particle: SolidParticle) => {
-							// Use _scaledUpdateSpeed for FPS-independent force application
-							const deltaTime = system._scaledUpdateSpeed || system.updateSpeed;
-							particle.velocity.x += fx * deltaTime;
-							particle.velocity.y += fy * deltaTime;
-							particle.velocity.z += fz * deltaTime;
-						});
-					}
-					break;
-				}
-
-				case "ColorBySpeed": {
-					const b = behavior as IColorBySpeedBehavior;
-					// Pre-parse min/max speed ONCE
-					const minSpeed = b.minSpeed !== undefined ? parseConstantValue(b.minSpeed) : 0;
-					const maxSpeed = b.maxSpeed !== undefined ? parseConstantValue(b.maxSpeed) : 1;
-					// New structure: b.color is IColorFunction with data.colorKeys
-					const colorKeys = b.color?.data?.colorKeys;
-
-					if (colorKeys && colorKeys.length > 0) {
-						functions.push((particle: SolidParticle) => {
-							if (!particle.color) {
-								return;
-							}
-							const vel = particle.velocity;
-							const currentSpeed = Math.sqrt(vel.x * vel.x + vel.y * vel.y + vel.z * vel.z);
-							const speedRatio = Math.max(0, Math.min(1, (currentSpeed - minSpeed) / (maxSpeed - minSpeed || 1)));
-							const interpolatedColor = interpolateColorKeys(colorKeys, speedRatio);
-							const startColor = particle.props?.startColor;
-
-							if (startColor) {
-								particle.color.r = interpolatedColor.r * startColor.r;
-								particle.color.g = interpolatedColor.g * startColor.g;
-								particle.color.b = interpolatedColor.b * startColor.b;
-								particle.color.a = startColor.a;
-							} else {
-								particle.color.r = interpolatedColor.r;
-								particle.color.g = interpolatedColor.g;
-								particle.color.b = interpolatedColor.b;
-							}
-						});
-					}
-					break;
-				}
-
-				case "SizeBySpeed": {
-					const b = behavior as ISizeBySpeedBehavior;
-					// Pre-parse min/max speed ONCE
-					const minSpeed = b.minSpeed !== undefined ? parseConstantValue(b.minSpeed) : 0;
-					const maxSpeed = b.maxSpeed !== undefined ? parseConstantValue(b.maxSpeed) : 1;
-					const sizeKeys = b.size?.keys;
-
-					if (sizeKeys && sizeKeys.length > 0) {
-						functions.push((particle: SolidParticle) => {
-							const vel = particle.velocity;
-							const currentSpeed = Math.sqrt(vel.x * vel.x + vel.y * vel.y + vel.z * vel.z);
-							const speedRatio = Math.max(0, Math.min(1, (currentSpeed - minSpeed) / (maxSpeed - minSpeed || 1)));
-							const sizeMultiplier = interpolateGradientKeys(sizeKeys, speedRatio, extractNumberFromValue);
-							const startSize = particle.props?.startSize ?? 1;
-							const newSize = startSize * sizeMultiplier;
-							particle.scaling.setAll(newSize);
-						});
-					}
-					break;
-				}
-
-				case "RotationBySpeed": {
-					const b = behavior as IRotationBySpeedBehavior;
-					// Pre-parse values ONCE
-					const minSpeed = b.minSpeed !== undefined ? parseConstantValue(b.minSpeed) : 0;
-					const maxSpeed = b.maxSpeed !== undefined ? parseConstantValue(b.maxSpeed) : 1;
-					const angularVelocity = b.angularVelocity;
-					const hasKeys =
-						typeof angularVelocity === "object" &&
-						angularVelocity !== null &&
-						"keys" in angularVelocity &&
-						Array.isArray(angularVelocity.keys) &&
-						angularVelocity.keys.length > 0;
-
-					// Pre-parse constant angular velocity if not using keys
-					let constantAngularSpeed = 0;
-					if (!hasKeys && angularVelocity) {
-						const parsed = parseIntervalValue(angularVelocity);
-						constantAngularSpeed = (parsed.min + parsed.max) / 2;
-					}
-
-					const system = this;
-					functions.push((particle: SolidParticle) => {
-						const vel = particle.velocity;
-						const currentSpeed = Math.sqrt(vel.x * vel.x + vel.y * vel.y + vel.z * vel.z);
-						const deltaTime = system._scaledUpdateSpeed || system.updateSpeed;
-
-						let angularSpeed = constantAngularSpeed;
-						if (hasKeys) {
-							const speedRatio = Math.max(0, Math.min(1, (currentSpeed - minSpeed) / (maxSpeed - minSpeed || 1)));
-							angularSpeed = interpolateGradientKeys((angularVelocity as any).keys, speedRatio, extractNumberFromValue);
-						}
-
-						particle.rotation.z += angularSpeed * deltaTime;
-					});
-					break;
-				}
-
-				case "OrbitOverLife": {
-					const b = behavior as IOrbitOverLifeBehavior;
-					// Pre-parse constant values ONCE
-					const speed = b.speed !== undefined ? parseConstantValue(b.speed) : 1;
-					const centerX = b.center?.x ?? 0;
-					const centerY = b.center?.y ?? 0;
-					const centerZ = b.center?.z ?? 0;
-					const hasRadiusKeys =
-						b.radius !== undefined &&
-						b.radius !== null &&
-						typeof b.radius === "object" &&
-						"keys" in b.radius &&
-						Array.isArray(b.radius.keys) &&
-						b.radius.keys.length > 0;
-
-					// Pre-parse constant radius if not using keys
-					let constantRadius = 1;
-					if (!hasRadiusKeys && b.radius !== undefined) {
-						const parsed = parseIntervalValue(b.radius as Value);
-						constantRadius = (parsed.min + parsed.max) / 2;
-					}
-
-					functions.push((particle: SolidParticle) => {
-						if (particle.lifeTime <= 0) {
-							return;
-						}
-
-						const lifeRatio = particle.age / particle.lifeTime;
-
-						// Get radius (from keys or constant)
-						let radius = constantRadius;
-						if (hasRadiusKeys) {
-							radius = interpolateGradientKeys((b.radius as any).keys, lifeRatio, extractNumberFromValue);
-						}
-
-						const angle = lifeRatio * speed * Math.PI * 2;
-
-						// Calculate orbit offset (NOT replacement!)
-						const orbitX = Math.cos(angle) * radius;
-						const orbitY = Math.sin(angle) * radius;
-
-						// Store initial position if not stored yet
-						const props = (particle.props ||= {}) as any;
-						if (props.orbitInitialPos === undefined) {
-							props.orbitInitialPos = {
-								x: particle.position.x,
-								y: particle.position.y,
-								z: particle.position.z,
-							};
-						}
-
-						// Apply orbit as OFFSET from initial position (NOT replacement!)
-						particle.position.x = props.orbitInitialPos.x + centerX + orbitX;
-						particle.position.y = props.orbitInitialPos.y + centerY + orbitY;
-						particle.position.z = props.orbitInitialPos.z + centerZ;
-					});
-					break;
-				}
-			}
-		}
-
-		return functions;
-	}
-
-	/**
-	 * Apply system-level behaviors (gradients) to SolidParticleSystem
-	 * These are applied once when behaviors change, not per-particle
-	 * Similar to ParticleSystem native gradients
-	 */
-	private _applySystemLevelBehaviors(): void {
-		for (const behavior of this.behaviorConfigs) {
-			if (!behavior.type) {
-				continue;
-			}
-
-			switch (behavior.type) {
-				case "ColorOverLife":
-					applyColorOverLifeSPS(this, behavior as any);
-					break;
-				case "SizeOverLife":
-					applySizeOverLifeSPS(this, behavior as any);
-					break;
-				case "RotationOverLife":
-				case "Rotation3DOverLife":
-					applyRotationOverLifeSPS(this, behavior as any);
-					break;
-				case "SpeedOverLife":
-					applySpeedOverLifeSPS(this, behavior as any);
-					break;
-				case "LimitSpeedOverLife":
-					applyLimitSpeedOverLifeSPS(this, behavior as any);
-					break;
-			}
-		}
 	}
 
 	public override beforeUpdateParticles(start?: number, stop?: number, update?: boolean): void {
@@ -1309,10 +1061,12 @@ export class EffectSolidParticleSystem extends SolidParticleSystem implements IS
 
 		const color = this._colorGradients.getValue(lifeRatio);
 		if (color && particle.color) {
+			// Gradients are already in linear space (converted when created in colorOverLife)
 			particle.color.copyFrom(color);
 
 			const startColor = props.startColor;
 			if (startColor) {
+				// startColor is already in linear space (cloned from color1 which is converted when set)
 				particle.color.r *= startColor.r;
 				particle.color.g *= startColor.g;
 				particle.color.b *= startColor.b;

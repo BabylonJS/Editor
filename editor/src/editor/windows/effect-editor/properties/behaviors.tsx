@@ -16,7 +16,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { HiOutlineTrash } from "react-icons/hi2";
 import { IoAddSharp } from "react-icons/io5";
 
-import { type IEffectNode, EffectParticleSystem, EffectSolidParticleSystem } from "babylonjs-editor-tools";
+import { type IEffectNode, EffectParticleSystem, EffectSolidParticleSystem, BEHAVIOR_TYPES, type BehaviorKind, type Behavior } from "babylonjs-editor-tools";
 import { FunctionEditor, ColorFunctionEditor } from "../editors";
 
 // Types
@@ -36,14 +36,19 @@ export interface IBehaviorProperty {
 export interface IBehaviorDefinition {
 	type: string;
 	label: string;
+	kind?: BehaviorKind;
 	properties: IBehaviorProperty[];
 }
 
-// Behavior Registry
+/** Behavior config with optional editor-only id (for React keys). Runtime ignores id. */
+export type EditorBehavior = Behavior & { id?: string };
+
+// Behavior Registry (keys from BEHAVIOR_TYPES; kind = system-level gradients vs per-particle)
 export const BehaviorRegistry: { [key: string]: IBehaviorDefinition } = {
-	ApplyForce: {
-		type: "ApplyForce",
+	[BEHAVIOR_TYPES.ApplyForce]: {
+		type: BEHAVIOR_TYPES.ApplyForce,
 		label: "Apply Force",
+		kind: "perParticle",
 		properties: [
 			{ name: "direction", type: "vector3", label: "Direction", default: { x: 0, y: 1, z: 0 } },
 			{
@@ -55,9 +60,10 @@ export const BehaviorRegistry: { [key: string]: IBehaviorDefinition } = {
 			},
 		],
 	},
-	Noise: {
-		type: "Noise",
+	[BEHAVIOR_TYPES.Noise]: {
+		type: BEHAVIOR_TYPES.Noise,
 		label: "Noise",
+		kind: "perParticle",
 		properties: [
 			{
 				name: "frequency",
@@ -89,9 +95,10 @@ export const BehaviorRegistry: { [key: string]: IBehaviorDefinition } = {
 			},
 		],
 	},
-	TurbulenceField: {
-		type: "TurbulenceField",
+	[BEHAVIOR_TYPES.TurbulenceField]: {
+		type: BEHAVIOR_TYPES.TurbulenceField,
 		label: "Turbulence Field",
+		kind: "perParticle",
 		properties: [
 			{ name: "scale", type: "vector3", label: "Scale", default: { x: 1, y: 1, z: 1 } },
 			{ name: "octaves", type: "number", label: "Octaves", default: 1 },
@@ -99,17 +106,19 @@ export const BehaviorRegistry: { [key: string]: IBehaviorDefinition } = {
 			{ name: "timeScale", type: "vector3", label: "Time Scale", default: { x: 1, y: 1, z: 1 } },
 		],
 	},
-	GravityForce: {
-		type: "GravityForce",
+	[BEHAVIOR_TYPES.GravityForce]: {
+		type: BEHAVIOR_TYPES.GravityForce,
 		label: "Gravity Force",
+		kind: "perParticle",
 		properties: [
 			{ name: "center", type: "vector3", label: "Center", default: { x: 0, y: 0, z: 0 } },
 			{ name: "magnitude", type: "number", label: "Magnitude", default: 1.0 },
 		],
 	},
-	ColorOverLife: {
-		type: "ColorOverLife",
+	[BEHAVIOR_TYPES.ColorOverLife]: {
+		type: BEHAVIOR_TYPES.ColorOverLife,
 		label: "Color Over Life",
+		kind: "system",
 		properties: [
 			{
 				name: "color",
@@ -120,9 +129,10 @@ export const BehaviorRegistry: { [key: string]: IBehaviorDefinition } = {
 			},
 		],
 	},
-	RotationOverLife: {
-		type: "RotationOverLife",
+	[BEHAVIOR_TYPES.RotationOverLife]: {
+		type: BEHAVIOR_TYPES.RotationOverLife,
 		label: "Rotation Over Life",
+		kind: "system",
 		properties: [
 			{
 				name: "angularVelocity",
@@ -133,9 +143,10 @@ export const BehaviorRegistry: { [key: string]: IBehaviorDefinition } = {
 			},
 		],
 	},
-	Rotation3DOverLife: {
-		type: "Rotation3DOverLife",
+	[BEHAVIOR_TYPES.Rotation3DOverLife]: {
+		type: BEHAVIOR_TYPES.Rotation3DOverLife,
 		label: "Rotation 3D Over Life",
+		kind: "system",
 		properties: [
 			{
 				name: "angularVelocity",
@@ -146,9 +157,10 @@ export const BehaviorRegistry: { [key: string]: IBehaviorDefinition } = {
 			},
 		],
 	},
-	SizeOverLife: {
-		type: "SizeOverLife",
+	[BEHAVIOR_TYPES.SizeOverLife]: {
+		type: BEHAVIOR_TYPES.SizeOverLife,
 		label: "Size Over Life",
+		kind: "system",
 		properties: [
 			{
 				name: "size",
@@ -159,9 +171,10 @@ export const BehaviorRegistry: { [key: string]: IBehaviorDefinition } = {
 			},
 		],
 	},
-	ColorBySpeed: {
-		type: "ColorBySpeed",
+	[BEHAVIOR_TYPES.ColorBySpeed]: {
+		type: BEHAVIOR_TYPES.ColorBySpeed,
 		label: "Color By Speed",
+		kind: "perParticle",
 		properties: [
 			{
 				name: "color",
@@ -173,9 +186,10 @@ export const BehaviorRegistry: { [key: string]: IBehaviorDefinition } = {
 			{ name: "speedRange", type: "range", label: "Speed Range", default: { min: 0, max: 10 } },
 		],
 	},
-	RotationBySpeed: {
-		type: "RotationBySpeed",
+	[BEHAVIOR_TYPES.RotationBySpeed]: {
+		type: BEHAVIOR_TYPES.RotationBySpeed,
 		label: "Rotation By Speed",
+		kind: "perParticle",
 		properties: [
 			{
 				name: "angularVelocity",
@@ -187,9 +201,10 @@ export const BehaviorRegistry: { [key: string]: IBehaviorDefinition } = {
 			{ name: "speedRange", type: "range", label: "Speed Range", default: { min: 0, max: 10 } },
 		],
 	},
-	SizeBySpeed: {
-		type: "SizeBySpeed",
+	[BEHAVIOR_TYPES.SizeBySpeed]: {
+		type: BEHAVIOR_TYPES.SizeBySpeed,
 		label: "Size By Speed",
+		kind: "perParticle",
 		properties: [
 			{
 				name: "size",
@@ -201,9 +216,10 @@ export const BehaviorRegistry: { [key: string]: IBehaviorDefinition } = {
 			{ name: "speedRange", type: "range", label: "Speed Range", default: { min: 0, max: 10 } },
 		],
 	},
-	SpeedOverLife: {
-		type: "SpeedOverLife",
+	[BEHAVIOR_TYPES.SpeedOverLife]: {
+		type: BEHAVIOR_TYPES.SpeedOverLife,
 		label: "Speed Over Life",
+		kind: "system",
 		properties: [
 			{
 				name: "speed",
@@ -214,9 +230,10 @@ export const BehaviorRegistry: { [key: string]: IBehaviorDefinition } = {
 			},
 		],
 	},
-	FrameOverLife: {
-		type: "FrameOverLife",
+	[BEHAVIOR_TYPES.FrameOverLife]: {
+		type: BEHAVIOR_TYPES.FrameOverLife,
 		label: "Frame Over Life",
+		kind: "system",
 		properties: [
 			{
 				name: "frame",
@@ -227,9 +244,10 @@ export const BehaviorRegistry: { [key: string]: IBehaviorDefinition } = {
 			},
 		],
 	},
-	ForceOverLife: {
-		type: "ForceOverLife",
+	[BEHAVIOR_TYPES.ForceOverLife]: {
+		type: BEHAVIOR_TYPES.ForceOverLife,
 		label: "Force Over Life",
+		kind: "perParticle",
 		properties: [
 			{
 				name: "x",
@@ -254,9 +272,10 @@ export const BehaviorRegistry: { [key: string]: IBehaviorDefinition } = {
 			},
 		],
 	},
-	OrbitOverLife: {
-		type: "OrbitOverLife",
+	[BEHAVIOR_TYPES.OrbitOverLife]: {
+		type: BEHAVIOR_TYPES.OrbitOverLife,
 		label: "Orbit Over Life",
+		kind: "perParticle",
 		properties: [
 			{
 				name: "orbitSpeed",
@@ -268,9 +287,10 @@ export const BehaviorRegistry: { [key: string]: IBehaviorDefinition } = {
 			{ name: "axis", type: "vector3", label: "Axis", default: { x: 0, y: 1, z: 0 } },
 		],
 	},
-	WidthOverLength: {
-		type: "WidthOverLength",
+	[BEHAVIOR_TYPES.WidthOverLength]: {
+		type: BEHAVIOR_TYPES.WidthOverLength,
 		label: "Width Over Length",
+		kind: "perParticle",
 		properties: [
 			{
 				name: "width",
@@ -281,9 +301,10 @@ export const BehaviorRegistry: { [key: string]: IBehaviorDefinition } = {
 			},
 		],
 	},
-	ChangeEmitDirection: {
-		type: "ChangeEmitDirection",
+	[BEHAVIOR_TYPES.ChangeEmitDirection]: {
+		type: BEHAVIOR_TYPES.ChangeEmitDirection,
 		label: "Change Emit Direction",
+		kind: "perParticle",
 		properties: [
 			{
 				name: "angle",
@@ -294,9 +315,10 @@ export const BehaviorRegistry: { [key: string]: IBehaviorDefinition } = {
 			},
 		],
 	},
-	EmitSubParticleSystem: {
-		type: "EmitSubParticleSystem",
+	[BEHAVIOR_TYPES.EmitSubParticleSystem]: {
+		type: BEHAVIOR_TYPES.EmitSubParticleSystem,
 		label: "Emit Sub Particle System",
+		kind: "perParticle",
 		properties: [
 			{ name: "subParticleSystem", type: "string", label: "Sub Particle System", default: "" },
 			{ name: "useVelocityAsBasis", type: "boolean", label: "Use Velocity As Basis", default: false },
@@ -314,9 +336,10 @@ export const BehaviorRegistry: { [key: string]: IBehaviorDefinition } = {
 			{ name: "emitProbability", type: "number", label: "Emit Probability", default: 1.0 },
 		],
 	},
-	LimitSpeedOverLife: {
-		type: "LimitSpeedOverLife",
+	[BEHAVIOR_TYPES.LimitSpeedOverLife]: {
+		type: BEHAVIOR_TYPES.LimitSpeedOverLife,
 		label: "Limit Speed Over Life",
+		kind: "system",
 		properties: [
 			{
 				name: "speed",
@@ -335,25 +358,25 @@ export function getBehaviorDefinition(type: string): IBehaviorDefinition | undef
 	return BehaviorRegistry[type];
 }
 
-export function createDefaultBehaviorData(type: string): any {
+/** Creates a minimal behavior config for the given type; returned object may be extended with editor-only fields (e.g. id). */
+export function createDefaultBehaviorData(type: string): Behavior {
 	const definition = BehaviorRegistry[type];
 	if (!definition) {
 		return { type };
 	}
 
-	const data: any = { type };
+	const data: Record<string, unknown> = { type };
 	for (const prop of definition.properties) {
 		if (prop.type === "function") {
-			data[prop.name] = {
-				functionType: prop.functionTypes?.[0] || "ConstantValue",
-				data: {},
-			};
-			if (data[prop.name].functionType === "ConstantValue") {
-				data[prop.name].data.value = prop.default !== undefined ? prop.default : 1.0;
-			} else if (data[prop.name].functionType === "IntervalValue") {
-				data[prop.name].data.min = 0;
-				data[prop.name].data.max = 1;
+			const fnData: Record<string, unknown> = {};
+			const fnType = prop.functionTypes?.[0] || "ConstantValue";
+			if (fnType === "ConstantValue") {
+				fnData.value = prop.default !== undefined ? prop.default : 1.0;
+			} else if (fnType === "IntervalValue") {
+				fnData.min = 0;
+				fnData.max = 1;
 			}
+			data[prop.name] = { functionType: fnType, data: fnData };
 		} else if (prop.type === "colorFunction") {
 			data[prop.name] = {
 				colorFunctionType: prop.colorFunctionTypes?.[0] || "ConstantColor",
@@ -369,11 +392,11 @@ export function createDefaultBehaviorData(type: string): any {
 			}
 		}
 	}
-	return data;
+	return data as Behavior;
 }
 
-// Helper function to render a single property
-function renderProperty(prop: IBehaviorProperty, behavior: any, onChange: () => void): ReactNode {
+// Helper function to render a single property (behavior may be mutated with Vector3/Color4 for inspector)
+function renderProperty(prop: IBehaviorProperty, behavior: Behavior, onChange: () => void): ReactNode {
 	switch (prop.type) {
 		case "vector3":
 			if (!behavior[prop.name]) {
@@ -458,7 +481,7 @@ function renderProperty(prop: IBehaviorProperty, behavior: any, onChange: () => 
 
 // Component to render behavior properties
 interface IBehaviorPropertiesProps {
-	behavior: any;
+	behavior: Behavior;
 	onChange: () => void;
 }
 
@@ -487,22 +510,30 @@ export function EffectEditorBehaviorsProperties(props: IEffectEditorBehaviorsPro
 	}
 
 	const system = nodeData.data;
-	const behaviorConfigs: any[] = system instanceof EffectParticleSystem || system instanceof EffectSolidParticleSystem ? system.behaviorConfigs || [] : [];
+	if (!(system instanceof EffectParticleSystem || system instanceof EffectSolidParticleSystem)) {
+		return null;
+	}
+
+	const behaviorConfigs: EditorBehavior[] = system.behaviorConfigs ?? [];
+
+	const applyBehaviors = (): void => {
+		system.setBehaviors(behaviorConfigs);
+		onChange();
+	};
 
 	const handleAddBehavior = (behaviorType: string): void => {
-		const newBehavior = createDefaultBehaviorData(behaviorType);
-		newBehavior.id = `behavior-${Date.now()}-${Math.random()}`;
+		const newBehavior: EditorBehavior = { ...createDefaultBehaviorData(behaviorType), id: `behavior-${Date.now()}-${Math.random()}` };
 		behaviorConfigs.push(newBehavior);
-		onChange();
+		applyBehaviors();
 	};
 
 	const handleRemoveBehavior = (index: number): void => {
 		behaviorConfigs.splice(index, 1);
-		onChange();
+		applyBehaviors();
 	};
 
 	const handleBehaviorChange = (): void => {
-		onChange();
+		applyBehaviors();
 	};
 
 	return (
@@ -514,7 +545,7 @@ export function EffectEditorBehaviorsProperties(props: IEffectEditorBehaviorsPro
 
 				return (
 					<EditorInspectorSectionField
-						key={behavior.id || `behavior-${index}`}
+						key={behavior.id ?? `behavior-${index}`}
 						title={
 							<div className="flex items-center justify-between w-full">
 								<span>{title}</span>

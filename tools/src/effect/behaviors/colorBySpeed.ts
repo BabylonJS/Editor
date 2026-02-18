@@ -65,4 +65,6 @@ export function applyColorBySpeedSPS(behavior: IColorBySpeedBehavior, particle: 
 		particle.color.g = interpolatedColor.g;
 		particle.color.b = interpolatedColor.b;
 	}
+	// Convert to linear space for PBR material with unlit
+	particle.color.toLinearSpaceToRef(particle.color);
 }

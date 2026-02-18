@@ -141,12 +141,13 @@ export function deserializeGroup(group: any): IGroup {
 	return {
 		...group,
 		transform: deserializeTransform(group.transform),
-		children: group.children?.map((child: any) => {
-			if (child.children !== undefined) {
-				return deserializeGroup(child);
-			}
-			return deserializeEmitter(child);
-		}) || [],
+		children:
+			group.children?.map((child: any) => {
+				if (child.children !== undefined) {
+					return deserializeGroup(child);
+				}
+				return deserializeEmitter(child);
+			}) || [],
 	};
 }
 
