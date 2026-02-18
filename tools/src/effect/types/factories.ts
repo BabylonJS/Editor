@@ -8,6 +8,7 @@ import { Scene } from "@babylonjs/core/scene";
  */
 export interface IMaterialFactory {
 	createMaterial(materialId: string | undefined, name: string): PBRMaterial;
+	createMaterialForSPS(materialId: string | undefined, name: string): PBRMaterial;
 	createTexture(materialId: string): Texture;
 	getBlendMode(materialId: string): number | undefined;
 }

@@ -19,8 +19,10 @@ export function applyColorOverLifePS(particleSystem: EffectParticleSystem, behav
 	// Handle ConstantColor
 	if (colorFunctionType === "ConstantColor" && data?.color) {
 		const color = data.color;
-		particleSystem.color1 = new Color4(color.r, color.g, color.b, color.a);
-		particleSystem.color2 = new Color4(color.r, color.g, color.b, color.a);
+		const color1 = new Color4(color.r, color.g, color.b, color.a);
+		color1.toLinearSpaceToRef(color1);
+		particleSystem.color1 = color1;
+		particleSystem.color2 = color1.clone();
 		return;
 	}
 
@@ -43,7 +45,9 @@ export function applyColorOverLifePS(particleSystem: EffectParticleSystem, behav
 					alpha = extractAlphaFromValue(key.value);
 				}
 
-				particleSystem.addColorGradient(key.pos, new Color4(color.r, color.g, color.b, alpha));
+				const gradientColor = new Color4(color.r, color.g, color.b, alpha);
+				gradientColor.toLinearSpaceToRef(gradientColor);
+				particleSystem.addColorGradient(key.pos, gradientColor);
 			}
 		}
 
@@ -58,7 +62,9 @@ export function applyColorOverLifePS(particleSystem: EffectParticleSystem, behav
 						existingGradient.color2.a = alpha;
 					}
 				} else {
-					particleSystem.addColorGradient(key.pos, new Color4(1, 1, 1, alpha));
+					const gradientColor = new Color4(1, 1, 1, alpha);
+					gradientColor.toLinearSpaceToRef(gradientColor);
+					particleSystem.addColorGradient(key.pos, gradientColor);
 				}
 			}
 		}
@@ -86,7 +92,9 @@ export function applyColorOverLifePS(particleSystem: EffectParticleSystem, behav
 					alpha = extractAlphaFromValue(key.value);
 				}
 
-				particleSystem.addColorGradient(key.pos, new Color4(color.r, color.g, color.b, alpha));
+				const gradientColor = new Color4(color.r, color.g, color.b, alpha);
+				gradientColor.toLinearSpaceToRef(gradientColor);
+				particleSystem.addColorGradient(key.pos, gradientColor);
 			}
 		}
 
@@ -102,7 +110,9 @@ export function applyColorOverLifePS(particleSystem: EffectParticleSystem, behav
 						existingGradient.color2.a = alpha;
 					}
 				} else {
-					particleSystem.addColorGradient(key.pos, new Color4(1, 1, 1, alpha));
+					const gradientColor = new Color4(1, 1, 1, alpha);
+					gradientColor.toLinearSpaceToRef(gradientColor);
+					particleSystem.addColorGradient(key.pos, gradientColor);
 				}
 			}
 		}
@@ -128,8 +138,10 @@ export function applyColorOverLifeSPS(system: EffectSolidParticleSystem, behavio
 	// Handle ConstantColor
 	if (colorFunctionType === "ConstantColor" && data?.color) {
 		const color = data.color;
-		system.color1 = new Color4(color.r, color.g, color.b, color.a);
-		system.color2 = new Color4(color.r, color.g, color.b, color.a);
+		const color1 = new Color4(color.r, color.g, color.b, color.a);
+		color1.toLinearSpaceToRef(color1);
+		system.color1 = color1;
+		system.color2 = color1.clone();
 		return;
 	}
 
@@ -208,7 +220,9 @@ export function applyColorOverLifeSPS(system: EffectSolidParticleSystem, behavio
 			}
 		}
 
-		system.addColorGradient(pos, new Color4(color.r, color.g, color.b, alpha));
+		const gradientColor = new Color4(color.r, color.g, color.b, alpha);
+		gradientColor.toLinearSpaceToRef(gradientColor);
+		system.addColorGradient(pos, gradientColor);
 	}
 }
 

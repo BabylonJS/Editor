@@ -222,10 +222,14 @@ export class NodeFactory {
 			system.preWarmStepOffset = config.preWarmStepOffset;
 		}
 		if (config.color1 !== undefined) {
-			system.color1 = config.color1;
+			const color1 = config.color1.clone();
+			color1.toLinearSpaceToRef(color1);
+			system.color1 = color1;
 		}
 		if (config.color2 !== undefined) {
-			system.color2 = config.color2;
+			const color2 = config.color2.clone();
+			color2.toLinearSpaceToRef(color2);
+			system.color2 = color2;
 		}
 		if (config.colorDead !== undefined) {
 			system.colorDead = config.colorDead;
@@ -419,12 +423,12 @@ export class NodeFactory {
 		const { name, config, materialId } = emitter;
 
 		const particleMesh = this._geometryFactory.createParticleMesh(name, this._scene, config.instancingGeometry);
-
+		// Use createMaterialForSPS to enable unlit (so vertex colors show as defined)
+		const material = this._materialFactory.createMaterialForSPS(materialId, name);
 		const sps = new EffectSolidParticleSystem(name, this._scene);
 
 		sps.particleMesh = particleMesh;
-		sps.meshMaterial = this._materialFactory.createMaterial(materialId, name);
-
+		sps.meshMaterial = material;
 		this._applyCommonProperties(sps, config);
 		this._applyGradients(sps, config);
 		this._applyCommonOptions(sps, config);

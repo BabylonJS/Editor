@@ -4,39 +4,8 @@ import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { Particle } from "@babylonjs/core/Particles/particle";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
-import type {
-	Behavior,
-	IColorOverLifeBehavior,
-	ISizeOverLifeBehavior,
-	IRotationOverLifeBehavior,
-	IForceOverLifeBehavior,
-	IGravityForceBehavior,
-	ISpeedOverLifeBehavior,
-	IFrameOverLifeBehavior,
-	ILimitSpeedOverLifeBehavior,
-	IColorBySpeedBehavior,
-	ISizeBySpeedBehavior,
-	IRotationBySpeedBehavior,
-	IOrbitOverLifeBehavior,
-	PerParticleBehaviorFunction,
-	ISystem,
-	ParticleWithSystem,
-	IShape,
-} from "../types";
-import {
-	applyColorOverLifePS,
-	applySizeOverLifePS,
-	applyRotationOverLifePS,
-	applyForceOverLifePS,
-	applyGravityForcePS,
-	applySpeedOverLifePS,
-	applyFrameOverLifePS,
-	applyLimitSpeedOverLifePS,
-	applyColorBySpeedPS,
-	applySizeBySpeedPS,
-	applyRotationBySpeedPS,
-	applyOrbitOverLifePS,
-} from "../behaviors";
+import type { Behavior, PerParticleBehaviorFunction, ISystem, ParticleWithSystem, IShape } from "../types";
+import { applySystemLevelBehaviorsPS, buildPerParticleBehaviorsPS } from "../behaviors";
 
 /**
  * Extended ParticleSystem with behaviors support
@@ -111,13 +80,9 @@ export class EffectParticleSystem extends ParticleSystem implements ISystem {
 	 * System-level behaviors configure gradients, per-particle behaviors run each frame
 	 */
 	public setBehaviors(behaviors: Behavior[]): void {
-		this._behaviorConfigs = [...behaviors]; // Copy array
-
-		// Apply system-level behaviors (gradients) to ParticleSystem
-		this._applySystemLevelBehaviors(behaviors);
-
-		// Build per-particle behavior functions for update loop
-		this._perParticleBehaviors = this._buildPerParticleBehaviors(behaviors);
+		this._behaviorConfigs = [...behaviors];
+		applySystemLevelBehaviorsPS(this, behaviors);
+		this._perParticleBehaviors = buildPerParticleBehaviorsPS(behaviors);
 	}
 
 	/**
@@ -126,85 +91,6 @@ export class EffectParticleSystem extends ParticleSystem implements ISystem {
 	public addBehavior(behavior: Behavior): void {
 		this._behaviorConfigs.push(behavior);
 		this.setBehaviors(this._behaviorConfigs);
-	}
-
-	/**
-	 * Build per-particle behavior functions from configurations
-	 * Per-particle behaviors run each frame for each particle (ColorBySpeed, OrbitOverLife, etc.)
-	 */
-	private _buildPerParticleBehaviors(behaviors: Behavior[]): PerParticleBehaviorFunction[] {
-		const functions: PerParticleBehaviorFunction[] = [];
-
-		for (const behavior of behaviors) {
-			switch (behavior.type) {
-				case "ColorBySpeed": {
-					const b = behavior as IColorBySpeedBehavior;
-					functions.push((particle: Particle) => applyColorBySpeedPS(b, particle));
-					break;
-				}
-
-				case "SizeBySpeed": {
-					const b = behavior as ISizeBySpeedBehavior;
-					functions.push((particle: Particle) => applySizeBySpeedPS(particle, b));
-					break;
-				}
-
-				case "RotationBySpeed": {
-					const b = behavior as IRotationBySpeedBehavior;
-					functions.push((particle: Particle) => applyRotationBySpeedPS(particle, b));
-					break;
-				}
-
-				case "OrbitOverLife": {
-					const b = behavior as IOrbitOverLifeBehavior;
-					functions.push((particle: Particle) => applyOrbitOverLifePS(particle, b));
-					break;
-				}
-			}
-		}
-
-		return functions;
-	}
-
-	/**
-	 * Apply system-level behaviors (gradients) to ParticleSystem
-	 * These configure native Babylon.js gradients once, not per-particle
-	 */
-	private _applySystemLevelBehaviors(behaviors: Behavior[]): void {
-		for (const behavior of behaviors) {
-			if (!behavior.type) {
-				continue;
-			}
-
-			switch (behavior.type) {
-				case "ColorOverLife":
-					applyColorOverLifePS(this, behavior as IColorOverLifeBehavior);
-					break;
-				case "SizeOverLife":
-					applySizeOverLifePS(this, behavior as ISizeOverLifeBehavior);
-					break;
-				case "RotationOverLife":
-				case "Rotation3DOverLife":
-					applyRotationOverLifePS(this, behavior as IRotationOverLifeBehavior);
-					break;
-				case "ForceOverLife":
-				case "ApplyForce":
-					applyForceOverLifePS(this, behavior as IForceOverLifeBehavior);
-					break;
-				case "GravityForce":
-					applyGravityForcePS(this, behavior as IGravityForceBehavior);
-					break;
-				case "SpeedOverLife":
-					applySpeedOverLifePS(this, behavior as ISpeedOverLifeBehavior);
-					break;
-				case "FrameOverLife":
-					applyFrameOverLifePS(this, behavior as IFrameOverLifeBehavior);
-					break;
-				case "LimitSpeedOverLife":
-					applyLimitSpeedOverLifePS(this, behavior as ILimitSpeedOverLifeBehavior);
-					break;
-			}
-		}
 	}
 
 	/**

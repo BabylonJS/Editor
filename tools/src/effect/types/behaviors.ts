@@ -6,6 +6,39 @@ import { SolidParticle } from "@babylonjs/core/Particles/solidParticle";
 import { SolidParticleSystem } from "@babylonjs/core/Particles/solidParticleSystem";
 
 /**
+ * Single source of truth for behavior type string values.
+ * Use these constants in both runtime and editor to avoid drift.
+ */
+export const BEHAVIOR_TYPES = {
+	ApplyForce: "ApplyForce",
+	Noise: "Noise",
+	TurbulenceField: "TurbulenceField",
+	GravityForce: "GravityForce",
+	ColorOverLife: "ColorOverLife",
+	RotationOverLife: "RotationOverLife",
+	Rotation3DOverLife: "Rotation3DOverLife",
+	SizeOverLife: "SizeOverLife",
+	ColorBySpeed: "ColorBySpeed",
+	RotationBySpeed: "RotationBySpeed",
+	SizeBySpeed: "SizeBySpeed",
+	SpeedOverLife: "SpeedOverLife",
+	FrameOverLife: "FrameOverLife",
+	ForceOverLife: "ForceOverLife",
+	OrbitOverLife: "OrbitOverLife",
+	WidthOverLength: "WidthOverLength",
+	ChangeEmitDirection: "ChangeEmitDirection",
+	EmitSubParticleSystem: "EmitSubParticleSystem",
+	LimitSpeedOverLife: "LimitSpeedOverLife",
+} as const;
+
+export type BehaviorType = (typeof BEHAVIOR_TYPES)[keyof typeof BEHAVIOR_TYPES];
+
+/**
+ * Whether a behavior is applied at system level (gradients) or per-particle each frame.
+ */
+export type BehaviorKind = "system" | "perParticle";
+
+/**
  * Per-particle behavior function for ParticleSystem
  * Behavior config is captured in closure, only particle is needed
  */

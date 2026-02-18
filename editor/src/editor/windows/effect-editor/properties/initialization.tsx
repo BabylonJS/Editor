@@ -81,6 +81,8 @@ export function EffectEditorParticleInitializationProperties(props: IEffectEdito
 
 	const setStartColor = (value: Color): void => {
 		const color = parseConstantColor(value);
+		// Convert to linear space for PBR material with unlit
+		color.toLinearSpaceToRef(color);
 		(system as any).color1 = color;
 		onChange();
 	};
