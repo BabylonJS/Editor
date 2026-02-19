@@ -1,5 +1,7 @@
 import { Scene } from "@babylonjs/core/scene";
 
+import { ISceneDecoratorData } from "../../decorators/apply";
+
 import { ScriptMap } from "../loader";
 import { AdvancedAssetContainer } from "../container";
 
@@ -44,27 +46,43 @@ export function registerScriptAssetParser(extension: string, parser: (parameters
 export async function _preloadScriptsAssets(rootUrl: string, scene: Scene, scriptsMap: ScriptMap) {
 	const nodes = [scene, ...scene.transformNodes, ...scene.meshes, ...scene.lights, ...scene.cameras];
 
-	const scripts = nodes
+	const scriptNodes = nodes
 		.filter((node) => node.metadata?.scripts?.length)
 		.map((node) => node.metadata.scripts)
 		.flat();
 
-	scripts.forEach((script) => {
-		if (!script.values) {
-			return;
-		}
-
-		for (const key in script.values) {
-			if (!script.values.hasOwnProperty(key)) {
-				continue;
+	scriptNodes.forEach((script) => {
+		const ctor = scriptsMap[script.key]?.default as ISceneDecoratorData;
+		ctor?._SceneAssets?.forEach((asset) => {
+			if (!scriptAssetsCache.get(asset.sceneName)) {
+				scriptAssetsCache.set(asset.sceneName, null);
 			}
+		});
 
-			const obj = script.values[key];
-			if (obj.type === "asset" && obj.value && !scriptAssetsCache.get(obj.value)) {
-				scriptAssetsCache.set(obj.value, null);
+		if (script.values) {
+			for (const key in script.values) {
+				if (!script.values.hasOwnProperty(key)) {
+					continue;
+				}
+
+				const obj = script.values[key];
+				if (obj.type === "asset" && obj.value && !scriptAssetsCache.get(obj.value)) {
+					scriptAssetsCache.set(obj.value, null);
+				}
 			}
 		}
 	});
+
+	let loadedAssetsCount = 0;
+	for (const value of scriptAssetsCache.values()) {
+		if (value === null) {
+			++loadedAssetsCount;
+		}
+	}
+
+	if (loadedAssetsCount === 0) {
+		return loadedAssetsCount;
+	}
 
 	const promises: Promise<void>[] = [];
 
@@ -102,4 +120,6 @@ export async function _preloadScriptsAssets(rootUrl: string, scene: Scene, scrip
 	});
 
 	await Promise.all(promises);
+
+	return loadedAssetsCount;
 }

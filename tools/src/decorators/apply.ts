@@ -73,6 +73,12 @@ export interface ISceneDecoratorData {
 		configuration: VisibleInInspectorDecoratorConfiguration;
 	}[];
 
+	// @sceneAsset
+	_SceneAssets?: {
+		sceneName: string;
+		propertyKey: string | Symbol;
+	}[];
+
 	// @onPointerEvent
 	_PointerEvents?: {
 		eventTypes: number[];
@@ -127,7 +133,7 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 		instance[params.propertyKey.toString()] = sound ?? null;
 	});
 
-	// @guiFromAsset
+	// @guiFromAsset, deprecated
 	(ctor._GuiFromAsset ?? []).map(async (params) => {
 		const guiUrl = `${rootUrl}assets/${params.pathInAssets}`;
 
@@ -160,7 +166,7 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 	});
 
 	// @visibleAsNumber, @visibleAsBoolean etc.
-	(ctor._VisibleInInspector ?? []).forEach(async (params) => {
+	(ctor._VisibleInInspector ?? []).forEach((params) => {
 		const propertyKey = params.propertyKey.toString();
 		const attachedScripts = script.values;
 
@@ -358,6 +364,11 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 			}
 		});
 	}
+
+	// @sceneAsset
+	ctor._SceneAssets?.forEach((params) => {
+		instance[params.propertyKey.toString()] = scriptAssetsCache.get(params.sceneName);
+	});
 
 	return {
 		observers: {
