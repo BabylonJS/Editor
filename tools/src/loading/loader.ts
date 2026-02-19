@@ -117,10 +117,13 @@ export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scen
 	});
 
 	if (!options?.skipAssetsPreload) {
-		// Do it once for all existing assets.
-		await _preloadScriptsAssets(rootUrl, scene, scriptsMap);
-		// Do it again to ensure assets linked to .scene are loaded too. TODO: fix THAT
-		await _preloadScriptsAssets(rootUrl, scene, scriptsMap);
+		// Loop until all assets are loaded.
+		// This is required as some assets can be linked to scripts that are themselves linked to .scene files
+		// that are not loaded at the time of the first call to _preloadScriptsAssets.
+		let loadedAssetsCount = 0;
+		do {
+			loadedAssetsCount = await _preloadScriptsAssets(rootUrl, scene, scriptsMap);
+		} while (loadedAssetsCount !== 0);
 	}
 
 	// Ensure all meshes perform their delay state check

@@ -48,3 +48,23 @@ export function animationGroupFromScene(animationGroupName: string) {
 		ctor._AnimationGroups.push({ animationGroupName, propertyKey });
 	};
 }
+
+/**
+ * Makes the decorated property linked to a scene that has the given name.
+ * Once the script is instantiated, the reference to the scene is retrieved as a
+ * `AdvancedAssetContainer` and assigned to the property. Scene link cant' be used in constructor.
+ * This can be used only by scripts using Classes.
+ * @param sceneName defines the name of the scene to retrieve.
+ * @example \@sceneAsset("blaster.babylon") public myBlasterScene: AdvancedAssetContainer;
+ */
+export function sceneAsset(sceneName: string) {
+	return function (target: any, propertyKey: string | Symbol) {
+		const ctor = target.constructor as ISceneDecoratorData;
+
+		ctor._SceneAssets ??= [];
+		ctor._SceneAssets.push({
+			sceneName,
+			propertyKey,
+		});
+	};
+}
