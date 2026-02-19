@@ -70,7 +70,7 @@ export async function processAssetFile(file: string, options: IProcessAssetFileO
 
 	if (isNewFile || !finalPathExists) {
 		if (supportedJsonExtensions.includes(extension)) {
-			fs.writeJSON(finalPath, await fs.readJSON(file), {
+			await fs.writeJSON(finalPath, await fs.readJSON(file), {
 				encoding: "utf-8",
 			});
 		} else {
