@@ -547,4 +547,28 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 	});
 
 	options.exportedAssets.push(destination);
+
+	// Write manifest
+	if (options.optimize) {
+		const manifestDestination = join(options.publicDir, `${options.sceneName}.babylon.manifest`);
+
+		let manifest = {
+			version: 0,
+			enableSceneOffline: true,
+			enableTexturesOffline: true,
+		};
+
+		if (await fs.pathExists(manifestDestination)) {
+			manifest = await fs.readJSON(manifestDestination);
+		}
+
+		++manifest.version;
+
+		await fs.writeJSON(manifestDestination, manifest, {
+			encoding: "utf-8",
+			// spaces: "\t", // Useful for debug
+		});
+
+		options.exportedAssets.push(manifestDestination);
+	}
 }
