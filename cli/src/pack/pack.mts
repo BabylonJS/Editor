@@ -200,6 +200,19 @@ export async function pack(projectDir: string, options: IPackOptions) {
 			message: "Collected scripts",
 		});
 
+		// Write list of exported assets
+		const assetsListPath = join(publicDir, "assets-list.json");
+		await fs.writeJSON(
+			assetsListPath,
+			exportedAssets.map((asset) => asset.replace(publicDir + "/", "")),
+			{
+				spaces: "\t",
+				encoding: "utf-8",
+			}
+		);
+
+		exportedAssets.push(assetsListPath);
+
 		// Clean
 		if (options.optimize) {
 			const publicFiles = await normalizedGlob(join(publicDir, "**/*"), {
