@@ -53,7 +53,7 @@ export async function convertUnityPrefabToData(
 		};
 	}
 
-	const rootComponent = components.get(rootGameObjectId);
+	const rootComponent = components.get(String(rootGameObjectId));
 	if (!rootComponent) {
 		return {
 			root: null,
@@ -64,34 +64,37 @@ export async function convertUnityPrefabToData(
 		};
 	}
 
-	// Get GameObject from component (could be rootComponent.GameObject or rootComponent itself)
-	const gameObject = rootComponent.GameObject || rootComponent;
-	if (!gameObject || (typeof gameObject === "object" && !gameObject.m_Name && !gameObject.m_Component)) {
-		// Try to find GameObject component directly
-		for (const [_id, comp] of components) {
-			if (comp.GameObject && comp.GameObject.m_Name) {
-				const foundGameObject = comp.GameObject;
-				if (foundGameObject.m_Component) {
-					const converted = convertGameObject(foundGameObject, components);
-					root = convertToIDataFormat(converted);
-					break;
+	const emptyIData = (): IData => ({
+		root: null,
+		materials: [],
+		textures: [],
+		images: [],
+		geometries: [],
+	});
+
+	try {
+		// Get GameObject from component (could be rootComponent.GameObject or rootComponent itself)
+		const gameObject = rootComponent.GameObject || rootComponent;
+		if (!gameObject || (typeof gameObject === "object" && !gameObject.m_Name && !gameObject.m_Component)) {
+			// Try to find GameObject component directly
+			for (const [_id, comp] of components) {
+				if (comp.GameObject && comp.GameObject.m_Name) {
+					const foundGameObject = comp.GameObject;
+					if (foundGameObject.m_Component) {
+						const converted = convertGameObject(foundGameObject, components);
+						root = convertToIDataFormat(converted);
+						break;
+					}
 				}
 			}
+			if (!root) return emptyIData();
+		} else {
+			const converted = convertGameObject(gameObject, components);
+			root = convertToIDataFormat(converted);
 		}
-
-		if (!root) {
-			return {
-				root: null,
-				materials: [],
-				textures: [],
-				images: [],
-				geometries: [],
-			};
-		}
-	} else {
-		// Convert root GameObject and its hierarchy recursively
-		const converted = convertGameObject(gameObject, components);
-		root = convertToIDataFormat(converted);
+	} catch (err) {
+		console.warn("Unity prefab conversion failed, returning empty IData:", err);
+		return emptyIData();
 	}
 
 	// Process dependencies if provided

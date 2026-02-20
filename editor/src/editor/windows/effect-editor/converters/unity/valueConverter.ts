@@ -1,10 +1,11 @@
 import type { Value } from "babylonjs-editor-tools";
+import { getUnityProp } from "./utils";
 
 /**
- * Convert Unity AnimationCurve to our PiecewiseBezier Value
+ * Convert Unity AnimationCurve to our PiecewiseBezier Value (supports m_Curve).
  */
 export function convertAnimationCurve(curve: any, scalar: number = 1): Value {
-	const m_Curve = curve.m_Curve;
+	const m_Curve = getUnityProp(curve, "curve") ?? curve?.m_Curve;
 	if (!m_Curve || m_Curve.length === 0) {
 		return { type: "ConstantValue", value: 0 };
 	}
@@ -82,26 +83,24 @@ export function convertAnimationCurve(curve: any, scalar: number = 1): Value {
 }
 
 /**
- * Convert Unity MinMaxCurve to our Value
+ * Convert Unity MinMaxCurve to our Value (supports m_MinMaxState, m_Scalar, m_MaxCurve, etc.)
  */
 export function convertMinMaxCurve(minMaxCurve: any): Value {
-	const minMaxState = minMaxCurve.minMaxState;
-	const scalar = parseFloat(minMaxCurve.scalar || "1");
+	if (!minMaxCurve) return { type: "ConstantValue", value: 1 };
+	const minMaxState = String(getUnityProp(minMaxCurve, "minMaxState") ?? minMaxCurve.minMaxState ?? "0");
+	const scalar = parseFloat(getUnityProp(minMaxCurve, "scalar") ?? minMaxCurve.scalar ?? "1");
+	const minScalar = parseFloat(getUnityProp(minMaxCurve, "minScalar") ?? minMaxCurve.minScalar ?? "0");
+	const maxCurve = getUnityProp(minMaxCurve, "maxCurve") ?? minMaxCurve.maxCurve;
 
 	switch (minMaxState) {
-		case "0": // Constant
+		case "0":
 			return { type: "ConstantValue", value: scalar };
-		case "1": // Curve
-			return convertAnimationCurve(minMaxCurve.maxCurve, scalar);
-		case "2": // Random between two constants
-			return {
-				type: "IntervalValue",
-				min: parseFloat(minMaxCurve.minScalar || "0") * scalar,
-				max: scalar,
-			};
-		case "3": // Random between two curves
-			// For now, just use max curve (proper implementation would need RandomColor equivalent for Value)
-			return convertAnimationCurve(minMaxCurve.maxCurve, scalar);
+		case "1":
+			return convertAnimationCurve(maxCurve ?? {}, scalar);
+		case "2":
+			return { type: "IntervalValue", min: minScalar * scalar, max: scalar };
+		case "3":
+			return convertAnimationCurve(maxCurve ?? {}, scalar);
 		default:
 			return { type: "ConstantValue", value: scalar };
 	}
