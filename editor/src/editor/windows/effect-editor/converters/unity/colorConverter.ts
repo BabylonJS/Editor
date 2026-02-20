@@ -1,5 +1,6 @@
 import { Color4 } from "@babylonjs/core/Maths/math.color";
 import type { IConstantColor, IGradientColor, IRandomColor, IRandomColorBetweenGradient } from "babylonjs-editor-tools/src/effect/types";
+import { getUnityProp } from "./utils";
 
 /**
  * Convert Unity Color to our Color4
@@ -9,29 +10,36 @@ export function convertColor(unityColor: { r: string; g: string; b: string; a: s
 }
 
 /**
- * Convert Unity Gradient to our Color
+ * Convert Unity Gradient to our Color (supports m_NumColorKeys / numColorKeys etc.)
  */
 export function convertGradient(gradient: any): IConstantColor | IGradientColor {
+	const numColorKeys = getUnityProp(gradient, "numColorKeys") ?? gradient.m_NumColorKeys ?? 0;
+	const numAlphaKeys = getUnityProp(gradient, "numAlphaKeys") ?? gradient.m_NumAlphaKeys ?? 0;
 	const colorKeys: Array<{ time: number; value: [number, number, number, number] }> = [];
 
-	// Parse color keys
-	for (let i = 0; i < gradient.m_NumColorKeys; i++) {
-		const key = gradient[`key${i}`];
-		const time = parseFloat(gradient[`ctime${i}`]) / 65535; // Unity stores time as 0-65535
+	for (let i = 0; i < numColorKeys; i++) {
+		const key = gradient[`key${i}`] ?? gradient[`m_ColorKeys`]?.[i];
+		const timeRaw = gradient[`ctime${i}`] ?? gradient[`m_CTime${i}`] ?? 0;
+		const time = typeof timeRaw === "number" ? timeRaw : parseFloat(timeRaw) / 65535;
+		if (!key) continue;
+		const r = key.r ?? key.m_R;
+		const g = key.g ?? key.m_G;
+		const b = key.b ?? key.m_B;
 		colorKeys.push({
 			time,
-			value: [parseFloat(key.r), parseFloat(key.g), parseFloat(key.b), 1],
+			value: [parseFloat(r ?? "1"), parseFloat(g ?? "1"), parseFloat(b ?? "1"), 1],
 		});
 	}
 
-	// Parse alpha keys
 	const alphaKeys: Array<{ time: number; value: number }> = [];
-	for (let i = 0; i < gradient.m_NumAlphaKeys; i++) {
-		const key = gradient[`key${i}`];
-		const time = parseFloat(gradient[`atime${i}`]) / 65535;
+	for (let i = 0; i < numAlphaKeys; i++) {
+		const key = gradient[`key${i}`] ?? gradient[`m_AlphaKeys`]?.[i];
+		const timeRaw = gradient[`atime${i}`] ?? gradient[`m_ATime${i}`] ?? 0;
+		const time = typeof timeRaw === "number" ? timeRaw : parseFloat(timeRaw) / 65535;
+		if (!key) continue;
 		alphaKeys.push({
 			time,
-			value: parseFloat(key.a),
+			value: parseFloat(key.a ?? key.m_A ?? "1"),
 		});
 	}
 
@@ -52,43 +60,36 @@ export function convertGradient(gradient: any): IConstantColor | IGradientColor 
 }
 
 /**
- * Convert Unity MinMaxGradient to our Color
+ * Convert Unity MinMaxGradient to our Color (supports m_MinMaxState, m_MaxColor, etc.)
  */
 export function convertMinMaxGradient(minMaxGradient: any): IConstantColor | IGradientColor | IRandomColor | IRandomColorBetweenGradient {
-	const minMaxState = minMaxGradient.minMaxState;
+	const minMaxState = String(getUnityProp(minMaxGradient, "minMaxState") ?? minMaxGradient.minMaxState ?? "0");
+	const maxColor = getUnityProp(minMaxGradient, "maxColor") ?? minMaxGradient.maxColor ?? {};
+	const minColor = getUnityProp(minMaxGradient, "minColor") ?? minMaxGradient.minColor ?? {};
+	const maxGradient = getUnityProp(minMaxGradient, "maxGradient") ?? minMaxGradient.maxGradient;
+	const minGradient = getUnityProp(minMaxGradient, "minGradient") ?? minMaxGradient.minGradient;
+
+	const toRgba = (c: any): [number, number, number, number] => [
+		parseFloat(c?.r ?? c?.m_R ?? "1"),
+		parseFloat(c?.g ?? c?.m_G ?? "1"),
+		parseFloat(c?.b ?? c?.m_B ?? "1"),
+		parseFloat(c?.a ?? c?.m_A ?? "1"),
+	];
 
 	switch (minMaxState) {
-		case "0": // Constant color
-			return {
-				type: "ConstantColor",
-				value: [
-					parseFloat(minMaxGradient.maxColor.r),
-					parseFloat(minMaxGradient.maxColor.g),
-					parseFloat(minMaxGradient.maxColor.b),
-					parseFloat(minMaxGradient.maxColor.a),
-				] as [number, number, number, number],
-			};
-		case "1": // Gradient
-			return convertGradient(minMaxGradient.maxGradient);
-		case "2": // Random between two colors
+		case "0":
+			return { type: "ConstantColor", value: toRgba(maxColor) };
+		case "1":
+			return convertGradient(maxGradient ?? {});
+		case "2":
 			return {
 				type: "RandomColor",
-				colorA: [
-					parseFloat(minMaxGradient.minColor.r),
-					parseFloat(minMaxGradient.minColor.g),
-					parseFloat(minMaxGradient.minColor.b),
-					parseFloat(minMaxGradient.minColor.a),
-				] as [number, number, number, number],
-				colorB: [
-					parseFloat(minMaxGradient.maxColor.r),
-					parseFloat(minMaxGradient.maxColor.g),
-					parseFloat(minMaxGradient.maxColor.b),
-					parseFloat(minMaxGradient.maxColor.a),
-				] as [number, number, number, number],
+				colorA: toRgba(minColor),
+				colorB: toRgba(maxColor),
 			};
-		case "3": // Random between two gradients
-			const grad1 = convertGradient(minMaxGradient.minGradient);
-			const grad2 = convertGradient(minMaxGradient.maxGradient);
+		case "3": {
+			const grad1 = convertGradient(minGradient ?? {});
+			const grad2 = convertGradient(maxGradient ?? {});
 			if (grad1.type === "Gradient" && grad2.type === "Gradient") {
 				return {
 					type: "RandomColorBetweenGradient",
@@ -102,8 +103,8 @@ export function convertMinMaxGradient(minMaxGradient: any): IConstantColor | IGr
 					},
 				};
 			}
-			// Fallback to constant color if conversion failed
 			return { type: "ConstantColor", value: [1, 1, 1, 1] };
+		}
 		default:
 			return { type: "ConstantColor", value: [1, 1, 1, 1] };
 	}

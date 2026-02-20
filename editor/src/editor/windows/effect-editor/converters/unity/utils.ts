@@ -3,6 +3,17 @@
  */
 
 /**
+ * Get Unity serialized property (supports both "name" and "m_name" for resilience).
+ */
+export function getUnityProp(obj: any, propName: string): any {
+	if (obj == null) return undefined;
+	const direct = obj[propName];
+	if (direct !== undefined) return direct;
+	const mName = "m_" + propName.charAt(0).toUpperCase() + propName.slice(1);
+	return obj[mName];
+}
+
+/**
  * Helper to get component by type from GameObject
  */
 export function getComponentByType(gameObject: any, componentType: string, components: Map<string, any>): any | null {
@@ -11,8 +22,8 @@ export function getComponentByType(gameObject: any, componentType: string, compo
 	}
 
 	for (const compRef of gameObject.m_Component) {
-		const compId = compRef.component?.fileID || compRef.component;
-		const comp = components.get(compId);
+		const compId = compRef.component?.fileID ?? compRef.component;
+		const comp = components.get(compId != null ? String(compId) : compId);
 		if (comp && comp[componentType]) {
 			return comp[componentType];
 		}

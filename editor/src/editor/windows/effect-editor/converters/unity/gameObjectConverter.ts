@@ -99,14 +99,15 @@ export function convertGameObject(gameObject: any, components: Map<string, any>)
 		children: [],
 	};
 
-	// Recursively convert children
+	// Recursively convert children (components Map uses string keys)
 	if (transform && transform.m_Children) {
 		for (const childRef of transform.m_Children) {
-			const childTransform = components.get(childRef.fileID);
+			const childId = childRef?.fileID ?? childRef;
+			const childTransform = components.get(childId != null ? String(childId) : childId);
 			if (childTransform && childTransform.Transform) {
 				const childGORef = childTransform.Transform.m_GameObject;
-				const childGOId = childGORef?.fileID || childGORef;
-				const childGO = components.get(childGOId);
+				const childGOId = childGORef?.fileID ?? childGORef;
+				const childGO = components.get(childGOId != null ? String(childGOId) : childGOId);
 
 				if (childGO && childGO.GameObject) {
 					if (!group.children) {
