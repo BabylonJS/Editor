@@ -6,8 +6,8 @@ import { AssetContainer, InstantiatedEntries } from "@babylonjs/core/assetContai
 import { cloneJSObject } from "../tools/tools";
 
 import { ScriptMap } from "./loader";
-import { _applyScriptsForObject } from "./script/apply";
 import { configureTransformNodes } from "./transform-node";
+import { _applyScriptsForObject, _removeRegisteredScriptInstance, scriptsDictionary } from "./script/apply";
 
 export interface IAdvancedAssetContainerInstantiateOptions {
 	/**
@@ -64,6 +64,13 @@ export class AdvancedAssetContainer {
 	}
 
 	public removeDefault(): void {
+		this.container.getNodes().forEach((node) => {
+			const scripts = scriptsDictionary.get(node);
+			scripts?.forEach((script) => {
+				_removeRegisteredScriptInstance(node, script);
+			});
+		});
+
 		this.container.removeAllFromScene();
 	}
 
