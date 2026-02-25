@@ -37,7 +37,6 @@ export function CinematicEditorAnimationGroupKeyInspector(props: ICinematicEdito
 				property="speed"
 				label="Speed"
 				step={0.01}
-				min={0.1}
 				onChange={() => {
 					props.cinematicEditor.timelines.sortAnimationsKeys();
 					props.cinematicEditor.updateTracksAtCurrentTime();
