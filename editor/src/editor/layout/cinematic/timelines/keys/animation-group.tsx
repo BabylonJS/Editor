@@ -22,7 +22,7 @@ export function CinematicEditorAnimationGroupKey(props: ICinematicEditorAnimatio
 	return (
 		<div
 			style={{
-				width: `${(getAnimationGroupFramesCount() * props.scale) / props.cinematicKey.speed}px`,
+				width: `${(getAnimationGroupFramesCount() * props.scale) / Math.abs(props.cinematicKey.speed)}px`,
 			}}
 			className={`
                 h-4 rounded-md bg-muted ring-1 ring-accent dark:ring-black

@@ -14,12 +14,14 @@ export function syncAnimationGroupsToFrame(frame: number, cinematic: ICinematic,
 		}
 
 		track.animationGroups?.forEach((configuration) => {
+			animationGroup.speedRatio = configuration.speed;
+
 			let framesCount = configuration.endFrame - configuration.startFrame;
 			if (configuration.repeatCount) {
 				framesCount += framesCount * configuration.repeatCount;
 			}
 
-			const endFrame = configuration.frame + framesCount / configuration.speed;
+			const endFrame = configuration.frame + framesCount / Math.abs(configuration.speed);
 			if (configuration.frame > frame || endFrame < frame) {
 				return;
 			}
@@ -27,7 +29,7 @@ export function syncAnimationGroupsToFrame(frame: number, cinematic: ICinematic,
 			const frameDiff = frame - configuration.frame;
 
 			if (frameDiff > 0) {
-				const offset = frameDiff * configuration.speed;
+				const offset = configuration.speed >= 0 ? frameDiff * Math.abs(configuration.speed) : (framesCount - frameDiff) * Math.abs(configuration.speed);
 
 				animationGroup.play(false);
 				animationGroup.goToFrame(offset);
