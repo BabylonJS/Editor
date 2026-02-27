@@ -57,9 +57,6 @@ export type PerSolidParticleBehaviorFunction = (particle: SolidParticle) => void
 export type SystemBehaviorFunction = (system: ParticleSystem | SolidParticleSystem, behavior: Behavior) => void;
 
 /**
- *  behavior types (converted from Quarks)
- */
-/**
  * Color function - unified structure for all color-related behaviors
  */
 export interface IColorFunction {
@@ -202,4 +199,4 @@ export type Behavior =
 	| ISizeBySpeedBehavior
 	| IRotationBySpeedBehavior
 	| IOrbitOverLifeBehavior
-	| { type: string; [key: string]: unknown }; // Fallback for unknown behaviors
+	| { type: string; [key: string]: unknown };

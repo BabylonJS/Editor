@@ -3,7 +3,7 @@ import type { IParticleSystemConfig } from "./emitter";
 import type { IMaterial, ITexture, IImage, IGeometry } from "./resources";
 
 /**
- *  transform (converted from Quarks, left-handed coordinate system)
+ *  transform
  */
 export interface ITransform {
 	position: Vector3;
@@ -12,7 +12,7 @@ export interface ITransform {
 }
 
 /**
- *  group (converted from Quarks)
+ *  group
  */
 export interface IGroup {
 	uuid: string;
@@ -22,7 +22,7 @@ export interface IGroup {
 }
 
 /**
- *  emitter (converted from Quarks)
+ *  emitter
  */
 export interface IEmitter {
 	uuid: string;
@@ -36,8 +36,7 @@ export interface IEmitter {
 }
 
 /**
- *  data (converted from Quarks)
- * Contains the converted  structure with groups, emitters, and resources
+ *  data
  */
 export interface IData {
 	root: IGroup | IEmitter | null;

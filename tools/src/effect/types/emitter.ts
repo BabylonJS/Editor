@@ -9,7 +9,7 @@ import type { IShape } from "./shapes";
 import type { Behavior } from "./behaviors";
 
 /**
- *  emission burst (converted from Quarks)
+ *  emission burst
  */
 export interface IEmissionBurst {
 	time: Value;
@@ -17,13 +17,11 @@ export interface IEmissionBurst {
 }
 
 /**
- * Particle system configuration (converted from Quarks to native Babylon.js properties)
+ * Particle system configuration
  */
 export interface IParticleSystemConfig {
 	version?: string;
 	systemType: "solid" | "base";
-
-	// === Native Babylon.js properties (converted from Quarks Value) ===
 
 	// Life & Size
 	minLifeTime?: number;

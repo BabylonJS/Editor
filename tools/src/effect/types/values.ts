@@ -1,5 +1,5 @@
 /**
- *  value types (converted from Quarks)
+ *  value types
  */
 export interface IConstantValue {
 	type: "ConstantValue";
