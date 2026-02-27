@@ -1,7 +1,7 @@
 import type { Value } from "./values";
 
 /**
- *  rotation types (converted from Quarks)
+ *  rotation types
  */
 export interface IEulerRotation {
 	type: "Euler";

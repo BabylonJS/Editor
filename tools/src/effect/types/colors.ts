@@ -1,7 +1,7 @@
 import type { IGradientKey } from "./gradients";
 
 /**
- *  color types (converted from Quarks)
+ *  color types
  */
 export interface IConstantColor {
 	type: "ConstantColor";

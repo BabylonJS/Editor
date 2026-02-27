@@ -1,7 +1,7 @@
 import type { Value } from "./values";
 
 /**
- *  shape configuration (converted from Quarks)
+ *  shape configuration
  */
 export interface IShape {
 	type: string;

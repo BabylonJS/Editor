@@ -1,5 +1,5 @@
 /**
- *  gradient key (converted from Quarks)
+ *  gradient key
  */
 export interface IGradientKey {
 	time?: number;
