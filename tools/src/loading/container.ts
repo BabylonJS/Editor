@@ -76,18 +76,28 @@ export class AdvancedAssetContainer {
 
 	public instantiate(options?: IAdvancedAssetContainerInstantiateOptions): InstantiatedEntries {
 		const namingId = Tools.RandomId();
-		const nameFunction = (sourceName: string) => `${sourceName}-${namingId}`;
+		const nameFunction = (sourceName: string) => sourceName;
 
-		const entries = this.container.instantiateModelsToScene(nameFunction, false, options);
+		const entries = this.container.instantiateModelsToScene(nameFunction, false, {
+			...options,
+			predicate: (entity) => {
+				entity.name = `${entity.name}-${namingId}_${entity.id}`;
+				return options?.predicate?.(entity) ?? true;
+			},
+		});
 
 		const newDescendants: Node[] = [];
 		entries.rootNodes.forEach((node) => {
 			newDescendants.push(node, ...node.getDescendants(false));
 		});
 
-		newDescendants.forEach((newNode, index) => {
-			const originalNode = this._originalDescendants[index]!;
-			const originalId = originalNode.id;
+		newDescendants.forEach((newNode) => {
+			const nameSplit = newNode.name.split("_");
+			const originalId = nameSplit.pop();
+
+			newNode.name = nameSplit.join("_");
+
+			const originalNode = this._originalDescendants.find((n) => n.id === originalId)!;
 
 			newNode.id = Tools.RandomId();
 			newNode.metadata = cloneJSObject(this._nodesMap.get(originalNode)!.metadata);
