@@ -123,5 +123,15 @@
 		"tailwindcss-animate": "^1.0.7",
 		"usehooks-ts": "^3.1.0",
 		"webm-muxer": "^5.0.2"
+	},
+	"build": {
+		"protocols": [
+			{
+				"name": "Babylon.js Editor",
+				"schemes": [
+					"babylonjs-editor"
+				]
+			}
+		]
 	}
 }
