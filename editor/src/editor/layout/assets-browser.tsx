@@ -18,11 +18,12 @@ import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 
 import { IoIosOptions } from "react-icons/io";
 import { AiOutlinePlus } from "react-icons/ai";
+import { MdOutlineRefresh } from "react-icons/md";
 import { FaMagnifyingGlass } from "react-icons/fa6";
-import { IoRefresh, IoCheckmark } from "react-icons/io5";
-import { FaFolder, FaFolderOpen, FaRegFolderOpen } from "react-icons/fa";
+import { IoRefresh, IoCheckmark, IoArrowDownCircleOutline } from "react-icons/io5";
+import { FaArrowLeft, FaArrowRight, FaFolder, FaFolderOpen, FaRegFolderOpen } from "react-icons/fa";
 
-import { Button, Tree, TreeNodeInfo } from "@blueprintjs/core";
+import { Tree, TreeNodeInfo } from "@blueprintjs/core";
 
 import { Editor } from "../main";
 
@@ -46,6 +47,7 @@ import { loadScene } from "../../project/load/scene";
 import { saveProject, saveProjectConfiguration } from "../../project/save/save";
 import { onProjectConfigurationChangedObservable, projectConfiguration } from "../../project/configuration";
 
+import { Button } from "../../ui/shadcn/ui/button";
 import { showAlert, showConfirm, showPrompt } from "../../ui/dialog";
 
 import { Input } from "../../ui/shadcn/ui/input";
@@ -360,6 +362,10 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 	 * Refreshes the assets browser. This will refresh the files and the files tree nodes.
 	 */
 	public refresh(): void {
+		this.setState({
+			files: [],
+		});
+
 		this.setBrowsePath(this.state.browsedPath!);
 
 		if (projectConfiguration.path) {
@@ -596,19 +602,27 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 	private _getFilesGridComponent(): ReactNode {
 		return (
 			<div className="flex flex-col w-full h-full">
-				<div className="flex gap-2 justify-between w-full h-10 min-h-10 bg-primary-foreground">
-					<div className="flex gap-2 h-full">
+				<div className="flex gap-2 justify-between px-2 w-full h-10 min-h-10 bg-primary-foreground">
+					<div className="flex gap-2 items-center h-full">
 						<Button
+							variant="ghost"
 							disabled={this._isBrowsingProjectRootPath()}
-							minimal
-							icon="arrow-left"
-							className="transition-all duration-300"
+							className="w-8 h-8 p-0.5"
+							title="Go to previous directory"
 							onClick={() => this.setBrowsePath(dirname(this.state.browsedPath!))}
-						/>
-						<Button minimal icon="arrow-right" className="transition-all duration-300" />
-						<Button minimal icon="refresh" className="transition-all duration-300" disabled={!this.state.browsedPath} onClick={() => this.refresh()} />
+						>
+							<FaArrowLeft className="w-4 h-4" />
+						</Button>
+						<Button variant="ghost" className="w-8 h-8 p-0.5" title="Go to previous directory">
+							<FaArrowRight className="w-4 h-4" />
+						</Button>
+						<Button variant="ghost" className="w-8 h-8 p-0.5" disabled={!this.state.browsedPath} title="Refresh" onClick={() => this.refresh()}>
+							<MdOutlineRefresh className="w-5 h-5" />
+						</Button>
 
-						<Button minimal icon="import" text="Import" onClick={() => this._handleImportFiles()} />
+						<Button variant="ghost" className="gap-2 w-24 h-8 p-0.5" title="Import existing assets to current directory" onClick={() => this._handleImportFiles()}>
+							<IoArrowDownCircleOutline className="w-5 h-5" /> Import
+						</Button>
 					</div>
 
 					<div className="flex gap-2 items-center">
@@ -629,13 +643,9 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 
 						<DropdownMenu onOpenChange={(o) => o && this.forceUpdate()}>
 							<DropdownMenuTrigger asChild>
-								<Button
-									minimal
-									icon={<IoIosOptions className="w-6 h-6" strokeWidth={1} />}
-									className="transition-all duration-300"
-									disabled={!this.state.browsedPath}
-									onClick={() => this._refreshItems(this.state.browsedPath!)}
-								/>
+								<Button variant="ghost" className="w-8 h-8 p-0.5" disabled={!this.state.browsedPath} onClick={() => this._refreshItems(this.state.browsedPath!)}>
+									<IoIosOptions className="w-6 h-6" strokeWidth={1} />
+								</Button>
 							</DropdownMenuTrigger>
 							<DropdownMenuContent>
 								<DropdownMenuItem
