@@ -187,7 +187,7 @@ export abstract class MarketplaceProvider {
 
 		const projectDir = dirname(editor.state.projectPath);
 		const downloadPath = localStorage.getItem("marketplace-download-path") || "assets";
-		const assetDir = isAbsolute(downloadPath) ? join(downloadPath, asset.id) : join(projectDir, downloadPath, asset.id);
+		const assetDir = isAbsolute(downloadPath) ? join(downloadPath, this.id, asset.id) : join(projectDir, downloadPath, this.id, asset.id);
 		await ensureDir(assetDir);
 
 		const totalDownloadSize = files.reduce((acc, q) => acc + (q.size || 0), 0);

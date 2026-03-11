@@ -73,8 +73,8 @@ export class MarketplaceSettingsDialog extends Component<IMarketplaceSettingsDia
 								</div>
 								<p className="text-xs text-muted-foreground italic">
 									{isAbsolute(this.state.downloadPath)
-										? `Assets will be downloaded to ${this.state.downloadPath}/[AssetID]`
-										: `Assets will be downloaded to [ProjectRoot]/${this.state.downloadPath}/[AssetID]`}
+										? `Assets will be downloaded to ${this.state.downloadPath}/[Provider]/[AssetID]`
+										: `Assets will be downloaded to [ProjectRoot]/${this.state.downloadPath}/[Provider]/[AssetID]`}
 								</p>
 							</div>
 						</div>
