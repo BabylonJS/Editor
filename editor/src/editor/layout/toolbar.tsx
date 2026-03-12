@@ -3,7 +3,7 @@ import { ipcRenderer, shell } from "electron";
 
 import { Component, ReactNode } from "react";
 
-import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarSeparator, MenubarShortcut, MenubarTrigger } from "../../ui/shadcn/ui/menubar";
+import { Menubar, MenubarCheckboxItem, MenubarContent, MenubarItem, MenubarMenu, MenubarSeparator, MenubarShortcut, MenubarTrigger } from "../../ui/shadcn/ui/menubar";
 
 import { isDarwin } from "../../tools/os";
 import { execNodePty } from "../../tools/node-pty";
@@ -211,11 +211,9 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 						<MenubarMenu>
 							<MenubarTrigger>Views</MenubarTrigger>
 							<MenubarContent className="border-black/50">
-								<MenubarItem
-									onClick={() => this._handleOpenMarketplace()}
-								>
+								<MenubarCheckboxItem checked={this.props.editor.state.openedTabs.includes("marketplace")} onClick={() => this._handleOpenMarketplace()}>
 									Marketplace
-								</MenubarItem>
+								</MenubarCheckboxItem>
 							</MenubarContent>
 						</MenubarMenu>
 					)}
@@ -279,6 +277,11 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 	}
 
 	private _handleOpenMarketplace(): void {
+		if (this.props.editor.state.openedTabs.includes("marketplace")) {
+			this.props.editor.layout.removeLayoutTab("marketplace");
+			return;
+		}
+
 		this.props.editor.layout.addLayoutTab(<MarketplaceBrowser editor={this.props.editor} />, {
 			id: "marketplace",
 			title: "Marketplace",

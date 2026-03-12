@@ -4,6 +4,7 @@ import { Component, ReactNode } from "react";
 import { Actions, IJsonModel, Layout, Model, TabNode } from "flexlayout-react";
 
 import { Tools } from "babylonjs";
+import { ipcRenderer } from "electron";
 
 import { waitNextAnimationFrame } from "../tools/tools";
 
@@ -136,6 +137,20 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
 		layoutData.version = this._layoutVersion;
 
 		localStorage.setItem("babylonjs-editor-layout", JSON.stringify(layoutData));
+
+		const trackableTabs = ["marketplace"];
+		const openedTabs = trackableTabs.filter((t) => !!model.getNodeById(t));
+		const prev = this.props.editor.state.openedTabs ?? [];
+		const changed = openedTabs.length !== prev.length || openedTabs.some((t) => !prev.includes(t));
+
+		if (changed) {
+			this.props.editor.setState({ openedTabs });
+
+			ipcRenderer.send("editor:setup-menu", {
+				enableExperimentalFeatures: this.props.editor.state.enableExperimentalFeatures,
+				openedTabs,
+			});
+		}
 	}
 
 	/**

@@ -101,6 +101,10 @@ export interface IEditorState {
 	 * Defines wether or not experimental features are enabled.
 	 */
 	enableExperimentalFeatures: boolean;
+	/**
+	 * Defines the list of tabs that are currently opened in the layout.
+	 */
+	openedTabs: string[];
 
 	/**
 	 * Defines if the project is being edited.
@@ -152,6 +156,7 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 			compressedTexturesEnabled: false,
 			compressedTexturesEnabledInPreview: false,
 			enableExperimentalFeatures: tryGetExperimentalFeaturesEnabledFromLocalStorage(),
+			openedTabs: [],
 
 			editProject: false,
 			editPreferences: false,
@@ -247,7 +252,10 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 
 		// Ready
 		ipcRenderer.send("editor:ready");
-		ipcRenderer.send("editor:setup-menu", { enableExperimentalFeatures: this.state.enableExperimentalFeatures });
+		ipcRenderer.send("editor:setup-menu", {
+			enableExperimentalFeatures: this.state.enableExperimentalFeatures,
+			openedTabs: this.state.openedTabs,
+		});
 	}
 
 	/**
