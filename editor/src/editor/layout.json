@@ -78,14 +78,6 @@
 								"component": "console",
 								"enableClose": false,
 								"enableRenderOnDemand": false
-							},
-							{
-								"type": "tab",
-								"id": "marketplace",
-								"name": "Marketplace",
-								"component": "marketplace",
-								"enableClose": false,
-								"enableRenderOnDemand": false
 							}
 						]
 					}

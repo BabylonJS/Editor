@@ -1,4 +1,5 @@
-import { IMarketplaceAsset, MarketplaceProvider, IMarketplaceSearchResult, IMarketplaceFilterDefinition, IMarketplaceSearchFilters } from "../../project/marketplaces";
+import { IMarketplaceAsset, IMarketplaceSearchResult, IMarketplaceFilterDefinition, IMarketplaceSearchFilters } from "./types";
+import { MarketplaceProvider } from "./provider";
 
 export class PolyHavenProvider extends MarketplaceProvider {
 	public id = "polyhaven";

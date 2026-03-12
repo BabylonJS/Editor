@@ -17,7 +17,6 @@ import { EditorConsole } from "./layout/console";
 import { EditorInspector } from "./layout/inspector";
 import { EditorAnimation } from "./layout/animation";
 import { EditorAssetsBrowser } from "./layout/assets-browser";
-import { MarketplaceBrowser } from "./layout/marketplace-browser";
 
 export interface IEditorLayoutProps {
 	/**
@@ -71,10 +70,9 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
 		graph: <EditorGraph editor={this.props.editor} ref={(r) => (this.graph = r!)} />,
 		"assets-browser": <EditorAssetsBrowser editor={this.props.editor} ref={(r) => (this.assets = r!)} />,
 		animations: <EditorAnimation editor={this.props.editor} ref={(r) => (this.animations = r!)} />,
-		marketplace: <MarketplaceBrowser editor={this.props.editor} />,
 	};
 
-	private _layoutVersion: string = "5.0.0-alpha.3";
+	private _layoutVersion: string = "5.0.0-alpha.2";
 
 	public constructor(props: IEditorLayoutProps) {
 		super(props);

@@ -2,7 +2,7 @@ import { Component, ReactNode } from "react";
 import { ipcRenderer } from "electron";
 import { isAbsolute } from "path";
 
-import { MarketplaceProvider } from "../../../project/marketplaces";
+import { MarketplaceProvider } from "../../../tools/marketplaces/provider";
 import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../../../ui/shadcn/ui/alert-dialog";
 import { Label } from "../../../ui/shadcn/ui/label";
 import { Input } from "../../../ui/shadcn/ui/input";

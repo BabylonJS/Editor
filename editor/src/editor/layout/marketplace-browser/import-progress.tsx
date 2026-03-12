@@ -4,7 +4,8 @@ import { Grid } from "react-loader-spinner";
 import { FaXmark } from "react-icons/fa6";
 
 import { Editor } from "../../main";
-import { IMarketplaceAsset, MarketplaceProvider } from "../../../project/marketplaces";
+import { IMarketplaceAsset } from "../../../tools/marketplaces/types";
+import { MarketplaceProvider } from "../../../tools/marketplaces/provider";
 import { Button } from "../../../ui/shadcn/ui/button";
 import { Progress } from "../../../ui/shadcn/ui/progress";
 

@@ -1,12 +1,6 @@
 import axios from "axios";
-import {
-	IMarketplaceAsset,
-	IMarketplaceSearchResult,
-	MarketplaceProvider,
-	IFileToDownload,
-	IMarketplaceSearchFilters,
-	IMarketplaceFilterDefinition,
-} from "../../project/marketplaces";
+import { IMarketplaceAsset, IMarketplaceSearchResult, IFileToDownload, IMarketplaceSearchFilters, IMarketplaceFilterDefinition } from "./types";
+import { MarketplaceProvider } from "./provider";
 
 export class AmbientCGProvider extends MarketplaceProvider {
 	public id = "ambientcg";

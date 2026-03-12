@@ -1,6 +1,7 @@
 import { FaFilter, FaGear, FaMagnifyingGlass, FaXmark } from "react-icons/fa6";
 
-import { IMarketplaceFilterDefinition, IMarketplaceSearchFilters, MarketplaceFilterValue, MarketplaceProvider } from "../../../project/marketplaces";
+import { IMarketplaceFilterDefinition, IMarketplaceSearchFilters, MarketplaceFilterValue } from "../../../tools/marketplaces/types";
+import { MarketplaceProvider } from "../../../tools/marketplaces/provider";
 import { Input } from "../../../ui/shadcn/ui/input";
 import { Button } from "../../../ui/shadcn/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../ui/shadcn/ui/select";

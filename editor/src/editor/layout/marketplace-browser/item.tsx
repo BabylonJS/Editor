@@ -1,5 +1,5 @@
 import { Tooltip } from "@blueprintjs/core";
-import { IMarketplaceAsset } from "../../../project/marketplaces";
+import { IMarketplaceAsset } from "../../../tools/marketplaces/types";
 
 export interface IMarketplaceItemProps {
 	asset: IMarketplaceAsset;

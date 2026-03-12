@@ -1,16 +1,9 @@
 import axios from "axios";
 import { ipcRenderer } from "electron";
-import {
-	IMarketplaceAsset,
-	MarketplaceProvider,
-	IMarketplaceSearchResult,
-	IFileToDownload,
-	IMarketplaceSettings,
-	IMarketplaceSearchFilters,
-	IMarketplaceFilterDefinition,
-} from "../../project/marketplaces";
+import { IMarketplaceAsset, IMarketplaceSearchResult, IFileToDownload, IMarketplaceSettings, IMarketplaceSearchFilters, IMarketplaceFilterDefinition } from "./types";
 import { SketchfabProviderSettings } from "./sketchfab/settings";
 import { ReactNode } from "react";
+import { MarketplaceProvider } from "./provider";
 
 export interface ISketchfabSettings extends IMarketplaceSettings {
 	token: string;

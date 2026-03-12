@@ -1,5 +1,5 @@
 import { Grid } from "react-loader-spinner";
-import { IMarketplaceAsset } from "../../../project/marketplaces";
+import { IMarketplaceAsset } from "../../../tools/marketplaces/types";
 import { MarketplaceItem } from "./item";
 
 export interface IMarketplaceGridProps {

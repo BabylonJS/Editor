@@ -1,5 +1,5 @@
 import { Grid } from "react-loader-spinner";
-import { IMarketplaceAsset } from "../../../project/marketplaces";
+import { IMarketplaceAsset } from "../../../tools/marketplaces/types";
 import { Button } from "../../../ui/shadcn/ui/button";
 import { Badge } from "../../../ui/shadcn/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../ui/shadcn/ui/select";

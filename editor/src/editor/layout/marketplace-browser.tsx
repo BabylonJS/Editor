@@ -4,8 +4,7 @@ import { toast } from "sonner";
 import { ipcRenderer } from "electron";
 
 import { Editor } from "../main";
-import { IMarketplaceAsset, MarketplaceProvider, IMarketplaceSearchFilters } from "../../project/marketplaces";
-import "../../tools/marketplaces/providers";
+import { IMarketplaceAsset, IMarketplaceSearchFilters } from "../../tools/marketplaces/types";
 
 import { ImportProgress } from "./marketplace-browser/import-progress";
 import { MarketplaceToolbar } from "./marketplace-browser/toolbar";
@@ -13,6 +12,8 @@ import { MarketplaceGrid } from "./marketplace-browser/grid";
 import { MarketplaceSidebar } from "./marketplace-browser/sidebar";
 import { MarketplaceFooter } from "./marketplace-browser/footer";
 import { MarketplaceSettingsDialog } from "./marketplace-browser/settings-dialog";
+import { MarketplaceProvider } from "../../tools/marketplaces/provider";
+import registerProviders from "../../tools/marketplaces/registrations";
 
 export interface IMarketplaceBrowserProps {
 	editor: Editor;
@@ -48,7 +49,7 @@ export class MarketplaceBrowser extends Component<IMarketplaceBrowserProps, IMar
 	public constructor(props: IMarketplaceBrowserProps) {
 		super(props);
 
-		const providers = MarketplaceProvider.getProviders();
+		const providers = registerProviders();
 
 		this.state = {
 			providers: providers,
