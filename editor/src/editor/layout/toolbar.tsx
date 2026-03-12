@@ -41,6 +41,7 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 
 		ipcRenderer.on("editor:open-project", () => this._handleOpenProject());
 		ipcRenderer.on("editor:open-vscode", () => this._handleOpenVisualStudioCode());
+		ipcRenderer.on("editor:open-marketplace", () => this._handleOpenMarketplace());
 
 		this._nodeCommands = getNodeCommands(this.props.editor);
 		this._meshCommands = getMeshCommands(this.props.editor);
@@ -211,14 +212,7 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 							<MenubarTrigger>Views</MenubarTrigger>
 							<MenubarContent className="border-black/50">
 								<MenubarItem
-									onClick={() => {
-										this.props.editor.layout.addLayoutTab(<MarketplaceBrowser editor={this.props.editor} />, {
-											id: "marketplace",
-											title: "Marketplace",
-											enableClose: true,
-											setAsActiveTab: true,
-										});
-									}}
+									onClick={() => this._handleOpenMarketplace()}
 								>
 									Marketplace
 								</MenubarItem>
@@ -282,5 +276,14 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 
 		const p = await execNodePty(`code "${join(dirname(this.props.editor.state.projectPath), "/")}"`);
 		await p.wait();
+	}
+
+	private _handleOpenMarketplace(): void {
+		this.props.editor.layout.addLayoutTab(<MarketplaceBrowser editor={this.props.editor} />, {
+			id: "marketplace",
+			title: "Marketplace",
+			enableClose: true,
+			setAsActiveTab: true,
+		});
 	}
 }

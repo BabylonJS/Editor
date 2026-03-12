@@ -97,6 +97,12 @@ ipcMain.on("app:quit", () => {
 });
 
 let dashboardWindow: BrowserWindow | null = null;
+let lastMenuOptions = { enableExperimentalFeatures: false };
+
+ipcMain.on("editor:setup-menu", (_, options) => {
+	lastMenuOptions = options;
+	setupEditorMenu(options);
+});
 
 async function openDashboard(): Promise<void> {
 	if (!dashboardWindow) {
@@ -144,12 +150,12 @@ async function openProject(filePath: string): Promise<void> {
 
 	notifyWindows("dashboard:opened-projects", openedProjects);
 
-	setupEditorMenu();
+	setupEditorMenu(lastMenuOptions);
 
 	const window = await createEditorWindow();
 	window.setTitle(basename(dirname(filePath)));
 
-	window.on("focus", () => setupEditorMenu());
+	window.on("focus", () => setupEditorMenu(lastMenuOptions));
 	window.once("closed", () => {
 		openedProjects.splice(openedProjects.indexOf(filePath), 1);
 		notifyWindows("dashboard:opened-projects", openedProjects);

@@ -3,7 +3,7 @@ import { BrowserWindow, Menu, shell } from "electron";
 
 import { cameraCommandItems, lightCommandItems, meshCommandItems, nodeCommandItems, spriteCommandItems } from "./dialogs/command-palette/shared-commands";
 
-export function setupEditorMenu(): void {
+export function setupEditorMenu(options: { enableExperimentalFeatures: boolean }): void {
 	Menu.setApplicationMenu(
 		Menu.buildFromTemplate([
 			{
@@ -204,6 +204,19 @@ export function setupEditorMenu(): void {
 					})),
 				],
 			},
+			...(options.enableExperimentalFeatures
+				? [
+						{
+							label: "Views",
+							submenu: [
+								{
+									label: "Marketplace",
+									click: () => BrowserWindow.getFocusedWindow()?.webContents.send("editor:open-marketplace"),
+								},
+							],
+						},
+					]
+				: []),
 			{
 				label: "Window",
 				submenu: [

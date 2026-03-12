@@ -247,6 +247,7 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 
 		// Ready
 		ipcRenderer.send("editor:ready");
+		ipcRenderer.send("editor:setup-menu", { enableExperimentalFeatures: this.state.enableExperimentalFeatures });
 	}
 
 	/**
