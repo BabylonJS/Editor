@@ -47,6 +47,12 @@ export class EditorMarketplaceAssetInspector extends Component<IEditorInspectorI
 		this._loadDetails();
 	}
 
+	public componentDidUpdate(prevProps: IEditorInspectorImplementationProps<MarketplaceAssetInspectorObject>): void {
+		if (this.props.object.asset.id !== prevProps.object.asset.id) {
+			this._loadDetails();
+		}
+	}
+
 	public render(): ReactNode {
 		return (
 			<MarketplaceSidebar

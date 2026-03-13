@@ -69,17 +69,27 @@ export class PolyHavenProvider extends MarketplaceProvider {
 		const fileData: Record<string, any> = {};
 
 		for (const type in files) {
-			if (!allowedTypes.has(type.toLowerCase())) continue;
+			if (!Object.hasOwn(files, type)) {
+				continue;
+			}
+			if (!allowedTypes.has(type.toLowerCase())) {
+				continue;
+			}
 
 			const typeFiles = files[type];
 
 			for (const q of qualityOptions) {
 				const qFiles = typeFiles?.[q];
-				if (!qFiles) continue;
+				if (!qFiles) {
+					continue;
+				}
 
 				const target = (fileData[q] ??= {});
 
 				for (const subType in qFiles) {
+					if (!Object.hasOwn(qFiles, subType)) {
+						continue;
+					}
 					target[subType] = qFiles[subType];
 				}
 			}

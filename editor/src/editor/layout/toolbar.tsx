@@ -23,7 +23,7 @@ import { getLightCommands } from "../dialogs/command-palette/light";
 import { getCameraCommands } from "../dialogs/command-palette/camera";
 import { getSpriteCommands } from "../dialogs/command-palette/sprite";
 import { ICommandPaletteType } from "../dialogs/command-palette/command-palette";
-import { MarketplaceBrowser } from "./marketplace-browser";
+import { EditorMarketplaceBrowser } from "./marketplace-browser";
 
 export interface IEditorToolbarProps {
 	editor: Editor;
@@ -282,7 +282,7 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 			return;
 		}
 
-		this.props.editor.layout.addLayoutTab(<MarketplaceBrowser editor={this.props.editor} />, {
+		this.props.editor.layout.addLayoutTab(<EditorMarketplaceBrowser editor={this.props.editor} />, {
 			id: "marketplace",
 			title: "Marketplace",
 			enableClose: true,

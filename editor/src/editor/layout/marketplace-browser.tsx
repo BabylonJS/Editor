@@ -9,7 +9,8 @@ import { MarketplaceFooter } from "./marketplace-browser/footer";
 import { MarketplaceSettingsDialog } from "./marketplace-browser/settings-dialog";
 import { MarketplaceProvider } from "../../tools/marketplaces/provider";
 import registerProviders from "../../tools/marketplaces/registrations";
-import { MarketplaceAssetInspectorObject } from "./inspector/marketplace-asset";
+import { MarketplaceAssetInspectorObject, EditorMarketplaceAssetInspector } from "./inspector/marketplace-asset";
+import { waitUntil } from "../../tools/tools";
 
 export interface IMarketplaceBrowserProps {
 	editor: Editor;
@@ -23,22 +24,17 @@ export interface IMarketplaceBrowserState {
 	assets: IMarketplaceAsset[];
 	loading: boolean;
 	totalCount?: number;
-
 	selectedAsset: IMarketplaceAsset | null;
-	detailsLoading: boolean;
-
 	currentPage: number;
 	pageTokenStack: (string | undefined)[];
 	nextPageToken?: string;
 
-	selectedDownloadQuality?: string;
-	selectedDownloadType?: string;
-
-	activeDownloadIds: string[];
 	settingsOpen: boolean;
+
+	isMaximized: boolean;
 }
 
-export class MarketplaceBrowser extends Component<IMarketplaceBrowserProps, IMarketplaceBrowserState> {
+export class EditorMarketplaceBrowser extends Component<IMarketplaceBrowserProps, IMarketplaceBrowserState> {
 	private _searchRequestId = 0;
 
 	public constructor(props: IMarketplaceBrowserProps) {
@@ -55,88 +51,112 @@ export class MarketplaceBrowser extends Component<IMarketplaceBrowserProps, IMar
 			loading: false,
 			totalCount: undefined,
 			selectedAsset: null,
-			detailsLoading: false,
 			currentPage: 1,
 			pageTokenStack: [undefined],
 			nextPageToken: undefined,
-			selectedDownloadType: undefined,
-			activeDownloadIds: [],
 			settingsOpen: false,
+
+			isMaximized: props.editor.layout?.isTabMaximized("marketplace") ?? false,
 		};
 	}
 
-	public componentDidMount(): void {
+	public async componentDidMount(): Promise<void> {
 		this.state.providers.forEach((p) => {
 			p.onSettingsChanged(this._handleSettingsChanged);
 		});
+
+		await waitUntil(() => this.props.editor.layout);
+
+		this.props.editor.layout.onLayoutChanged.add(this._handleLayoutChanged);
+
+		const isMaximized = this.props.editor.layout.isTabMaximized("marketplace");
+		if (isMaximized !== this.state.isMaximized) {
+			this.setState({ isMaximized });
+		}
 	}
 
 	public componentWillUnmount(): void {
 		this.state.providers.forEach((p) => {
 			p.removeSettingsListener(this._handleSettingsChanged);
 		});
+
+		this.props.editor.layout?.onLayoutChanged.removeCallback(this._handleLayoutChanged);
 	}
 
 	private _handleSettingsChanged = (_id: string, _value: any) => {
-		if (this.state.selectedAsset) {
-			this._handleAssetClicked(this.state.selectedAsset);
+		this._handleSearch();
+	};
+
+	private _handleLayoutChanged = () => {
+		const isMaximized = this.props.editor.layout.isTabMaximized("marketplace");
+		if (isMaximized !== this.state.isMaximized) {
+			this.setState({ isMaximized });
 		}
 	};
 
 	public render(): ReactNode {
 		return (
-			<div className="flex flex-col w-full h-full bg-background text-foreground overflow-hidden">
-				<MarketplaceToolbar
-					query={this.state.query}
-					filters={this.state.filters}
-					filterDefinitions={this.state.selectedProvider.getSearchFilters?.() || []}
-					loading={this.state.loading}
-					providers={this.state.providers}
-					selectedProvider={this.state.selectedProvider}
-					onQueryChange={(query) => this.setState({ query })}
-					onFiltersChange={(filters) => this.setState({ filters })}
-					onResetFilters={() => this.setState({ filters: this._getDefaultFilters(this.state.selectedProvider) })}
-					onSearch={() => this._handleSearch()}
-					onProviderChange={(selectedProvider) => {
-						this.setState(
-							{
-								selectedProvider,
-								filters: this._getDefaultFilters(selectedProvider),
-								selectedAsset: null,
-								selectedDownloadQuality: undefined,
-								selectedDownloadType: undefined,
-								currentPage: 1,
-								pageTokenStack: [undefined],
-								nextPageToken: undefined,
-								totalCount: undefined,
-								assets: [],
-							},
-							() => this._handleSearch()
-						);
-					}}
-					onSettingsClick={() => this.setState({ settingsOpen: true })}
-				/>
-
-				<div className="flex-1 overflow-hidden">
-					<MarketplaceGrid
-						assets={this.state.assets}
-						loading={this.state.loading}
+			<div className="flex flex-row w-full h-full bg-background text-foreground overflow-hidden">
+				<div className="flex flex-col flex-1 overflow-hidden">
+					<MarketplaceToolbar
 						query={this.state.query}
-						selectedAsset={this.state.selectedAsset}
-						onAssetClick={(asset) => this._handleAssetClicked(asset)}
+						filters={this.state.filters}
+						filterDefinitions={this.state.selectedProvider.getSearchFilters?.() || []}
+						loading={this.state.loading}
+						providers={this.state.providers}
+						selectedProvider={this.state.selectedProvider}
+						onQueryChange={(query) => this.setState({ query })}
+						onFiltersChange={(filters) => this.setState({ filters })}
+						onResetFilters={() => this.setState({ filters: this._getDefaultFilters(this.state.selectedProvider) })}
+						onSearch={() => this._handleSearch()}
+						onProviderChange={(selectedProvider) => {
+							this.setState(
+								{
+									selectedProvider,
+									filters: this._getDefaultFilters(selectedProvider),
+									selectedAsset: null,
+									currentPage: 1,
+									pageTokenStack: [undefined],
+									nextPageToken: undefined,
+									totalCount: undefined,
+									assets: [],
+								},
+								() => this._handleSearch()
+							);
+						}}
+						onSettingsClick={() => this.setState({ settingsOpen: true })}
+					/>
+
+					<div className="flex-1 overflow-hidden">
+						<MarketplaceGrid
+							assets={this.state.assets}
+							loading={this.state.loading}
+							query={this.state.query}
+							selectedAsset={this.state.selectedAsset}
+							onAssetClick={(asset) => this._handleAssetClicked(asset)}
+						/>
+					</div>
+
+					<MarketplaceFooter
+						assetsCount={this.state.assets.length}
+						currentPage={this.state.currentPage}
+						totalCount={this.state.totalCount}
+						loading={this.state.loading}
+						hasPrevious={this.state.currentPage > 1}
+						hasNext={!!this.state.nextPageToken}
+						onPrevious={() => this._handlePreviousPage()}
+						onNext={() => this._handleNextPage()}
 					/>
 				</div>
 
-				<MarketplaceFooter
-					assetsCount={this.state.assets.length}
-					currentPage={this.state.currentPage}
-					totalCount={this.state.totalCount}
-					loading={this.state.loading}
-					hasPrevious={this.state.currentPage > 1}
-					hasNext={!!this.state.nextPageToken}
-					onPrevious={() => this._handlePreviousPage()}
-					onNext={() => this._handleNextPage()}
-				/>
+				{this.state.isMaximized && this.state.selectedAsset && (
+					<div className="border-l border-border bg-background/50 overflow-hidden flex flex-col" style={{ width: "25%" }}>
+						<EditorMarketplaceAssetInspector
+							editor={this.props.editor}
+							object={new MarketplaceAssetInspectorObject(this.state.selectedAsset, this.state.selectedProvider, () => this.setState({ settingsOpen: true }))}
+						/>
+					</div>
+				)}
 
 				<MarketplaceSettingsDialog open={this.state.settingsOpen} providers={this.state.providers} onClose={() => this.setState({ settingsOpen: false })} />
 			</div>
@@ -177,6 +197,7 @@ export class MarketplaceBrowser extends Component<IMarketplaceBrowserProps, IMar
 	}
 
 	private async _handleAssetClicked(asset: IMarketplaceAsset): Promise<void> {
+		this.setState({ selectedAsset: asset });
 		return this.props.editor.layout.inspector.setEditedObject(
 			new MarketplaceAssetInspectorObject(asset, this.state.selectedProvider, () => this.setState({ settingsOpen: true }))
 		);
@@ -207,8 +228,6 @@ export class MarketplaceBrowser extends Component<IMarketplaceBrowserProps, IMar
 				totalCount: result.totalCount,
 				nextPageToken: result.nextPageToken,
 				selectedAsset: null,
-				selectedDownloadQuality: undefined,
-				selectedDownloadType: undefined,
 			});
 			return true;
 		} catch (e) {
