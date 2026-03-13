@@ -14,7 +14,13 @@ import {
 	IMarketplaceProgress,
 	IMarketplaceOAuth,
 	IMarketplaceSettings,
+	IMarketplaceDownloadItem,
 } from "./types";
+import { HDRCubeTexture } from "babylonjs";
+import { EnvironmentTextureTools } from "babylonjs";
+import { BaseTexture } from "babylonjs";
+import { Observable } from "babylonjs";
+import { EXRCubeTexture } from "babylonjs";
 
 export abstract class MarketplaceProvider {
 	private static _registry: MarketplaceProvider[] = [];
@@ -50,6 +56,9 @@ export abstract class MarketplaceProvider {
 
 	public abstract id: string;
 	public abstract title: string;
+
+	private activeDownloadIds: IMarketplaceDownloadItem[] = [];
+	private downloadListeners: ((id: string, progress: IMarketplaceProgress) => void)[] = [];
 
 	protected _settings: IMarketplaceSettings;
 	private _settingsListeners: ((id: string, value: any) => void)[] = [];
@@ -93,16 +102,24 @@ export abstract class MarketplaceProvider {
 
 	protected abstract getFilesToDownload(asset: IMarketplaceAsset, selectedQuality: string, selectedType: string): IFileToDownload[];
 
-	public async downloadAndImport(
-		asset: IMarketplaceAsset,
-		editor: Editor,
-		selectedQuality: string,
-		selectedType: string,
-		onProgress?: (data: IMarketplaceProgress) => void,
-		signal?: AbortSignal
-	): Promise<void> {
-		if (!editor.state.projectPath) {
-			return;
+	public registerDownloadListener(listener: (id: string, progress: IMarketplaceProgress) => void): () => void {
+		this.downloadListeners.push(listener);
+
+		return () => {
+			const index = this.downloadListeners.indexOf(listener);
+			if (index !== -1) {
+				this.downloadListeners.splice(index, 1);
+			}
+		};
+	}
+
+	public abortDownload(id: string): void {
+		this.activeDownloadIds.find((i) => i.id === id)?.abortController.abort();
+	}
+
+	public async downloadAndImport(asset: IMarketplaceAsset, editor: Editor, selectedQuality: string, selectedType: string, type?: string): Promise<void> {
+		if (!editor.state.projectPath || this.activeDownloadIds.some((i) => i.id === asset.id)) {
+			throw new Error("Download already in progress for this asset.");
 		}
 
 		const files = this.getFilesToDownload(asset, selectedQuality, selectedType).filter((f) => !!f.url && !!f.path);
@@ -110,21 +127,22 @@ export abstract class MarketplaceProvider {
 			throw new Error(`No downloadable files are available for '${asset.name}' with ${selectedQuality}/${selectedType}.`);
 		}
 
+		this.activeDownloadIds.push({ id: asset.id, abortController: new AbortController() });
 		const projectDir = dirname(editor.state.projectPath);
 		const downloadPath = localStorage.getItem("marketplace-download-path") || "assets";
 		const assetDir = isAbsolute(downloadPath) ? join(downloadPath, this.id, asset.id) : join(projectDir, downloadPath, this.id, asset.id);
-		await ensureDir(assetDir);
-
-		const totalDownloadSize = files.reduce((acc, q) => acc + (q.size || 0), 0);
-
-		const startTime = Date.now();
-		let totalLoaded = 0;
-
-		const filesToExtract: { path: string; dir: string }[] = [];
 
 		try {
+			await ensureDir(assetDir);
+
+			const totalDownloadSize = files.reduce((acc, q) => acc + (q.size || 0), 0);
+
+			const startTime = Date.now();
+			let totalLoaded = 0;
+
+			const filesToExtract: { path: string; dir: string }[] = [];
 			for (const file of files) {
-				if (signal?.aborted) {
+				if (this.activeDownloadIds.some((i) => i.id === asset.id && i.abortController.signal.aborted)) {
 					throw new Error("Download aborted by user.");
 				}
 
@@ -138,25 +156,25 @@ export abstract class MarketplaceProvider {
 					method: "get",
 					url: file.url,
 					responseType: "arraybuffer",
-					signal: signal,
+					signal: this.activeDownloadIds.find((i) => i.id === asset.id)?.abortController.signal,
 					onDownloadProgress: (progressEvent) => {
-						if (onProgress) {
-							const fileLoaded = progressEvent.loaded;
-							const delta = fileLoaded - lastFileLoaded;
-							totalLoaded += delta;
-							lastFileLoaded = fileLoaded;
+						const fileLoaded = progressEvent.loaded;
+						const delta = fileLoaded - lastFileLoaded;
+						totalLoaded += delta;
+						lastFileLoaded = fileLoaded;
 
-							const elapsed = (Date.now() - startTime) / 1000;
-							const speed = elapsed > 0 ? totalLoaded / elapsed : 0;
-							const progress = totalDownloadSize > 0 ? (totalLoaded / totalDownloadSize) * 100 : 0;
+						const elapsed = (Date.now() - startTime) / 1000;
+						const speed = elapsed > 0 ? totalLoaded / elapsed : 0;
+						const progress = totalDownloadSize > 0 ? (totalLoaded / totalDownloadSize) * 100 : 0;
 
-							onProgress({
+						this.downloadListeners.forEach((l) =>
+							l(asset.id, {
 								progress: Math.min(100, Math.round(progress)),
 								loaded: totalLoaded,
 								total: totalDownloadSize,
 								speed: speed,
-							});
-						}
+							})
+						);
 					},
 				}).then(async (response) => {
 					const buffer = Buffer.from(response.data);
@@ -169,26 +187,77 @@ export abstract class MarketplaceProvider {
 			}
 
 			if (filesToExtract.length > 0) {
-				if (onProgress) {
-					onProgress({
+				this.downloadListeners.forEach((l) =>
+					l(asset.id, {
 						progress: 100,
 						loaded: totalDownloadSize,
 						total: totalDownloadSize,
 						speed: 0,
-						extracting: true,
-					});
-				}
+						extraStatus: "Extracting Asset...",
+					})
+				);
 
 				for (const item of filesToExtract) {
 					await decompress(item.path, item.dir);
 					await remove(item.path);
 				}
 			}
+
+			if (type === "env") {
+				this.downloadListeners.forEach((l) =>
+					l(asset.id, {
+						progress: 100,
+						loaded: totalDownloadSize,
+						total: totalDownloadSize,
+						speed: 0,
+						extraStatus: "Converting to Environment...",
+					})
+				);
+				for (const item of files) {
+					await this.convertFileToEnv(join(assetDir, item.path), editor);
+				}
+			}
+
+			this.activeDownloadIds = this.activeDownloadIds.filter((asset) => asset.id !== asset.id);
 		} catch (e) {
 			await remove(assetDir);
+			this.activeDownloadIds = this.activeDownloadIds.filter((asset) => asset.id !== asset.id);
 			throw e;
 		}
 
 		editor.layout.assets.refresh();
+	}
+
+	private async convertFileToEnv(filePath: string, editor: Editor) {
+		const type = filePath.split(".").pop();
+		switch (type) {
+			case "hdr":
+				const hdr = new HDRCubeTexture(filePath, editor.layout.preview.scene, 512, false, true, false, false);
+				await this.convertTextureToEnv(filePath, hdr, hdr.onLoadObservable);
+				break;
+			case "exr":
+				const exr = new EXRCubeTexture(filePath, editor.layout.preview.scene, 512, false, true, false, false);
+				await this.convertTextureToEnv(filePath, exr, exr.onLoadObservable);
+				break;
+		}
+	}
+
+	private async convertTextureToEnv(filePath: string, texture: BaseTexture, onLoadObservable: Observable<BaseTexture>) {
+		return new Promise((res, rej) => {
+			onLoadObservable.addOnce(async () => {
+				try {
+					const envBuffer = await EnvironmentTextureTools.CreateEnvTextureAsync(texture, {
+						imageQuality: 1,
+					});
+					await writeFile(`${filePath}.env`, Buffer.from(envBuffer));
+					await remove(filePath);
+					res(true);
+				} catch (e) {
+					rej(e);
+				} finally {
+					texture.dispose();
+				}
+			});
+		});
 	}
 }

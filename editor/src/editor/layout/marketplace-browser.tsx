@@ -1,19 +1,15 @@
 import { Component, ReactNode } from "react";
-import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
-import { toast } from "sonner";
-import { ipcRenderer } from "electron";
 
 import { Editor } from "../main";
 import { IMarketplaceAsset, IMarketplaceSearchFilters } from "../../tools/marketplaces/types";
 
-import { ImportProgress } from "./marketplace-browser/import-progress";
 import { MarketplaceToolbar } from "./marketplace-browser/toolbar";
 import { MarketplaceGrid } from "./marketplace-browser/grid";
-import { MarketplaceSidebar } from "./marketplace-browser/sidebar";
 import { MarketplaceFooter } from "./marketplace-browser/footer";
 import { MarketplaceSettingsDialog } from "./marketplace-browser/settings-dialog";
 import { MarketplaceProvider } from "../../tools/marketplaces/provider";
 import registerProviders from "../../tools/marketplaces/registrations";
+import { MarketplaceAssetInspectorObject } from "./inspector/marketplace-asset";
 
 export interface IMarketplaceBrowserProps {
 	editor: Editor;
@@ -44,7 +40,6 @@ export interface IMarketplaceBrowserState {
 
 export class MarketplaceBrowser extends Component<IMarketplaceBrowserProps, IMarketplaceBrowserState> {
 	private _searchRequestId = 0;
-	private _detailsRequestId = 0;
 
 	public constructor(props: IMarketplaceBrowserProps) {
 		super(props);
@@ -103,7 +98,6 @@ export class MarketplaceBrowser extends Component<IMarketplaceBrowserProps, IMar
 					onResetFilters={() => this.setState({ filters: this._getDefaultFilters(this.state.selectedProvider) })}
 					onSearch={() => this._handleSearch()}
 					onProviderChange={(selectedProvider) => {
-						this._detailsRequestId++;
 						this.setState(
 							{
 								selectedProvider,
@@ -124,41 +118,13 @@ export class MarketplaceBrowser extends Component<IMarketplaceBrowserProps, IMar
 				/>
 
 				<div className="flex-1 overflow-hidden">
-					<PanelGroup direction="horizontal">
-						<Panel defaultSize={75} minSize={30}>
-							<MarketplaceGrid
-								assets={this.state.assets}
-								loading={this.state.loading}
-								query={this.state.query}
-								selectedAsset={this.state.selectedAsset}
-								onAssetClick={(asset) => this._handleAssetClicked(asset)}
-							/>
-						</Panel>
-
-						{this.state.selectedAsset && <PanelResizeHandle className="w-1 bg-border/50 hover:bg-primary/50 transition-colors cursor-col-resize" />}
-						{this.state.selectedAsset && (
-							<Panel defaultSize={25} minSize={20} className="bg-primary-foreground/20 border-l border-border flex flex-col overflow-hidden">
-								<MarketplaceSidebar
-									asset={this.state.selectedAsset}
-									detailsLoading={this.state.detailsLoading}
-									selectedQuality={this.state.selectedDownloadQuality}
-									selectedType={this.state.selectedDownloadType}
-									activeDownloadIds={this.state.activeDownloadIds}
-									showLoginAction={this._shouldShowLoginAction()}
-									loginActionLabel={`Login to ${this.state.selectedProvider.title}`}
-									onClose={() => this.setState({ selectedAsset: null, selectedDownloadQuality: undefined, selectedDownloadType: undefined })}
-									onQualityChange={(val) => {
-										const selectedDownloadType = this._getFirstType(this.state.selectedAsset, val);
-										this.setState({ selectedDownloadQuality: val, selectedDownloadType });
-									}}
-									onTypeChange={(val) => this.setState({ selectedDownloadType: val })}
-									onImport={(asset) => this._handleImport(asset)}
-									onOpenMarketplaceUrl={(url) => ipcRenderer.send("app:open-url", url)}
-									onOpenSettings={() => this.setState({ settingsOpen: true })}
-								/>
-							</Panel>
-						)}
-					</PanelGroup>
+					<MarketplaceGrid
+						assets={this.state.assets}
+						loading={this.state.loading}
+						query={this.state.query}
+						selectedAsset={this.state.selectedAsset}
+						onAssetClick={(asset) => this._handleAssetClicked(asset)}
+					/>
 				</div>
 
 				<MarketplaceFooter
@@ -211,34 +177,9 @@ export class MarketplaceBrowser extends Component<IMarketplaceBrowserProps, IMar
 	}
 
 	private async _handleAssetClicked(asset: IMarketplaceAsset): Promise<void> {
-		const provider = this.state.selectedProvider;
-		const requestId = ++this._detailsRequestId;
-		this.setState({ selectedAsset: asset, detailsLoading: true, selectedDownloadQuality: undefined, selectedDownloadType: undefined });
-
-		if (provider.getAssetDetails) {
-			try {
-				const details = await provider.getAssetDetails(asset.id);
-				if (requestId !== this._detailsRequestId || provider !== this.state.selectedProvider) {
-					return;
-				}
-
-				const selectedQuality = Object.keys(details.downloadOptions || {})?.[0];
-				const selectedType = Object.keys(details.downloadOptions?.[selectedQuality] || {})?.[0];
-				this.setState({ selectedAsset: details, detailsLoading: false, selectedDownloadQuality: selectedQuality, selectedDownloadType: selectedType });
-			} catch (e) {
-				if (requestId !== this._detailsRequestId || provider !== this.state.selectedProvider) {
-					return;
-				}
-
-				const message = e instanceof Error ? e.message : String(e);
-				this.props.editor.layout.console.error(`Failed to fetch asset details: ${message}`);
-				this.setState({ detailsLoading: false });
-			}
-		} else {
-			const selectedQuality = Object.keys(asset.downloadOptions || {})?.[0];
-			const selectedType = Object.keys(asset.downloadOptions?.[selectedQuality] || {})?.[0];
-			this.setState({ detailsLoading: false, selectedDownloadQuality: selectedQuality, selectedDownloadType: selectedType });
-		}
+		return this.props.editor.layout.inspector.setEditedObject(
+			new MarketplaceAssetInspectorObject(asset, this.state.selectedProvider, () => this.setState({ settingsOpen: true }))
+		);
 	}
 
 	private async _handleSearch(pageToken?: string): Promise<boolean> {
@@ -283,67 +224,6 @@ export class MarketplaceBrowser extends Component<IMarketplaceBrowserProps, IMar
 				this.setState({ loading: false });
 			}
 		}
-	}
-
-	private _handleImport(asset: IMarketplaceAsset): void {
-		if (this.state.activeDownloadIds.includes(asset.id)) {
-			return;
-		}
-
-		if (!this.state.selectedDownloadQuality || !this.state.selectedDownloadType) {
-			toast.error("Please select a valid quality and format before importing.");
-			return;
-		}
-
-		this.setState((prev) => ({ activeDownloadIds: [...prev.activeDownloadIds, asset.id] }));
-
-		toast(
-			<ImportProgress
-				asset={asset}
-				editor={this.props.editor}
-				provider={this.state.selectedProvider}
-				quality={this.state.selectedDownloadQuality!}
-				type={this.state.selectedDownloadType!}
-				onComplete={() => {
-					this.setState((prev) => ({ activeDownloadIds: prev.activeDownloadIds.filter((id) => id !== asset.id) }));
-				}}
-			/>,
-			{
-				id: asset.id,
-				className: "w-[420px]",
-				duration: Infinity,
-				dismissible: false,
-			}
-		);
-	}
-
-	private _getFirstType(asset: IMarketplaceAsset | null, quality?: string): string | undefined {
-		if (!asset || !quality) {
-			return undefined;
-		}
-
-		return Object.keys(asset.downloadOptions?.[quality] || {})[0];
-	}
-
-	private _shouldShowLoginAction(): boolean {
-		const selectedAsset = this.state.selectedAsset;
-		if (!selectedAsset) {
-			return false;
-		}
-
-		const hasDownloadOptions = Object.keys(selectedAsset.downloadOptions || {}).length > 0;
-		if (hasDownloadOptions || !selectedAsset.marketplaceUrl || !this.state.selectedProvider.getOAuth) {
-			return false;
-		}
-
-		if (!this.state.selectedProvider.isAuthenticated) {
-			return true;
-		}
-
-		if (!this.state.selectedProvider.isAuthenticated()) {
-			return true;
-		}
-		return false;
 	}
 
 	private _getDefaultFilters(provider: MarketplaceProvider): IMarketplaceSearchFilters {

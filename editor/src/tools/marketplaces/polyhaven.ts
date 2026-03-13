@@ -63,22 +63,27 @@ export class PolyHavenProvider extends MarketplaceProvider {
 		const info = await infoResponse.json();
 		const files = await filesResponse.json();
 
-		const allowedTypes = ["gltf", "fbx", "blend"];
+		const allowedTypes = new Set(["gltf", "fbx", "blend", "hdri"]);
+		const qualityOptions = ["1k", "2k", "4k", "8k"];
 
-		const fileTypes = Object.keys(files).filter((t) => allowedTypes.includes(t.toLowerCase()));
+		const fileData: Record<string, any> = {};
 
-		const qualityOptions = Object.keys(files.gltf ?? {});
+		for (const type in files) {
+			if (!allowedTypes.has(type.toLowerCase())) continue;
 
-		const fileData = qualityOptions.reduce((acc, q) => {
-			acc[q] = fileTypes.reduce((typeAcc, t) => {
-				const entry = files?.[t]?.[q]?.[t];
-				if (entry) {
-					typeAcc[t] = entry;
+			const typeFiles = files[type];
+
+			for (const q of qualityOptions) {
+				const qFiles = typeFiles?.[q];
+				if (!qFiles) continue;
+
+				const target = (fileData[q] ??= {});
+
+				for (const subType in qFiles) {
+					target[subType] = qFiles[subType];
 				}
-				return typeAcc;
-			}, {});
-			return acc;
-		}, {});
+			}
+		}
 
 		return {
 			id,

@@ -15,7 +15,6 @@ export interface IImportProgressProps {
 	provider: MarketplaceProvider;
 	quality: string;
 	type: string;
-	onComplete: () => void;
 }
 
 export const ImportProgress = (props: IImportProgressProps) => {
@@ -23,7 +22,7 @@ export const ImportProgress = (props: IImportProgressProps) => {
 	const [speed, setSpeed] = useState(0);
 	const [loaded, setLoaded] = useState(0);
 	const [total, setTotal] = useState(0);
-	const [extracting, setExtracting] = useState(false);
+	const [extraStatus, setExtraStatus] = useState("");
 
 	const formatBytes = (bytes: number) => {
 		if (bytes === 0) {
@@ -36,46 +35,25 @@ export const ImportProgress = (props: IImportProgressProps) => {
 	};
 
 	useEffect(() => {
-		const controller = new AbortController();
-
-		const run = async () => {
-			try {
-				await props.provider.downloadAndImport(
-					props.asset,
-					props.editor,
-					props.quality,
-					props.type,
-					(data) => {
-						setProgress(data.progress);
-						setSpeed(data.speed);
-						setLoaded(data.loaded);
-						setTotal(data.total);
-						if (data.extracting) {
-							setExtracting(true);
-						}
-					},
-					controller.signal
-				);
-				props.editor.layout.console.log(`Imported ${props.asset.name} from ${props.provider.title}`);
-				toast.success(`Successfully imported ${props.asset.name}`, { id: props.asset.id, duration: 3000 });
-			} catch (e) {
-				if (e.message === "Download aborted by user.") {
-					toast.error(`Import of ${props.asset.name} was cancelled and cleaned up.`, { id: props.asset.id, duration: 3000 });
-				} else {
-					props.editor.layout.console.error(`Import failed: ${e.message}`);
-					toast.error(`Failed to import ${props.asset.name}: ${e.message}`, { id: props.asset.id, duration: 5000 });
-				}
-			} finally {
-				props.onComplete();
+		const dispose = props.provider.registerDownloadListener((id, progress) => {
+			if (id === props.asset.id) {
+				setProgress(progress.progress);
+				setSpeed(progress.speed);
+				setLoaded(progress.loaded);
+				setTotal(progress.total);
+				setExtraStatus(progress.extraStatus || "");
 			}
-		};
-
-		run();
+		});
 
 		return () => {
-			controller.abort();
+			dispose();
 		};
 	}, []);
+
+	const abortDownload = () => {
+		props.provider.abortDownload(props.asset.id);
+		toast.dismiss(props.asset.id);
+	};
 
 	return (
 		<div className="flex flex-col gap-3 w-full p-2 py-1">
@@ -86,24 +64,22 @@ export const ImportProgress = (props: IImportProgressProps) => {
 					</div>
 					<div className="flex flex-col gap-0.5 min-w-0">
 						<span className="text-sm font-bold truncate leading-tight tracking-tight text-foreground/90">{props.asset.name}</span>
-						<span className="text-[9px] uppercase font-black tracking-widest truncate text-muted-foreground">
-							{extracting ? "Extracting Asset..." : "Importing Asset"}
-						</span>
+						<span className="text-[9px] uppercase font-black tracking-widest truncate text-muted-foreground">{extraStatus ? extraStatus : "Importing Asset"}</span>
 					</div>
 				</div>
-				{!extracting && (
+				{!extraStatus && (
 					<Button
 						variant="ghost"
 						size="icon"
 						className="h-8 w-8 shrink-0 opacity-20 hover:opacity-100 hover:bg-destructive/10 hover:text-destructive transition-all -mr-1 -mt-0.5"
-						onClick={() => toast.dismiss(props.asset.id)}
+						onClick={abortDownload}
 					>
 						<FaXmark className="h-5 w-5" />
 					</Button>
 				)}
 			</div>
 
-			{!extracting && (
+			{!extraStatus && (
 				<div className="flex flex-col gap-1.5 mt-0.5">
 					<div className="flex justify-between items-end gap-4 overflow-hidden">
 						<span className="text-[10px] text-muted-foreground/50 font-medium whitespace-nowrap truncate">

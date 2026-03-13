@@ -5,27 +5,23 @@ import { Badge } from "../../../ui/shadcn/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../ui/shadcn/ui/select";
 
 export interface IMarketplaceSidebarProps {
-	asset: IMarketplaceAsset | null;
+	asset?: IMarketplaceAsset;
 	detailsLoading: boolean;
 	selectedQuality?: string;
 	selectedType?: string;
-	activeDownloadIds: string[];
 	showLoginAction?: boolean;
 	loginActionLabel?: string;
-	onClose: () => void;
+	isDownloading: boolean;
 	onQualityChange: (quality: string) => void;
 	onTypeChange: (type: string) => void;
-	onImport: (asset: IMarketplaceAsset) => void;
+	onImport: (type?: string) => void;
 	onOpenMarketplaceUrl: (url: string) => void;
 	onOpenSettings: () => void;
 }
 
 export const MarketplaceSidebar = (props: IMarketplaceSidebarProps) => {
-	if (!props.asset) {
-		return null;
-	}
 	const canImport = !!props.selectedQuality && !!props.selectedType;
-	const hasDownloadOptions = !!Object.keys(props.asset.downloadOptions || {}).length;
+	const hasDownloadOptions = !!Object.keys(props.asset?.downloadOptions || {}).length;
 
 	if (props.detailsLoading) {
 		return (
@@ -35,49 +31,69 @@ export const MarketplaceSidebar = (props: IMarketplaceSidebarProps) => {
 		);
 	}
 
+	if (!props.asset) {
+		return null;
+	}
+
 	return (
 		<div className="flex-1 flex flex-col overflow-hidden">
 			<div className="flex justify-between items-start gap-2 p-4 border-b border-border bg-background/50 sticky top-0 z-10 backdrop-blur-sm">
 				<h3 className="font-bold text-lg leading-tight truncate pr-2">{props.asset.name}</h3>
-				<Button variant="ghost" size="icon" className="h-6 w-6 rounded-full shrink-0" onClick={props.onClose}>
-					X
-				</Button>
 			</div>
 
 			<div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
 				{hasDownloadOptions && (
-					<div className="flex flex-row gap-1.5">
-						<Select value={props.selectedQuality} onValueChange={props.onQualityChange}>
-							<SelectTrigger className="w-full text-[12px] h-9 bg-background/50 border-border/50 hover:bg-background transition-colors">
-								<SelectValue />
-							</SelectTrigger>
-							<SelectContent>
-								{Object.keys(props.asset.downloadOptions || {}).map((opt) => (
-									<SelectItem key={opt} value={opt}>
-										{opt}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
-						<Select value={props.selectedType} onValueChange={props.onTypeChange}>
-							<SelectTrigger className="w-full text-[12px] h-9 bg-background/50 border-border/50 hover:bg-background transition-colors">
-								<SelectValue />
-							</SelectTrigger>
-							<SelectContent>
-								{Object.keys(props.asset.downloadOptions?.[props.selectedQuality!] || {}).map((opt) => (
-									<SelectItem key={opt} value={opt}>
-										{opt}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
-						<Button
-							className="w-full shadow-lg font-bold uppercase tracking-wider"
-							onClick={() => props.onImport(props.asset!)}
-							disabled={props.activeDownloadIds.includes(props.asset.id) || !canImport}
-						>
-							{props.activeDownloadIds.includes(props.asset.id) ? "Importing..." : "Import Asset"}
-						</Button>
+					<div>
+						<div className="flex flex-row gap-1.5">
+							<Select disabled={props.isDownloading || !canImport} value={props.selectedQuality} onValueChange={props.onQualityChange}>
+								<SelectTrigger className="w-full text-[12px] h-9 bg-background/50 border-border/50 hover:bg-background transition-colors">
+									<SelectValue />
+								</SelectTrigger>
+								<SelectContent>
+									{Object.keys(props.asset.downloadOptions || {}).map((opt) => (
+										<SelectItem key={opt} value={opt}>
+											{opt.toUpperCase()}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+							<Select disabled={props.isDownloading || !canImport} value={props.selectedType} onValueChange={props.onTypeChange}>
+								<SelectTrigger className="w-full text-[12px] h-9 bg-background/50 border-border/50 hover:bg-background transition-colors">
+									<SelectValue />
+								</SelectTrigger>
+								<SelectContent>
+									{Object.keys(props.asset.downloadOptions?.[props.selectedQuality!] || {}).map((opt) => (
+										<SelectItem key={opt} value={opt}>
+											{opt.toUpperCase()}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						</div>
+						{props.isDownloading ? (
+							<Button disabled variant="ghost" className="mt-2 w-full shadow-lg font-bold uppercase tracking-wider">
+								Importing...
+							</Button>
+						) : (
+							<div className="flex flex-row gap-1.5 mt-2">
+								<Button
+									className="w-full shadow-lg font-bold uppercase tracking-wider"
+									onClick={() => props.onImport()}
+									disabled={props.isDownloading || !canImport}
+								>
+									Import Asset
+								</Button>
+								{["hdr", "exr"].includes(props.selectedType || "") && (
+									<Button
+										className="w-full shadow-lg font-bold uppercase tracking-wider"
+										onClick={() => props.onImport("env")}
+										disabled={props.isDownloading || !canImport}
+									>
+										Import as Env
+									</Button>
+								)}
+							</div>
+						)}
 					</div>
 				)}
 				{!hasDownloadOptions && props.asset.marketplaceUrl && (

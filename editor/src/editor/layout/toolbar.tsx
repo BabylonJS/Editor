@@ -287,6 +287,7 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 			title: "Marketplace",
 			enableClose: true,
 			setAsActiveTab: true,
+			neighborId: "assets-browser",
 		});
 	}
 }

@@ -72,7 +72,7 @@ export interface IMarketplaceProgress {
 	loaded: number;
 	total: number;
 	speed: number;
-	extracting?: boolean;
+	extraStatus?: string;
 }
 
 export interface IMarketplaceOAuth {
@@ -82,3 +82,8 @@ export interface IMarketplaceOAuth {
 }
 
 export interface IMarketplaceSettings {}
+
+export interface IMarketplaceDownloadItem {
+	id: string;
+	abortController: AbortController;
+}
