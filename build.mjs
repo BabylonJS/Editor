@@ -54,6 +54,12 @@ function build({ x64, arm64 } = options) {
 					name: "Babylon.js Editor Project",
 				},
 			],
+			protocols: [
+				{
+					name: "Babylon.js Editor",
+					schemes: ["babylonjs-editor"],
+				},
+			],
 			appId: "com.babylonjs.editor",
 			productName: "BabylonJS Editor",
 			icon: "./icons/babylonjs_icon",

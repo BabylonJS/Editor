@@ -1,4 +1,5 @@
 import { platform } from "os";
+import "dotenv/config";
 import { autoUpdater } from "electron-updater";
 import { basename, dirname, join } from "path/posix";
 import { BrowserWindow, app, globalShortcut, ipcMain, nativeTheme } from "electron";
@@ -19,6 +20,8 @@ import "./electron/events/editor";
 import "./electron/events/window";
 import "./electron/assimp/assimpjs";
 import "./electron/events/export";
+import "./electron/protocol";
+import "./electron/oauth";
 
 try {
 	if (!app.isPackaged) {
@@ -94,6 +97,12 @@ ipcMain.on("app:quit", () => {
 });
 
 let dashboardWindow: BrowserWindow | null = null;
+let menuOptions = { enableExperimentalFeatures: false, openedTabs: [] };
+
+ipcMain.on("editor:setup-menu", (_, options) => {
+	menuOptions = options;
+	setupEditorMenu(options);
+});
 
 async function openDashboard(): Promise<void> {
 	if (!dashboardWindow) {
@@ -141,12 +150,12 @@ async function openProject(filePath: string): Promise<void> {
 
 	notifyWindows("dashboard:opened-projects", openedProjects);
 
-	setupEditorMenu();
+	setupEditorMenu(menuOptions);
 
 	const window = await createEditorWindow();
 	window.setTitle(basename(dirname(filePath)));
 
-	window.on("focus", () => setupEditorMenu());
+	window.on("focus", () => setupEditorMenu(menuOptions));
 	window.once("closed", () => {
 		openedProjects.splice(openedProjects.indexOf(filePath), 1);
 		notifyWindows("dashboard:opened-projects", openedProjects);

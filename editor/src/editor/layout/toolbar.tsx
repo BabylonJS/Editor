@@ -3,7 +3,7 @@ import { ipcRenderer, shell } from "electron";
 
 import { Component, ReactNode } from "react";
 
-import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarSeparator, MenubarShortcut, MenubarTrigger } from "../../ui/shadcn/ui/menubar";
+import { Menubar, MenubarCheckboxItem, MenubarContent, MenubarItem, MenubarMenu, MenubarSeparator, MenubarShortcut, MenubarTrigger } from "../../ui/shadcn/ui/menubar";
 
 import { isDarwin } from "../../tools/os";
 import { execNodePty } from "../../tools/node-pty";
@@ -23,6 +23,7 @@ import { getLightCommands } from "../dialogs/command-palette/light";
 import { getCameraCommands } from "../dialogs/command-palette/camera";
 import { getSpriteCommands } from "../dialogs/command-palette/sprite";
 import { ICommandPaletteType } from "../dialogs/command-palette/command-palette";
+import { EditorMarketplaceBrowser } from "./marketplace-browser";
 
 export interface IEditorToolbarProps {
 	editor: Editor;
@@ -40,6 +41,7 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 
 		ipcRenderer.on("editor:open-project", () => this._handleOpenProject());
 		ipcRenderer.on("editor:open-vscode", () => this._handleOpenVisualStudioCode());
+		ipcRenderer.on("editor:open-marketplace", () => this._handleOpenMarketplace());
 
 		this._nodeCommands = getNodeCommands(this.props.editor);
 		this._meshCommands = getMeshCommands(this.props.editor);
@@ -204,6 +206,18 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 						</MenubarContent>
 					</MenubarMenu>
 
+					{/* View */}
+					{this.props.editor.state.enableExperimentalFeatures && (
+						<MenubarMenu>
+							<MenubarTrigger>Views</MenubarTrigger>
+							<MenubarContent className="border-black/50">
+								<MenubarCheckboxItem checked={this.props.editor.state.openedTabs.includes("marketplace")} onClick={() => this._handleOpenMarketplace()}>
+									Marketplace
+								</MenubarCheckboxItem>
+							</MenubarContent>
+						</MenubarMenu>
+					)}
+
 					{/* Window */}
 					<MenubarMenu>
 						<MenubarTrigger>Window</MenubarTrigger>
@@ -260,5 +274,20 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 
 		const p = await execNodePty(`code "${join(dirname(this.props.editor.state.projectPath), "/")}"`);
 		await p.wait();
+	}
+
+	private _handleOpenMarketplace(): void {
+		if (this.props.editor.state.openedTabs.includes("marketplace")) {
+			this.props.editor.layout.removeLayoutTab("marketplace");
+			return;
+		}
+
+		this.props.editor.layout.addLayoutTab(<EditorMarketplaceBrowser editor={this.props.editor} />, {
+			id: "marketplace",
+			title: "Marketplace",
+			enableClose: true,
+			setAsActiveTab: true,
+			neighborId: "assets-browser",
+		});
 	}
 }

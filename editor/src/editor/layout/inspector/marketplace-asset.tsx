@@ -1,0 +1,179 @@
+import { Component, ReactNode } from "react";
+
+import { IEditorInspectorImplementationProps } from "./inspector";
+import { MarketplaceSidebar } from "../marketplace-browser/sidebar";
+import { IMarketplaceAsset } from "../../../tools/marketplaces/types";
+import { toast } from "sonner";
+import { ImportProgress } from "../marketplace-browser/import-progress";
+import { MarketplaceProvider } from "../../../tools/marketplaces/provider";
+import { ipcRenderer } from "electron";
+
+export class MarketplaceAssetInspectorObject {
+	public readonly isMarketplaceAssetInspectorObject = true;
+
+	public constructor(
+		public readonly asset: IMarketplaceAsset,
+		public readonly provider: MarketplaceProvider,
+		public readonly openSettings: () => void
+	) {}
+}
+
+interface IEditorMarketplaceAssetInspectorState {
+	selectedDownloadQuality?: string;
+	selectedDownloadType?: string;
+	detailsLoading: boolean;
+	isDownloading: boolean;
+	details?: IMarketplaceAsset;
+}
+
+export class EditorMarketplaceAssetInspector extends Component<IEditorInspectorImplementationProps<MarketplaceAssetInspectorObject>, IEditorMarketplaceAssetInspectorState> {
+	/**
+	 * Returns whether or not the given object is supported by this inspector.
+	 * @param object defines the object to check.
+	 * @returns true if the object is supported by this inspector.
+	 */
+	public static IsSupported(object: any): object is MarketplaceAssetInspectorObject {
+		return object?.isMarketplaceAssetInspectorObject;
+	}
+
+	public constructor(props: IEditorInspectorImplementationProps<MarketplaceAssetInspectorObject>) {
+		super(props);
+		this.state = {
+			selectedDownloadQuality: undefined,
+			selectedDownloadType: undefined,
+			detailsLoading: false,
+			isDownloading: false,
+		};
+		this._loadDetails();
+	}
+
+	public componentDidUpdate(prevProps: IEditorInspectorImplementationProps<MarketplaceAssetInspectorObject>): void {
+		if (this.props.object.asset.id !== prevProps.object.asset.id) {
+			this._loadDetails();
+		}
+	}
+
+	public render(): ReactNode {
+		return (
+			<MarketplaceSidebar
+				asset={this.state.details}
+				detailsLoading={this.state.detailsLoading}
+				selectedQuality={this.state.selectedDownloadQuality}
+				selectedType={this.state.selectedDownloadType}
+				isDownloading={this.state.isDownloading}
+				showLoginAction={this._shouldShowLoginAction()}
+				loginActionLabel={`Login to ${this.props.object.provider.title}`}
+				onQualityChange={(val) => {
+					if (!this.state.details) {
+						return;
+					}
+					const selectedDownloadType = this._getFirstType(this.state.details, val);
+					this.setState({ selectedDownloadQuality: val, selectedDownloadType });
+				}}
+				onTypeChange={(val) => this.setState({ selectedDownloadType: val })}
+				onImport={(type) => this._handleImport(type)}
+				onOpenMarketplaceUrl={(url) => ipcRenderer.send("app:open-url", url)}
+				onOpenSettings={() => this.props.object.openSettings()}
+			/>
+		);
+	}
+
+	private _shouldShowLoginAction(): boolean {
+		const selectedAsset = this.state.details;
+		if (!selectedAsset) {
+			return false;
+		}
+
+		const hasDownloadOptions = Object.keys(selectedAsset.downloadOptions || {}).length > 0;
+		if (hasDownloadOptions || !selectedAsset.marketplaceUrl || !this.props.object.provider.getOAuth) {
+			return false;
+		}
+
+		if (!this.props.object.provider.isAuthenticated) {
+			return true;
+		}
+
+		if (!this.props.object.provider.isAuthenticated()) {
+			return true;
+		}
+		return false;
+	}
+
+	private async _loadDetails(): Promise<void> {
+		const provider = this.props.object.provider;
+		this.setState({ detailsLoading: true, selectedDownloadQuality: undefined, selectedDownloadType: undefined });
+
+		if (provider.getAssetDetails) {
+			try {
+				const details = await provider.getAssetDetails(this.props.object.asset.id);
+				if (provider !== this.props.object.provider) {
+					return;
+				}
+
+				const selectedQuality = Object.keys(details.downloadOptions || {})?.[0];
+				const selectedType = Object.keys(details.downloadOptions?.[selectedQuality] || {})?.[0];
+				this.setState({ details, detailsLoading: false, selectedDownloadQuality: selectedQuality, selectedDownloadType: selectedType });
+			} catch (e) {
+				if (provider !== this.props.object.provider) {
+					return;
+				}
+
+				const message = e instanceof Error ? e.message : String(e);
+				this.props.editor.layout.console.error(`Failed to fetch asset details: ${message}`);
+				this.setState({ detailsLoading: false });
+			}
+		} else {
+			const selectedQuality = Object.keys(this.props.object.asset.downloadOptions || {})?.[0];
+			const selectedType = Object.keys(this.props.object.asset.downloadOptions?.[selectedQuality] || {})?.[0];
+			this.setState({ details: this.props.object.asset, detailsLoading: false, selectedDownloadQuality: selectedQuality, selectedDownloadType: selectedType });
+		}
+	}
+
+	private async _handleImport(type?: string): Promise<void> {
+		const asset = this.state.details || this.props.object.asset;
+		if (!this.state.selectedDownloadQuality || !this.state.selectedDownloadType || !asset) {
+			toast.error("Please select a valid quality and format before importing.");
+			return;
+		}
+
+		this.setState({ isDownloading: true });
+
+		toast(
+			<ImportProgress
+				asset={asset}
+				editor={this.props.editor}
+				provider={this.props.object.provider}
+				quality={this.state.selectedDownloadQuality!}
+				type={this.state.selectedDownloadType!}
+			/>,
+			{
+				id: asset.id,
+				duration: Infinity,
+				dismissible: false,
+			}
+		);
+
+		try {
+			await this.props.object.provider.downloadAndImport(asset, this.props.editor, this.state.selectedDownloadQuality!, this.state.selectedDownloadType!, type);
+			this.props.editor.layout.console.log(`Imported ${asset.name} from ${this.props.object.provider.title}`);
+			toast.success(`Successfully imported ${asset.name}`, { id: asset.id, duration: 3000 });
+		} catch (e) {
+			if (e.message === "Download aborted by user.") {
+				toast.error(`Import of ${asset.name} was cancelled and cleaned up.`, { id: asset.id, duration: 3000 });
+			} else {
+				this.props.editor.layout.console.error(`Import failed: ${e.message}`);
+				toast.error(`Failed to import ${asset.name}: ${e.message}`, { id: asset.id, duration: 5000 });
+			}
+		} finally {
+			this.setState({ isDownloading: false });
+		}
+	}
+
+	private _getFirstType(asset: IMarketplaceAsset | null, quality?: string): string | undefined {
+		if (!asset || !quality) {
+			return undefined;
+		}
+
+		return Object.keys(asset.downloadOptions?.[quality] || {})[0];
+	}
+}

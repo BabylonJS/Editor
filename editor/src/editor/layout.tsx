@@ -1,9 +1,10 @@
 import { platform } from "os";
 
 import { Component, ReactNode } from "react";
-import { Actions, IJsonModel, Layout, Model, TabNode } from "flexlayout-react";
+import { Actions, IJsonModel, Layout, Model, TabNode, TabSetNode } from "flexlayout-react";
 
-import { Tools } from "babylonjs";
+import { Observable, Tools } from "babylonjs";
+import { ipcRenderer } from "electron";
 
 import { waitNextAnimationFrame } from "../tools/tools";
 
@@ -17,6 +18,7 @@ import { EditorConsole } from "./layout/console";
 import { EditorInspector } from "./layout/inspector";
 import { EditorAnimation } from "./layout/animation";
 import { EditorAssetsBrowser } from "./layout/assets-browser";
+import { EditorMarketplaceBrowser } from "./layout/marketplace-browser";
 
 export interface IEditorLayoutProps {
 	/**
@@ -61,6 +63,11 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
 	 */
 	public animations: EditorAnimation;
 
+	/**
+	 * Observable for when the layout has changed.
+	 */
+	public onLayoutChanged: Observable<void> = new Observable<void>();
+
 	private _layoutRef: Layout | null = null;
 	private _model: Model = Model.fromJson(layoutModel as any);
 	private _components: Record<string, ReactNode> = {
@@ -70,6 +77,7 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
 		graph: <EditorGraph editor={this.props.editor} ref={(r) => (this.graph = r!)} />,
 		"assets-browser": <EditorAssetsBrowser editor={this.props.editor} ref={(r) => (this.assets = r!)} />,
 		animations: <EditorAnimation editor={this.props.editor} ref={(r) => (this.animations = r!)} />,
+		marketplace: <EditorMarketplaceBrowser editor={this.props.editor} />,
 	};
 
 	private _layoutVersion: string = "5.0.0-alpha.2";
@@ -136,6 +144,40 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
 		layoutData.version = this._layoutVersion;
 
 		localStorage.setItem("babylonjs-editor-layout", JSON.stringify(layoutData));
+
+		const trackableTabs = ["marketplace"];
+		const openedTabs = trackableTabs.filter((t) => !!model.getNodeById(t));
+		const prev = this.props.editor.state.openedTabs ?? [];
+		const changed = openedTabs.length !== prev.length || openedTabs.some((t) => !prev.includes(t));
+
+		if (changed) {
+			this.props.editor.setState({ openedTabs });
+
+			ipcRenderer.send("editor:setup-menu", {
+				enableExperimentalFeatures: this.props.editor.state.enableExperimentalFeatures,
+				openedTabs,
+			});
+		}
+
+		this.onLayoutChanged.notifyObservers();
+	}
+
+	/**
+	 * Returns whether or not the tab identified by the given id is maximized.
+	 * @param tabId defines the id of the tab to check.
+	 */
+	public isTabMaximized(tabId: string): boolean {
+		const node = this._model.getNodeById(tabId);
+		if (!node || !(node instanceof TabNode)) {
+			return false;
+		}
+
+		const parent = node.getParent();
+		if (parent instanceof TabSetNode) {
+			return parent.isMaximized();
+		}
+
+		return false;
 	}
 
 	/**

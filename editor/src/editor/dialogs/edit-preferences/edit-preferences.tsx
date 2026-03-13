@@ -1,3 +1,4 @@
+import { ipcRenderer } from "electron";
 import { Component, ReactNode } from "react";
 
 import { Label } from "../../../ui/shadcn/ui/label";
@@ -215,11 +216,14 @@ export class EditorEditPreferencesComponent extends Component<IEditorEditPrefere
 
 								trySetExperimentalFeaturesEnabledInLocalStorage(v);
 
+								ipcRenderer.send("editor:setup-menu", { enableExperimentalFeatures: v });
+
 								this.props.editor.layout.graph.refresh();
 								this.props.editor.layout.assets.refresh();
 								this.props.editor.layout.preview.forceUpdate();
 								this.props.editor.layout.inspector.forceUpdate();
 								this.props.editor.layout.animations.forceUpdate();
+								this.props.editor.layout.removeLayoutTab("marketplace");
 							}}
 						/>
 						Enable experimental features

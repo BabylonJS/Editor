@@ -1,9 +1,9 @@
 import { platform } from "os";
-import { BrowserWindow, Menu, shell } from "electron";
+import { BrowserWindow, Menu, MenuItem, shell } from "electron";
 
 import { cameraCommandItems, lightCommandItems, meshCommandItems, nodeCommandItems, spriteCommandItems } from "./dialogs/command-palette/shared-commands";
 
-export function setupEditorMenu(): void {
+export function setupEditorMenu(options: { enableExperimentalFeatures: boolean; openedTabs: string[] }): void {
 	Menu.setApplicationMenu(
 		Menu.buildFromTemplate([
 			{
@@ -204,6 +204,21 @@ export function setupEditorMenu(): void {
 					})),
 				],
 			},
+			...(options.enableExperimentalFeatures
+				? [
+						{
+							label: "Views",
+							submenu: [
+								{
+									label: "Marketplace",
+									type: "checkbox" as MenuItem["type"],
+									checked: options.openedTabs.includes("marketplace"),
+									click: () => BrowserWindow.getFocusedWindow()?.webContents.send("editor:open-marketplace"),
+								},
+							],
+						},
+					]
+				: []),
 			{
 				label: "Window",
 				submenu: [
