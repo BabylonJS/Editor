@@ -68,10 +68,10 @@ export interface IFileToDownload {
 }
 
 export interface IMarketplaceProgress {
-	progress: number;
-	loaded: number;
-	total: number;
-	speed: number;
+	progress?: number;
+	loaded?: number;
+	total?: number;
+	speed?: number;
 	extraStatus?: string;
 }
 

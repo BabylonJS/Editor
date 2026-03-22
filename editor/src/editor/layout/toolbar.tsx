@@ -41,7 +41,7 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 
 		ipcRenderer.on("editor:open-project", () => this._handleOpenProject());
 		ipcRenderer.on("editor:open-vscode", () => this._handleOpenVisualStudioCode());
-		ipcRenderer.on("editor:open-marketplace", () => this._handleOpenMarketplace());
+		ipcRenderer.on("editor:toggle-marketplace", () => this._handleToggleMarketplace());
 
 		this._nodeCommands = getNodeCommands(this.props.editor);
 		this._meshCommands = getMeshCommands(this.props.editor);
@@ -211,7 +211,7 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 						<MenubarMenu>
 							<MenubarTrigger>Views</MenubarTrigger>
 							<MenubarContent className="border-black/50">
-								<MenubarCheckboxItem checked={this.props.editor.state.openedTabs.includes("marketplace")} onClick={() => this._handleOpenMarketplace()}>
+								<MenubarCheckboxItem checked={this.props.editor.state.openedTabs.includes("marketplace")} onClick={() => this._handleToggleMarketplace()}>
 									Marketplace
 								</MenubarCheckboxItem>
 							</MenubarContent>
@@ -276,7 +276,7 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 		await p.wait();
 	}
 
-	private _handleOpenMarketplace(): void {
+	private _handleToggleMarketplace(): void {
 		if (this.props.editor.state.openedTabs.includes("marketplace")) {
 			this.props.editor.layout.removeLayoutTab("marketplace");
 			return;

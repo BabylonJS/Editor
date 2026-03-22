@@ -68,7 +68,7 @@ export class SketchfabProvider extends MarketplaceProvider {
 				id: "downloadable",
 				label: "Downloadable",
 				type: "boolean",
-				defaultValue: false,
+				defaultValue: true,
 			},
 			{
 				id: "animated",
@@ -246,6 +246,10 @@ export class SketchfabProvider extends MarketplaceProvider {
 
 	public isAuthenticated(): boolean {
 		return !!this._settings.token;
+	}
+
+	public login(): void {
+		this._handleOAuthLogin();
 	}
 
 	private _handleOAuthLogin(): void {

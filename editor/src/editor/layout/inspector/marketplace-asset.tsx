@@ -44,14 +44,31 @@ export class EditorMarketplaceAssetInspector extends Component<IEditorInspectorI
 			detailsLoading: false,
 			isDownloading: false,
 		};
+	}
+
+	public componentDidMount(): void {
+		this.props.object.provider.onSettingsChanged(this._handleSettingsChanged);
 		this._loadDetails();
 	}
 
+	public componentWillUnmount(): void {
+		this.props.object.provider.removeSettingsListener(this._handleSettingsChanged);
+	}
+
 	public componentDidUpdate(prevProps: IEditorInspectorImplementationProps<MarketplaceAssetInspectorObject>): void {
+		if (this.props.object.provider !== prevProps.object.provider) {
+			prevProps.object.provider.removeSettingsListener(this._handleSettingsChanged);
+			this.props.object.provider.onSettingsChanged(this._handleSettingsChanged);
+		}
+
 		if (this.props.object.asset.id !== prevProps.object.asset.id) {
 			this._loadDetails();
 		}
 	}
+
+	private _handleSettingsChanged = () => {
+		this._loadDetails();
+	};
 
 	public render(): ReactNode {
 		return (
@@ -63,6 +80,7 @@ export class EditorMarketplaceAssetInspector extends Component<IEditorInspectorI
 				isDownloading={this.state.isDownloading}
 				showLoginAction={this._shouldShowLoginAction()}
 				loginActionLabel={`Login to ${this.props.object.provider.title}`}
+				onLogin={this.props.object.provider.login ? () => this.props.object.provider.login!() : undefined}
 				onQualityChange={(val) => {
 					if (!this.state.details) {
 						return;

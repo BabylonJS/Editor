@@ -9,6 +9,7 @@ import { Input } from "../../../ui/shadcn/ui/input";
 import { Button } from "../../../ui/shadcn/ui/button";
 import { Separator } from "../../../ui/shadcn/ui/separator";
 import { FaFolderOpen } from "react-icons/fa6";
+import { projectConfiguration } from "../../../project/configuration";
 
 export interface IMarketplaceSettingsDialogProps {
 	open: boolean;
@@ -25,8 +26,18 @@ export class MarketplaceSettingsDialog extends Component<IMarketplaceSettingsDia
 		super(props);
 
 		this.state = {
-			downloadPath: localStorage.getItem("marketplace-download-path") || "assets",
+			downloadPath: localStorage.getItem(this._getDownloadPathKey()) || "assets",
 		};
+	}
+
+	public componentDidUpdate(prevProps: IMarketplaceSettingsDialogProps): void {
+		if (this.props.open && !prevProps.open) {
+			this.setState({ downloadPath: localStorage.getItem(this._getDownloadPathKey()) || "assets" });
+		}
+	}
+
+	private _getDownloadPathKey(): string {
+		return projectConfiguration.path ? `marketplace-download-${projectConfiguration.path}` : "marketplace-download-path";
 	}
 
 	public componentDidMount(): void {
@@ -102,7 +113,7 @@ export class MarketplaceSettingsDialog extends Component<IMarketplaceSettingsDia
 	}
 
 	private _handleDownloadPathChange(path: string): void {
-		localStorage.setItem("marketplace-download-path", path);
+		localStorage.setItem(this._getDownloadPathKey(), path);
 		this.setState({ downloadPath: path });
 	}
 

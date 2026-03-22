@@ -37,11 +37,11 @@ export const ImportProgress = (props: IImportProgressProps) => {
 	useEffect(() => {
 		const dispose = props.provider.registerDownloadListener((id, progress) => {
 			if (id === props.asset.id) {
-				setProgress(progress.progress);
-				setSpeed(progress.speed);
-				setLoaded(progress.loaded);
-				setTotal(progress.total);
-				setExtraStatus(progress.extraStatus || "");
+				setProgress(progress.progress ?? 0);
+				setSpeed(progress.speed ?? 0);
+				setLoaded(progress.loaded ?? 0);
+				setTotal(progress.total ?? 0);
+				setExtraStatus(progress.extraStatus ?? "");
 			}
 		});
 

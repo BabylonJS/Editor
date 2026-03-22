@@ -1,4 +1,4 @@
-import { Grid } from "react-loader-spinner";
+﻿import { Grid } from "react-loader-spinner";
 import { IMarketplaceAsset } from "../../../tools/marketplaces/types";
 import { Button } from "../../../ui/shadcn/ui/button";
 import { Badge } from "../../../ui/shadcn/ui/badge";
@@ -17,6 +17,7 @@ export interface IMarketplaceSidebarProps {
 	onImport: (type?: string) => void;
 	onOpenMarketplaceUrl: (url: string) => void;
 	onOpenSettings: () => void;
+	onLogin?: () => void;
 }
 
 export const MarketplaceSidebar = (props: IMarketplaceSidebarProps) => {
@@ -45,7 +46,7 @@ export const MarketplaceSidebar = (props: IMarketplaceSidebarProps) => {
 				{hasDownloadOptions && (
 					<div>
 						<div className="flex flex-row gap-1.5">
-							<Select disabled={props.isDownloading || !canImport} value={props.selectedQuality} onValueChange={props.onQualityChange}>
+							<Select disabled={props.isDownloading} value={props.selectedQuality} onValueChange={props.onQualityChange}>
 								<SelectTrigger className="w-full text-[12px] h-9 bg-background/50 border-border/50 hover:bg-background transition-colors">
 									<SelectValue />
 								</SelectTrigger>
@@ -106,7 +107,7 @@ export const MarketplaceSidebar = (props: IMarketplaceSidebarProps) => {
 							{props.asset.marketplaceActionLabel || (props.asset.isDownloadable === false ? "View / Buy" : "Open In Marketplace")}
 						</Button>
 						{props.showLoginAction && (
-							<Button className="w-full shadow-lg font-bold uppercase tracking-wider" onClick={props.onOpenSettings}>
+							<Button className="w-full shadow-lg font-bold uppercase tracking-wider" onClick={props.onLogin ?? props.onOpenSettings}>
 								{props.loginActionLabel || "Login"}
 							</Button>
 						)}

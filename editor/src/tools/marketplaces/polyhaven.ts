@@ -95,6 +95,38 @@ export class PolyHavenProvider extends MarketplaceProvider {
 			}
 		}
 
+		const textureMaps = ["diffuse", "nor_gl", "nor_dx", "rough", "ao", "arm", "rough_ao", "displacement", "emissive", "opacity"];
+		const isTextureAsset = Object.keys(files).some((type) => textureMaps.includes(type.toLowerCase()));
+
+		if (isTextureAsset) {
+			const formats = ["jpg", "png"];
+			for (const format of formats) {
+				for (const q of qualityOptions) {
+					const includeFiles: Record<string, any> = {};
+					let hasFiles = false;
+
+					for (const type in files) {
+						if (textureMaps.includes(type.toLowerCase())) {
+							const fileFormatData = files[type]?.[q]?.[format];
+							if (fileFormatData) {
+								includeFiles[type.toLowerCase()] = fileFormatData;
+								hasFiles = true;
+							}
+						}
+					}
+
+					if (hasFiles) {
+						const target = (fileData[q] ??= {});
+						const typeLabel = `${format.toUpperCase()} Textures`;
+						target[typeLabel] = {
+							url: "",
+							include: includeFiles,
+						};
+					}
+				}
+			}
+		}
+
 		return {
 			id,
 			name: info.name,
@@ -111,6 +143,18 @@ export class PolyHavenProvider extends MarketplaceProvider {
 		const downloadData = asset.downloadOptions?.[selectedQuality]?.[selectedType];
 		if (!downloadData) {
 			return [];
+		}
+
+		if (selectedType.endsWith(" Textures")) {
+			return Object.entries(downloadData.include || {}).map(([type, data]: [string, any]) => {
+				const ext = data.url.split(".").pop();
+				return {
+					url: data.url,
+					md5: data.md5,
+					size: data.size,
+					path: `${asset.name}_${type}.${ext}`,
+				};
+			});
 		}
 
 		const filesToDownload = [

@@ -213,7 +213,7 @@ export function setupEditorMenu(options: { enableExperimentalFeatures: boolean; 
 									label: "Marketplace",
 									type: "checkbox" as MenuItem["type"],
 									checked: options.openedTabs.includes("marketplace"),
-									click: () => BrowserWindow.getFocusedWindow()?.webContents.send("editor:open-marketplace"),
+									click: () => BrowserWindow.getFocusedWindow()?.webContents.send("editor:toggle-marketplace"),
 								},
 							],
 						},

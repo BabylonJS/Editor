@@ -17,6 +17,11 @@ import {
 	IMarketplaceDownloadItem,
 } from "./types";
 import { BaseTexture, EnvironmentTextureTools, EXRCubeTexture, HDRCubeTexture, Observable } from "babylonjs";
+import { readdir, writeJSON } from "fs-extra";
+import { PBRMaterial, Texture, Tools } from "babylonjs";
+import { UniqueNumber } from "../../tools/tools";
+import { configureImportedTexture } from "../../editor/layout/preview/import/import";
+import sharp from "sharp";
 
 export abstract class MarketplaceProvider {
 	private static _registry: MarketplaceProvider[] = [];
@@ -93,6 +98,7 @@ export abstract class MarketplaceProvider {
 
 	public getOAuth?(): IMarketplaceOAuth;
 	public isAuthenticated?(): boolean;
+	public login?(): void;
 
 	public renderSettings?(): any;
 
@@ -114,7 +120,10 @@ export abstract class MarketplaceProvider {
 	}
 
 	public async downloadAndImport(asset: IMarketplaceAsset, editor: Editor, selectedQuality: string, selectedType: string, type?: string): Promise<void> {
-		if (!editor.state.projectPath || this._activeDownloadIds.some((i) => i.id === asset.id)) {
+		if (!editor.state.projectPath) {
+			throw new Error("Cannot download assets: no project is currently open.");
+		}
+		if (this._activeDownloadIds.some((i) => i.id === asset.id)) {
 			throw new Error("Download already in progress for this asset.");
 		}
 
@@ -125,7 +134,8 @@ export abstract class MarketplaceProvider {
 
 		this._activeDownloadIds.push({ id: asset.id, abortController: new AbortController() });
 		const projectDir = dirname(editor.state.projectPath);
-		const downloadPath = localStorage.getItem("marketplace-download-path") || "assets";
+		const downloadPathKey = editor.state.projectPath ? `marketplace-download-${editor.state.projectPath}` : "marketplace-download-path";
+		const downloadPath = localStorage.getItem(downloadPathKey) || "assets";
 		const assetDir = isAbsolute(downloadPath) ? join(downloadPath, this.id, asset.id) : join(projectDir, downloadPath, this.id, asset.id);
 
 		try {
@@ -185,10 +195,6 @@ export abstract class MarketplaceProvider {
 			if (filesToExtract.length > 0) {
 				this._downloadListeners.forEach((l) =>
 					l(asset.id, {
-						progress: 100,
-						loaded: totalDownloadSize,
-						total: totalDownloadSize,
-						speed: 0,
 						extraStatus: "Extracting Asset...",
 					})
 				);
@@ -212,8 +218,9 @@ export abstract class MarketplaceProvider {
 				for (const item of files) {
 					await this._convertFileToEnv(join(assetDir, item.path), editor);
 				}
+			} else {
+				await this._convertToMaterial(assetDir, asset, editor);
 			}
-
 			this._activeDownloadIds = this._activeDownloadIds.filter((item) => item.id !== asset.id);
 		} catch (e) {
 			await remove(assetDir);
@@ -255,5 +262,199 @@ export abstract class MarketplaceProvider {
 				}
 			});
 		});
+	}
+
+	private async _getFilesRecursive(dir: string, baseDir: string = dir): Promise<string[]> {
+		const dirents = await readdir(dir, { withFileTypes: true });
+		const files = await Promise.all(
+			dirents.map(async (dirent) => {
+				const res = join(dir, dirent.name);
+				if (dirent.isDirectory()) {
+					return this._getFilesRecursive(res, baseDir);
+				} else {
+					const rel = res.replace(baseDir, "").replace(/\\/g, "/");
+					return rel.startsWith("/") ? rel.substring(1) : rel;
+				}
+			})
+		);
+		return Array.prototype.concat(...files);
+	}
+
+	private _loadTexture(path: string, assetDir: string, editor: Editor): Texture {
+		const projectDirForward = dirname(editor.state.projectPath!.replace(/\\/g, "/"));
+		const absolutePath = join(assetDir, path).replace(/\\/g, "/");
+		const tex = new Texture(absolutePath, editor.layout.preview.scene);
+		configureImportedTexture(tex);
+		tex.name = absolutePath.replace(`${projectDirForward}/`, "");
+		tex.url = tex.name;
+		return tex;
+	}
+
+	private _parseTextures(files: string[]): Record<string, string> {
+		const patterns = {
+			albedo: /(_color|_diffuse|_diff)(\.|_)/i,
+			normal: /(_normalgl|_normaldx|_nor_gl|_nor_dx)(\.|_)/i,
+			ao: /(_ambientocclusion|_ao)(\.|_)/i,
+			roughness: /(_roughness|_rough)(\.|_)/i,
+			metallic: /(_metalness|_metallic|_metal)(\.|_)/i,
+			arm: /(_arm)(\.|_)/i,
+			emissive: /(_emissive|_emit)(\.|_)/i,
+			opacity: /(_opacity)(\.|_)/i,
+			displacement: /(_displacement|_disp)(\.|_)/i,
+		};
+
+		const textures: Record<string, string> = {};
+		for (const f of files) {
+			for (const [key, regex] of Object.entries(patterns)) {
+				if (regex.test(f)) {
+					if (!textures[key] || f.length < textures[key].length) {
+						textures[key] = f;
+					}
+				}
+			}
+		}
+		return textures;
+	}
+
+	private async _packNormalParallax(assetDir: string, normalFile: string, displacementFile: string, assetName: string): Promise<string> {
+		const normalPath = join(assetDir, normalFile);
+		const meta = await sharp(normalPath).metadata();
+		const width = meta.width!;
+		const height = meta.height!;
+
+		const displacementBuffer = await sharp(join(assetDir, displacementFile)).resize(width, height).grayscale().toBuffer();
+
+		const parallaxFileName = `${assetName}_NormalParallax.png`;
+		const parallaxPath = join(assetDir, parallaxFileName);
+
+		await sharp(normalPath).resize(width, height).joinChannel([displacementBuffer]).png().toFile(parallaxPath);
+
+		return parallaxFileName;
+	}
+
+	private async _packORM(assetDir: string, textures: Record<string, string>, assetName: string): Promise<string> {
+		const reference = textures.roughness || textures.ao || textures.metallic!;
+		const meta = await sharp(join(assetDir, reference)).metadata();
+		const width = meta.width!;
+		const height = meta.height!;
+
+		const getSingleChannelBuffer = async (path: string | undefined, fallback: number) => {
+			if (path) {
+				return await sharp(join(assetDir, path)).resize(width, height).grayscale().png().toBuffer();
+			}
+			const rawBuffer = Buffer.alloc(width * height, fallback);
+			return await sharp(rawBuffer, { raw: { width, height, channels: 1 } })
+				.png()
+				.toBuffer();
+		};
+
+		const [rBuffer, gBuffer, bBuffer] = await Promise.all([
+			getSingleChannelBuffer(textures.ao, 255),
+			getSingleChannelBuffer(textures.roughness, 255),
+			getSingleChannelBuffer(textures.metallic, 0),
+		]);
+
+		const ormFileName = `${assetName}_ORM.png`;
+		const ormPath = join(assetDir, ormFileName).replace(/\\/g, "/");
+
+		await sharp(rBuffer).joinChannel([gBuffer, bBuffer]).png().toFile(ormPath);
+
+		return ormFileName;
+	}
+
+	private async _convertToMaterial(assetDir: string, asset: IMarketplaceAsset, editor: Editor): Promise<void> {
+		try {
+			const files = await this._getFilesRecursive(assetDir);
+			const textures = this._parseTextures(files);
+
+			if (textures.albedo || textures.normal) {
+				this._downloadListeners.forEach((l) =>
+					l(asset.id, {
+						extraStatus: "Converting to Material...",
+					})
+				);
+				const material = new PBRMaterial(asset.name, editor.layout.preview.scene);
+				material.id = Tools.RandomId();
+				material.uniqueId = UniqueNumber.Get();
+
+				if (textures.albedo) {
+					material.albedoTexture = this._loadTexture(textures.albedo, assetDir, editor);
+					material.albedoTexture.gammaSpace = true;
+				}
+				if (textures.normal) {
+					if (textures.displacement) {
+						try {
+							const parallaxFileName = await this._packNormalParallax(assetDir, textures.normal, textures.displacement, asset.name);
+							const tex = this._loadTexture(parallaxFileName, assetDir, editor);
+							tex.gammaSpace = false;
+							material.bumpTexture = tex;
+							material.useParallax = true;
+							material.useParallaxOcclusion = true;
+							material.parallaxScaleBias = 0.02;
+							material.forceNormalForward = true;
+						} catch (e) {
+							console.warn(`[Marketplace] Failed to pack Parallax Normal map: ${e}`);
+							material.bumpTexture = this._loadTexture(textures.normal, assetDir, editor);
+							material.bumpTexture.gammaSpace = false;
+						}
+					} else {
+						material.bumpTexture = this._loadTexture(textures.normal, assetDir, editor);
+						material.bumpTexture.gammaSpace = false;
+					}
+
+					if (textures.normal.match(/dx/i)) {
+						material.invertNormalMapY = true;
+					}
+				}
+
+				if (textures.emissive) {
+					material.emissiveTexture = this._loadTexture(textures.emissive, assetDir, editor);
+					material.emissiveTexture.gammaSpace = true;
+				}
+				if (textures.opacity) {
+					material.opacityTexture = this._loadTexture(textures.opacity, assetDir, editor);
+					material.transparencyMode = PBRMaterial.PBRMATERIAL_ALPHABLEND;
+					material.useAlphaFromAlbedoTexture = false;
+				}
+
+				if (textures.ao && !textures.roughness && !textures.metallic) {
+					material.ambientTexture = this._loadTexture(textures.ao, assetDir, editor);
+				}
+
+				if (textures.arm) {
+					const tex = this._loadTexture(textures.arm, assetDir, editor);
+					tex.gammaSpace = false;
+					material.metallicTexture = tex;
+					material.useAmbientOcclusionFromMetallicTextureRed = true;
+					material.useRoughnessFromMetallicTextureGreen = true;
+					material.useMetallnessFromMetallicTextureBlue = true;
+				} else if (textures.ao && textures.roughness) {
+					try {
+						const ormFileName = await this._packORM(assetDir, textures, asset.name);
+						const tex = this._loadTexture(ormFileName, assetDir, editor);
+						tex.gammaSpace = false;
+						material.metallicTexture = tex;
+						material.useAmbientOcclusionFromMetallicTextureRed = true;
+						material.useRoughnessFromMetallicTextureGreen = true;
+						material.useMetallnessFromMetallicTextureBlue = true;
+					} catch (e) {
+						console.warn(`[Marketplace] Failed to pack ORM texture: ${e}`);
+					}
+				} else if (textures.metallic) {
+					const tex = this._loadTexture(textures.metallic, assetDir, editor);
+					tex.gammaSpace = false;
+					material.metallicTexture = tex;
+				}
+
+				const data = material.serialize();
+				const materialPath = join(assetDir, `${asset.name}.material`);
+				await writeJSON(materialPath, data, { spaces: "\t", encoding: "utf-8" });
+
+				material.dispose();
+				editor.layout.assets.refresh();
+			}
+		} catch (e) {
+			console.warn(`[Marketplace] Failed to auto-create material: ${e}`);
+		}
 	}
 }
