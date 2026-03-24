@@ -52,7 +52,7 @@ export class MarketplaceSettingsDialog extends Component<IMarketplaceSettingsDia
 		});
 	}
 
-	private _handleSettingsChanged = () => {
+	private _handleSettingsChanged = (): void => {
 		this.forceUpdate();
 	};
 

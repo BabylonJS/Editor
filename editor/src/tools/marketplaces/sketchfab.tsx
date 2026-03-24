@@ -1,8 +1,19 @@
 import axios from "axios";
 import { ipcRenderer } from "electron";
-import { IMarketplaceAsset, IMarketplaceSearchResult, IFileToDownload, IMarketplaceSettings, IMarketplaceSearchFilters, IMarketplaceFilterDefinition } from "./types";
-import { SketchfabProviderSettings } from "./sketchfab/settings";
+
 import { ReactNode } from "react";
+
+import { SketchfabProviderSettings } from "./sketchfab/settings";
+
+import {
+	IMarketplaceAsset,
+	IMarketplaceSearchResult,
+	IFileToDownload,
+	IMarketplaceSettings,
+	IMarketplaceSearchFilters,
+	IMarketplaceFilterDefinition,
+	IMarketplaceOAuth,
+} from "./types";
 import { MarketplaceProvider } from "./provider";
 
 export interface ISketchfabSettings extends IMarketplaceSettings {
@@ -23,7 +34,7 @@ export class SketchfabProvider extends MarketplaceProvider {
 		return <SketchfabProviderSettings handleOAuthLogin={this._handleOAuthLogin.bind(this)} onSettingChanged={this.onSettingChanged.bind(this)} settings={this._settings} />;
 	}
 
-	public getOAuth() {
+	public getOAuth(): IMarketplaceOAuth {
 		const clientId = process.env.SKETCHFAB_CLIENT_ID ?? "";
 
 		return {

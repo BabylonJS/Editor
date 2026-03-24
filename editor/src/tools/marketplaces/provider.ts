@@ -29,7 +29,7 @@ import {
 export abstract class MarketplaceProvider {
 	private static _registry: MarketplaceProvider[] = [];
 
-	static register(provider: MarketplaceProvider) {
+	public static register(provider: MarketplaceProvider): void {
 		if (MarketplaceProvider._registry.some((p) => p.id === provider.id)) {
 			return;
 		}
@@ -54,7 +54,7 @@ export abstract class MarketplaceProvider {
 		}
 	}
 
-	static getProviders() {
+	public static getProviders(): MarketplaceProvider[] {
 		return MarketplaceProvider._registry;
 	}
 
@@ -122,7 +122,7 @@ export abstract class MarketplaceProvider {
 		this._activeDownloadIds.find((i) => i.id === id)?.abortController.abort();
 	}
 
-	public getAssetDir(assetId: string, projectPath: string) {
+	public getAssetDir(assetId: string, projectPath: string): string {
 		const projectDir = dirname(projectPath);
 		const downloadPathKey = projectPath ? `marketplace-download-${projectPath}` : "marketplace-download-path";
 		const downloadPath = localStorage.getItem(downloadPathKey) || "assets";
@@ -238,7 +238,7 @@ export abstract class MarketplaceProvider {
 		editor.layout.assets.refresh();
 	}
 
-	private async _convertFileToEnv(filePath: string, editor: Editor) {
+	private async _convertFileToEnv(filePath: string, editor: Editor): Promise<void> {
 		const type = filePath.split(".").pop();
 		switch (type) {
 			case "hdr":
@@ -252,7 +252,7 @@ export abstract class MarketplaceProvider {
 		}
 	}
 
-	private async _convertTextureToEnv(filePath: string, texture: BaseTexture, onLoadObservable: Observable<BaseTexture>) {
+	private async _convertTextureToEnv(filePath: string, texture: BaseTexture, onLoadObservable: Observable<BaseTexture>): Promise<boolean> {
 		return new Promise((resolve, reject) => {
 			onLoadObservable.addOnce(async () => {
 				try {

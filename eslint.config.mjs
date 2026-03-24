@@ -2,6 +2,8 @@ import { defineConfig } from "eslint/config";
 import typeScriptParser from "@typescript-eslint/parser";
 import typeScriptPlugin from "@typescript-eslint/eslint-plugin";
 
+import requireReturnTypeOnClassMethods from "./.eslint/eslint-rules/require-return-type-on-class-methods.mjs";
+
 export default defineConfig([
 	{
 		files: ["**/src/**/*.{ts,mts,tsx}"],
@@ -12,6 +14,11 @@ export default defineConfig([
 		},
 		plugins: {
 			"@typescript-eslint": typeScriptPlugin,
+			local: {
+				rules: {
+					"require-return-type-on-class-methods": requireReturnTypeOnClassMethods,
+				},
+			},
 		},
 		rules: {
 			// Recommended
@@ -76,6 +83,8 @@ export default defineConfig([
 			"use-isnan": "error",
 			"valid-typeof": "error",
 
+			"local/require-return-type-on-class-methods": "error",
+			"@typescript-eslint/explicit-member-accessibility": "error",
 			"@typescript-eslint/naming-convention": [
 				"error",
 				{

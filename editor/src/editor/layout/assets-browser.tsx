@@ -1538,7 +1538,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 		this.setState({ filesTreeNodes: this.state.filesTreeNodes });
 	}
 
-	private _forEachNode(nodes: TreeNodeInfo[] | undefined, callback: (node: TreeNodeInfo, index: number) => void) {
+	private _forEachNode(nodes: TreeNodeInfo[] | undefined, callback: (node: TreeNodeInfo, index: number) => void): void {
 		if (nodes === undefined) {
 			return;
 		}

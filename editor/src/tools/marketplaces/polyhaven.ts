@@ -1,4 +1,4 @@
-import { IMarketplaceAsset, IMarketplaceSearchResult, IMarketplaceFilterDefinition, IMarketplaceSearchFilters } from "./types";
+import { IMarketplaceAsset, IMarketplaceSearchResult, IMarketplaceFilterDefinition, IMarketplaceSearchFilters, IFileToDownload } from "./types";
 import { MarketplaceProvider } from "./provider";
 
 export class PolyHavenProvider extends MarketplaceProvider {
@@ -139,7 +139,7 @@ export class PolyHavenProvider extends MarketplaceProvider {
 		};
 	}
 
-	protected getFilesToDownload(asset: IMarketplaceAsset, selectedQuality: string, selectedType: string) {
+	protected getFilesToDownload(asset: IMarketplaceAsset, selectedQuality: string, selectedType: string): IFileToDownload[] {
 		const downloadData = asset.downloadOptions?.[selectedQuality]?.[selectedType];
 		if (!downloadData) {
 			return [];

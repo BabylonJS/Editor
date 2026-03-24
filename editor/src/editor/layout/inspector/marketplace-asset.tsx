@@ -79,7 +79,7 @@ export class EditorMarketplaceAssetInspector extends Component<IEditorInspectorI
 		}
 	}
 
-	private _handleSettingsChanged = () => {
+	private _handleSettingsChanged = (): void => {
 		this._loadDetails();
 	};
 

@@ -45,7 +45,7 @@ export class App {
 	private _engine: Engine | null = null;
 	private _scene: Scene | null = null;
 
-	constructor() {
+	public constructor() {
 		const canvasElement = document.getElementById("canvas") as HTMLCanvasElement;
 		if (!canvasElement) {
 			throw new Error("Canvas element not found");

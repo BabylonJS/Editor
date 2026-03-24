@@ -88,11 +88,11 @@ export class EditorMarketplaceBrowser extends Component<IMarketplaceBrowserProps
 		this.props.editor.layout?.onLayoutChanged.removeCallback(this._handleLayoutChanged);
 	}
 
-	private _handleSettingsChanged = (_id: string, _value: any) => {
+	private _handleSettingsChanged = (_id: string, _value: any): void => {
 		this._handleSearch();
 	};
 
-	private _handleLayoutChanged = () => {
+	private _handleLayoutChanged = (): void => {
 		const isMaximized = this.props.editor.layout.isTabMaximized("marketplace");
 		if (isMaximized !== this.state.isMaximized) {
 			this.setState({ isMaximized });

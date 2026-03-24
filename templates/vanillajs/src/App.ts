@@ -43,10 +43,10 @@ export class App {
 	private _engine: Engine | null = null;
 	private _scene: Scene | null = null;
 
-	constructor() {
-		const canvasElement = document.getElementById('canvas') as HTMLCanvasElement;
+	public constructor() {
+		const canvasElement = document.getElementById("canvas") as HTMLCanvasElement;
 		if (!canvasElement) {
-			throw new Error('Canvas element not found');
+			throw new Error("Canvas element not found");
 		}
 		this._canvas = canvasElement;
 	}
@@ -81,7 +81,9 @@ export class App {
 	}
 
 	private async _handleLoad(): Promise<void> {
-		if (!this._engine || !this._scene) {return;}
+		if (!this._engine || !this._scene) {
+			return;
+		}
 
 		const havok = await HavokPhysics();
 		this._scene.enablePhysics(new Vector3(0, -981, 0), new HavokPlugin(true, havok));
@@ -100,4 +102,4 @@ export class App {
 		this._scene?.dispose();
 		this._engine?.dispose();
 	}
-} 
+}

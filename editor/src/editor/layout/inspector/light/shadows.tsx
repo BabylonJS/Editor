@@ -177,7 +177,7 @@ export class EditorLightShadowsInspector extends Component<IEditorLightShadowsIn
 		);
 	}
 
-	private _getClassicShadowGeneratorComponent() {
+	private _getClassicShadowGeneratorComponent(): ReactNode {
 		const generator = this.state.generator as ShadowGenerator;
 
 		if (!generator) {
@@ -228,7 +228,7 @@ export class EditorLightShadowsInspector extends Component<IEditorLightShadowsIn
 		);
 	}
 
-	private _getClassicSoftShadowComponent() {
+	private _getClassicSoftShadowComponent(): ReactNode {
 		const generator = this.state.generator as ShadowGenerator | CascadedShadowGenerator;
 
 		if (!generator) {
@@ -289,7 +289,7 @@ export class EditorLightShadowsInspector extends Component<IEditorLightShadowsIn
 		);
 	}
 
-	private _getCascadedShadowGeneratorComponent() {
+	private _getCascadedShadowGeneratorComponent(): ReactNode {
 		const generator = this.state.generator;
 
 		if (!generator || !isCascadedShadowGenerator(generator)) {

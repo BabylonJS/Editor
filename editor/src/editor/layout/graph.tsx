@@ -6,13 +6,13 @@ import { IoMdCube } from "react-icons/io";
 import { BsSoundwave } from "react-icons/bs";
 import { AiOutlinePlus } from "react-icons/ai";
 import { HiSpeakerWave } from "react-icons/hi2";
+import { SiBabylondotjs } from "react-icons/si";
 import { MdOutlineQuestionMark } from "react-icons/md";
 import { GiBrickWall, GiSparkles } from "react-icons/gi";
 import { HiOutlineCubeTransparent } from "react-icons/hi";
 import { IoCheckmark, IoSparklesSharp } from "react-icons/io5";
-import { TbGhost2Filled, TbServerSpark } from "react-icons/tb";
 import { FaCamera, FaImage, FaLightbulb, FaBone } from "react-icons/fa";
-import { SiAdobeindesign, SiBabylondotjs } from "react-icons/si";
+import { TbGhost2Filled, TbServerSpark, TbBrandAdobeIndesign } from "react-icons/tb";
 
 import { AdvancedDynamicTexture } from "babylonjs-gui";
 import { BaseTexture, Node, Scene, Sound, Tools, IParticleSystem, Sprite, Skeleton, TransformNode } from "babylonjs";
@@ -597,7 +597,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		this.props.editor.layout.inspector.forceUpdate();
 	}
 
-	private _handleSearch(search: string) {
+	private _handleSearch(search: string): void {
 		this.setState({ search }, () => {
 			this.refresh();
 		});
@@ -689,7 +689,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		this.setState({ nodes: this.state.nodes });
 	}
 
-	public _forEachNode(nodes: TreeNodeInfo[] | undefined, callback: (node: TreeNodeInfo, index: number) => void) {
+	public _forEachNode(nodes: TreeNodeInfo[] | undefined, callback: (node: TreeNodeInfo, index: number) => void): void {
 		if (nodes === undefined) {
 			return;
 		}
@@ -886,7 +886,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			childNodes,
 			nodeData: scene,
 			id: "__editor__gui__",
-			icon: <SiAdobeindesign className="w-4 h-4" />,
+			icon: <TbBrandAdobeIndesign className="w-4 h-4" />,
 			label: this._getNodeLabelComponent(scene, "Gui", false),
 		} as TreeNodeInfo;
 
@@ -1073,7 +1073,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		}
 
 		if (isAdvancedDynamicTexture(object)) {
-			return <SiAdobeindesign className="w-4 h-4" />;
+			return <TbBrandAdobeIndesign className="w-4 h-4" />;
 		}
 
 		if (isSound(object)) {
