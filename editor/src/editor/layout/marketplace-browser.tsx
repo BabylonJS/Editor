@@ -1,16 +1,19 @@
 import { Component, ReactNode } from "react";
 
 import { Editor } from "../main";
+
+import { waitUntil } from "../../tools/tools";
+
+import registerProviders from "../../tools/marketplaces/registrations";
+import { MarketplaceProvider } from "../../tools/marketplaces/provider";
 import { IMarketplaceAsset, IMarketplaceSearchFilters } from "../../tools/marketplaces/types";
 
-import { MarketplaceToolbar } from "./marketplace-browser/toolbar";
+import { MarketplaceAssetInspectorObject, EditorMarketplaceAssetInspector } from "./inspector/marketplace-asset";
+
 import { MarketplaceGrid } from "./marketplace-browser/grid";
 import { MarketplaceFooter } from "./marketplace-browser/footer";
+import { MarketplaceToolbar } from "./marketplace-browser/toolbar";
 import { MarketplaceSettingsDialog } from "./marketplace-browser/settings-dialog";
-import { MarketplaceProvider } from "../../tools/marketplaces/provider";
-import registerProviders from "../../tools/marketplaces/registrations";
-import { MarketplaceAssetInspectorObject, EditorMarketplaceAssetInspector } from "./inspector/marketplace-asset";
-import { waitUntil } from "../../tools/tools";
 
 export interface IMarketplaceBrowserProps {
 	editor: Editor;
@@ -73,6 +76,8 @@ export class EditorMarketplaceBrowser extends Component<IMarketplaceBrowserProps
 		if (isMaximized !== this.state.isMaximized) {
 			this.setState({ isMaximized });
 		}
+
+		this._handleSearch();
 	}
 
 	public componentWillUnmount(): void {
@@ -106,7 +111,7 @@ export class EditorMarketplaceBrowser extends Component<IMarketplaceBrowserProps
 						providers={this.state.providers}
 						selectedProvider={this.state.selectedProvider}
 						onQueryChange={(query) => this.setState({ query })}
-						onFiltersChange={(filters) => this.setState({ filters })}
+						onFiltersChange={(filters) => this.setState({ filters }, () => this._handleSearch())}
 						onResetFilters={() => this.setState({ filters: this._getDefaultFilters(this.state.selectedProvider) })}
 						onSearch={() => this._handleSearch()}
 						onProviderChange={(selectedProvider) => {

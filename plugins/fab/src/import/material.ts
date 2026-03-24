@@ -1,5 +1,5 @@
-import sharp, { Sharp } from "sharp";
 import { join } from "path/posix";
+import sharp, { Sharp } from "sharp";
 import { ensureDir, pathExists, readJSON, writeJSON } from "fs-extra";
 
 import { PBRMaterial, Texture } from "babylonjs";
@@ -125,30 +125,30 @@ export async function importMaterial(editor: Editor, parameters: IImportMaterial
 
 		const metadata = await (metal?.metadata() ?? roughness?.metadata());
 
-		const channels: Buffer[] = [];
+		const channels: Record<string, Buffer> = {};
 
 		if (occlusion) {
 			material.useAmbientOcclusionFromMetallicTextureRed = true;
-			channels.push(await occlusion.ensureAlpha().removeAlpha().toColourspace("b-w").raw().toBuffer());
+			channels.occlusion = await occlusion.ensureAlpha().removeAlpha().toColourspace("b-w").raw().toBuffer();
 		}
 
 		if (roughness) {
 			material.roughness = 1;
 			material.useRoughnessFromMetallicTextureGreen = true;
-			channels.push(await roughness.ensureAlpha().removeAlpha().toColourspace("b-w").raw().toBuffer());
+			channels.roughness = await roughness.ensureAlpha().removeAlpha().toColourspace("b-w").raw().toBuffer();
 		}
 
 		if (metal) {
 			material.metallic = 1;
 			material.useMetallnessFromMetallicTextureBlue = true;
-			channels.push(await metal.ensureAlpha().removeAlpha().toColourspace("b-w").raw().toBuffer());
+			channels.metallic = await metal.ensureAlpha().removeAlpha().toColourspace("b-w").raw().toBuffer();
 		}
 
 		const ormBuffer = Buffer.alloc(metadata!.width * metadata!.height * 3);
 		for (let i = 0; i < metadata!.width * metadata!.height; i++) {
-			ormBuffer[i * 3 + 0] = channels[0]?.[i] ?? 255;
-			ormBuffer[i * 3 + 1] = channels[1]?.[i] ?? 255;
-			ormBuffer[i * 3 + 2] = channels[2]?.[i] ?? 255;
+			ormBuffer[i * 3 + 0] = channels.occlusion?.[i] ?? 255;
+			ormBuffer[i * 3 + 1] = channels.roughness?.[i] ?? 255;
+			ormBuffer[i * 3 + 2] = channels.metallic?.[i] ?? 255;
 		}
 
 		const instance = sharp(ormBuffer, {

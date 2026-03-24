@@ -1,13 +1,15 @@
-import { FaFilter, FaGear, FaMagnifyingGlass, FaXmark } from "react-icons/fa6";
+import { IoIosOptions } from "react-icons/io";
+import { FaFilter, FaMagnifyingGlass, FaXmark } from "react-icons/fa6";
 
-import { IMarketplaceFilterDefinition, IMarketplaceSearchFilters, MarketplaceFilterValue } from "../../../tools/marketplaces/types";
-import { MarketplaceProvider } from "../../../tools/marketplaces/provider";
-import { Input } from "../../../ui/shadcn/ui/input";
-import { Button } from "../../../ui/shadcn/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../ui/shadcn/ui/select";
-import { Popover, PopoverContent, PopoverTrigger } from "../../../ui/shadcn/ui/popover";
 import { Label } from "../../../ui/shadcn/ui/label";
+import { Input } from "../../../ui/shadcn/ui/input";
 import { Switch } from "../../../ui/shadcn/ui/switch";
+import { Button } from "../../../ui/shadcn/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "../../../ui/shadcn/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../ui/shadcn/ui/select";
+
+import { MarketplaceProvider } from "../../../tools/marketplaces/provider";
+import { IMarketplaceFilterDefinition, IMarketplaceSearchFilters, MarketplaceFilterValue } from "../../../tools/marketplaces/types";
 
 export interface IMarketplaceToolbarProps {
 	query: string;
@@ -24,7 +26,7 @@ export interface IMarketplaceToolbarProps {
 	onSettingsClick: () => void;
 }
 
-export const MarketplaceToolbar = (props: IMarketplaceToolbarProps) => {
+export function MarketplaceToolbar(props: IMarketplaceToolbarProps) {
 	const activeFilters = props.filterDefinitions.reduce((acc, definition) => {
 		const value = props.filters[definition.id];
 		if (isFilterActive(value, definition.defaultValue)) {
@@ -42,15 +44,20 @@ export const MarketplaceToolbar = (props: IMarketplaceToolbarProps) => {
 	};
 
 	return (
-		<div className="flex gap-2 justify-between w-full h-10 min-h-10 bg-primary-foreground px-1 items-center">
+		<div className="flex gap-2 justify-between w-full h-10 min-h-10 bg-primary-foreground px-2 items-center">
 			<div className="relative flex flex-1 pr-1 group">
 				<Input
 					placeholder="Search marketplace..."
 					value={props.query}
 					onChange={(e) => props.onQueryChange(e.target.value)}
 					onKeyDown={(e) => e.key === "Enter" && props.onSearch()}
-					className="w-full h-8 !border-none pl-7 hover:border-border focus:border-border transition-all duration-300 ease-in-out bg-muted/30 hover:bg-muted/50"
+					className={`
+						w-full h-8 !border-none pl-7
+						hover:border-border focus:border-border
+						transition-all duration-300 ease-in-out    
+					`}
 				/>
+
 				<div className="absolute top-1/2 -translate-y-1/2 left-2 flex items-center justify-center w-4 h-4">
 					{props.query ? (
 						<button onClick={() => props.onQueryChange("")} className="p-0.5 rounded-full hover:bg-muted opacity-50 hover:opacity-100 transition-all">
@@ -65,19 +72,20 @@ export const MarketplaceToolbar = (props: IMarketplaceToolbarProps) => {
 			{props.filterDefinitions.length > 0 && (
 				<Popover>
 					<PopoverTrigger asChild>
-						<Button variant="outline" size="sm" className="h-8 px-2 gap-1">
+						<Button variant="ghost" className="h-8 px-2 gap-2 items-center">
 							<FaFilter className="w-3.5 h-3.5" />
 							Filters{activeFilters > 0 ? ` (${activeFilters})` : ""}
 						</Button>
 					</PopoverTrigger>
-					<PopoverContent align="end" className="w-80 p-3">
-						<div className="flex items-center justify-between mb-3">
-							<span className="text-sm font-semibold">Search Filters</span>
-							<Button variant="ghost" size="sm" className="h-7 px-2" onClick={props.onResetFilters}>
+					<PopoverContent align="end" className="flex flex-col gap-4 w-80 p-2">
+						<div className="flex items-center justify-between pb-2">
+							<div className="text-lg font-semibold">Search Filters</div>
+							<Button variant="ghost" size="sm" className="h-8 px-2" onClick={props.onResetFilters}>
 								Reset
 							</Button>
 						</div>
-						<div className="flex flex-col gap-3 max-h-72 overflow-y-auto pr-1">
+
+						<div className="flex flex-col gap-2 max-h-72 overflow-y-auto">
 							{props.filterDefinitions.map((definition) => {
 								const value = props.filters[definition.id];
 								const effectiveValue = value === undefined ? definition.defaultValue : value;
@@ -95,7 +103,7 @@ export const MarketplaceToolbar = (props: IMarketplaceToolbarProps) => {
 									const current = typeof effectiveValue === "string" && effectiveValue ? effectiveValue : "__any";
 									const options = (definition.options || []).filter((opt) => opt.value !== "");
 									return (
-										<div key={definition.id} className="flex flex-col gap-1">
+										<div key={definition.id} className="flex flex-col gap-2">
 											<Label>{definition.label}</Label>
 											<Select value={current} onValueChange={(next) => updateFilter(definition.id, next === "__any" ? undefined : next)}>
 												<SelectTrigger className="h-8">
@@ -162,10 +170,6 @@ export const MarketplaceToolbar = (props: IMarketplaceToolbarProps) => {
 				</Popover>
 			)}
 
-			<Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-muted transition-colors" onClick={props.onSettingsClick}>
-				<FaGear className="w-4 h-4 opacity-70 hover:opacity-100" />
-			</Button>
-
 			<Select
 				value={props.selectedProvider.id}
 				onValueChange={(id) => {
@@ -175,7 +179,7 @@ export const MarketplaceToolbar = (props: IMarketplaceToolbarProps) => {
 					}
 				}}
 			>
-				<SelectTrigger className="w-40 h-8 border-none bg-muted/50">
+				<SelectTrigger className="w-40 h-8">
 					<SelectValue placeholder="Marketplace" />
 				</SelectTrigger>
 				<SelectContent>
@@ -186,12 +190,16 @@ export const MarketplaceToolbar = (props: IMarketplaceToolbarProps) => {
 					))}
 				</SelectContent>
 			</Select>
-			<Button size="sm" className="h-8 px-3" onClick={() => props.onSearch()} disabled={props.loading}>
+			{/* <Button size="sm" className="h-8 px-3" onClick={() => props.onSearch()} disabled={props.loading}>
 				{props.loading ? "Searching..." : "Search"}
+			</Button> */}
+
+			<Button variant="ghost" className="w-8 h-8 p-0.5" onClick={props.onSettingsClick}>
+				<IoIosOptions className="w-6 h-6" strokeWidth={1} />
 			</Button>
 		</div>
 	);
-};
+}
 
 function isFilterActive(value: MarketplaceFilterValue | undefined, defaultValue: MarketplaceFilterValue | undefined): boolean {
 	if (value === undefined || value === null || value === "") {

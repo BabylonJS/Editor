@@ -1,9 +1,12 @@
-﻿import { Grid } from "react-loader-spinner";
-import { IMarketplaceAsset } from "../../../tools/marketplaces/types";
+import { useEffect } from "react";
+
+import { Grid } from "react-loader-spinner";
+
 import { Button } from "../../../ui/shadcn/ui/button";
 import { Badge } from "../../../ui/shadcn/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../ui/shadcn/ui/select";
-import { useEffect } from "react";
+
+import { IMarketplaceAsset } from "../../../tools/marketplaces/types";
 
 export interface IMarketplaceSidebarProps {
 	asset?: IMarketplaceAsset;
@@ -13,7 +16,7 @@ export interface IMarketplaceSidebarProps {
 	showLoginAction?: boolean;
 	loginActionLabel?: string;
 	isDownloading: boolean;
-	assetPath: string;
+	assetPath?: string;
 	onQualityChange: (quality: string) => void;
 	onTypeChange: (type: string) => void;
 	onImport: (type?: string) => void;

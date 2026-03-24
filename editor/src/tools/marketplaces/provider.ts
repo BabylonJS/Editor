@@ -1,10 +1,19 @@
-import { dirname, join, isAbsolute } from "path";
-import { ensureDir, remove, writeFile, readdir, writeJSON } from "fs-extra";
-import axios from "axios";
 import { ipcRenderer } from "electron";
+import { dirname, join, isAbsolute } from "path/posix";
+import { ensureDir, readdir, remove, writeFile, writeJSON } from "fs-extra";
 
+import axios from "axios";
+import sharp from "sharp";
 import decompress from "decompress";
+
+import { UniqueNumber } from "../../tools/tools";
+
+import { configureImportedTexture } from "../../editor/layout/preview/import/import";
+
+import { BaseTexture, EnvironmentTextureTools, EXRCubeTexture, HDRCubeTexture, Observable, Texture, Tools, PBRMaterial } from "babylonjs";
+
 import { Editor } from "../../editor/main";
+
 import {
 	IMarketplaceAsset,
 	IMarketplaceSearchResult,
@@ -16,10 +25,6 @@ import {
 	IMarketplaceSettings,
 	IMarketplaceDownloadItem,
 } from "./types";
-import { BaseTexture, EnvironmentTextureTools, EXRCubeTexture, HDRCubeTexture, Observable, PBRMaterial, Texture, Tools } from "babylonjs";
-import { UniqueNumber } from "../../tools/tools";
-import { configureImportedTexture } from "../../editor/layout/preview/import/import";
-import sharp from "sharp";
 
 export abstract class MarketplaceProvider {
 	private static _registry: MarketplaceProvider[] = [];
@@ -160,7 +165,7 @@ export abstract class MarketplaceProvider {
 
 				let lastFileLoaded = 0;
 
-				await axios({
+				const response = await axios({
 					method: "get",
 					url: file.url,
 					responseType: "arraybuffer",
@@ -184,14 +189,14 @@ export abstract class MarketplaceProvider {
 							})
 						);
 					},
-				}).then(async (response) => {
-					const buffer = Buffer.from(response.data);
-					await writeFile(filePath, buffer);
-
-					if (file.extract) {
-						filesToExtract.push({ path: filePath, dir: fileDirPath });
-					}
 				});
+
+				const buffer = Buffer.from(response.data);
+				await writeFile(filePath, buffer);
+
+				if (file.extract) {
+					filesToExtract.push({ path: filePath, dir: fileDirPath });
+				}
 			}
 
 			if (filesToExtract.length > 0) {
@@ -248,7 +253,7 @@ export abstract class MarketplaceProvider {
 	}
 
 	private async _convertTextureToEnv(filePath: string, texture: BaseTexture, onLoadObservable: Observable<BaseTexture>) {
-		return new Promise((res, rej) => {
+		return new Promise((resolve, reject) => {
 			onLoadObservable.addOnce(async () => {
 				try {
 					const envBuffer = await EnvironmentTextureTools.CreateEnvTextureAsync(texture, {
@@ -256,9 +261,9 @@ export abstract class MarketplaceProvider {
 					});
 					await writeFile(`${filePath}.env`, Buffer.from(envBuffer));
 					await remove(filePath);
-					res(true);
+					resolve(true);
 				} catch (e) {
-					rej(e);
+					reject(e);
 				} finally {
 					texture.dispose();
 				}

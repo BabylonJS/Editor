@@ -1,13 +1,17 @@
+import { pathExists } from "fs-extra";
+import { ipcRenderer } from "electron";
+
 import { Component, ReactNode } from "react";
 
-import { IEditorInspectorImplementationProps } from "./inspector";
-import { MarketplaceSidebar } from "../marketplace-browser/sidebar";
-import { IMarketplaceAsset } from "../../../tools/marketplaces/types";
 import { toast } from "sonner";
-import { ImportProgress } from "../marketplace-browser/import-progress";
+
+import { IMarketplaceAsset } from "../../../tools/marketplaces/types";
 import { MarketplaceProvider } from "../../../tools/marketplaces/provider";
-import { ipcRenderer } from "electron";
-import { existsSync } from "fs";
+
+import { MarketplaceSidebar } from "../marketplace-browser/sidebar";
+import { ImportProgress } from "../marketplace-browser/import-progress";
+
+import { IEditorInspectorImplementationProps } from "./inspector";
 
 export class MarketplaceAssetInspectorObject {
 	public readonly isMarketplaceAssetInspectorObject = true;
@@ -25,6 +29,7 @@ interface IEditorMarketplaceAssetInspectorState {
 	detailsLoading: boolean;
 	isDownloading: boolean;
 	details?: IMarketplaceAsset;
+	assetPath?: string;
 }
 
 export class EditorMarketplaceAssetInspector extends Component<IEditorInspectorImplementationProps<MarketplaceAssetInspectorObject>, IEditorMarketplaceAssetInspectorState> {
@@ -47,9 +52,16 @@ export class EditorMarketplaceAssetInspector extends Component<IEditorInspectorI
 		};
 	}
 
-	public componentDidMount(): void {
+	public async componentDidMount(): Promise<void> {
 		this.props.object.provider.onSettingsChanged(this._handleSettingsChanged);
 		this._loadDetails();
+
+		const assetPath = await this._getAssetDir();
+		if (assetPath) {
+			this.setState({
+				assetPath,
+			});
+		}
 	}
 
 	public componentWillUnmount(): void {
@@ -71,16 +83,16 @@ export class EditorMarketplaceAssetInspector extends Component<IEditorInspectorI
 		this._loadDetails();
 	};
 
-	private _getAssetDir() {
+	private async _getAssetDir(): Promise<string | null> {
 		const assetDir = this.props.object.provider.getAssetDir(this.props.object.asset.id, this.props.editor.state.projectPath || "");
-		if (existsSync(assetDir)) {
+		if (await pathExists(assetDir)) {
 			return assetDir;
 		}
-		return "";
+		return null;
 	}
 
-	private _openAssetFolder() {
-		const assetDir = this._getAssetDir();
+	private async _openAssetFolder(): Promise<void> {
+		const assetDir = await this._getAssetDir();
 		if (assetDir) {
 			this.props.editor.layout.selectTab("assets-browser");
 			this.props.editor.layout.assets.setBrowsePath(assetDir);
@@ -109,7 +121,7 @@ export class EditorMarketplaceAssetInspector extends Component<IEditorInspectorI
 				onImport={(type) => this._handleImport(type)}
 				onOpenMarketplaceUrl={(url) => ipcRenderer.send("app:open-url", url)}
 				onOpenSettings={() => this.props.object.openSettings()}
-				assetPath={this._getAssetDir()}
+				assetPath={this.state.assetPath}
 				openAssetFolder={() => this._openAssetFolder()}
 			/>
 		);

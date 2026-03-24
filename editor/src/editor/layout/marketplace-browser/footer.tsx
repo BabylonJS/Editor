@@ -11,7 +11,7 @@ export interface IMarketplaceFooterProps {
 	onNext: () => void;
 }
 
-export const MarketplaceFooter = (props: IMarketplaceFooterProps) => {
+export function MarketplaceFooter(props: IMarketplaceFooterProps) {
 	if (props.assetsCount <= 0) {
 		return null;
 	}
@@ -41,4 +41,4 @@ export const MarketplaceFooter = (props: IMarketplaceFooterProps) => {
 			</div>
 		</div>
 	);
-};
+}
