@@ -56,7 +56,7 @@ export class EditorMarketplaceAssetInspector extends Component<IEditorInspectorI
 		this.props.object.provider.onSettingsChanged(this._handleSettingsChanged);
 		this._loadDetails();
 
-		const assetPath = await this._getAssetDir();
+		const assetPath = await this._getAssetPath();
 		if (assetPath) {
 			this.setState({
 				assetPath,
@@ -83,16 +83,17 @@ export class EditorMarketplaceAssetInspector extends Component<IEditorInspectorI
 		this._loadDetails();
 	};
 
-	private async _getAssetDir(): Promise<string | null> {
+	private async _getAssetPath(): Promise<string | undefined> {
 		const assetDir = this.props.object.provider.getAssetDir(this.props.object.asset.id, this.props.editor.state.projectPath || "");
 		if (await pathExists(assetDir)) {
 			return assetDir;
 		}
-		return null;
+
+		return undefined;
 	}
 
 	private async _openAssetFolder(): Promise<void> {
-		const assetDir = await this._getAssetDir();
+		const assetDir = await this._getAssetPath();
 		if (assetDir) {
 			this.props.editor.layout.selectTab("assets-browser");
 			this.props.editor.layout.assets.setBrowsePath(assetDir);
@@ -214,7 +215,10 @@ export class EditorMarketplaceAssetInspector extends Component<IEditorInspectorI
 				toast.error(`Failed to import ${asset.name}: ${e.message}`, { id: asset.id, duration: 5000 });
 			}
 		} finally {
-			this.setState({ isDownloading: false });
+			this.setState({
+				isDownloading: false,
+				assetPath: await this._getAssetPath(),
+			});
 		}
 	}
 
