@@ -7,6 +7,8 @@ import dotEnv from "dotenv";
 import yargs from "minimist";
 import Builder from "electron-builder";
 
+import packageJson from "./editor/package.json" with { type: "json" };
+
 dotEnv.config();
 const args = yargs(process.argv.slice(2));
 
@@ -18,6 +20,7 @@ function build({ x64, arm64 } = options) {
 		arm64,
 		projectDir: "./editor",
 		config: {
+			protocols: packageJson.build.protocols,
 			publish: {
 				provider: "generic",
 				url: `https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/updates/${platform() === "darwin" && architecture === "x64" ? "x64/" : ""}`,
@@ -52,12 +55,6 @@ function build({ x64, arm64 } = options) {
 				{
 					ext: "bjseditor",
 					name: "Babylon.js Editor Project",
-				},
-			],
-			protocols: [
-				{
-					name: "Babylon.js Editor",
-					schemes: ["babylonjs-editor"],
 				},
 			],
 			appId: "com.babylonjs.editor",
