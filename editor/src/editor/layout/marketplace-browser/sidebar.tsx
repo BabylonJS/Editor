@@ -3,6 +3,7 @@ import { IMarketplaceAsset } from "../../../tools/marketplaces/types";
 import { Button } from "../../../ui/shadcn/ui/button";
 import { Badge } from "../../../ui/shadcn/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../ui/shadcn/ui/select";
+import { useEffect } from "react";
 
 export interface IMarketplaceSidebarProps {
 	asset?: IMarketplaceAsset;
@@ -12,17 +13,21 @@ export interface IMarketplaceSidebarProps {
 	showLoginAction?: boolean;
 	loginActionLabel?: string;
 	isDownloading: boolean;
+	assetPath: string;
 	onQualityChange: (quality: string) => void;
 	onTypeChange: (type: string) => void;
 	onImport: (type?: string) => void;
 	onOpenMarketplaceUrl: (url: string) => void;
 	onOpenSettings: () => void;
 	onLogin?: () => void;
+	openAssetFolder: () => void;
 }
 
 export const MarketplaceSidebar = (props: IMarketplaceSidebarProps) => {
 	const canImport = !!props.selectedQuality && !!props.selectedType;
 	const hasDownloadOptions = !!Object.keys(props.asset?.downloadOptions || {}).length;
+
+	useEffect(() => {}, []);
 
 	if (props.detailsLoading) {
 		return (
@@ -111,6 +116,13 @@ export const MarketplaceSidebar = (props: IMarketplaceSidebarProps) => {
 								{props.loginActionLabel || "Login"}
 							</Button>
 						)}
+					</div>
+				)}
+				{!!props.assetPath && (
+					<div className="flex flex-row gap-1.5">
+						<Button className="w-full shadow-lg font-bold uppercase tracking-wider" variant="secondary" onClick={props.openAssetFolder}>
+							Open Folder
+						</Button>
 					</div>
 				)}
 				<div className="w-full h-[350px] min-h-[350px] rounded-lg overflow-hidden border border-border bg-black/5 shadow-sm">

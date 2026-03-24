@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { ImportProgress } from "../marketplace-browser/import-progress";
 import { MarketplaceProvider } from "../../../tools/marketplaces/provider";
 import { ipcRenderer } from "electron";
+import { existsSync } from "fs";
 
 export class MarketplaceAssetInspectorObject {
 	public readonly isMarketplaceAssetInspectorObject = true;
@@ -70,6 +71,22 @@ export class EditorMarketplaceAssetInspector extends Component<IEditorInspectorI
 		this._loadDetails();
 	};
 
+	private _getAssetDir() {
+		const assetDir = this.props.object.provider.getAssetDir(this.props.object.asset.id, this.props.editor.state.projectPath || "");
+		if (existsSync(assetDir)) {
+			return assetDir;
+		}
+		return "";
+	}
+
+	private _openAssetFolder() {
+		const assetDir = this._getAssetDir();
+		if (assetDir) {
+			this.props.editor.layout.selectTab("assets-browser");
+			this.props.editor.layout.assets.setBrowsePath(assetDir);
+		}
+	}
+
 	public render(): ReactNode {
 		return (
 			<MarketplaceSidebar
@@ -92,6 +109,8 @@ export class EditorMarketplaceAssetInspector extends Component<IEditorInspectorI
 				onImport={(type) => this._handleImport(type)}
 				onOpenMarketplaceUrl={(url) => ipcRenderer.send("app:open-url", url)}
 				onOpenSettings={() => this.props.object.openSettings()}
+				assetPath={this._getAssetDir()}
+				openAssetFolder={() => this._openAssetFolder()}
 			/>
 		);
 	}

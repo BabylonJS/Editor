@@ -1,5 +1,5 @@
 import { dirname, join, isAbsolute } from "path";
-import { ensureDir, remove, writeFile } from "fs-extra";
+import { ensureDir, remove, writeFile, readdir, writeJSON } from "fs-extra";
 import axios from "axios";
 import { ipcRenderer } from "electron";
 
@@ -16,9 +16,7 @@ import {
 	IMarketplaceSettings,
 	IMarketplaceDownloadItem,
 } from "./types";
-import { BaseTexture, EnvironmentTextureTools, EXRCubeTexture, HDRCubeTexture, Observable } from "babylonjs";
-import { readdir, writeJSON } from "fs-extra";
-import { PBRMaterial, Texture, Tools } from "babylonjs";
+import { BaseTexture, EnvironmentTextureTools, EXRCubeTexture, HDRCubeTexture, Observable, PBRMaterial, Texture, Tools } from "babylonjs";
 import { UniqueNumber } from "../../tools/tools";
 import { configureImportedTexture } from "../../editor/layout/preview/import/import";
 import sharp from "sharp";
@@ -119,6 +117,13 @@ export abstract class MarketplaceProvider {
 		this._activeDownloadIds.find((i) => i.id === id)?.abortController.abort();
 	}
 
+	public getAssetDir(assetId: string, projectPath: string) {
+		const projectDir = dirname(projectPath);
+		const downloadPathKey = projectPath ? `marketplace-download-${projectPath}` : "marketplace-download-path";
+		const downloadPath = localStorage.getItem(downloadPathKey) || "assets";
+		return isAbsolute(downloadPath) ? join(downloadPath, this.id, assetId) : join(projectDir, downloadPath, this.id, assetId);
+	}
+
 	public async downloadAndImport(asset: IMarketplaceAsset, editor: Editor, selectedQuality: string, selectedType: string, type?: string): Promise<void> {
 		if (!editor.state.projectPath) {
 			throw new Error("Cannot download assets: no project is currently open.");
@@ -133,10 +138,7 @@ export abstract class MarketplaceProvider {
 		}
 
 		this._activeDownloadIds.push({ id: asset.id, abortController: new AbortController() });
-		const projectDir = dirname(editor.state.projectPath);
-		const downloadPathKey = editor.state.projectPath ? `marketplace-download-${editor.state.projectPath}` : "marketplace-download-path";
-		const downloadPath = localStorage.getItem(downloadPathKey) || "assets";
-		const assetDir = isAbsolute(downloadPath) ? join(downloadPath, this.id, asset.id) : join(projectDir, downloadPath, this.id, asset.id);
+		const assetDir = this.getAssetDir(asset.id, editor.state.projectPath);
 
 		try {
 			await ensureDir(assetDir);
@@ -271,10 +273,9 @@ export abstract class MarketplaceProvider {
 				const res = join(dir, dirent.name);
 				if (dirent.isDirectory()) {
 					return this._getFilesRecursive(res, baseDir);
-				} else {
-					const rel = res.replace(baseDir, "").replace(/\\/g, "/");
-					return rel.startsWith("/") ? rel.substring(1) : rel;
 				}
+				const rel = res.replace(baseDir, "").replace(/\\/g, "/");
+				return rel.startsWith("/") ? rel.substring(1) : rel;
 			})
 		);
 		return Array.prototype.concat(...files);
