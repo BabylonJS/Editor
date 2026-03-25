@@ -17,7 +17,7 @@ export function MarketplaceFooter(props: IMarketplaceFooterProps) {
 	}
 
 	return (
-		<div className="flex justify-between items-center px-4 py-1.5 text-[10px] uppercase font-bold tracking-widest text-muted-foreground border-t border-border bg-primary-foreground/30 shadow-inner">
+		<div className="flex gap-2 justify-between items-center px-4 w-full h-10 min-h-10 bg-primary-foreground text-xs tracking-widest">
 			<div className="flex items-center gap-4">
 				<span>
 					{props.assetsCount} results on page {props.currentPage}
@@ -26,16 +26,10 @@ export function MarketplaceFooter(props: IMarketplaceFooterProps) {
 				<span>Total: {props.totalCount === undefined ? "Unknown" : props.totalCount}</span>
 			</div>
 			<div className="flex items-center gap-2">
-				<Button
-					variant="outline"
-					size="sm"
-					className="h-6 px-2 text-[9px] uppercase font-black"
-					onClick={() => props.onPrevious()}
-					disabled={!props.hasPrevious || props.loading}
-				>
+				<Button variant="ghost" onClick={() => props.onPrevious()} disabled={!props.hasPrevious || props.loading} className="h-8 text-xs">
 					Previous
 				</Button>
-				<Button variant="outline" size="sm" className="h-6 px-2 text-[9px] uppercase font-black" onClick={() => props.onNext()} disabled={!props.hasNext || props.loading}>
+				<Button variant="ghost" className="h-8 text-xs" onClick={() => props.onNext()} disabled={!props.hasNext || props.loading}>
 					Next
 				</Button>
 			</div>
