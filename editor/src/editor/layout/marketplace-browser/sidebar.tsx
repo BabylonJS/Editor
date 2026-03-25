@@ -82,11 +82,11 @@ export const MarketplaceSidebar = (props: IMarketplaceSidebarProps) => {
 								</Select>
 							</div>
 							{props.isDownloading ? (
-								<Button disabled variant="ghost" className="mt-2 w-full shadow-lg font-bold uppercase tracking-wider">
-									Importing...
+								<Button disabled variant="ghost" className="flex gap-2 items-center w-full shadow-lg font-bold uppercase tracking-wider mt-2">
+									<Grid width={16} height={16} color="gray" /> Importing...
 								</Button>
 							) : (
-								<div className="flex flex-row gap-1.5 mt-2">
+								<div className="flex gap-2 mt-2">
 									<Button
 										className="w-full shadow-lg font-bold uppercase tracking-wider"
 										onClick={() => props.onImport()}

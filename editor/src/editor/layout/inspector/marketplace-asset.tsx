@@ -111,12 +111,14 @@ export class EditorMarketplaceAssetInspector extends Component<IEditorInspectorI
 				showLoginAction={this._shouldShowLoginAction()}
 				loginActionLabel={`Login to ${this.props.object.provider.title}`}
 				onLogin={this.props.object.provider.login ? () => this.props.object.provider.login!() : undefined}
-				onQualityChange={(val) => {
-					if (!this.state.details) {
-						return;
+				onQualityChange={(selectedDownloadQuality) => {
+					if (this.state.details) {
+						const selectedDownloadType = this._getFirstType(this.state.details, selectedDownloadQuality);
+						this.setState({
+							selectedDownloadType,
+							selectedDownloadQuality,
+						});
 					}
-					const selectedDownloadType = this._getFirstType(this.state.details, val);
-					this.setState({ selectedDownloadQuality: val, selectedDownloadType });
 				}}
 				onTypeChange={(val) => this.setState({ selectedDownloadType: val })}
 				onImport={(type) => this._handleImport(type)}
@@ -151,7 +153,11 @@ export class EditorMarketplaceAssetInspector extends Component<IEditorInspectorI
 
 	private async _loadDetails(): Promise<void> {
 		const provider = this.props.object.provider;
-		this.setState({ detailsLoading: true, selectedDownloadQuality: undefined, selectedDownloadType: undefined });
+		this.setState({
+			detailsLoading: true,
+			selectedDownloadQuality: undefined,
+			selectedDownloadType: undefined,
+		});
 
 		if (provider.getAssetDetails) {
 			try {
@@ -162,7 +168,12 @@ export class EditorMarketplaceAssetInspector extends Component<IEditorInspectorI
 
 				const selectedQuality = Object.keys(details.downloadOptions || {})?.[0];
 				const selectedType = Object.keys(details.downloadOptions?.[selectedQuality] || {})?.[0];
-				this.setState({ details, detailsLoading: false, selectedDownloadQuality: selectedQuality, selectedDownloadType: selectedType });
+				this.setState({
+					details,
+					detailsLoading: false,
+					selectedDownloadQuality: selectedQuality,
+					selectedDownloadType: selectedType,
+				});
 			} catch (e) {
 				if (provider !== this.props.object.provider) {
 					return;
@@ -170,12 +181,19 @@ export class EditorMarketplaceAssetInspector extends Component<IEditorInspectorI
 
 				const message = e instanceof Error ? e.message : String(e);
 				this.props.editor.layout.console.error(`Failed to fetch asset details: ${message}`);
-				this.setState({ detailsLoading: false });
+				this.setState({
+					detailsLoading: false,
+				});
 			}
 		} else {
 			const selectedQuality = Object.keys(this.props.object.asset.downloadOptions || {})?.[0];
 			const selectedType = Object.keys(this.props.object.asset.downloadOptions?.[selectedQuality] || {})?.[0];
-			this.setState({ details: this.props.object.asset, detailsLoading: false, selectedDownloadQuality: selectedQuality, selectedDownloadType: selectedType });
+			this.setState({
+				details: this.props.object.asset,
+				detailsLoading: false,
+				selectedDownloadQuality: selectedQuality,
+				selectedDownloadType: selectedType,
+			});
 		}
 	}
 
@@ -227,6 +245,11 @@ export class EditorMarketplaceAssetInspector extends Component<IEditorInspectorI
 			return undefined;
 		}
 
-		return Object.keys(asset.downloadOptions?.[quality] || {})[0];
+		const types = Object.keys(asset.downloadOptions?.[quality] || {});
+		if (types.includes(this.state.selectedDownloadType!)) {
+			return this.state.selectedDownloadType;
+		}
+
+		return types[0];
 	}
 }
