@@ -69,6 +69,30 @@ export function MarketplaceToolbar(props: IMarketplaceToolbarProps) {
 				</div>
 			</div>
 
+			<Select
+				value={props.selectedProvider.id}
+				onValueChange={(id) => {
+					const provider = props.providers.find((p) => p.id === id);
+					if (provider) {
+						props.onProviderChange(provider);
+					}
+				}}
+			>
+				<SelectTrigger className="w-40 h-8">
+					<SelectValue placeholder="Marketplace" />
+				</SelectTrigger>
+				<SelectContent>
+					{props.providers.map((provider) => (
+						<SelectItem key={provider.id} value={provider.id}>
+							{provider.title}
+						</SelectItem>
+					))}
+				</SelectContent>
+			</Select>
+			{/* <Button size="sm" className="h-8 px-3" onClick={() => props.onSearch()} disabled={props.loading}>
+				{props.loading ? "Searching..." : "Search"}
+			</Button> */}
+
 			{props.filterDefinitions.length > 0 && (
 				<Popover>
 					<PopoverTrigger asChild>
@@ -169,30 +193,6 @@ export function MarketplaceToolbar(props: IMarketplaceToolbarProps) {
 					</PopoverContent>
 				</Popover>
 			)}
-
-			<Select
-				value={props.selectedProvider.id}
-				onValueChange={(id) => {
-					const provider = props.providers.find((p) => p.id === id);
-					if (provider) {
-						props.onProviderChange(provider);
-					}
-				}}
-			>
-				<SelectTrigger className="w-40 h-8">
-					<SelectValue placeholder="Marketplace" />
-				</SelectTrigger>
-				<SelectContent>
-					{props.providers.map((provider) => (
-						<SelectItem key={provider.id} value={provider.id}>
-							{provider.title}
-						</SelectItem>
-					))}
-				</SelectContent>
-			</Select>
-			{/* <Button size="sm" className="h-8 px-3" onClick={() => props.onSearch()} disabled={props.loading}>
-				{props.loading ? "Searching..." : "Search"}
-			</Button> */}
 
 			<Button variant="ghost" className="w-8 h-8 p-0.5" onClick={props.onSettingsClick}>
 				<IoIosOptions className="w-6 h-6" strokeWidth={1} />

@@ -49,7 +49,8 @@ import { EditorSpriteMapNodeInspector } from "./inspector/sprites/sprite-map";
 import { EditorSpriteManagerNodeInspector } from "./inspector/sprites/sprite-manager";
 
 import { EditorSkeletonInspector } from "./inspector/mesh/skeleton";
-import { EditorMarketplaceAssetInspector } from "./inspector/marketplace-asset";
+
+import { EditorMarketplaceAssetInspector } from "./inspector/marketplace/asset";
 
 export interface IEditorInspectorProps {
 	/**

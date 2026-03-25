@@ -23,7 +23,7 @@ import { getLightCommands } from "../dialogs/command-palette/light";
 import { getCameraCommands } from "../dialogs/command-palette/camera";
 import { getSpriteCommands } from "../dialogs/command-palette/sprite";
 import { ICommandPaletteType } from "../dialogs/command-palette/command-palette";
-import { EditorMarketplaceBrowser } from "./marketplace-browser";
+import { EditorMarketplaceBrowser } from "./marketplace";
 
 export interface IEditorToolbarProps {
 	editor: Editor;

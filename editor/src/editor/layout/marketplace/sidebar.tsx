@@ -3,8 +3,8 @@ import { Fade } from "react-awesome-reveal";
 
 import { Grid } from "react-loader-spinner";
 
-import { Button } from "../../../ui/shadcn/ui/button";
 import { Badge } from "../../../ui/shadcn/ui/badge";
+import { Button } from "../../../ui/shadcn/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../ui/shadcn/ui/select";
 
 import { IMarketplaceAsset } from "../../../tools/marketplaces/types";
@@ -27,7 +27,7 @@ export interface IMarketplaceSidebarProps {
 	openAssetFolder: () => void;
 }
 
-export const MarketplaceSidebar = (props: IMarketplaceSidebarProps) => {
+export function MarketplaceSidebar(props: IMarketplaceSidebarProps) {
 	const canImport = !!props.selectedQuality && !!props.selectedType;
 	const hasDownloadOptions = !!Object.keys(props.asset?.downloadOptions || {}).length;
 
@@ -35,7 +35,7 @@ export const MarketplaceSidebar = (props: IMarketplaceSidebarProps) => {
 
 	if (props.detailsLoading) {
 		return (
-			<div className="flex-1 flex items-center justify-center p-8">
+			<div className="flex-1 flex justify-center items-center p-8">
 				<Grid width={24} height={24} color="gray" />
 			</div>
 		);
@@ -47,40 +47,60 @@ export const MarketplaceSidebar = (props: IMarketplaceSidebarProps) => {
 
 	return (
 		<Fade>
-			<div className="flex-1 flex flex-col overflow-hidden">
-				<div className="flex justify-between items-start gap-2 p-4 border-b border-border bg-background/50 sticky top-0 z-10 backdrop-blur-sm">
-					<h3 className="font-bold text-lg leading-tight truncate pr-2">{props.asset.name}</h3>
+			<div className="flex flex-1 flex-col gap-4 overflow-hidden">
+				<div>
+					<div className="flex gap-2 justify-center items-center text-xl font-bold">{props.asset.name}</div>
 				</div>
 
-				<div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
+				<div className="w-full h-[350px] min-h-[350px] rounded-lg bg-black/5">
+					<img
+						alt={props.asset.name}
+						src={props.asset.thumbnailUrl}
+						onLoad={() => setImageOpacity(1)}
+						style={{
+							opacity: imageOpacity,
+						}}
+						className="w-full h-full object-contain p-2 transition-opacity ease-in-out duration-200"
+					/>
+				</div>
+
+				<div className="flex-1 flex flex-col gap-2 bg-secondary dark:bg-secondary/35 p-2 rounded-lg">
 					{hasDownloadOptions && (
-						<div>
-							<div className="flex flex-row gap-1.5">
-								<Select disabled={props.isDownloading} value={props.selectedQuality} onValueChange={props.onQualityChange}>
-									<SelectTrigger className="w-full text-[12px] h-9 bg-background/50 border-border/50 hover:bg-background transition-colors">
-										<SelectValue />
-									</SelectTrigger>
-									<SelectContent>
-										{Object.keys(props.asset.downloadOptions || {}).map((opt) => (
-											<SelectItem key={opt} value={opt}>
-												{opt.toUpperCase()}
-											</SelectItem>
-										))}
-									</SelectContent>
-								</Select>
-								<Select disabled={props.isDownloading || !canImport} value={props.selectedType} onValueChange={props.onTypeChange}>
-									<SelectTrigger className="w-full text-[12px] h-9 bg-background/50 border-border/50 hover:bg-background transition-colors">
-										<SelectValue />
-									</SelectTrigger>
-									<SelectContent>
-										{Object.keys(props.asset.downloadOptions?.[props.selectedQuality!] || {}).map((opt) => (
-											<SelectItem key={opt} value={opt}>
-												{opt.toUpperCase()}
-											</SelectItem>
-										))}
-									</SelectContent>
-								</Select>
+						<div className="flex flex-col gap-2">
+							<div className="flex items-center gap-2">
+								<div className="flex flex-col gap-1 w-full">
+									<span className="text-xs uppercase font-bold text-muted-foreground tracking-widest px-2">Quality</span>
+									<Select disabled={props.isDownloading} value={props.selectedQuality} onValueChange={props.onQualityChange}>
+										<SelectTrigger className="w-full text-xs bg-background/50 border-border/50 hover:bg-background transition-colors">
+											<SelectValue />
+										</SelectTrigger>
+										<SelectContent>
+											{Object.keys(props.asset.downloadOptions || {}).map((opt) => (
+												<SelectItem key={opt} value={opt}>
+													{opt.toUpperCase()}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+								</div>
+
+								<div className="flex flex-col gap-1 w-full">
+									<span className="text-xs uppercase font-bold text-muted-foreground tracking-widest px-2">Format</span>
+									<Select disabled={props.isDownloading || !canImport} value={props.selectedType} onValueChange={props.onTypeChange}>
+										<SelectTrigger className="w-full text-xs bg-background/50 border-border/50 hover:bg-background transition-colors">
+											<SelectValue />
+										</SelectTrigger>
+										<SelectContent>
+											{Object.keys(props.asset.downloadOptions?.[props.selectedQuality!] || {}).map((opt) => (
+												<SelectItem key={opt} value={opt}>
+													{opt.toUpperCase()}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+								</div>
 							</div>
+
 							{props.isDownloading ? (
 								<Button disabled variant="ghost" className="flex gap-2 items-center w-full shadow-lg font-bold uppercase tracking-wider mt-2">
 									<Grid width={16} height={16} color="gray" /> Importing...
@@ -107,15 +127,17 @@ export const MarketplaceSidebar = (props: IMarketplaceSidebarProps) => {
 							)}
 						</div>
 					)}
+
 					{!hasDownloadOptions && props.asset.marketplaceUrl && (
-						<div className="flex flex-row gap-1.5">
+						<div className="flex gap-2 bg-secondary dark:bg-secondary/35 p-2 rounded-lg">
 							<Button
-								className="w-full shadow-lg font-bold uppercase tracking-wider"
 								variant="outline"
+								className="w-full shadow-lg font-bold uppercase tracking-wider"
 								onClick={() => props.onOpenMarketplaceUrl(props.asset!.marketplaceUrl!)}
 							>
 								{props.asset.marketplaceActionLabel || (props.asset.isDownloadable === false ? "View / Buy" : "Open In Marketplace")}
 							</Button>
+
 							{props.showLoginAction && (
 								<Button className="w-full shadow-lg font-bold uppercase tracking-wider" onClick={props.onLogin ?? props.onOpenSettings}>
 									{props.loginActionLabel || "Login"}
@@ -123,25 +145,17 @@ export const MarketplaceSidebar = (props: IMarketplaceSidebarProps) => {
 							)}
 						</div>
 					)}
-					{!!props.assetPath && (
-						<div className="flex flex-row gap-1.5">
+
+					{props.assetPath && (
+						<div className="flex gap-2">
 							<Button className="w-full shadow-lg font-bold uppercase tracking-wider" variant="secondary" onClick={props.openAssetFolder}>
 								Open Folder
 							</Button>
 						</div>
 					)}
-					<div className="w-full h-[350px] min-h-[350px] rounded-lg overflow-hidden border border-border bg-black/5 shadow-sm">
-						<img
-							alt={props.asset.name}
-							src={props.asset.thumbnailUrl}
-							onLoad={() => setImageOpacity(1)}
-							style={{
-								opacity: imageOpacity,
-							}}
-							className="w-full h-full object-contain p-2 transition-opacity ease-in-out duration-200"
-						/>
-					</div>
+				</div>
 
+				<div className="flex-1 flex flex-col gap-4 bg-secondary dark:bg-secondary/35 p-2 rounded-lg">
 					<div className="flex flex-col gap-4 text-sm">
 						{props.asset.author && (
 							<div className="flex flex-col">
@@ -166,11 +180,11 @@ export const MarketplaceSidebar = (props: IMarketplaceSidebarProps) => {
 							</div>
 						)}
 
-						{props.asset.tags && props.asset.tags.length > 0 && (
+						{props.asset.tags?.length && (
 							<div className="flex flex-col">
 								<span className="text-[11px] uppercase font-bold text-muted-foreground tracking-widest mb-1.5">Tags</span>
 								<div className="flex flex-wrap gap-1.5">
-									{props.asset.tags.map((tag) => (
+									{props.asset.tags?.map((tag) => (
 										<Badge key={tag} variant="secondary" className="text-[11px] py-0 px-2 bg-muted/60">
 											{tag}
 										</Badge>
@@ -183,4 +197,4 @@ export const MarketplaceSidebar = (props: IMarketplaceSidebarProps) => {
 			</div>
 		</Fade>
 	);
-};
+}

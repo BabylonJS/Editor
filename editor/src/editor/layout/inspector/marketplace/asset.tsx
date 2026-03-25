@@ -5,13 +5,13 @@ import { Component, ReactNode } from "react";
 
 import { toast } from "sonner";
 
-import { IMarketplaceAsset } from "../../../tools/marketplaces/types";
-import { MarketplaceProvider } from "../../../tools/marketplaces/provider";
+import { IMarketplaceAsset } from "../../../../tools/marketplaces/types";
+import { MarketplaceProvider } from "../../../../tools/marketplaces/provider";
 
-import { MarketplaceSidebar } from "../marketplace-browser/sidebar";
-import { ImportProgress } from "../marketplace-browser/import-progress";
+import { MarketplaceSidebar } from "../../marketplace/sidebar";
+import { ImportProgress } from "../../marketplace/import-progress";
 
-import { IEditorInspectorImplementationProps } from "./inspector";
+import { IEditorInspectorImplementationProps } from "../inspector";
 
 export class MarketplaceAssetInspectorObject {
 	public readonly isMarketplaceAssetInspectorObject = true;
@@ -24,12 +24,14 @@ export class MarketplaceAssetInspectorObject {
 }
 
 interface IEditorMarketplaceAssetInspectorState {
-	selectedDownloadQuality?: string;
-	selectedDownloadType?: string;
+	downloading: boolean;
 	detailsLoading: boolean;
-	isDownloading: boolean;
-	details?: IMarketplaceAsset;
+
+	selectedDownloadType?: string;
+	selectedDownloadQuality?: string;
+
 	assetPath?: string;
+	details?: IMarketplaceAsset;
 }
 
 export class EditorMarketplaceAssetInspector extends Component<IEditorInspectorImplementationProps<MarketplaceAssetInspectorObject>, IEditorMarketplaceAssetInspectorState> {
@@ -48,8 +50,38 @@ export class EditorMarketplaceAssetInspector extends Component<IEditorInspectorI
 			selectedDownloadQuality: undefined,
 			selectedDownloadType: undefined,
 			detailsLoading: false,
-			isDownloading: false,
+			downloading: false,
 		};
+	}
+
+	public render(): ReactNode {
+		return (
+			<MarketplaceSidebar
+				asset={this.state.details}
+				detailsLoading={this.state.detailsLoading}
+				selectedQuality={this.state.selectedDownloadQuality}
+				selectedType={this.state.selectedDownloadType}
+				isDownloading={this.state.downloading}
+				showLoginAction={this._shouldShowLoginAction()}
+				loginActionLabel={`Login to ${this.props.object.provider.title}`}
+				onLogin={this.props.object.provider.login ? () => this.props.object.provider.login!() : undefined}
+				onQualityChange={(selectedDownloadQuality) => {
+					if (this.state.details) {
+						const selectedDownloadType = this._getFirstType(this.state.details, selectedDownloadQuality);
+						this.setState({
+							selectedDownloadType,
+							selectedDownloadQuality,
+						});
+					}
+				}}
+				onTypeChange={(val) => this.setState({ selectedDownloadType: val })}
+				onImport={(type) => this._handleImport(type)}
+				onOpenMarketplaceUrl={(url) => ipcRenderer.send("app:open-url", url)}
+				onOpenSettings={() => this.props.object.openSettings()}
+				assetPath={this.state.assetPath}
+				openAssetFolder={() => this._openAssetFolder()}
+			/>
+		);
 	}
 
 	public async componentDidMount(): Promise<void> {
@@ -64,10 +96,6 @@ export class EditorMarketplaceAssetInspector extends Component<IEditorInspectorI
 		}
 	}
 
-	public componentWillUnmount(): void {
-		this.props.object.provider.removeSettingsListener(this._handleSettingsChanged);
-	}
-
 	public componentDidUpdate(prevProps: IEditorInspectorImplementationProps<MarketplaceAssetInspectorObject>): void {
 		if (this.props.object.provider !== prevProps.object.provider) {
 			prevProps.object.provider.removeSettingsListener(this._handleSettingsChanged);
@@ -77,6 +105,10 @@ export class EditorMarketplaceAssetInspector extends Component<IEditorInspectorI
 		if (this.props.object.asset.id !== prevProps.object.asset.id) {
 			this._loadDetails();
 		}
+	}
+
+	public componentWillUnmount(): void {
+		this.props.object.provider.removeSettingsListener(this._handleSettingsChanged);
 	}
 
 	private _handleSettingsChanged = (): void => {
@@ -98,36 +130,6 @@ export class EditorMarketplaceAssetInspector extends Component<IEditorInspectorI
 			this.props.editor.layout.selectTab("assets-browser");
 			this.props.editor.layout.assets.setBrowsePath(assetDir);
 		}
-	}
-
-	public render(): ReactNode {
-		return (
-			<MarketplaceSidebar
-				asset={this.state.details}
-				detailsLoading={this.state.detailsLoading}
-				selectedQuality={this.state.selectedDownloadQuality}
-				selectedType={this.state.selectedDownloadType}
-				isDownloading={this.state.isDownloading}
-				showLoginAction={this._shouldShowLoginAction()}
-				loginActionLabel={`Login to ${this.props.object.provider.title}`}
-				onLogin={this.props.object.provider.login ? () => this.props.object.provider.login!() : undefined}
-				onQualityChange={(selectedDownloadQuality) => {
-					if (this.state.details) {
-						const selectedDownloadType = this._getFirstType(this.state.details, selectedDownloadQuality);
-						this.setState({
-							selectedDownloadType,
-							selectedDownloadQuality,
-						});
-					}
-				}}
-				onTypeChange={(val) => this.setState({ selectedDownloadType: val })}
-				onImport={(type) => this._handleImport(type)}
-				onOpenMarketplaceUrl={(url) => ipcRenderer.send("app:open-url", url)}
-				onOpenSettings={() => this.props.object.openSettings()}
-				assetPath={this.state.assetPath}
-				openAssetFolder={() => this._openAssetFolder()}
-			/>
-		);
 	}
 
 	private _shouldShowLoginAction(): boolean {
@@ -153,6 +155,7 @@ export class EditorMarketplaceAssetInspector extends Component<IEditorInspectorI
 
 	private async _loadDetails(): Promise<void> {
 		const provider = this.props.object.provider;
+
 		this.setState({
 			detailsLoading: true,
 			selectedDownloadQuality: undefined,
@@ -204,7 +207,7 @@ export class EditorMarketplaceAssetInspector extends Component<IEditorInspectorI
 			return;
 		}
 
-		this.setState({ isDownloading: true });
+		this.setState({ downloading: true });
 
 		toast(
 			<ImportProgress
@@ -234,7 +237,7 @@ export class EditorMarketplaceAssetInspector extends Component<IEditorInspectorI
 			}
 		} finally {
 			this.setState({
-				isDownloading: false,
+				downloading: false,
 				assetPath: await this._getAssetPath(),
 			});
 		}

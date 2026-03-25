@@ -8,12 +8,12 @@ import registerProviders from "../../tools/marketplaces/registrations";
 import { MarketplaceProvider } from "../../tools/marketplaces/provider";
 import { IMarketplaceAsset, IMarketplaceSearchFilters } from "../../tools/marketplaces/types";
 
-import { MarketplaceAssetInspectorObject, EditorMarketplaceAssetInspector } from "./inspector/marketplace-asset";
+import { MarketplaceAssetInspectorObject, EditorMarketplaceAssetInspector } from "./inspector/marketplace/asset";
 
-import { MarketplaceGrid } from "./marketplace-browser/grid";
-import { MarketplaceFooter } from "./marketplace-browser/footer";
-import { MarketplaceToolbar } from "./marketplace-browser/toolbar";
-import { MarketplaceSettingsDialog } from "./marketplace-browser/settings-dialog";
+import { MarketplaceGrid } from "./marketplace/grid";
+import { MarketplaceFooter } from "./marketplace/footer";
+import { MarketplaceToolbar } from "./marketplace/toolbar";
+import { MarketplaceSettingsDialog } from "./marketplace/settings-dialog";
 
 export interface IMarketplaceBrowserProps {
 	editor: Editor;
@@ -155,7 +155,7 @@ export class EditorMarketplaceBrowser extends Component<IMarketplaceBrowserProps
 				</div>
 
 				{this.state.isMaximized && this.state.selectedAsset && (
-					<div className="border-l border-border bg-background/50 overflow-hidden flex flex-col" style={{ width: "25%" }}>
+					<div className="border-l border-border overflow-hidden flex flex-col w-[25%] p-2">
 						<EditorMarketplaceAssetInspector
 							editor={this.props.editor}
 							object={new MarketplaceAssetInspectorObject(this.state.selectedAsset, this.state.selectedProvider, () => this.setState({ settingsOpen: true }))}

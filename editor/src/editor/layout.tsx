@@ -18,7 +18,7 @@ import { EditorConsole } from "./layout/console";
 import { EditorInspector } from "./layout/inspector";
 import { EditorAnimation } from "./layout/animation";
 import { EditorAssetsBrowser } from "./layout/assets-browser";
-import { EditorMarketplaceBrowser } from "./layout/marketplace-browser";
+import { EditorMarketplaceBrowser } from "./layout/marketplace";
 
 export interface IEditorLayoutProps {
 	/**
