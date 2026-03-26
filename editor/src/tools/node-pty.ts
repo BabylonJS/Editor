@@ -4,6 +4,9 @@ import { IPtyForkOptions, IWindowsPtyForkOptions } from "node-pty";
 
 import { Observable } from "babylonjs";
 
+import { isWindows } from "./os";
+import { tryGetTerminalFromLocalStorage } from "./local-storage";
+
 /**
  * Creates a new node-pty instance.
  * @param command The command to run in the pty process.
@@ -13,9 +16,14 @@ import { Observable } from "babylonjs";
 export async function execNodePty(command: string, options: IPtyForkOptions | IWindowsPtyForkOptions = {}): Promise<NodePtyInstance> {
 	const id = randomUUID();
 
+	let forcedShell: string | null = null;
+	if (isWindows()) {
+		forcedShell = tryGetTerminalFromLocalStorage();
+	}
+
 	await new Promise<void>((resolve) => {
 		ipcRenderer.once(`editor:create-node-pty-${id}`, () => resolve());
-		ipcRenderer.send("editor:create-node-pty", command, id, options);
+		ipcRenderer.send("editor:create-node-pty", command, id, options, forcedShell);
 	});
 
 	if (id === null) {

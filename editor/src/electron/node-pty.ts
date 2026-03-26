@@ -1,7 +1,7 @@
 import { platform } from "os";
-
 import { ipcMain } from "electron";
 import { spawn, IPty } from "node-pty";
+import { pathExistsSync } from "fs-extra";
 
 interface IStoredNodePty {
 	pty: IPty;
@@ -30,8 +30,12 @@ export function closeAllNodePtyForWebContentsId(id: number) {
 }
 
 // On create a new pty process
-ipcMain.on("editor:create-node-pty", (ev, command, id, options) => {
-	const shell = process.env[platform() === "win32" ? "COMSPEC" : "SHELL"] ?? null;
+ipcMain.on("editor:create-node-pty", (ev, command, id, options, forcedShell) => {
+	let shell = process.env[platform() === "win32" ? "COMSPEC" : "SHELL"] ?? null;
+	if (forcedShell && forcedShell !== "Automatic" && pathExistsSync(forcedShell)) {
+		shell = forcedShell;
+	}
+
 	if (!shell) {
 		return ev.sender.send("editor:create-node-pty", null);
 	}

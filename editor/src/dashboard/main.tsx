@@ -7,14 +7,11 @@ import { createRoot } from "react-dom/client";
 import { Fade } from "react-awesome-reveal";
 
 import { FaGear } from "react-icons/fa6";
-import { IoCheckmark } from "react-icons/io5";
 
 import { Button } from "../ui/shadcn/ui/button";
 import { Toaster } from "../ui/shadcn/ui/sonner";
 import { Separator } from "../ui/shadcn/ui/separator";
 import { showConfirm, showAlert } from "../ui/dialog";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/shadcn/ui/tooltip";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/shadcn/ui/dropdown-menu";
 
 import { wait } from "../tools/tools";
 import { openSingleFileDialog } from "../tools/dialog";
@@ -28,6 +25,7 @@ import {
 } from "../tools/local-storage";
 
 import { DashboardProjectItem } from "./item";
+import { DashboardPreferences } from "./preferences";
 import { DashboardCreateProjectDialog } from "./create";
 import { DashboardWindowControls } from "./window-controls";
 
@@ -58,6 +56,8 @@ export interface IDashboardState {
 	openedProjects: string[];
 
 	createProject: boolean;
+	preferencesOpen: boolean;
+
 	closeDashboardOnProjectOpen: boolean;
 }
 
@@ -70,6 +70,8 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
 			projects: tryGetProjectsFromLocalStorage(),
 
 			createProject: false,
+			preferencesOpen: false,
+
 			closeDashboardOnProjectOpen: tryGetCloseDashboardOnProjectOpenFromLocalStorage(),
 		};
 
@@ -77,14 +79,6 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
 	}
 
 	public render(): ReactNode {
-		const handleKeepDashboardChanged = (checked: boolean): void => {
-			this.setState({
-				closeDashboardOnProjectOpen: checked,
-			});
-
-			trySetCloseDashboardOnProjectOpenInLocalStorage(checked);
-		};
-
 		return (
 			<>
 				<div className="flex flex-col gap-4 w-screen h-screen p-5 select-none pt-10">
@@ -142,32 +136,17 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
 
 					<Fade delay={1000} className="flex-[0_0_auto]">
 						<div className="flex justify-end">
-							<TooltipProvider>
-								<DropdownMenu>
-									<DropdownMenuTrigger asChild>
-										<Button variant="ghost" className="p-1">
-											<FaGear className="w-6 h-6" />
-										</Button>
-									</DropdownMenuTrigger>
-									<DropdownMenuContent className="w-56" align="end">
-										<DropdownMenuItem className="flex gap-2 items-center">
-											<Tooltip>
-												<TooltipTrigger
-													className="flex gap-1 items-center"
-													onClick={() => handleKeepDashboardChanged(!this.state.closeDashboardOnProjectOpen)}
-												>
-													{!this.state.closeDashboardOnProjectOpen ? <IoCheckmark /> : ""} Keep dashboard open
-												</TooltipTrigger>
-												<TooltipContent align="end" side="top" collisionPadding={8}>
-													If enabled, the dashboard will stay open when a project starts.
-													<br />
-													If disabled, the dashboard will close when a project starts and reopen after the project is closed.
-												</TooltipContent>
-											</Tooltip>
-										</DropdownMenuItem>
-									</DropdownMenuContent>
-								</DropdownMenu>
-							</TooltipProvider>
+							<Button
+								variant="ghost"
+								className="p-1 w-10 h-10"
+								onClick={() =>
+									this.setState({
+										preferencesOpen: true,
+									})
+								}
+							>
+								<FaGear className="w-6 h-6" />
+							</Button>
 						</div>
 					</Fade>
 				</div>
@@ -181,6 +160,17 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
 							projects: tryGetProjectsFromLocalStorage(),
 						});
 					}}
+				/>
+
+				<DashboardPreferences
+					isOpened={this.state.preferencesOpen}
+					closeDashboardOnProjectOpen={this.state.closeDashboardOnProjectOpen}
+					onClose={() =>
+						this.setState({
+							preferencesOpen: false,
+						})
+					}
+					onKeepDashboardChanged={(v) => this._handleKeepDashboardChanged(v)}
 				/>
 
 				<Toaster />
@@ -244,6 +234,14 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
 				</div>
 			).wait();
 		}
+	}
+
+	private _handleKeepDashboardChanged(checked: boolean): void {
+		trySetCloseDashboardOnProjectOpenInLocalStorage(checked);
+
+		this.setState({
+			closeDashboardOnProjectOpen: tryGetCloseDashboardOnProjectOpenFromLocalStorage(),
+		});
 	}
 
 	private _handleImportProject(): unknown {

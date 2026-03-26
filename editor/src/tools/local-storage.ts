@@ -87,3 +87,26 @@ export function trySetCloseDashboardOnProjectOpenInLocalStorage(enabled: boolean
 		// Catch silently.
 	}
 }
+
+/**
+ * Returns the terminal path stored in the local storage, or null if it fails to access the local storage or if no terminal path is stored.
+ */
+export function tryGetTerminalFromLocalStorage(): string | null {
+	try {
+		return localStorage.getItem("babylonjs-editor-terminal");
+	} catch (e) {
+		return null;
+	}
+}
+
+/**
+ * Sets the terminal path in the local storage.
+ * @param terminalPath defines the terminal path to set in the local storage.
+ */
+export function trySetTerminalInLocalStorage(terminalPath: string): void {
+	try {
+		localStorage.setItem("babylonjs-editor-terminal", terminalPath);
+	} catch (e) {
+		// Catch silently.
+	}
+}
