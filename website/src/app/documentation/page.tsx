@@ -78,7 +78,7 @@ export default function DocumentationPage() {
 							engine. The most powerful, beautiful, simple, and open web rendering engine in the world.
 						</div>
 
-						<NextChapterComponent href="/documentation/creating-project" title="Creating project" />
+						<NextChapterComponent href="/documentation/basics/creating-project" title="Creating project" />
 					</div>
 				</Fade>
 			</div>

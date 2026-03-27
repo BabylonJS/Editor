@@ -14,8 +14,6 @@ import {
 	onKeyboardEventArrayBasicExample,
 } from "./code";
 
-import { NextChapterComponent } from "../../next-chapter";
-
 export default function DocumentationRunningProjectPage() {
 	return (
 		<main className="w-full min-h-screen p-5 bg-black text-neutral-50">
@@ -124,8 +122,6 @@ export default function DocumentationRunningProjectPage() {
 						<div>As well as for pointer events, multiple event types can be listened at the same time by providing an array of event types to the decorator:</div>
 
 						<CodeBlock code={onKeyboardEventArrayBasicExample} />
-
-						<NextChapterComponent href="/documentation/scripting/linking-assets" title="Linking assets" />
 					</div>
 				</Fade>
 			</div>

@@ -4,8 +4,6 @@ import { Fade } from "react-awesome-reveal";
 
 import { IoIosWarning } from "react-icons/io";
 
-import { NextChapterComponent } from "../../next-chapter";
-
 import { CodeBlock } from "../../code";
 
 import { tsClassDecoratorsExample } from "./from-scene";
@@ -149,8 +147,6 @@ export default function DocumentationAddingScriptsPage() {
 						<div>Example:</div>
 
 						<CodeBlock code={tsClassDecoratorsExample} />
-
-						<NextChapterComponent href="/documentation/running-project" title="Running project" />
 					</div>
 				</Fade>
 			</div>

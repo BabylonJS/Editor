@@ -2,8 +2,6 @@
 
 import { Fade } from "react-awesome-reveal";
 
-import { NextChapterComponent } from "../../next-chapter";
-
 export default function DocumentationCompressingTexturesPage() {
 	return (
 		<main className="w-full min-h-screen p-5 bg-black text-neutral-50">
@@ -17,8 +15,6 @@ export default function DocumentationCompressingTexturesPage() {
 				<Fade triggerOnce>
 					<div className="flex flex-col gap-4">
 						<div className="text-3xl md:text-2xl lg:text-3xl my-3">Coming soon</div>
-
-						<NextChapterComponent href="/documentation/advanced/lod-collisions" title="LOD collisions" />
 					</div>
 				</Fade>
 			</div>

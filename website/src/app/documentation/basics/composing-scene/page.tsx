@@ -1,11 +1,8 @@
 "use client";
 
-import Link from "next/link";
-
 import { Fade } from "react-awesome-reveal";
 
 import { CustomLink } from "../../link";
-import { NextChapterComponent } from "../../next-chapter";
 
 export default function DocumentationComposingScenePage() {
 	return (
@@ -207,8 +204,6 @@ export default function DocumentationComposingScenePage() {
 
 							<img alt="" src="/documentation/composing-scene/show-hidden-files.png" className="w-96 object-contain" />
 						</div>
-
-						<NextChapterComponent href="/documentation/managing-assets" title="Managing assets" />
 					</div>
 				</Fade>
 			</div>

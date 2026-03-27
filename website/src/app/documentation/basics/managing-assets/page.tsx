@@ -5,7 +5,6 @@ import { Fade } from "react-awesome-reveal";
 import { IoIosWarning } from "react-icons/io";
 
 import { CustomLink } from "../../link";
-import { NextChapterComponent } from "../../next-chapter";
 
 export default function DocumentationManagingAssetsPage() {
 	return (
@@ -176,8 +175,6 @@ export default function DocumentationManagingAssetsPage() {
 								<source src="/documentation/basics/managing-assets/assigning-texture-preview.mp4" />
 							</video>
 						</div>
-
-						<NextChapterComponent href="/documentation/adding-scripts" title="Adding scripts" />
 					</div>
 				</Fade>
 			</div>

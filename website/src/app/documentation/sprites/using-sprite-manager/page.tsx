@@ -5,7 +5,6 @@ import Link from "next/link";
 import { Fade } from "react-awesome-reveal";
 
 import { CodeBlock } from "../../code";
-import { NextChapterComponent } from "../../next-chapter";
 
 import { assignScriptSprite, assignScriptSpriteManager, getAnimationSprite, playAnimationSprite } from "./scripts";
 
@@ -153,8 +152,6 @@ export default function DocumentationRunningProjectPage() {
 						</div>
 
 						<CodeBlock code={assignScriptSpriteManager} />
-
-						<NextChapterComponent href="/documentation/advanced/compressing-textures" title="Compressing textures" />
 					</div>
 				</Fade>
 			</div>

@@ -16,8 +16,6 @@ import {
 	visibleAsVector3DecoratorsExample,
 } from "./visible-as";
 
-import { NextChapterComponent } from "../../next-chapter";
-
 export default function DocumentationRunningProjectPage() {
 	return (
 		<main className="w-full min-h-screen p-5 bg-black text-neutral-50">
@@ -196,8 +194,6 @@ export default function DocumentationRunningProjectPage() {
 								<source src="/documentation/customizing-scripts/attach-entity.mp4" />
 							</video>
 						</div>
-
-						<NextChapterComponent href="/documentation/scripting/listening-events" title="Listening events" />
 					</div>
 				</Fade>
 			</div>

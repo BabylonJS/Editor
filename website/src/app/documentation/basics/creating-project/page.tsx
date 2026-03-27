@@ -1,11 +1,6 @@
 "use client";
 
-import Link from "next/link";
-
 import { Fade } from "react-awesome-reveal";
-import { IoIosWarning } from "react-icons/io";
-
-import { NextChapterComponent } from "../../next-chapter";
 
 export default function DocumentationCreatingProjectPage() {
 	return (
@@ -162,8 +157,6 @@ export default function DocumentationCreatingProjectPage() {
 
 							<img alt="" src="/documentation/basics/creating-project/import-project-browse.png" className="h-64 object-contain rounded-lg" />
 						</div>
-
-						<NextChapterComponent href="/documentation/composing-scene" title="Composing scene" />
 					</div>
 				</Fade>
 			</div>
