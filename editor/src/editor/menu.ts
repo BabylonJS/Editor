@@ -3,7 +3,7 @@ import { BrowserWindow, Menu, MenuItem, shell } from "electron";
 
 import { cameraCommandItems, lightCommandItems, meshCommandItems, nodeCommandItems, spriteCommandItems } from "./dialogs/command-palette/shared-commands";
 
-export function setupEditorMenu(options: { enableExperimentalFeatures: boolean; openedTabs: string[] }): void {
+export function setupEditorMenu(options: { enableExperimentalFeatures: boolean; openedTabs?: string[] }): void {
 	Menu.setApplicationMenu(
 		Menu.buildFromTemplate([
 			{

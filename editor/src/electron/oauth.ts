@@ -1,12 +1,12 @@
-import { app, BrowserWindow, ipcMain } from "electron";
 import { createServer, Server } from "http";
+import { app, BrowserWindow, ipcMain } from "electron";
 
 const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) {
 	app.quit();
 	process.exit(0);
 } else {
-	const oauthBaseUrl = (process.env.OAUTH_BASE_URL ?? "http://localhost:9542").replace(/\/+$/, "");
+	const oauthBaseUrl = "http://localhost:9542";
 	const oauthBase = new URL(oauthBaseUrl);
 	const oauthCallbackHost = oauthBase.host;
 	const oauthCallbackHostname = oauthBase.hostname;
@@ -38,21 +38,15 @@ if (!gotTheLock) {
 	let oauthServerTimeout: NodeJS.Timeout | null = null;
 	let oauthRequesterId: number | null = null;
 
-	function focusActiveWindow(isOAuth?: boolean): void {
-		const allWindows = BrowserWindow.getAllWindows();
-
-		allWindows.forEach((w) => {
-			if (!w.isDestroyed()) {
-				if (w.isMinimized()) {
-					w.restore();
-				}
-				w.show();
-			}
-		});
-
+	function focusActiveWindow(isOAuth?: boolean) {
 		if (isOAuth && oauthRequesterId !== null) {
 			const requester = BrowserWindow.fromId(oauthRequesterId);
 			if (requester && !requester.isDestroyed()) {
+				if (requester.isMinimized()) {
+					requester.restore();
+				}
+
+				requester.show();
 				requester.focus();
 			}
 		}

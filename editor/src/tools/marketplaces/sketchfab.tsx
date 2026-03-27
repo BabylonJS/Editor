@@ -1,4 +1,5 @@
 import axios from "axios";
+import crypto from "crypto";
 import { ipcRenderer } from "electron";
 
 import { ReactNode } from "react";
@@ -21,17 +22,18 @@ export interface ISketchfabSettings extends IMarketplaceSettings {
 }
 
 export class SketchfabProvider extends MarketplaceProvider {
-	public id = "sketchfab";
-	public title = "Sketchfab";
+	public id: string = "sketchfab";
+	public title: string = "Sketchfab";
 
-	private readonly _baseUrl = "https://api.sketchfab.com/v3";
-	private readonly _oauthCallbackUrl = this._resolveOAuthCallbackUrl();
+	private readonly _baseUrl: string = "https://api.sketchfab.com/v3";
+	private readonly _oauthCallbackUrl = "http://localhost:9542/sketchfab/callback";
+
 	private _pendingOAuthState: string | null = null;
 
 	protected _settings: ISketchfabSettings = this.getSettings();
 
 	public renderSettings(): ReactNode {
-		return <SketchfabProviderSettings handleOAuthLogin={this._handleOAuthLogin.bind(this)} onSettingChanged={this.onSettingChanged.bind(this)} settings={this._settings} />;
+		return <SketchfabProviderSettings handleOAuthLogin={() => this.login()} onSettingChanged={this.onSettingChanged.bind(this)} settings={this._settings} />;
 	}
 
 	public getOAuth(): IMarketplaceOAuth {
@@ -260,31 +262,21 @@ export class SketchfabProvider extends MarketplaceProvider {
 	}
 
 	public login(): void {
-		this._handleOAuthLogin();
-	}
-
-	private _handleOAuthLogin(): void {
 		if (!process.env.SKETCHFAB_CLIENT_ID) {
 			console.error("Sketchfab OAuth is not configured: missing SKETCHFAB_CLIENT_ID.");
 			return;
 		}
 
 		this._pendingOAuthState = this._createOAuthState();
+
 		const oauth = this.getOAuth();
-		if (oauth) {
-			ipcRenderer.send("app:start-oauth-server");
-			ipcRenderer.send("app:open-url", oauth.authorizeUrl);
-		}
+		ipcRenderer.send("app:start-oauth-server");
+		ipcRenderer.send("app:open-url", oauth.authorizeUrl);
 	}
 
 	private _createOAuthState(): string {
 		const bytes = new Uint8Array(16);
 		crypto.getRandomValues(bytes);
 		return Array.from(bytes, (v) => v.toString(16).padStart(2, "0")).join("");
-	}
-
-	private _resolveOAuthCallbackUrl(): string {
-		const baseUrl = (process.env.OAUTH_BASE_URL ?? "http://localhost:9542").replace(/\/+$/, "");
-		return `${baseUrl}/sketchfab/callback`;
 	}
 }
