@@ -223,6 +223,7 @@ export class EditorEditPreferencesComponent extends Component<IEditorEditPrefere
 								this.props.editor.layout.preview.forceUpdate();
 								this.props.editor.layout.inspector.forceUpdate();
 								this.props.editor.layout.animations.forceUpdate();
+
 								this.props.editor.layout.removeLayoutTab("marketplace");
 							}}
 						/>

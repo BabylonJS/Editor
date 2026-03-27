@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 
 import { Button } from "../ui/shadcn/ui/button";
 import { Switch } from "../ui/shadcn/ui/switch";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/shadcn/ui/tooltip";
+import { Separator } from "../ui/shadcn/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/shadcn/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../ui/shadcn/ui/dialog";
 
@@ -55,52 +55,59 @@ export function DashboardPreferences(props: IDashboardPreferencesProps) {
 					<DialogTitle>Preferences</DialogTitle>
 				</DialogHeader>
 
-				<TooltipProvider>
-					<div className="flex flex-col gap-4 w-full py-4">
-						<Tooltip>
-							<TooltipTrigger onClick={() => props.onKeepDashboardChanged(!props.closeDashboardOnProjectOpen)}>
-								<div className="flex items-center gap-4 w-full">
-									<div className="text-start w-full">Close dashboard on project open</div>
-									<div className="flex justify-end">
-										<Switch checked={props.closeDashboardOnProjectOpen} />
-									</div>
-								</div>
-							</TooltipTrigger>
-							<TooltipContent align="end" side="top" collisionPadding={8}>
-								If enabled, the dashboard will stay open when a project starts.
-								<br />
-								If disabled, the dashboard will close when a project starts and reopen after the project is closed.
-							</TooltipContent>
-						</Tooltip>
-
-						{isWindows() && (
-							<div className="flex items-center gap-4 w-full">
-								<div className="w-1/3">Terminal</div>
-								<Select value={selectedTerminal} onValueChange={(v) => handleTerminalChanged(v)}>
-									<SelectTrigger className="w-2/3">
-										<SelectValue placeholder="Choose Terminal..." />
-									</SelectTrigger>
-									<SelectContent>
-										<SelectItem value="Automatic">
-											<div className="flex items-center gap-2">Automatic</div>
-										</SelectItem>
-
-										{cmdPath && (
-											<SelectItem value={cmdPath}>
-												<div className="flex items-center gap-2">CMD.exe</div>
-											</SelectItem>
-										)}
-										{powerShellPath && (
-											<SelectItem value={powerShellPath}>
-												<div className="flex items-center gap-2">PowerShell.exe</div>
-											</SelectItem>
-										)}
-									</SelectContent>
-								</Select>
+				<div className="flex flex-col gap-4 w-full py-4">
+					<div className="flex flex-col gap-2">
+						<div className="text-muted-foreground">
+							If disabled, the dashboard will stay open when a project starts.
+							<br />
+							If enabled, the dashboard will close when a project starts and reopen after the project is closed.
+						</div>
+						<div className="flex items-center gap-4 w-full cursor-pointer" onClick={() => props.onKeepDashboardChanged(!props.closeDashboardOnProjectOpen)}>
+							<div className="text-start w-full">Close dashboard on project open</div>
+							<div className="flex justify-end">
+								<Switch checked={props.closeDashboardOnProjectOpen} />
 							</div>
-						)}
+						</div>
 					</div>
-				</TooltipProvider>
+
+					{isWindows() && (
+						<>
+							<Separator />
+
+							<div className="flex flex-col gap-2">
+								<div className="text-muted-foreground">
+									By default, PowerShell may be used as the default terminal on Windows. PowerShell disables script execution by default which can cause issues
+									using the Babylon.js Editor. You can change the default terminal to CMD to avoid these issues.
+								</div>
+
+								<div className="flex items-center gap-4 w-full">
+									<div className="w-1/3">Terminal</div>
+									<Select value={selectedTerminal} onValueChange={(v) => handleTerminalChanged(v)}>
+										<SelectTrigger className="w-2/3">
+											<SelectValue placeholder="Choose Terminal..." />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="Automatic">
+												<div className="flex items-center gap-2">Automatic</div>
+											</SelectItem>
+
+											{cmdPath && (
+												<SelectItem value={cmdPath}>
+													<div className="flex items-center gap-2">CMD.exe</div>
+												</SelectItem>
+											)}
+											{powerShellPath && (
+												<SelectItem value={powerShellPath}>
+													<div className="flex items-center gap-2">PowerShell.exe</div>
+												</SelectItem>
+											)}
+										</SelectContent>
+									</Select>
+								</div>
+							</div>
+						</>
+					)}
+				</div>
 
 				<DialogFooter>
 					<Button variant="secondary" className="w-24" onClick={props.onClose}>

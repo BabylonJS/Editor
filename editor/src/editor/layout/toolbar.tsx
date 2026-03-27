@@ -278,8 +278,7 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 
 	private _handleToggleMarketplace(): void {
 		if (this.props.editor.state.openedTabs.includes("marketplace")) {
-			this.props.editor.layout.removeLayoutTab("marketplace");
-			return;
+			return this.props.editor.layout.removeLayoutTab("marketplace");
 		}
 
 		this.props.editor.layout.addLayoutTab(<EditorMarketplaceBrowser editor={this.props.editor} />, {
