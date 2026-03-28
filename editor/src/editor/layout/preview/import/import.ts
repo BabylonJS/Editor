@@ -11,7 +11,7 @@ import {
 	Material,
 	Node,
 	Scene,
-	SceneLoader,
+	ImportMeshAsync,
 	Texture,
 	Tools,
 	ColorGradingTexture,
@@ -32,7 +32,7 @@ import { onNodesAddedObservable, onTextureAddedObservable } from "../../../../to
 
 import { projectConfiguration } from "../../../../project/configuration";
 
-export async function tryConvertSceneFile(absolutePath: string, progress?: (percent: number) => void): Promise<string> {
+export async function tryConvertSceneFile(absolutePath: string, progress?: (percent: number) => void) {
 	const toolsUrl = process.env.EDITOR_TOOLS_URL ?? "https://editor.babylonjs.com";
 	const buffer = (await readFile(absolutePath)) as Buffer<ArrayBuffer>;
 	const blob = new Blob([buffer], { type: "application/octet-stream" });
@@ -61,7 +61,7 @@ export async function tryConvertSceneFile(absolutePath: string, progress?: (perc
 	}
 }
 
-export async function loadImportedSceneFile(scene: Scene, absolutePath: string): Promise<ISceneLoaderAsyncResult | null> {
+export async function loadImportedSceneFile(scene: Scene, absolutePath: string) {
 	if (!projectConfiguration.path) {
 		return null;
 	}
@@ -69,7 +69,10 @@ export async function loadImportedSceneFile(scene: Scene, absolutePath: string):
 	let result: ISceneLoaderAsyncResult;
 
 	try {
-		result = await SceneLoader.ImportMeshAsync("", join(dirname(absolutePath), "/"), basename(absolutePath), scene);
+		result = await ImportMeshAsync(basename(absolutePath), scene, {
+			rootUrl: join(dirname(absolutePath), "/"),
+		});
+		// result = await SceneLoader.ImportMeshAsync("", join(dirname(absolutePath), "/"), basename(absolutePath), scene);
 	} catch (e) {
 		console.error(e);
 		toast.error("Failed to load the scene file.");
@@ -173,7 +176,7 @@ export async function loadImportedSceneFile(scene: Scene, absolutePath: string):
 	return result;
 }
 
-export function configureImportedNodeIds(node: Node | Sprite | IParticleSystem): void {
+export function configureImportedNodeIds(node: Node | Sprite | IParticleSystem) {
 	if (!isSprite(node)) {
 		node.id = Tools.RandomId();
 	}
@@ -181,7 +184,7 @@ export function configureImportedNodeIds(node: Node | Sprite | IParticleSystem):
 	node.uniqueId = UniqueNumber.Get();
 }
 
-export function configureImportedMaterial(material: Material): void {
+export function configureImportedMaterial(material: Material) {
 	material.id = Tools.RandomId();
 	material.uniqueId = UniqueNumber.Get();
 }
@@ -201,13 +204,24 @@ export function configureImportedTexture<T extends Texture | CubeTexture | Color
 	return texture;
 }
 
-export async function configureEmbeddedTexture(texture: Texture, absolutePath: string): Promise<unknown> {
+export async function configureEmbeddedTexture(texture: Texture, absolutePath: string) {
 	if (!projectConfiguration.path) {
 		return;
 	}
 
 	if (!texture._buffer || !texture.mimeType) {
 		return onTextureAddedObservable.notifyObservers(texture);
+	}
+
+	if (texture.url && texture.url.startsWith("data:")) {
+		const path = texture.url.split("data:")[1];
+		try {
+			if (await pathExists(path)) {
+				return cleanTexture(texture, path);
+			}
+		} catch (e) {
+			// Catch silently.
+		}
 	}
 
 	let extension = "";
@@ -265,16 +279,26 @@ export async function configureEmbeddedTexture(texture: Texture, absolutePath: s
 		return;
 	}
 
+	cleanTexture(texture, filename);
+}
+
+export function cleanTexture(texture: Texture, filename: string) {
+	texture._buffer = null;
+
+	if (!texture.invertY) {
+		texture._invertY = true;
+		texture.vScale *= -1;
+		texture.updateURL(filename);
+	}
+
 	const relativePath = filename.replace(join(dirname(projectConfiguration.path!), "/"), "");
 	texture.name = relativePath;
 	texture.url = relativePath;
 
-	texture._buffer = null;
-
 	onTextureAddedObservable.notifyObservers(texture);
 }
 
-export async function loadImportedMaterial(scene: Scene, absolutePath: string): Promise<Material | null> {
+export async function loadImportedMaterial(scene: Scene, absolutePath: string) {
 	if (!projectConfiguration.path) {
 		return null;
 	}
@@ -297,7 +321,7 @@ export async function loadImportedMaterial(scene: Scene, absolutePath: string): 
 	return material;
 }
 
-export function cleanImportedGltf(result: ISceneLoaderAsyncResult): void {
+export function cleanImportedGltf(result: ISceneLoaderAsyncResult) {
 	const identityQuaternion = Quaternion.Identity();
 	const allBones = result?.skeletons.map((s) => s.bones).flat();
 

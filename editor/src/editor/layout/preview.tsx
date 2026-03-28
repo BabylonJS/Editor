@@ -217,10 +217,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 						<canvas
 							ref={(r) => this._onGotCanvasRef(r!)}
 							onDrop={(ev) => this._handleDrop(ev)}
-							onDragOver={(ev) => {
-								ev.preventDefault();
-								this._handleMouseMove(ev.nativeEvent.offsetX, ev.nativeEvent.offsetY);
-							}}
+							onDragOver={(ev) => ev.preventDefault()}
 							onBlur={() => this.setState({ isFocused: false })}
 							onFocus={() => this.setState({ isFocused: true })}
 							onPointerUp={(ev) => this._handleMouseUp(ev)}
@@ -1289,6 +1286,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
 		absolutePaths.forEach(async (absolutePath) => {
 			await waitNextAnimationFrame();
+
 			const pick = this.scene.pick(ev.nativeEvent.offsetX, ev.nativeEvent.offsetY, (m) => !m._masterMesh && !isCollisionMesh(m) && !isCollisionInstancedMesh(m), false);
 			const mesh = pick.pickedMesh?._masterMesh ?? pick.pickedMesh;
 
