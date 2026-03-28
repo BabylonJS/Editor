@@ -2,6 +2,8 @@ import { readJSON } from "fs-extra";
 import { ipcRenderer, shell } from "electron";
 import { basename, dirname } from "path/posix";
 
+import stripAnsi from "strip-ansi";
+
 import { useEffect, useState } from "react";
 import { Grid } from "react-loader-spinner";
 
@@ -104,8 +106,9 @@ export function DashboardProjectItem(props: IDashboardProjectItemProps) {
 		progressRef?.setState({ message: `Running project...` });
 
 		const observable = runProcess.onGetDataObservable.add((data) => {
-			const localhostRegex = /http:\/\/localhost:(\d+)/;
-			const match = data.match(localhostRegex);
+			const clean = stripAnsi(data);
+			const localhostRegex = /\bhttp:\/\/localhost:(\d+)\b/;
+			const match = clean.match(localhostRegex);
 			if (match) {
 				runProcess.onGetDataObservable.remove(observable);
 
@@ -114,6 +117,10 @@ export function DashboardProjectItem(props: IDashboardProjectItemProps) {
 				setLaunching(false);
 				setPlayingAddress(`http://localhost:${match[1]}`);
 			}
+		});
+
+		runProcess.onKillObservable.add(() => {
+			toast.dismiss(toastId);
 		});
 
 		setNodePtyInstance(runProcess);
@@ -190,7 +197,14 @@ export function DashboardProjectItem(props: IDashboardProjectItemProps) {
 
 								<Button
 									variant="ghost"
-									onClick={() => (playingAddress ? handleStopProject() : handleLaunchProject())}
+									onClick={() => {
+										if (nodePtyInstance) {
+											handleStopProject();
+										} else if (!launching) {
+											handleLaunchProject();
+										}
+									}}
+									disabled={launching && !nodePtyInstance}
 									className={`
 										w-10 h-10 aspect-square p-0
 										${launching || playingAddress ? "" : "opacity-0 group-hover:opacity-100"}

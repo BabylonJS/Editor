@@ -119,6 +119,7 @@
 		"react-selectable": "^2.1.1",
 		"sharp": "0.34.3",
 		"sonner": "^1.4.41",
+		"strip-ansi": "7.2.0",
 		"tailwind-merge": "^2.2.1",
 		"tailwindcss-animate": "^1.0.7",
 		"usehooks-ts": "^3.1.0",

@@ -40,6 +40,10 @@ export class NodePtyInstance {
 	public readonly id: string;
 
 	/**
+	 * An observable that is triggered when the pty process is killed.
+	 */
+	public onKillObservable: Observable<void> = new Observable<void>();
+	/**
 	 * An observable that is triggered when data is received from the pty.
 	 */
 	public onGetDataObservable: Observable<string> = new Observable<string>();
@@ -83,6 +87,9 @@ export class NodePtyInstance {
 		if (this._exited) {
 			return;
 		}
+
+		this.onKillObservable.notifyObservers();
+
 		ipcRenderer.send("editor:kill-node-pty", this.id);
 	}
 
