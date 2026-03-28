@@ -1,5 +1,5 @@
 import { ipcRenderer } from "electron";
-import { dirname, join, isAbsolute } from "path/posix";
+import { dirname, join, isAbsolute, extname } from "path/posix";
 import { ensureDir, readdir, remove, writeFile, writeJSON } from "fs-extra";
 
 import axios from "axios";
@@ -133,6 +133,7 @@ export abstract class MarketplaceProvider {
 		if (!editor.state.projectPath) {
 			throw new Error("Cannot download assets: no project is currently open.");
 		}
+
 		if (this._activeDownloadIds.some((i) => i.id === asset.id)) {
 			throw new Error("Download already in progress for this asset.");
 		}
@@ -142,11 +143,30 @@ export abstract class MarketplaceProvider {
 			throw new Error(`No downloadable files are available for '${asset.name}' with ${selectedQuality}/${selectedType}.`);
 		}
 
-		this._activeDownloadIds.push({ id: asset.id, abortController: new AbortController() });
+		this._activeDownloadIds.push({
+			id: asset.id,
+			abortController: new AbortController(),
+		});
+
 		const assetDir = this.getAssetDir(asset.id, editor.state.projectPath);
 
 		try {
 			await ensureDir(assetDir);
+
+			// Try download thumbnail
+			const thumbnailExtension = extname(asset.thumbnailUrl).toLowerCase();
+			if (thumbnailExtension === ".png" || thumbnailExtension === ".jpg" || thumbnailExtension === ".jpeg") {
+				try {
+					const thumbnailResponse = await axios.get(asset.thumbnailUrl, {
+						responseType: "arraybuffer",
+					});
+
+					const thumbnailBuffer = Buffer.from(thumbnailResponse.data);
+					await writeFile(join(assetDir, `editor_preview${thumbnailExtension}`), thumbnailBuffer);
+				} catch (e) {
+					editor.layout.console.warn(`Failed to download thumbnail for ${asset.name}: ${e instanceof Error ? e.message : String(e)}`);
+				}
+			}
 
 			const totalDownloadSize = files.reduce((acc, q) => acc + (q.size || 0), 0);
 
