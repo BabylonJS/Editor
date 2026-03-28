@@ -1,5 +1,5 @@
-import { app, ipcMain, shell } from "electron";
 import { resolve } from "path";
+import { app, ipcMain, shell } from "electron";
 
 if (process.defaultApp) {
 	if (process.argv.length >= 2) {

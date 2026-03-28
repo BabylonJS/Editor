@@ -28,6 +28,8 @@ try {
 		process.env.DEBUG ??= "true";
 	}
 
+	process.env.SKETCHFAB_CLIENT_ID ??= "XZVigLIpz1lqWCkAMRWWpZzKIEVaMEIcsBrgQWrD";
+
 	if (process.env.DEBUG) {
 		require("electron-reloader")(module);
 	}
