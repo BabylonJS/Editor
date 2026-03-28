@@ -208,6 +208,11 @@ export class EditorMarketplaceBrowser extends Component<IMarketplaceBrowserProps
 		);
 	}
 
+	public setSearchQuery(query: string): void {
+		this.props.editor.layout.selectTab("marketplace");
+		this.setState({ query }, () => this._handleSearch());
+	}
+
 	private async _handleSearch(pageToken?: string): Promise<boolean> {
 		const provider = this.state.selectedProvider;
 		const query = this.state.query;

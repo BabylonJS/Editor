@@ -57,6 +57,7 @@ export class EditorMarketplaceAssetInspector extends Component<IEditorInspectorI
 	public render(): ReactNode {
 		return (
 			<MarketplaceSidebar
+				editor={this.props.editor}
 				asset={this.state.details}
 				detailsLoading={this.state.detailsLoading}
 				selectedQuality={this.state.selectedDownloadQuality}

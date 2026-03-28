@@ -9,7 +9,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 
 import { IMarketplaceAsset } from "../../../tools/marketplaces/types";
 
+import { Editor } from "../../main";
+
 export interface IMarketplaceSidebarProps {
+	editor: Editor;
 	asset?: IMarketplaceAsset;
 	detailsLoading: boolean;
 	selectedQuality?: string;
@@ -49,7 +52,7 @@ export function MarketplaceSidebar(props: IMarketplaceSidebarProps) {
 		<Fade>
 			<div className="flex flex-1 flex-col gap-4 overflow-hidden">
 				<div>
-					<div className="flex gap-2 justify-center items-center text-xl font-bold">{props.asset.name}</div>
+					<div className="flex gap-2 justify-center items-center text-xl font-bold text-center">{props.asset.name}</div>
 				</div>
 
 				<div className="w-full h-[350px] min-h-[350px] rounded-lg bg-black/5">
@@ -160,7 +163,12 @@ export function MarketplaceSidebar(props: IMarketplaceSidebarProps) {
 						{props.asset.author && (
 							<div className="flex flex-col">
 								<span className="text-[11px] uppercase font-bold text-muted-foreground tracking-widest mb-0.5">Author</span>
-								<span className="font-semibold text-primary/90">{props.asset.author}</span>
+								<div
+									onClick={() => props.editor.layout.marketplace?.setSearchQuery(props.asset!.author!)}
+									className="font-semibold text-primary/90 cursor-pointer hover:bg-background hover:p-2 rounded-lg transition-all ease-in-out duration-300"
+								>
+									{props.asset.author}
+								</div>
 							</div>
 						)}
 

@@ -62,6 +62,10 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
 	 * The animation editor of the editor.
 	 */
 	public animations: EditorAnimation;
+	/**
+	 * The marketplace browser of the editor.
+	 */
+	public marketplace: EditorMarketplaceBrowser | null;
 
 	/**
 	 * Observable for when the layout has changed.
@@ -77,7 +81,7 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
 		graph: <EditorGraph editor={this.props.editor} ref={(r) => (this.graph = r!)} />,
 		"assets-browser": <EditorAssetsBrowser editor={this.props.editor} ref={(r) => (this.assets = r!)} />,
 		animations: <EditorAnimation editor={this.props.editor} ref={(r) => (this.animations = r!)} />,
-		marketplace: <EditorMarketplaceBrowser editor={this.props.editor} />,
+		marketplace: <EditorMarketplaceBrowser editor={this.props.editor} ref={(r) => (this.marketplace = r)} />,
 	};
 
 	private _layoutVersion: string = "5.0.0-alpha.2";
