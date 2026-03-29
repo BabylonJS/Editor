@@ -165,10 +165,14 @@ export class SketchfabProvider extends MarketplaceProvider {
 		const data = response.data;
 		const offset = pageToken ? Number.parseInt(pageToken, 10) || 0 : 0;
 		const assets: IMarketplaceAsset[] = data.results.map((result: any) => {
+			const maxThumbnail = result.thumbnails.images.reduce((max: any, img: any) => (img.width > max.width ? img : max), {
+				width: 0,
+			});
+
 			return {
 				id: result.uid,
 				name: result.name,
-				thumbnailUrl: result.thumbnails.images[3]?.url || result.thumbnails.images[0]?.url,
+				thumbnailUrl: maxThumbnail?.url || result.thumbnails.images[0]?.url,
 				description: result.description,
 				author: result.user.displayName,
 				license: result.license?.label || "Unknown",

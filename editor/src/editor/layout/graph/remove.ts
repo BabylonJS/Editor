@@ -1,4 +1,4 @@
-import { Node, Light, AbstractMesh, Scene, IParticleSystem, Sound, SoundTrack, Sprite } from "babylonjs";
+import { Node, Light, AbstractMesh, Scene, IParticleSystem, Sound, SoundTrack, Sprite, Skeleton } from "babylonjs";
 
 import { unique } from "../../../tools/tools";
 import { isSound } from "../../../tools/guards/sound";
@@ -8,7 +8,7 @@ import { updateAllLights } from "../../../tools/light/shadows";
 import { isAnyParticleSystem } from "../../../tools/guards/particles";
 import { isAdvancedDynamicTexture } from "../../../tools/guards/texture";
 import { getLinkedAnimationGroupsFor } from "../../../tools/animation/group";
-import { isNode, isMesh, isAbstractMesh, isInstancedMesh, isCollisionInstancedMesh, isLight, isCamera, isAnyTransformNode } from "../../../tools/guards/nodes";
+import { isNode, isMesh, isAbstractMesh, isInstancedMesh, isCollisionInstancedMesh, isLight, isCamera, isAnyTransformNode, isSkeleton } from "../../../tools/guards/nodes";
 
 import { Editor } from "../../main";
 
@@ -21,6 +21,7 @@ type _RemoveNodeData = {
 		sound: Sound;
 		soundtrack?: SoundTrack;
 	}[];
+	skeletons: Skeleton[];
 	particleSystems: IParticleSystem[];
 };
 
@@ -47,6 +48,7 @@ export function removeNodes(editor: Editor) {
 					return {
 						node: descendant,
 						parent: descendant.parent,
+						skeletons: scene.skeletons.filter((skeleton) => isAbstractMesh(descendant) && descendant.skeleton === skeleton),
 						particleSystems: scene.particleSystems.filter((ps) => ps.emitter === descendant),
 						sounds:
 							scene.soundTracks
@@ -86,6 +88,16 @@ export function removeNodes(editor: Editor) {
 			)
 	);
 
+	const skeletons = unique(
+		nodes
+			.map((d) => d.skeletons)
+			.flat()
+			.filter((skeleton) => {
+				return scene.meshes.find((mesh) => mesh.skeleton === skeleton && !nodes.find((d) => d.node === mesh)) === undefined;
+			})
+			.concat(allData.filter((d) => isSkeleton(d)))
+	);
+
 	const particleSystems = unique(
 		nodes
 			.map((d) => d.particleSystems)
@@ -117,6 +129,10 @@ export function removeNodes(editor: Editor) {
 
 			particleSystems.forEach((particleSystem) => {
 				scene.addParticleSystem(particleSystem);
+			});
+
+			skeletons.forEach((skeleton) => {
+				scene.addSkeleton(skeleton);
 			});
 
 			sprites.forEach((sprite) => {
@@ -153,6 +169,10 @@ export function removeNodes(editor: Editor) {
 
 			particleSystems.forEach((particleSystem) => {
 				scene.removeParticleSystem(particleSystem);
+			});
+
+			skeletons.forEach((skeleton) => {
+				scene.removeSkeleton(skeleton);
 			});
 
 			sprites.forEach((sprite) => {
