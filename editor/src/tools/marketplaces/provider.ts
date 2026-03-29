@@ -4,7 +4,7 @@ import { ensureDir, readdir, remove, writeFile, writeJSON } from "fs-extra";
 
 import axios from "axios";
 import sharp from "sharp";
-import decompress from "decompress";
+import StreamZip from "node-stream-zip";
 
 import { UniqueNumber } from "../../tools/tools";
 
@@ -227,7 +227,19 @@ export abstract class MarketplaceProvider {
 				);
 
 				for (const item of filesToExtract) {
-					await decompress(item.path, item.dir);
+					const zip = new StreamZip.async({
+						file: item.path,
+					});
+
+					const log = await editor.layout.console.progress(`Extracting ${await zip.entriesCount} files from ${item.path}`);
+					const extractedCount = await zip.extract(null, item.dir);
+					log.setState({
+						done: true,
+						error: false,
+						message: `Extracted ${extractedCount} files from ${item.path}`,
+					});
+
+					await zip.close();
 					await remove(item.path);
 				}
 			}

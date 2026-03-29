@@ -165,7 +165,7 @@ export function MarketplaceSidebar(props: IMarketplaceSidebarProps) {
 								<span className="text-[11px] uppercase font-bold text-muted-foreground tracking-widest mb-0.5">Author</span>
 								<div
 									onClick={() => props.editor.layout.marketplace?.setSearchQuery(props.asset!.author!)}
-									className="font-semibold text-primary/90 cursor-pointer hover:bg-background hover:p-2 rounded-lg transition-all ease-in-out duration-300"
+									className="font-semibold text-primary/90 cursor-pointer bg-background p-2 rounded-lg hover:font-semibold transition-all ease-in-out duration-300"
 								>
 									{props.asset.author}
 								</div>

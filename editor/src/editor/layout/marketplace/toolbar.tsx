@@ -27,6 +27,33 @@ export interface IMarketplaceToolbarProps {
 }
 
 export function MarketplaceToolbar(props: IMarketplaceToolbarProps) {
+	function updateFilter(id: string, value: MarketplaceFilterValue | undefined) {
+		props.onFiltersChange({
+			...props.filters,
+			[id]: value,
+		});
+	}
+
+	function isFilterActive(value: MarketplaceFilterValue | undefined, defaultValue: MarketplaceFilterValue | undefined) {
+		if (value === undefined || value === null || value === "") {
+			return false;
+		}
+
+		if (Array.isArray(value)) {
+			return value.length > 0;
+		}
+
+		if (typeof value === "boolean") {
+			return value !== Boolean(defaultValue);
+		}
+
+		if (typeof value === "number") {
+			return !Number.isNaN(value);
+		}
+
+		return true;
+	}
+
 	const activeFilters = props.filterDefinitions.reduce((acc, definition) => {
 		const value = props.filters[definition.id];
 		if (isFilterActive(value, definition.defaultValue)) {
@@ -36,16 +63,9 @@ export function MarketplaceToolbar(props: IMarketplaceToolbarProps) {
 		return acc;
 	}, 0);
 
-	const updateFilter = (id: string, value: MarketplaceFilterValue | undefined) => {
-		props.onFiltersChange({
-			...props.filters,
-			[id]: value,
-		});
-	};
-
 	return (
 		<div className="flex gap-2 justify-between w-full h-10 min-h-10 bg-primary-foreground px-2 items-center">
-			<div className="relative flex flex-1 pr-1 group">
+			<div className="relative flex flex-1 pr-2 group">
 				<Input
 					placeholder="Search marketplace..."
 					value={props.query}
@@ -102,21 +122,21 @@ export function MarketplaceToolbar(props: IMarketplaceToolbarProps) {
 						</Button>
 					</PopoverTrigger>
 					<PopoverContent align="end" className="flex flex-col gap-4 w-80 p-2">
-						<div className="flex items-center justify-between pb-2">
+						<div className="flex items-center justify-between p-2">
 							<div className="text-lg font-semibold">Search Filters</div>
 							<Button variant="ghost" size="sm" className="h-8 px-2" onClick={props.onResetFilters}>
 								Reset
 							</Button>
 						</div>
 
-						<div className="flex flex-col gap-2 max-h-72 overflow-y-auto">
+						<div className="flex flex-col gap-4 p-2 max-h-72 overflow-y-auto">
 							{props.filterDefinitions.map((definition) => {
 								const value = props.filters[definition.id];
 								const effectiveValue = value === undefined ? definition.defaultValue : value;
 
 								if (definition.type === "boolean") {
 									return (
-										<div key={definition.id} className="flex items-center justify-between gap-3">
+										<div key={definition.id} className="flex items-center justify-between gap-2">
 											<Label>{definition.label}</Label>
 											<Switch checked={effectiveValue === true} onCheckedChange={(checked) => updateFilter(definition.id, checked)} />
 										</div>
@@ -149,7 +169,7 @@ export function MarketplaceToolbar(props: IMarketplaceToolbarProps) {
 								if (definition.type === "number") {
 									const current = typeof effectiveValue === "number" ? String(effectiveValue) : "";
 									return (
-										<div key={definition.id} className="flex flex-col gap-1">
+										<div key={definition.id} className="flex flex-col gap-2">
 											<Label>{definition.label}</Label>
 											<Input
 												type="number"
@@ -168,7 +188,7 @@ export function MarketplaceToolbar(props: IMarketplaceToolbarProps) {
 
 								const textValue = Array.isArray(effectiveValue) ? effectiveValue.join(", ") : typeof effectiveValue === "string" ? effectiveValue : "";
 								return (
-									<div key={definition.id} className="flex flex-col gap-1">
+									<div key={definition.id} className="flex flex-col gap-2">
 										<Label>{definition.label}</Label>
 										<Input
 											placeholder={definition.placeholder || (definition.type === "multi-select" ? "value1, value2" : "")}
@@ -199,24 +219,4 @@ export function MarketplaceToolbar(props: IMarketplaceToolbarProps) {
 			</Button>
 		</div>
 	);
-}
-
-function isFilterActive(value: MarketplaceFilterValue | undefined, defaultValue: MarketplaceFilterValue | undefined): boolean {
-	if (value === undefined || value === null || value === "") {
-		return false;
-	}
-
-	if (Array.isArray(value)) {
-		return value.length > 0;
-	}
-
-	if (typeof value === "boolean") {
-		return value !== Boolean(defaultValue);
-	}
-
-	if (typeof value === "number") {
-		return !Number.isNaN(value);
-	}
-
-	return true;
 }

@@ -15,7 +15,7 @@ export interface IMarketplaceGridProps {
 export function MarketplaceGrid(props: IMarketplaceGridProps) {
 	return (
 		<div
-			className="relative grid gap-6 justify-between w-full h-full p-6 overflow-y-auto pb-10"
+			className="relative grid gap-4 justify-between w-full h-full p-6 overflow-y-auto pb-10"
 			style={{
 				gridTemplateRows: "repeat(auto-fill, 160px)",
 				gridTemplateColumns: "repeat(auto-fill, 160px)",

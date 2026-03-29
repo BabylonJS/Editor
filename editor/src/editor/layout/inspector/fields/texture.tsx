@@ -193,7 +193,7 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 					</div>
 				</div>
 
-				{texture && this.props.children}
+				{texture && <div className="flex flex-col gap-2">{this.props.children}</div>}
 			</div>
 		);
 	}
