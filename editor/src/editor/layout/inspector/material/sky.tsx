@@ -40,6 +40,11 @@ export class EditorSkyMaterialInspector extends Component<IEditorSkyMaterialInsp
 					<EditorInspectorNumberField object={this.props.material} property="mieDirectionalG" label="Mie Directional G" min={0} max={1} />
 					<EditorInspectorSwitchField object={this.props.material} property="dithering" label="Dithering" />
 				</EditorInspectorSectionField>
+
+				<EditorInspectorSectionField title="Misc">
+					<EditorInspectorSwitchField label="Fog Enabled" object={this.props.material} property="fogEnabled" />
+					<EditorInspectorSwitchField label="Use Logarithmic Depth" object={this.props.material} property="useLogarithmicDepth" />
+				</EditorInspectorSectionField>
 			</>
 		);
 	}
