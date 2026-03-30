@@ -18,6 +18,7 @@ import { EditorInspectorSectionField } from "../fields/section";
 import { ScriptInspectorComponent } from "../script/script";
 import { CustomMetadataInspector } from "../metadata/custom-metadata";
 
+import { EditorLightPBRInspector } from "./pbr";
 import { EditorLightShadowsInspector } from "./shadows";
 
 export class EditorPointLightInspector extends Component<IEditorInspectorImplementationProps<PointLight>> {
@@ -78,6 +79,10 @@ export class EditorPointLightInspector extends Component<IEditorInspectorImpleme
 							updatePointLightShadowMapRenderListPredicate(this.props.object);
 						}}
 					/>
+
+					<Divider />
+
+					<EditorLightPBRInspector object={this.props.object} />
 				</EditorInspectorSectionField>
 
 				<ScriptInspectorComponent editor={this.props.editor} object={this.props.object} />

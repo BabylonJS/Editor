@@ -21,9 +21,17 @@ export interface IEditorPBRMaterialInspectorProps {
 	material: PBRMaterial;
 }
 
-export class EditorPBRMaterialInspector extends Component<IEditorPBRMaterialInspectorProps> {
+export interface IEditorPBRMaterialInspectorState {
+	subSurfaceEnabled: boolean;
+}
+
+export class EditorPBRMaterialInspector extends Component<IEditorPBRMaterialInspectorProps, IEditorPBRMaterialInspectorState> {
 	public constructor(props: IEditorPBRMaterialInspectorProps) {
 		super(props);
+
+		this.state = {
+			subSurfaceEnabled: this.props.material.subSurface.isRefractionEnabled || this.props.material.subSurface.isTranslucencyEnabled,
+		};
 	}
 
 	public render(): ReactNode {
@@ -238,36 +246,96 @@ export class EditorPBRMaterialInspector extends Component<IEditorPBRMaterialInsp
 				)}
 
 				<EditorInspectorSectionField title="Sub Surface">
-					<EditorInspectorTextureField scene={scene} object={this.props.material.subSurface} property="thicknessTexture" title="Thickness Texture">
-						<EditorInspectorSwitchField label="Use Mask From Thickness Texture" object={this.props.material.subSurface} property="useMaskFromThicknessTexture" />
-						<EditorInspectorNumberField label="Minimum Thickness" object={this.props.material.subSurface} property="minimumThickness" min={0} />
-						<EditorInspectorNumberField label="Maximum Thickness" object={this.props.material.subSurface} property="maximumThickness" min={0} />
-					</EditorInspectorTextureField>
+					<EditorInspectorSwitchField object={this.state} property="subSurfaceEnabled" label="Enabled" onChange={(v) => this._handleSubSurfaceEnabledChange(v)} />
 
-					<EditorInspectorColorField label={<div className="w-14">Tint</div>} object={this.props.material.subSurface} property="tintColor" />
+					{this.state.subSurfaceEnabled && (
+						<>
+							<EditorInspectorColorField label={<div className="w-14">Tint</div>} object={this.props.material.subSurface} property="tintColor" />
 
-					<EditorInspectorBlockField>
-						<div className="font-semibold text-base text-center">Refraction</div>
-						<EditorInspectorSwitchField label="Enabled" object={this.props.material.subSurface} property="isRefractionEnabled" onChange={() => this.forceUpdate()} />
+							<EditorInspectorTextureField scene={scene} object={this.props.material.subSurface} property="thicknessTexture" title="Thickness Texture">
+								<EditorInspectorSwitchField
+									label="Use Mask From Thickness Texture"
+									object={this.props.material.subSurface}
+									property="useMaskFromThicknessTexture"
+								/>
+								<EditorInspectorNumberField label="Minimum Thickness" object={this.props.material.subSurface} property="minimumThickness" min={0} />
+								<EditorInspectorNumberField label="Maximum Thickness" object={this.props.material.subSurface} property="maximumThickness" min={0} />
+							</EditorInspectorTextureField>
 
-						{this.props.material.subSurface.isRefractionEnabled && (
-							<>
-								<EditorInspectorNumberField label="Intensity" object={this.props.material.subSurface} property="refractionIntensity" min={0} />
-								<EditorInspectorNumberField label="Index of Refraction" object={this.props.material.subSurface} property="indexOfRefraction" min={0} />
-							</>
-						)}
-					</EditorInspectorBlockField>
+							<EditorInspectorBlockField>
+								<div className="font-semibold text-base text-center">Refraction</div>
+								<EditorInspectorSwitchField
+									label="Enabled"
+									object={this.props.material.subSurface}
+									property="isRefractionEnabled"
+									onChange={() => this.forceUpdate()}
+								/>
 
-					<EditorInspectorBlockField>
-						<div className="font-semibold text-base text-center">Translucency</div>
-						<EditorInspectorSwitchField label="Enabled" object={this.props.material.subSurface} property="isTranslucencyEnabled" onChange={() => this.forceUpdate()} />
+								{this.props.material.subSurface.isRefractionEnabled && (
+									<>
+										<EditorInspectorNumberField label="Intensity" object={this.props.material.subSurface} property="refractionIntensity" min={0} />
+										<EditorInspectorNumberField label="Index of Refraction" object={this.props.material.subSurface} property="indexOfRefraction" min={0} />
+									</>
+								)}
+							</EditorInspectorBlockField>
 
-						{this.props.material.subSurface.isTranslucencyEnabled && (
-							<>
-								<EditorInspectorNumberField label="Intensity" object={this.props.material.subSurface} property="translucencyIntensity" min={0} />
-							</>
-						)}
-					</EditorInspectorBlockField>
+							<EditorInspectorBlockField>
+								<div className="font-semibold text-base text-center">Translucency</div>
+								<EditorInspectorSwitchField
+									label="Enabled"
+									object={this.props.material.subSurface}
+									property="isTranslucencyEnabled"
+									onChange={() => this.forceUpdate()}
+								/>
+
+								{this.props.material.subSurface.isTranslucencyEnabled && (
+									<>
+										<EditorInspectorNumberField label="Intensity" object={this.props.material.subSurface} property="translucencyIntensity" min={0} />
+									</>
+								)}
+							</EditorInspectorBlockField>
+						</>
+					)}
+				</EditorInspectorSectionField>
+
+				<EditorInspectorSectionField title="Iridescence">
+					<EditorInspectorSwitchField label="Enabled" object={this.props.material.iridescence} property="isEnabled" onChange={() => this.forceUpdate()} />
+
+					{this.props.material.iridescence.isEnabled && (
+						<>
+							<EditorInspectorNumberField label="Intensity" object={this.props.material.iridescence} property="intensity" min={0} />
+							<EditorInspectorNumberField label="Index of Refraction" object={this.props.material.iridescence} property="indexOfRefraction" min={0} />
+							<EditorInspectorNumberField label="Minimum Thickness" object={this.props.material.iridescence} property="minimumThickness" min={0} />
+							<EditorInspectorNumberField label="Maximum Thickness" object={this.props.material.iridescence} property="maximumThickness" min={0} />
+
+							<EditorInspectorTextureField scene={scene} object={this.props.material.iridescence} property="texture" title="Intensity Texture" />
+							<EditorInspectorTextureField scene={scene} object={this.props.material.iridescence} property="thicknessTexture" title="Thickness Texture" />
+						</>
+					)}
+				</EditorInspectorSectionField>
+
+				<EditorInspectorSectionField title="Sheen">
+					<EditorInspectorSwitchField label="Enabled" object={this.props.material.sheen} property="isEnabled" onChange={() => this.forceUpdate()} />
+
+					{this.props.material.sheen.isEnabled && (
+						<>
+							<EditorInspectorNumberField label="Intensity" object={this.props.material.sheen} property="intensity" min={0} />
+							<EditorInspectorColorField label={<div className="w-14">Color</div>} object={this.props.material.sheen} property="color" />
+
+							<EditorInspectorTextureField scene={scene} object={this.props.material.sheen} property="texture" title="Tint Texture">
+								<EditorInspectorSwitchField
+									label="Use Roughness From Main Texture"
+									object={this.props.material.sheen}
+									property="useRoughnessFromMainTexture"
+									onChange={() => this.forceUpdate()}
+								/>
+							</EditorInspectorTextureField>
+
+							{!this.props.material.sheen.useRoughnessFromMainTexture && (
+								<EditorInspectorTextureField scene={scene} object={this.props.material.sheen} property="textureRoughness" title="Roughness Texture" />
+							)}
+						</>
+					)}
 				</EditorInspectorSectionField>
 
 				<EditorInspectorSectionField title="Intensity Properties">
@@ -285,6 +353,7 @@ export class EditorPBRMaterialInspector extends Component<IEditorPBRMaterialInsp
 					<EditorInspectorSwitchField label="Use Radiance Occlusion" object={this.props.material} property="useRadianceOcclusion" />
 					<EditorInspectorSwitchField label="Use Horizon Occlusion" object={this.props.material} property="useHorizonOcclusion" />
 					<EditorInspectorSwitchField label="Use Physical Light Falloff" object={this.props.material} property="usePhysicalLightFalloff" />
+					<EditorInspectorSwitchField label="Use Spherical Harmonics" object={this.props.material.brdf} property="useSphericalHarmonics" />
 					<EditorInspectorSwitchField label="Use Radiance Over Alpha" object={this.props.material} property="useRadianceOverAlpha" />
 					<EditorInspectorSwitchField label="Use Specular Over Alpha" object={this.props.material} property="useSpecularOverAlpha" />
 					<EditorInspectorSwitchField label="Separate Culling Pass" object={this.props.material} property="separateCullingPass" />
@@ -296,5 +365,16 @@ export class EditorPBRMaterialInspector extends Component<IEditorPBRMaterialInsp
 				</EditorInspectorSectionField>
 			</>
 		);
+	}
+
+	private _handleSubSurfaceEnabledChange(v: boolean): void {
+		if (!v) {
+			this.props.material.subSurface.isRefractionEnabled = false;
+			this.props.material.subSurface.isTranslucencyEnabled = false;
+		}
+
+		this.setState({
+			subSurfaceEnabled: v,
+		});
 	}
 }

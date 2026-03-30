@@ -19,6 +19,7 @@ import { EditorInspectorSectionField } from "../fields/section";
 import { ScriptInspectorComponent } from "../script/script";
 import { CustomMetadataInspector } from "../metadata/custom-metadata";
 
+import { EditorLightPBRInspector } from "./pbr";
 import { EditorLightShadowsInspector } from "./shadows";
 
 export class EditorSpotLightInspector extends Component<IEditorInspectorImplementationProps<SpotLight>> {
@@ -91,6 +92,13 @@ export class EditorSpotLightInspector extends Component<IEditorInspectorImplemen
 					<Divider />
 
 					<EditorInspectorNumberField label="Intensity" object={this.props.object} property="intensity" />
+
+					<Divider />
+
+					<EditorLightPBRInspector object={this.props.object} />
+
+					<Divider />
+
 					<EditorInspectorNumberField asDegrees label="Angle" object={this.props.object} property="angle" min={0} max={Math.PI} step={0.1} />
 					<EditorInspectorNumberField label="Exponent" object={this.props.object} property="exponent" />
 				</EditorInspectorSectionField>
