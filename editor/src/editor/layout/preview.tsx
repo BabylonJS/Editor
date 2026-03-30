@@ -8,7 +8,7 @@ import { Grid } from "react-loader-spinner";
 
 import { FaCheck } from "react-icons/fa6";
 import { IoIosStats } from "react-icons/io";
-import { LuMove3D, LuRotate3D, LuScale3D } from "react-icons/lu";
+import { LuGrid3X3, LuMove3D, LuRotate3D, LuScale3D, LuScaling, LuRotateCw } from "react-icons/lu";
 import { GiArrowCursor, GiTeapot, GiWireframeGlobe } from "react-icons/gi";
 
 import {
@@ -38,6 +38,7 @@ import {
 
 import { Button } from "../../ui/shadcn/ui/button";
 import { Toggle } from "../../ui/shadcn/ui/toggle";
+import { EditorInspectorNumberField } from "./inspector/fields/number";
 import { Progress } from "../../ui/shadcn/ui/progress";
 import { ToolbarRadioGroup, ToolbarRadioGroupItem } from "../../ui/shadcn/ui/toolbar-radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/shadcn/ui/select";
@@ -57,6 +58,13 @@ import { getCameraFocusPositionFor } from "../../tools/camera/focus";
 import { ITweenConfiguration, Tween } from "../../tools/animation/tween";
 import { checkProjectCachedCompressedTextures } from "../../tools/assets/ktx";
 import { createSceneLink, getRootSceneLink } from "../../tools/scene/scene-link";
+import {
+	GIZMO_SNAP_MIN_STEP,
+	IGizmoSnapPreferences,
+	loadGizmoSnapPreferences,
+	roundGizmoSnapSteps,
+	saveGizmoSnapPreferences,
+} from "../../tools/gizmo-snap-preferences";
 import { UniqueNumber, waitNextAnimationFrame, waitUntil } from "../../tools/tools";
 import { isSprite, isSpriteManagerNode, isSpriteMapNode } from "../../tools/guards/sprites";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../../ui/shadcn/ui/dropdown-menu";
@@ -125,6 +133,8 @@ export interface IEditorPreviewState {
 	 * "fit" means the canvas will fit the entire panel container.
 	 */
 	fixedDimensions: "720p" | "1080p" | "4k" | "fit";
+
+	gizmoSnap: IGizmoSnapPreferences;
 }
 
 export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreviewState> {
@@ -195,6 +205,8 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
 			playEnabled: false,
 			playSceneLoadingProgress: 0,
+
+			gizmoSnap: loadGizmoSnapPreferences(),
 		};
 
 		ipcRenderer.on("gizmo:position", () => this.setActiveGizmo("position"));
@@ -527,6 +539,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		this.camera.attachControl(true);
 
 		this.gizmo = new EditorPreviewGizmo(this.scene);
+		this.gizmo.setSnapPreferences(this.state.gizmoSnap);
 
 		this.engine.hideLoadingUI();
 		this._mainView = this.engine.registerView(this.canvas);
@@ -877,9 +890,114 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		);
 	}
 
+	private _commitGizmoSnap(next: IGizmoSnapPreferences): void {
+		const normalized = roundGizmoSnapSteps(next);
+		saveGizmoSnapPreferences(normalized);
+		this.setState({ gizmoSnap: normalized });
+		this.gizmo?.setSnapPreferences(normalized);
+	}
+
+	public updateGizmoSnapPreferences(prefs: IGizmoSnapPreferences): void {
+		this._commitGizmoSnap({ ...prefs });
+	}
+
+	private _getGizmoSnapToolbarControls(): ReactNode {
+		const snap = this.state.gizmoSnap;
+		const min = GIZMO_SNAP_MIN_STEP;
+
+		const bumpTranslation = (v: number) => this._commitGizmoSnap({ ...snap, translationStep: Math.max(min, v) });
+		const bumpRotation = (v: number) => this._commitGizmoSnap({ ...snap, rotationStepDegrees: Math.max(min, v) });
+		const bumpScale = (v: number) => this._commitGizmoSnap({ ...snap, scaleStep: Math.max(min, v) });
+
+		return (
+			<>
+				<div className="flex overflow-hidden flex-shrink-0 h-9 rounded-md border shadow-sm border-input">
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<Toggle
+								pressed={snap.translationEnabled}
+								onPressedChange={(on) => this._commitGizmoSnap({ ...snap, translationEnabled: on })}
+								className={`rounded-none border-0 h-9 min-w-9 px-2 shrink-0 ${snap.translationEnabled ? "bg-primary/20" : ""}`}
+								aria-label="Translation grid snap"
+							>
+								<LuGrid3X3 className="h-4 w-4" />
+							</Toggle>
+						</TooltipTrigger>
+						<TooltipContent>Translation grid snap</TooltipContent>
+					</Tooltip>
+					<EditorInspectorNumberField
+						controlledValue={snap.translationStep}
+						noUndoRedo
+						wrapperClassName="contents"
+						inputClassName="rounded-none border-0 border-l border-input h-9 w-12 px-1 py-0 text-xs bg-transparent shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 !w-12"
+						title="Translation snap step (scene units); drag horizontally to adjust (hold Shift for ×10)"
+						step={0.01}
+						decimals={2}
+						min={min}
+						onChange={(v) => bumpTranslation(v)}
+					/>
+				</div>
+
+				<div className="flex overflow-hidden flex-shrink-0 h-9 rounded-md border shadow-sm border-input">
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<Toggle
+								pressed={snap.rotationEnabled}
+								onPressedChange={(on) => this._commitGizmoSnap({ ...snap, rotationEnabled: on })}
+								className={`rounded-none border-0 h-9 min-w-9 px-2 shrink-0 ${snap.rotationEnabled ? "bg-primary/20" : ""}`}
+								aria-label="Rotation snap"
+							>
+								<LuRotateCw className="h-4 w-4" />
+							</Toggle>
+						</TooltipTrigger>
+						<TooltipContent>Rotation snap (degrees)</TooltipContent>
+					</Tooltip>
+					<EditorInspectorNumberField
+						controlledValue={snap.rotationStepDegrees}
+						noUndoRedo
+						wrapperClassName="contents"
+						inputClassName="rounded-none border-0 border-l border-input h-9 w-12 px-1 py-0 text-xs bg-transparent shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 !w-12"
+						title="Rotation snap step (degrees); drag horizontally to adjust (hold Shift for ×10)"
+						step={0.01}
+						decimals={2}
+						min={min}
+						onChange={(v) => bumpRotation(v)}
+					/>
+				</div>
+
+				<div className="flex overflow-hidden flex-shrink-0 h-9 rounded-md border shadow-sm border-input">
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<Toggle
+								pressed={snap.scaleEnabled}
+								onPressedChange={(on) => this._commitGizmoSnap({ ...snap, scaleEnabled: on })}
+								className={`rounded-none border-0 h-9 min-w-9 px-2 shrink-0 ${snap.scaleEnabled ? "bg-primary/20" : ""}`}
+								aria-label="Scale snap"
+							>
+								<LuScaling className="h-4 w-4" />
+							</Toggle>
+						</TooltipTrigger>
+						<TooltipContent>Scale snap (incremental step)</TooltipContent>
+					</Tooltip>
+					<EditorInspectorNumberField
+						controlledValue={snap.scaleStep}
+						noUndoRedo
+						wrapperClassName="contents"
+						inputClassName="rounded-none border-0 border-l border-input h-9 w-12 px-1 py-0 text-xs bg-transparent shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 !w-12"
+						title="Scale snap step (additive, incremental); drag horizontally to adjust (hold Shift for ×10)"
+						step={0.01}
+						decimals={2}
+						min={min}
+						onChange={(v) => bumpScale(v)}
+					/>
+				</div>
+			</>
+		);
+	}
+
 	private _getEditToolbar(): ReactNode {
 		return (
-			<div className="flex gap-2 items-center h-10">
+			<div className="flex flex-wrap gap-2 items-center h-10">
 				<TooltipProvider>
 					<Select value={this.scene?.activeCamera?.id} onOpenChange={(o) => o && this.forceUpdate()} onValueChange={(v) => this._switchToCamera(v)}>
 						<SelectTrigger className="w-36 border-none bg-muted/50">
@@ -957,6 +1075,10 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 						</TooltipTrigger>
 						<TooltipContent>Toggle wireframe</TooltipContent>
 					</Tooltip>
+
+					<Separator orientation="vertical" className="mx-1 h-[24px]" />
+
+					{this._getGizmoSnapToolbarControls()}
 
 					<Separator orientation="vertical" className="mx-1 h-[24px]" />
 

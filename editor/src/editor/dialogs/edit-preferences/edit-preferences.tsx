@@ -3,14 +3,21 @@ import { Component, ReactNode } from "react";
 
 import { Label } from "../../../ui/shadcn/ui/label";
 import { Switch } from "../../../ui/shadcn/ui/switch";
+import { EditorInspectorNumberField } from "../../layout/inspector/fields/number";
 import { Separator } from "../../../ui/shadcn/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../ui/shadcn/ui/select";
 import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../../../ui/shadcn/ui/alert-dialog";
 
 import { trySetExperimentalFeaturesEnabledInLocalStorage } from "../../../tools/local-storage";
+import {
+	GIZMO_SNAP_MIN_STEP,
+	IGizmoSnapPreferences,
+	loadGizmoSnapPreferences,
+	roundGizmoSnapSteps,
+	saveGizmoSnapPreferences,
+} from "../../../tools/gizmo-snap-preferences";
 
 import { EditorInspectorKeyField } from "../../layout/inspector/fields/key";
-import { EditorInspectorNumberField } from "../../layout/inspector/fields/number";
 
 import { Editor } from "../../main";
 
@@ -28,6 +35,7 @@ export interface IEditorEditPreferencesComponentProps {
 
 export interface IEditorEditPreferencesComponentState {
 	theme: "light" | "dark";
+	gizmoSnap: IGizmoSnapPreferences;
 }
 
 export class EditorEditPreferencesComponent extends Component<IEditorEditPreferencesComponentProps, IEditorEditPreferencesComponentState> {
@@ -36,7 +44,14 @@ export class EditorEditPreferencesComponent extends Component<IEditorEditPrefere
 
 		this.state = {
 			theme: document.body.classList.contains("dark") ? "dark" : "light",
+			gizmoSnap: loadGizmoSnapPreferences(),
 		};
+	}
+
+	public componentDidUpdate(prevProps: IEditorEditPreferencesComponentProps): void {
+		if (this.props.open && !prevProps.open) {
+			this.setState({ gizmoSnap: loadGizmoSnapPreferences() });
+		}
 	}
 
 	public render(): ReactNode {
@@ -52,6 +67,8 @@ export class EditorEditPreferencesComponent extends Component<IEditorEditPrefere
 						{this._getThemesComponent()}
 						<Separator />
 						{this._getCameraControlPreferences()}
+						<Separator />
+						{this._getGizmoSnapPreferencesSection()}
 						<Separator />
 						{this._getExperimentalComponent()}
 					</div>
@@ -169,6 +186,85 @@ export class EditorEditPreferencesComponent extends Component<IEditorEditPrefere
 							onChange={() => {
 								this._saveCameraControls();
 							}}
+						/>
+					</div>
+				</div>
+			</div>
+		);
+	}
+
+	private _commitGizmoSnapFromPreferences(next: IGizmoSnapPreferences): void {
+		const normalized = roundGizmoSnapSteps(next);
+		this.setState({ gizmoSnap: normalized });
+		const preview = this.props.editor.layout?.preview;
+		if (preview) {
+			preview.updateGizmoSnapPreferences(normalized);
+		} else {
+			saveGizmoSnapPreferences(normalized);
+		}
+	}
+
+	private _getGizmoSnapPreferencesSection(): ReactNode {
+		const snap = this.state.gizmoSnap;
+		const min = GIZMO_SNAP_MIN_STEP;
+
+		return (
+			<div className="flex flex-col gap-[10px] w-full">
+				<Label className="text-xl font-[400]">Gizmo snapping</Label>
+				<p className="text-sm text-muted-foreground">Default translate, rotate, and scale snap for viewport gizmos (also editable in the preview toolbar).</p>
+
+				<div className="flex flex-col gap-3">
+					<div className="flex flex-wrap gap-3 items-center">
+						<div className="flex gap-2 items-center min-w-[140px]">
+							<Switch checked={snap.translationEnabled} onCheckedChange={(on) => this._commitGizmoSnapFromPreferences({ ...snap, translationEnabled: on })} />
+							<Label className="font-normal">Translation grid</Label>
+						</div>
+						<EditorInspectorNumberField
+							controlledValue={snap.translationStep}
+							noUndoRedo
+							wrapperClassName="contents"
+							inputClassName="h-9 w-28 rounded-md border border-input px-2 py-1 text-sm shadow-sm bg-background !w-28"
+							title="Translation snap step (scene units); drag horizontally to adjust (hold Shift for ×10)"
+							step={0.01}
+							decimals={2}
+							min={min}
+							onChange={(v) => this._commitGizmoSnapFromPreferences({ ...snap, translationStep: v })}
+						/>
+					</div>
+
+					<div className="flex flex-wrap gap-3 items-center">
+						<div className="flex gap-2 items-center min-w-[140px]">
+							<Switch checked={snap.rotationEnabled} onCheckedChange={(on) => this._commitGizmoSnapFromPreferences({ ...snap, rotationEnabled: on })} />
+							<Label className="font-normal">Rotation (°)</Label>
+						</div>
+						<EditorInspectorNumberField
+							controlledValue={snap.rotationStepDegrees}
+							noUndoRedo
+							wrapperClassName="contents"
+							inputClassName="h-9 w-28 rounded-md border border-input px-2 py-1 text-sm shadow-sm bg-background !w-28"
+							title="Rotation snap step in degrees; drag horizontally to adjust (hold Shift for ×10)"
+							step={0.01}
+							decimals={2}
+							min={min}
+							onChange={(v) => this._commitGizmoSnapFromPreferences({ ...snap, rotationStepDegrees: v })}
+						/>
+					</div>
+
+					<div className="flex flex-wrap gap-3 items-center">
+						<div className="flex gap-2 items-center min-w-[140px]">
+							<Switch checked={snap.scaleEnabled} onCheckedChange={(on) => this._commitGizmoSnapFromPreferences({ ...snap, scaleEnabled: on })} />
+							<Label className="font-normal">Scale (incremental)</Label>
+						</div>
+						<EditorInspectorNumberField
+							controlledValue={snap.scaleStep}
+							noUndoRedo
+							wrapperClassName="contents"
+							inputClassName="h-9 w-28 rounded-md border border-input px-2 py-1 text-sm shadow-sm bg-background !w-28"
+							title="Scale snap step (additive); drag horizontally to adjust (hold Shift for ×10)"
+							step={0.01}
+							decimals={2}
+							min={min}
+							onChange={(v) => this._commitGizmoSnapFromPreferences({ ...snap, scaleStep: v })}
 						/>
 					</div>
 				</div>
