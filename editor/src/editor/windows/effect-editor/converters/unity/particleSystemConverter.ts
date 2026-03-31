@@ -38,9 +38,7 @@ function billboardFromRenderMode(renderMode: number | undefined): { isBillboardB
 		4: { isBillboardBased: true, billboardMode: ParticleSystem.BILLBOARDMODE_Y },
 		5: { isBillboardBased: true, billboardMode: ParticleSystem.BILLBOARDMODE_Y },
 	};
-	return renderMode !== undefined && renderMode in map
-		? map[renderMode]
-		: { isBillboardBased: true, billboardMode: ParticleSystem.BILLBOARDMODE_ALL };
+	return renderMode !== undefined && renderMode in map ? map[renderMode] : { isBillboardBased: true, billboardMode: ParticleSystem.BILLBOARDMODE_ALL };
 }
 
 /**
@@ -85,16 +83,8 @@ export function convertParticleSystem(unityPS: any, renderer: any): IParticleSys
 		preWarmCycles: main.prewarm === "1" ? 100 : 0,
 		isLocal: (getUnityProp(main, "simulationSpace") ?? main.simulationSpace) === "0",
 
-		color1: convertColor(
-			maxColor
-				? { r: maxColor.r ?? "1", g: maxColor.g ?? "1", b: maxColor.b ?? "1", a: maxColor.a ?? "1" }
-				: { r: "1", g: "1", b: "1", a: "1" }
-		),
-		color2: convertColor(
-			maxColor
-				? { r: maxColor.r ?? "1", g: maxColor.g ?? "1", b: maxColor.b ?? "1", a: maxColor.a ?? "1" }
-				: { r: "1", g: "1", b: "1", a: "1" }
-		),
+		color1: convertColor(maxColor ? { r: maxColor.r ?? "1", g: maxColor.g ?? "1", b: maxColor.b ?? "1", a: maxColor.a ?? "1" } : { r: "1", g: "1", b: "1", a: "1" }),
+		color2: convertColor(maxColor ? { r: maxColor.r ?? "1", g: maxColor.g ?? "1", b: maxColor.b ?? "1", a: maxColor.a ?? "1" } : { r: "1", g: "1", b: "1", a: "1" }),
 
 		minInitialRotation: parseFloat(startRotation?.minScalar ?? startRotation?.scalar ?? "0"),
 		maxInitialRotation: parseFloat(startRotation?.scalar ?? "0"),
@@ -221,7 +211,11 @@ export function convertParticleSystem(unityPS: any, renderer: any): IParticleSys
 	}
 
 	// Rotation3DOverLife (if separate X, Y, Z)
-	if (rotationOverLifetimeModule && isEnabled(rotationOverLifetimeModule) && (rotationOverLifetimeModule.separateAxes === "1" || getUnityProp(rotationOverLifetimeModule, "separateAxes") === "1")) {
+	if (
+		rotationOverLifetimeModule &&
+		isEnabled(rotationOverLifetimeModule) &&
+		(rotationOverLifetimeModule.separateAxes === "1" || getUnityProp(rotationOverLifetimeModule, "separateAxes") === "1")
+	) {
 		behaviors.push({
 			type: "Rotation3DOverLife",
 			angularVelocityX: convertMinMaxCurve(getUnityProp(rotationOverLifetimeModule, "x") ?? {}),
@@ -322,11 +316,7 @@ export function convertParticleSystem(unityPS: any, renderer: any): IParticleSys
 		const sx = getUnityProp(noiseModule, "strengthX") ?? noiseModule.strengthX;
 		const sy = getUnityProp(noiseModule, "strengthY") ?? noiseModule.strengthY;
 		const sz = getUnityProp(noiseModule, "strengthZ") ?? noiseModule.strengthZ;
-		config.noiseStrength = new Vector3(
-			parseFloat(sx?.scalar ?? "0"),
-			parseFloat(sy?.scalar ?? "0"),
-			parseFloat(sz?.scalar ?? "0")
-		);
+		config.noiseStrength = new Vector3(parseFloat(sx?.scalar ?? "0"), parseFloat(sy?.scalar ?? "0"), parseFloat(sz?.scalar ?? "0"));
 	}
 
 	config.behaviors = behaviors;

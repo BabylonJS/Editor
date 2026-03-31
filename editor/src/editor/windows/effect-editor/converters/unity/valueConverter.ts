@@ -86,7 +86,7 @@ export function convertAnimationCurve(curve: any, scalar: number = 1): Value {
  * Convert Unity MinMaxCurve to our Value (supports m_MinMaxState, m_Scalar, m_MaxCurve, etc.)
  */
 export function convertMinMaxCurve(minMaxCurve: any): Value {
-	if (!minMaxCurve) return { type: "ConstantValue", value: 1 };
+	if (!minMaxCurve) {return { type: "ConstantValue", value: 1 };}
 	const minMaxState = String(getUnityProp(minMaxCurve, "minMaxState") ?? minMaxCurve.minMaxState ?? "0");
 	const scalar = parseFloat(getUnityProp(minMaxCurve, "scalar") ?? minMaxCurve.scalar ?? "1");
 	const minScalar = parseFloat(getUnityProp(minMaxCurve, "minScalar") ?? minMaxCurve.minScalar ?? "0");

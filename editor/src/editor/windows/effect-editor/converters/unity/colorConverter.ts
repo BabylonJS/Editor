@@ -21,7 +21,7 @@ export function convertGradient(gradient: any): IConstantColor | IGradientColor 
 		const key = gradient[`key${i}`] ?? gradient[`m_ColorKeys`]?.[i];
 		const timeRaw = gradient[`ctime${i}`] ?? gradient[`m_CTime${i}`] ?? 0;
 		const time = typeof timeRaw === "number" ? timeRaw : parseFloat(timeRaw) / 65535;
-		if (!key) continue;
+		if (!key) {continue;}
 		const r = key.r ?? key.m_R;
 		const g = key.g ?? key.m_G;
 		const b = key.b ?? key.m_B;
@@ -36,7 +36,7 @@ export function convertGradient(gradient: any): IConstantColor | IGradientColor 
 		const key = gradient[`key${i}`] ?? gradient[`m_AlphaKeys`]?.[i];
 		const timeRaw = gradient[`atime${i}`] ?? gradient[`m_ATime${i}`] ?? 0;
 		const time = typeof timeRaw === "number" ? timeRaw : parseFloat(timeRaw) / 65535;
-		if (!key) continue;
+		if (!key) {continue;}
 		alphaKeys.push({
 			time,
 			value: parseFloat(key.a ?? key.m_A ?? "1"),

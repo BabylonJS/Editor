@@ -5,9 +5,9 @@ import { getUnityProp } from "./utils";
  * Supports both property and m_Property names (Unity serialization).
  */
 export function convertShape(shapeModule: any): any {
-	if (!shapeModule) return { type: "point" };
+	if (!shapeModule) {return { type: "point" };}
 	const enabled = getUnityProp(shapeModule, "enabled") ?? shapeModule.enabled;
-	if (enabled !== "1") return { type: "point" };
+	if (enabled !== "1") {return { type: "point" };}
 
 	const shapeType = String(getUnityProp(shapeModule, "type") ?? shapeModule.type ?? "0");
 	const radiusObj = getUnityProp(shapeModule, "radius") ?? shapeModule.radius;

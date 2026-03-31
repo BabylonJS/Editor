@@ -87,7 +87,7 @@ export async function convertUnityPrefabToData(
 					}
 				}
 			}
-			if (!root) return emptyIData();
+			if (!root) {return emptyIData();}
 		} else {
 			const converted = convertGameObject(gameObject, components);
 			root = convertToIDataFormat(converted);

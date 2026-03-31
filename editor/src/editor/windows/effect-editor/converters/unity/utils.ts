@@ -6,9 +6,9 @@
  * Get Unity serialized property (supports both "name" and "m_name" for resilience).
  */
 export function getUnityProp(obj: any, propName: string): any {
-	if (obj == null) return undefined;
+	if (obj == null) {return undefined;}
 	const direct = obj[propName];
-	if (direct !== undefined) return direct;
+	if (direct !== undefined) {return direct;}
 	const mName = "m_" + propName.charAt(0).toUpperCase() + propName.slice(1);
 	return obj[mName];
 }
