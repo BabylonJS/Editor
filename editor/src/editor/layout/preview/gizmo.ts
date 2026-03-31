@@ -16,7 +16,7 @@ import {
 	Sprite,
 } from "babylonjs";
 
-import { DEFAULT_GIZMO_SNAP_PREFERENCES, IGizmoSnapPreferences } from "../../../tools/gizmo-snap-preferences";
+import { defaultGizmoSnapPreferences, IGizmoSnapPreferences } from "../../../tools/gizmo-snap-preferences";
 import { isSprite } from "../../../tools/guards/sprites";
 import { registerUndoRedo } from "../../../tools/undoredo";
 import { isNodeLocked } from "../../../tools/node/metadata";
@@ -46,7 +46,7 @@ export class EditorPreviewGizmo {
 
 	private _spriteTransformNode: TransformNode;
 
-	private _snapPreferences: IGizmoSnapPreferences = { ...DEFAULT_GIZMO_SNAP_PREFERENCES };
+	private _snapPreferences: IGizmoSnapPreferences = { ...defaultGizmoSnapPreferences };
 
 	public constructor(scene: Scene) {
 		this._gizmosLayer = new UtilityLayerRenderer(scene);

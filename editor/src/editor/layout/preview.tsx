@@ -59,7 +59,7 @@ import { ITweenConfiguration, Tween } from "../../tools/animation/tween";
 import { checkProjectCachedCompressedTextures } from "../../tools/assets/ktx";
 import { createSceneLink, getRootSceneLink } from "../../tools/scene/scene-link";
 import {
-	GIZMO_SNAP_MIN_STEP,
+	gizmoSnapMinStep,
 	IGizmoSnapPreferences,
 	loadGizmoSnapPreferences,
 	roundGizmoSnapSteps,
@@ -903,7 +903,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
 	private _getGizmoSnapToolbarControls(): ReactNode {
 		const snap = this.state.gizmoSnap;
-		const min = GIZMO_SNAP_MIN_STEP;
+		const min = gizmoSnapMinStep;
 
 		const bumpTranslation = (v: number) => this._commitGizmoSnap({ ...snap, translationStep: Math.max(min, v) });
 		const bumpRotation = (v: number) => this._commitGizmoSnap({ ...snap, rotationStepDegrees: Math.max(min, v) });

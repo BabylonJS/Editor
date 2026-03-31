@@ -10,7 +10,7 @@ import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, 
 
 import { trySetExperimentalFeaturesEnabledInLocalStorage } from "../../../tools/local-storage";
 import {
-	GIZMO_SNAP_MIN_STEP,
+	gizmoSnapMinStep,
 	IGizmoSnapPreferences,
 	loadGizmoSnapPreferences,
 	roundGizmoSnapSteps,
@@ -206,7 +206,7 @@ export class EditorEditPreferencesComponent extends Component<IEditorEditPrefere
 
 	private _getGizmoSnapPreferencesSection(): ReactNode {
 		const snap = this.state.gizmoSnap;
-		const min = GIZMO_SNAP_MIN_STEP;
+		const min = gizmoSnapMinStep;
 
 		return (
 			<div className="flex flex-col gap-[10px] w-full">

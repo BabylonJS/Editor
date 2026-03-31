@@ -1,9 +1,9 @@
-export const EDITOR_GIZMO_SNAP_STORAGE_KEY = "editor-gizmo-snap";
+export const editorGizmoSnapStorageKey = "editor-gizmo-snap";
 
 /** Minimum snap step (two-decimal increments cannot be smaller than 0.01). */
-export const GIZMO_SNAP_MIN_STEP = 0.01;
+export const gizmoSnapMinStep = 0.01;
 
-const SNAP_DECIMAL_ROUND_FACTOR = 100;
+const snapDecimalRoundFactor = 100;
 
 export interface IGizmoSnapPreferences {
 	translationEnabled: boolean;
@@ -19,9 +19,9 @@ export interface IGizmoSnapPreferences {
  */
 export function roundGizmoSnapSteps(prefs: IGizmoSnapPreferences): IGizmoSnapPreferences {
 	const roundStep = (value: number): number => {
-		const clampedLow = Math.max(GIZMO_SNAP_MIN_STEP, value);
-		const rounded = Math.round(clampedLow * SNAP_DECIMAL_ROUND_FACTOR) / SNAP_DECIMAL_ROUND_FACTOR;
-		return Math.max(GIZMO_SNAP_MIN_STEP, rounded);
+		const clampedLow = Math.max(gizmoSnapMinStep, value);
+		const rounded = Math.round(clampedLow * snapDecimalRoundFactor) / snapDecimalRoundFactor;
+		return Math.max(gizmoSnapMinStep, rounded);
 	};
 
 	return {
@@ -32,7 +32,7 @@ export function roundGizmoSnapSteps(prefs: IGizmoSnapPreferences): IGizmoSnapPre
 	};
 }
 
-export const DEFAULT_GIZMO_SNAP_PREFERENCES: IGizmoSnapPreferences = {
+export const defaultGizmoSnapPreferences: IGizmoSnapPreferences = {
 	translationEnabled: false,
 	translationStep: 1,
 	rotationEnabled: false,
@@ -58,12 +58,12 @@ function asNumber(value: unknown, fallback: number): number {
 
 export function loadGizmoSnapPreferences(): IGizmoSnapPreferences {
 	try {
-		const raw = localStorage.getItem(EDITOR_GIZMO_SNAP_STORAGE_KEY);
+		const raw = localStorage.getItem(editorGizmoSnapStorageKey);
 		if (!raw) {
-			return roundGizmoSnapSteps({ ...DEFAULT_GIZMO_SNAP_PREFERENCES });
+			return roundGizmoSnapSteps({ ...defaultGizmoSnapPreferences });
 		}
 		const parsed = JSON.parse(raw) as Partial<IGizmoSnapPreferences>;
-		const base = DEFAULT_GIZMO_SNAP_PREFERENCES;
+		const base = defaultGizmoSnapPreferences;
 		return roundGizmoSnapSteps({
 			translationEnabled: asBoolean(parsed.translationEnabled, base.translationEnabled),
 			translationStep: clampPositive(asNumber(parsed.translationStep, base.translationStep), base.translationStep),
@@ -73,10 +73,10 @@ export function loadGizmoSnapPreferences(): IGizmoSnapPreferences {
 			scaleStep: clampPositive(asNumber(parsed.scaleStep, base.scaleStep), base.scaleStep),
 		});
 	} catch {
-		return roundGizmoSnapSteps({ ...DEFAULT_GIZMO_SNAP_PREFERENCES });
+		return roundGizmoSnapSteps({ ...defaultGizmoSnapPreferences });
 	}
 }
 
 export function saveGizmoSnapPreferences(prefs: IGizmoSnapPreferences): void {
-	localStorage.setItem(EDITOR_GIZMO_SNAP_STORAGE_KEY, JSON.stringify(roundGizmoSnapSteps(prefs)));
+	localStorage.setItem(editorGizmoSnapStorageKey, JSON.stringify(roundGizmoSnapSteps(prefs)));
 }

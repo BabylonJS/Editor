@@ -31,9 +31,6 @@ export interface IEditorInspectorNumberFieldProps extends Partial<IEditorInspect
 
 	/** When set, value is driven from React state; object/property and inspector mutation are skipped. */
 	controlledValue?: number;
-	/** Overrides fractional digits for display/scrub (defaults from step). */
-	decimals?: number;
-
 	wrapperClassName?: string;
 	inputClassName?: string;
 	title?: string;
@@ -48,7 +45,7 @@ export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldPro
 	const [warning, setWarning] = useState(false);
 
 	const step = props.step ?? 0.01;
-	const digitCount = props.decimals ?? (props.step?.toString().split(".")[1]?.length ?? 2);
+	const digitCount = props.step?.toString().split(".")[1]?.length ?? 2;
 
 	const [value, setValue] = useState<string>(() => formatInitial());
 	const [oldValue, setOldValue] = useState<string>(() => formatInitial());
