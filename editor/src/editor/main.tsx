@@ -20,6 +20,7 @@ import { loadProject } from "../project/load/load";
 import { startProjectDevProcess } from "../project/run";
 import { exportProject } from "../project/export/export";
 import { EditorProjectPackageManager } from "../project/typings";
+import { defaultGizmoSnapPreferences, IGizmoSnapPreferences } from "../tools/gizmo-snap-preferences";
 
 import { disposeVLSPostProcess } from "./rendering/vls";
 import { disposeSSRRenderingPipeline } from "./rendering/ssr";
@@ -98,6 +99,11 @@ export interface IEditorState {
 	compressedTexturesEnabledInPreview: boolean;
 
 	/**
+	 * Gizmo snap for the current session (translate, rotate, scale); not persisted in the project file.
+	 */
+	gizmoSnap: IGizmoSnapPreferences;
+
+	/**
 	 * Defines wether or not experimental features are enabled.
 	 */
 	enableExperimentalFeatures: boolean;
@@ -155,6 +161,7 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 
 			compressedTexturesEnabled: false,
 			compressedTexturesEnabledInPreview: false,
+			gizmoSnap: { ...defaultGizmoSnapPreferences },
 			enableExperimentalFeatures: tryGetExperimentalFeaturesEnabledFromLocalStorage(),
 			openedTabs: [],
 

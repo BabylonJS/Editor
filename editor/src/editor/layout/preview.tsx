@@ -61,9 +61,7 @@ import { createSceneLink, getRootSceneLink } from "../../tools/scene/scene-link"
 import {
 	gizmoSnapMinStep,
 	IGizmoSnapPreferences,
-	loadGizmoSnapPreferences,
 	roundGizmoSnapSteps,
-	saveGizmoSnapPreferences,
 } from "../../tools/gizmo-snap-preferences";
 import { UniqueNumber, waitNextAnimationFrame, waitUntil } from "../../tools/tools";
 import { isSprite, isSpriteManagerNode, isSpriteMapNode } from "../../tools/guards/sprites";
@@ -206,7 +204,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 			playEnabled: false,
 			playSceneLoadingProgress: 0,
 
-			gizmoSnap: loadGizmoSnapPreferences(),
+			gizmoSnap: this.props.editor.state.gizmoSnap,
 		};
 
 		ipcRenderer.on("gizmo:position", () => this.setActiveGizmo("position"));
@@ -892,8 +890,8 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
 	private _commitGizmoSnap(next: IGizmoSnapPreferences): void {
 		const normalized = roundGizmoSnapSteps(next);
-		saveGizmoSnapPreferences(normalized);
 		this.setState({ gizmoSnap: normalized });
+		this.props.editor.setState({ gizmoSnap: normalized });
 		this.gizmo?.setSnapPreferences(normalized);
 	}
 
@@ -932,7 +930,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 						inputClassName="rounded-none border-0 border-l border-input h-9 w-12 px-1 py-0 text-xs bg-transparent shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 !w-12"
 						title="Translation snap step (scene units); drag horizontally to adjust (hold Shift for ×10)"
 						step={0.01}
-						decimals={2}
+
 						min={min}
 						onChange={(v) => bumpTranslation(v)}
 					/>
@@ -959,7 +957,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 						inputClassName="rounded-none border-0 border-l border-input h-9 w-12 px-1 py-0 text-xs bg-transparent shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 !w-12"
 						title="Rotation snap step (degrees); drag horizontally to adjust (hold Shift for ×10)"
 						step={0.01}
-						decimals={2}
+
 						min={min}
 						onChange={(v) => bumpRotation(v)}
 					/>
@@ -986,7 +984,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 						inputClassName="rounded-none border-0 border-l border-input h-9 w-12 px-1 py-0 text-xs bg-transparent shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 !w-12"
 						title="Scale snap step (additive, incremental); drag horizontally to adjust (hold Shift for ×10)"
 						step={0.01}
-						decimals={2}
+
 						min={min}
 						onChange={(v) => bumpScale(v)}
 					/>
