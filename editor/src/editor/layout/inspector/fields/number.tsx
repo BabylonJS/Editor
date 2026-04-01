@@ -8,7 +8,6 @@ import { Scalar, Tools } from "babylonjs";
 import Mexp from "math-expression-evaluator";
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../../../ui/shadcn/ui/tooltip";
-import { cn } from "../../../../ui/utils";
 
 import { registerSimpleUndoRedo } from "../../../../tools/undoredo";
 import { getInspectorPropertyValue, setInspectorEffectivePropertyValue } from "../../../../tools/property";
@@ -17,7 +16,7 @@ import { IEditorInspectorFieldProps } from "./field";
 
 const mexp = new Mexp();
 
-export interface IEditorInspectorNumberFieldProps extends Partial<IEditorInspectorFieldProps> {
+export interface IEditorInspectorNumberFieldProps extends IEditorInspectorFieldProps {
 	min?: number;
 	max?: number;
 
@@ -28,17 +27,9 @@ export interface IEditorInspectorNumberFieldProps extends Partial<IEditorInspect
 
 	onChange?: (value: number) => void;
 	onFinishChange?: (value: number, oldValue: number) => void;
-
-	/** When set, value is driven from React state; object/property and inspector mutation are skipped. */
-	controlledValue?: number;
-	wrapperClassName?: string;
-	inputClassName?: string;
-	title?: string;
 }
 
 export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldProps) {
-	const isControlled = props.controlledValue !== undefined;
-
 	const [shiftDown, setShiftDown] = useState(false);
 	const [pointerOver, setPointerOver] = useState(false);
 
@@ -47,20 +38,13 @@ export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldPro
 	const step = props.step ?? 0.01;
 	const digitCount = props.step?.toString().split(".")[1]?.length ?? 2;
 
-	const [value, setValue] = useState<string>(() => formatInitial());
-	const [oldValue, setOldValue] = useState<string>(() => formatInitial());
-
-	function formatInitial(): string {
-		const n = getStartValue();
-		return typeof n === "number" && Number.isFinite(n) ? n.toFixed(digitCount) : String(n);
-	}
+	const [value, setValue] = useState<string>(getStartValue());
+	const [oldValue, setOldValue] = useState<string>(getStartValue());
 
 	useEffect(() => {
-		const n = getStartValue();
-		const s = typeof n === "number" && Number.isFinite(n) ? n.toFixed(digitCount) : String(n);
-		setValue(s);
-		setOldValue(s);
-	}, isControlled ? [props.controlledValue, props.step, props.asDegrees, digitCount] : [props.object, props.property, props.step, props.asDegrees, digitCount]);
+		setValue(getStartValue());
+		setOldValue(getStartValue());
+	}, [props.object, props.property, props.step]);
 
 	useEventListener("keydown", (ev) => {
 		if (ev.key === "Shift") {
@@ -75,22 +59,17 @@ export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldPro
 	});
 
 	function getStartValue() {
-		if (isControlled) {
-			let v = props.controlledValue as number;
-			if (props.asDegrees) {
-				v = Tools.ToDegrees(v);
-			}
-			return v;
-		}
-
-		if (!props.object || !props.property) {
-			return 0;
-		}
-
 		let startValue = getInspectorPropertyValue(props.object, props.property) ?? 0;
 		if (props.asDegrees) {
 			startValue = Tools.ToDegrees(startValue);
 		}
+
+		// Determine if the value should be fixed at "step" digit counts or kept as-is.
+		// if (props.asDegrees) {
+		//     startValue = Tools.ToDegrees(startValue).toFixed(digitCount);
+		// } else {
+		//     startValue = startValue.toFixed(digitCount);
+		// }
 
 		return startValue;
 	}
@@ -129,11 +108,7 @@ export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldPro
 	const ratio = hasMinMax ? getRatio() : 0;
 
 	return (
-		<div
-			className={cn("flex gap-2 items-center px-2", props.wrapperClassName)}
-			onMouseOver={() => setPointerOver(true)}
-			onMouseLeave={() => setPointerOver(false)}
-		>
+		<div className="flex gap-2 items-center px-2" onMouseOver={() => setPointerOver(true)} onMouseLeave={() => setPointerOver(false)}>
 			{props.label && (
 				<div className="flex items-center gap-2 w-1/3 text-ellipsis overflow-hidden whitespace-nowrap">
 					<div
@@ -160,7 +135,6 @@ export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldPro
 
 			<input
 				type="text"
-				title={props.title}
 				value={value}
 				onChange={(ev) => {
 					setValue(ev.currentTarget.value);
@@ -186,9 +160,7 @@ export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldPro
 
 						setWarning(false);
 
-						if (!isControlled && props.object && props.property) {
-							setInspectorEffectivePropertyValue(props.object, props.property, float);
-						}
+						setInspectorEffectivePropertyValue(props.object, props.property, float);
 						props.onChange?.(float);
 					}
 				}}
@@ -199,12 +171,12 @@ export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldPro
 							? `linear-gradient(to right, hsl(var(--muted-foreground) / 0.5) ${ratio}%, hsl(var(--muted-foreground) / 0.1) ${ratio}%, hsl(var(--muted-foreground) / 0.1) 100%)`
 							: undefined,
 				}}
-				className={cn(
-					"px-5 py-2 rounded-lg bg-muted-foreground/10 outline-none ring-yellow-500 transition-all duration-300 ease-in-out",
-					warning ? "ring-2 bg-background" : "ring-0",
-					props.label ? "w-2/3" : "w-full",
-					props.inputClassName
-				)}
+				className={`
+					px-5 py-2 rounded-lg bg-muted-foreground/10 outline-none ring-yellow-500
+					${warning ? "ring-2 bg-background" : "ring-0"}
+					${props.label ? "w-2/3" : "w-full"}
+					transition-all duration-300 ease-in-out
+				`}
 				onKeyUp={(ev) => ev.key === "Enter" && ev.currentTarget.blur()}
 				onBlur={(ev) => {
 					if (ev.currentTarget.value !== oldValue) {
@@ -236,7 +208,7 @@ export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldPro
 								newValueFloat = Tools.ToRadians(newValueFloat);
 							}
 
-							if (!props.noUndoRedo && !isControlled && props.object && props.property) {
+							if (!props.noUndoRedo) {
 								registerSimpleUndoRedo({
 									object: props.object,
 									property: props.property,
@@ -303,9 +275,7 @@ export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldPro
 							setWarning(false);
 							setValue(v.toFixed(digitCount));
 
-							if (!isControlled && props.object && props.property) {
-								setInspectorEffectivePropertyValue(props.object, props.property, finalValue);
-							}
+							setInspectorEffectivePropertyValue(props.object, props.property, finalValue);
 							props.onChange?.(finalValue);
 						})
 					);
@@ -315,7 +285,7 @@ export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldPro
 						(mouseUpListener = () => {
 							document.exitPointerLock();
 
-							if (v !== oldV && !props.noUndoRedo && !isControlled && props.object && props.property) {
+							if (v !== oldV && !props.noUndoRedo) {
 								setValue(v.toFixed(digitCount));
 
 								let finalValue = v;
@@ -337,17 +307,6 @@ export function EditorInspectorNumberField(props: IEditorInspectorNumberFieldPro
 									setOldValue(v.toFixed(digitCount));
 
 									props.onFinishChange?.(finalValue, oldValue);
-								}
-							} else if (v !== oldV && isControlled) {
-								setValue(v.toFixed(digitCount));
-								let finalValue = v;
-								if (props.asDegrees) {
-									finalValue = Tools.ToRadians(finalValue);
-								}
-								if (!isNaN(v) && !isNaN(oldV)) {
-									const oldVal = props.asDegrees ? Tools.ToRadians(oldV) : oldV;
-									setOldValue(v.toFixed(digitCount));
-									props.onFinishChange?.(finalValue, oldVal);
 								}
 							}
 

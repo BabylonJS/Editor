@@ -186,6 +186,16 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	private _workingCanvas: HTMLCanvasElement | null = null;
 	private _mainView: EngineView | null = null;
 
+	/**
+	 * Mutable holder for gizmo snap step fields; EditorInspectorNumberField writes via setInspectorEffectivePropertyValue.
+	 * Synced from state when rendering the gizmo snap toolbar.
+	 */
+	private _gizmoSnapNumberFields: Pick<IGizmoSnapPreferences, "translationStep" | "rotationStepDegrees" | "scaleStep"> = {
+		translationStep: 0,
+		rotationStepDegrees: 0,
+		scaleStep: 0,
+	};
+
 	/** @internal */
 	public _previewCamera: Camera | null = null;
 
@@ -903,6 +913,10 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		const snap = this.state.gizmoSnap;
 		const min = gizmoSnapMinStep;
 
+		this._gizmoSnapNumberFields.translationStep = snap.translationStep;
+		this._gizmoSnapNumberFields.rotationStepDegrees = snap.rotationStepDegrees;
+		this._gizmoSnapNumberFields.scaleStep = snap.scaleStep;
+
 		const bumpTranslation = (v: number) => this._commitGizmoSnap({ ...snap, translationStep: Math.max(min, v) });
 		const bumpRotation = (v: number) => this._commitGizmoSnap({ ...snap, rotationStepDegrees: Math.max(min, v) });
 		const bumpScale = (v: number) => this._commitGizmoSnap({ ...snap, scaleStep: Math.max(min, v) });
@@ -923,17 +937,16 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 						</TooltipTrigger>
 						<TooltipContent>Translation grid snap</TooltipContent>
 					</Tooltip>
-					<EditorInspectorNumberField
-						controlledValue={snap.translationStep}
-						noUndoRedo
-						wrapperClassName="contents"
-						inputClassName="rounded-none border-0 border-l border-input h-9 w-12 px-1 py-0 text-xs bg-transparent shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 !w-12"
-						title="Translation snap step (scene units); drag horizontally to adjust (hold Shift for ×10)"
-						step={0.01}
-
-						min={min}
-						onChange={(v) => bumpTranslation(v)}
-					/>
+					<div className="contents">
+						<EditorInspectorNumberField
+							object={this._gizmoSnapNumberFields}
+							property="translationStep"
+							noUndoRedo
+							step={0.01}
+							min={min}
+							onChange={(v) => bumpTranslation(v)}
+						/>
+					</div>
 				</div>
 
 				<div className="flex overflow-hidden flex-shrink-0 h-9 rounded-md border shadow-sm border-input">
@@ -950,17 +963,16 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 						</TooltipTrigger>
 						<TooltipContent>Rotation snap (degrees)</TooltipContent>
 					</Tooltip>
-					<EditorInspectorNumberField
-						controlledValue={snap.rotationStepDegrees}
-						noUndoRedo
-						wrapperClassName="contents"
-						inputClassName="rounded-none border-0 border-l border-input h-9 w-12 px-1 py-0 text-xs bg-transparent shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 !w-12"
-						title="Rotation snap step (degrees); drag horizontally to adjust (hold Shift for ×10)"
-						step={0.01}
-
-						min={min}
-						onChange={(v) => bumpRotation(v)}
-					/>
+					<div className="contents">
+						<EditorInspectorNumberField
+							object={this._gizmoSnapNumberFields}
+							property="rotationStepDegrees"
+							noUndoRedo
+							step={0.01}
+							min={min}
+							onChange={(v) => bumpRotation(v)}
+						/>
+					</div>
 				</div>
 
 				<div className="flex overflow-hidden flex-shrink-0 h-9 rounded-md border shadow-sm border-input">
@@ -977,17 +989,16 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 						</TooltipTrigger>
 						<TooltipContent>Scale snap (incremental step)</TooltipContent>
 					</Tooltip>
-					<EditorInspectorNumberField
-						controlledValue={snap.scaleStep}
-						noUndoRedo
-						wrapperClassName="contents"
-						inputClassName="rounded-none border-0 border-l border-input h-9 w-12 px-1 py-0 text-xs bg-transparent shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 !w-12"
-						title="Scale snap step (additive, incremental); drag horizontally to adjust (hold Shift for ×10)"
-						step={0.01}
-
-						min={min}
-						onChange={(v) => bumpScale(v)}
-					/>
+					<div className="contents">
+						<EditorInspectorNumberField
+							object={this._gizmoSnapNumberFields}
+							property="scaleStep"
+							noUndoRedo
+							step={0.01}
+							min={min}
+							onChange={(v) => bumpScale(v)}
+						/>
+					</div>
 				</div>
 			</>
 		);

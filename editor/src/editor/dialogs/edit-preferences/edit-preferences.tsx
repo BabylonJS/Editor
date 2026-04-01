@@ -3,7 +3,6 @@ import { Component, ReactNode } from "react";
 
 import { Label } from "../../../ui/shadcn/ui/label";
 import { Switch } from "../../../ui/shadcn/ui/switch";
-import { EditorInspectorNumberField } from "../../layout/inspector/fields/number";
 import { Separator } from "../../../ui/shadcn/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../ui/shadcn/ui/select";
 import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../../../ui/shadcn/ui/alert-dialog";
@@ -11,6 +10,7 @@ import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, 
 import { trySetExperimentalFeaturesEnabledInLocalStorage } from "../../../tools/local-storage";
 
 import { EditorInspectorKeyField } from "../../layout/inspector/fields/key";
+import { EditorInspectorNumberField } from "../../layout/inspector/fields/number";
 
 import { Editor } from "../../main";
 
