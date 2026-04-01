@@ -11,6 +11,8 @@ import { loadImportedMaterial } from "../../preview/import/import";
 
 import { registerUndoRedo } from "../../../../tools/undoredo";
 
+import { Editor } from "../../../main";
+
 import { EditorInspectorSectionField } from "../fields/section";
 
 import { EditorSkyMaterialInspector } from "./sky";
@@ -26,6 +28,7 @@ import { EditorStandardMaterialInspector } from "./standard";
 import { EditorTriPlanarMaterialInspector } from "./tri-planar";
 
 export interface IEditorPBRMaterialInspectorProps {
+	editor: Editor;
 	material: MultiMaterial;
 }
 
@@ -37,8 +40,10 @@ export class EditorMultiMaterialInspector extends Component<IEditorPBRMaterialIn
 	public constructor(props: IEditorPBRMaterialInspectorProps) {
 		super(props);
 
+		const subMeshId = props.editor.layout.preview.lastPickingInfo?.subMeshId ?? 0;
+
 		this.state = {
-			material: props.material.subMaterials[0] ?? null,
+			material: props.material.subMaterials[subMeshId] ?? null,
 		};
 	}
 

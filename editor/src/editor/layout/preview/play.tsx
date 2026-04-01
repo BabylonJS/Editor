@@ -305,6 +305,7 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 
 			return true;
 		} catch (e) {
+			console.error("Failed to compile play scripts:", e);
 			if (e instanceof Error) {
 				this.props.editor.layout.console.error(`Failed to compile play scripts:\n${e.message}`);
 			}

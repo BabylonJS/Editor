@@ -170,6 +170,11 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	 */
 	public canvas: HTMLCanvasElement | null = null;
 
+	/**
+	 * Defines the reference to the last picking info processed in the preview.
+	 */
+	public lastPickingInfo: PickingInfo | null = null;
+
 	private _renderScene: boolean = true;
 	private _mouseDownPosition: Vector2 = Vector2.Zero();
 
@@ -613,12 +618,15 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	/** @internal */
 	public _handleMouseLeave(): void {
 		this._restoreCurrentMeshUnderPointer();
+		this.lastPickingInfo = null;
 		this._objectUnderPointer = null;
 	}
 
 	private _mouseMoveTimeoutId: number = -1;
 
 	private _handleMouseMove(x: number, y: number): void {
+		this.lastPickingInfo = null;
+
 		if (!this.state.pickingEnabled) {
 			return;
 		}
@@ -649,6 +657,8 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	}
 
 	private _handleMouseDown(event: MouseEvent<HTMLCanvasElement, globalThis.MouseEvent>): void {
+		this.lastPickingInfo = null;
+
 		if (!this.state.pickingEnabled) {
 			return;
 		}
@@ -672,6 +682,8 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	}
 
 	private _handleDoubleClick(_event: MouseEvent<HTMLCanvasElement, globalThis.MouseEvent>): void {
+		this.lastPickingInfo = null;
+
 		if (!this.state.pickingEnabled || this.axis._axisMeshUnderPointer) {
 			return;
 		}
@@ -683,6 +695,8 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	}
 
 	private _handleMouseUp(event: MouseEvent<HTMLCanvasElement, globalThis.MouseEvent>): void {
+		this.lastPickingInfo = null;
+
 		if (!this.state.pickingEnabled) {
 			return;
 		}
@@ -710,6 +724,8 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 				effectivePickedObject = effectivePickedObject.parent;
 			}
 		}
+
+		this.lastPickingInfo = pickingInfo;
 
 		if (effectivePickedObject) {
 			if (event.shiftKey) {

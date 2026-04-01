@@ -413,7 +413,7 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 				return <EditorNodeMaterialInspector mesh={this.props.object} material={this.props.object.material as NodeMaterial} />;
 
 			case "MultiMaterial":
-				return <EditorMultiMaterialInspector material={this.props.object.material as MultiMaterial} />;
+				return <EditorMultiMaterialInspector editor={this.props.editor} material={this.props.object.material as MultiMaterial} />;
 
 			case "SkyMaterial":
 				return <EditorSkyMaterialInspector mesh={this.props.object} material={this.props.object.material as SkyMaterial} />;
