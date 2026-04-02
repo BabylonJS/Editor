@@ -16,7 +16,6 @@ import {
 	AbstractMesh,
 	Animation,
 	Camera,
-	Color3,
 	CubicEase,
 	EasingFunction,
 	Engine,
@@ -34,6 +33,7 @@ import {
 	Sprite,
 	Color4,
 	BoundingBox,
+	SelectionOutlineLayer,
 } from "babylonjs";
 
 import { Button } from "../../ui/shadcn/ui/button";
@@ -60,7 +60,7 @@ import { createSceneLink, getRootSceneLink } from "../../tools/scene/scene-link"
 import { UniqueNumber, waitNextAnimationFrame, waitUntil } from "../../tools/tools";
 import { isSprite, isSpriteManagerNode, isSpriteMapNode } from "../../tools/guards/sprites";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../../ui/shadcn/ui/dropdown-menu";
-import { isAbstractMesh, isAnyTransformNode, isCamera, isCollisionInstancedMesh, isCollisionMesh, isInstancedMesh, isLight, isMesh, isNode } from "../../tools/guards/nodes";
+import { isAbstractMesh, isAnyTransformNode, isCamera, isCollisionInstancedMesh, isCollisionMesh, isLight, isNode } from "../../tools/guards/nodes";
 
 import { EditorCamera } from "../nodes/camera";
 
@@ -131,39 +131,39 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	/**
 	 * The engine of the preview.
 	 */
-	public engine: AbstractEngine;
+	public engine!: AbstractEngine;
 	/**
 	 * The scene of the preview.
 	 */
-	public scene: Scene;
+	public scene!: Scene;
 	/**
 	 * The camera of the preview.
 	 */
-	public camera: EditorCamera;
+	public camera!: EditorCamera;
 
 	/**
 	 * The gizmo manager of the preview
 	 */
-	public gizmo: EditorPreviewGizmo;
+	public gizmo!: EditorPreviewGizmo;
 	/**
 	 * The helper drawn over the scene to help visualizing and selecting nodes like lights, cameras, particle systems, etc.
 	 */
-	public icons: EditorPreviewIcons;
+	public icons!: EditorPreviewIcons;
 	/**
 	 * The helper drawn over the scene to help visualizing the axis according to the current camera view.
 	 */
-	public axis: EditorPreviewAxisHelper;
+	public axis!: EditorPreviewAxisHelper;
 
 	/**
 	 * The play component of the preview.
 	 */
-	public play: EditorPreviewPlayComponent;
+	public play!: EditorPreviewPlayComponent;
 
 	/**
 	 * The current statistics of the preview.
 	 * This is used to display the FPS and other values.
 	 */
-	public statistics: Stats;
+	public statistics!: Stats;
 
 	/**
 	 * Defines the reference to the canvas drawn in the preview.
@@ -174,11 +174,15 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	 * Defines the reference to the last picking info processed in the preview.
 	 */
 	public lastPickingInfo: PickingInfo | null = null;
+	/**
+	 * Defines the reference to the selection outline layer used to highlight a mesh when, for example, the pointer is over it.
+	 */
+	public selectionOutlineLayer!: SelectionOutlineLayer;
 
 	private _renderScene: boolean = true;
 	private _mouseDownPosition: Vector2 = Vector2.Zero();
 
-	private _objectUnderPointer: AbstractMesh | Sprite | null;
+	private _objectUnderPointer: AbstractMesh | Sprite | null = null;
 
 	private _workingCanvas: HTMLCanvasElement | null = null;
 	private _mainView: EngineView | null = null;
@@ -419,12 +423,12 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 				target = selectedNode.emitter;
 			}
 		} else if (isSound(selectedNode)) {
-			const soundPosition = selectedNode["_position"] as Vector3;
+			const soundPosition = (selectedNode as any)["_position"] as Vector3;
 
 			if (selectedNode["_connectedTransformNode"]) {
 				target = selectedNode["_connectedTransformNode"].getAbsolutePosition();
 			} else if (!soundPosition.equalsToFloats(0, 0, 0)) {
-				target = selectedNode["_position"]();
+				target = (selectedNode as any)["_position"]();
 			}
 		} else if (isSprite(selectedNode)) {
 			const bb = new BoundingBox(new Vector3(-selectedNode.width * 0.5, -selectedNode.height * 0.5, 0), new Vector3(selectedNode.width * 0.5, selectedNode.height * 0.5, 0));
@@ -532,6 +536,9 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		this.camera.attachControl(true);
 
 		this.gizmo = new EditorPreviewGizmo(this.scene);
+
+		this.selectionOutlineLayer = new SelectionOutlineLayer("selectionOutline", this.scene);
+		this.selectionOutlineLayer.outlineThickness = 4;
 
 		this.engine.hideLoadingUI();
 		this._mainView = this.engine.registerView(this.canvas);
@@ -798,35 +805,13 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	}
 
 	private _highlightCurrentMeshUnderPointer(pickedObject: AbstractMesh | Sprite): void {
-		Tween.killTweensOf(pickedObject);
-
-		if (isAbstractMesh(pickedObject)) {
-			const effectiveMesh = isInstancedMesh(pickedObject) ? pickedObject.sourceMesh : pickedObject;
-			const meshes = [effectiveMesh];
-
-			if (isMesh(effectiveMesh)) {
-				effectiveMesh.getLODLevels().forEach((lod) => {
-					if (lod.mesh) {
-						meshes.push(lod.mesh);
-					}
-				});
-			}
-
-			meshes.forEach((mesh) => {
-				Tween.create(mesh, 0.1, {
-					overlayAlpha: 0.5,
-					overlayColor: Color3.Black(),
-					onStart: () => (mesh!.renderOverlay = true),
-				});
-			});
-		}
-
 		if (isSprite(pickedObject)) {
 			pickedObject.overrideColor ??= new Color4(1, 1, 1, 1);
-
 			Tween.create(pickedObject, 0.1, {
 				overrideColor: new Color4(0.5, 0.5, 0.5, 1.0),
 			});
+		} else {
+			this.selectionOutlineLayer.addSelection(pickedObject);
 		}
 	}
 
@@ -834,38 +819,13 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		const objectUnderPointer = this._objectUnderPointer;
 
 		if (objectUnderPointer) {
-			if (isAbstractMesh(objectUnderPointer)) {
-				const effectiveMesh = isInstancedMesh(objectUnderPointer) ? objectUnderPointer.sourceMesh : objectUnderPointer;
-				const meshes = [effectiveMesh];
-
-				if (isMesh(effectiveMesh)) {
-					effectiveMesh.getLODLevels().forEach((lod) => {
-						if (lod.mesh) {
-							meshes.push(lod.mesh);
-						}
-					});
-				}
-
-				meshes.forEach((mesh) => {
-					Tween.killTweensOf(mesh);
-
-					mesh.overlayAlpha ??= 0;
-					mesh.overlayColor ??= Color3.Black();
-
-					Tween.create(mesh, 0.1, {
-						overlayAlpha: 0,
-						overlayColor: Color3.Black(),
-						onStart: () => (mesh.renderOverlay = true),
-					});
-				});
-			}
-
 			if (isSprite(objectUnderPointer)) {
 				Tween.killTweensOf(objectUnderPointer);
-
 				Tween.create(objectUnderPointer, 0.1, {
 					overrideColor: new Color4(1.0, 1.0, 1.0, 1.0),
 				});
+			} else {
+				this.selectionOutlineLayer.clearSelection();
 			}
 		}
 	}
