@@ -67,6 +67,7 @@ import {
 import { UniqueNumber, waitNextAnimationFrame, waitUntil } from "../../tools/tools";
 import { isSprite, isSpriteManagerNode, isSpriteMapNode } from "../../tools/guards/sprites";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../../ui/shadcn/ui/dropdown-menu";
+import { Popover, PopoverContent, PopoverTrigger } from "../../ui/shadcn/ui/popover";
 import { isAbstractMesh, isAnyTransformNode, isCamera, isCollisionInstancedMesh, isCollisionMesh, isInstancedMesh, isLight, isMesh, isNode } from "../../tools/guards/nodes";
 
 import { EditorCamera } from "../nodes/camera";
@@ -921,86 +922,102 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		const bumpRotation = (v: number) => this._commitGizmoSnap({ ...snap, rotationStepDegrees: Math.max(min, v) });
 		const bumpScale = (v: number) => this._commitGizmoSnap({ ...snap, scaleStep: Math.max(min, v) });
 
+		const snapRowClass = "grid grid-cols-[minmax(0,7rem)_auto_minmax(0,1fr)] items-center gap-3";
+		const snapToggleClass = (enabled: boolean) =>
+			`rounded-md border border-input h-9 w-9 px-0 shrink-0 justify-center shadow-sm ${enabled ? "bg-primary/20" : "bg-background"}`;
+
 		return (
-			<>
-				<div className="flex overflow-hidden flex-shrink-0 h-9 rounded-md border shadow-sm border-input">
-					<Tooltip>
-						<TooltipTrigger asChild>
-							<Toggle
-								pressed={snap.translationEnabled}
-								onPressedChange={(on) => this._commitGizmoSnap({ ...snap, translationEnabled: on })}
-								className={`rounded-none border-0 h-9 min-w-9 px-2 shrink-0 ${snap.translationEnabled ? "bg-primary/20" : ""}`}
-								aria-label="Translation grid snap"
-							>
-								<LuGrid3X3 className="h-4 w-4" />
-							</Toggle>
-						</TooltipTrigger>
-						<TooltipContent>Translation grid snap</TooltipContent>
-					</Tooltip>
-					<div className="contents">
-						<EditorInspectorNumberField
-							object={this._gizmoSnapNumberFields}
-							property="translationStep"
-							noUndoRedo
-							step={0.01}
-							min={min}
-							onChange={(v) => bumpTranslation(v)}
-						/>
-					</div>
-				</div>
+			<Popover>
+				<PopoverTrigger asChild>
+					<Button type="button" variant="outline" className="h-9 px-3 shrink-0 border-input bg-background shadow-sm">
+						Snap
+					</Button>
+				</PopoverTrigger>
+				<PopoverContent align="start" side="bottom" className="w-auto max-w-none min-w-[20rem] p-4">
+					<div className="flex flex-col gap-3">
+						<div className={snapRowClass}>
+							<div className="text-sm font-medium text-muted-foreground">Translation</div>
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<Toggle
+										pressed={snap.translationEnabled}
+										onPressedChange={(on) => this._commitGizmoSnap({ ...snap, translationEnabled: on })}
+										className={snapToggleClass(snap.translationEnabled)}
+										aria-label="Translation grid snap"
+									>
+										<LuGrid3X3 className="h-4 w-4" />
+									</Toggle>
+								</TooltipTrigger>
+								<TooltipContent>Translation grid snap</TooltipContent>
+							</Tooltip>
+							<div className="min-w-0">
+								<EditorInspectorNumberField
+									object={this._gizmoSnapNumberFields}
+									property="translationStep"
+									noUndoRedo
+									step={0.01}
+									min={min}
+									onChange={(v) => bumpTranslation(v)}
+								/>
+							</div>
+						</div>
 
-				<div className="flex overflow-hidden flex-shrink-0 h-9 rounded-md border shadow-sm border-input">
-					<Tooltip>
-						<TooltipTrigger asChild>
-							<Toggle
-								pressed={snap.rotationEnabled}
-								onPressedChange={(on) => this._commitGizmoSnap({ ...snap, rotationEnabled: on })}
-								className={`rounded-none border-0 h-9 min-w-9 px-2 shrink-0 ${snap.rotationEnabled ? "bg-primary/20" : ""}`}
-								aria-label="Rotation snap"
-							>
-								<LuRotateCw className="h-4 w-4" />
-							</Toggle>
-						</TooltipTrigger>
-						<TooltipContent>Rotation snap (degrees)</TooltipContent>
-					</Tooltip>
-					<div className="contents">
-						<EditorInspectorNumberField
-							object={this._gizmoSnapNumberFields}
-							property="rotationStepDegrees"
-							noUndoRedo
-							step={0.01}
-							min={min}
-							onChange={(v) => bumpRotation(v)}
-						/>
-					</div>
-				</div>
+						<div className={snapRowClass}>
+							<div className="text-sm font-medium text-muted-foreground">Rotation</div>
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<Toggle
+										pressed={snap.rotationEnabled}
+										onPressedChange={(on) => this._commitGizmoSnap({ ...snap, rotationEnabled: on })}
+										className={snapToggleClass(snap.rotationEnabled)}
+										aria-label="Rotation snap"
+									>
+										<LuRotateCw className="h-4 w-4" />
+									</Toggle>
+								</TooltipTrigger>
+								<TooltipContent>Rotation snap (degrees)</TooltipContent>
+							</Tooltip>
+							<div className="min-w-0">
+								<EditorInspectorNumberField
+									object={this._gizmoSnapNumberFields}
+									property="rotationStepDegrees"
+									noUndoRedo
+									step={0.01}
+									min={min}
+									onChange={(v) => bumpRotation(v)}
+								/>
+							</div>
+						</div>
 
-				<div className="flex overflow-hidden flex-shrink-0 h-9 rounded-md border shadow-sm border-input">
-					<Tooltip>
-						<TooltipTrigger asChild>
-							<Toggle
-								pressed={snap.scaleEnabled}
-								onPressedChange={(on) => this._commitGizmoSnap({ ...snap, scaleEnabled: on })}
-								className={`rounded-none border-0 h-9 min-w-9 px-2 shrink-0 ${snap.scaleEnabled ? "bg-primary/20" : ""}`}
-								aria-label="Scale snap"
-							>
-								<LuScaling className="h-4 w-4" />
-							</Toggle>
-						</TooltipTrigger>
-						<TooltipContent>Scale snap (incremental step)</TooltipContent>
-					</Tooltip>
-					<div className="contents">
-						<EditorInspectorNumberField
-							object={this._gizmoSnapNumberFields}
-							property="scaleStep"
-							noUndoRedo
-							step={0.01}
-							min={min}
-							onChange={(v) => bumpScale(v)}
-						/>
+						<div className={snapRowClass}>
+							<div className="text-sm font-medium text-muted-foreground">Scale</div>
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<Toggle
+										pressed={snap.scaleEnabled}
+										onPressedChange={(on) => this._commitGizmoSnap({ ...snap, scaleEnabled: on })}
+										className={snapToggleClass(snap.scaleEnabled)}
+										aria-label="Scale snap"
+									>
+										<LuScaling className="h-4 w-4" />
+									</Toggle>
+								</TooltipTrigger>
+								<TooltipContent>Scale snap (incremental step)</TooltipContent>
+							</Tooltip>
+							<div className="min-w-0">
+								<EditorInspectorNumberField
+									object={this._gizmoSnapNumberFields}
+									property="scaleStep"
+									noUndoRedo
+									step={0.01}
+									min={min}
+									onChange={(v) => bumpScale(v)}
+								/>
+							</div>
+						</div>
 					</div>
-				</div>
-			</>
+				</PopoverContent>
+			</Popover>
 		);
 	}
 
