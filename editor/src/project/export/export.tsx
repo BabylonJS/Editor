@@ -6,6 +6,7 @@ import { RenderTargetTexture, SceneSerializer } from "babylonjs";
 import { toast } from "sonner";
 
 import { isNodeMaterial } from "../../tools/guards/material";
+import { isHDRCubeTexture } from "../../tools/guards/texture";
 import { getCollisionMeshFor } from "../../tools/mesh/collision";
 import { storeTexturesBaseSize } from "../../tools/material/texture";
 import { extractNodeMaterialTextures } from "../../tools/material/extract";
@@ -149,6 +150,7 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 			taaRenderingPipeline: taaPipelineCameraConfigurations.get(camera),
 		}));
 
+	delete data.effectLayers;
 	delete data.postProcesses;
 	delete data.spriteManagers;
 
@@ -158,6 +160,13 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 	configureMeshesLODs(data, scene);
 	configureMeshesPhysics(data, scene);
 	configureParticleSystems(data, scene);
+
+	// Configure environment texture
+	if (isHDRCubeTexture(scene.environmentTexture)) {
+		data.environmentTextureSize = 512;
+		data.environmentTextureType = "BABYLON.HDRCubeTexture";
+		data.environmentTextureRotationY = scene.environmentTexture.rotationY;
+	}
 
 	// Write all geometries as incremental. This makes the scene way less heavy as binary saved geometry
 	// is not stored in the JSON scene file. Moreover, this may allow to load geometries on the fly compared
