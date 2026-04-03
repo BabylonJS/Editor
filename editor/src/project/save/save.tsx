@@ -52,6 +52,8 @@ export async function saveProjectConfiguration(editor: Editor) {
 
 		compressedTexturesEnabled: editor.state.compressedTexturesEnabled,
 		compressedTexturesEnabledInPreview: editor.state.compressedTexturesEnabledInPreview,
+
+		gizmoSnap: editor.layout.preview?.state.gizmoSnap,
 	};
 
 	if (!editor.props.editedScenePath) {

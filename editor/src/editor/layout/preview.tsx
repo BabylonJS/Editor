@@ -59,6 +59,7 @@ import { ITweenConfiguration, Tween } from "../../tools/animation/tween";
 import { checkProjectCachedCompressedTextures } from "../../tools/assets/ktx";
 import { createSceneLink, getRootSceneLink } from "../../tools/scene/scene-link";
 import {
+	defaultGizmoSnapPreferences,
 	gizmoSnapMinStep,
 	IGizmoSnapPreferences,
 	roundGizmoSnapSteps,
@@ -214,7 +215,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 			playEnabled: false,
 			playSceneLoadingProgress: 0,
 
-			gizmoSnap: this.props.editor.state.gizmoSnap,
+			gizmoSnap: { ...defaultGizmoSnapPreferences },
 		};
 
 		ipcRenderer.on("gizmo:position", () => this.setActiveGizmo("position"));
@@ -901,7 +902,6 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	private _commitGizmoSnap(next: IGizmoSnapPreferences): void {
 		const normalized = roundGizmoSnapSteps(next);
 		this.setState({ gizmoSnap: normalized });
-		this.props.editor.setState({ gizmoSnap: normalized });
 		this.gizmo?.setSnapPreferences(normalized);
 	}
 

@@ -27,7 +27,7 @@ export async function loadProject(editor: Editor, path: string) {
 	const directory = dirname(path);
 	const project = (await readJSON(path, "utf-8")) as IEditorProject;
 	const packageManager = project.packageManager ?? "yarn";
-	const gizmoSnap = roundGizmoSnapSteps({ ...defaultGizmoSnapPreferences });
+	const gizmoSnap = roundGizmoSnapSteps({ ...defaultGizmoSnapPreferences, ...project.gizmoSnap });
 
 	editor.setState({
 		packageManager,
@@ -37,7 +37,6 @@ export async function loadProject(editor: Editor, path: string) {
 
 		compressedTexturesEnabled: project.compressedTexturesEnabled ?? false,
 		compressedTexturesEnabledInPreview: project.compressedTexturesEnabledInPreview ?? false,
-		gizmoSnap,
 	});
 
 	editor.layout.forceUpdate();
