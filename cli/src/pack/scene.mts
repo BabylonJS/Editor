@@ -522,7 +522,7 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 		postProcesses: [],
 		spriteManagers: [],
 		reflectionProbes: [],
-	};
+	} as any;
 
 	// Resolve parenting for mesh instances.
 	const allNodes = [...scene.meshes, ...scene.cameras, ...scene.lights, ...scene.transformNodes, ...scene.meshes.map((m) => m.instances ?? []).flat()];
@@ -538,6 +538,14 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 			}
 		}
 	});
+
+	// Configue ennviornment texture
+	if (scene.environmentTexture) {
+		scene.environmentTextureSize = 512;
+		scene.environmentTextureType = "BABYLON.HDRCubeTexture";
+		scene.environmentTextureRotationY = scene.environmentTexture.rotationY;
+		scene.environmentTexture = scene.environmentTexture.name;
+	}
 
 	// Write final scene file.
 	const destination = join(options.publicDir, `${options.sceneName}.babylon`);
