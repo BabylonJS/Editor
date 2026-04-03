@@ -212,6 +212,8 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 				this.props.editor.layout.inspector.forceUpdate();
 			}
 		});
+
+		this.props.editor.layout.preview.selectionOutlineLayer.addSelection(this.props.object);
 	}
 
 	public componentWillUnmount(): void {
@@ -222,6 +224,8 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 		if (this._gizmoObserver) {
 			onGizmoNodeChangedObservable.remove(this._gizmoObserver);
 		}
+
+		this.props.editor.layout.preview.selectionOutlineLayer.clearSelection();
 	}
 
 	private _handleTransformsUpdated(): void {

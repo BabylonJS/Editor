@@ -21,12 +21,12 @@ import { iblShadowsRenderingPipelineCameraConfigurations, parseIblShadowsRenderi
 import { createDirectoryIfNotExist } from "../../tools/fs";
 
 import { createSceneLink } from "../../tools/scene/scene-link";
-import { isCubeTexture, isTexture } from "../../tools/guards/texture";
 import { updateIblShadowsRenderPipeline } from "../../tools/light/ibl";
 import { forceCompileAllSceneMaterials } from "../../tools/scene/materials";
 import { IAssetCache, loadSavedAssetsCache } from "../../tools/assets/cache";
 import { checkProjectCachedCompressedTextures } from "../../tools/assets/ktx";
 import { isAbstractMesh, isEditorCamera, isMesh } from "../../tools/guards/nodes";
+import { isCubeTexture, isHDRCubeTexture, isTexture } from "../../tools/guards/texture";
 import { updateAllLights, updatePointLightShadowMapRenderListPredicate } from "../../tools/light/shadows";
 
 import { registerTextureParser } from "./texture";
@@ -222,7 +222,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 
 			scene.environmentTexture = Texture.Parse(environmentTexture, scene, join(projectPath, "/"));
 
-			if (isCubeTexture(scene.environmentTexture)) {
+			if (isCubeTexture(scene.environmentTexture) || isHDRCubeTexture(scene.environmentTexture)) {
 				scene.environmentTexture.url = join(projectPath, scene.environmentTexture.name);
 			}
 		}
@@ -287,7 +287,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 
 	// Configure textures urls
 	scene.textures.forEach((texture) => {
-		if (isTexture(texture) || isCubeTexture(texture)) {
+		if (isTexture(texture) || isCubeTexture(texture) || isHDRCubeTexture(texture)) {
 			texture.url = texture.name;
 		}
 	});

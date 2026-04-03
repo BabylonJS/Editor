@@ -19,6 +19,7 @@ import {
 	Quaternion,
 	Sprite,
 	IParticleSystem,
+	HDRCubeTexture,
 } from "babylonjs";
 
 import { UniqueNumber } from "../../../../tools/tools";
@@ -189,7 +190,7 @@ export function configureImportedMaterial(material: Material) {
 	material.uniqueId = UniqueNumber.Get();
 }
 
-export function configureImportedTexture<T extends Texture | CubeTexture | ColorGradingTexture>(texture: T, noCheckInvertY?: boolean): T {
+export function configureImportedTexture<T extends Texture | CubeTexture | ColorGradingTexture | HDRCubeTexture>(texture: T, noCheckInvertY?: boolean): T {
 	if (isAbsolute(texture.name)) {
 		if (!noCheckInvertY && isTexture(texture) && !texture.invertY && !texture._buffer) {
 			texture._invertY = true;

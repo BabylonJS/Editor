@@ -11,15 +11,15 @@ import { toast } from "sonner";
 import { SiDotenv } from "react-icons/si";
 import { IoIosColorPalette } from "react-icons/io";
 import { XMarkIcon } from "@heroicons/react/20/solid";
-import { MdOutlineQuestionMark } from "react-icons/md";
+import { MdOutlineHdrOn, MdOutlineQuestionMark } from "react-icons/md";
 
-import { CubeTexture, Scene, Texture, ColorGradingTexture } from "babylonjs";
+import { CubeTexture, Scene, Texture, ColorGradingTexture, HDRCubeTexture } from "babylonjs";
 
 import { isScene } from "../../../../tools/guards/scene";
 import { registerUndoRedo } from "../../../../tools/undoredo";
 import { updateIblShadowsRenderPipeline } from "../../../../tools/light/ibl";
 import { onSelectedAssetChanged, onTextureAddedObservable } from "../../../../tools/observables";
-import { isColorGradingTexture, isCubeTexture, isTexture } from "../../../../tools/guards/texture";
+import { isColorGradingTexture, isCubeTexture, isHDRCubeTexture, isTexture } from "../../../../tools/guards/texture";
 
 import { projectConfiguration } from "../../../../project/configuration";
 
@@ -50,7 +50,7 @@ export interface IEditorInspectorTextureFieldProps extends PropsWithChildren {
 	noPopover?: boolean;
 
 	scene?: Scene;
-	onChange?: (texture: Texture | CubeTexture | ColorGradingTexture | null) => void;
+	onChange?: (texture: Texture | CubeTexture | ColorGradingTexture | HDRCubeTexture | null) => void;
 }
 
 export interface IEditorInspectorTextureFieldState {
@@ -74,8 +74,8 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 	}
 
 	public render(): ReactNode {
-		const texture = this.props.object[this.props.property] as Texture | CubeTexture | ColorGradingTexture;
-		const textureUrl = (isTexture(texture) || isCubeTexture(texture) || isColorGradingTexture(texture)) && texture.url;
+		const texture = this.props.object[this.props.property] as Texture | CubeTexture | ColorGradingTexture | HDRCubeTexture;
+		const textureUrl = (isTexture(texture) || isCubeTexture(texture) || isColorGradingTexture(texture) || isHDRCubeTexture(texture)) && texture.url;
 
 		return (
 			<div
@@ -138,7 +138,7 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 									</>
 								)}
 
-								{isCubeTexture(texture) && (
+								{(isCubeTexture(texture) || isHDRCubeTexture(texture)) && (
 									<>
 										<EditorInspectorNumberField
 											label="Rotation Y"
@@ -243,6 +243,8 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 							<>
 								{isCubeTexture(this.props.object[this.props.property]) ? (
 									<SiDotenv className="w-24 h-24" />
+								) : isHDRCubeTexture(this.props.object[this.props.property]) ? (
+									<MdOutlineHdrOn className="w-24 h-24" />
 								) : isColorGradingTexture(this.props.object[this.props.property]) ? (
 									<IoIosColorPalette className="w-24 h-24" />
 								) : extname(textureUrl).toLowerCase() === ".exr" ? (
@@ -258,7 +260,7 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 						</PopoverTrigger>
 						<PopoverContent side="left">
 							<>
-								{isCubeTexture(this.props.object[this.props.property])
+								{isCubeTexture(this.props.object[this.props.property]) || isHDRCubeTexture(this.props.object[this.props.property])
 									? this._getCubeTextureInspector()
 									: isColorGradingTexture(this.props.object[this.props.property])
 										? this._getColorGradingTextureInspector()
@@ -274,8 +276,8 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 	}
 
 	private _getCubeTextureInspector(): ReactNode {
-		const texture = this.props.object[this.props.property] as CubeTexture;
-		if (!isCubeTexture(texture)) {
+		const texture = this.props.object[this.props.property] as CubeTexture | HDRCubeTexture;
+		if (!isCubeTexture(texture) && !isHDRCubeTexture(texture)) {
 			return;
 		}
 
@@ -553,7 +555,7 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 	}
 
 	private async _computeTemporaryPreview(): Promise<void> {
-		const texture = this.props.object[this.props.property] as Texture | CubeTexture | null | undefined;
+		const texture = this.props.object[this.props.property] as Texture | CubeTexture | HDRCubeTexture | null | undefined;
 		if (!texture?.url || extname(texture.url).toLowerCase() === ".exr") {
 			return;
 		}
@@ -685,11 +687,20 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 				break;
 
 			case ".env":
+			case ".hdr":
 				if (this.props.acceptCubeTexture) {
 					const oldTexture = this.props.object[this.props.property];
-					const newTexture = configureImportedTexture(
-						CubeTexture.CreateFromPrefilteredData(absolutePath, this.props.scene ?? (isScene(this.props.object) ? this.props.object : this.props.object.getScene()))
-					);
+					const newTexture =
+						extname(absolutePath).toLowerCase() === ".env"
+							? configureImportedTexture(
+									CubeTexture.CreateFromPrefilteredData(
+										absolutePath,
+										this.props.scene ?? (isScene(this.props.object) ? this.props.object : this.props.object.getScene())
+									)
+								)
+							: configureImportedTexture(
+									new HDRCubeTexture(absolutePath, this.props.scene ?? (isScene(this.props.object) ? this.props.object : this.props.object.getScene()), 512)
+								);
 
 					const scene = newTexture.getScene();
 

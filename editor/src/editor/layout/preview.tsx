@@ -718,6 +718,15 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 			return;
 		}
 
+		this.scene.meshes.forEach((mesh) => {
+			if (mesh.geometry) {
+				mesh.refreshBoundingInfo({
+					applyMorph: true,
+					applySkeleton: true,
+				});
+			}
+		});
+
 		const pickingInfo = this._getPickingInfo(this.scene.pointerX, this.scene.pointerY);
 
 		let effectivePickedObject = (pickingInfo.pickedSprite ?? pickingInfo.pickedMesh?._masterMesh ?? pickingInfo.pickedMesh) as Node;
@@ -810,8 +819,6 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 			Tween.create(pickedObject, 0.1, {
 				overrideColor: new Color4(0.5, 0.5, 0.5, 1.0),
 			});
-		} else {
-			this.selectionOutlineLayer.addSelection(pickedObject);
 		}
 	}
 
@@ -824,8 +831,6 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 				Tween.create(objectUnderPointer, 0.1, {
 					overrideColor: new Color4(1.0, 1.0, 1.0, 1.0),
 				});
-			} else {
-				this.selectionOutlineLayer.clearSelection();
 			}
 		}
 	}
