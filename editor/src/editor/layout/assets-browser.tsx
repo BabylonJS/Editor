@@ -1452,6 +1452,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 				return openModelViewer(this.props.editor, item.props.absolutePath);
 
 			case ".env":
+			case ".hdr":
 				return openEnvViewer(item.props.absolutePath);
 
 			case ".ts":
