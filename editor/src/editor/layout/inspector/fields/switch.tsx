@@ -11,6 +11,7 @@ import { getInspectorPropertyValue, setInspectorEffectivePropertyValue } from ".
 import { IEditorInspectorFieldProps } from "./field";
 
 export interface IEditorInspectorSwitchFieldProps extends IEditorInspectorFieldProps {
+	disabled?: boolean;
 	onChange?: (value: boolean) => void;
 }
 
@@ -26,6 +27,10 @@ export function EditorInspectorSwitchField(props: IEditorInspectorSwitchFieldPro
 			onClick={(ev) => {
 				ev.stopPropagation();
 
+				if (props.disabled) {
+					return;
+				}
+
 				setValue(!value);
 				setInspectorEffectivePropertyValue(props.object, props.property, !value);
 				props.onChange?.(!value);
@@ -40,10 +45,14 @@ export function EditorInspectorSwitchField(props: IEditorInspectorSwitchFieldPro
 					});
 				}
 			}}
-			className="flex gap-2 justify-center items-center px-2 cursor-pointer hover:bg-white/10 hover:px-2 rounded-lg transition-all duration-300"
+			className={`
+				flex gap-2 justify-center items-center px-2 rounded-lg
+				${props.disabled ? "" : "cursor-pointer hover:bg-white/10"}
+				transition-all ease-in-out duration-300
+			`}
 		>
 			<div className="flex items-center gap-2 w-full text-ellipsis overflow-hidden whitespace-nowrap">
-				{props.label}
+				<div className={`${props.disabled ? "opacity-35" : ""} transition-all duration-300 ease-in-out`}>{props.label}</div>
 
 				{props.tooltip && (
 					<TooltipProvider delayDuration={0}>
@@ -60,7 +69,7 @@ export function EditorInspectorSwitchField(props: IEditorInspectorSwitchFieldPro
 			</div>
 
 			<div className="flex justify-end w-14 py-2">
-				<Switch checked={value} onChange={() => {}} />
+				<Switch disabled={props.disabled} checked={value} onChange={() => {}} />
 			</div>
 		</div>
 	);

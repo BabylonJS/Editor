@@ -14,13 +14,13 @@ import { createDirectoryIfNotExist, normalizedGlob } from "../../tools/fs";
 import { isCollisionMesh, isEditorCamera, isMesh } from "../../tools/guards/nodes";
 import { extractNodeParticleSystemSetTextures, extractParticleSystemTextures } from "../../tools/particles/extract";
 
+import { taaPipelineCameraConfigurations } from "../../editor/rendering/taa";
+import { vlsPostProcessCameraConfigurations } from "../../editor/rendering/vls";
 import { saveRenderingConfigurationForCamera } from "../../editor/rendering/tools";
-import { serializeVLSPostProcess, vlsPostProcessCameraConfigurations } from "../../editor/rendering/vls";
-import { serializeTAARenderingPipeline, taaPipelineCameraConfigurations } from "../../editor/rendering/taa";
-import { serializeSSRRenderingPipeline, ssrRenderingPipelineCameraConfigurations } from "../../editor/rendering/ssr";
-import { serializeSSAO2RenderingPipeline, ssaoRenderingPipelineCameraConfigurations } from "../../editor/rendering/ssao";
-import { serializeMotionBlurPostProcess, motionBlurPostProcessCameraConfigurations } from "../../editor/rendering/motion-blur";
-import { serializeDefaultRenderingPipeline, defaultPipelineCameraConfigurations } from "../../editor/rendering/default-pipeline";
+import { ssrRenderingPipelineCameraConfigurations } from "../../editor/rendering/ssr";
+import { ssaoRenderingPipelineCameraConfigurations } from "../../editor/rendering/ssao";
+import { defaultPipelineCameraConfigurations } from "../../editor/rendering/default-pipeline";
+import { motionBlurPostProcessCameraConfigurations } from "../../editor/rendering/motion-blur";
 
 import { Editor } from "../../editor/main";
 
@@ -31,6 +31,7 @@ import { configureMeshesLODs } from "./lod";
 import { handleExportScripts } from "./scripts";
 import { configureMaterials } from "./materials";
 import { configureMeshesPhysics } from "./physics";
+import { configureClusteredLights } from "./light";
 import { configureParticleSystems } from "./particles";
 import { EditorExportProjectProgressComponent } from "./progress";
 import { ExportSceneProgressComponent, showExportSceneProgressDialog } from "./dialog";
@@ -84,6 +85,7 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 
 	const scene = editor.layout.preview.scene;
 	const editorCamera = scene.cameras.find((camera) => isEditorCamera(camera));
+	const clusteredLightContainer = editor.layout.preview.clusteredLightContainer;
 
 	if (scene.activeCamera) {
 		saveRenderingConfigurationForCamera(scene.activeCamera);
@@ -115,6 +117,7 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 	scene.lights.forEach((light) => (light.doNotSerialize = light.metadata?.doNotSerialize ?? false));
 	scene.cameras.forEach((camera) => (camera.doNotSerialize = camera.metadata?.doNotSerialize ?? false));
 	scene.transformNodes.forEach((transformNode) => (transformNode.doNotSerialize = transformNode.metadata?.doNotSerialize ?? false));
+	clusteredLightContainer.lights.forEach((light) => (light.doNotSerialize = light.metadata?.doNotSerialize ?? false));
 
 	const data = await SceneSerializer.SerializeAsync(scene);
 
@@ -122,21 +125,19 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 	scene.lights.forEach((light) => (light.doNotSerialize = false));
 	scene.cameras.forEach((camera) => (camera.doNotSerialize = false));
 	scene.transformNodes.forEach((transformNode) => (transformNode.doNotSerialize = false));
+	clusteredLightContainer.lights.forEach((light) => (light.doNotSerialize = false));
 
 	const editorCameraIndex = data.cameras?.findIndex((camera) => camera.id === editorCamera?.id);
 	if (editorCameraIndex !== -1) {
 		data.cameras?.splice(editorCameraIndex, 1);
 	}
 
+	const clusteredLightContainerIndex = data.lights?.findIndex((light) => light.id === clusteredLightContainer.id);
+	if (clusteredLightContainerIndex !== -1) {
+		data.lights?.splice(clusteredLightContainerIndex, 1);
+	}
+
 	data.metadata ??= {};
-	data.metadata.rendering = {
-		taaRenderingPipeline: serializeTAARenderingPipeline(),
-		ssrRenderingPipeline: serializeSSRRenderingPipeline(),
-		motionBlurPostProcess: serializeMotionBlurPostProcess(),
-		ssao2RenderingPipeline: serializeSSAO2RenderingPipeline(),
-		defaultRenderingPipeline: serializeDefaultRenderingPipeline(),
-		vlsPostProcess: serializeVLSPostProcess(),
-	};
 
 	data.metadata.rendering = scene.cameras
 		.filter((camera) => !isEditorCamera(camera))
@@ -160,6 +161,7 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 	configureMeshesLODs(data, scene);
 	configureMeshesPhysics(data, scene);
 	configureParticleSystems(data, scene);
+	configureClusteredLights(data, clusteredLightContainer);
 
 	// Configure environment texture
 	if (isHDRCubeTexture(scene.environmentTexture)) {

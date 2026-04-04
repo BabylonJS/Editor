@@ -34,6 +34,8 @@ import {
 	Color4,
 	BoundingBox,
 	SelectionOutlineLayer,
+	ClusteredLightContainer,
+	Tools,
 } from "babylonjs";
 
 import { Button } from "../../ui/shadcn/ui/button";
@@ -174,10 +176,15 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	 * Defines the reference to the last picking info processed in the preview.
 	 */
 	public lastPickingInfo: PickingInfo | null = null;
+
 	/**
 	 * Defines the reference to the selection outline layer used to highlight a mesh when, for example, the pointer is over it.
 	 */
 	public selectionOutlineLayer!: SelectionOutlineLayer;
+	/**
+	 * Defines the reference to the clustered lighting container.
+	 */
+	public clusteredLightContainer!: ClusteredLightContainer;
 
 	private _renderScene: boolean = true;
 	private _mouseDownPosition: Vector2 = Vector2.Zero();
@@ -539,6 +546,10 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
 		this.selectionOutlineLayer = new SelectionOutlineLayer("selectionOutline", this.scene);
 		this.selectionOutlineLayer.outlineThickness = 4;
+
+		this.clusteredLightContainer = new ClusteredLightContainer("Clustered Light Container", [], this.scene);
+		this.clusteredLightContainer.id = Tools.RandomId();
+		this.clusteredLightContainer.uniqueId = UniqueNumber.Get();
 
 		this.engine.hideLoadingUI();
 		this._mainView = this.engine.registerView(this.canvas);

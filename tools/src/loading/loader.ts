@@ -3,6 +3,7 @@ import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { Constants } from "@babylonjs/core/Engines/constants";
 import { AppendSceneAsync } from "@babylonjs/core/Loading/sceneLoader";
 import { SceneLoaderFlags } from "@babylonjs/core/Loading/sceneLoaderFlags";
+import { ClusteredLightContainer } from "@babylonjs/core/Lights/Clustered/clusteredLightContainer";
 
 import { isMesh } from "../tools/guards";
 import { configureShadowMapRefreshRate, configureShadowMapRenderListPredicate } from "../tools/light";
@@ -22,10 +23,11 @@ import { registerTextureParser } from "./texture";
 import { registerShadowGeneratorParser } from "./shadows";
 import { registerMorphTargetManagerParser } from "./morph-target-manager";
 
+import { configureLights } from "./light";
 import { registerSpriteMapParser } from "./sprite-map";
+import { configureTransformNodes } from "./transform-node";
 import { registerSpriteManagerParser } from "./sprite-manager";
 import { registerNodeParticleSystemSetParser } from "./node-particle-system-set";
-import { configureTransformNodes } from "./transform-node";
 
 /**
  * Defines the possible output type of a script.
@@ -91,6 +93,13 @@ declare module "@babylonjs/core/scene" {
 	}
 }
 
+const sceneConfigurationMap: Map<
+	Scene,
+	{
+		clusteredLightContainer?: ClusteredLightContainer;
+	}
+> = new Map();
+
 export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scene, scriptsMap: ScriptMap, options?: SceneLoaderOptions) {
 	scene.loadingQuality = options?.quality ?? "high";
 
@@ -108,6 +117,11 @@ export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scen
 
 	registerNodeParticleSystemSetParser();
 
+	// Check configuration
+	const configuration = sceneConfigurationMap.get(scene) ?? {};
+	sceneConfigurationMap.set(scene, configuration);
+
+	// Append to the given scene
 	await AppendSceneAsync(`${rootUrl}${sceneFilename}`, scene, {
 		pluginExtension: ".babylon",
 		onProgress: (event) => {
@@ -193,4 +207,7 @@ export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scen
 	});
 
 	configureTransformNodes(scene);
+
+	const clusteredLightContainer = configureLights(scene, configuration.clusteredLightContainer);
+	configuration.clusteredLightContainer = clusteredLightContainer;
 }

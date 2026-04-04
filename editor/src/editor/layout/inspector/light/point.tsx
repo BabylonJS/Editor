@@ -18,8 +18,9 @@ import { EditorInspectorSectionField } from "../fields/section";
 import { ScriptInspectorComponent } from "../script/script";
 import { CustomMetadataInspector } from "../metadata/custom-metadata";
 
-import { EditorLightPBRInspector } from "./pbr";
-import { EditorLightShadowsInspector } from "./shadows";
+import { EditorLightPBRInspector } from "./components/pbr";
+import { EditorLightClusterInspector } from "./components/cluster";
+import { EditorLightShadowsInspector } from "./components/shadows";
 
 export class EditorPointLightInspector extends Component<IEditorInspectorImplementationProps<PointLight>> {
 	/**
@@ -83,11 +84,12 @@ export class EditorPointLightInspector extends Component<IEditorInspectorImpleme
 					<Divider />
 
 					<EditorLightPBRInspector object={this.props.object} />
+					<EditorLightClusterInspector light={this.props.object} editor={this.props.editor} />
 				</EditorInspectorSectionField>
 
 				<ScriptInspectorComponent editor={this.props.editor} object={this.props.object} />
 
-				<EditorLightShadowsInspector light={this.props.object} />
+				<EditorLightShadowsInspector editor={this.props.editor} light={this.props.object} onShadowGeneratorChanged={() => this.forceUpdate()} />
 
 				<CustomMetadataInspector object={this.props.object} />
 			</>
