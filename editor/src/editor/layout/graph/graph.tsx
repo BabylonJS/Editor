@@ -34,12 +34,13 @@ import { isSound } from "../../../tools/guards/sound";
 import { reloadSound } from "../../../tools/sound/tools";
 import { registerUndoRedo } from "../../../tools/undoredo";
 import { waitNextAnimationFrame } from "../../../tools/tools";
+import { isClusteredLight } from "../../../tools/light/cluster";
 import { createMeshInstance } from "../../../tools/mesh/instance";
 import { isAnyParticleSystem } from "../../../tools/guards/particles";
 import { isScene, isSceneLinkNode } from "../../../tools/guards/scene";
 import { cloneNode, ICloneNodeOptions } from "../../../tools/node/clone";
 import { isSprite, isSpriteMapNode } from "../../../tools/guards/sprites";
-import { isAbstractMesh, isCamera, isMesh, isNode } from "../../../tools/guards/nodes";
+import { isAbstractMesh, isCamera, isClusteredLightContainer, isLight, isMesh, isNode } from "../../../tools/guards/nodes";
 import { isNodeLocked, isNodeSerializable, isNodeVisibleInGraph, setNodeLocked, setNodeSerializable } from "../../../tools/node/metadata";
 
 import { addGPUParticleSystem, addParticleSystem } from "../../../project/add/particles";
@@ -76,7 +77,7 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
 								</>
 							)}
 
-							{!isScene(this.props.object) && !isSound(this.props.object) && (
+							{!isScene(this.props.object) && !isSound(this.props.object) && !isClusteredLightContainer(this.props.object) && (
 								<>
 									<ContextMenuItem onClick={() => this._cloneNode(this.props.object)}>Clone</ContextMenuItem>
 
@@ -133,74 +134,82 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
 								</>
 							)}
 
-							{(isNode(this.props.object) || isScene(this.props.object)) && !isSceneLinkNode(this.props.object) && (
-								<ContextMenuSub>
-									<ContextMenuSubTrigger className="flex items-center gap-2">
-										<AiOutlinePlus className="w-5 h-5" /> Add
-									</ContextMenuSubTrigger>
-									<ContextMenuSubContent>
-										{getLightCommands(this.props.editor, parent).map((command) => (
-											<ContextMenuItem key={command.key} disabled={command.disabled} onClick={command.action}>
-												{command.text}
-											</ContextMenuItem>
-										))}
-										<ContextMenuSeparator />
-										{getNodeCommands(this.props.editor, parent).map((command) => {
-											return (
+							{(isNode(this.props.object) || isScene(this.props.object)) &&
+								!isSceneLinkNode(this.props.object) &&
+								!(isLight(this.props.object) && isClusteredLight(this.props.object, this.props.editor)) && (
+									<ContextMenuSub>
+										<ContextMenuSubTrigger className="flex items-center gap-2">
+											<AiOutlinePlus className="w-5 h-5" /> Add
+										</ContextMenuSubTrigger>
+										<ContextMenuSubContent>
+											{getLightCommands(this.props.editor, parent).map((command) => (
 												<ContextMenuItem key={command.key} disabled={command.disabled} onClick={command.action}>
 													{command.text}
 												</ContextMenuItem>
-											);
-										})}
-										<ContextMenuSeparator />
-										<ContextMenuSub>
-											<ContextMenuSubTrigger className="flex items-center gap-2">
-												<IoMdCube className="w-5 h-5" /> Meshes
-											</ContextMenuSubTrigger>
-											<ContextMenuSubContent>
-												{getMeshCommands(this.props.editor, parent).map((command) => (
+											))}
+											<ContextMenuSeparator />
+											{getNodeCommands(this.props.editor, parent).map((command) => {
+												return (
 													<ContextMenuItem key={command.key} disabled={command.disabled} onClick={command.action}>
 														{command.text}
 													</ContextMenuItem>
-												))}
-											</ContextMenuSubContent>
-										</ContextMenuSub>
-										<ContextMenuSeparator />
-										{getCameraCommands(this.props.editor, parent).map((command) => (
-											<ContextMenuItem key={command.key} disabled={command.disabled} onClick={command.action}>
-												{command.text}
-											</ContextMenuItem>
-										))}
-										{isAbstractMesh(this.props.object) && (
-											<>
-												<ContextMenuSeparator />
-												<ContextMenuItem onClick={() => addParticleSystem(this.props.editor, this.props.object)}>Particle System</ContextMenuItem>
-												<ContextMenuItem onClick={() => addGPUParticleSystem(this.props.editor, this.props.object)}>GPU Particle System</ContextMenuItem>
-											</>
-										)}
-										<ContextMenuSeparator />
-										{getSpriteCommands(this.props.editor, parent).map((command) => (
-											<ContextMenuItem key={command.key} disabled={command.disabled} onClick={command.action}>
-												{command.text}
-											</ContextMenuItem>
-										))}
-									</ContextMenuSubContent>
-								</ContextMenuSub>
-							)}
+												);
+											})}
+											<ContextMenuSeparator />
+											<ContextMenuSub>
+												<ContextMenuSubTrigger className="flex items-center gap-2">
+													<IoMdCube className="w-5 h-5" /> Meshes
+												</ContextMenuSubTrigger>
+												<ContextMenuSubContent>
+													{getMeshCommands(this.props.editor, parent).map((command) => (
+														<ContextMenuItem key={command.key} disabled={command.disabled} onClick={command.action}>
+															{command.text}
+														</ContextMenuItem>
+													))}
+												</ContextMenuSubContent>
+											</ContextMenuSub>
+											<ContextMenuSeparator />
+											{getCameraCommands(this.props.editor, parent).map((command) => (
+												<ContextMenuItem key={command.key} disabled={command.disabled} onClick={command.action}>
+													{command.text}
+												</ContextMenuItem>
+											))}
+											{isAbstractMesh(this.props.object) && (
+												<>
+													<ContextMenuSeparator />
+													<ContextMenuItem onClick={() => addParticleSystem(this.props.editor, this.props.object)}>Particle System</ContextMenuItem>
+													<ContextMenuItem onClick={() => addGPUParticleSystem(this.props.editor, this.props.object)}>
+														GPU Particle System
+													</ContextMenuItem>
+												</>
+											)}
+											<ContextMenuSeparator />
+											{getSpriteCommands(this.props.editor, parent).map((command) => (
+												<ContextMenuItem key={command.key} disabled={command.disabled} onClick={command.action}>
+													{command.text}
+												</ContextMenuItem>
+											))}
+										</ContextMenuSubContent>
+									</ContextMenuSub>
+								)}
 
-							{!isScene(this.props.object) && !isSound(this.props.object) && !isSprite(this.props.object) && !isAnyParticleSystem(this.props.object) && (
-								<>
-									<ContextMenuSeparator />
-									<ContextMenuCheckboxItem checked={isNodeLocked(this.props.object)} onClick={() => this._handleSetNodeLocked()}>
-										Locked
-									</ContextMenuCheckboxItem>
-									<ContextMenuCheckboxItem checked={!isNodeSerializable(this.props.object)} onClick={() => this._handleSetNodeSerializable()}>
-										Do not serialize
-									</ContextMenuCheckboxItem>
-								</>
-							)}
+							{!isScene(this.props.object) &&
+								!isSound(this.props.object) &&
+								!isSprite(this.props.object) &&
+								!isAnyParticleSystem(this.props.object) &&
+								!isClusteredLightContainer(this.props.object) && (
+									<>
+										<ContextMenuSeparator />
+										<ContextMenuCheckboxItem checked={isNodeLocked(this.props.object)} onClick={() => this._handleSetNodeLocked()}>
+											Locked
+										</ContextMenuCheckboxItem>
+										<ContextMenuCheckboxItem checked={!isNodeSerializable(this.props.object)} onClick={() => this._handleSetNodeSerializable()}>
+											Do not serialize
+										</ContextMenuCheckboxItem>
+									</>
+								)}
 
-							{!isScene(this.props.object) && (
+							{!isScene(this.props.object) && !isClusteredLightContainer(this.props.object) && (
 								<>
 									<ContextMenuSeparator />
 									{this._getRemoveItems()}

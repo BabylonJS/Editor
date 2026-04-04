@@ -18,7 +18,7 @@ import { isSpriteManagerNode, isSpriteMapNode } from "../../tools/guards/sprites
 import { serializePhysicsAggregate } from "../../tools/physics/serialization/aggregate";
 import { isAnimationGroupFromSceneLink, isFromSceneLink } from "../../tools/scene/scene-link";
 import { isGPUParticleSystem, isNodeParticleSystemSetMesh, isParticleSystem } from "../../tools/guards/particles";
-import { isAnyTransformNode, isCollisionMesh, isEditorCamera, isMesh, isTransformNode } from "../../tools/guards/nodes";
+import { isAnyTransformNode, isClusteredLightContainer, isCollisionMesh, isEditorCamera, isMesh, isTransformNode } from "../../tools/guards/nodes";
 
 import { taaPipelineCameraConfigurations } from "../../editor/rendering/taa";
 import { vlsPostProcessCameraConfigurations } from "../../editor/rendering/vls";
@@ -390,8 +390,8 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 
 	// Write lights
 	await Promise.all(
-		scene.lights.map(async (light) => {
-			if (isFromSceneLink(light)) {
+		scene.lights.concat(editor.layout.preview.clusteredLightContainer.lights).map(async (light) => {
+			if (isFromSceneLink(light) || isClusteredLightContainer(light)) {
 				return;
 			}
 
@@ -773,6 +773,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 					uniqueId: undefined,
 				},
 				animations: scene.animations.map((animation) => animation.serialize()),
+				clusteredLights: editor.layout.preview.clusteredLightContainer.lights.map((light) => light.id),
 			},
 			{
 				spaces: 4,

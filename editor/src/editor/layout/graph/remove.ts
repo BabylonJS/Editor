@@ -5,6 +5,7 @@ import { isSound } from "../../../tools/guards/sound";
 import { isSprite } from "../../../tools/guards/sprites";
 import { registerUndoRedo } from "../../../tools/undoredo";
 import { updateAllLights } from "../../../tools/light/shadows";
+import { isClusteredLight } from "../../../tools/light/cluster";
 import { isAnyParticleSystem } from "../../../tools/guards/particles";
 import { isAdvancedDynamicTexture } from "../../../tools/guards/texture";
 import { getLinkedAnimationGroupsFor } from "../../../tools/animation/group";
@@ -15,6 +16,7 @@ import { Editor } from "../../main";
 type _RemoveNodeData = {
 	node: Node;
 	parent: Node | null;
+	isClusteredLight: boolean;
 
 	lights: Light[];
 	sounds: {
@@ -61,6 +63,7 @@ export function removeNodes(editor: Editor) {
 										}))
 								)
 								.flat() ?? [],
+						isClusteredLight: isLight(descendant) && isClusteredLight(descendant, editor),
 						lights: scene.lights.filter((light) => {
 							return light
 								.getShadowGenerator()
@@ -120,7 +123,7 @@ export function removeNodes(editor: Editor) {
 		},
 		undo: () => {
 			nodes.forEach((d) => {
-				restoreNodeData(d, scene);
+				restoreNodeData(editor, d, scene);
 			});
 
 			sounds.forEach((d) => {
@@ -206,7 +209,7 @@ export function removeNodes(editor: Editor) {
 	});
 }
 
-function restoreNodeData(data: _RemoveNodeData, scene: Scene) {
+function restoreNodeData(editor: Editor, data: _RemoveNodeData, scene: Scene) {
 	const node = data.node;
 
 	if (isAbstractMesh(node)) {
@@ -227,6 +230,10 @@ function restoreNodeData(data: _RemoveNodeData, scene: Scene) {
 
 	if (isLight(node)) {
 		scene.addLight(node);
+
+		if (data.isClusteredLight) {
+			editor.layout.preview.clusteredLightContainer.addLight(node);
+		}
 	}
 
 	if (isCamera(node)) {
@@ -258,6 +265,10 @@ function removeNodeData(editor: Editor, data: _RemoveNodeData, scene: Scene) {
 	}
 
 	if (isLight(node)) {
+		if (data.isClusteredLight) {
+			editor.layout.preview.clusteredLightContainer.removeLight(node);
+		}
+
 		scene.removeLight(node);
 	}
 

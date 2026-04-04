@@ -13,9 +13,10 @@ import { isDarwin } from "../../../tools/os";
 import { isScene } from "../../../tools/guards/scene";
 import { isSound } from "../../../tools/guards/sound";
 import { registerUndoRedo } from "../../../tools/undoredo";
+import { isClusteredLight } from "../../../tools/light/cluster";
 import { isAnyParticleSystem } from "../../../tools/guards/particles";
 import { isNodeSerializable, isNodeLocked } from "../../../tools/node/metadata";
-import { isAbstractMesh, isInstancedMesh, isMesh, isNode, isTransformNode } from "../../../tools/guards/nodes";
+import { isAbstractMesh, isInstancedMesh, isLight, isMesh, isNode, isTransformNode } from "../../../tools/guards/nodes";
 import { applyNodeParentingConfiguration, applyTransformNodeParentingConfiguration, IOldNodeHierarchyConfiguration } from "../../../tools/node/parenting";
 
 import { applySoundAsset } from "../preview/import/sound";
@@ -133,6 +134,10 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
 
 		nodesToMove.forEach((n) => {
 			if (n.nodeData && n.nodeData !== newParent) {
+				if (isLight(n.nodeData) && isClusteredLight(n.nodeData, props.editor)) {
+					return;
+				}
+
 				if (isNode(n.nodeData) && n.nodeData.parent !== newParent) {
 					const descendants = n.nodeData.getDescendants(false);
 					if (descendants.includes(newParent)) {

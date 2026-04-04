@@ -52,6 +52,7 @@ import {
 	isAbstractMesh,
 	isAnyTransformNode,
 	isCamera,
+	isClusteredLightContainer,
 	isCollisionInstancedMesh,
 	isCollisionMesh,
 	isEditorCamera,
@@ -348,6 +349,10 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 
 		if (isSprite(source)) {
 			source = getSpriteManagerNodeFromSprite(source);
+		}
+
+		if (isLight(source) && this.props.editor.layout.preview.clusteredLightContainer.lights.includes(source)) {
+			source = this.props.editor.layout.preview.clusteredLightContainer;
 		}
 
 		const idsToExpand: string[] = [];
@@ -918,11 +923,15 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			return null;
 		}
 
-		if (isLight(node) && !node._scene.lights.includes(node)) {
+		if (isLight(node) && !node._scene.lights.includes(node) && !this.props.editor.layout.preview.clusteredLightContainer.lights.includes(node)) {
 			return null;
 		}
 
 		if (isCamera(node) && !node._scene.cameras.includes(node)) {
+			return null;
+		}
+
+		if (isClusteredLightContainer(node) && node.lights.length === 0) {
 			return null;
 		}
 
@@ -973,6 +982,13 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			if (isSpriteManagerNode(node) && !noChildren) {
 				node.spriteManager?.sprites.forEach((sprite) => {
 					info.childNodes?.push(this._getSpriteNode(sprite));
+				});
+			}
+
+			// Handle clustered lights
+			if (isClusteredLightContainer(node) && !noChildren) {
+				node.lights.forEach((light) => {
+					info.childNodes?.push(this._parseSceneNode(light, false) as TreeNodeInfo);
 				});
 			}
 
@@ -1060,7 +1076,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			return <IoMdCube className="w-4 h-4" />;
 		}
 
-		if (isLight(object)) {
+		if (isLight(object) || isClusteredLightContainer(object)) {
 			return <FaLightbulb className="w-4 h-4" />;
 		}
 

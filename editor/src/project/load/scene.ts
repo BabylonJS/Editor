@@ -297,6 +297,14 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 		updatePointLightShadowMapRenderListPredicate(light);
 	});
 
+	// Configure clustered lights
+	config.clusteredLights?.forEach((lightId) => {
+		const light = scene.getLightById(lightId);
+		if (light) {
+			editor.layout.preview.clusteredLightContainer.addLight(light);
+		}
+	});
+
 	// Configure LODs
 	scene.meshes.forEach((mesh) => {
 		if (!mesh._waitingData.lods || !isMesh(mesh)) {

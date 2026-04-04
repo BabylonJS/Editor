@@ -13,9 +13,11 @@ import { UniqueNumber } from "../tools";
 
 import { cloneSprite } from "../sprite/tools";
 
+import { isClusteredLight } from "../light/cluster";
+
 import { isTexture } from "../guards/texture";
-import { isAnyParticleSystem, isNodeParticleSystemSetMesh } from "../guards/particles";
 import { isSprite, isSpriteManagerNode, isSpriteMapNode } from "../guards/sprites";
+import { isAnyParticleSystem, isNodeParticleSystemSetMesh } from "../guards/particles";
 import { isCamera, isInstancedMesh, isLight, isMesh, isNode, isTransformNode } from "../guards/nodes";
 
 import { isNodeVisibleInGraph } from "./metadata";
@@ -41,7 +43,12 @@ export function cloneNode(editor: Editor, node: Node | Sprite | ParticleSystem |
 			clonePhysicsImpostor: true,
 			cloneThinInstances: options?.cloneThinInstances ?? true,
 		});
-	} else if (isLight(node) || isCamera(node)) {
+	} else if (isLight(node)) {
+		clone = node.clone(name, node.parent);
+		if (isClusteredLight(node, editor) && isLight(clone)) {
+			editor.layout.preview.clusteredLightContainer.addLight(clone);
+		}
+	} else if (isCamera(node)) {
 		clone = node.clone(name, node.parent);
 	} else if (isTransformNode(node) || isInstancedMesh(node)) {
 		clone = node.clone(name, node.parent, false);
