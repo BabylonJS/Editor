@@ -477,7 +477,7 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 		metadata: {
 			...options.config.metadata,
 			rendering: options.config.rendering,
-			clusteredLights: options.config.clusteredLights,
+			clusteredLight: options.config.clusteredLight,
 		},
 
 		morphTargetManagers,

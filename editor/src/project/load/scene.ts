@@ -298,6 +298,20 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 	});
 
 	// Configure clustered lights
+	if (config.clusteredLight) {
+		config.clusteredLight.lights.forEach((lightId: any) => {
+			const light = scene.getLightById(lightId);
+			if (light) {
+				editor.layout.preview.clusteredLightContainer.addLight(light);
+			}
+		});
+
+		editor.layout.preview.clusteredLightContainer.horizontalTiles = config.clusteredLight.horizontalTiles;
+		editor.layout.preview.clusteredLightContainer.verticalTiles = config.clusteredLight.verticalTiles;
+		editor.layout.preview.clusteredLightContainer.depthSlices = config.clusteredLight.depthSlices;
+		editor.layout.preview.clusteredLightContainer.maxRange = config.clusteredLight.maxRange;
+	}
+
 	config.clusteredLights?.forEach((lightId: any) => {
 		const light = scene.getLightById(lightId);
 		if (light) {

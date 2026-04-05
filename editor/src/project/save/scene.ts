@@ -773,7 +773,13 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 					uniqueId: undefined,
 				},
 				animations: scene.animations.map((animation) => animation.serialize()),
-				clusteredLights: editor.layout.preview.clusteredLightContainer.lights.map((light) => light.id),
+				clusteredLight: {
+					maxRange: editor.layout.preview.clusteredLightContainer.maxRange,
+					depthSlices: editor.layout.preview.clusteredLightContainer.depthSlices,
+					verticalTiles: editor.layout.preview.clusteredLightContainer.verticalTiles,
+					horizontalTiles: editor.layout.preview.clusteredLightContainer.horizontalTiles,
+					lights: editor.layout.preview.clusteredLightContainer.lights.map((light) => light.id),
+				},
 			},
 			{
 				spaces: 4,
