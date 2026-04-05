@@ -38,7 +38,9 @@ export async function loadSounds(editor: Editor, soundFiles: string[], scene: Sc
 
 				return sound;
 			} catch (e) {
-				editor.layout.console.error(`Failed to load sound file "${file}": ${e.message}`);
+				if (e instanceof Error) {
+					editor.layout.console.error(`Failed to load sound file "${file}": ${e.message}`);
+				}
 			}
 
 			options.progress.step(options.progressStep);

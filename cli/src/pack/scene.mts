@@ -474,7 +474,11 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 		physicsGravity: options.config.physics.gravity,
 		physicsEngine: "HavokPlugin",
 
-		metadata: options.config.metadata,
+		metadata: {
+			...options.config.metadata,
+			rendering: options.config.rendering,
+			clusteredLights: options.config.clusteredLights,
+		},
 
 		morphTargetManagers,
 		lights,
@@ -540,7 +544,7 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 	});
 
 	// Configue ennviornment texture
-	if (scene.environmentTexture) {
+	if (scene.environmentTexture?.name && scene.environmentTexture.customType === "BABYLON.HDRCubeTexture") {
 		scene.environmentTextureSize = 512;
 		scene.environmentTextureType = "BABYLON.HDRCubeTexture";
 		scene.environmentTextureRotationY = scene.environmentTexture.rotationY;

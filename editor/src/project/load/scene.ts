@@ -298,7 +298,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 	});
 
 	// Configure clustered lights
-	config.clusteredLights?.forEach((lightId) => {
+	config.clusteredLights?.forEach((lightId: any) => {
 		const light = scene.getLightById(lightId);
 		if (light) {
 			editor.layout.preview.clusteredLightContainer.addLight(light);
@@ -322,13 +322,13 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 
 	// Scene animations
 	scene.animations ??= [];
-	config.animations?.forEach((data) => {
+	config.animations?.forEach((data: any) => {
 		scene.animations.push(Animation.Parse(data));
 	});
 
 	// Scene animation groups
 	// TODO: legacy
-	config.animationGroups?.forEach((data) => {
+	config.animationGroups?.forEach((data: any) => {
 		const group = AnimationGroup.Parse(data, scene);
 		if (group.targetedAnimations.length === 0) {
 			group.dispose();
@@ -364,7 +364,9 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 				loadResult.sceneLinks.push(sceneLink);
 			}
 		} catch (e) {
-			editor.layout.console.error(`Failed to load scene link file "${file}": ${e.message}`);
+			if (e instanceof Error) {
+				editor.layout.console.error(`Failed to load scene link file "${file}": ${e.message}`);
+			}
 		}
 
 		progress.step(progressStep);
@@ -373,7 +375,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 	loadedScenes.pop();
 
 	// Configure waiting parent ids.
-	const allNodes = [...scene.transformNodes, ...scene.meshes, ...scene.lights, ...scene.cameras];
+	const allNodes = [...scene.transformNodes, ...scene.meshes, ...scene.lights, ...scene.cameras, ...editor.layout.preview.clusteredLightContainer.lights];
 
 	allNodes.forEach((n) => {
 		if ((n.metadata?._waitingParentId ?? null) === null) {
@@ -415,7 +417,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 		// For each camera
 		const postProcessConfigurations = Array.isArray(config.rendering) ? config.rendering : [];
 
-		postProcessConfigurations.forEach((configuration) => {
+		postProcessConfigurations.forEach((configuration: any) => {
 			const camera = scene.getCameraById(configuration.cameraId);
 			if (!camera) {
 				return;
