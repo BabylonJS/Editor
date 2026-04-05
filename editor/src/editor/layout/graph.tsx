@@ -37,6 +37,7 @@ import { registerUndoRedo } from "../../tools/undoredo";
 import { isDomTextInputFocused } from "../../tools/dom";
 import { isSceneLinkNode } from "../../tools/guards/scene";
 import { updateAllLights } from "../../tools/light/shadows";
+import { isClusteredLight } from "../../tools/light/cluster";
 import { getCollisionMeshFor } from "../../tools/mesh/collision";
 import { isNodeVisibleInGraph } from "../../tools/node/metadata";
 import { isAdvancedDynamicTexture } from "../../tools/guards/texture";
@@ -527,17 +528,17 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			return;
 		}
 
-		const sourcePosition = this._nodeToCopyTransform["position"];
-		const sourceRotation = this._nodeToCopyTransform["rotation"];
-		const sourceScaling = this._nodeToCopyTransform["scaling"];
-		const sourceRotationQuaternion = this._nodeToCopyTransform["rotationQuaternion"];
-		const sourceDirection = this._nodeToCopyTransform["direction"];
+		const sourcePosition = (this._nodeToCopyTransform as any)["position"];
+		const sourceRotation = (this._nodeToCopyTransform as any)["rotation"];
+		const sourceScaling = (this._nodeToCopyTransform as any)["scaling"];
+		const sourceRotationQuaternion = (this._nodeToCopyTransform as any)["rotationQuaternion"];
+		const sourceDirection = (this._nodeToCopyTransform as any)["direction"];
 
-		const targetPosition = node["position"];
-		const targetRotation = node["rotation"];
-		const targetScaling = node["scaling"];
-		const targetRotationQuaternion = node["rotationQuaternion"];
-		const targetDirection = node["direction"];
+		const targetPosition = (node as any)["position"];
+		const targetRotation = (node as any)["rotation"];
+		const targetScaling = (node as any)["scaling"];
+		const targetRotationQuaternion = (node as any)["rotationQuaternion"];
+		const targetDirection = (node as any)["direction"];
 
 		const savedTargetPosition = targetPosition?.clone();
 		const savedTargetRotation = targetRotation?.clone();
@@ -562,7 +563,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 
 				if (targetRotationQuaternion) {
 					if (!savedTargetRotationQuaternion) {
-						node["rotationQuaternion"] = null;
+						(node as any)["rotationQuaternion"] = null;
 					} else {
 						targetRotationQuaternion.copyFrom(savedTargetRotationQuaternion);
 					}
@@ -589,7 +590,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 					if (targetRotationQuaternion) {
 						targetRotationQuaternion.copyFrom(sourceRotationQuaternion);
 					} else {
-						node["rotationQuaternion"] = sourceRotationQuaternion.clone();
+						(node as any)["rotationQuaternion"] = sourceRotationQuaternion.clone();
 					}
 				}
 
@@ -923,7 +924,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			return null;
 		}
 
-		if (isLight(node) && !node._scene.lights.includes(node) && !this.props.editor.layout.preview.clusteredLightContainer.lights.includes(node)) {
+		if (isLight(node) && !node._scene.lights.includes(node) && !isClusteredLight(node, this.props.editor)) {
 			return null;
 		}
 
@@ -948,7 +949,10 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		} as TreeNodeInfo;
 
 		if (!isSceneLinkNode(node) && !noChildren) {
-			const children = node.getDescendants(true);
+			const children = isClusteredLightContainer(node)
+				? node.getDescendants(true)
+				: node.getDescendants(true, (n) => !(isLight(n) && isClusteredLight(n, this.props.editor)));
+
 			if (children.length) {
 				info.childNodes = children.map((c) => this._parseSceneNode(c)).filter((c) => c !== null) as TreeNodeInfo[];
 			}
