@@ -5,7 +5,7 @@ import { Component, ReactNode } from "react";
 import { FaLink } from "react-icons/fa6";
 import { AiOutlinePlus } from "react-icons/ai";
 
-import { AbstractMesh, InstancedMesh, Material, Mesh, MorphTarget, MultiMaterial, Node, Observer, PBRMaterial, StandardMaterial, NodeMaterial } from "babylonjs";
+import { AbstractMesh, InstancedMesh, Material, MorphTarget, MultiMaterial, Node, Observer, PBRMaterial, StandardMaterial, NodeMaterial } from "babylonjs";
 import { SkyMaterial, GridMaterial, NormalMaterial, WaterMaterial, LavaMaterial, TriPlanarMaterial, CellMaterial, FireMaterial, GradientMaterial } from "babylonjs-materials";
 
 import { CollisionMesh } from "../../../nodes/collision";
@@ -62,6 +62,7 @@ import { EditorGradientMaterialInspector } from "../material/gradient";
 import { EditorStandardMaterialInspector } from "../material/standard";
 import { EditorTriPlanarMaterialInspector } from "../material/tri-planar";
 
+import { MeshLODInspector } from "./lod";
 import { MeshDecalInspector } from "./decal";
 import { MeshGeometryInspector } from "./geometry";
 import { EditorSkeletonInspector } from "./skeleton";
@@ -184,7 +185,7 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 					<>
 						<MeshGeometryInspector object={this.props.object} editor={this.props.editor} />
 						<MeshDecalInspector object={this.props.object} />
-						{this._getLODsComponent()}
+						<MeshLODInspector mesh={this.props.object} editor={this.props.editor} />
 					</>
 				)}
 
@@ -232,49 +233,6 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 		if (isMesh(this.props.object)) {
 			updateIblShadowsRenderPipeline(this.props.object.getScene());
 		}
-	}
-
-	private _getLODsComponent(): ReactNode {
-		const mesh = this.props.object as Mesh;
-
-		const lods = mesh.getLODLevels();
-		if (!lods.length) {
-			return null;
-		}
-
-		const o = {
-			distance: lods[lods.length - 1].distanceOrScreenCoverage ?? 1000,
-		};
-
-		function sortLods(value: number) {
-			const lods = mesh.getLODLevels().slice();
-			lods.forEach((lod) => mesh.removeLODLevel(lod.mesh!));
-
-			lods.reverse().forEach((lod, index) => {
-				mesh.addLODLevel(value * (index + 1), lod.mesh);
-			});
-		}
-
-		return (
-			<EditorInspectorSectionField title="LODs">
-				<EditorInspectorNumberField
-					object={o}
-					property="distance"
-					label="Linear Distance"
-					tooltip="Defines the distance that separates each LODs"
-					step={1}
-					noUndoRedo
-					onChange={(v) => sortLods(v)}
-					onFinishChange={(value, oldValue) => {
-						registerUndoRedo({
-							executeRedo: true,
-							undo: () => sortLods(oldValue),
-							redo: () => sortLods(value),
-						});
-					}}
-				/>
-			</EditorInspectorSectionField>
-		);
 	}
 
 	private _getMaterialComponent(): ReactNode {

@@ -64,6 +64,7 @@ export class EditorMultiMaterialInspector extends Component<IEditorPBRMaterialIn
 				<TableBody>
 					{this.props.material.subMaterials.map((material, index) => (
 						<TableRow
+							key={`${material?.id}-${index}`}
 							onDrop={(ev) => {
 								ev.preventDefault();
 								ev.currentTarget.classList.remove("bg-muted");

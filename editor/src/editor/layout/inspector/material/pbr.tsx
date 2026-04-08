@@ -246,7 +246,13 @@ export class EditorPBRMaterialInspector extends Component<IEditorPBRMaterialInsp
 				)}
 
 				<EditorInspectorSectionField title="Sub Surface">
-					<EditorInspectorSwitchField object={this.state} property="subSurfaceEnabled" label="Enabled" onChange={(v) => this._handleSubSurfaceEnabledChange(v)} />
+					<EditorInspectorSwitchField
+						noUndoRedo
+						object={this.state}
+						property="subSurfaceEnabled"
+						label="Enabled"
+						onChange={(v) => this._handleSubSurfaceEnabledChange(v)}
+					/>
 
 					{this.state.subSurfaceEnabled && (
 						<>
