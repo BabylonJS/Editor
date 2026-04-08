@@ -6,6 +6,7 @@ import { Quaternion, Vector2, Vector3, Matrix } from "@babylonjs/core/Maths/math
 
 import { getDefaultRenderingPipeline } from "../rendering/default-pipeline";
 
+import { getNodeById } from "../tools/scene";
 import { getSoundById } from "../tools/sound";
 import { getAnimationTypeForObject } from "../tools/animation";
 
@@ -27,7 +28,7 @@ export function parseCinematic(data: ICinematic, scene: Scene): ICinematic {
 			let animationType: number | null = null;
 
 			if (track.node) {
-				node = scene.getNodeById(track.node);
+				node = getNodeById(track.node, scene);
 				if (!node) {
 					node = scene.particleSystems?.find((ps) => ps.id === track.node) ?? null;
 				}
@@ -66,7 +67,7 @@ export function parseCinematic(data: ICinematic, scene: Scene): ICinematic {
 							result.data = {
 								type: "set-enabled",
 								value: event.data.value,
-								node: scene.getNodeById(event.data.node),
+								node: getNodeById(event.data.node, scene),
 							};
 							break;
 						case "apply-impulse":
