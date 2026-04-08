@@ -297,21 +297,6 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 		updatePointLightShadowMapRenderListPredicate(light);
 	});
 
-	// Configure clustered lights
-	if (config.clusteredLight) {
-		config.clusteredLight.lights.forEach((lightId: any) => {
-			const light = scene.getLightById(lightId);
-			if (light) {
-				editor.layout.preview.clusteredLightContainer.addLight(light);
-			}
-		});
-
-		editor.layout.preview.clusteredLightContainer.horizontalTiles = config.clusteredLight.horizontalTiles;
-		editor.layout.preview.clusteredLightContainer.verticalTiles = config.clusteredLight.verticalTiles;
-		editor.layout.preview.clusteredLightContainer.depthSlices = config.clusteredLight.depthSlices;
-		editor.layout.preview.clusteredLightContainer.maxRange = config.clusteredLight.maxRange;
-	}
-
 	// Configure LODs
 	scene.meshes.forEach((mesh) => {
 		if (!mesh._waitingData.lods || !isMesh(mesh)) {
@@ -409,6 +394,21 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 			return (n.parent = camera);
 		}
 	});
+
+	// Configure clustered lights
+	if (config.clusteredLight) {
+		config.clusteredLight.lights.forEach((lightId: any) => {
+			const light = scene.getLightById(lightId);
+			if (light) {
+				editor.layout.preview.clusteredLightContainer.addLight(light);
+			}
+		});
+
+		editor.layout.preview.clusteredLightContainer.horizontalTiles = config.clusteredLight.horizontalTiles;
+		editor.layout.preview.clusteredLightContainer.verticalTiles = config.clusteredLight.verticalTiles;
+		editor.layout.preview.clusteredLightContainer.depthSlices = config.clusteredLight.depthSlices;
+		editor.layout.preview.clusteredLightContainer.maxRange = config.clusteredLight.maxRange;
+	}
 
 	if (!options?.asLink) {
 		allNodes.forEach((n) => {

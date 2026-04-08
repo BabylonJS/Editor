@@ -3,6 +3,7 @@ import { Light, ClusteredLightContainer } from "babylonjs";
 import { Editor } from "../../../../main";
 
 import { registerUndoRedo } from "../../../../../tools/undoredo";
+import { isClusteredLight } from "../../../../../tools/light/cluster";
 
 import { EditorInspectorSwitchField } from "../../fields/switch";
 
@@ -12,7 +13,9 @@ export interface IEditorLightClusterInspectorProps {
 }
 
 export function EditorLightClusterInspector(props: IEditorLightClusterInspectorProps) {
-	props.light.metadata ??= {};
+	const o = {
+		isClusteredLight: isClusteredLight(props.light, props.editor),
+	};
 
 	const isSupported = ClusteredLightContainer.IsLightSupported(props.light);
 
@@ -20,8 +23,8 @@ export function EditorLightClusterInspector(props: IEditorLightClusterInspectorP
 		<>
 			<EditorInspectorSwitchField
 				noUndoRedo
-				object={props.light.metadata}
-				property="isClusteredLightingEnabled"
+				object={o}
+				property="isClusteredLight"
 				label="Is Clustered Lighting Enabled"
 				disabled={!isSupported}
 				tooltip={!isSupported ? "Clustered lighting is not supported for this light. Please remove shadows and textures applied by this light" : undefined}
