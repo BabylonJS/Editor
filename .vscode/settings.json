@@ -34,5 +34,7 @@
 		"editor.defaultFormatter": "esbenp.prettier-vscode"
 	},
 	"js/ts.preferences.importModuleSpecifier": "project-relative",
-	"js/ts.preferences.autoImportFileExcludePatterns": ["**/export.ts"]
+	"js/ts.preferences.autoImportFileExcludePatterns": ["**/export.ts"],
+	"js/ts.tsdk.path": "node_modules/typescript/lib",
+	"js/ts.tsdk.promptToUseWorkspaceVersion": true
 }
