@@ -17,6 +17,7 @@ import { AdvancedDynamicTexture } from "@babylonjs/gui/2D/advancedDynamicTexture
 import type { AudioSceneComponent as _AudioSceneComponent } from "@babylonjs/core/Audio/audioSceneComponent";
 
 import { getSoundById } from "../tools/sound";
+import { getNodeById, getNodeByName } from "../tools/scene";
 import { copyAndParseRagdollConfiguration } from "../tools/ragdoll";
 import { ISpriteAnimation, SpriteManagerNode } from "../tools/sprite";
 import { isAbstractMesh, isNode, isSprite, isTransformNode } from "../tools/guards";
@@ -113,7 +114,7 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 
 	// @nodeFromScene
 	ctor._NodesFromScene?.forEach((params) => {
-		instance[params.propertyKey.toString()] = scene.getNodeByName(params.nodeName);
+		instance[params.propertyKey.toString()] = getNodeByName(params.nodeName, scene);
 	});
 
 	// @nodeFromDescendants
@@ -203,7 +204,7 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 					const entityType = (params.configuration as VisibleInInspectorDecoratorEntityConfiguration).entityType;
 					switch (entityType) {
 						case "node":
-							instance[propertyKey] = scene.getNodeById(value) ?? null;
+							instance[propertyKey] = getNodeById(value, scene) ?? null;
 							break;
 						case "animationGroup":
 							instance[propertyKey] = scene.getAnimationGroupByName(value) ?? null;

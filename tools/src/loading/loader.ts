@@ -145,9 +145,13 @@ export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scen
 		scene.meshes.forEach((m) => isMesh(m) && m._checkDelayState());
 	}
 
-	const waitingItemsCount = scene.getWaitingItemsCount();
+	// Configure clustered lights
+	const clusteredLightContainer = configureLights(scene, configuration.clusteredLightContainer);
+	configuration.clusteredLightContainer = clusteredLightContainer;
 
 	// Wait until scene is ready.
+	const waitingItemsCount = scene.getWaitingItemsCount();
+
 	while (!scene.isDisposed && (!scene.isReady() || scene.getWaitingItemsCount() > 0)) {
 		await new Promise<void>((resolve) => setTimeout(resolve, 150));
 
@@ -207,7 +211,4 @@ export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scen
 	});
 
 	configureTransformNodes(scene);
-
-	const clusteredLightContainer = configureLights(scene, configuration.clusteredLightContainer);
-	configuration.clusteredLightContainer = clusteredLightContainer;
 }

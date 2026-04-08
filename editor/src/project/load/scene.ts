@@ -312,13 +312,6 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 		editor.layout.preview.clusteredLightContainer.maxRange = config.clusteredLight.maxRange;
 	}
 
-	config.clusteredLights?.forEach((lightId: any) => {
-		const light = scene.getLightById(lightId);
-		if (light) {
-			editor.layout.preview.clusteredLightContainer.addLight(light);
-		}
-	});
-
 	// Configure LODs
 	scene.meshes.forEach((mesh) => {
 		if (!mesh._waitingData.lods || !isMesh(mesh)) {
