@@ -8,7 +8,7 @@ import { isNodeMaterial, isPBRMaterial, isStandardMaterial } from "../guards/mat
  */
 export function configureSimultaneousLightsForMaterial(material: Material) {
 	if (isPBRMaterial(material) || isStandardMaterial(material) || isNodeMaterial(material)) {
-		material.maxSimultaneousLights = 32;
+		material.maxSimultaneousLights = 8;
 	}
 }
 
