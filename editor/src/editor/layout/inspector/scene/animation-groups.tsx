@@ -2,21 +2,23 @@ import { Reorder } from "framer-motion";
 
 import { MouseEvent, useEffect, useState } from "react";
 
-import { AiOutlineMinus } from "react-icons/ai";
 import { IoPlay, IoStop } from "react-icons/io5";
+import { AiFillMerge, AiOutlineClose, AiOutlineMinus } from "react-icons/ai";
 
 import { Scene, AnimationGroup } from "babylonjs";
 
 import { Editor } from "../../../main";
 
+import { showPrompt } from "../../../../ui/dialog";
 import { Button } from "../../../../ui/shadcn/ui/button";
+import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "../../../../ui/shadcn/ui/context-menu";
 
 import { registerUndoRedo } from "../../../../tools/undoredo";
 
 import { EditorInspectorSectionField } from "../fields/section";
 
 export interface IEditorSceneAnimationGroupsInspectorProps {
-	object: Scene;
+	scene: Scene;
 	editor: Editor;
 }
 
@@ -28,11 +30,11 @@ export function EditorSceneAnimationGroupsInspector(props: IEditorSceneAnimation
 	const [playingAnimationGroups, setPlayingAnimationGroups] = useState<AnimationGroup[]>([]);
 
 	useEffect(() => {
-		setAnimationGroups(props.object.animationGroups);
-		setPlayingAnimationGroups(props.object.animationGroups.filter((animationGroup) => animationGroup.isPlaying));
-	}, [props.object]);
+		setAnimationGroups(props.scene.animationGroups);
+		setPlayingAnimationGroups(props.scene.animationGroups.filter((animationGroup) => animationGroup.isPlaying));
+	}, [props.scene]);
 
-	function handleAnimationGroupClick(ev: MouseEvent<HTMLDivElement>, animationGroup: AnimationGroup): void {
+	function handleAnimationGroupClick(ev: MouseEvent<HTMLDivElement>, animationGroup: AnimationGroup) {
 		if (ev.ctrlKey || ev.metaKey) {
 			const newSelectedAnimationGroups = selectedAnimationGroups.slice();
 			if (newSelectedAnimationGroups.includes(animationGroup)) {
@@ -52,13 +54,13 @@ export function EditorSceneAnimationGroupsInspector(props: IEditorSceneAnimation
 				return setSelectedAnimationGroups([animationGroup]);
 			}
 
-			const lastIndex = props.object.animationGroups.indexOf(lastSelectedAnimationGroup);
-			const currentIndex = props.object.animationGroups.indexOf(animationGroup);
+			const lastIndex = props.scene.animationGroups.indexOf(lastSelectedAnimationGroup);
+			const currentIndex = props.scene.animationGroups.indexOf(animationGroup);
 
 			const [start, end] = lastIndex < currentIndex ? [lastIndex, currentIndex] : [currentIndex, lastIndex];
 
 			for (let i = start; i <= end; i++) {
-				const ag = props.object.animationGroups[i];
+				const ag = props.scene.animationGroups[i];
 				if (!newSelectedAnimationGroups.includes(ag)) {
 					newSelectedAnimationGroups.push(ag);
 				}
@@ -70,7 +72,7 @@ export function EditorSceneAnimationGroupsInspector(props: IEditorSceneAnimation
 		}
 	}
 
-	function handlePlayOrStopAnimationGroup(animationGroup: AnimationGroup): void {
+	function handlePlayOrStopAnimationGroup(animationGroup: AnimationGroup) {
 		if (animationGroup.isPlaying) {
 			animationGroup.stop();
 			setPlayingAnimationGroups(playingAnimationGroups.filter((ag) => ag !== animationGroup));
@@ -80,8 +82,8 @@ export function EditorSceneAnimationGroupsInspector(props: IEditorSceneAnimation
 		}
 	}
 
-	function handlePlaySelectedAnimationGroups(): void {
-		props.object.animationGroups.forEach((animationGroup) => {
+	function handlePlaySelectedAnimationGroups() {
+		props.scene.animationGroups.forEach((animationGroup) => {
 			animationGroup.stop();
 		});
 
@@ -89,25 +91,43 @@ export function EditorSceneAnimationGroupsInspector(props: IEditorSceneAnimation
 			animationGroup.play(true);
 		});
 
-		setPlayingAnimationGroups(props.object.animationGroups.filter((animationGroup) => animationGroup.isPlaying));
+		setPlayingAnimationGroups(props.scene.animationGroups.filter((animationGroup) => animationGroup.isPlaying));
 	}
 
-	function handleRemoveSelectedAnimationGroups(): void {
+	function handleRemoveSelectedAnimationGroups() {
 		registerUndoRedo({
 			executeRedo: true,
 			undo: () => {
 				selectedAnimationGroups.forEach((animationGroup) => {
-					props.object.addAnimationGroup(animationGroup);
+					props.scene.addAnimationGroup(animationGroup);
 				});
 			},
 			redo: () => {
 				selectedAnimationGroups.forEach((animationGroup) => {
-					props.object.removeAnimationGroup(animationGroup);
+					props.scene.removeAnimationGroup(animationGroup);
 				});
 			},
 		});
 
-		setAnimationGroups(props.object.animationGroups.slice());
+		setAnimationGroups(props.scene.animationGroups.slice());
+	}
+
+	async function handleMergeSelectedAnimationGroups() {
+		const name = await showPrompt("Merge Animation Groups", "Enter a name for the merged animation group", "Merged Animation Group");
+		if (!name) {
+			return;
+		}
+
+		const animationGroup = new AnimationGroup(name, props.scene);
+
+		selectedAnimationGroups.forEach((ag) => {
+			ag.targetedAnimations.forEach((targetedAnimation) => {
+				animationGroup.addTargetedAnimation(targetedAnimation.animation, targetedAnimation.target);
+			});
+		});
+
+		setSelectedAnimationGroups([animationGroup]);
+		setAnimationGroups(props.scene.animationGroups.slice());
 	}
 
 	const hasAnimations = animationGroups.length > 0;
@@ -143,28 +163,41 @@ export function EditorSceneAnimationGroupsInspector(props: IEditorSceneAnimation
 
 					<Reorder.Group
 						axis="y"
-						values={props.object.animationGroups}
+						values={props.scene.animationGroups}
 						onReorder={(items) => {
 							setAnimationGroups(items);
-							props.object.animationGroups = items;
+							props.scene.animationGroups = items;
 						}}
 						className="flex flex-col rounded-lg bg-black/50 text-white/75 h-96 overflow-y-auto"
 					>
 						{animations.map((animationGroup) => (
 							<Reorder.Item key={`${animationGroup.name}`} value={animationGroup} id={`${animationGroup.name}`}>
-								<div
-									onClick={(ev) => handleAnimationGroupClick(ev, animationGroup)}
-									className={`
+								<ContextMenu>
+									<ContextMenuTrigger>
+										<div
+											onClick={(ev) => handleAnimationGroupClick(ev, animationGroup)}
+											className={`
                                         flex items-center gap-2
                                         ${selectedAnimationGroups.includes(animationGroup) ? "bg-muted" : "hover:bg-muted/35"}
                                         transition-all duration-300 ease-in-out
                                     `}
-								>
-									<Button variant="ghost" className="w-8 h-8 p-1" onClick={() => handlePlayOrStopAnimationGroup(animationGroup)}>
-										{animationGroup.isPlaying ? <IoStop className="w-6 h-6" strokeWidth={1} /> : <IoPlay className="w-6 h-6" strokeWidth={1} />}
-									</Button>
-									{animationGroup.name}
-								</div>
+										>
+											<Button variant="ghost" className="w-8 h-8 p-1" onClick={() => handlePlayOrStopAnimationGroup(animationGroup)}>
+												{animationGroup.isPlaying ? <IoStop className="w-6 h-6" strokeWidth={1} /> : <IoPlay className="w-6 h-6" strokeWidth={1} />}
+											</Button>
+											{animationGroup.name}
+										</div>
+									</ContextMenuTrigger>
+									<ContextMenuContent>
+										<ContextMenuItem className="flex items-center gap-2" onClick={handleMergeSelectedAnimationGroups}>
+											<AiFillMerge className="w-5 h-5" /> Merge...
+										</ContextMenuItem>
+										<ContextMenuSeparator />
+										<ContextMenuItem className="flex items-center gap-2 !text-red-400" onClick={handleRemoveSelectedAnimationGroups}>
+											<AiOutlineClose className="w-5 h-5" fill="rgb(248, 113, 113)" /> Remove
+										</ContextMenuItem>
+									</ContextMenuContent>
+								</ContextMenu>
 							</Reorder.Item>
 						))}
 					</Reorder.Group>
