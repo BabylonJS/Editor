@@ -11,8 +11,8 @@ import { MdOutlineQuestionMark } from "react-icons/md";
 import { GiBrickWall, GiSparkles } from "react-icons/gi";
 import { HiOutlineCubeTransparent } from "react-icons/hi";
 import { IoCheckmark, IoSparklesSharp } from "react-icons/io5";
-import { FaCamera, FaImage, FaLightbulb, FaBone } from "react-icons/fa";
 import { TbGhost2Filled, TbServerSpark, TbBrandAdobeIndesign } from "react-icons/tb";
+import { FaCamera, FaImage, FaLightbulb, FaBone, FaRegLightbulb } from "react-icons/fa";
 
 import { AdvancedDynamicTexture } from "babylonjs-gui";
 import { BaseTexture, Node, Scene, Sound, Tools, IParticleSystem, Sprite, Skeleton, TransformNode } from "babylonjs";
@@ -82,7 +82,8 @@ import { getSpriteCommands } from "../dialogs/command-palette/sprite";
 import { onProjectConfigurationChangedObservable } from "../../project/configuration";
 
 import { EditorGraphLabel } from "./graph/label";
-import { EditorGraphContextMenu } from "./graph/graph";
+import { EditorGraphContextMenu } from "./graph/context-menu";
+import { setNewParentForGraphSelectedNodes } from "./graph/move";
 
 export interface IEditorGraphProps {
 	/**
@@ -290,6 +291,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 	 */
 	public refresh(): Promise<void> {
 		const scene = this.props.editor.layout.preview.scene;
+		const clusteredLightContainer = this.props.editor.layout.preview.clusteredLightContainer;
 
 		this._soundsList = scene.soundTracks?.map((st) => st.soundCollection).flat() ?? [];
 
@@ -297,7 +299,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 
 		if (this.state.showOnlyLights || this.state.showOnlyDecals) {
 			if (this.state.showOnlyLights) {
-				nodes.push(...scene.lights.map((light) => this._parseSceneNode(light, true)));
+				nodes.push(...scene.lights.concat(clusteredLightContainer.lights).map((light) => this._parseSceneNode(light, true)));
 			}
 
 			if (this.state.showOnlyDecals) {
@@ -932,7 +934,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			return null;
 		}
 
-		if (isClusteredLightContainer(node) && node.lights.length === 0) {
+		if (isClusteredLightContainer(node) && (this.state.showOnlyLights || this.state.showOnlyDecals)) {
 			return null;
 		}
 
@@ -1029,7 +1031,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 					}
 
 					selectedNodeData.forEach((node) => {
-						if (isNode(node)) {
+						if (isNode(node) || isClusteredLightContainer(node)) {
 							node.setEnabled(enabled);
 						}
 					});
@@ -1080,8 +1082,12 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			return <IoMdCube className="w-4 h-4" />;
 		}
 
-		if (isLight(object) || isClusteredLightContainer(object)) {
+		if (isLight(object)) {
 			return <FaLightbulb className="w-4 h-4" />;
+		}
+
+		if (isClusteredLightContainer(object)) {
+			return <FaRegLightbulb className="w-4 h-4" />;
 		}
 
 		if (isCamera(object)) {
@@ -1153,15 +1159,6 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			return;
 		}
 
-		const nodesToMove: TreeNodeInfo[] = [];
-		this._forEachNode(this.state.nodes, (n) => n.isSelected && nodesToMove.push(n));
-
-		nodesToMove.forEach((n) => {
-			if (n.nodeData && isNode(n.nodeData)) {
-				n.nodeData.parent = null;
-			}
-		});
-
-		this.refresh();
+		setNewParentForGraphSelectedNodes(this.props.editor, this.props.editor.layout.preview.scene, ev.shiftKey);
 	}
 }

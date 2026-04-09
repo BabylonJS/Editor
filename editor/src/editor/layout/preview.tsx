@@ -78,7 +78,7 @@ import { disposeSSAO2RenderingPipeline, parseSSAO2RenderingPipeline, ssaoRenderi
 import { disposeMotionBlurPostProcess, motionBlurPostProcessCameraConfigurations, parseMotionBlurPostProcess } from "../rendering/motion-blur";
 import { defaultPipelineCameraConfigurations, disposeDefaultRenderingPipeline, parseDefaultRenderingPipeline } from "../rendering/default-pipeline";
 
-import { EditorGraphContextMenu } from "./graph/graph";
+import { EditorGraphContextMenu } from "./graph/context-menu";
 
 import { EditorPreviewGizmo } from "./preview/gizmo";
 import { EditorPreviewIcons } from "./preview/icons";
