@@ -23,6 +23,7 @@ import { ISpriteAnimation, SpriteManagerNode } from "../tools/sprite";
 import { isAbstractMesh, isNode, isSprite, isTransformNode } from "../tools/guards";
 
 import { scriptAssetsCache } from "../loading/script/preload";
+import { getScriptByClassForObject } from "../loading/script/apply";
 
 import { IPointerEventDecoratorOptions } from "./events";
 import { VisibleInInspectorDecoratorConfiguration, VisibleInInspectorDecoratorEntityConfiguration, VisibleInspectorDecoratorAssetConfiguration } from "./inspector";
@@ -31,6 +32,12 @@ export interface ISceneDecoratorData {
 	// @nodeFromScene
 	_NodesFromScene?: {
 		nodeName: string;
+		propertyKey: string | Symbol;
+	}[];
+
+	// @componentFromScene
+	_ComponentsFromScene?: {
+		componentConstructor: new (...args: any) => any;
 		propertyKey: string | Symbol;
 	}[];
 
@@ -116,6 +123,31 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 	ctor._NodesFromScene?.forEach((params) => {
 		instance[params.propertyKey.toString()] = getNodeByName(params.nodeName, scene);
 	});
+
+	// @componentFromScene
+	if (ctor._ComponentsFromScene?.length) {
+		scene.getEngine().onBeginFrameObservable.addOnce(() => {
+			ctor._ComponentsFromScene?.forEach((params) => {
+				const components: any[] = [];
+
+				const nodes = [...scene.transformNodes, ...scene.meshes, ...scene.lights, ...scene.cameras];
+				nodes.forEach((node) => {
+					const component = getScriptByClassForObject(node, params.componentConstructor);
+					if (component) {
+						components.push(component);
+					}
+				});
+
+				if (components.length > 1) {
+					throw new Error(
+						`Multiple components of type ${ctor._ComponentsFromScene![0].componentConstructor.name} found in scene for property "${ctor._ComponentsFromScene![0].propertyKey.toString()}".`
+					);
+				}
+
+				instance[params.propertyKey.toString()] = components[0] ?? null;
+			});
+		});
+	}
 
 	// @nodeFromDescendants
 	ctor._NodesFromDescendants?.forEach((params) => {
