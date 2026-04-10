@@ -93,28 +93,42 @@ export async function checkDependencies(
 		toast.warning(`Package manager "${packageManager}" is not available on your system. Dependencies will not be updated.`);
 	}
 
-	const cliPackageJsonPath = join(directory, "node_modules/babylonjs-editor-cli/package.json");
-	const toolsPackageJsonPath = join(directory, "node_modules/babylonjs-editor-tools/package.json");
-
-	let matchesToolsVersion = false;
-	try {
-		const toolsPackageJson = await readJSON(toolsPackageJsonPath, "utf-8");
-		if (toolsPackageJson.version === packageJson.version) {
-			matchesToolsVersion = true;
-		}
-	} catch (e) {
-		// Catch silently
-	}
+	const cliPackageJsonPath = "node_modules/babylonjs-editor-cli/package.json";
+	const toolsPackageJsonPath = "node_modules/babylonjs-editor-tools/package.json";
 
 	let matchesCliVersion = false;
-	try {
-		const cliPackageJson = await readJSON(cliPackageJsonPath, "utf-8");
-		if (cliPackageJson.version === packageJson.version) {
-			matchesCliVersion = true;
+	let matchesToolsVersion = false;
+
+	// Recursively search for the "babylonjs-editor-tools" package in parent directories, to handle monorepos where the package might be hoisted to the root "node_modules" folder.
+	const toolsPathSplit = directory.split("/");
+	do {
+		try {
+			const path = join(...toolsPathSplit, toolsPackageJsonPath);
+			const toolsPackageJson = await readJSON(path, "utf-8");
+
+			matchesToolsVersion = toolsPackageJson.version === packageJson.version;
+			break;
+		} catch (e) {
+			// Catch silently
 		}
-	} catch (e) {
-		// Catch silently
-	}
+
+		toolsPathSplit.pop();
+	} while (toolsPathSplit.length > 0);
+
+	const cliPathSplit = directory.split("/");
+	do {
+		try {
+			const path = join(...cliPathSplit, cliPackageJsonPath);
+			const cliPackageJson = await readJSON(path, "utf-8");
+
+			matchesCliVersion = cliPackageJson.version === packageJson.version;
+			break;
+		} catch (e) {
+			// Catch silently
+		}
+
+		cliPathSplit.pop();
+	} while (cliPathSplit.length > 0);
 
 	let toolsCode = 0;
 	if (!matchesToolsVersion) {
