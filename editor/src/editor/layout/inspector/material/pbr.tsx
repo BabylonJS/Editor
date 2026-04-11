@@ -13,6 +13,7 @@ import { EditorInspectorTextureField } from "../fields/texture";
 import { EditorInspectorSectionField } from "../fields/section";
 
 import { EditorAlphaModeField } from "./components/alpha";
+import { EditorDetailMapInspector } from "./components/detail";
 import { EditorTransparencyModeField } from "./components/transparency";
 import { EditorMaterialInspectorUtilsComponent } from "./components/utils";
 
@@ -244,6 +245,8 @@ export class EditorPBRMaterialInspector extends Component<IEditorPBRMaterialInsp
 						)}
 					</EditorInspectorSectionField>
 				)}
+
+				<EditorDetailMapInspector material={this.props.material} />
 
 				<EditorInspectorSectionField title="Sub Surface">
 					<EditorInspectorSwitchField

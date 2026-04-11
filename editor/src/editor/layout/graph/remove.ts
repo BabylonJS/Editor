@@ -207,6 +207,8 @@ export function removeNodes(editor: Editor) {
 			});
 		},
 	});
+
+	editor.layout.preview.selectionOutlineLayer.clearSelection();
 }
 
 function restoreNodeData(editor: Editor, data: _RemoveNodeData, scene: Scene) {

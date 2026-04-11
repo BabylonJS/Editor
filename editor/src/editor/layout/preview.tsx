@@ -189,6 +189,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	private _renderScene: boolean = true;
 	private _mouseDownPosition: Vector2 = Vector2.Zero();
 
+	private _lastPickedDecal: AbstractMesh | null = null;
 	private _objectUnderPointer: AbstractMesh | Sprite | null = null;
 
 	private _workingCanvas: HTMLCanvasElement | null = null;
@@ -767,34 +768,37 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		}
 	}
 
+	private _decalMeshPredicate(m: AbstractMesh): boolean {
+		if (!m.isVisible || !m.isEnabled() || !m.metadata?.decal) {
+			return false;
+		}
+
+		if (this._lastPickedDecal) {
+			return m !== this._lastPickedDecal;
+		}
+
+		return true;
+	}
+
+	private _meshPredicate(m: AbstractMesh): boolean {
+		return !m._masterMesh && !isCollisionMesh(m) && !isCollisionInstancedMesh(m) && m.isVisible && m.isEnabled();
+	}
+
 	private _getPickingInfo(x: number, y: number): PickingInfo {
-		const decalPick = this.scene.pick(
-			x,
-			y,
-			(m) => {
-				return m.metadata?.decal && m.isVisible && m.isEnabled();
-			},
-			false
-		);
-
-		const meshPick = this.scene.pick(
-			x,
-			y,
-			(m) => {
-				return !m._masterMesh && !isCollisionMesh(m) && !isCollisionInstancedMesh(m) && m.isVisible && m.isEnabled();
-			},
-			false
-		);
-
+		const decalPick = this.scene.pick(x, y, (m) => this._decalMeshPredicate(m), false);
+		const meshPick = this.scene.pick(x, y, (m) => this._meshPredicate(m), false);
 		const spritePick = this.scene.pickSprite(x, y, (s) => isSprite(s), false);
+
+		this._lastPickedDecal = null;
 
 		let pickingInfo = meshPick;
 		if (decalPick?.pickedPoint && meshPick?.pickedPoint) {
 			const distance = Vector3.Distance(decalPick.pickedPoint, meshPick.pickedPoint);
 			const zOffset = decalPick.pickedMesh?.material?.zOffset ?? 0;
 
-			if (distance <= zOffset + 0.01) {
+			if (distance <= zOffset + 1) {
 				pickingInfo = decalPick;
+				this._lastPickedDecal = decalPick.pickedMesh;
 			}
 		}
 
