@@ -74,7 +74,7 @@
 		"@xterm/addon-fit": "0.11.0",
 		"@xterm/xterm": "6.1.0-beta.22",
 		"assimpjs": "0.0.10",
-		"axios": "1.13.5",
+		"axios": "1.15.0",
 		"babylonjs": "9.0.0",
 		"babylonjs-addons": "9.0.0",
 		"babylonjs-editor-cli": "latest",
