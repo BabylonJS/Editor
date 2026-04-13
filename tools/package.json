@@ -25,9 +25,9 @@
 	"typings": "declaration/src/index.d.ts",
 	"license": "(Apache-2.0)",
 	"devDependencies": {
-		"@babylonjs/addons": "9.0.0",
-		"@babylonjs/core": "9.0.0",
-		"@babylonjs/gui": "9.0.0",
+		"@babylonjs/addons": "9.2.1",
+		"@babylonjs/core": "9.2.1",
+		"@babylonjs/gui": "9.2.1",
 		"@vitest/coverage-v8": "4.0.17",
 		"esbuild": "0.27.2",
 		"typescript": "5.9.3",

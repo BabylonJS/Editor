@@ -20,7 +20,7 @@
 		"typescript": "5.9.3"
 	},
 	"dependencies": {
-		"babylonjs": "9.0.0",
+		"babylonjs": "9.2.1",
 		"fs-extra": "11.2.0",
 		"react": "18.2.0",
 		"react-icons": "5.6.0",
