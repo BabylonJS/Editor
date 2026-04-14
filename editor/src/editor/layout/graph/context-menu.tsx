@@ -5,7 +5,7 @@ import { Component, PropsWithChildren, ReactNode } from "react";
 import { IoMdCube } from "react-icons/io";
 import { AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
 
-import { Mesh, SubMesh, Node, InstancedMesh, Sprite, IParticleSystem } from "babylonjs";
+import { Mesh, Node, InstancedMesh, Sprite, IParticleSystem } from "babylonjs";
 
 import {
 	ContextMenu,
@@ -22,7 +22,6 @@ import {
 
 import { showConfirm } from "../../../ui/dialog";
 import { Separator } from "../../../ui/shadcn/ui/separator";
-import { SceneAssetBrowserDialogMode, showAssetBrowserDialog } from "../../../ui/scene-asset-browser";
 
 import { getNodeCommands } from "../../dialogs/command-palette/node";
 import { getMeshCommands } from "../../dialogs/command-palette/mesh";
@@ -51,6 +50,7 @@ import { Editor } from "../../main";
 
 import { removeNodes } from "./remove";
 import { exportScene, exportNode } from "./export";
+import { showUpdateResourcesFromAsset } from "./update-resources";
 
 export interface IEditorGraphContextMenuProps extends PropsWithChildren {
 	editor: Editor;
@@ -119,6 +119,10 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
 									{isNode(this.props.object) && !isScene(this.props.object) && this.props.editor.state.enableExperimentalFeatures && (
 										<>
 											<ContextMenuItem onClick={() => exportNode(this.props.editor, this.props.object)}>Export Node (.babylon)</ContextMenuItem>
+											<ContextMenuSeparator />
+											<ContextMenuItem onClick={() => showUpdateResourcesFromAsset(this.props.editor, this.props.object)}>
+												Update Resources...
+											</ContextMenuItem>
 											<ContextMenuSeparator />
 										</>
 									)}
@@ -243,9 +247,6 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
 						<ContextMenuSeparator />
 
 						<ContextMenuItem onClick={() => this._createMeshInstance(this.props.object)}>Create Instance</ContextMenuItem>
-
-						<ContextMenuSeparator />
-						<ContextMenuItem onClick={() => this._updateMeshGeometry(this.props.object)}>Update Geometry...</ContextMenuItem>
 					</>
 				)}
 			</>
@@ -389,66 +390,6 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
 				clone = cloneNode(this.props.editor, node, cloneOptions);
 			},
 		});
-	}
-
-	private async _updateMeshGeometry(mesh: Mesh): Promise<void> {
-		const result = await showAssetBrowserDialog(this.props.editor, {
-			multiSelect: false,
-			filter: SceneAssetBrowserDialogMode.Meshes,
-		});
-
-		const selectedMesh = result.selectedMeshes[0];
-		if (!selectedMesh?.geometry) {
-			return;
-		}
-
-		const scene = this.props.editor.layout.preview.scene;
-
-		scene.addGeometry(selectedMesh.geometry);
-		if (selectedMesh.skeleton) {
-			scene.addSkeleton(selectedMesh.skeleton);
-		}
-
-		const oldkeleton = mesh.skeleton;
-		const oldGeometry = mesh.geometry;
-
-		const oldSubMeshes = mesh.subMeshes.slice(0);
-		const newSubMeshes = selectedMesh.subMeshes.slice(0);
-
-		const newSkeleton = selectedMesh.skeleton;
-		const newGeometry = selectedMesh.geometry;
-
-		registerUndoRedo({
-			executeRedo: true,
-			undo: () => {
-				newGeometry.releaseForMesh(mesh, false);
-				oldGeometry?.applyToMesh(mesh);
-
-				mesh.skeleton = oldkeleton;
-				mesh.subMeshes = oldSubMeshes.map(
-					(subMesh, index) => new SubMesh(index, subMesh.verticesStart, subMesh.verticesCount, subMesh.indexStart, subMesh.indexCount, mesh, mesh, true, false)
-				);
-
-				result.selectedAnimationGroups.forEach((animationGroup) => {
-					scene.removeAnimationGroup(animationGroup);
-				});
-			},
-			redo: () => {
-				oldGeometry?.releaseForMesh(mesh, false);
-				newGeometry.applyToMesh(mesh);
-
-				mesh.skeleton = newSkeleton;
-				mesh.subMeshes = newSubMeshes.map(
-					(subMesh, index) => new SubMesh(index, subMesh.verticesStart, subMesh.verticesCount, subMesh.indexStart, subMesh.indexCount, mesh, mesh, true, false)
-				);
-
-				result.selectedAnimationGroups.forEach((animationGroup) => {
-					scene.addAnimationGroup(animationGroup);
-				});
-			},
-		});
-
-		result.container.dispose();
 	}
 
 	private _reloadSound(): void {
