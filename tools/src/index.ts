@@ -14,11 +14,13 @@ export * from "./tools/sprite";
 export * from "./tools/particle";
 export * from "./tools/ragdoll";
 
-export * from "./rendering/ssao";
+export * from "./rendering/vls";
 export * from "./rendering/ssr";
+export * from "./rendering/taa";
+export * from "./rendering/ssao";
 export * from "./rendering/motion-blur";
 export * from "./rendering/default-pipeline";
-export * from "./rendering/vls";
+export * from "./rendering/tools";
 
 export * from "./decorators/scene";
 export * from "./decorators/gui";

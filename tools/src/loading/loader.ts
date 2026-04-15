@@ -10,7 +10,7 @@ import { configureShadowMapRefreshRate, configureShadowMapRenderListPredicate } 
 
 import { IScript } from "../script";
 
-import { applyRenderingConfigurationForCamera } from "../rendering/tools";
+import { applyRenderingConfigurationForCamera, IApplyRenderingConfigurationOptions } from "../rendering/tools";
 
 import { configurePhysicsAggregate } from "./physics";
 import { applyRenderingConfigurations } from "./rendering";
@@ -69,6 +69,13 @@ export type SceneLoaderOptions = {
 	 * Same as "quality" but only applied to shadows. If set, this has priority over "quality".
 	 */
 	shadowsQuality?: SceneLoaderQualitySelector;
+
+	/**
+	 * Defines the optional configuration to apply when applying the rendering configuration for a camera.
+	 * This allows to selectively disable some post-processes when applying the rendering configuration for a camera.
+	 * This is particularly useful for when your game provides options to enable/disable post-processes.
+	 */
+	postProcessConfiguration?: IApplyRenderingConfigurationOptions;
 
 	/**
 	 * Defines the function called to notify the loading progress in interval [0, 1]
@@ -177,7 +184,7 @@ export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scen
 		applyRenderingConfigurations(scene, scene.metadata.rendering);
 
 		if (scene.activeCamera) {
-			applyRenderingConfigurationForCamera(scene.activeCamera, rootUrl);
+			applyRenderingConfigurationForCamera(scene.activeCamera, rootUrl, options?.postProcessConfiguration);
 		}
 	}
 
