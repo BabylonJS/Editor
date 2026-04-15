@@ -19,7 +19,7 @@ export interface IComputeExportedTextureOptions extends IProcessAssetFileOptions
 }
 
 export async function processExportedTexture(absolutePath: string, options: IComputeExportedTextureOptions): Promise<void> {
-	const extension = extname(absolutePath).toLocaleLowerCase();
+	const extension = extname(absolutePath);
 
 	const metadata = await sharp(absolutePath).metadata();
 	if (!metadata.width || !metadata.height) {
