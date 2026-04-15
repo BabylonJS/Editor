@@ -112,7 +112,7 @@ const ParticleSystemSelectable = createSelectable(AssetBrowserParticleSystemItem
 
 const directoryPackagesExtensions = [".scene", ".navmesh"];
 
-RegisterSceneLoaderPlugin(new AssimpJSLoader(true));
+RegisterSceneLoaderPlugin(new AssimpJSLoader(true, true));
 
 export interface IEditorAssetsBrowserProps {
 	/**
