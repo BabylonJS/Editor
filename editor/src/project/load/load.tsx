@@ -103,7 +103,7 @@ export async function checkDependencies(
 	const toolsPathSplit = directory.split("/");
 	do {
 		try {
-			const path = join(...toolsPathSplit, toolsPackageJsonPath);
+			const path = join(toolsPathSplit.join("/"), toolsPackageJsonPath);
 			const toolsPackageJson = await readJSON(path, "utf-8");
 
 			matchesToolsVersion = toolsPackageJson.version === packageJson.version;
@@ -118,7 +118,7 @@ export async function checkDependencies(
 	const cliPathSplit = directory.split("/");
 	do {
 		try {
-			const path = join(...cliPathSplit, cliPackageJsonPath);
+			const path = join(cliPathSplit.join("/"), cliPackageJsonPath);
 			const cliPackageJson = await readJSON(path, "utf-8");
 
 			matchesCliVersion = cliPackageJson.version === packageJson.version;
