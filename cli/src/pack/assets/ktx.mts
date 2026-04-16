@@ -95,7 +95,7 @@ export async function compressFileToKtxFormat(absolutePath: string, options: Com
 			break;
 
 		case "-dxt.ktx":
-			command = `"${pvrTexToolAbsolutePath}" -i "${absolutePath}" -flip y -pot + -m -ics lRGB ${hasAlpha ? "-l" : ""} -f ${hasAlpha ? "BC2" : "BC1"},UBN,lRGB -o "${options.destinationFolder}"`;
+			command = `"${pvrTexToolAbsolutePath}" -i "${absolutePath}" -flip y -pot + -m -dither -ics lRGB ${hasAlpha ? "-l" : ""} -f ${hasAlpha ? "BC2" : "BC1"},UBN,lRGB -o "${options.destinationFolder}"`;
 			break;
 
 		case "-pvrtc.ktx":

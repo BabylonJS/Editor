@@ -99,6 +99,7 @@ function extract(outputAbsolutePath: string) {
 			// Catch silently.
 		}
 	} catch (e) {
+		console.error(e);
 		// Catch silently.
 	}
 
