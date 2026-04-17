@@ -13,6 +13,7 @@ export * from "./tools/animation";
 export * from "./tools/sprite";
 export * from "./tools/particle";
 export * from "./tools/ragdoll";
+export * from "./tools/mesh";
 
 export * from "./rendering/vls";
 export * from "./rendering/ssr";

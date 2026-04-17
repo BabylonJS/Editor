@@ -6,6 +6,7 @@ import { SceneLoaderFlags } from "@babylonjs/core/Loading/sceneLoaderFlags";
 import { ClusteredLightContainer } from "@babylonjs/core/Lights/Clustered/clusteredLightContainer";
 
 import { isMesh } from "../tools/guards";
+import { applyMeshesLODQuality, configureMeshDistanceOrScreenCoverage } from "../tools/mesh";
 import { configureShadowMapRefreshRate, configureShadowMapRenderListPredicate } from "../tools/light";
 
 import { IScript } from "../script";
@@ -69,6 +70,11 @@ export type SceneLoaderOptions = {
 	 * Same as "quality" but only applied to shadows. If set, this has priority over "quality".
 	 */
 	shadowsQuality?: SceneLoaderQualitySelector;
+	/**
+	 * Sames as "quality" but only applied to LODs. If set, this has priority over "quality".
+	 * This will affect the screen coverage or distance used to switch between LODs. The "very-low" quality level is even more aggressive with LODs.
+	 */
+	lodsQuality?: SceneLoaderQualitySelector;
 
 	/**
 	 * Defines the optional configuration to apply when applying the rendering configuration for a camera.
@@ -97,6 +103,7 @@ declare module "@babylonjs/core/scene" {
 		loadingQuality: SceneLoaderQualitySelector;
 		loadingTexturesQuality: SceneLoaderQualitySelector;
 		loadingShadowsQuality: SceneLoaderQualitySelector;
+		loadingLodsQuality: SceneLoaderQualitySelector;
 	}
 }
 
@@ -112,6 +119,7 @@ export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scen
 
 	scene.loadingTexturesQuality = options?.texturesQuality ?? scene.loadingQuality;
 	scene.loadingShadowsQuality = options?.shadowsQuality ?? scene.loadingQuality;
+	scene.loadingLodsQuality = options?.lodsQuality ?? scene.loadingQuality;
 
 	registerAudioParser();
 	registerTextureParser();
@@ -176,6 +184,9 @@ export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scen
 	}
 
 	options?.onProgress?.(1);
+
+	configureMeshDistanceOrScreenCoverage(scene);
+	applyMeshesLODQuality(scene.loadingLodsQuality, scene);
 
 	configureShadowMapRenderListPredicate(scene);
 	configureShadowMapRefreshRate(scene);
