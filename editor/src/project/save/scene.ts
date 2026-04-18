@@ -791,8 +791,6 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 		savedFiles.push(configPath);
 	}
 
-	dialog.dispose();
-
 	// Remove old files
 	const files = await normalizedGlob(join(scenePath, "/**"), {
 		nodir: true,
@@ -841,4 +839,6 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 
 	// Update assets cache in all scenes and assets files.
 	await applyAssetsCache();
+
+	dialog.dispose();
 }

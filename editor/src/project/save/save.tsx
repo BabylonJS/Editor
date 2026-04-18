@@ -38,6 +38,7 @@ export async function saveProject(editor: Editor): Promise<void> {
 		}
 	} finally {
 		saving = false;
+		editor.layout.preview.setRenderScene(true);
 	}
 }
 
@@ -81,8 +82,6 @@ async function _saveProject(editor: Editor) {
 		await saveScene(editor, directory, editor.state.lastOpenedScenePath);
 		editor.layout.console.log(`Project "${project.lastOpenedScene}" saved.`);
 	}
-
-	editor.layout.preview.setRenderScene(true);
 
 	toast.dismiss(toastId);
 	toast.success("Project saved");
