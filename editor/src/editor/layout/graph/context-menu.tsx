@@ -35,6 +35,7 @@ import { registerUndoRedo } from "../../../tools/undoredo";
 import { waitNextAnimationFrame } from "../../../tools/tools";
 import { isClusteredLight } from "../../../tools/light/cluster";
 import { createMeshInstance } from "../../../tools/mesh/instance";
+import { onNodesAddedObservable } from "../../../tools/observables";
 import { isAnyParticleSystem } from "../../../tools/guards/particles";
 import { isScene, isSceneLinkNode } from "../../../tools/guards/scene";
 import { cloneNode, ICloneNodeOptions } from "../../../tools/node/clone";
@@ -59,12 +60,24 @@ export interface IEditorGraphContextMenuProps extends PropsWithChildren {
 	onOpenChange?(open: boolean): void;
 }
 
-export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuProps> {
+export interface IEditorGraphContextMenuState {
+	selectedMeshes: Mesh[];
+}
+
+export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuProps, IEditorGraphContextMenuState> {
+	public constructor(props: IEditorGraphContextMenuProps) {
+		super(props);
+
+		this.state = {
+			selectedMeshes: [],
+		};
+	}
+
 	public render(): ReactNode {
 		const parent = this.props.object && isScene(this.props.object) ? undefined : this.props.object;
 
 		return (
-			<ContextMenu onOpenChange={(o) => this.props.onOpenChange?.(o)}>
+			<ContextMenu onOpenChange={(o) => this._handleContextMenuOpenChange(o)}>
 				<ContextMenuTrigger className="w-full h-full">{this.props.children}</ContextMenuTrigger>
 
 				{this.props.object && (
@@ -226,6 +239,19 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
 		);
 	}
 
+	private _handleContextMenuOpenChange(open: boolean): void {
+		if (open) {
+			this.setState({
+				selectedMeshes: this.props.editor.layout.graph
+					.getSelectedNodes()
+					.filter((node) => isMesh(node.nodeData) && node.nodeData.geometry)
+					.map((node) => node.nodeData as Mesh),
+			});
+		}
+
+		this.props.onOpenChange?.(open);
+	}
+
 	private _getRemoveItems(): ReactNode {
 		return (
 			<ContextMenuItem className="flex items-center gap-2 !text-red-400" onClick={() => removeNodes(this.props.editor)}>
@@ -238,19 +264,57 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
 		return (
 			<>
 				<ContextMenuItem onClick={() => this.props.editor.layout.preview.focusObject(this.props.object)}>
-					Focus in Preview
+					Focus
 					<ContextMenuShortcut>{platform() === "darwin" ? "⌘+F" : "CTRL+F"}</ContextMenuShortcut>
 				</ContextMenuItem>
 
 				{isMesh(this.props.object) && (
 					<>
 						<ContextMenuSeparator />
-
 						<ContextMenuItem onClick={() => this._createMeshInstance(this.props.object)}>Create Instance</ContextMenuItem>
+
+						{isMesh(this.props.object) && this.state.selectedMeshes.length > 1 && (
+							<ContextMenuItem onClick={() => this._handleMergeMeshes(this.state.selectedMeshes, this.props.object.parent)}>Merge meshes...</ContextMenuItem>
+						)}
 					</>
 				)}
 			</>
 		);
+	}
+
+	private _handleMergeMeshes(meshes: Mesh[], parent: Node | null): void {
+		const savedMeshesParents = meshes.map((mesh) => ({
+			mesh,
+			parent: mesh.parent,
+			position: mesh.position.clone(),
+			rotation: mesh.rotation.clone(),
+			scaling: mesh.scaling.clone(),
+			rotationQuaternion: mesh.rotationQuaternion?.clone() ?? null,
+		}));
+
+		meshes.forEach((mesh) => {
+			mesh.parent = null;
+			mesh.computeWorldMatrix(true);
+		});
+
+		try {
+			const mergedMesh = Mesh.MergeMeshes(meshes, false, true, undefined, true, true);
+			if (mergedMesh) {
+				mergedMesh.parent = parent;
+			}
+		} catch (e) {
+			console.error(e);
+		}
+
+		savedMeshesParents.forEach((item) => {
+			item.mesh.parent = item.parent;
+			item.mesh.position.copyFrom(item.position);
+			item.mesh.rotation.copyFrom(item.rotation);
+			item.mesh.scaling.copyFrom(item.scaling);
+			item.mesh.rotationQuaternion = item.rotationQuaternion;
+		});
+
+		onNodesAddedObservable.notifyObservers();
 	}
 
 	private _handleSetNodeLocked(): void {
