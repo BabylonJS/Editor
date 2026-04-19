@@ -47,6 +47,8 @@ import { addGPUParticleSystem, addParticleSystem } from "../../../project/add/pa
 
 import { EditorInspectorSwitchField } from "../inspector/fields/switch";
 
+import { configureImportedMaterial, configureImportedNodeIds } from "../preview/import/import";
+
 import { Editor } from "../../main";
 
 import { removeNodes } from "./remove";
@@ -300,6 +302,12 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
 		try {
 			const mergedMesh = Mesh.MergeMeshes(meshes, false, true, undefined, true, true);
 			if (mergedMesh) {
+				configureImportedNodeIds(mergedMesh);
+
+				if (mergedMesh.material) {
+					configureImportedMaterial(mergedMesh.material);
+				}
+
 				mergedMesh.parent = parent;
 			}
 		} catch (e) {

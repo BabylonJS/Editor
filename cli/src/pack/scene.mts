@@ -28,6 +28,7 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 	const cameras: any[] = [];
 	const materials: any[] = [];
 	const skeletons: any[] = [];
+	const multiMaterials: any[] = [];
 	const transformNodes: any[] = [];
 	const particleSystems: any[] = [];
 	const shadowGenerators: any[] = [];
@@ -69,12 +70,21 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 				mesh.basePoseMatrix = data.basePoseMatrix;
 			}
 
-			let effectiveMaterial: any;
+			let effectiveMaterials: any[] = [];
 
 			data.materials?.forEach((material) => {
-				const existingMaterial = materials.find((m) => m.id === material.id);
+				const existingMaterial = materials.find((m) => m.id === material.id) ?? effectiveMaterials.find((m) => m.id === material.id);
 				if (!existingMaterial) {
-					effectiveMaterial = material;
+					effectiveMaterials.push(material);
+				}
+			});
+
+			data.multiMaterials?.forEach((multiMaterial) => {
+				delete multiMaterial.materialsUniqueIds;
+
+				const existingMultiMaterial = multiMaterials.find((mm) => mm.id === multiMaterial.id);
+				if (!existingMultiMaterial) {
+					multiMaterials.push(multiMaterial);
 				}
 			});
 
@@ -115,7 +125,7 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 			return {
 				mesh,
 				lodMeshes,
-				effectiveMaterial,
+				effectiveMaterials,
 			};
 		})
 	);
@@ -128,8 +138,8 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 				meshes.push(lodMesh);
 			});
 
-			if (result.effectiveMaterial) {
-				materials.push(result.effectiveMaterial);
+			if (result.effectiveMaterials.length) {
+				materials.push(...result.effectiveMaterials);
 			}
 		}
 	});
@@ -486,7 +496,7 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 
 		animations: options.config.animations,
 		materials,
-		multiMaterials: [],
+		multiMaterials,
 
 		environmentTexture: options.config.environment.environmentTexture,
 		environmentIntensity: options.config.environment.environmentIntensity,
