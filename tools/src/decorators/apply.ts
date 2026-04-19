@@ -130,7 +130,7 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 			ctor._ComponentsFromScene?.forEach((params) => {
 				const components: any[] = [];
 
-				const nodes = [...scene.transformNodes, ...scene.meshes, ...scene.lights, ...scene.cameras];
+				const nodes = [scene, ...scene.transformNodes, ...scene.meshes, ...scene.lights, ...scene.cameras];
 				nodes.forEach((node) => {
 					const component = getScriptByClassForObject(node, params.componentConstructor);
 					if (component) {
