@@ -10,7 +10,7 @@ import { Editor } from "../../editor/main";
 
 import { IEditorProject } from "../typings";
 
-import { exportProject } from "../export/export";
+// import { exportProject } from "../export/export";
 
 import { projectsKey } from "../../tools/project";
 import { onProjectSavedObservable } from "../../tools/observables";
@@ -110,9 +110,9 @@ async function _saveProject(editor: Editor) {
 		// Catch silently.
 	}
 
-	exportProject(editor, {
-		optimize: false,
-		noProgress: true,
-		noDialog: false,
-	});
+	// exportProject(editor, {
+	// 	optimize: false,
+	// 	noProgress: true,
+	// 	noDialog: false,
+	// });
 }

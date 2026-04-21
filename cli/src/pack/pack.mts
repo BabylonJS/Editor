@@ -1,4 +1,4 @@
-import fs from "fs-extra";
+import fs, { pathExists } from "fs-extra";
 import { basename, extname, join } from "node:path/posix";
 
 import ora from "ora";
@@ -135,7 +135,13 @@ export async function pack(projectDir: string, options: IPackOptions) {
 		await ensureSceneDirectories(sceneFile);
 
 		const directories = await readSceneDirectories(sceneFile);
-		const config = await fs.readJSON(join(sceneFile, "config.json"));
+		const sceneConfigPath = join(sceneFile, "config.json");
+		if (!(await pathExists(sceneConfigPath))) {
+			sceneLog.warn(`Scene ${sceneFilename} does not have a config.json file. Skipping...`);
+			continue;
+		}
+
+		const config = await fs.readJSON(sceneConfigPath);
 
 		options.onStepChanged?.("scenes", {
 			message: `Packing scene ${sceneName}...`,
