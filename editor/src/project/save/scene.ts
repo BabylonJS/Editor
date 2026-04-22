@@ -564,7 +564,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 							spaces: 4,
 						});
 					} catch (e) {
-						editor.layout.console.error(`Failed to write scene link node ${sound.name}`);
+						editor.layout.console.error(`Failed to write sound ${sound.name}`);
 					} finally {
 						savedFiles.push(soundPath);
 					}
