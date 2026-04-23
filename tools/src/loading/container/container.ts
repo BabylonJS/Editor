@@ -1,13 +1,15 @@
 import { Node } from "@babylonjs/core/node";
 import { Tools } from "@babylonjs/core/Misc/tools";
+import { AssetContainer } from "@babylonjs/core/assetContainer";
 import { AnimationGroup } from "@babylonjs/core/Animations/animationGroup";
-import { AssetContainer, InstantiatedEntries } from "@babylonjs/core/assetContainer";
 
-import { cloneJSObject } from "../tools/tools";
+import { cloneJSObject } from "../../tools/tools";
 
-import { ScriptMap } from "./loader";
-import { configureTransformNodes } from "./transform-node";
-import { _applyScriptsForObject, _removeRegisteredScriptInstance, scriptsDictionary } from "./script/apply";
+import { ScriptMap } from "../loader";
+import { configureTransformNodes } from "../transform-node";
+import { _applyScriptsForObject, _removeRegisteredScriptInstance, scriptsDictionary } from "../script/apply";
+
+import { AdvancedAssetContainerInstantiatedEntries } from "./entries";
 
 export interface IAdvancedAssetContainerInstantiateOptions {
 	/**
@@ -51,15 +53,15 @@ export class AdvancedAssetContainer {
 			this._originalDescendants.push(node, ...node.getDescendants(false));
 		});
 
+		container.animationGroups.forEach((animationGroup) => {
+			this._animationGroupsMap.set(animationGroup.name, animationGroup);
+		});
+
 		this._originalDescendants.forEach((node) => {
 			this._nodesMap.set(node, {
 				node,
 				metadata: cloneJSObject(node.metadata),
 			});
-		});
-
-		container.animationGroups.forEach((animationGroup) => {
-			this._animationGroupsMap.set(animationGroup.name, animationGroup);
 		});
 	}
 
@@ -74,16 +76,37 @@ export class AdvancedAssetContainer {
 		this.container.removeAllFromScene();
 	}
 
-	public instantiate(options?: IAdvancedAssetContainerInstantiateOptions): InstantiatedEntries {
+	public instantiate(options?: IAdvancedAssetContainerInstantiateOptions): AdvancedAssetContainerInstantiatedEntries {
 		const namingId = Tools.RandomId();
 		const nameFunction = (sourceName: string) => sourceName;
 
 		const entries = this.container.instantiateModelsToScene(nameFunction, false, {
 			...options,
 			predicate: (entity) => {
-				entity.name = `${entity.name}-${namingId}_${entity.id}`;
+				entity.name = `${entity.name}@editor-tools@${namingId}_${entity.id}`;
 				return options?.predicate?.(entity) ?? true;
 			},
+		});
+
+		const result = new AdvancedAssetContainerInstantiatedEntries(entries, namingId);
+
+		const allContainerEntries = [
+			...this.container.transformNodes,
+			...this.container.meshes,
+			...this.container.lights,
+			...this.container.cameras,
+			...this.container.animationGroups,
+			...this.container.skeletons,
+		];
+
+		allContainerEntries.forEach((entry) => {
+			const nameSplit = entry.name.split("@editor-tools@");
+			entry.name = nameSplit[0];
+		});
+
+		entries.animationGroups.forEach((animationGroup) => {
+			const nameSplit = animationGroup.name.split("@editor-tools@");
+			animationGroup.name = `${nameSplit[0]}-${namingId}`;
 		});
 
 		const newDescendants: Node[] = [];
@@ -92,10 +115,10 @@ export class AdvancedAssetContainer {
 		});
 
 		newDescendants.forEach((newNode) => {
-			const nameSplit = newNode.name.split("_");
-			const originalId = nameSplit.pop();
+			const nameSplit = newNode.name.split("@editor-tools@");
+			const originalId = nameSplit[1].split("_").pop();
 
-			newNode.name = nameSplit.join("_");
+			newNode.name = `${nameSplit[0]}-${namingId}`;
 
 			const originalNode = this._originalDescendants.find((n) => n.id === originalId)!;
 
@@ -118,7 +141,7 @@ export class AdvancedAssetContainer {
 
 							const originalAnimationGroup = this._animationGroupsMap.get(obj.value);
 							if (originalAnimationGroup) {
-								obj.value = nameFunction(originalAnimationGroup.name);
+								obj.value = `${originalAnimationGroup.name}-${namingId}`;
 							}
 						}
 					});
@@ -132,6 +155,6 @@ export class AdvancedAssetContainer {
 
 		configureTransformNodes(this.container.scene);
 
-		return entries;
+		return result;
 	}
 }

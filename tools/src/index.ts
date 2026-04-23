@@ -1,6 +1,7 @@
 export * from "./loading/loader";
 export * from "./loading/material";
-export * from "./loading/container";
+export * from "./loading/container/container";
+export * from "./loading/container/entries";
 
 export * from "./loading/script/apply";
 export * from "./loading/script/preload";
