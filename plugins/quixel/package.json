@@ -16,7 +16,7 @@
 		"typescript": "5.9.3"
 	},
 	"dependencies": {
-		"babylonjs": "9.2.1",
+		"babylonjs": "9.4.1",
 		"fs-extra": "11.2.0",
 		"sharp": "0.34.3"
 	}
