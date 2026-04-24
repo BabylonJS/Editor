@@ -7,7 +7,7 @@ import { cloneJSObject } from "../../tools/tools";
 
 import { ScriptMap } from "../loader";
 import { configureTransformNodes } from "../transform-node";
-import { _applyScriptsForObject, _removeRegisteredScriptInstance, scriptsDictionary } from "../script/apply";
+import { _applyScriptsForObject, _removeRegisteredScriptInstance, getAllScriptsByClassForObject, scriptsDictionary } from "../script/apply";
 
 import { AdvancedAssetContainerInstantiatedEntries } from "./entries";
 
@@ -65,6 +65,11 @@ export class AdvancedAssetContainer {
 		});
 	}
 
+	/**
+	 * By default, loaded advanced asset containers add their nodes in the scene.
+	 * As it is not always wanted, this method allows to remove those nodes from the scene and only keep them in the container.
+	 * This is particularely useful when you want to instantiate the container several times in the scene, but not use the original nodes of the container itself.
+	 */
 	public removeDefault(): void {
 		this.container.getNodes().forEach((node) => {
 			const scripts = scriptsDictionary.get(node);
@@ -76,6 +81,45 @@ export class AdvancedAssetContainer {
 		this.container.removeAllFromScene();
 	}
 
+	/**
+	 * Retrieve the reference to a node present in the root nodes of the container by its name.
+	 * This is useful only if the container is not intended to be instantiated so you never call `.removeDefault()`.
+	 * @param name defines the name of the root node to retrieve.
+	 */
+	public getRootNodeByName(name: string): Node | null {
+		return this.container.rootNodes.find((node) => node.name === name) ?? null;
+	}
+
+	/**
+	 * Retrieve the reference to a script instance of the given type attached to a node with the given name.
+	 * @param name defines the name of the object to retrieve the script from.
+	 * @param classType defines the class of the type to retrieve.
+	 * @returns the reference to the script instance attached to the node which matches the given class type.
+	 */
+	public getScriptByClassByObjectName<T extends new (...args: any) => any>(name: string, classType: T): InstanceType<T> | null {
+		const nodes = this.container.getNodes();
+
+		for (const node of nodes) {
+			if (node.name === name) {
+				const scripts = getAllScriptsByClassForObject(node, classType);
+				if (scripts?.length === 1) {
+					return scripts[0];
+				}
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * Instantiate or clone all meshes, skeletons and animations groups, and add the new ones to the scene.
+	 * If the container contains scripts attached to its nodes, those scripts will also be applied on the instantiated/cloned nodes.
+	 * @param options defines an optional list of options to control how to instantiate / clone models
+	 * @param options.doNotInstantiate defines if the model must be instantiated or just cloned
+	 * @param options.predicate defines a predicate used to filter whih mesh to instantiate/clone
+	 * @returns a new reference to instantiated entries with the instantiated nodes, skeletons and animation groups.
+	 * @see `BABYLON.AssetContainer.instantiateModelsToScene` for options.
+	 */
 	public instantiate(options?: IAdvancedAssetContainerInstantiateOptions): AdvancedAssetContainerInstantiatedEntries {
 		const namingId = Tools.RandomId();
 		const nameFunction = (sourceName: string) => sourceName;
