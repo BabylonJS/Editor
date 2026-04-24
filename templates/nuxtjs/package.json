@@ -1,0 +1,29 @@
+{
+	"name": "babylonjs-editor-nuxtjs-template",
+	"version": "0.1.0",
+	"private": true,
+	"scripts": {
+		"dev": "nuxt dev",
+		"build": "nuxt build",
+		"generate": "babylonjs-editor-cli pack",
+		"preview": "nuxt preview",
+		"postinstall": "nuxt prepare"
+	},
+	"dependencies": {
+		"@babylonjs/addons": "9.0.0",
+		"@babylonjs/core": "9.0.0",
+		"@babylonjs/gui": "9.0.0",
+		"@babylonjs/havok": "1.3.10",
+		"@babylonjs/materials": "9.0.0",
+		"babylonjs-editor-tools": "latest",
+		"nuxt": "3.14.1592",
+		"vue": "3.5.13",
+		"vue-router": "4.4.5"
+	},
+	"devDependencies": {
+		"@types/node": "^22",
+		"babylonjs-editor-cli": "latest",
+		"raw-loader": "^4.0.2",
+		"typescript": "5.9.3"
+	}
+}
