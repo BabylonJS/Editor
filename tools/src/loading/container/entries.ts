@@ -3,6 +3,8 @@ import { Skeleton } from "@babylonjs/core/Bones/skeleton";
 import { InstantiatedEntries } from "@babylonjs/core/assetContainer";
 import { AnimationGroup } from "@babylonjs/core/Animations/animationGroup";
 
+import { getAllScriptsByClassForObject } from "../script/apply";
+
 export class AdvancedAssetContainerInstantiatedEntries implements InstantiatedEntries {
 	public constructor(
 		public readonly entries: InstantiatedEntries,
@@ -74,6 +76,24 @@ export class AdvancedAssetContainerInstantiatedEntries implements InstantiatedEn
 			const result = this._recursivelyGetNodeByName(name, child);
 			if (result) {
 				return result;
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * Retrieve the reference to a script instance of the given type attached to a node with the given name.
+	 * @param name defines the name of the object to retrieve the script from.
+	 * @param classType defines the class of the type to retrieve.
+	 * @returns the reference to the script instance attached to the node which matches the given class type.
+	 */
+	public getScriptByClassByObjectName<T extends new (...args: any) => any>(name: string, classType: T): InstanceType<T> | null {
+		const node = this.getNodeByName(name);
+		if (node) {
+			const scripts = getAllScriptsByClassForObject(node, classType);
+			if (scripts?.length === 1) {
+				return scripts[0];
 			}
 		}
 
