@@ -54,6 +54,7 @@ import { registerUndoRedo } from "../../tools/undoredo";
 import { initializeHavok } from "../../tools/physics/init";
 import { initializeRecast } from "../../tools/recast/init";
 import { isAnyParticleSystem } from "../../tools/guards/particles";
+import { saveSceneScreenshot } from "../../tools/scene/screenshot";
 import { onTextureAddedObservable } from "../../tools/observables";
 import { getCameraFocusPositionFor } from "../../tools/camera/focus";
 import { ITweenConfiguration, Tween } from "../../tools/animation/tween";
@@ -220,6 +221,8 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
 		ipcRenderer.on("preview:focus", () => !isDomTextInputFocused() && this.focusObject());
 		ipcRenderer.on("preview:edit-camera", () => this.props.editor.layout.inspector.setEditedObject(this.props.editor.layout.preview.scene.activeCamera));
+
+		ipcRenderer.on("preview:screenshot", (_, size) => saveSceneScreenshot(this.props.editor.layout.preview.scene, size));
 
 		onTextureAddedObservable.add(() => checkProjectCachedCompressedTextures(props.editor));
 	}
