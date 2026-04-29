@@ -43,6 +43,7 @@ import { isSprite, isSpriteMapNode } from "../../../tools/guards/sprites";
 import { isAbstractMesh, isCamera, isClusteredLightContainer, isLight, isMesh, isNode } from "../../../tools/guards/nodes";
 import { isNodeLocked, isNodeSerializable, isNodeVisibleInGraph, setNodeLocked, setNodeSerializable } from "../../../tools/node/metadata";
 
+import { addPointLight, addSpotLight } from "../../../project/add/light";
 import { addGPUParticleSystem, addParticleSystem } from "../../../project/add/particles";
 
 import { EditorInspectorSwitchField } from "../inspector/fields/switch";
@@ -233,6 +234,18 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
 									<ContextMenuSeparator />
 									{this._getRemoveItems()}
 								</>
+							)}
+
+							{isClusteredLightContainer(this.props.object) && (
+								<ContextMenuSub>
+									<ContextMenuSubTrigger className="flex items-center gap-2">
+										<AiOutlinePlus className="w-5 h-5" /> Add
+									</ContextMenuSubTrigger>
+									<ContextMenuSubContent>
+										<ContextMenuItem onClick={() => addPointLight(this.props.editor, this.props.object)}>Point Light</ContextMenuItem>
+										<ContextMenuItem onClick={() => addSpotLight(this.props.editor, this.props.object)}>Spot Light</ContextMenuItem>
+									</ContextMenuSubContent>
+								</ContextMenuSub>
 							)}
 						</>
 					</ContextMenuContent>
