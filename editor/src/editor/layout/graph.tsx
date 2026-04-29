@@ -994,7 +994,10 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			// Handle clustered lights
 			if (isClusteredLightContainer(node) && !noChildren) {
 				node.lights.forEach((light) => {
-					info.childNodes?.push(this._parseSceneNode(light, false) as TreeNodeInfo);
+					const clusteredLightNode = this._parseSceneNode(light, false);
+					if (clusteredLightNode) {
+						info.childNodes?.push(clusteredLightNode);
+					}
 				});
 			}
 
