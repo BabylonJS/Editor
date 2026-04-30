@@ -30,4 +30,5 @@ export default defineNuxtConfig({
 			},
 		},
 	},
+	telemetry: { enabled: false },
 });
