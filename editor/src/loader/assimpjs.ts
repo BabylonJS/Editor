@@ -44,7 +44,10 @@ export class AssimpJSLoader implements ISceneLoaderPluginAsync {
 		},
 	};
 
-	public constructor(private _useWorker: boolean) {}
+	public constructor(
+		private _useWorker: boolean,
+		private _writeTextures: boolean
+	) {}
 
 	/**
 	 * Import meshes into a scene.
@@ -152,7 +155,9 @@ export class AssimpJSLoader implements ISceneLoaderPluginAsync {
 
 		// Textures
 		runtime.data.textures?.forEach((t) => {
-			writeTexture(runtime, t);
+			if (this._writeTextures) {
+				writeTexture(runtime, t);
+			}
 		});
 
 		parseNodes(runtime, [runtime.data.rootnode], null);

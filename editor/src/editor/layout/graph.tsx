@@ -11,8 +11,8 @@ import { MdOutlineQuestionMark } from "react-icons/md";
 import { GiBrickWall, GiSparkles } from "react-icons/gi";
 import { HiOutlineCubeTransparent } from "react-icons/hi";
 import { IoCheckmark, IoSparklesSharp } from "react-icons/io5";
-import { FaCamera, FaImage, FaLightbulb, FaBone } from "react-icons/fa";
 import { TbGhost2Filled, TbServerSpark, TbBrandAdobeIndesign } from "react-icons/tb";
+import { FaCamera, FaImage, FaLightbulb, FaBone, FaRegLightbulb } from "react-icons/fa";
 
 import { AdvancedDynamicTexture } from "babylonjs-gui";
 import { BaseTexture, Node, Scene, Sound, Tools, IParticleSystem, Sprite, Skeleton, TransformNode } from "babylonjs";
@@ -37,6 +37,7 @@ import { registerUndoRedo } from "../../tools/undoredo";
 import { isDomTextInputFocused } from "../../tools/dom";
 import { isSceneLinkNode } from "../../tools/guards/scene";
 import { updateAllLights } from "../../tools/light/shadows";
+import { isClusteredLight } from "../../tools/light/cluster";
 import { getCollisionMeshFor } from "../../tools/mesh/collision";
 import { isNodeVisibleInGraph } from "../../tools/node/metadata";
 import { isAdvancedDynamicTexture } from "../../tools/guards/texture";
@@ -52,6 +53,7 @@ import {
 	isAbstractMesh,
 	isAnyTransformNode,
 	isCamera,
+	isClusteredLightContainer,
 	isCollisionInstancedMesh,
 	isCollisionMesh,
 	isEditorCamera,
@@ -80,7 +82,8 @@ import { getSpriteCommands } from "../dialogs/command-palette/sprite";
 import { onProjectConfigurationChangedObservable } from "../../project/configuration";
 
 import { EditorGraphLabel } from "./graph/label";
-import { EditorGraphContextMenu } from "./graph/graph";
+import { EditorGraphContextMenu } from "./graph/context-menu";
+import { setNewParentForGraphSelectedNodes } from "./graph/move";
 
 export interface IEditorGraphProps {
 	/**
@@ -288,6 +291,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 	 */
 	public refresh(): Promise<void> {
 		const scene = this.props.editor.layout.preview.scene;
+		const clusteredLightContainer = this.props.editor.layout.preview.clusteredLightContainer;
 
 		this._soundsList = scene.soundTracks?.map((st) => st.soundCollection).flat() ?? [];
 
@@ -295,7 +299,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 
 		if (this.state.showOnlyLights || this.state.showOnlyDecals) {
 			if (this.state.showOnlyLights) {
-				nodes.push(...scene.lights.map((light) => this._parseSceneNode(light, true)));
+				nodes.push(...scene.lights.concat(clusteredLightContainer.lights).map((light) => this._parseSceneNode(light, true)));
 			}
 
 			if (this.state.showOnlyDecals) {
@@ -348,6 +352,10 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 
 		if (isSprite(source)) {
 			source = getSpriteManagerNodeFromSprite(source);
+		}
+
+		if (isLight(source) && this.props.editor.layout.preview.clusteredLightContainer.lights.includes(source)) {
+			source = this.props.editor.layout.preview.clusteredLightContainer;
 		}
 
 		const idsToExpand: string[] = [];
@@ -522,17 +530,17 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			return;
 		}
 
-		const sourcePosition = this._nodeToCopyTransform["position"];
-		const sourceRotation = this._nodeToCopyTransform["rotation"];
-		const sourceScaling = this._nodeToCopyTransform["scaling"];
-		const sourceRotationQuaternion = this._nodeToCopyTransform["rotationQuaternion"];
-		const sourceDirection = this._nodeToCopyTransform["direction"];
+		const sourcePosition = (this._nodeToCopyTransform as any)["position"];
+		const sourceRotation = (this._nodeToCopyTransform as any)["rotation"];
+		const sourceScaling = (this._nodeToCopyTransform as any)["scaling"];
+		const sourceRotationQuaternion = (this._nodeToCopyTransform as any)["rotationQuaternion"];
+		const sourceDirection = (this._nodeToCopyTransform as any)["direction"];
 
-		const targetPosition = node["position"];
-		const targetRotation = node["rotation"];
-		const targetScaling = node["scaling"];
-		const targetRotationQuaternion = node["rotationQuaternion"];
-		const targetDirection = node["direction"];
+		const targetPosition = (node as any)["position"];
+		const targetRotation = (node as any)["rotation"];
+		const targetScaling = (node as any)["scaling"];
+		const targetRotationQuaternion = (node as any)["rotationQuaternion"];
+		const targetDirection = (node as any)["direction"];
 
 		const savedTargetPosition = targetPosition?.clone();
 		const savedTargetRotation = targetRotation?.clone();
@@ -557,7 +565,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 
 				if (targetRotationQuaternion) {
 					if (!savedTargetRotationQuaternion) {
-						node["rotationQuaternion"] = null;
+						(node as any)["rotationQuaternion"] = null;
 					} else {
 						targetRotationQuaternion.copyFrom(savedTargetRotationQuaternion);
 					}
@@ -584,7 +592,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 					if (targetRotationQuaternion) {
 						targetRotationQuaternion.copyFrom(sourceRotationQuaternion);
 					} else {
-						node["rotationQuaternion"] = sourceRotationQuaternion.clone();
+						(node as any)["rotationQuaternion"] = sourceRotationQuaternion.clone();
 					}
 				}
 
@@ -918,11 +926,15 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			return null;
 		}
 
-		if (isLight(node) && !node._scene.lights.includes(node)) {
+		if (isLight(node) && !node._scene.lights.includes(node) && !isClusteredLight(node, this.props.editor)) {
 			return null;
 		}
 
 		if (isCamera(node) && !node._scene.cameras.includes(node)) {
+			return null;
+		}
+
+		if (isClusteredLightContainer(node) && (this.state.showOnlyLights || this.state.showOnlyDecals)) {
 			return null;
 		}
 
@@ -939,7 +951,10 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		} as TreeNodeInfo;
 
 		if (!isSceneLinkNode(node) && !noChildren) {
-			const children = node.getDescendants(true);
+			const children = isClusteredLightContainer(node)
+				? node.getDescendants(true)
+				: node.getDescendants(true, (n) => !(isLight(n) && isClusteredLight(n, this.props.editor)));
+
 			if (children.length) {
 				info.childNodes = children.map((c) => this._parseSceneNode(c)).filter((c) => c !== null) as TreeNodeInfo[];
 			}
@@ -976,6 +991,16 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 				});
 			}
 
+			// Handle clustered lights
+			if (isClusteredLightContainer(node) && !noChildren) {
+				node.lights.forEach((light) => {
+					const clusteredLightNode = this._parseSceneNode(light, false);
+					if (clusteredLightNode) {
+						info.childNodes?.push(clusteredLightNode);
+					}
+				});
+			}
+
 			if (info.childNodes?.length) {
 				info.hasCaret = true;
 			} else {
@@ -1009,7 +1034,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 					}
 
 					selectedNodeData.forEach((node) => {
-						if (isNode(node)) {
+						if (isNode(node) || isClusteredLightContainer(node)) {
 							node.setEnabled(enabled);
 						}
 					});
@@ -1062,6 +1087,10 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 
 		if (isLight(object)) {
 			return <FaLightbulb className="w-4 h-4" />;
+		}
+
+		if (isClusteredLightContainer(object)) {
+			return <FaRegLightbulb className="w-4 h-4" />;
 		}
 
 		if (isCamera(object)) {
@@ -1133,15 +1162,6 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			return;
 		}
 
-		const nodesToMove: TreeNodeInfo[] = [];
-		this._forEachNode(this.state.nodes, (n) => n.isSelected && nodesToMove.push(n));
-
-		nodesToMove.forEach((n) => {
-			if (n.nodeData && isNode(n.nodeData)) {
-				n.nodeData.parent = null;
-			}
-		});
-
-		this.refresh();
+		setNewParentForGraphSelectedNodes(this.props.editor, this.props.editor.layout.preview.scene, ev.shiftKey);
 	}
 }

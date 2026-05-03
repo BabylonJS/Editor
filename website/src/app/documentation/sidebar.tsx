@@ -38,6 +38,7 @@ export function DocumentationSidebar() {
 
 				<div className="font-semibold text-xl text-neutral-500 my-3">Scripting</div>
 
+				<DocumentationSidebarItem title="Common decorators" href="/documentation/scripting/common-decorators" />
 				<DocumentationSidebarItem title="Customizing scripts" href="/documentation/scripting/customizing-scripts" />
 				<DocumentationSidebarItem title="Listening events" href="/documentation/scripting/listening-events" />
 				<DocumentationSidebarItem title="Linking assets" href="/documentation/scripting/linking-assets" />

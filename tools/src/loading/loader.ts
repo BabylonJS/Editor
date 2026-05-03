@@ -3,13 +3,15 @@ import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { Constants } from "@babylonjs/core/Engines/constants";
 import { AppendSceneAsync } from "@babylonjs/core/Loading/sceneLoader";
 import { SceneLoaderFlags } from "@babylonjs/core/Loading/sceneLoaderFlags";
+import { ClusteredLightContainer } from "@babylonjs/core/Lights/Clustered/clusteredLightContainer";
 
 import { isMesh } from "../tools/guards";
+import { applyMeshesLODQuality, configureMeshDistanceOrScreenCoverage } from "../tools/mesh";
 import { configureShadowMapRefreshRate, configureShadowMapRenderListPredicate } from "../tools/light";
 
 import { IScript } from "../script";
 
-import { applyRenderingConfigurationForCamera } from "../rendering/tools";
+import { applyRenderingConfigurationForCamera, IApplyRenderingConfigurationOptions } from "../rendering/tools";
 
 import { configurePhysicsAggregate } from "./physics";
 import { applyRenderingConfigurations } from "./rendering";
@@ -22,10 +24,11 @@ import { registerTextureParser } from "./texture";
 import { registerShadowGeneratorParser } from "./shadows";
 import { registerMorphTargetManagerParser } from "./morph-target-manager";
 
+import { configureLights } from "./light";
 import { registerSpriteMapParser } from "./sprite-map";
+import { configureTransformNodes } from "./transform-node";
 import { registerSpriteManagerParser } from "./sprite-manager";
 import { registerNodeParticleSystemSetParser } from "./node-particle-system-set";
-import { configureTransformNodes } from "./transform-node";
 
 /**
  * Defines the possible output type of a script.
@@ -67,6 +70,18 @@ export type SceneLoaderOptions = {
 	 * Same as "quality" but only applied to shadows. If set, this has priority over "quality".
 	 */
 	shadowsQuality?: SceneLoaderQualitySelector;
+	/**
+	 * Sames as "quality" but only applied to LODs. If set, this has priority over "quality".
+	 * This will affect the screen coverage or distance used to switch between LODs. The "very-low" quality level is even more aggressive with LODs.
+	 */
+	lodsQuality?: SceneLoaderQualitySelector;
+
+	/**
+	 * Defines the optional configuration to apply when applying the rendering configuration for a camera.
+	 * This allows to selectively disable some post-processes when applying the rendering configuration for a camera.
+	 * This is particularly useful for when your game provides options to enable/disable post-processes.
+	 */
+	postProcessConfiguration?: IApplyRenderingConfigurationOptions;
 
 	/**
 	 * Defines the function called to notify the loading progress in interval [0, 1]
@@ -88,14 +103,23 @@ declare module "@babylonjs/core/scene" {
 		loadingQuality: SceneLoaderQualitySelector;
 		loadingTexturesQuality: SceneLoaderQualitySelector;
 		loadingShadowsQuality: SceneLoaderQualitySelector;
+		loadingLodsQuality: SceneLoaderQualitySelector;
 	}
 }
+
+const sceneConfigurationMap: Map<
+	Scene,
+	{
+		clusteredLightContainer?: ClusteredLightContainer;
+	}
+> = new Map();
 
 export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scene, scriptsMap: ScriptMap, options?: SceneLoaderOptions) {
 	scene.loadingQuality = options?.quality ?? "high";
 
 	scene.loadingTexturesQuality = options?.texturesQuality ?? scene.loadingQuality;
 	scene.loadingShadowsQuality = options?.shadowsQuality ?? scene.loadingQuality;
+	scene.loadingLodsQuality = options?.lodsQuality ?? scene.loadingQuality;
 
 	registerAudioParser();
 	registerTextureParser();
@@ -108,6 +132,11 @@ export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scen
 
 	registerNodeParticleSystemSetParser();
 
+	// Check configuration
+	const configuration = sceneConfigurationMap.get(scene) ?? {};
+	sceneConfigurationMap.set(scene, configuration);
+
+	// Append to the given scene
 	await AppendSceneAsync(`${rootUrl}${sceneFilename}`, scene, {
 		pluginExtension: ".babylon",
 		onProgress: (event) => {
@@ -131,9 +160,13 @@ export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scen
 		scene.meshes.forEach((m) => isMesh(m) && m._checkDelayState());
 	}
 
-	const waitingItemsCount = scene.getWaitingItemsCount();
+	// Configure clustered lights
+	const clusteredLightContainer = configureLights(scene, configuration.clusteredLightContainer);
+	configuration.clusteredLightContainer = clusteredLightContainer;
 
 	// Wait until scene is ready.
+	const waitingItemsCount = scene.getWaitingItemsCount();
+
 	while (!scene.isDisposed && (!scene.isReady() || scene.getWaitingItemsCount() > 0)) {
 		await new Promise<void>((resolve) => setTimeout(resolve, 150));
 
@@ -152,6 +185,9 @@ export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scen
 
 	options?.onProgress?.(1);
 
+	configureMeshDistanceOrScreenCoverage(scene);
+	applyMeshesLODQuality(scene.loadingLodsQuality, scene);
+
 	configureShadowMapRenderListPredicate(scene);
 	configureShadowMapRefreshRate(scene);
 
@@ -159,7 +195,7 @@ export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scen
 		applyRenderingConfigurations(scene, scene.metadata.rendering);
 
 		if (scene.activeCamera) {
-			applyRenderingConfigurationForCamera(scene.activeCamera, rootUrl);
+			applyRenderingConfigurationForCamera(scene.activeCamera, rootUrl, options?.postProcessConfiguration);
 		}
 	}
 

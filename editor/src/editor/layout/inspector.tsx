@@ -29,6 +29,7 @@ import { EditorSpotLightInspector } from "./inspector/light/spot";
 import { EditorPointLightInspector } from "./inspector/light/point";
 import { EditorDirectionalLightInspector } from "./inspector/light/directional";
 import { EditorHemisphericLightInspector } from "./inspector/light/hemispheric";
+import { EditorClusteredLightContainerInspector } from "./inspector/light/clustered-container";
 
 import { EditorCameraInspector } from "./inspector/camera/editor";
 import { EditorFreeCameraInspector } from "./inspector/camera/free";
@@ -77,6 +78,7 @@ export class EditorInspector extends Component<IEditorInspectorProps, IEditorIns
 		EditorDirectionalLightInspector,
 		EditorSpotLightInspector,
 		EditorHemisphericLightInspector,
+		EditorClusteredLightContainerInspector,
 
 		EditorCameraInspector,
 		EditorFreeCameraInspector,

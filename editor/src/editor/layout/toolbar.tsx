@@ -3,11 +3,25 @@ import { ipcRenderer, shell } from "electron";
 
 import { Component, ReactNode } from "react";
 
-import { Menubar, MenubarCheckboxItem, MenubarContent, MenubarItem, MenubarMenu, MenubarSeparator, MenubarShortcut, MenubarTrigger } from "../../ui/shadcn/ui/menubar";
+import {
+	Menubar,
+	MenubarCheckboxItem,
+	MenubarContent,
+	MenubarItem,
+	MenubarLabel,
+	MenubarMenu,
+	MenubarSeparator,
+	MenubarShortcut,
+	MenubarSub,
+	MenubarSubContent,
+	MenubarSubTrigger,
+	MenubarTrigger,
+} from "../../ui/shadcn/ui/menubar";
 
 import { isDarwin } from "../../tools/os";
 import { execNodePty } from "../../tools/node-pty";
 import { openSingleFileDialog } from "../../tools/dialog";
+import { saveSceneScreenshot } from "../../tools/scene/screenshot";
 
 import { showConfirm } from "../../ui/dialog";
 import { ToolbarComponent } from "../../ui/toolbar";
@@ -23,6 +37,7 @@ import { getLightCommands } from "../dialogs/command-palette/light";
 import { getCameraCommands } from "../dialogs/command-palette/camera";
 import { getSpriteCommands } from "../dialogs/command-palette/sprite";
 import { ICommandPaletteType } from "../dialogs/command-palette/command-palette";
+
 import { EditorMarketplaceBrowser } from "./marketplace";
 
 export interface IEditorToolbarProps {
@@ -163,6 +178,29 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 							<MenubarItem onClick={() => this.props.editor.layout.inspector.setEditedObject(this.props.editor.layout.preview.scene.activeCamera)}>
 								Edit Camera
 							</MenubarItem>
+
+							<MenubarSeparator />
+
+							<MenubarSub>
+								<MenubarSubTrigger>Screenshot</MenubarSubTrigger>
+								<MenubarSubContent className="w-52">
+									<MenubarLabel className="text-muted-foreground">Landscape</MenubarLabel>
+									<MenubarItem onClick={() => saveSceneScreenshot(this.props.editor.layout.preview.scene, { width: 1280, height: 720 })}>
+										720p <MenubarShortcut>(1280x720)</MenubarShortcut>
+									</MenubarItem>
+									<MenubarItem onClick={() => saveSceneScreenshot(this.props.editor.layout.preview.scene, { width: 1920, height: 1080 })}>
+										1080p <MenubarShortcut>(1920x1080)</MenubarShortcut>
+									</MenubarItem>
+									<MenubarItem onClick={() => saveSceneScreenshot(this.props.editor.layout.preview.scene, { width: 3840, height: 2160 })}>
+										4K <MenubarShortcut>(3840x2160)</MenubarShortcut>
+									</MenubarItem>
+									<MenubarLabel className="text-muted-foreground">Square</MenubarLabel>
+									<MenubarItem onClick={() => saveSceneScreenshot(this.props.editor.layout.preview.scene, { width: 512, height: 512 })}>512x512</MenubarItem>
+									<MenubarItem onClick={() => saveSceneScreenshot(this.props.editor.layout.preview.scene, { width: 1024, height: 1024 })}>1024x1024</MenubarItem>
+									<MenubarItem onClick={() => saveSceneScreenshot(this.props.editor.layout.preview.scene, { width: 2048, height: 2048 })}>2048x2048</MenubarItem>
+									<MenubarItem onClick={() => saveSceneScreenshot(this.props.editor.layout.preview.scene, { width: 4096, height: 4096 })}>4096x4096</MenubarItem>
+								</MenubarSubContent>
+							</MenubarSub>
 
 							<MenubarSeparator />
 

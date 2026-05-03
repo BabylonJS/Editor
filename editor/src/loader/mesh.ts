@@ -29,7 +29,11 @@ export function parseMesh(runtime: AssimpJSRuntime, data: IAssimpJSNodeData): Me
 		const textureCoordsLength = m.texturecoords?.length ?? 0;
 		for (let i = 0; i < textureCoordsLength; ++i) {
 			const uvs = i > 0 ? `uvs${i + 1}` : "uvs";
-			vertexData[uvs] = m.texturecoords![i];
+			if (vertexData[uvs]) {
+				vertexData[uvs] = vertexData[uvs].concat(m.texturecoords![i]);
+			} else {
+				vertexData[uvs] = m.texturecoords![i];
+			}
 		}
 	});
 
@@ -37,12 +41,21 @@ export function parseMesh(runtime: AssimpJSRuntime, data: IAssimpJSNodeData): Me
 	const indices = meshes.map((m) => m.faces.flat());
 
 	let offset = 0;
+	let indicesOffset = 0;
 	indices.forEach((i, index) => {
 		const verticesStart = offset;
 		const verticesCount = i.length;
 
 		const indicesStart = offset;
 		const indicesCount = i.length;
+
+		if (index > 0) {
+			indicesOffset += meshes[index - 1].vertices.length / 3;
+
+			for (let j = 0, len = i.length; j < len; ++j) {
+				i[j] += indicesOffset;
+			}
+		}
 
 		subMeshes.push(new SubMesh(index, verticesStart, verticesCount, indicesStart, indicesCount, mesh, mesh, false, true));
 

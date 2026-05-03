@@ -155,7 +155,7 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 
 				{/* {this.props.editor.state.enableExperimentalFeatures && this._getIblShadowsRenderingPipelineComponent()} */}
 
-				<EditorSceneAnimationGroupsInspector editor={this.props.editor} object={this.props.object} />
+				<EditorSceneAnimationGroupsInspector editor={this.props.editor} scene={this.props.object} />
 			</>
 		);
 	}

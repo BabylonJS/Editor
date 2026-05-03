@@ -123,7 +123,7 @@ export async function compressFileToKtxFormat(editor: Editor, absolutePath: stri
 			break;
 
 		case "-dxt.ktx":
-			command = `"${cliPath}" -i "${absolutePath}" -flip y -pot + -m -ics lRGB ${hasAlpha ? "-l" : ""} -f ${hasAlpha ? "BC2" : "BC1"},UBN,lRGB -o "${options.destinationFolder}"`;
+			command = `"${cliPath}" -i "${absolutePath}" -flip y -pot + -m -dither -ics lRGB ${hasAlpha ? "-l" : ""} -f ${hasAlpha ? "BC2" : "BC1"},UBN,lRGB -o "${options.destinationFolder}"`;
 			break;
 
 		case "-pvrtc.ktx":

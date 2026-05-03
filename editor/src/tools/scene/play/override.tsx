@@ -31,6 +31,7 @@ const savedWebRequestMethods: Record<string, any> = {
 const savedEngineMethods: Record<string, any> = {
 	createTexture: Engine.prototype.createTexture,
 	createCubeTexture: Engine.prototype.createCubeTexture,
+	createRawCubeTextureFromUrl: Engine.prototype.createRawCubeTextureFromUrl,
 };
 
 const savedTextureMethods: Record<string, any> = {
@@ -108,7 +109,7 @@ export function restorePlayOverrides(editor: Editor) {
 
 	Engine.prototype.createTexture = savedEngineMethods.createTexture;
 	Engine.prototype.createCubeTexture = savedEngineMethods.createCubeTexture;
-
+	Engine.prototype.createRawCubeTextureFromUrl = savedEngineMethods.createRawCubeTextureFromUrl;
 	SerializationHelper._TextureParser = savedTextureMethods.textureParser;
 
 	Observable.prototype.add = savedObservableMethods.add;
@@ -272,6 +273,14 @@ export function applyOverrides(editor: Editor) {
 	};
 
 	// Engine
+	Engine.prototype.createRawCubeTextureFromUrl = (url: string, ...args: any[]) => {
+		if (url && url.includes(publicScene)) {
+			url = url.replace(publicScene, projectDir);
+		}
+
+		return savedEngineMethods.createRawCubeTextureFromUrl.call(editor.layout.preview.engine, url, ...args);
+	};
+
 	Engine.prototype.createCubeTexture = (rootUrl: string, ...args: any[]) => {
 		if (rootUrl && rootUrl.includes(publicScene)) {
 			rootUrl = rootUrl.replace(publicScene, projectDir);

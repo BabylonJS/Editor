@@ -14,6 +14,7 @@ import {
 	SpotLight,
 	HemisphericLight,
 	Skeleton,
+	ClusteredLightContainer,
 } from "babylonjs";
 
 import { EditorCamera } from "../../editor/nodes/camera";
@@ -212,6 +213,14 @@ export function isLight(object: any): object is Light {
 	}
 
 	return false;
+}
+
+/**
+ * Returns wether or not the given object is a ClusteredLightContainer.
+ * @param object defines the reference to the object to test its class name.
+ */
+export function isClusteredLightContainer(object: any): object is ClusteredLightContainer {
+	return object.getClassName?.() === "ClusteredLightContainer";
 }
 
 /**

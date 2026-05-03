@@ -10,7 +10,7 @@ import { Editor } from "../../editor/main";
 
 import { IEditorProject } from "../typings";
 
-import { exportProject } from "../export/export";
+// import { exportProject } from "../export/export";
 
 import { projectsKey } from "../../tools/project";
 import { onProjectSavedObservable } from "../../tools/observables";
@@ -38,6 +38,7 @@ export async function saveProject(editor: Editor): Promise<void> {
 		}
 	} finally {
 		saving = false;
+		editor.layout.preview.setRenderScene(true);
 	}
 }
 
@@ -84,8 +85,6 @@ async function _saveProject(editor: Editor) {
 		editor.layout.console.log(`Project "${project.lastOpenedScene}" saved.`);
 	}
 
-	editor.layout.preview.setRenderScene(true);
-
 	toast.dismiss(toastId);
 	toast.success("Project saved");
 
@@ -113,9 +112,9 @@ async function _saveProject(editor: Editor) {
 		// Catch silently.
 	}
 
-	exportProject(editor, {
-		optimize: false,
-		noProgress: true,
-		noDialog: false,
-	});
+	// exportProject(editor, {
+	// 	optimize: false,
+	// 	noProgress: true,
+	// 	noDialog: false,
+	// });
 }

@@ -1,6 +1,7 @@
 import { basename, extname, join } from "node:path/posix";
 
 import fs from "fs-extra";
+import dotEnv from "dotenv";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
 import ora from "ora";
@@ -27,6 +28,13 @@ export interface IS3Options extends Partial<IPackOptions> {
 }
 
 export async function s3(projectDir: string, options: IS3Options) {
+	projectDir = getProjectDir(projectDir);
+
+	dotEnv.config({
+		override: true,
+		path: join(projectDir, ".env"),
+	});
+
 	const region = options.region ?? process.env.SPACE_REGION;
 	if (!region) {
 		throw new Error("SPACE_REGION is not defined in environment variables.");
@@ -51,8 +59,6 @@ export async function s3(projectDir: string, options: IS3Options) {
 	if (!rootKey) {
 		throw new Error("SPACE_ROOT_KEY is not defined in environment variables and no rootKey option was provided.");
 	}
-
-	projectDir = getProjectDir(projectDir);
 
 	if (!options.noPack) {
 		await pack(projectDir, {

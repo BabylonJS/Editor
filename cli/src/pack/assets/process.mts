@@ -9,7 +9,7 @@ import { processExportedMaterial } from "./material.mjs";
 import { processExportedNodeParticleSystemSet } from "./particle-system.mjs";
 
 const supportedImagesExtensions: string[] = [".jpg", ".jpeg", ".webp", ".png", ".bmp"];
-const supportedCubeTexturesExtensions: string[] = [".env", ".dds"];
+const supportedCubeTexturesExtensions: string[] = [".env", ".dds", ".hdr"];
 const supportedAudioExtensions: string[] = [".mp3", ".wav", ".wave", ".ogg"];
 const supportedJsonExtensions: string[] = [".material", ".gui", ".cinematic", ".npss", ".ragdoll", ".json"];
 const supportedMiscExtensions: string[] = [".3dl", ".exr", ".hdr"];

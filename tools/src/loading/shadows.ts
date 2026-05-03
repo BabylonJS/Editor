@@ -17,8 +17,12 @@ export function registerShadowGeneratorParser() {
 	const shadowsGeneratorParser = GetParser(SceneComponentConstants.NAME_SHADOWGENERATOR);
 
 	AddParser("ShadowGeneratorEditorPlugin", (parsedData: any, scene: Scene, container: AssetContainer, rootUrl: string) => {
-		if (scene.loadingShadowsQuality !== "high") {
-			parsedData.shadowGenerators?.forEach((shadowGenerator: any) => {
+		const savedShadowGenerators = new Map<string, number>();
+
+		parsedData.shadowGenerators?.forEach((shadowGenerator: any) => {
+			savedShadowGenerators.set(shadowGenerator.id, shadowGenerator.mapSize);
+
+			if (scene.loadingShadowsQuality !== "high") {
 				switch (scene.loadingShadowsQuality) {
 					case "medium":
 						shadowGenerator.mapSize = shadowGenerator.mapSize * 0.5;
@@ -34,9 +38,22 @@ export function registerShadowGeneratorParser() {
 				}
 
 				shadowGenerator.mapSize = Math.max(128, getPowerOfTwoUntil(shadowGenerator.mapSize));
-			});
-		}
+			}
+		});
 
 		shadowsGeneratorParser?.(parsedData, scene, container, rootUrl);
+
+		scene.lights.forEach((light) => {
+			const shadowGenerator = light.getShadowGenerator();
+			const shadowMap = shadowGenerator?.getShadowMap();
+
+			if (shadowMap) {
+				const id = shadowGenerator!.id;
+				const savedMapSize = savedShadowGenerators.get(id);
+				if (savedMapSize) {
+					shadowGenerator!.originalMapSize = savedMapSize;
+				}
+			}
+		});
 	});
 }
