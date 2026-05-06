@@ -14,7 +14,7 @@ import { Button } from "../../../../ui/shadcn/ui/button";
 
 import { SpriteMapNode } from "../../../nodes/sprite-map";
 
-import { onGizmoNodeChangedObservable } from "../../preview/gizmo";
+import { onGizmoNodeChangedObservable } from "../../preview/gizmo/gizmo";
 
 import { registerUndoRedo } from "../../../../tools/undoredo";
 import { isSpriteMapNode } from "../../../../tools/guards/sprites";

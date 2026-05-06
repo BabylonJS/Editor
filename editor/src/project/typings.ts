@@ -1,4 +1,4 @@
-import { IGizmoSnapPreferences } from "../tools/gizmo-snap-preferences";
+import { IGizmoSnapPreferences } from "../tools/scene/gizmo";
 
 export interface IEditorProject {
 	/**

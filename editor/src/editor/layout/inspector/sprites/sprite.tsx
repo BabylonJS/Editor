@@ -17,7 +17,7 @@ import { computeSpriteManagerPreviews } from "../../../../tools/sprite/preview";
 
 import { SpriteManagerNode } from "../../../nodes/sprite-manager";
 
-import { onGizmoNodeChangedObservable } from "../../preview/gizmo";
+import { onGizmoNodeChangedObservable } from "../../preview/gizmo/gizmo";
 
 import { ScriptInspectorComponent } from "../script/script";
 

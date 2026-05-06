@@ -7,7 +7,7 @@ import { FreeCamera, Node, Observer } from "babylonjs";
 import { isFreeCamera } from "../../../../tools/guards/nodes";
 import { onNodeModifiedObservable } from "../../../../tools/observables";
 
-import { onGizmoNodeChangedObservable } from "../../preview/gizmo";
+import { onGizmoNodeChangedObservable } from "../../preview/gizmo/gizmo";
 
 import { IEditorInspectorImplementationProps } from "../inspector";
 
