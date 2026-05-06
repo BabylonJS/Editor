@@ -279,7 +279,7 @@ export class EditorDecalsInspector extends Component<IEditorDecalsInspectorProps
 	}
 
 	private _handleUpdateCurrentDecalMesh(): void {
-		if (!EditorDecalsInspector._lastPickedMesh || !EditorDecalsInspector._lastPickPosition || !this.state.material) {
+		if (!EditorDecalsInspector._lastPickedMesh || !EditorDecalsInspector._lastPickPosition || !this.state.material || !this.state.ctrlOrMetaKeyDown) {
 			return;
 		}
 
@@ -295,6 +295,7 @@ export class EditorDecalsInspector extends Component<IEditorDecalsInspectorProps
 			normal: EditorDecalsInspector._lastPickedNormal ?? undefined,
 		});
 
+		this._decalMesh.isPickable = false;
 		this._decalMesh.receiveShadows = true;
 		this._decalMesh.visibility = this.state.ctrlOrMetaKeyDown ? 1 : 0.35;
 
@@ -332,6 +333,7 @@ export class EditorDecalsInspector extends Component<IEditorDecalsInspectorProps
 			decalMesh.name = this.state.material!.name;
 			decalMesh.id = Tools.RandomId();
 			decalMesh.uniqueId = UniqueNumber.Get();
+			decalMesh.isPickable = false;
 
 			decalMesh.metadata = {
 				decal: {
