@@ -16,14 +16,14 @@ import {
 	Sprite,
 } from "babylonjs";
 
-import { defaultGizmoSnapPreferences, IGizmoSnapPreferences } from "../../../tools/gizmo-snap-preferences";
-import { isSprite } from "../../../tools/guards/sprites";
-import { registerUndoRedo } from "../../../tools/undoredo";
-import { isNodeLocked } from "../../../tools/node/metadata";
-import { isQuaternion, isVector3 } from "../../../tools/guards/math";
-import { updateIblShadowsRenderPipeline } from "../../../tools/light/ibl";
-import { isAbstractMesh, isCamera, isLight, isNode } from "../../../tools/guards/nodes";
-import { updateLightShadowMapRefreshRate, updatePointLightShadowMapRenderListPredicate } from "../../../tools/light/shadows";
+import { isSprite } from "../../../../tools/guards/sprites";
+import { registerUndoRedo } from "../../../../tools/undoredo";
+import { isNodeLocked } from "../../../../tools/node/metadata";
+import { isQuaternion, isVector3 } from "../../../../tools/guards/math";
+import { updateIblShadowsRenderPipeline } from "../../../../tools/light/ibl";
+import { isAbstractMesh, isCamera, isLight, isNode } from "../../../../tools/guards/nodes";
+import { defaultGizmoSnapPreferences, IGizmoSnapPreferences } from "../../../../tools/scene/gizmo";
+import { updateLightShadowMapRefreshRate, updatePointLightShadowMapRenderListPredicate } from "../../../../tools/light/shadows";
 
 export const onGizmoNodeChangedObservable = new Observable<Node | Sprite>();
 

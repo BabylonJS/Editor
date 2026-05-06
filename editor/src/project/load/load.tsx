@@ -8,10 +8,10 @@ import { Editor } from "../../editor/main";
 import packageJson from "../../../package.json";
 
 import { requirePlugin } from "../../tools/plugins/require";
+import { defaultGizmoSnapPreferences, roundGizmoSnapSteps } from "../../tools/scene/gizmo";
 
-import { EditorProjectPackageManager, IEditorProject } from "../typings";
 import { projectConfiguration } from "../configuration";
-import { defaultGizmoSnapPreferences, roundGizmoSnapSteps } from "../../tools/gizmo-snap-preferences";
+import { EditorProjectPackageManager, IEditorProject } from "../typings";
 
 import { loadScene } from "./scene";
 import { LoadScenePrepareComponent } from "./prepare";
@@ -27,7 +27,7 @@ export async function loadProject(editor: Editor, path: string) {
 	const directory = dirname(path);
 	const project = (await readJSON(path, "utf-8")) as IEditorProject;
 	const packageManager = project.packageManager ?? "yarn";
-	const gizmoSnap = roundGizmoSnapSteps({ ...defaultGizmoSnapPreferences, ...project.gizmoSnap });
+	const gizmoSnap = roundGizmoSnapSteps({ ...defaultGizmoSnapPreferences, ...(project.gizmoSnap ?? {}) });
 
 	editor.setState({
 		packageManager,

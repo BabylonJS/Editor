@@ -43,7 +43,7 @@ import { EditorInspectorSectionField } from "../fields/section";
 import { ScriptInspectorComponent } from "../script/script";
 import { CustomMetadataInspector } from "../metadata/custom-metadata";
 
-import { onGizmoNodeChangedObservable } from "../../preview/gizmo";
+import { onGizmoNodeChangedObservable } from "../../preview/gizmo/gizmo";
 
 import { EditorTransformNodeInspector } from "../transform";
 import { IEditorInspectorImplementationProps } from "../inspector";
