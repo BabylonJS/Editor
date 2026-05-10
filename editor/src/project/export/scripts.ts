@@ -63,11 +63,12 @@ export async function handleExportScripts(editor: Editor): Promise<void> {
 				// Catch silently.
 			}
 
-			const [nodesFiles, meshesFiles, lightsFiles, cameraFiles, spriteManagerfiles, spriteMapFiles] = await Promise.all([
+			const [nodesFiles, meshesFiles, lightsFiles, cameraFiles, soundNodeFiles, spriteManagerfiles, spriteMapFiles] = await Promise.all([
 				tryReadDir(join(file, "nodes")),
 				tryReadDir(join(file, "meshes")),
 				tryReadDir(join(file, "lights")),
 				tryReadDir(join(file, "cameras")),
+				tryReadDir(join(file, "soundNodes")),
 				tryReadDir(join(file, "sprite-managers")),
 				tryReadDir(join(file, "sprite-maps")),
 			]);
@@ -78,6 +79,7 @@ export async function handleExportScripts(editor: Editor): Promise<void> {
 					...meshesFiles.map((file) => join("meshes", file)),
 					...lightsFiles.map((file) => join("lights", file)),
 					...cameraFiles.map((file) => join("cameras", file)),
+					...soundNodeFiles.map((file) => join("soundNodes", file)),
 					...spriteMapFiles.map((file) => join("sprite-maps", file)),
 					...spriteManagerfiles.map((file) => join("sprite-managers", file)),
 				].map(async (f) => {

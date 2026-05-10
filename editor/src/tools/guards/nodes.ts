@@ -20,6 +20,7 @@ import {
 import { EditorCamera } from "../../editor/nodes/camera";
 import { CollisionMesh } from "../../editor/nodes/collision";
 
+import { isSoundNode } from "./sound";
 import { isSceneLinkNode } from "./scene";
 import { isSpriteManagerNode, isSpriteMapNode } from "./sprites";
 
@@ -115,7 +116,7 @@ export function isSkeleton(object: any): object is Skeleton {
  * @param object defines the reference to the object to test its class name.
  */
 export function isAnyTransformNode(object: any): object is TransformNode {
-	return isTransformNode(object) || isSceneLinkNode(object) || isSpriteMapNode(object) || isSpriteManagerNode(object);
+	return isTransformNode(object) || isSceneLinkNode(object) || isSpriteMapNode(object) || isSpriteManagerNode(object) || isSoundNode(object);
 }
 
 /**

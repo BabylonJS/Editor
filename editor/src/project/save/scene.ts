@@ -8,6 +8,7 @@ import { RenderTargetTexture, SceneSerializer } from "babylonjs";
 import { Editor } from "../../editor/main";
 
 import { isTexture } from "../../tools/guards/texture";
+import { isSoundNode } from "../../tools/guards/sound";
 import { isSceneLinkNode } from "../../tools/guards/scene";
 import { applyAssetsCache } from "../../tools/assets/cache";
 import { isNodeVisibleInGraph } from "../../tools/node/metadata";
@@ -56,6 +57,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 		createDirectoryIfNotExist(join(scenePath, "sceneLinks")),
 		createDirectoryIfNotExist(join(scenePath, "gui")),
 		createDirectoryIfNotExist(join(scenePath, "sounds")),
+		createDirectoryIfNotExist(join(scenePath, "soundNodes")),
 		createDirectoryIfNotExist(join(scenePath, "particleSystems")),
 		createDirectoryIfNotExist(join(scenePath, "morphTargetManagers")),
 		createDirectoryIfNotExist(join(scenePath, "morphTargets")),
@@ -538,7 +540,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 		);
 	}
 
-	// Write sounds
+	// Write sounds. @deprecated.
 	const soundtracks = scene.soundTracks ?? [];
 
 	await Promise.all(
@@ -570,6 +572,36 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 					}
 				})
 			);
+		})
+	);
+
+	// Write sound nodes
+	await Promise.all(
+		scene.transformNodes.map(async (transformNode) => {
+			if (!isSoundNode(transformNode) || isFromSceneLink(transformNode)) {
+				return;
+			}
+
+			const soundNodePath = join(scenePath, "soundNodes", `${transformNode.id}.json`);
+
+			try {
+				const data = transformNode.serialize();
+
+				data.metadata ??= {};
+				data.metadata.parentId = transformNode.parent?.uniqueId;
+
+				delete data.parentId;
+
+				await writeJSON(soundNodePath, data, {
+					spaces: 4,
+				});
+			} catch (e) {
+				editor.layout.console.error(`Failed to write sound node ${transformNode.name}`);
+			} finally {
+				savedFiles.push(soundNodePath);
+			}
+
+			dialog.step(progressStep);
 		})
 	);
 

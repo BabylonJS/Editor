@@ -1,3 +1,5 @@
+import { extname } from "path/posix";
+
 import { Component, DragEvent, ReactNode } from "react";
 import { Button, Tree, TreeNodeInfo } from "@blueprintjs/core";
 
@@ -31,13 +33,13 @@ import {
 	ContextMenuSubTrigger,
 } from "../../ui/shadcn/ui/context-menu";
 
-import { isSound } from "../../tools/guards/sound";
 import { cloneNode } from "../../tools/node/clone";
 import { registerUndoRedo } from "../../tools/undoredo";
 import { isDomTextInputFocused } from "../../tools/dom";
 import { isSceneLinkNode } from "../../tools/guards/scene";
 import { updateAllLights } from "../../tools/light/shadows";
 import { isClusteredLight } from "../../tools/light/cluster";
+import { isSound, isSoundNode } from "../../tools/guards/sound";
 import { getCollisionMeshFor } from "../../tools/mesh/collision";
 import { isNodeVisibleInGraph } from "../../tools/node/metadata";
 import { isAdvancedDynamicTexture } from "../../tools/guards/texture";
@@ -79,7 +81,10 @@ import { getLightCommands } from "../dialogs/command-palette/light";
 import { getCameraCommands } from "../dialogs/command-palette/camera";
 import { getSpriteCommands } from "../dialogs/command-palette/sprite";
 
+import { addSoundNode } from "../../project/add/sound";
 import { onProjectConfigurationChangedObservable } from "../../project/configuration";
+
+import { applySoundAsset } from "./preview/import/sound";
 
 import { EditorGraphLabel } from "./graph/label";
 import { EditorGraphContextMenu } from "./graph/context-menu";
@@ -263,6 +268,8 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 											</ContextMenuItem>
 										);
 									})}
+									<ContextMenuSeparator />
+									<ContextMenuItem onClick={() => addSoundNode(this.props.editor)}>Sound Node</ContextMenuItem>
 									<ContextMenuSeparator />
 									{getSpriteCommands(this.props.editor).map((command) => {
 										return (
@@ -1105,7 +1112,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			return <TbBrandAdobeIndesign className="w-4 h-4" />;
 		}
 
-		if (isSound(object)) {
+		if (isSound(object) || isSoundNode(object)) {
 			return <HiSpeakerWave className="w-4 h-4" />;
 		}
 
@@ -1158,10 +1165,28 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 
 	private _handleDropEmpty(ev: DragEvent<HTMLDivElement>): void {
 		const node = ev.dataTransfer.getData("graph/node");
-		if (!node) {
-			return;
+		if (node) {
+			setNewParentForGraphSelectedNodes(this.props.editor, this.props.editor.layout.preview.scene, ev.shiftKey);
 		}
 
-		setNewParentForGraphSelectedNodes(this.props.editor, this.props.editor.layout.preview.scene, ev.shiftKey);
+		const asset = ev.dataTransfer.getData("assets");
+		if (asset) {
+			const absolutePaths = this.props.editor.layout.assets.state.selectedKeys;
+
+			absolutePaths.forEach((absolutePath) => {
+				const extension = extname(absolutePath).toLowerCase();
+
+				switch (extension) {
+					case ".mp3":
+					case ".ogg":
+					case ".wav":
+					case ".wave":
+						applySoundAsset(this.props.editor, this.props.editor.layout.preview.scene, absolutePath).then(() => {
+							this.props.editor.layout.graph.refresh();
+						});
+						break;
+				}
+			});
+		}
 	}
 }

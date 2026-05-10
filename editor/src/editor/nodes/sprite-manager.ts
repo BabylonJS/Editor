@@ -283,6 +283,6 @@ export class SpriteManagerNode extends TransformNode {
 	}
 }
 
-Node.AddNodeConstructor("SpriteMapNode", (name, scene) => {
+Node.AddNodeConstructor("SpriteManagerNode", (name, scene) => {
 	return () => new SpriteManagerNode(name, scene);
 });

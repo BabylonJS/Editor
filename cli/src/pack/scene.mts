@@ -226,6 +226,7 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 		})
 	);
 
+	// Sprite managers
 	const spriteManagersResult = await Promise.all(
 		options.directories.spriteManagerFiles.map(async (file) => {
 			const data = await fs.readJSON(join(options.sceneFile, "sprite-managers", file));
@@ -248,6 +249,7 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 		})
 	);
 
+	// Sprite maps
 	const spriteMapsResult = await Promise.all(
 		options.directories.spriteMapFiles.map(async (file) => {
 			const data = await fs.readJSON(join(options.sceneFile, "sprite-maps", file));
@@ -267,6 +269,29 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 	transformNodes.push(
 		...spriteMapsResult.filter((spriteMap) => {
 			return spriteMap !== null;
+		})
+	);
+
+	// Sound nodes
+	const soundNodesResults = await Promise.all(
+		options.directories.soundNodeFiles.map(async (file) => {
+			const data = await fs.readJSON(join(options.sceneFile, "soundNodes", file));
+
+			if (data.metadata?.doNotSerialize) {
+				return null;
+			}
+
+			if (data.metadata?.parentId) {
+				data.parentId = data.metadata.parentId;
+			}
+
+			return data;
+		})
+	);
+
+	transformNodes.push(
+		...soundNodesResults.filter((soundNode) => {
+			return soundNode !== null;
 		})
 	);
 

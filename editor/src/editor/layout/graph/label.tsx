@@ -11,7 +11,7 @@ import { isDarwin } from "../../../tools/os";
 import { isScene } from "../../../tools/guards/scene";
 import { registerUndoRedo } from "../../../tools/undoredo";
 import { isNodeSerializable, isNodeLocked } from "../../../tools/node/metadata";
-import { isClusteredLightContainer, isInstancedMesh, isMesh, isNode } from "../../../tools/guards/nodes";
+import { isClusteredLightContainer, isInstancedMesh, isMesh, isNode, isTransformNode } from "../../../tools/guards/nodes";
 
 import { applySoundAsset } from "../preview/import/sound";
 import { applyTextureAssetToObject } from "../preview/import/texture";
@@ -146,7 +146,7 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
 				case ".ogg":
 				case ".wav":
 				case ".wave":
-					if (isScene(props.object) || isMesh(props.object) || isInstancedMesh(props.object)) {
+					if (isScene(props.object) || isMesh(props.object) || isInstancedMesh(props.object) || isTransformNode(props.object)) {
 						applySoundAsset(props.editor, props.object, absolutePath).then(() => {
 							props.editor.layout.graph.refresh();
 						});
