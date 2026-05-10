@@ -7,7 +7,7 @@ import { Mesh, Node, Scene, Vector2, Sound, Vector3 } from "babylonjs";
 
 import { Editor } from "../../main";
 
-import { isSound } from "../../../tools/guards/sound";
+import { isSoundNode } from "../../../tools/guards/sound";
 import { isNodeLocked } from "../../../tools/node/metadata";
 import { projectVectorOnScreen } from "../../../tools/maths/projection";
 import { isCamera, isClusteredLightContainer, isEditorCamera, isLight, isNode } from "../../../tools/guards/nodes";
@@ -21,8 +21,8 @@ export interface IEditorPreviewIconsState {
 }
 
 interface _IButtonData {
+	node: Node;
 	position: Vector2;
-	node: Node | Sound;
 }
 
 export class EditorPreviewIcons extends Component<IEditorPreviewIconsProps, IEditorPreviewIconsState> {
@@ -146,24 +146,20 @@ export class EditorPreviewIcons extends Component<IEditorPreviewIconsProps, IEdi
 					}
 				});
 
-				scene.soundTracks?.forEach((soundtrack) => {
-					soundtrack.soundCollection.forEach((sound) => {
-						const attachedNode = sound["_connectedTransformNode"];
-
-						if (!sound.spatialSound || !attachedNode) {
-							return;
-						}
-
-						if (this._isInFrustrum(sound["_connectedTransformNode"].getAbsolutePosition(), scene)) {
+				scene.transformNodes.forEach((node) => {
+					if (isSoundNode(node) && node.sound) {
+						if (this._isInFrustrum(node.getAbsolutePosition(), scene)) {
 							buttons.push({
-								node: sound as any,
-								position: projectVectorOnScreen(sound["_connectedTransformNode"].computeWorldMatrix().getTranslation(), scene),
+								node: node,
+								position: projectVectorOnScreen(node.computeWorldMatrix().getTranslation(), scene),
 							});
 						}
-					});
+					}
 				});
 
-				this.setState({ buttons });
+				this.setState({
+					buttons,
+				});
 			})
 		);
 	}
@@ -201,7 +197,7 @@ export class EditorPreviewIcons extends Component<IEditorPreviewIconsProps, IEdi
 			return <FaCamera color="white" stroke="black" strokeWidth={0.1} className="w-full h-full" />;
 		}
 
-		if (isSound(node)) {
+		if (isSoundNode(node)) {
 			return <HiSpeakerWave color="white" stroke="black" strokeWidth={0.1} className="w-full h-full" />;
 		}
 	}

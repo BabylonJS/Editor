@@ -12,6 +12,7 @@ export * from "./tools/light";
 export * from "./tools/scalar";
 export * from "./tools/animation";
 export * from "./tools/sprite";
+export * from "./tools/sound";
 export * from "./tools/particle";
 export * from "./tools/ragdoll";
 export * from "./tools/mesh";

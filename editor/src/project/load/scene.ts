@@ -5,6 +5,7 @@ import { AbstractMesh, AnimationGroup, Camera, Color3, Light, SceneLoaderFlags, 
 
 import { Editor } from "../../editor/main";
 
+import { SoundNode } from "../../editor/nodes/sound";
 import { EditorCamera } from "../../editor/nodes/camera";
 import { SceneLinkNode } from "../../editor/nodes/scene-link";
 import { SpriteMapNode } from "../../editor/nodes/sprite-map";
@@ -40,6 +41,7 @@ import { loadSounds } from "./plugins/sounds";
 import { loadCameras } from "./plugins/cameras";
 import { loadSkeletons } from "./plugins/skeletons";
 import { loadSpriteMaps } from "./plugins/sprite-maps";
+import { loadSoundNodes } from "./plugins/sound-nodes";
 import { loadSpriteManagers } from "./plugins/sprite-managers";
 import { loadTransformNodes } from "./plugins/transform-nodes";
 import { loadParticleSystems } from "./plugins/particle-systems";
@@ -69,6 +71,7 @@ export type SceneLoadResult = {
 	transformNodes: TransformNode[];
 	animationGroups: AnimationGroup[];
 	particleSystems: IParticleSystem[];
+	soundNodes: SoundNode[];
 	spriteMaps: SpriteMapNode[];
 	spriteManagers: SpriteManagerNode[];
 };
@@ -99,6 +102,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 		transformNodes: [],
 		animationGroups: [],
 		particleSystems: [],
+		soundNodes: [],
 		spriteMaps: [],
 		spriteManagers: [],
 	} as SceneLoadResult;
@@ -121,6 +125,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 		createDirectoryIfNotExist(join(scenePath, "sceneLinks")),
 		createDirectoryIfNotExist(join(scenePath, "gui")),
 		createDirectoryIfNotExist(join(scenePath, "sounds")),
+		createDirectoryIfNotExist(join(scenePath, "soundNodes")),
 		createDirectoryIfNotExist(join(scenePath, "particleSystems")),
 		createDirectoryIfNotExist(join(scenePath, "morphTargetManagers")),
 		createDirectoryIfNotExist(join(scenePath, "morphTargets")),
@@ -141,6 +146,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 		sceneLinkFiles,
 		guiFiles,
 		soundFiles,
+		soundNodeFiles,
 		particleSystemFiles,
 		morphTargetManagerFiles,
 		animationGroupFiles,
@@ -158,6 +164,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 		readdir(join(scenePath, "sceneLinks")),
 		readdir(join(scenePath, "gui")),
 		readdir(join(scenePath, "sounds")),
+		readdir(join(scenePath, "soundNodes")),
 		readdir(join(scenePath, "particleSystems")),
 		readdir(join(scenePath, "morphTargetManagers")),
 		readdir(join(scenePath, "animationGroups")),
@@ -179,6 +186,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 			sceneLinkFiles.length +
 			guiFiles.length +
 			soundFiles.length +
+			soundNodeFiles.length +
 			particleSystemFiles.length +
 			morphTargetManagerFiles.length +
 			animationGroupFiles.length +
@@ -279,6 +287,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 
 	await loadGuis(editor, guiFiles, pluginLoadOptions);
 	await loadSounds(editor, soundFiles, scene, pluginLoadOptions);
+	await loadSoundNodes(editor, soundNodeFiles, scene, pluginLoadOptions);
 	await loadParticleSystems(editor, particleSystemFiles, scene, pluginLoadOptions);
 	await loadAnimationGroups(editor, animationGroupFiles, scene, pluginLoadOptions);
 	await loadSpriteMaps(editor, spriteMapFiles, scene, pluginLoadOptions);

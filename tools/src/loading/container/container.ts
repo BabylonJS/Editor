@@ -4,10 +4,12 @@ import { Sound } from "@babylonjs/core/Audio/sound";
 import { AssetContainer } from "@babylonjs/core/assetContainer";
 import { AnimationGroup } from "@babylonjs/core/Animations/animationGroup";
 
+import { SoundNode } from "../../tools/sound";
 import { cloneJSObject } from "../../tools/tools";
-import { isAbstractMesh, isTransformNode } from "../../tools/guards";
+import { isAbstractMesh, isSoundNode, isTransformNode } from "../../tools/guards";
 
 import { ScriptMap } from "../loader";
+import { configureSourceNodeFrom } from "../sound";
 import { configureTransformNodes } from "../transform-node";
 import { _applyScriptsForObject, _removeRegisteredScriptInstance, getAllScriptsByClassForObject, scriptsDictionary } from "../script/apply";
 
@@ -169,6 +171,10 @@ export class AdvancedAssetContainer {
 			newNode.name = `${nameSplit[0]}-${namingId}`;
 
 			const originalNode = this._originalDescendants.find((n) => n.id === originalId)!;
+
+			if (isSoundNode(originalNode) && isTransformNode(newNode)) {
+				configureSourceNodeFrom(originalNode, newNode as SoundNode);
+			}
 
 			newNode.id = Tools.RandomId();
 

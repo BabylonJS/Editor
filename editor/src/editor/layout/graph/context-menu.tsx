@@ -40,11 +40,13 @@ import { isAnyParticleSystem } from "../../../tools/guards/particles";
 import { isScene, isSceneLinkNode } from "../../../tools/guards/scene";
 import { cloneNode, ICloneNodeOptions } from "../../../tools/node/clone";
 import { isSprite, isSpriteMapNode } from "../../../tools/guards/sprites";
-import { isAbstractMesh, isCamera, isClusteredLightContainer, isLight, isMesh, isNode } from "../../../tools/guards/nodes";
 import { isNodeLocked, isNodeSerializable, isNodeVisibleInGraph, setNodeLocked, setNodeSerializable } from "../../../tools/node/metadata";
+import { isAbstractMesh, isCamera, isClusteredLightContainer, isLight, isMesh, isNode, isTransformNode } from "../../../tools/guards/nodes";
 
 import { addPointLight, addSpotLight } from "../../../project/add/light";
 import { addGPUParticleSystem, addParticleSystem } from "../../../project/add/particles";
+
+import { addSoundNode } from "../../../project/add/sound";
 
 import { EditorInspectorSwitchField } from "../inspector/fields/switch";
 
@@ -200,6 +202,14 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
 													<ContextMenuItem onClick={() => addParticleSystem(this.props.editor, this.props.object)}>Particle System</ContextMenuItem>
 													<ContextMenuItem onClick={() => addGPUParticleSystem(this.props.editor, this.props.object)}>
 														GPU Particle System
+													</ContextMenuItem>
+												</>
+											)}
+											{(isAbstractMesh(this.props.object) || isTransformNode(this.props.object) || isScene(this.props.object)) && (
+												<>
+													<ContextMenuSeparator />
+													<ContextMenuItem onClick={() => addSoundNode(this.props.editor, isScene(this.props.object) ? null : this.props.object)}>
+														Sound Node
 													</ContextMenuItem>
 												</>
 											)}
