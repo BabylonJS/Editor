@@ -9,41 +9,42 @@ import { EditorInspectorBlockField } from "../../../layout/inspector/fields/bloc
 import { EditorInspectorSectionField } from "../../../layout/inspector/fields/section";
 
 import {
-	type IEffectNode,
+	createParticleUiProxy,
 	type IEmissionBurst,
-	EffectSolidParticleSystem,
-	EffectParticleSystem,
-	SolidSphereParticleEmitter,
-	SolidConeParticleEmitter,
-	SolidBoxParticleEmitter,
-	SolidHemisphericParticleEmitter,
-	SolidCylinderParticleEmitter,
+	isSolidParticleSystem,
+	isSolidSphereEmitter,
+	isSolidConeEmitter,
+	isSolidBoxEmitter,
+	isSolidHemisphericEmitter,
+	isSolidCylinderEmitter,
 	Value,
-} from "babylonjs-editor-tools";
+} from "../compat-lite";
 import { EffectValueEditor } from "../editors/value";
+import type { IQuarksNode } from "../quarks-bridge";
+import type { ParticleSystem } from "babylon.quarks";
 
 export interface IEffectEditorEmissionPropertiesProps {
-	nodeData: IEffectNode;
+	nodeData: IQuarksNode;
 	onChange: () => void;
 }
 
 /**
  * Renders emitter shape properties for SolidParticleSystem
  */
-function renderSolidParticleSystemEmitter(system: EffectSolidParticleSystem, onChange: () => void): ReactNode {
-	const emitter = system.particleEmitterType;
-	const emitterType = emitter ? emitter.constructor.name : "Point";
-
-	const emitterTypeMap: Record<string, string> = {
-		SolidPointParticleEmitter: "point",
-		SolidSphereParticleEmitter: "sphere",
-		SolidConeParticleEmitter: "cone",
-		SolidBoxParticleEmitter: "box",
-		SolidHemisphericParticleEmitter: "hemisphere",
-		SolidCylinderParticleEmitter: "cylinder",
-	};
-
-	const currentType = emitterTypeMap[emitterType] || "point";
+function renderSolidParticleSystemEmitter(system: ParticleSystem, onChange: () => void): ReactNode {
+	const particle = createParticleUiProxy(system);
+	const emitter = particle.particleEmitterType;
+	const currentType = isSolidSphereEmitter(emitter)
+		? "sphere"
+		: isSolidConeEmitter(emitter)
+			? "cone"
+			: isSolidBoxEmitter(emitter)
+				? "box"
+				: isSolidHemisphericEmitter(emitter)
+					? "hemisphere"
+					: isSolidCylinderEmitter(emitter)
+						? "cylinder"
+						: "point";
 	const emitterTypes = [
 		{ text: "Point", value: "point" },
 		{ text: "Box", value: "box" },
@@ -55,24 +56,24 @@ function renderSolidParticleSystemEmitter(system: EffectSolidParticleSystem, onC
 
 	// Helper to get current values from various emitter types
 	const getRadius = (): number => {
-		if (emitter instanceof SolidSphereParticleEmitter || emitter instanceof SolidConeParticleEmitter) {
+		if (isSolidSphereEmitter(emitter) || isSolidConeEmitter(emitter)) {
 			return emitter.radius;
 		}
-		if (emitter instanceof SolidHemisphericParticleEmitter || emitter instanceof SolidCylinderParticleEmitter) {
+		if (isSolidHemisphericEmitter(emitter) || isSolidCylinderEmitter(emitter)) {
 			return emitter.radius;
 		}
 		return 1;
 	};
 
 	const getRadiusRange = (): number => {
-		if (emitter instanceof SolidHemisphericParticleEmitter || emitter instanceof SolidCylinderParticleEmitter) {
+		if (isSolidHemisphericEmitter(emitter) || isSolidCylinderEmitter(emitter)) {
 			return emitter.radiusRange;
 		}
 		return 1;
 	};
 
 	const getDirectionRandomizer = (): number => {
-		if (emitter instanceof SolidHemisphericParticleEmitter || emitter instanceof SolidCylinderParticleEmitter) {
+		if (isSolidHemisphericEmitter(emitter) || isSolidCylinderEmitter(emitter)) {
 			return emitter.directionRandomizer;
 		}
 		return 0;
@@ -87,38 +88,38 @@ function renderSolidParticleSystemEmitter(system: EffectSolidParticleSystem, onC
 				items={emitterTypes.map((t) => ({ text: t.text, value: t.value }))}
 				onChange={(value) => {
 					const currentRadius = getRadius();
-					const currentArc = emitter instanceof SolidSphereParticleEmitter || emitter instanceof SolidConeParticleEmitter ? emitter.arc : Math.PI * 2;
-					const currentThickness = emitter instanceof SolidSphereParticleEmitter || emitter instanceof SolidConeParticleEmitter ? emitter.thickness : 1;
-					const currentAngle = emitter instanceof SolidConeParticleEmitter ? emitter.angle : Math.PI / 6;
-					const currentHeight = emitter instanceof SolidCylinderParticleEmitter ? emitter.height : 1;
+					const currentArc = isSolidSphereEmitter(emitter) || isSolidConeEmitter(emitter) ? emitter.arc : Math.PI * 2;
+					const currentThickness = isSolidSphereEmitter(emitter) || isSolidConeEmitter(emitter) ? emitter.thickness : 1;
+					const currentAngle = isSolidConeEmitter(emitter) ? emitter.angle : Math.PI / 6;
+					const currentHeight = isSolidCylinderEmitter(emitter) ? emitter.height : 1;
 					const currentRadiusRange = getRadiusRange();
 					const currentDirRandomizer = getDirectionRandomizer();
 
 					switch (value) {
 						case "point":
-							system.createPointEmitter();
+							particle.createPointEmitter();
 							break;
 						case "box":
-							system.createBoxEmitter();
+							particle.createBoxEmitter();
 							break;
 						case "sphere":
-							system.createSphereEmitter(currentRadius, currentArc, currentThickness);
+							particle.createSphereEmitter(currentRadius, currentArc, currentThickness);
 							break;
 						case "cone":
-							system.createConeEmitter(currentRadius, currentArc, currentThickness, currentAngle);
+							particle.createConeEmitter(currentRadius, currentArc, currentThickness, currentAngle);
 							break;
 						case "hemisphere":
-							system.createHemisphericEmitter(currentRadius, currentRadiusRange, currentDirRandomizer);
+							particle.createHemisphericEmitter(currentRadius, currentRadiusRange, currentDirRandomizer);
 							break;
 						case "cylinder":
-							system.createCylinderEmitter(currentRadius, currentHeight, currentRadiusRange, currentDirRandomizer);
+							particle.createCylinderEmitter(currentRadius, currentHeight, currentRadiusRange, currentDirRandomizer);
 							break;
 					}
 					onChange();
 				}}
 			/>
 
-			{emitter instanceof SolidSphereParticleEmitter && (
+			{isSolidSphereEmitter(emitter) && (
 				<>
 					<EditorInspectorNumberField object={emitter} property="radius" label="Radius" min={0} step={0.1} onChange={onChange} />
 					<EditorInspectorNumberField object={emitter} property="arc" label="Arc" min={0} max={Math.PI * 2} step={0.1} onChange={onChange} />
@@ -126,7 +127,7 @@ function renderSolidParticleSystemEmitter(system: EffectSolidParticleSystem, onC
 				</>
 			)}
 
-			{emitter instanceof SolidConeParticleEmitter && (
+			{isSolidConeEmitter(emitter) && (
 				<>
 					<EditorInspectorNumberField object={emitter} property="radius" label="Radius" min={0} step={0.1} onChange={onChange} />
 					<EditorInspectorNumberField object={emitter} property="arc" label="Arc" min={0} max={Math.PI * 2} step={0.1} onChange={onChange} />
@@ -135,7 +136,7 @@ function renderSolidParticleSystemEmitter(system: EffectSolidParticleSystem, onC
 				</>
 			)}
 
-			{emitter instanceof SolidBoxParticleEmitter && (
+			{isSolidBoxEmitter(emitter) && (
 				<>
 					<EditorInspectorBlockField>
 						<div className="px-2">Direction</div>
@@ -150,7 +151,7 @@ function renderSolidParticleSystemEmitter(system: EffectSolidParticleSystem, onC
 				</>
 			)}
 
-			{emitter instanceof SolidHemisphericParticleEmitter && (
+			{isSolidHemisphericEmitter(emitter) && (
 				<>
 					<EditorInspectorNumberField object={emitter} property="radius" label="Radius" min={0} step={0.1} onChange={onChange} />
 					<EditorInspectorNumberField object={emitter} property="radiusRange" label="Radius Range" min={0} max={1} step={0.01} onChange={onChange} />
@@ -158,7 +159,7 @@ function renderSolidParticleSystemEmitter(system: EffectSolidParticleSystem, onC
 				</>
 			)}
 
-			{emitter instanceof SolidCylinderParticleEmitter && (
+			{isSolidCylinderEmitter(emitter) && (
 				<>
 					<EditorInspectorNumberField object={emitter} property="radius" label="Radius" min={0} step={0.1} onChange={onChange} />
 					<EditorInspectorNumberField object={emitter} property="height" label="Height" min={0} step={0.1} onChange={onChange} />
@@ -173,8 +174,9 @@ function renderSolidParticleSystemEmitter(system: EffectSolidParticleSystem, onC
 /**
  * Renders emitter shape properties for ParticleSystem
  */
-function renderParticleSystemEmitter(system: EffectParticleSystem, onChange: () => void): ReactNode {
-	const emitter = system.particleEmitterType;
+function renderParticleSystemEmitter(system: ParticleSystem, onChange: () => void): ReactNode {
+	const particle = createParticleUiProxy(system);
+	const emitter = particle.particleEmitterType;
 	if (!emitter) {
 		return <div className="px-2 text-muted-foreground">No emitter found.</div>;
 	}
@@ -220,22 +222,22 @@ function renderParticleSystemEmitter(system: EffectParticleSystem, onChange: () 
 
 					switch (value) {
 						case "point":
-							system.createPointEmitter(currentDirection1, currentDirection2);
+							particle.createPointEmitter(currentDirection1, currentDirection2);
 							break;
 						case "box":
-							system.createBoxEmitter(currentDirection1, currentDirection2, currentMinEmitBox, currentMaxEmitBox);
+							particle.createBoxEmitter(currentDirection1, currentDirection2, currentMinEmitBox, currentMaxEmitBox);
 							break;
 						case "sphere":
-							system.createSphereEmitter(currentRadius);
+							particle.createSphereEmitter(currentRadius);
 							break;
 						case "cone":
-							system.createConeEmitter(currentRadius, currentAngle);
+							particle.createConeEmitter(currentRadius, currentAngle);
 							break;
 						case "hemisphere":
-							system.createHemisphericEmitter(currentRadius);
+							particle.createHemisphericEmitter(currentRadius);
 							break;
 						case "cylinder":
-							system.createCylinderEmitter(currentRadius, currentHeight);
+							particle.createCylinderEmitter(currentRadius, currentHeight);
 							break;
 					}
 					onChange();
@@ -330,18 +332,18 @@ function renderParticleSystemEmitter(system: EffectParticleSystem, onChange: () 
 /**
  * Renders emitter shape properties
  */
-function renderEmitterShape(nodeData: IEffectNode, onChange: () => void): ReactNode {
+function renderEmitterShape(nodeData: IQuarksNode, onChange: () => void): ReactNode {
 	if (nodeData.type !== "particle" || !nodeData.data) {
 		return null;
 	}
 
-	const system = nodeData.data;
+	const system = nodeData.data as ParticleSystem;
 
-	if (system instanceof EffectSolidParticleSystem) {
+	if (isSolidParticleSystem(system)) {
 		return renderSolidParticleSystemEmitter(system, onChange);
 	}
 
-	if (system instanceof EffectParticleSystem) {
+	if (system) {
 		return renderParticleSystemEmitter(system, onChange);
 	}
 
@@ -351,9 +353,10 @@ function renderEmitterShape(nodeData: IEffectNode, onChange: () => void): ReactN
 /**
  * Renders emission bursts
  */
-function renderBursts(system: EffectParticleSystem | EffectSolidParticleSystem, onChange: () => void): ReactNode {
-	const bursts: (IEmissionBurst & { cycle?: number; interval?: number; probability?: number })[] = Array.isArray((system as any).emissionBursts)
-		? (system as any).emissionBursts
+function renderBursts(system: ParticleSystem, onChange: () => void): ReactNode {
+	const particle = createParticleUiProxy(system);
+	const bursts: (IEmissionBurst & { cycle?: number; interval?: number; probability?: number })[] = Array.isArray(particle.emissionBursts)
+		? particle.emissionBursts
 		: [];
 
 	const addBurst = () => {
@@ -364,13 +367,13 @@ function renderBursts(system: EffectParticleSystem | EffectSolidParticleSystem, 
 			interval: 0,
 			probability: 1,
 		});
-		(system as any).emissionBursts = bursts;
+		particle.emissionBursts = bursts;
 		onChange();
 	};
 
 	const removeBurst = (index: number) => {
 		bursts.splice(index, 1);
-		(system as any).emissionBursts = bursts;
+		particle.emissionBursts = bursts;
 		onChange();
 	};
 
@@ -419,12 +422,13 @@ function renderBursts(system: EffectParticleSystem | EffectSolidParticleSystem, 
 /**
  * Renders emission parameters (looping, duration, emit over time/distance, bursts)
  */
-function renderEmissionParameters(nodeData: IEffectNode, onChange: () => void): ReactNode {
+function renderEmissionParameters(nodeData: IQuarksNode, onChange: () => void): ReactNode {
 	if (nodeData.type !== "particle" || !nodeData.data) {
 		return null;
 	}
 
-	const system = nodeData.data;
+	const system = nodeData.data as ParticleSystem;
+	const particle = createParticleUiProxy(system);
 
 	// Proxy for looping (targetStopDuration === 0 means looping)
 	const loopingProxy = {
@@ -433,9 +437,9 @@ function renderEmissionParameters(nodeData: IEffectNode, onChange: () => void): 
 		},
 		set isLooping(value: boolean) {
 			if (value) {
-				(system as any).targetStopDuration = 0;
-			} else if ((system as any).targetStopDuration === 0) {
-				(system as any).targetStopDuration = 5; // Default duration
+				particle.targetStopDuration = 0;
+			} else if (particle.targetStopDuration === 0) {
+				particle.targetStopDuration = 5; // Default duration
 			}
 		},
 	};
@@ -443,14 +447,14 @@ function renderEmissionParameters(nodeData: IEffectNode, onChange: () => void): 
 	// Proxy for prewarm (preWarmCycles > 0 means prewarm enabled)
 	const prewarmProxy = {
 		get prewarm() {
-			return (system as any).preWarmCycles > 0;
+			return particle.preWarmCycles > 0;
 		},
 		set prewarm(value: boolean) {
-			if (value && (system as any).preWarmCycles === 0) {
-				(system as any).preWarmCycles = Math.ceil((system as any).targetStopDuration || 5) * 60;
-				(system as any).preWarmStepOffset = 1 / 60;
+			if (value && particle.preWarmCycles === 0) {
+				particle.preWarmCycles = Math.ceil(particle.targetStopDuration || 5) * 60;
+				particle.preWarmStepOffset = 1 / 60;
 			} else if (!value) {
-				(system as any).preWarmCycles = 0;
+				particle.preWarmCycles = 0;
 			}
 		},
 	};
@@ -458,20 +462,20 @@ function renderEmissionParameters(nodeData: IEffectNode, onChange: () => void): 
 	return (
 		<>
 			<EditorInspectorSwitchField object={loopingProxy} property="isLooping" label="Looping" onChange={onChange} />
-			<EditorInspectorNumberField object={system as any} property="targetStopDuration" label="Duration" min={0} step={0.1} onChange={onChange} />
+			<EditorInspectorNumberField object={particle} property="targetStopDuration" label="Duration" min={0} step={0.1} onChange={onChange} />
 			<EditorInspectorSwitchField object={prewarmProxy} property="prewarm" label="Prewarm" onChange={onChange} />
 
 			{/* Emit Rate (native Babylon.js property) */}
-			<EditorInspectorNumberField object={system as any} property="emitRate" label="Emit Rate" min={0} step={1} onChange={onChange} />
+			<EditorInspectorNumberField object={particle} property="emitRate" label="Emit Rate" min={0} step={1} onChange={onChange} />
 
 			{/* Emit Over Distance - only for SolidParticleSystem */}
-			{system instanceof EffectSolidParticleSystem && (
+			{isSolidParticleSystem(system) && (
 				<EditorInspectorSectionField title="Emit Over Distance">
 					<EffectValueEditor
 						label="Emit Over Distance"
-						value={(system as EffectSolidParticleSystem).emissionOverDistance as Value | undefined}
+						value={(system as any).emissionOverDistance as Value | undefined}
 						onChange={(val) => {
-							(system as EffectSolidParticleSystem).emissionOverDistance = val as Value;
+							(system as any).emissionOverDistance = val as Value;
 							onChange();
 						}}
 					/>

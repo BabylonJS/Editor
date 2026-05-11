@@ -16,7 +16,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { HiOutlineTrash } from "react-icons/hi2";
 import { IoAddSharp } from "react-icons/io5";
 
-import { type IEffectNode, EffectParticleSystem, EffectSolidParticleSystem, BEHAVIOR_TYPES, type BehaviorKind, type Behavior } from "babylonjs-editor-tools";
+import { createParticleUiProxy, isSystem, BEHAVIOR_TYPES, type BehaviorKind, type Behavior } from "../compat-lite";
+import type { IQuarksNode } from "../quarks-bridge";
 import { FunctionEditor, ColorFunctionEditor } from "../editors";
 
 // Types
@@ -498,7 +499,7 @@ function BehaviorProperties(props: IBehaviorPropertiesProps): ReactNode {
 
 // Main component
 export interface IEffectEditorBehaviorsPropertiesProps {
-	nodeData: IEffectNode;
+	nodeData: IQuarksNode;
 	onChange: () => void;
 }
 
@@ -509,10 +510,11 @@ export function EffectEditorBehaviorsProperties(props: IEffectEditorBehaviorsPro
 		return null;
 	}
 
-	const system = nodeData.data;
-	if (!(system instanceof EffectParticleSystem || system instanceof EffectSolidParticleSystem)) {
+	const sourceSystem = nodeData.data;
+	if (!isSystem(sourceSystem)) {
 		return null;
 	}
+	const system = createParticleUiProxy(sourceSystem);
 
 	const behaviorConfigs: EditorBehavior[] = system.behaviorConfigs ?? [];
 

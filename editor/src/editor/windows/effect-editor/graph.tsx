@@ -1,41 +1,38 @@
 import { Component, ReactNode } from "react";
 import { Tree, TreeNodeInfo } from "@blueprintjs/core";
-
-import { AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
-import { IoSparklesSharp } from "react-icons/io5";
+import { readJSON, writeJSON } from "fs-extra";
+import { basename } from "path";
+import { toast } from "sonner";
+import { AiOutlineClose, AiOutlinePlus } from "react-icons/ai";
 import { HiOutlineFolder } from "react-icons/hi2";
+import { IoSparklesSharp } from "react-icons/io5";
 
 import {
 	ContextMenu,
 	ContextMenuContent,
 	ContextMenuItem,
-	ContextMenuTrigger,
 	ContextMenuSeparator,
 	ContextMenuSub,
-	ContextMenuSubTrigger,
 	ContextMenuSubContent,
+	ContextMenuSubTrigger,
+	ContextMenuTrigger,
 } from "../../../ui/shadcn/ui/context-menu";
-import { IEffectEditor } from ".";
 import { saveSingleFileDialog } from "../../../tools/dialog";
-import { readJSON, writeJSON } from "fs-extra";
-import { toast } from "sonner";
-import {
-	Effect,
-	type IEffectNode,
-	EffectSolidParticleSystem,
-	EffectParticleSystem,
-	type IData,
-	type IGroup,
-	type IEmitter,
-	type ITransform,
-	type IParticleSystemConfig,
-	deserializeData,
-} from "babylonjs-editor-tools";
-import { IQuarksJSON } from "./converters/quarks/types";
-import { QuarksConverter } from "./converters";
-import { basename, dirname } from "path";
-import { Quaternion } from "@babylonjs/core/Maths/math.vector";
+import { IEffectEditor } from ".";
+import { ParticleSystem } from "babylon.quarks";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
+import { IQuarksEffectFile, IQuarksNode, QuarksEffectDocument } from "./quarks-bridge";
+
+export type PlaybackState = "playing" | "paused" | "stopped" | "unavailable";
+type StoredPlaybackState = Exclude<PlaybackState, "unavailable">;
+
+export interface IPlaybackControlState {
+	state: PlaybackState;
+	canPlayPause: boolean;
+	canStop: boolean;
+	canRestart: boolean;
+	reason?: string;
+}
 
 export interface IEffectEditorGraphProps {
 	filePath: string | null;
@@ -44,348 +41,299 @@ export interface IEffectEditorGraphProps {
 }
 
 export interface IEffectEditorGraphState {
-	nodes: TreeNodeInfo<IEffectNode>[];
+	nodes: TreeNodeInfo<IQuarksNode>[];
 	selectedNodeId: string | number | null;
 }
 
-interface IEffectInfo {
-	id: string;
-	name: string;
-	effect: Effect;
-	data: IData; // Store full IData including resources for serialization
-}
-
-/**
- * Effect file format with metadata and multiple effects
- */
-export interface IEffectFile {
-	version: string;
-	effects: IEffectData[];
-}
-
-/**
- * Single effect data in the file
- */
-interface IEffectData {
-	id: string;
-	name: string;
-	data: IData;
-}
-
 export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffectEditorGraphState> {
-	private _effects: Map<string, IEffectInfo> = new Map();
-	/** Map of node instances to unique IDs for tree nodes */
-	private _nodeIdMap: Map<IEffectNode, string> = new Map();
+	private _effects: Map<string, QuarksEffectDocument> = new Map();
+	private _nodeIndex: Map<string, IQuarksNode> = new Map();
+	private _playbackByUuid: Map<string, StoredPlaybackState> = new Map();
 
 	public constructor(props: IEffectEditorGraphProps) {
 		super(props);
-
 		this.state = {
 			nodes: [],
 			selectedNodeId: null,
 		};
 	}
 
-	/**
-	 * Get the first  effect (for backward compatibility)
-	 */
-	public getEffect(): Effect | null {
-		const firstEffect = this._effects.values().next().value;
-		return firstEffect ? firstEffect.effect : null;
+	/** Returns the first effect document for fallback flows. */
+	public getEffect(): QuarksEffectDocument | null {
+		return this._effects.values().next().value ?? null;
 	}
 
-	/**
-	 * Get all  effects
-	 */
-	public getAllEffects(): Effect[] {
-		return Array.from(this._effects.values()).map((info) => info.effect);
+	/** Returns all effect documents currently loaded in graph. */
+	public getAllEffects(): QuarksEffectDocument[] {
+		return Array.from(this._effects.values());
 	}
 
-	/**
-	 * Get effect by ID
-	 */
-	public getEffectById(id: string): Effect | null {
-		const info = this._effects.get(id);
-		return info ? info.effect : null;
+	/** Returns node data currently shown in tree by generated node id. */
+	public getNodeData(nodeId: string | number): IQuarksNode | null {
+		return this._nodeIndex.get(String(nodeId)) ?? null;
 	}
 
-	/**
-	 * Finds a node in the tree by ID
-	 */
-	private _findNodeById(nodes: TreeNodeInfo<IEffectNode>[], nodeId: string | number): TreeNodeInfo<IEffectNode> | null {
-		for (const node of nodes) {
-			if (node.id === nodeId) {
-				return node;
-			}
-			if (node.childNodes) {
-				const found = this._findNodeById(node.childNodes, nodeId);
-				if (found) {
-					return found;
-				}
-			}
+	/** Returns transform node backing selected tree node. */
+	public getNodeTransform(nodeId: string | number): TransformNode | null {
+		const node = this.getNodeData(nodeId);
+		if (!node) {
+			return null;
 		}
-		return null;
-	}
 
-	/**
-	 * Gets node data by ID from tree
-	 */
-	public getNodeData(nodeId: string | number): IEffectNode | null {
-		const node = this._findNodeById(this.state.nodes, nodeId);
-		return node?.nodeData || null;
-	}
-
-	public componentDidMount(): void {}
-
-	public componentDidUpdate(_prevProps: IEffectEditorGraphProps): void {}
-
-	/**
-	 * Loads nodes from Quarks JSON file
-	 */
-	public async loadFromQuarksFile(filePath: string): Promise<void> {
-		try {
-			if (!this.props.editor.preview?.scene) {
-				console.error("Scene is not available");
-				return;
-			}
-
-			const dirnamePath = dirname(filePath);
-			const originalJsonData = await readJSON(filePath);
-
-			const parser = new QuarksConverter();
-			const parseResult = parser.convert(originalJsonData as IQuarksJSON);
-
-			const effect = new Effect(parseResult, this.props.editor.preview.scene, dirnamePath + "/");
-
-			const effectId = `effect-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-			const effectName = basename(filePath, ".json") || "Effect";
-
-			this._effects.set(effectId, {
-				id: effectId,
-				name: effectName,
-				effect: effect,
-				data: parseResult,
-			});
-
-			this._rebuildTree();
-
-			effect.start();
-
-			setTimeout(() => {
-				if (this.props.editor?.preview) {
-					(this.props.editor.preview as any).forceUpdate?.();
-				}
-			}, 100);
-		} catch (error) {
-			console.error("Failed to load Effect file:", error);
+		if (node.type === "particle") {
+			return (node.data as ParticleSystem).emitter as TransformNode;
 		}
+
+		return node.data as TransformNode;
 	}
-	/**
-	 * Loads nodes from JSON file
-	 */
+
+	/** Returns particle system backing selected tree node if it is a particle node. */
+	public getNodeSystem(nodeId: string | number): ParticleSystem | null {
+		const node = this.getNodeData(nodeId);
+		if (!node || node.type !== "particle") {
+			return null;
+		}
+
+		return node.data as ParticleSystem;
+	}
+
+	/** Loads quarks-native effect file into graph. */
 	public async loadFromFile(filePath: string): Promise<void> {
+		if (!this.props.editor.preview?.scene) {
+			return;
+		}
+
 		try {
-			if (!this.props.editor.preview?.scene) {
-				console.error("Scene is not available");
-				return;
-			}
+			const json = await readJSON(filePath);
+			this._disposeAllEffects();
+			this._playbackByUuid.clear();
 
-			const dirnamePath = dirname(filePath);
-			const fileData = await readJSON(filePath);
-
-			// Check if it's new format (IEffectFile) or old format (IData)
-			if (fileData.version && fileData.effects) {
-				// New format: IEffectFile
-				const effectFile = fileData as IEffectFile;
-				this._effects.clear();
-
-				for (const effectData of effectFile.effects) {
-					// Deserialize data to ensure proper Color4, Vector3, Quaternion instances
-					const deserializedData = deserializeData(effectData.data);
-					const effect = new Effect(deserializedData, this.props.editor.preview!.scene, dirnamePath + "/");
-					this._effects.set(effectData.id, {
-						id: effectData.id,
-						name: effectData.name,
-						effect: effect,
-						data: deserializedData,
-					});
-					effect.start();
-				}
-			} else {
-				// Old format: IData (backward compatibility)
-				// Deserialize data to ensure proper Color4, Vector3, Quaternion instances
-				const deserializedData = deserializeData(fileData as IData);
-				const effect = new Effect(deserializedData, this.props.editor.preview!.scene, dirnamePath + "/");
-
-				const effectId = `effect-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-				const fileName = basename(filePath);
-				const effectName = fileName.replace(/\.(fx|json)$/, "") || "Effect";
-
-				this._effects.set(effectId, {
-					id: effectId,
-					name: effectName,
-					effect: effect,
-					data: deserializedData,
-				});
-
-				effect.start();
+			const effects = this._normalizeImportedEffects(json);
+			for (const effect of effects) {
+				const document = QuarksEffectDocument.fromQuarksJson(this.props.editor.preview.scene, effect.data, effect.name);
+				document.stop();
+				this._effects.set(document.id, document);
+				this._setNodePlaybackState(document.toNodeTree(), "stopped");
 			}
 
 			this._rebuildTree();
-
-			setTimeout(() => {
-				if (this.props.editor?.preview) {
-					(this.props.editor.preview as any).forceUpdate?.();
-				}
-			}, 100);
+			this._notifyUiStateChanged();
 		} catch (error) {
-			console.error("Failed to load Effect file:", error);
-			toast.error(`Failed to load Effect file: ${error instanceof Error ? error.message : String(error)}`);
+			toast.error(`Failed to load effect file: ${error instanceof Error ? error.message : String(error)}`);
 		}
 	}
 
-	/**
-	 * Load effect from Unity IData (converted from prefab)
-	 */
-	public async loadFromUnityData(data: any, prefabName: string): Promise<void> {
+	/** Loads plain quarks JSON into graph as a new document. */
+	public async loadFromQuarksFile(filePath: string): Promise<void> {
+		if (!this.props.editor.preview?.scene) {
+			return;
+		}
+
 		try {
-			if (!this.props.editor.preview?.scene) {
-				console.error("Scene is not available");
-				return;
-			}
-
-			// Create effect from IData
-			const effectName = prefabName.replace(".prefab", "").split("/").pop() || "Unity Effect";
-			const effect = new Effect(data, this.props.editor.preview.scene);
-
-			// Generate unique ID for effect
-			const effectId = `unity-effect-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-
-			// Store effect with data
-			this._effects.set(effectId, {
-				id: effectId,
-				name: effectName,
-				effect: effect,
-				data: data,
-			});
-
-			// Rebuild tree with all effects
+			const json = await readJSON(filePath);
+			const document = QuarksEffectDocument.fromQuarksJson(this.props.editor.preview.scene, json, basename(filePath, ".json") || "Effect");
+			document.stop();
+			this._effects.set(document.id, document);
+			this._setNodePlaybackState(document.toNodeTree(), "stopped");
 			this._rebuildTree();
-
-			// Start systems
-			effect.start();
-
-			// Notify preview to sync playing state
-			setTimeout(() => {
-				if (this.props.editor?.preview) {
-					(this.props.editor.preview as any).forceUpdate?.();
-				}
-			}, 100);
+			this._notifyUiStateChanged();
 		} catch (error) {
-			console.error("Failed to load Unity prefab:", error);
-			throw error;
+			toast.error(`Failed to import quarks file: ${error instanceof Error ? error.message : String(error)}`);
 		}
 	}
 
-	/**
-	 * Rebuild tree from all effects
-	 */
-	private _rebuildTree(): void {
-		// Clear node ID map when rebuilding tree to ensure unique IDs
-		this._nodeIdMap.clear();
-
-		const nodes: TreeNodeInfo<IEffectNode>[] = [];
-
-		for (const [effectId, effectInfo] of this._effects.entries()) {
-			if (effectInfo.effect.root) {
-				// Use effect root directly as the tree node, but update its name to effect name
-				effectInfo.effect.root.name = effectInfo.name;
-				effectInfo.effect.root.uuid = effectId;
-
-				const treeNode = this._convertNodeToTreeNode(effectInfo.effect.root, true);
-				nodes.push(treeNode);
-			}
-		}
-
-		this.setState({ nodes });
+	/** Unity import path is removed in Quarks-native pipeline. */
+	public async loadFromUnityData(): Promise<void> {
+		toast.error("Unity import is removed in Quarks-native effect editor.");
 	}
 
-	/**
-	 * Generate unique ID for a node
-	 */
-	private _generateUniqueNodeId(Node: IEffectNode): string {
-		// Check if we already have an ID for this node instance
-		if (this._nodeIdMap.has(Node)) {
-			return this._nodeIdMap.get(Node)!;
-		}
-
-		// Generate unique ID
-		const uniqueId = `node-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-		this._nodeIdMap.set(Node, uniqueId);
-		return uniqueId;
-	}
-
-	/**
-	 * Converts IEffectNode to TreeNodeInfo recursively
-	 */
-	private _convertNodeToTreeNode(Node: IEffectNode, isEffectRoot: boolean = false): TreeNodeInfo<IEffectNode> {
-		// Always use unique ID instead of uuid or name
-		const nodeId = this._generateUniqueNodeId(Node);
-		const childNodes = Node.children.length > 0 ? Node.children.map((child) => this._convertNodeToTreeNode(child, false)) : undefined;
-
-		// Check if solid particle system
-		const isSolid = Node.data instanceof EffectSolidParticleSystem;
-
-		// Determine icon based on node type (sparkles for all particles, with color coding)
-		let icon: JSX.Element;
-		if (isEffectRoot) {
-			icon = <IoSparklesSharp className="w-4 h-4 text-purple-400" />;
-		} else if (Node.type === "particle") {
-			icon = <IoSparklesSharp className={`w-4 h-4 ${isSolid ? "text-orange-400" : "text-yellow-400"}`} />;
-		} else {
-			icon = <HiOutlineFolder className="w-4 h-4 text-blue-400" />;
-		}
-
-		// Get system type label for particles
-		const secondaryLabel =
-			Node.type === "particle" ? (
-				<span className={`text-xs px-1 rounded ${isSolid ? "bg-orange-500/20 text-orange-400" : "bg-yellow-500/20 text-yellow-400"}`}>{isSolid ? "Solid" : "Base"}</span>
-			) : undefined;
-
+	/** Serializes documents into the new quarks-native editor file format. */
+	public serializeToFileFormat(): IQuarksEffectFile {
 		return {
-			id: nodeId,
-			label: this._getNodeLabelComponent({ id: nodeId, nodeData: Node } as any, Node.name),
-			icon,
-			secondaryLabel,
-			isExpanded: isEffectRoot || Node.type === "group",
-			childNodes,
-			isSelected: false,
-			hasCaret: isEffectRoot || Node.type === "group" || (childNodes && childNodes.length > 0),
-			nodeData: Node,
+			version: "quarks-editor-1",
+			effects: this.getAllEffects().map((effect) => effect.serialize()),
 		};
 	}
 
-	/**
-	 * Updates node names in the graph (called when name changes in properties)
-	 */
-	public updateNodeNames(): void {
-		const nodes = this._updateAllNodeNames(this.state.nodes);
-		this.setState({ nodes });
+	/** Toggles selected node between playing and paused state. */
+	public toggleNodePlayback(nodeId: string | number): boolean {
+		const control = this.getNodePlaybackControlState(nodeId);
+		if (!control.canPlayPause) {
+			return false;
+		}
+		const state = control.state;
+		if (state === "playing") {
+			this.pauseNode(nodeId);
+			return false;
+		}
+
+		this.playNode(nodeId);
+		return true;
 	}
 
-	/**
-	 * Updates all node names in the tree from actual data
-	 */
-	private _updateAllNodeNames(nodes: TreeNodeInfo<IEffectNode>[]): TreeNodeInfo<IEffectNode>[] {
-		return nodes.map((n) => {
-			const nodeName = n.nodeData?.name || "Unknown";
-			const childNodes = n.childNodes ? this._updateAllNodeNames(n.childNodes) : undefined;
+	/** Plays selected node or entire effect root. */
+	public playNode(nodeId: string | number): void {
+		const node = this.getNodeData(nodeId);
+		if (!node) {
+			return;
+		}
+		if (!this._nodeHasParticleSystems(node)) {
+			return;
+		}
+
+		const effect = this._findEffectForNode(node);
+		if (!effect) {
+			return;
+		}
+
+		const transform = this.getNodeTransform(nodeId);
+		if (!transform) {
+			return;
+		}
+
+		effect.playNode(transform);
+		this._setNodePlaybackState(node, "playing");
+		this._rebuildTree();
+		this._notifyUiStateChanged();
+	}
+
+	/** Pauses selected node or entire effect root. */
+	public pauseNode(nodeId: string | number): void {
+		const node = this.getNodeData(nodeId);
+		if (!node) {
+			return;
+		}
+		if (!this._nodeHasParticleSystems(node)) {
+			return;
+		}
+
+		const effect = this._findEffectForNode(node);
+		if (!effect) {
+			return;
+		}
+
+		const transform = this.getNodeTransform(nodeId);
+		if (!transform) {
+			return;
+		}
+
+		effect.pauseNode(transform);
+		this._setNodePlaybackState(node, "paused");
+		this._rebuildTree();
+		this._notifyUiStateChanged();
+	}
+
+	/** Stops selected node or entire effect root. */
+	public stopNode(nodeId: string | number): void {
+		const node = this.getNodeData(nodeId);
+		if (!node) {
+			return;
+		}
+		if (!this._nodeHasParticleSystems(node)) {
+			return;
+		}
+
+		const effect = this._findEffectForNode(node);
+		if (!effect) {
+			return;
+		}
+
+		const transform = this.getNodeTransform(nodeId);
+		if (!transform) {
+			return;
+		}
+
+		effect.stopNode(transform);
+		this._setNodePlaybackState(node, "stopped");
+		this._rebuildTree();
+		this._notifyUiStateChanged();
+	}
+
+	/** Restarts selected node or entire effect root. */
+	public restartNode(nodeId: string | number): void {
+		const node = this.getNodeData(nodeId);
+		if (!node) {
+			return;
+		}
+		if (!this._nodeHasParticleSystems(node)) {
+			return;
+		}
+
+		const effect = this._findEffectForNode(node);
+		const transform = this.getNodeTransform(nodeId);
+		if (!effect || !transform) {
+			return;
+		}
+
+		effect.restartNode(transform);
+		this._setNodePlaybackState(node, "playing");
+		this._rebuildTree();
+		this._notifyUiStateChanged();
+	}
+
+	/** Returns selected node playback state. */
+	public getNodePlaybackState(nodeId: string | number): PlaybackState {
+		const node = this.getNodeData(nodeId);
+		if (!node) {
+			return "unavailable";
+		}
+		if (!this._nodeHasParticleSystems(node)) {
+			return "unavailable";
+		}
+		return this._resolveAggregatePlaybackState(node);
+	}
+
+	/** Returns preview-control availability and disabled reason for selected node. */
+	public getNodePlaybackControlState(nodeId: string | number | null | undefined): IPlaybackControlState {
+		if (nodeId === null || nodeId === undefined) {
 			return {
-				...n,
-				label: this._getNodeLabelComponent(n, nodeName),
-				childNodes,
+				state: "unavailable",
+				canPlayPause: false,
+				canStop: false,
+				canRestart: false,
+				reason: "Select a node to control playback.",
 			};
-		});
+		}
+		const node = this.getNodeData(nodeId);
+		if (!node) {
+			return {
+				state: "unavailable",
+				canPlayPause: false,
+				canStop: false,
+				canRestart: false,
+				reason: "Selected node is no longer available.",
+			};
+		}
+		if (!this._nodeHasParticleSystems(node)) {
+			return {
+				state: "unavailable",
+				canPlayPause: false,
+				canStop: false,
+				canRestart: false,
+				reason: "No particle systems in selected node.",
+			};
+		}
+		const state = this._resolveAggregatePlaybackState(node);
+		return {
+			state,
+			canPlayPause: true,
+			canStop: state === "playing" || state === "paused",
+			canRestart: true,
+		};
+	}
+
+	/** Backward-compatible boolean playback selector. */
+	public isNodePlaying(nodeId: string | number): boolean {
+		return this.getNodePlaybackState(nodeId) === "playing";
+	}
+
+	/** Refreshes labels when node names are changed. */
+	public updateNodeNames(): void {
+		this._rebuildTree();
+	}
+
+	public componentWillUnmount(): void {
+		this._disposeAllEffects();
 	}
 
 	public render(): ReactNode {
@@ -402,15 +350,7 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 					</div>
 				)}
 
-				<div
-					className="flex-1"
-					style={{ minHeight: "80px" }}
-					onDragOver={(ev) => {
-						ev.preventDefault();
-						ev.dataTransfer.dropEffect = "copy";
-					}}
-					onDrop={(ev) => this._handleDropEmpty(ev)}
-				>
+				<div className="flex-1" style={{ minHeight: "80px" }}>
 					<ContextMenu>
 						<ContextMenuTrigger className="w-full h-full">
 							<div className="w-full h-full flex items-center justify-center">
@@ -423,13 +363,7 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 									<AiOutlinePlus className="w-5 h-5" /> Add
 								</ContextMenuSubTrigger>
 								<ContextMenuSubContent>
-									<ContextMenuItem
-										draggable
-										onDragStart={(ev) => {
-											ev.dataTransfer.setData("Effect-editor/create-effect", "effect");
-										}}
-										onClick={() => this._handleCreateEffect()}
-									>
+									<ContextMenuItem onClick={() => this._handleCreateEffect()}>
 										<IoSparklesSharp className="w-4 h-4" /> Effect
 									</ContextMenuItem>
 								</ContextMenuSubContent>
@@ -441,131 +375,196 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 		);
 	}
 
-	private _handleNodeExpanded(node: TreeNodeInfo<IEffectNode>): void {
-		const nodeId = node.id;
-		const nodes = this._updateNodeExpanded(this.state.nodes, nodeId as string | number, true);
+	/** Rebuilds tree from live quarks document roots. */
+	private _rebuildTree(): void {
+		const nodes: TreeNodeInfo<IQuarksNode>[] = [];
+		this._nodeIndex.clear();
+
+		for (const effect of this._effects.values()) {
+			const root = effect.toNodeTree();
+			root.uuid = effect.id;
+			root.name = effect.name;
+			nodes.push(this._convertNode(root, true));
+		}
+
 		this.setState({ nodes });
 	}
 
-	private _handleNodeCollapsed(node: TreeNodeInfo<IEffectNode>): void {
-		const nodeId = node.id;
-		const nodes = this._updateNodeExpanded(this.state.nodes, nodeId as string | number, false);
-		this.setState({ nodes });
-	}
-
-	private _updateNodeExpanded(nodes: TreeNodeInfo<IEffectNode>[], nodeId: string | number, isExpanded: boolean): TreeNodeInfo<IEffectNode>[] {
-		return nodes.map((n) => {
-			const nodeName = n.nodeData?.name || "Unknown";
-			if (n.id === nodeId) {
-				return {
-					...n,
-					label: this._getNodeLabelComponent(n, nodeName),
-					isExpanded,
-					childNodes: n.childNodes ? this._updateNodeExpanded(n.childNodes, nodeId, isExpanded) : undefined,
-				};
-			}
-			const childNodes = n.childNodes ? this._updateNodeExpanded(n.childNodes, nodeId, isExpanded) : undefined;
-			return {
-				...n,
-				label: this._getNodeLabelComponent(n, nodeName),
-				childNodes,
-			};
-		});
-	}
-
-	private _handleNodeClicked(node: TreeNodeInfo<IEffectNode>): void {
-		const selectedId = node.id as string | number;
-		const nodes = this._updateNodeSelection(this.state.nodes, selectedId);
-		this.setState({ nodes, selectedNodeId: selectedId });
-		this.props.onNodeSelected?.(selectedId);
-	}
-
-	private _updateNodeSelection(nodes: TreeNodeInfo<IEffectNode>[], selectedId: string | number): TreeNodeInfo<IEffectNode>[] {
-		return nodes.map((n) => {
-			const nodeName = n.nodeData?.name || "Unknown";
-			const isSelected = n.id === selectedId;
-			const childNodes = n.childNodes ? this._updateNodeSelection(n.childNodes, selectedId) : undefined;
-			return {
-				...n,
-				label: this._getNodeLabelComponent(n, nodeName),
-				isSelected,
-				childNodes,
-			};
-		});
-	}
-
-	private _getNodeLabelComponent(node: TreeNodeInfo<IEffectNode>, name: string): JSX.Element {
-		const label = (
-			<div
-				className="ml-2 p-1 w-full"
-				onDragOver={(ev) => {
-					if (node.nodeData?.type === "group") {
-						ev.preventDefault();
-						ev.stopPropagation();
-						ev.dataTransfer.dropEffect = "copy";
-					}
-				}}
-				onDrop={(ev) => {
-					if (node.nodeData?.type === "group") {
-						ev.preventDefault();
-						ev.stopPropagation();
-						this._handleDropOnNode(node, ev);
-					}
-				}}
-			>
-				{name}
-			</div>
+	/** Converts internal node model into Blueprint tree data. */
+	private _convertNode(node: IQuarksNode, isEffectRoot: boolean): TreeNodeInfo<IQuarksNode> {
+		this._nodeIndex.set(node.id, node);
+		const isParticle = node.type === "particle";
+		const icon = isParticle ? (
+			<IoSparklesSharp className={`w-4 h-4 ${isEffectRoot ? "text-purple-400" : "text-yellow-400"}`} />
+		) : (
+			<HiOutlineFolder className="w-4 h-4 text-blue-400" />
 		);
+
+		return {
+			id: node.id,
+			label: this._getNodeLabelComponent(node),
+			icon,
+			isExpanded: isEffectRoot || node.type === "group",
+			hasCaret: node.children.length > 0 || node.type === "group",
+			nodeData: node,
+			childNodes: node.children.map((child) => this._convertNode(child, false)),
+		};
+	}
+
+	/** Detects current effect document by any node in its hierarchy. */
+	private _findEffectForNode(node: IQuarksNode): QuarksEffectDocument | null {
+		for (const effect of this._effects.values()) {
+			const tree = effect.toNodeTree();
+			if (this._containsNode(tree, node.uuid)) {
+				return effect;
+			}
+		}
+		return null;
+	}
+
+	/** Finds whether tree contains node uuid. */
+	private _containsNode(node: IQuarksNode, uuid: string): boolean {
+		if (node.uuid === uuid) {
+			return true;
+		}
+		return node.children.some((child) => this._containsNode(child, uuid));
+	}
+
+	/** Creates an empty effect document in active preview scene. */
+	private _handleCreateEffect(): void {
+		if (!this.props.editor.preview?.scene) {
+			return;
+		}
+
+		const document = QuarksEffectDocument.createEmpty(this.props.editor.preview.scene, `Effect ${this._effects.size + 1}`);
+		this._effects.set(document.id, document);
+		this._setNodePlaybackState(document.toNodeTree(), "stopped");
+		this._rebuildTree();
+		this._notifyUiStateChanged();
+	}
+
+	/** Adds a particle system under selected group node. */
+	private _handleAddParticleSystemToNode(node: IQuarksNode): void {
+		const effect = this._findEffectForNode(node);
+		const parent = this.getNodeTransform(node.id);
+		if (!effect || !parent) {
+			return;
+		}
+
+		effect.createParticle(parent);
+		this._setNodePlaybackState(node, "stopped");
+		this._rebuildTree();
+		this._notifyUiStateChanged();
+	}
+
+	/** Adds a transform group under selected group node. */
+	private _handleAddGroupToNode(node: IQuarksNode): void {
+		const effect = this._findEffectForNode(node);
+		const parent = this.getNodeTransform(node.id);
+		if (!effect || !parent) {
+			return;
+		}
+
+		effect.createGroup(parent);
+		this._setNodePlaybackState(node, "stopped");
+		this._rebuildTree();
+		this._notifyUiStateChanged();
+	}
+
+	/** Deletes selected node or whole effect when deleting root. */
+	private _handleDeleteNode(node: IQuarksNode): void {
+		const effect = this._findEffectForNode(node);
+		if (!effect) {
+			return;
+		}
+
+		if (node.uuid === effect.id) {
+			effect.dispose();
+			this._effects.delete(effect.id);
+			this._clearNodePlaybackState(node);
+			this._rebuildTree();
+			this._notifyUiStateChanged();
+			return;
+		}
+
+		const transform = this.getNodeTransform(node.id);
+		if (!transform || !transform.parent || !(transform.parent instanceof TransformNode)) {
+			return;
+		}
+
+		effect.removeNode(transform);
+		this._clearNodePlaybackState(node);
+		this._rebuildTree();
+		this._notifyUiStateChanged();
+	}
+
+	/** Exports a single effect as quarks JSON payload. */
+	private async _handleExportEffect(node: IQuarksNode): Promise<void> {
+		const effect = this._findEffectForNode(node);
+		if (!effect) {
+			return;
+		}
+
+		const filePath = saveSingleFileDialog({
+			title: "Export Effect",
+			filters: [{ name: "Effect Files", extensions: ["effect", "json"] }],
+			defaultPath: `${effect.name}.effect`,
+		});
+
+		if (!filePath) {
+			return;
+		}
+
+		await writeJSON(filePath, effect.serialize().data, { spaces: "\t", encoding: "utf-8" });
+		toast.success("Effect exported");
+	}
+
+	/** Node context menu label with CRUD operations. */
+	private _getNodeLabelComponent(node: IQuarksNode): JSX.Element {
+		const playbackState = this.getNodePlaybackState(node.id);
+		const stateLabel = playbackState === "playing" ? "Playing" : playbackState === "paused" ? "Paused" : playbackState === "stopped" ? "Stopped" : "Unavailable";
+		const stateClassName =
+			playbackState === "playing"
+				? "bg-emerald-400"
+				: playbackState === "paused"
+					? "bg-amber-400"
+					: playbackState === "stopped"
+						? "bg-slate-400"
+						: "bg-red-400";
 
 		return (
 			<ContextMenu>
-				<ContextMenuTrigger className="w-full h-full">{label}</ContextMenuTrigger>
+				<ContextMenuTrigger className="w-full h-full">
+					<div className="ml-2 p-1 w-full flex items-center gap-2">
+						<span className={`inline-block w-2 h-2 rounded-full ${stateClassName}`} title={stateLabel} />
+						<span>{node.name}</span>
+					</div>
+				</ContextMenuTrigger>
 				<ContextMenuContent>
-					<ContextMenuSub>
-						<ContextMenuSubTrigger className="flex items-center gap-2">
-							<AiOutlinePlus className="w-5 h-5" /> Add
-						</ContextMenuSubTrigger>
-						<ContextMenuSubContent>
-							{node.nodeData?.type === "group" && (
-								<>
-									<ContextMenuItem
-										draggable
-										onDragStart={(ev) => {
-											ev.dataTransfer.setData("Effect-editor/create-item", "base-particle");
-										}}
-										onClick={() => this._handleAddParticleSystemToNode(node, "base")}
-									>
-										<IoSparklesSharp className="w-4 h-4" /> Base Particle
+					{node.type === "group" && (
+						<>
+							<ContextMenuSub>
+								<ContextMenuSubTrigger className="flex items-center gap-2">
+									<AiOutlinePlus className="w-5 h-5" /> Add
+								</ContextMenuSubTrigger>
+								<ContextMenuSubContent>
+									<ContextMenuItem onClick={() => this._handleAddParticleSystemToNode(node)}>
+										<IoSparklesSharp className="w-4 h-4" /> Particle
 									</ContextMenuItem>
-									<ContextMenuItem
-										draggable
-										onDragStart={(ev) => {
-											ev.dataTransfer.setData("Effect-editor/create-item", "solid-particle");
-										}}
-										onClick={() => this._handleAddParticleSystemToNode(node, "solid")}
-									>
-										<IoSparklesSharp className="w-4 h-4" /> Solid Particle
-									</ContextMenuItem>
-									<ContextMenuItem
-										draggable
-										onDragStart={(ev) => {
-											ev.dataTransfer.setData("Effect-editor/create-item", "group");
-										}}
-										onClick={() => this._handleAddGroupToNode(node)}
-									>
+									<ContextMenuItem onClick={() => this._handleAddGroupToNode(node)}>
 										<HiOutlineFolder className="w-4 h-4" /> Group
 									</ContextMenuItem>
-								</>
-							)}
-						</ContextMenuSubContent>
-					</ContextMenuSub>
-					{this._isEffectRootNode(node) && (
-						<>
+								</ContextMenuSubContent>
+							</ContextMenuSub>
 							<ContextMenuSeparator />
-							<ContextMenuItem onClick={() => this._handleExportEffect(node)}>Export</ContextMenuItem>
 						</>
 					)}
-					<ContextMenuSeparator />
+					{this._effects.has(node.uuid) && (
+						<>
+							<ContextMenuItem onClick={() => this._handleExportEffect(node)}>Export</ContextMenuItem>
+							<ContextMenuSeparator />
+						</>
+					)}
 					<ContextMenuItem className="flex items-center gap-2 !text-red-400" onClick={() => this._handleDeleteNode(node)}>
 						<AiOutlineClose className="w-5 h-5" fill="rgb(248, 113, 113)" /> Delete
 					</ContextMenuItem>
@@ -574,461 +573,123 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 		);
 	}
 
-	/**
-	 * Check if node is an effect root node
-	 */
-	private _isEffectRootNode(node: TreeNodeInfo<IEffectNode>): boolean {
-		const nodeData = node.nodeData;
-		if (!nodeData || !nodeData.uuid) {
-			return false;
-		}
-
-		// Check if this node is the root of any effect
-		return this._effects.has(nodeData.uuid);
+	/** Expands tree node preserving existing tree state. */
+	private _handleNodeExpanded(node: TreeNodeInfo<IQuarksNode>): void {
+		this.setState({ nodes: this._setNodeExpanded(this.state.nodes, node.id, true) });
 	}
 
-	/**
-	 * Export effect to JSON file
-	 */
-	private async _handleExportEffect(node: TreeNodeInfo<IEffectNode>): Promise<void> {
-		const nodeData = node.nodeData;
-		if (!nodeData || !nodeData.uuid) {
-			return;
-		}
-
-		const effectInfo = this._effects.get(nodeData.uuid);
-		if (!effectInfo || !effectInfo.data) {
-			toast.error("Cannot export effect: data not available");
-			return;
-		}
-
-		const filePath = saveSingleFileDialog({
-			title: "Export Effect",
-			filters: [{ name: "Effect Files", extensions: ["effect"] }],
-			defaultPath: `${effectInfo.name}.effect`,
-		});
-
-		if (!filePath) {
-			return;
-		}
-
-		try {
-			// Serialize current state of the effect
-			const serializedData = this._serializeEffectToData(effectInfo);
-			await writeJSON(filePath, serializedData, {
-				spaces: "\t",
-				encoding: "utf-8",
-			});
-
-			toast.success(`Effect exported successfully to ${filePath}`);
-		} catch (error) {
-			console.error("Failed to export effect:", error);
-			toast.error(`Failed to export effect: ${error instanceof Error ? error.message : String(error)}`);
-		}
+	/** Collapses tree node preserving existing tree state. */
+	private _handleNodeCollapsed(node: TreeNodeInfo<IQuarksNode>): void {
+		this.setState({ nodes: this._setNodeExpanded(this.state.nodes, node.id, false) });
 	}
 
-	/**
-	 * Serialize IEffectNode tree back to IData format
-	 */
-	private _serializeNodeToData(node: IEffectNode): IGroup | IEmitter | null {
-		if (node.type === "group") {
-			const transformNode = node.data as TransformNode;
-			const transform: ITransform = {
-				position: transformNode.position.clone(),
-				rotation: transformNode.rotationQuaternion ? transformNode.rotationQuaternion.clone() : Quaternion.Identity(),
-				scale: transformNode.scaling.clone(),
-			};
-
-			const group: IGroup = {
-				uuid: node.uuid,
-				name: node.name,
-				transform,
-				children: node.children.map((child) => this._serializeNodeToData(child)).filter((child): child is IGroup | IEmitter => child !== null),
-			};
-
-			return group;
-		} else if (node.type === "particle") {
-			const system = node.data as EffectParticleSystem | EffectSolidParticleSystem;
-			const emitter = system.emitter as TransformNode;
-			const transform: ITransform = {
-				position: emitter.position.clone(),
-				rotation: emitter.rotationQuaternion ? emitter.rotationQuaternion.clone() : Quaternion.Identity(),
-				scale: emitter.scaling.clone(),
-			};
-
-			const config = this._serializeSystemToConfig(system);
-
-			const emitterData: IEmitter = {
-				uuid: node.uuid,
-				name: node.name,
-				transform,
-				config,
-				systemType: system instanceof EffectSolidParticleSystem ? "solid" : "base",
-			};
-
-			return emitterData;
-		}
-
-		return null;
+	/** Selects tree node and notifies external tabs. */
+	private _handleNodeClicked(node: TreeNodeInfo<IQuarksNode>): void {
+		const selectedNodeId = node.id as string;
+		this.setState({ nodes: this._setNodeSelected(this.state.nodes, selectedNodeId), selectedNodeId });
+		this.props.onNodeSelected?.(selectedNodeId);
 	}
 
-	/**
-	 * Serialize particle system to IParticleSystemConfig
-	 */
-	private _serializeSystemToConfig(system: EffectParticleSystem | EffectSolidParticleSystem): IParticleSystemConfig {
-		const config: IParticleSystemConfig = {
-			systemType: system instanceof EffectSolidParticleSystem ? "solid" : "base",
-			minSize: system.minSize,
-			maxSize: system.maxSize,
-			minLifeTime: system.minLifeTime,
-			maxLifeTime: system.maxLifeTime,
-			minEmitPower: system.minEmitPower,
-			maxEmitPower: system.maxEmitPower,
-			emitRate: system.emitRate,
-			targetStopDuration: system.targetStopDuration,
-			manualEmitCount: system.manualEmitCount,
-			preWarmCycles: system.preWarmCycles,
-			preWarmStepOffset: system.preWarmStepOffset,
-			color1: system.color1,
-			color2: system.color2,
-			colorDead: system.colorDead,
-			minInitialRotation: system.minInitialRotation,
-			maxInitialRotation: system.maxInitialRotation,
-			isLocal: system.isLocal,
-			disposeOnStop: system.disposeOnStop,
-			gravity: system.gravity,
-			noiseStrength: system.noiseStrength,
-			minAngularSpeed: system.minAngularSpeed,
-			maxAngularSpeed: system.maxAngularSpeed,
-			minScaleX: system.minScaleX,
-			maxScaleX: system.maxScaleX,
-			minScaleY: system.minScaleY,
-			maxScaleY: system.maxScaleY,
-		};
-
-		// Add behaviors
-		if (system.behaviorConfigs && system.behaviorConfigs.length > 0) {
-			config.behaviors = [...system.behaviorConfigs];
-		}
-
-		// Add gradients if available (would need to extract from gradient systems)
-		// For now, we'll rely on behaviors for gradient data
-
-		return config;
+	/** Updates expand/collapse state recursively for tree node id. */
+	private _setNodeExpanded(nodes: TreeNodeInfo<IQuarksNode>[], id: string | number, value: boolean): TreeNodeInfo<IQuarksNode>[] {
+		return nodes.map((node) => ({
+			...node,
+			isExpanded: node.id === id ? value : node.isExpanded,
+			childNodes: node.childNodes ? this._setNodeExpanded(node.childNodes, id, value) : undefined,
+		}));
 	}
 
-	/**
-	 * Serialize a single effect to IData format
-	 */
-	private _serializeEffectToData(effectInfo: IEffectInfo): IData {
-		if (!effectInfo.effect.root) {
-			return {
-				root: null,
-				materials: effectInfo.data.materials || [],
-				textures: effectInfo.data.textures || [],
-				images: effectInfo.data.images || [],
-				geometries: effectInfo.data.geometries || [],
-			};
-		}
-
-		const rootData = this._serializeNodeToData(effectInfo.effect.root);
-		return {
-			root: rootData,
-			materials: effectInfo.data.materials || [],
-			textures: effectInfo.data.textures || [],
-			images: effectInfo.data.images || [],
-			geometries: effectInfo.data.geometries || [],
-		};
+	/** Updates selected tree node recursively for tree node id. */
+	private _setNodeSelected(nodes: TreeNodeInfo<IQuarksNode>[], id: string | number): TreeNodeInfo<IQuarksNode>[] {
+		return nodes.map((node) => ({
+			...node,
+			isSelected: node.id === id,
+			childNodes: node.childNodes ? this._setNodeSelected(node.childNodes, id) : undefined,
+		}));
 	}
 
-	/**
-	 * Serialize all effects to file format
-	 */
-	public serializeToFileFormat(): IEffectFile {
-		const effects: IEffectData[] = [];
-
-		for (const [effectId, effectInfo] of this._effects.entries()) {
-			const effectData = this._serializeEffectToData(effectInfo);
-
-			effects.push({
-				id: effectId,
-				name: effectInfo.name,
-				data: effectData,
-			});
-
-			// Update stored data with serialized version
-			effectInfo.data = effectData;
+	/** Disposes every loaded effect when switching files/unmounting. */
+	private _disposeAllEffects(): void {
+		for (const effect of this._effects.values()) {
+			effect.dispose();
 		}
-
-		return {
-			version: "1.0.0",
-			effects,
-		};
+		this._effects.clear();
+		this._playbackByUuid.clear();
+		this._notifyUiStateChanged();
 	}
 
-	private _handleCreateEffect(): void {
-		if (!this.props.editor.preview?.scene) {
-			console.error("Scene is not available");
-			return;
-		}
-
-		// Create empty effect with empty IData
-		const emptyData: IData = {
-			root: null,
-			materials: [],
-			textures: [],
-			images: [],
-			geometries: [],
-		};
-		const effect = new Effect(emptyData, this.props.editor.preview.scene);
-
-		// Generate unique ID and name for effect
-		const effectId = `effect-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-		let effectName = "Effect";
-		let counter = 1;
-		while (Array.from(this._effects.values()).some((info) => info.name === effectName)) {
-			effectName = `Effect ${counter}`;
-			counter++;
-		}
-
-		// Store effect with the same empty data
-		this._effects.set(effectId, {
-			id: effectId,
-			name: effectName,
-			effect: effect,
-			data: emptyData,
-		});
-
-		// Rebuild tree with all effects
-		this._rebuildTree();
+	/** Notifies external panels that graph/runtime state changed outside their React state. */
+	private _notifyUiStateChanged(): void {
+		this.props.editor.preview?.forceUpdate();
+		this.props.editor.layout?.forceUpdate();
 	}
 
-	private _findEffectForNode(node: TreeNodeInfo<IEffectNode>): Effect | null {
-		// Find the effect that contains this node by traversing up the tree
-		const nodeData = node.nodeData;
-		if (!nodeData) {
-			return null;
-		}
-
-		// First check if this is an effect root node
-		if (nodeData.uuid) {
-			const effectInfo = this._effects.get(nodeData.uuid);
-			if (effectInfo) {
-				return effectInfo.effect;
-			}
-		}
-
-		// Find effect by checking if node is in any effect's hierarchy
-		for (const effectInfo of this._effects.values()) {
-			const effect = effectInfo.effect;
-			if (effect.root) {
-				// Check if node is part of this effect's hierarchy
-				const findNodeInHierarchy = (current: IEffectNode): boolean => {
-					// Use instance comparison and uuid for matching
-					if (current === nodeData || (current.uuid && nodeData.uuid && current.uuid === nodeData.uuid)) {
-						return true;
-					}
-					for (const child of current.children) {
-						if (findNodeInHierarchy(child)) {
-							return true;
-						}
-					}
-					return false;
-				};
-
-				if (findNodeInHierarchy(effect.root)) {
-					return effect;
-				}
-			}
-		}
-
-		return null;
-	}
-
-	private _handleAddParticleSystemToNode(node: TreeNodeInfo<IEffectNode>, systemType: "solid" | "base"): void {
-		const effect = this._findEffectForNode(node);
-		if (!effect) {
-			console.error("No effect found for node");
-			return;
-		}
-
-		const nodeData = node.nodeData;
-		if (!nodeData || nodeData.type !== "group") {
-			console.error("Cannot add particle system: parent is not a group");
-			return;
-		}
-
-		const newNode = effect.createParticleSystem(nodeData, systemType);
-		if (newNode) {
-			// Rebuild tree with all effects
-			this._rebuildTree();
-		}
-	}
-
-	private _handleAddGroupToNode(node: TreeNodeInfo<IEffectNode>): void {
-		const effect = this._findEffectForNode(node);
-		if (!effect) {
-			console.error("No effect found for node");
-			return;
-		}
-
-		const nodeData = node.nodeData;
-		if (!nodeData || nodeData.type !== "group") {
-			console.error("Cannot add group: parent is not a group");
-			return;
-		}
-
-		const newNode = effect.createGroup(nodeData);
-		if (newNode) {
-			// Rebuild tree with all effects
-			this._rebuildTree();
-		}
-	}
-
-	private _handleDropEmpty(ev: React.DragEvent<HTMLDivElement>): void {
-		ev.preventDefault();
-		ev.stopPropagation();
-
-		try {
-			const data = ev.dataTransfer.getData("Effect-editor/create-effect");
-			if (data === "effect") {
-				this._handleCreateEffect();
-			}
-		} catch (e) {
-			// Ignore errors
-		}
-	}
-
-	private _handleDropOnNode(node: TreeNodeInfo<IEffectNode>, ev: React.DragEvent<HTMLDivElement>): void {
-		ev.preventDefault();
-		ev.stopPropagation();
-
-		if (!node.nodeData || node.nodeData.type !== "group") {
-			return;
-		}
-
-		try {
-			const data = ev.dataTransfer.getData("Effect-editor/create-item");
-			if (data === "solid-particle") {
-				this._handleAddParticleSystemToNode(node, "solid");
-			} else if (data === "base-particle") {
-				this._handleAddParticleSystemToNode(node, "base");
-			} else if (data === "group") {
-				this._handleAddGroupToNode(node);
-			}
-		} catch (e) {
-			// Ignore errors
-		}
-	}
-
-	private _addNodeToParent(nodes: TreeNodeInfo<IEffectNode>[], parentId: string | number, newNode: TreeNodeInfo<IEffectNode>): TreeNodeInfo<IEffectNode>[] {
-		return nodes.map((n) => {
-			if (n.id === parentId) {
-				const childNodes = n.childNodes || [];
-				return {
-					...n,
-					childNodes: [...childNodes, newNode],
-					hasCaret: true,
-					isExpanded: true,
-				};
-			}
-			if (n.childNodes) {
-				return {
-					...n,
-					childNodes: this._addNodeToParent(n.childNodes, parentId, newNode),
-				};
-			}
-			return n;
-		});
-	}
-
-	private _handleDeleteNode(node: TreeNodeInfo<IEffectNode>): void {
-		const nodeData = node.nodeData;
-		if (!nodeData) {
-			return;
-		}
-
-		// Check if this is an effect root node (uuid matches an effect ID)
-		const effectId = nodeData.uuid;
-		if (effectId && this._effects.has(effectId)) {
-			// Delete entire effect
-			const effectInfo = this._effects.get(effectId);
-			if (effectInfo) {
-				effectInfo.effect.dispose();
-				this._effects.delete(effectId);
-				this._rebuildTree();
-			}
-		} else {
-			// Delete node from effect hierarchy
-			const effect = this._findEffectForNode(node);
-			if (!effect) {
-				return;
-			}
-
-			// Find and remove node from effect hierarchy using instance comparison
-			const removeNodeFromHierarchy = (current: IEffectNode): boolean => {
-				// Remove from children - use instance comparison primarily
-				const index = current.children.findIndex((child) => {
-					// Primary: instance comparison
-					if (child === nodeData) {
-						return true;
-					}
-					// Fallback: uuid comparison (if both have uuid)
-					if (child.uuid && nodeData.uuid && child.uuid === nodeData.uuid) {
-						return true;
-					}
-					return false;
-				});
-
-				if (index !== -1) {
-					const removedNode = current.children[index];
-					// Recursively dispose all children first
-					this._disposeNodeRecursive(removedNode);
-					current.children.splice(index, 1);
-					return true;
-				}
-
-				// Recursively search in children
-				for (const child of current.children) {
-					if (removeNodeFromHierarchy(child)) {
-						return true;
-					}
-				}
-				return false;
-			};
-
-			if (effect.root) {
-				removeNodeFromHierarchy(effect.root);
-				this._rebuildTree();
-			}
-		}
-
-		// Clear selection if deleted node was selected
-		if (this.state.selectedNodeId === node.id) {
-			this.setState({ selectedNodeId: null });
-			this.props.onNodeSelected?.(null);
-		}
-	}
-
-	/**
-	 * Recursively dispose a node and all its children
-	 */
-	private _disposeNodeRecursive(node: IEffectNode): void {
-		// First dispose all children
+	/** Applies playback state recursively to node and descendants. */
+	private _setNodePlaybackState(node: IQuarksNode, state: StoredPlaybackState): void {
+		this._playbackByUuid.set(node.uuid, state);
 		for (const child of node.children) {
-			this._disposeNodeRecursive(child);
+			this._setNodePlaybackState(child, state);
+		}
+	}
+
+	/** Clears playback state recursively for removed node subtree. */
+	private _clearNodePlaybackState(node: IQuarksNode): void {
+		this._playbackByUuid.delete(node.uuid);
+		for (const child of node.children) {
+			this._clearNodePlaybackState(child);
+		}
+	}
+
+	/** Finds whether node subtree has at least one particle system. */
+	private _nodeHasParticleSystems(node: IQuarksNode): boolean {
+		if (node.type === "particle") {
+			return true;
+		}
+		return node.children.some((child) => this._nodeHasParticleSystems(child));
+	}
+
+	/** Collects stored playback states for all particle descendants. */
+	private _collectParticlePlaybackStates(node: IQuarksNode, out: StoredPlaybackState[]): void {
+		if (node.type === "particle") {
+			out.push(this._playbackByUuid.get(node.uuid) ?? "stopped");
+			return;
+		}
+		for (const child of node.children) {
+			this._collectParticlePlaybackStates(child, out);
+		}
+	}
+
+	/** Resolves aggregate playback state for group/effect selections. */
+	private _resolveAggregatePlaybackState(node: IQuarksNode): StoredPlaybackState {
+		const states: StoredPlaybackState[] = [];
+		this._collectParticlePlaybackStates(node, states);
+		if (states.some((s) => s === "playing")) {
+			return "playing";
+		}
+		if (states.some((s) => s === "paused")) {
+			return "paused";
+		}
+		return "stopped";
+	}
+
+	/** Normalizes import payloads into list of quarks object roots. */
+	private _normalizeImportedEffects(json: any): Array<{ name: string; data: any }> {
+		if (json?.version === "quarks-editor-1" && Array.isArray(json.effects)) {
+			return json.effects.map((entry: any, index: number) => ({
+				name: entry?.name || `Effect ${index + 1}`,
+				data: entry?.data,
+			}));
 		}
 
-		// Dispose system if it's a particle system
-		if (node.data) {
-			node.data.dispose();
-		}
-		// Dispose group if it's a group
-		if (node.data) {
-			node.data.dispose();
+		if (json?.object) {
+			return [
+				{
+					name: json?.object?.name || "Effect",
+					data: json,
+				},
+			];
 		}
 
-		// Clear the node ID from our map
-		this._nodeIdMap.delete(node);
+		throw new Error("Unsupported effect file format");
 	}
 }

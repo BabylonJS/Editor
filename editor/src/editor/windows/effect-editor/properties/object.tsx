@@ -4,12 +4,13 @@ import { EditorInspectorStringField } from "../../../layout/inspector/fields/str
 import { EditorInspectorVectorField } from "../../../layout/inspector/fields/vector";
 import { EditorInspectorSwitchField } from "../../../layout/inspector/fields/switch";
 
-import { type IEffectNode, isSystem } from "babylonjs-editor-tools";
+import { isSystem } from "../compat-lite";
+import type { IQuarksNode } from "../quarks-bridge";
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 
 export interface IEffectEditorObjectPropertiesProps {
-	nodeData: IEffectNode;
+	nodeData: IQuarksNode;
 	onChange?: () => void;
 }
 

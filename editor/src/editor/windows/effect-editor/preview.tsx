@@ -1,25 +1,23 @@
 import { Component, ReactNode } from "react";
-
-import { Scene } from "@babylonjs/core/scene";
-import { Engine } from "@babylonjs/core/Engines/engine";
 import { ArcRotateCamera } from "@babylonjs/core/Cameras/arcRotateCamera";
+import { Engine } from "@babylonjs/core/Engines/engine";
 import { DirectionalLight } from "@babylonjs/core/Lights/directionalLight";
-import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { Color3, Color4 } from "@babylonjs/core/Maths/math.color";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
+import { Scene } from "@babylonjs/core/scene";
 import { GridMaterial } from "@babylonjs/materials";
+import { IoPause, IoPlay, IoRefresh, IoStop } from "react-icons/io5";
 
 import { Button } from "../../../ui/shadcn/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../../ui/shadcn/ui/tooltip";
-
-import { IoPlay, IoStop, IoRefresh } from "react-icons/io5";
 import type { IEffectEditor } from ".";
-import { Effect, type IEffectNode } from "babylonjs-editor-tools";
+import type { IPlaybackControlState } from "./graph";
 
-// don't like because it's not a good practice, but it's the only way to load the shaders
+// Required for Babylon particles support in scene runtime.
 import "@babylonjs/core/Particles/particleSystemComponent";
-import "@babylonjs/core/Shaders/particles.vertex";
 import "@babylonjs/core/Shaders/particles.fragment";
+import "@babylonjs/core/Shaders/particles.vertex";
 import "@babylonjs/core/Shaders/rgbdDecode.fragment";
 
 export interface IEffectEditorPreviewProps {
@@ -29,52 +27,80 @@ export interface IEffectEditorPreviewProps {
 	selectedNodeId?: string | number | null;
 }
 
-export interface IEffectEditorPreviewState {
-	playing: boolean;
-}
-
-export class EffectEditorPreview extends Component<IEffectEditorPreviewProps, IEffectEditorPreviewState> {
+export class EffectEditorPreview extends Component<IEffectEditorPreviewProps> {
 	public engine: Engine | null = null;
 	public scene: Scene | null = null;
 	public camera: ArcRotateCamera | null = null;
 
-	private _canvasRef: HTMLCanvasElement | null = null;
-	private _renderLoopId: number = -1;
+	private _lastFrameMs: number = performance.now();
 
 	public constructor(props: IEffectEditorPreviewProps) {
 		super(props);
+	}
 
-		this.state = {
-			playing: false,
-		};
+	public componentWillUnmount(): void {
+		this.scene?.dispose();
+		this.engine?.dispose();
+	}
+
+	public resize(): void {
+		this.engine?.resize();
 	}
 
 	public render(): ReactNode {
+		const controlState = this._getPlaybackControlState();
+		const isPlaying = controlState.state === "playing";
+		const playPauseTooltip = controlState.reason ?? (isPlaying ? "Pause" : "Play");
+		const stopTooltip = controlState.reason ?? "Stop";
+		const restartTooltip = controlState.reason ?? "Restart";
 		return (
 			<div className="relative w-full h-full">
-				<canvas ref={(r) => this._onGotCanvasRef(r!)} className="w-full h-full outline-none" />
-
-				{/* Play/Stop/Restart buttons - only show if a node is selected */}
+				<canvas ref={(r) => this._onGotCanvasRef(r)} className="w-full h-full outline-none" />
 				{this.props.selectedNodeId && (
 					<div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 flex gap-2">
 						<TooltipProvider>
 							<Tooltip>
 								<TooltipTrigger asChild>
-									<Button variant="secondary" size="icon" onClick={() => this._handlePlayStop()} className="w-10 h-10">
-										{this.state.playing ? <IoStop className="w-5 h-5" /> : <IoPlay className="w-5 h-5" />}
+									<Button
+										variant="secondary"
+										size="icon"
+										onClick={() => this._handlePlayPause()}
+										className="w-10 h-10"
+										disabled={!controlState.canPlayPause}
+									>
+										{isPlaying ? <IoPause className="w-5 h-5" /> : <IoPlay className="w-5 h-5" />}
 									</Button>
 								</TooltipTrigger>
-								<TooltipContent>{this.state.playing ? "Stop" : "Play"}</TooltipContent>
+								<TooltipContent>{playPauseTooltip}</TooltipContent>
 							</Tooltip>
-
-							{this.state.playing && (
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<Button
+										variant="secondary"
+										size="icon"
+										onClick={() => this._handleStop()}
+										className="w-10 h-10"
+										disabled={!controlState.canStop}
+									>
+										<IoStop className="w-5 h-5" />
+									</Button>
+								</TooltipTrigger>
+								<TooltipContent>{stopTooltip}</TooltipContent>
+							</Tooltip>
+							{controlState.state !== "unavailable" && (
 								<Tooltip>
 									<TooltipTrigger asChild>
-										<Button variant="secondary" size="icon" onClick={() => this._handleRestart()} className="w-10 h-10">
+										<Button
+											variant="secondary"
+											size="icon"
+											onClick={() => this._handleRestart()}
+											className="w-10 h-10"
+											disabled={!controlState.canRestart}
+										>
 											<IoRefresh className="w-5 h-5" />
 										</Button>
 									</TooltipTrigger>
-									<TooltipContent>Restart</TooltipContent>
+									<TooltipContent>{restartTooltip}</TooltipContent>
 								</Tooltip>
 							)}
 						</TooltipProvider>
@@ -84,145 +110,28 @@ export class EffectEditorPreview extends Component<IEffectEditorPreviewProps, IE
 		);
 	}
 
-	public componentDidMount(): void {
-		// Canvas ref will be set in render, _onGotCanvasRef will be called automatically
-		// Sync playing state with effect state
-		this._syncPlayingState();
-	}
-
-	private _syncPlayingState(): void {
-		if (!this.props.selectedNodeId) {
-			// No node selected, hide buttons
-			if (this.state.playing) {
-				this.setState({ playing: false });
-			}
-			return;
-		}
-
-		const nodeData = this.props.editor?.graph?.getNodeData(this.props.selectedNodeId);
-		if (!nodeData) {
-			if (this.state.playing) {
-				this.setState({ playing: false });
-			}
-			return;
-		}
-
-		// Find the effect that contains this node
-		const effect = this._findEffectForNode(nodeData);
-		if (!effect) {
-			if (this.state.playing) {
-				this.setState({ playing: false });
-			}
-			return;
-		}
-
-		// Check if this is an effect root node
-		const isEffectRoot = this._isEffectRootNode(nodeData);
-		if (isEffectRoot) {
-			// For effect root, check if entire effect is started
-			const isStarted = effect.isStarted();
-			if (this.state.playing !== isStarted) {
-				this.setState({ playing: isStarted });
-			}
-		} else {
-			// For group or system, check if node is started
-			const isStarted = effect.isNodeStarted(nodeData);
-			if (this.state.playing !== isStarted) {
-				this.setState({ playing: isStarted });
-			}
-		}
-	}
-
-	/**
-	 * Find the effect that contains the given node
-	 */
-	private _findEffectForNode(node: IEffectNode): Effect | null {
-		const effects = this.props.editor?.graph?.getAllEffects() || [];
-		for (const effect of effects) {
-			// Check if node is part of this effect's hierarchy
-			if (this._isNodeInEffect(node, effect)) {
-				return effect;
-			}
-		}
-		return null;
-	}
-
-	/**
-	 * Check if node is part of effect's hierarchy
-	 */
-	private _isNodeInEffect(node: IEffectNode, effect: Effect): boolean {
-		if (!effect.root) {
-			return false;
-		}
-
-		const findNode = (current: IEffectNode): boolean => {
-			if (current === node || current.uuid === node.uuid || current.name === node.name) {
-				return true;
-			}
-			for (const child of current.children) {
-				if (findNode(child)) {
-					return true;
-				}
-			}
-			return false;
+	/** Returns current playback state/availability for selected node. */
+	private _getPlaybackControlState(): IPlaybackControlState {
+		return this.props.editor?.graph?.getNodePlaybackControlState(this.props.selectedNodeId) ?? {
+			state: "unavailable",
+			canPlayPause: false,
+			canStop: false,
+			canRestart: false,
+			reason: "Preview is not ready.",
 		};
-
-		return findNode(effect.root);
 	}
 
-	/**
-	 * Check if node is an effect root node
-	 */
-	private _isEffectRootNode(node: IEffectNode): boolean {
-		if (!node.uuid) {
-			return false;
-		}
-
-		// Check if this node's UUID matches an effect ID (effect root has effect ID as uuid)
-		const effects = this.props.editor?.graph?.getAllEffects() || [];
-		for (const effect of effects) {
-			if (effect.root && effect.root.uuid === node.uuid) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	public componentWillUnmount(): void {
-		if (this._renderLoopId !== -1) {
-			cancelAnimationFrame(this._renderLoopId);
-		}
-
-		this.scene?.dispose();
-		this.engine?.dispose();
-	}
-
-	/**
-	 * Resizes the engine.
-	 */
-	public resize(): void {
-		this.engine?.resize();
-	}
-
-	private async _onGotCanvasRef(canvas: HTMLCanvasElement | null): Promise<void> {
+	/** Initializes Babylon engine/scene and starts quarks update loop. */
+	private _onGotCanvasRef(canvas: HTMLCanvasElement | null): void {
 		if (!canvas || this.engine) {
 			return;
 		}
 
-		this._canvasRef = canvas;
-
-		this.engine = new Engine(this._canvasRef, true, {
-			antialias: true,
-			adaptToDeviceRatio: true,
-		});
-
+		this.engine = new Engine(canvas, true, { antialias: true, adaptToDeviceRatio: true });
 		this.scene = new Scene(this.engine);
-
-		// Scene settings
 		this.scene.clearColor = new Color4(0.1, 0.1, 0.1, 1.0);
 		this.scene.ambientColor = new Color3(1, 1, 1);
 
-		// Camera
 		this.camera = new ArcRotateCamera("Camera", 0, 0.8, 4, Vector3.Zero(), this.scene);
 		this.camera.doNotSerialize = true;
 		this.camera.lowerRadiusLimit = 3;
@@ -234,13 +143,11 @@ export class EffectEditorPreview extends Component<IEffectEditorPreviewProps, IE
 		this.camera.wheelDeltaPercentage = 0.01;
 		this.camera.pinchDeltaPercentage = 0.01;
 
-		// Directional light (sun)
 		const sunLight = new DirectionalLight("sun", new Vector3(-1, -1, -1), this.scene);
 		sunLight.intensity = 1.0;
 		sunLight.diffuse = new Color3(1, 1, 1);
 		sunLight.specular = new Color3(1, 1, 1);
 
-		// Ground with grid material
 		const groundMaterial = new GridMaterial("groundMaterial", this.scene);
 		groundMaterial.majorUnitFrequency = 2;
 		groundMaterial.minorUnitVisibility = 0.1;
@@ -253,95 +160,45 @@ export class EffectEditorPreview extends Component<IEffectEditorPreviewProps, IE
 		const ground = MeshBuilder.CreateGround("ground", { width: 100, height: 100 }, this.scene);
 		ground.material = groundMaterial;
 
-		// Render loop
 		this.engine.runRenderLoop(() => {
-			if (this.scene) {
-				this.scene.render();
+			const now = performance.now();
+			const deltaSeconds = Math.min((now - this._lastFrameMs) / 1000, 0.1);
+			this._lastFrameMs = now;
+			for (const effect of this.props.editor?.graph?.getAllEffects() ?? []) {
+				effect.update(deltaSeconds);
 			}
+			this.scene?.render();
 		});
 
-		// Handle resize
-		window.addEventListener("resize", () => {
-			this.engine?.resize();
-		});
-
-		// Notify parent that scene is ready
+		window.addEventListener("resize", () => this.engine?.resize());
 		this.props.onSceneReady?.(this.scene);
-
 		this.forceUpdate();
 	}
 
-	private _handlePlayStop(): void {
-		if (!this.props.selectedNodeId) {
+	/** Toggles selected node play/pause via graph bridge API. */
+	private _handlePlayPause(): void {
+		if (!this.props.selectedNodeId || !this.props.editor?.graph) {
 			return;
 		}
 
-		const nodeData = this.props.editor?.graph?.getNodeData(this.props.selectedNodeId);
-		if (!nodeData) {
-			return;
-		}
-
-		const effect = this._findEffectForNode(nodeData);
-		if (!effect) {
-			return;
-		}
-
-		// Check if this is an effect root node
-		const isEffectRoot = this._isEffectRootNode(nodeData);
-		if (isEffectRoot) {
-			// For effect root, manage entire effect
-			if (effect.isStarted()) {
-				effect.stop();
-			} else {
-				effect.start();
-			}
-		} else if (effect.isNodeStarted(nodeData)) {
-			// For group or system, manage only this node
-			effect.stopNode(nodeData);
-		} else {
-			effect.startNode(nodeData);
-		}
-
-		this._syncPlayingState();
+		this.props.editor.graph.toggleNodePlayback(this.props.selectedNodeId);
 	}
 
+	/** Stops selected node playback via graph bridge API. */
+	private _handleStop(): void {
+		if (!this.props.selectedNodeId || !this.props.editor?.graph) {
+			return;
+		}
+
+		this.props.editor.graph.stopNode(this.props.selectedNodeId);
+	}
+
+	/** Restarts selected node playback via graph bridge API. */
 	private _handleRestart(): void {
-		if (!this.props.selectedNodeId) {
+		if (!this.props.selectedNodeId || !this.props.editor?.graph) {
 			return;
 		}
 
-		const nodeData = this.props.editor?.graph?.getNodeData(this.props.selectedNodeId);
-		if (!nodeData) {
-			return;
-		}
-
-		const effect = this._findEffectForNode(nodeData);
-		if (!effect) {
-			return;
-		}
-
-		// Check if this is an effect root node
-		const isEffectRoot = this._isEffectRootNode(nodeData);
-		if (isEffectRoot) {
-			// For effect root, restart entire effect
-			effect.reset();
-			effect.start();
-		} else {
-			// For group or system, restart only this node
-			effect.resetNode(nodeData);
-			effect.startNode(nodeData);
-		}
-
-		this.setState({ playing: true });
-	}
-
-	public componentDidUpdate(prevProps: IEffectEditorPreviewProps): void {
-		// Sync playing state when selected node changes or when props change
-		if (prevProps.selectedNodeId !== this.props.selectedNodeId) {
-			this._syncPlayingState();
-		} else {
-			// Update playing state based on actual node state
-			this._syncPlayingState();
-		}
+		this.props.editor.graph.restartNode(this.props.selectedNodeId);
 	}
 }

@@ -9,14 +9,12 @@ import { Toaster } from "../../../ui/shadcn/ui/sonner";
 
 import { EffectEditorLayout } from "./layout";
 import { EffectEditorToolbar } from "./toolbar";
-import { UnityImportModal } from "./modals/unity-import-modal";
 
 import { projectConfiguration, onProjectConfigurationChangedObservable, IProjectConfiguration } from "../../../project/configuration";
 import { EffectEditorAnimation } from "./animation";
 import { EffectEditorGraph } from "./graph";
 import { EffectEditorPreview } from "./preview";
 import { EffectEditorResources } from "./resources";
-import { convertUnityPrefabToData } from "./converters";
 
 export interface IEffectEditorWindowProps {
 	filePath?: string;
@@ -25,7 +23,6 @@ export interface IEffectEditorWindowProps {
 
 export interface IEffectEditorWindowState {
 	filePath: string | null;
-	isUnityImportModalOpen: boolean;
 }
 
 export interface IEffectEditor {
@@ -49,7 +46,6 @@ export default class EffectEditorWindow extends Component<IEffectEditorWindowPro
 
 		this.state = {
 			filePath: props.filePath || null,
-			isUnityImportModalOpen: false,
 		};
 	}
 
@@ -63,13 +59,6 @@ export default class EffectEditorWindow extends Component<IEffectEditorWindowPro
 						<EffectEditorLayout ref={(r) => (this.editor.layout = r)} filePath={this.state.filePath || ""} editor={this.editor} />
 					</div>
 				</div>
-
-				{/* Unity Import Modal */}
-				<UnityImportModal
-					isOpen={this.state.isUnityImportModalOpen}
-					onClose={() => this.setState({ isUnityImportModalOpen: false })}
-					onImport={(contexts, prefabNames) => this.importUnityData(contexts, prefabNames)}
-				/>
 
 				<Toaster />
 			</>
@@ -104,7 +93,9 @@ export default class EffectEditorWindow extends Component<IEffectEditorWindowPro
 
 	public async loadFile(filePath: string): Promise<void> {
 		this.setState({ filePath });
-		// TODO: Load file data into editor
+		if (this.editor.graph) {
+			await this.editor.graph.loadFromFile(filePath);
+		}
 	}
 
 	public async save(): Promise<void> {
@@ -154,82 +145,5 @@ export default class EffectEditorWindow extends Component<IEffectEditorWindowPro
 			console.error("Failed to import Quarks file:", error);
 			toast.error("Failed to import Quarks file");
 		}
-	}
-
-	/**
-	 * Import Unity prefab data and create Effect
-	 * @param contexts - Array of Unity asset contexts (parsed components + dependencies)
-	 * @param prefabNames - Array of prefab names corresponding to contexts
-	 */
-	public async importUnityData(contexts: any[], prefabNames: string[]): Promise<void> {
-		try {
-			// Get Scene from preview for model loading
-			let scene = this.editor.preview?.scene || undefined;
-			if (!scene) {
-				// Try waiting a bit for preview to initialize
-				await new Promise((resolve) => setTimeout(resolve, 100));
-				scene = this.editor.preview?.scene || undefined;
-			}
-			if (!scene) {
-				console.warn("Scene not available for model loading, models will be placeholders");
-			}
-
-			// Convert each prefab with its dependencies
-			let successCount = 0;
-			for (let i = 0; i < contexts.length; i++) {
-				try {
-					const context = contexts[i];
-					const prefabName = prefabNames[i];
-
-					// Validate context structure
-					if (!context) {
-						console.error("Context is null/undefined:", context);
-						toast.error(`Invalid prefab data for ${prefabName}`);
-						continue;
-					}
-
-					if (!context.prefabComponents) {
-						console.error("prefabComponents is missing in context:", context);
-						toast.error(`Missing prefab components for ${prefabName}`);
-						continue;
-					}
-
-					if (!(context.prefabComponents instanceof Map)) {
-						console.error("prefabComponents is not a Map:", typeof context.prefabComponents, context.prefabComponents);
-						toast.error(`Invalid prefab components type for ${prefabName}`);
-						continue;
-					}
-
-					// Convert to IData (pass already parsed components, dependencies, and Scene for model parsing)
-					const data = await convertUnityPrefabToData(context.prefabComponents, context.dependencies, scene as any);
-
-					// Import into graph
-					if (this.editor.graph) {
-						await this.editor.graph.loadFromUnityData(data, prefabName);
-						successCount++;
-					} else {
-						toast.error(`Failed to import ${prefabName}: Graph not available`);
-					}
-				} catch (error) {
-					console.error(`Failed to import prefab ${prefabNames[i]}:`, error);
-					toast.error(`Failed to import ${prefabNames[i]}`);
-				}
-			}
-
-			if (successCount > 0) {
-				toast.success(`Successfully imported ${successCount} prefab${successCount > 1 ? "s" : ""}`);
-			}
-		} catch (error) {
-			console.error("Failed to import Unity prefabs:", error);
-			toast.error("Failed to import Unity prefabs");
-			throw error;
-		}
-	}
-
-	/**
-	 * Open Unity import modal
-	 */
-	public openUnityImportModal(): void {
-		this.setState({ isUnityImportModalOpen: true });
 	}
 }

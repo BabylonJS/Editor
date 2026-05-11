@@ -63,8 +63,6 @@ export class EffectEditorToolbar extends Component<IEffectEditorToolbarProps, IE
 								<MenubarSubContent>
 									<MenubarItem onClick={() => this._handleImportBabylonEffect()}>Babylon Effect</MenubarItem>
 									<MenubarItem onClick={() => this._handleImportQuarks()}>Quarks Effect</MenubarItem>
-									<MenubarSeparator />
-									<MenubarItem onClick={() => this._handleImportUnity()}>Unity Assets</MenubarItem>
 								</MenubarSubContent>
 							</MenubarSub>
 						</MenubarContent>
@@ -151,10 +149,4 @@ export class EffectEditorToolbar extends Component<IEffectEditorToolbarProps, IE
 		this.props.editor.importQuarksFile(file);
 	}
 
-	/**
-	 * Handle import Unity assets (open modal)
-	 */
-	private _handleImportUnity(): void {
-		this.props.editor.openUnityImportModal();
-	}
 }

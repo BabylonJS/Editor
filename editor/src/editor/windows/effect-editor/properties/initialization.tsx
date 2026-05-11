@@ -2,12 +2,13 @@ import { ReactNode } from "react";
 
 import { EditorInspectorBlockField } from "../../../layout/inspector/fields/block";
 
-import { type IEffectNode, parseConstantValue, parseIntervalValue, parseConstantColor, Value, Color, Rotation } from "babylonjs-editor-tools";
+import { createParticleUiProxy, parseConstantValue, parseIntervalValue, parseConstantColor, Value, Color, Rotation } from "../compat-lite";
+import type { IQuarksNode } from "../quarks-bridge";
 import { EffectValueEditor, type IVec3Function } from "../editors/value";
 import { EffectColorEditor } from "../editors/color";
 
 export interface IEffectEditorParticleInitializationPropertiesProps {
-	nodeData: IEffectNode;
+	nodeData: IQuarksNode;
 	onChange?: () => void;
 }
 
@@ -19,7 +20,7 @@ export function EffectEditorParticleInitializationProperties(props: IEffectEdito
 		return null;
 	}
 
-	const system = nodeData.data;
+	const system = createParticleUiProxy(nodeData.data as any);
 
 	// Helper to get/set startLife - both systems use native minLifeTime/maxLifeTime
 	const getStartLife = (): Value | undefined => {

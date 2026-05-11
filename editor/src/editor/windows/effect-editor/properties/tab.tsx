@@ -1,6 +1,6 @@
 import { Component, ReactNode } from "react";
-import type { IEffectNode } from "babylonjs-editor-tools";
 import { IEffectEditor } from "..";
+import type { IQuarksNode } from "../quarks-bridge";
 import { EffectEditorObjectProperties } from "./object";
 import { EffectEditorParticleRendererProperties } from "./renderer";
 import { EffectEditorEmissionProperties } from "./emission";
@@ -13,7 +13,7 @@ export interface IEffectEditorPropertiesTabProps {
 	editor: IEffectEditor;
 	tabType: "object" | "emission" | "renderer" | "initialization" | "behaviors";
 	onNameChanged?: () => void;
-	getNodeData: (nodeId: string | number) => IEffectNode | null;
+	getNodeData: (nodeId: string | number) => IQuarksNode | null;
 }
 
 export class EffectEditorPropertiesTab extends Component<IEffectEditorPropertiesTabProps> {

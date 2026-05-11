@@ -3,7 +3,7 @@ import { ReactNode } from "react";
 import { EditorInspectorListField } from "../../../layout/inspector/fields/list";
 import { EditorInspectorBlockField } from "../../../layout/inspector/fields/block";
 
-import { type Rotation, type IEulerRotation, type IAxisAngleRotation, type IRandomQuatRotation, parseConstantValue, type Value } from "babylonjs-editor-tools";
+import { type Rotation, type IEulerRotation, type IAxisAngleRotation, type IRandomQuatRotation, parseConstantValue, type Value } from "../compat-lite";
 import { EffectValueEditor } from "./value";
 
 export type EffectRotationType = IEulerRotation["type"] | IAxisAngleRotation["type"] | IRandomQuatRotation["type"];
