@@ -20,6 +20,10 @@ export function configureSourceNodeFrom(source: SoundNode, target: SoundNode) {
 	CreateSoundAsync(source.soundRelativePath, source.sound.buffer, {
 		spatialAutoUpdate: true,
 	}).then((sound) => {
+		if (target.isDisposed()) {
+			return sound.dispose();
+		}
+
 		sound.volume = source.volume;
 		sound._isSpatial = source.sound!._isSpatial;
 
@@ -34,15 +38,15 @@ export function configureSourceNodeFrom(source: SoundNode, target: SoundNode) {
 		target.isSoundNode = true;
 		target.soundRelativePath = source.soundRelativePath;
 
+		target.onDisposeObservable.addOnce(() => {
+			sound.dispose();
+		});
+
 		configureSoundNodePrototype(target, sound);
 	});
 }
 
 export function configureSoundNodePrototype(instance: SoundNode, sound: StaticSound) {
-	instance.isPlaying = () => {
-		return sound.state === SoundState.Started;
-	};
-
 	Object.defineProperty(instance, "volume", {
 		get: () => {
 			return sound.volume;
@@ -61,29 +65,17 @@ export function configureSoundNodePrototype(instance: SoundNode, sound: StaticSo
 		},
 	});
 
-	instance.setVolume = (volume, options) => {
-		return sound.setVolume(volume, options);
-	};
+	instance.isPaused = () => sound.state === SoundState.Paused;
+	instance.isPlaying = () => sound.state === SoundState.Started;
 
-	instance.stop = (options) => {
-		return sound.stop(options);
-	};
+	instance.pause = () => sound.pause();
+	instance.resume = () => sound.resume();
+	instance.stop = (options) => sound.stop(options);
+	instance.play = (options) => sound.play(options);
 
-	instance.play = (options) => {
-		return sound.play(options);
-	};
+	instance.setVolume = (volume, options) => sound.setVolume(volume, options);
 
-	instance.pause = () => {
-		return sound.pause();
-	};
-
-	instance.resume = () => {
-		return sound.resume();
-	};
-
-	instance.attachTo = (node, useBoundingBox, attachmentType) => {
-		return sound.spatial.attach(node, useBoundingBox, attachmentType);
-	};
+	instance.attachTo = (node, useBoundingBox, attachmentType) => sound.spatial.attach(node, useBoundingBox, attachmentType);
 }
 
 export function registerAudioParser() {
@@ -138,6 +130,12 @@ export function registerAudioParser() {
 					CreateSoundAsync(transformNode.soundRelativePath, buffer!, {
 						spatialAutoUpdate: true,
 					}).then((sound) => {
+						scene.removePendingData(soundAbsolutePath);
+
+						if (instance.isDisposed()) {
+							return sound.dispose();
+						}
+
 						sound.volume = transformNode.volume;
 						sound._isSpatial = transformNode.isSpatial;
 
@@ -152,9 +150,11 @@ export function registerAudioParser() {
 						instance.isSoundNode = true;
 						instance.soundRelativePath = transformNode.soundRelativePath;
 
-						configureSoundNodePrototype(instance, sound);
+						instance.onDisposeObservable.addOnce(() => {
+							sound.dispose();
+						});
 
-						scene.removePendingData(soundAbsolutePath);
+						configureSoundNodePrototype(instance, sound);
 					});
 				});
 			}
