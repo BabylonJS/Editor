@@ -1,10 +1,11 @@
-import { Scene, Sound, Vector3, Animation } from "babylonjs";
+import { Scene, Vector3, Animation } from "babylonjs";
 import { ICinematic, ICinematicKey, ICinematicKeyCut, ICinematicTrack, parseCinematicKeyValue, getAnimationTypeForObject } from "babylonjs-editor-tools";
 
-import { getSoundById } from "../../../../tools/sound/tools";
 import { getInspectorPropertyValue } from "../../../../tools/property";
 
 import { getDefaultRenderingPipeline } from "../../../rendering/default-pipeline";
+
+import { SoundNode } from "../../../nodes/sound";
 
 export function parseCinematic(data: ICinematic, scene: Scene) {
 	const tracks = data.tracks.map((track) => {
@@ -41,9 +42,9 @@ export function parseCinematicTrack(track: ICinematicTrack, scene: Scene) {
 		animationType = getAnimationTypeForObject(value);
 	}
 
-	let sound: Sound | null = null;
+	let sound: SoundNode | null = null;
 	if (track.sound) {
-		sound = getSoundById(track.sound, scene);
+		sound = scene.getNodeById(track.sound) as SoundNode;
 	}
 
 	return {

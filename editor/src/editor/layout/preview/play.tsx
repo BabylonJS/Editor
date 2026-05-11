@@ -205,10 +205,10 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 	 * It will dispose the scene and reset the state.
 	 */
 	public stop(): void {
-		restorePlayOverrides(this.props.editor);
-
 		this.scene?.dispose();
 		this.scene = null;
+
+		restorePlayOverrides(this.props.editor);
 
 		this.props.editor.layout.preview.engine.wipeCaches(true);
 

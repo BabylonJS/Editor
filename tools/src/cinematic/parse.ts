@@ -1,13 +1,12 @@
 import { Scene } from "@babylonjs/core/scene";
-import { Sound } from "@babylonjs/core/Audio/sound";
 import { Animation } from "@babylonjs/core/Animations/animation";
 import { Color3, Color4 } from "@babylonjs/core/Maths/math.color";
 import { Quaternion, Vector2, Vector3, Matrix } from "@babylonjs/core/Maths/math.vector";
 
 import { getDefaultRenderingPipeline } from "../rendering/default-pipeline";
 
+import { SoundNode } from "../tools/sound";
 import { getNodeById } from "../tools/scene";
-import { getSoundById } from "../tools/sound";
 import { getAnimationTypeForObject } from "../tools/animation";
 
 import { getPropertyValue } from "./tools";
@@ -41,9 +40,9 @@ export function parseCinematic(data: ICinematic, scene: Scene): ICinematic {
 				animationType = getAnimationTypeForObject(value);
 			}
 
-			let sound: Sound | null = null;
+			let sound: SoundNode | null = null;
 			if (track.sound) {
-				sound = getSoundById(track.sound, scene);
+				sound = getNodeById(track.sound, scene) as SoundNode;
 			}
 
 			return {

@@ -1,11 +1,10 @@
-import { TransformNode, AbstractMesh, Vector3, Node } from "babylonjs";
+import { TransformNode, AbstractMesh, Node } from "babylonjs";
 
 import { isScene } from "../../../tools/guards/scene";
-import { isSound } from "../../../tools/guards/sound";
 import { registerUndoRedo } from "../../../tools/undoredo";
 import { isClusteredLight } from "../../../tools/light/cluster";
 import { isAnyParticleSystem } from "../../../tools/guards/particles";
-import { isAbstractMesh, isClusteredLightContainer, isInstancedMesh, isLight, isMesh, isNode, isTransformNode } from "../../../tools/guards/nodes";
+import { isAbstractMesh, isClusteredLightContainer, isLight, isNode } from "../../../tools/guards/nodes";
 import { applyNodeParentingConfiguration, applyTransformNodeParentingConfiguration, IOldNodeHierarchyConfiguration } from "../../../tools/node/parenting";
 
 import { Editor } from "../../main";
@@ -44,10 +43,6 @@ export function setNewParentForGraphSelectedNodes(editor: Editor, newParent: any
 				}
 			}
 
-			if (isSound(n.nodeData)) {
-				return oldHierarchyMap.set(n.nodeData, n.nodeData["_connectedTransformNode"]);
-			}
-
 			if (isAnyParticleSystem(n.nodeData)) {
 				return oldHierarchyMap.set(n.nodeData, n.nodeData.emitter);
 			}
@@ -77,19 +72,6 @@ export function setNewParentForGraphSelectedNodes(editor: Editor, newParent: any
 
 					if (isNode(n.nodeData)) {
 						return applyNodeParentingConfiguration(n.nodeData, oldHierarchyMap.get(n.nodeData) as IOldNodeHierarchyConfiguration);
-					}
-
-					if (isSound(n.nodeData)) {
-						const oldSoundNode = oldHierarchyMap.get(n.nodeData);
-
-						if (oldSoundNode) {
-							return n.nodeData.attachToMesh(oldSoundNode as TransformNode);
-						}
-
-						n.nodeData.detachFromMesh();
-						n.nodeData.spatialSound = false;
-						n.nodeData.setPosition(Vector3.Zero());
-						return (n.nodeData["_connectedTransformNode"] = null);
 					}
 
 					if (isAnyParticleSystem(n.nodeData)) {
@@ -125,19 +107,6 @@ export function setNewParentForGraphSelectedNodes(editor: Editor, newParent: any
 							}
 
 							return (n.nodeData.parent = isScene(newParent) ? null : newParent);
-						}
-
-						if (isSound(n.nodeData)) {
-							if (isTransformNode(newParent) || isMesh(newParent) || isInstancedMesh(newParent)) {
-								return n.nodeData.attachToMesh(newParent);
-							}
-
-							if (isScene(newParent)) {
-								n.nodeData.detachFromMesh();
-								n.nodeData.spatialSound = false;
-								n.nodeData.setPosition(Vector3.Zero());
-								return (n.nodeData["_connectedTransformNode"] = null);
-							}
 						}
 
 						if (isAnyParticleSystem(n.nodeData)) {

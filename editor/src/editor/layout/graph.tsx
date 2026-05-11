@@ -5,7 +5,6 @@ import { Button, Tree, TreeNodeInfo } from "@blueprintjs/core";
 
 import { FaLink } from "react-icons/fa6";
 import { IoMdCube } from "react-icons/io";
-import { BsSoundwave } from "react-icons/bs";
 import { AiOutlinePlus } from "react-icons/ai";
 import { HiSpeakerWave } from "react-icons/hi2";
 import { SiBabylondotjs } from "react-icons/si";
@@ -17,7 +16,7 @@ import { TbGhost2Filled, TbServerSpark, TbBrandAdobeIndesign } from "react-icons
 import { FaCamera, FaImage, FaLightbulb, FaBone, FaRegLightbulb } from "react-icons/fa";
 
 import { AdvancedDynamicTexture } from "babylonjs-gui";
-import { BaseTexture, Node, Scene, Sound, Tools, IParticleSystem, Sprite, Skeleton, TransformNode } from "babylonjs";
+import { BaseTexture, Node, Scene, Tools, IParticleSystem, Sprite, Skeleton, TransformNode, AbstractMesh } from "babylonjs";
 
 import { Editor } from "../main";
 
@@ -34,12 +33,12 @@ import {
 } from "../../ui/shadcn/ui/context-menu";
 
 import { cloneNode } from "../../tools/node/clone";
+import { isSoundNode } from "../../tools/guards/sound";
 import { registerUndoRedo } from "../../tools/undoredo";
 import { isDomTextInputFocused } from "../../tools/dom";
 import { isSceneLinkNode } from "../../tools/guards/scene";
 import { updateAllLights } from "../../tools/light/shadows";
 import { isClusteredLight } from "../../tools/light/cluster";
-import { isSound, isSoundNode } from "../../tools/guards/sound";
 import { getCollisionMeshFor } from "../../tools/mesh/collision";
 import { isNodeVisibleInGraph } from "../../tools/node/metadata";
 import { isAdvancedDynamicTexture } from "../../tools/guards/texture";
@@ -128,8 +127,6 @@ export interface IEditorGraphState {
 }
 
 export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState> {
-	private _soundsList: Sound[] = [];
-
 	public _nodeToCopyTransform: Node | null = null;
 	public _objectsToCopy: TreeNodeInfo<unknown>[] = [];
 
@@ -300,8 +297,6 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		const scene = this.props.editor.layout.preview.scene;
 		const clusteredLightContainer = this.props.editor.layout.preview.clusteredLightContainer;
 
-		this._soundsList = scene.soundTracks?.map((st) => st.soundCollection).flat() ?? [];
-
 		let nodes: (TreeNodeInfo | null)[] = [];
 
 		if (this.state.showOnlyLights || this.state.showOnlyDecals) {
@@ -319,11 +314,6 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		const guiNode = this._parseGuiNode(scene);
 		if (guiNode) {
 			nodes.splice(0, 0, guiNode);
-		}
-
-		const soundNode = this._parseSoundNode(scene);
-		if (soundNode) {
-			nodes.splice(0, 0, soundNode);
 		}
 
 		const skeletonNode = this._parseSkeletonNode(scene);
@@ -350,8 +340,8 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 	 * become unselected to have only the given node selected. All parents are expanded.
 	 * @param node defines the reference tot the node to select in the graph.
 	 */
-	public setSelectedNode(node: Node | Sound | IParticleSystem | Sprite): void {
-		let source = isSound(node) ? node["_connectedTransformNode"] : isAnyParticleSystem(node) ? node.emitter : node;
+	public setSelectedNode(node: Node | IParticleSystem | Sprite): void {
+		let source = (isAnyParticleSystem(node) ? (node.emitter as AbstractMesh) : node) as Node | null;
 
 		if (!source) {
 			return;
@@ -395,7 +385,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 	 * Sets the given node selected in the graph. All other selected nodes remain selected.
 	 * @param node defines the reference to the node to select in the graph.
 	 */
-	public addToSelectedNodes(node: Node | Sound | IParticleSystem | Sprite): void {
+	public addToSelectedNodes(node: Node | IParticleSystem | Sprite): void {
 		this._forEachNode(this.state.nodes, (n) => {
 			if (n.nodeData === node) {
 				n.isSelected = true;
@@ -767,66 +757,6 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		return info;
 	}
 
-	private _parseSoundNode(scene: Scene): TreeNodeInfo | null {
-		const soundTracks = scene.soundTracks;
-		if (!soundTracks?.length) {
-			return null;
-		}
-
-		const childNodes: TreeNodeInfo[] = [];
-
-		this._soundsList.forEach((sound) => {
-			if (sound.spatialSound) {
-				return;
-			}
-
-			if (!sound.name.toLowerCase().includes(this.state.search.toLowerCase())) {
-				return;
-			}
-
-			childNodes.push(this._getSoundNode(sound));
-		});
-
-		if (!childNodes.length) {
-			return null;
-		}
-
-		const rootSoundNode = {
-			childNodes,
-			nodeData: scene,
-			id: "__editor__sounds__",
-			icon: <BsSoundwave className="w-4 h-4" />,
-			label: this._getNodeLabelComponent(scene, "Sounds", false),
-		} as TreeNodeInfo;
-
-		this._forEachNode(this.state.nodes, (n) => {
-			if (n.id === rootSoundNode.id) {
-				rootSoundNode.isSelected = n.isSelected;
-				rootSoundNode.isExpanded = n.isExpanded;
-			}
-		});
-
-		return rootSoundNode;
-	}
-
-	private _getSoundNode(sound: Sound): TreeNodeInfo {
-		const info = {
-			nodeData: sound,
-			id: sound.id,
-			icon: this._getIcon(sound),
-			label: this._getNodeLabelComponent(sound, sound.name, false),
-		} as TreeNodeInfo;
-
-		this._forEachNode(this.state.nodes, (n) => {
-			if (n.id === info.id) {
-				info.isSelected = n.isSelected;
-				info.isExpanded = n.isExpanded;
-			}
-		});
-
-		return info;
-	}
-
 	private _getParticleSystemNode(particleSystem: IParticleSystem): TreeNodeInfo {
 		const info = {
 			nodeData: particleSystem,
@@ -966,17 +896,6 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 				info.childNodes = children.map((c) => this._parseSceneNode(c)).filter((c) => c !== null) as TreeNodeInfo[];
 			}
 
-			// Handle sounds
-			if (isTransformNode(node) || isMesh(node) || isInstancedMesh(node)) {
-				const sounds = this._soundsList.filter((s) => s["_connectedTransformNode"] === node);
-
-				sounds?.forEach((sound) => {
-					if (sound.name.toLowerCase().includes(this.state.search.toLowerCase())) {
-						info.childNodes?.push(this._getSoundNode(sound));
-					}
-				});
-			}
-
 			// Handle particle systems
 			if (isAbstractMesh(node) && !noChildren) {
 				const particleSystems = this.props.editor.layout.preview.scene.particleSystems.filter((ps) => ps.emitter === node);
@@ -1112,7 +1031,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			return <TbBrandAdobeIndesign className="w-4 h-4" />;
 		}
 
-		if (isSound(object) || isSoundNode(object)) {
+		if (isSoundNode(object)) {
 			return <HiSpeakerWave className="w-4 h-4" />;
 		}
 

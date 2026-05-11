@@ -1,12 +1,11 @@
 import { Node } from "@babylonjs/core/node";
 import { Tools } from "@babylonjs/core/Misc/tools";
-import { Sound } from "@babylonjs/core/Audio/sound";
 import { AssetContainer } from "@babylonjs/core/assetContainer";
 import { AnimationGroup } from "@babylonjs/core/Animations/animationGroup";
 
 import { SoundNode } from "../../tools/sound";
 import { cloneJSObject } from "../../tools/tools";
-import { isAbstractMesh, isSoundNode, isTransformNode } from "../../tools/guards";
+import { isSoundNode, isTransformNode } from "../../tools/guards";
 
 import { ScriptMap } from "../loader";
 import { configureSourceNodeFrom } from "../sound";
@@ -162,8 +161,6 @@ export class AdvancedAssetContainer {
 			newDescendants.push(node, ...node.getDescendants(false));
 		});
 
-		const clonedSounds: Record<string, Sound> = {};
-
 		newDescendants.forEach((newNode) => {
 			const nameSplit = newNode.name.split("@editor-tools@");
 			const originalId = nameSplit[1].split("_").pop();
@@ -196,33 +193,6 @@ export class AdvancedAssetContainer {
 								obj.value = newNode.name;
 							}
 
-							const originalSound = this.container.sounds?.find((s) => s.id === obj.value);
-							if (originalSound) {
-								let clonedSound = clonedSounds[originalSound.id];
-								if (!clonedSound) {
-									clonedSound = new Sound(originalSound.name, originalSound["_url"], this.container.scene, null, {
-										autoplay: false,
-										loop: originalSound.loop,
-										volume: originalSound.getVolume(),
-										playbackRate: originalSound.getPlaybackRate(),
-										maxDistance: originalSound.maxDistance,
-										refDistance: originalSound.refDistance,
-										spatialSound: originalSound.spatialSound,
-										distanceModel: originalSound.distanceModel,
-										rolloffFactor: originalSound.rolloffFactor,
-									});
-									clonedSound.id = Tools.RandomId();
-									clonedSound.metadata = {
-										originalSourceId: originalSound["_connectedTransformNode"]?.id,
-									};
-									clonedSounds[originalSound.id] = clonedSound;
-
-									this.container.scene.mainSoundTrack?.addSound(clonedSound);
-								}
-
-								obj.value = clonedSound.id;
-							}
-
 							const originalAnimationGroup = this._animationGroupsMap.get(obj.value);
 							if (originalAnimationGroup) {
 								obj.value = `${originalAnimationGroup.name}-${namingId}`;
@@ -231,17 +201,6 @@ export class AdvancedAssetContainer {
 					});
 				});
 			});
-		});
-
-		// Connect sounds to the new nodes based on the original source node they were connected to in the container
-		Object.values(clonedSounds).forEach((sound) => {
-			const originalSourceId = sound.metadata?.originalSourceId;
-			if (originalSourceId) {
-				const node = newDescendants.find((n) => n.metadata?.originalId === originalSourceId);
-				if (node && (isAbstractMesh(node) || isTransformNode(node))) {
-					sound.attachToMesh(node);
-				}
-			}
 		});
 
 		// Apply scripts after everything else is set up to avoid issues with dependencies between scripts

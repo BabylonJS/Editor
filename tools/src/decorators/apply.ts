@@ -14,13 +14,10 @@ import { NodeParticleSystemSet } from "@babylonjs/core/Particles/Node/nodePartic
 
 import { AdvancedDynamicTexture } from "@babylonjs/gui/2D/advancedDynamicTexture";
 
-import type { AudioSceneComponent as _AudioSceneComponent } from "@babylonjs/core/Audio/audioSceneComponent";
-
-import { getSoundById } from "../tools/sound";
 import { getNodeById, getNodeByName } from "../tools/scene";
 import { copyAndParseRagdollConfiguration } from "../tools/ragdoll";
 import { ISpriteAnimation, SpriteManagerNode } from "../tools/sprite";
-import { isAbstractMesh, isNode, isSprite, isTransformNode } from "../tools/guards";
+import { isAbstractMesh, isNode, isSoundNode, isSprite, isTransformNode } from "../tools/guards";
 
 import { scriptAssetsCache } from "../loading/script/preload";
 import { getScriptByClassForObject } from "../loading/script/apply";
@@ -162,8 +159,10 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 
 	// @soundFromScene
 	ctor._SoundsFromScene?.forEach((params) => {
-		const sound = scene.getSoundByName?.(params.soundName);
-		instance[params.propertyKey.toString()] = sound ?? null;
+		const sound = getNodeByName(params.soundName, scene);
+		if (sound && isSoundNode(sound)) {
+			instance[params.propertyKey.toString()] = sound ?? null;
+		}
 	});
 
 	// @guiFromAsset, deprecated
@@ -236,13 +235,11 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 					const entityType = (params.configuration as VisibleInInspectorDecoratorEntityConfiguration).entityType;
 					switch (entityType) {
 						case "node":
+						case "sound":
 							instance[propertyKey] = getNodeById(value, scene) ?? null;
 							break;
 						case "animationGroup":
 							instance[propertyKey] = scene.getAnimationGroupByName(value) ?? null;
-							break;
-						case "sound":
-							instance[propertyKey] = getSoundById(value, scene);
 							break;
 						case "particleSystem":
 							instance[propertyKey] = scene.particleSystems?.find((ps) => ps.id === value) ?? null;
@@ -266,6 +263,7 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 							case "gui":
 							case "scene":
 							case "navmesh":
+							case "cinematic":
 								instance[propertyKey] = data;
 								break;
 

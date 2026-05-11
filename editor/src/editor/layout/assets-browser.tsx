@@ -96,6 +96,7 @@ import { EditorAssetsTreeLabel } from "./assets-browser/label";
 import "babylonjs-loaders";
 
 import { AssimpJSLoader } from "../../loader/assimpjs";
+import { isSoundNode } from "../../tools/guards/sound";
 
 const HDRSelectable = createSelectable(AssetBrowserHDRItem);
 const GuiSelectable = createSelectable(AssetBrowserGUIItem);
@@ -481,13 +482,10 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 		});
 
 		// Sounds
-		scene.soundTracks?.forEach((soundtrack) => {
-			soundtrack.soundCollection.forEach((sound) => {
-				if (sound.name === oldRelativePath) {
-					sound.name = newRelativePath;
-					sound["_url"] = newRelativePath;
-				}
-			});
+		scene.transformNodes.forEach((node) => {
+			if (isSoundNode(node) && node.soundRelativePath === oldRelativePath) {
+				node.soundRelativePath = newRelativePath;
+			}
 		});
 
 		// Scripts

@@ -3,7 +3,7 @@ import { Component, ReactNode } from "react";
 import { HiSpeakerWave } from "react-icons/hi2";
 import { FaCamera, FaLightbulb } from "react-icons/fa";
 
-import { Mesh, Node, Scene, Vector2, Sound, Vector3 } from "babylonjs";
+import { Mesh, Node, Scene, Vector2, Vector3 } from "babylonjs";
 
 import { Editor } from "../../main";
 
@@ -188,7 +188,7 @@ export class EditorPreviewIcons extends Component<IEditorPreviewIconsProps, IEdi
 		});
 	}
 
-	private _getIcon(node: Node | Sound): ReactNode {
+	private _getIcon(node: Node): ReactNode {
 		if (isLight(node)) {
 			return <FaLightbulb color="white" stroke="black" strokeWidth={0.35} className="w-full h-full" />;
 		}

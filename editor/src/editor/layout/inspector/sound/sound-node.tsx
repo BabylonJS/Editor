@@ -147,8 +147,8 @@ export class EditorSoundNodeInspector extends Component<IEditorInspectorImplemen
 	}
 
 	private _handlePlay(): void {
-		this.props.object.sound?.stop();
-		this.props.object.sound?.play({
+		this.props.object?.stop();
+		this.props.object?.play({
 			loop: true,
 		});
 

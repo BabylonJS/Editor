@@ -1,7 +1,6 @@
-import { Node, Light, AbstractMesh, Scene, IParticleSystem, Sound, SoundTrack, Sprite, Skeleton } from "babylonjs";
+import { Node, Light, AbstractMesh, Scene, IParticleSystem, Sprite, Skeleton } from "babylonjs";
 
 import { unique } from "../../../tools/tools";
-import { isSound } from "../../../tools/guards/sound";
 import { isSprite } from "../../../tools/guards/sprites";
 import { registerUndoRedo } from "../../../tools/undoredo";
 import { updateAllLights } from "../../../tools/light/shadows";
@@ -19,10 +18,6 @@ type _RemoveNodeData = {
 	isClusteredLight: boolean;
 
 	lights: Light[];
-	sounds: {
-		sound: Sound;
-		soundtrack?: SoundTrack;
-	}[];
 	skeletons: Skeleton[];
 	particleSystems: IParticleSystem[];
 };
@@ -52,17 +47,6 @@ export function removeNodes(editor: Editor) {
 						parent: descendant.parent,
 						skeletons: scene.skeletons.filter((skeleton) => isAbstractMesh(descendant) && descendant.skeleton === skeleton),
 						particleSystems: scene.particleSystems.filter((ps) => ps.emitter === descendant),
-						sounds:
-							scene.soundTracks
-								?.map((soundTrack) =>
-									soundTrack.soundCollection
-										.filter((sound) => sound.spatialSound && sound["_connectedTransformNode"] === descendant)
-										.map((sound) => ({
-											sound,
-											soundtrack: scene.soundTracks?.[sound.soundTrackId + 1],
-										}))
-								)
-								.flat() ?? [],
 						isClusteredLight: isLight(descendant) && isClusteredLight(descendant, editor),
 						lights: scene.lights.filter((light) => {
 							return light
@@ -76,20 +60,6 @@ export function removeNodes(editor: Editor) {
 			return attached;
 		})
 		.flat();
-
-	const sounds = unique(
-		nodes
-			.map((d) => d.sounds)
-			.flat()
-			.concat(
-				allData
-					.filter((d) => isSound(d))
-					.map((sound) => ({
-						sound,
-						soundtrack: scene.soundTracks?.[sound.soundTrackId + 1],
-					}))
-			)
-	);
 
 	const skeletons = unique(
 		nodes
@@ -110,7 +80,7 @@ export function removeNodes(editor: Editor) {
 
 	const sprites = allData.filter((d) => isSprite(d)) as Sprite[];
 	const advancedGuiTextures = allData.filter((d) => isAdvancedDynamicTexture(d));
-	const animationGroups = getLinkedAnimationGroupsFor([...particleSystems, ...advancedGuiTextures, ...sounds.map((d) => d.sound), ...nodes.map((d) => d.node)], scene);
+	const animationGroups = getLinkedAnimationGroupsFor([...particleSystems, ...advancedGuiTextures, ...nodes.map((d) => d.node)], scene);
 
 	registerUndoRedo({
 		executeRedo: true,
@@ -124,10 +94,6 @@ export function removeNodes(editor: Editor) {
 		undo: () => {
 			nodes.forEach((d) => {
 				restoreNodeData(editor, d, scene);
-			});
-
-			sounds.forEach((d) => {
-				d.soundtrack?.addSound(d.sound);
 			});
 
 			particleSystems.forEach((particleSystem) => {
@@ -164,10 +130,6 @@ export function removeNodes(editor: Editor) {
 		redo: () => {
 			nodes.forEach((d) => {
 				removeNodeData(editor, d, scene);
-			});
-
-			sounds.forEach((d) => {
-				d.soundtrack?.removeSound(d.sound);
 			});
 
 			particleSystems.forEach((particleSystem) => {

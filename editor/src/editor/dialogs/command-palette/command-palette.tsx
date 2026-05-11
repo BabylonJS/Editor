@@ -8,7 +8,7 @@ import { FaCirclePlus } from "react-icons/fa6";
 import { IoSparklesSharp } from "react-icons/io5";
 import { HiMiniCommandLine } from "react-icons/hi2";
 
-import { Node, IParticleSystem, Sound } from "babylonjs";
+import { Node, IParticleSystem } from "babylonjs";
 
 import { normalizedGlob } from "../../../tools/fs";
 import { isNodeVisibleInGraph } from "../../../tools/node/metadata";
@@ -168,10 +168,7 @@ export class CommandPalette extends Component<ICommandPaletteProps, ICommandPale
 	private _refreshEntities(): void {
 		const scene = this.props.editor.layout.preview.scene;
 
-		let objects = [...scene.meshes, ...scene.lights, ...scene.cameras, ...scene.particleSystems, ...scene.transformNodes] as (Node | IParticleSystem | Sound)[];
-		scene.soundTracks?.forEach((soundTrack) => {
-			objects.push(...soundTrack.soundCollection);
-		});
+		let objects = [...scene.meshes, ...scene.lights, ...scene.cameras, ...scene.particleSystems, ...scene.transformNodes] as (Node | IParticleSystem)[];
 
 		objects = objects.filter((o) => {
 			if (isNode(o) && !isNodeVisibleInGraph(o)) {
