@@ -4,7 +4,7 @@ import { EditorInspectorNumberField } from "../../../layout/inspector/fields/num
 import { EditorInspectorListField } from "../../../layout/inspector/fields/list";
 import { EditorInspectorBlockField } from "../../../layout/inspector/fields/block";
 
-import { type Value, type IConstantValue, type IIntervalValue, parseConstantValue, parseIntervalValue } from "../compat-lite";
+import { type Value, type IConstantValue, type IIntervalValue, parseConstantValue, parseIntervalValue } from "../types";
 
 type PiecewiseBezier = Extract<Value, { type: "PiecewiseBezier" }>;
 import { BezierEditor } from "./bezier";

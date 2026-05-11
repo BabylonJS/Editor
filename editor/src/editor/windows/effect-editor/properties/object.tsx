@@ -4,10 +4,10 @@ import { EditorInspectorStringField } from "../../../layout/inspector/fields/str
 import { EditorInspectorVectorField } from "../../../layout/inspector/fields/vector";
 import { EditorInspectorSwitchField } from "../../../layout/inspector/fields/switch";
 
-import { isSystem } from "../compat-lite";
 import type { IQuarksNode } from "../quarks-bridge";
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
+import { ParticleSystem as QuarksParticleSystem } from "babylon.quarks";
 
 export interface IEffectEditorObjectPropertiesProps {
 	nodeData: IQuarksNode;
@@ -26,7 +26,7 @@ export function EffectEditorObjectProperties(props: IEffectEditorObjectPropertie
 		);
 	}
 
-	const object = isSystem(nodeData.data) ? nodeData.data.emitter : nodeData.data;
+	const object = nodeData.data instanceof QuarksParticleSystem ? nodeData.data.emitter : nodeData.data;
 
 	const GetRotationInspector = (object: TransformNode | AbstractMesh, onFinishChange?: () => void): ReactNode => {
 		if (object.rotationQuaternion) {

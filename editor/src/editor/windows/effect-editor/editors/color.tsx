@@ -6,7 +6,7 @@ import { EditorInspectorColorGradientField } from "../../../layout/inspector/fie
 import { EditorInspectorListField } from "../../../layout/inspector/fields/list";
 import { EditorInspectorBlockField } from "../../../layout/inspector/fields/block";
 
-import { type Color, parseConstantColor } from "../compat-lite";
+import { type Color, parseConstantColor } from "../types";
 
 export type EffectColorType = "ConstantColor" | "ColorRange" | "Gradient" | "RandomColor" | "RandomColorBetweenGradient";
 

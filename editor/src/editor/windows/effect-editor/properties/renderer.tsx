@@ -8,9 +8,10 @@ import { EditorInspectorTextureField } from "../../../layout/inspector/fields/te
 import { EditorInspectorGeometryField } from "../../../layout/inspector/fields/geometry";
 
 import { Material } from "@babylonjs/core/Materials/material";
+import { Constants } from "@babylonjs/core/Engines/constants";
 import { ParticleSystem } from "@babylonjs/core/Particles/particleSystem";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
-import { RenderMode as QuarksRenderMode } from "babylon.quarks";
+import { ConstantValue, RenderMode as QuarksRenderMode } from "babylon.quarks";
 
 import { EditorPBRMaterialInspector } from "../../../layout/inspector/material/pbr";
 import { EditorStandardMaterialInspector } from "../../../layout/inspector/material/standard";
@@ -26,7 +27,6 @@ import { EditorCellMaterialInspector } from "../../../layout/inspector/material/
 import { EditorFireMaterialInspector } from "../../../layout/inspector/material/fire";
 import { EditorGradientMaterialInspector } from "../../../layout/inspector/material/gradient";
 
-import { createParticleUiProxy, isBaseParticleSystem, isSolidParticleSystem } from "../compat-lite";
 import type { IQuarksNode } from "../quarks-bridge";
 import type { ParticleSystem as QuarksParticleSystem } from "babylon.quarks";
 import { IEffectEditor } from "..";
@@ -39,6 +39,37 @@ export interface IEffectEditorParticleRendererPropertiesProps {
 
 export interface IEffectEditorParticleRendererPropertiesState {
 	meshDragOver: boolean;
+}
+
+function getUiBlendMode(system: QuarksParticleSystem): number {
+	if (system.blending === Constants.ALPHA_ADD) {
+		return ParticleSystem.BLENDMODE_ADD;
+	}
+	if (system.blending === Constants.ALPHA_MULTIPLY) {
+		return ParticleSystem.BLENDMODE_MULTIPLY;
+	}
+	if (system.blending === Constants.ALPHA_ONEONE) {
+		return ParticleSystem.BLENDMODE_ONEONE;
+	}
+	return ParticleSystem.BLENDMODE_STANDARD;
+}
+
+function setUiBlendMode(system: QuarksParticleSystem, value: number): void {
+	system.blending = value === ParticleSystem.BLENDMODE_ADD
+		? Constants.ALPHA_ADD
+		: value === ParticleSystem.BLENDMODE_MULTIPLY
+			? Constants.ALPHA_MULTIPLY
+			: value === ParticleSystem.BLENDMODE_ONEONE
+				? Constants.ALPHA_ONEONE
+				: Constants.ALPHA_COMBINE;
+}
+
+function isSolidParticleSystem(system: QuarksParticleSystem): boolean {
+	return system.renderMode === QuarksRenderMode.Mesh;
+}
+
+function isBaseParticleSystem(system: QuarksParticleSystem): boolean {
+	return system.renderMode !== QuarksRenderMode.Mesh;
 }
 
 export class EffectEditorParticleRendererProperties extends Component<IEffectEditorParticleRendererPropertiesProps, IEffectEditorParticleRendererPropertiesState> {
@@ -57,7 +88,6 @@ export class EffectEditorParticleRendererProperties extends Component<IEffectEdi
 		}
 
 		const system = nodeData.data as QuarksParticleSystem;
-		const particle = createParticleUiProxy(system);
 		const isSolidSystem = isSolidParticleSystem(system);
 		const isBaseSystem = isBaseParticleSystem(system);
 		const renderMode = system.renderMode as QuarksRenderMode;
@@ -86,37 +116,9 @@ export class EffectEditorParticleRendererProperties extends Component<IEffectEdi
 					onChange={(value) => this._handleRenderModeChanged(system as QuarksParticleSystem, value as QuarksRenderMode)}
 				/>
 
-				{/* Billboard Mode - только для base */}
-				{isBaseSystem && isBillboardRenderMode && (
-					<>
-						<EditorInspectorListField
-							object={particle}
-							property="billboardMode"
-							label="Billboard Mode"
-							items={[
-								{ text: "All", value: ParticleSystem.BILLBOARDMODE_ALL },
-								{ text: "Y", value: ParticleSystem.BILLBOARDMODE_Y },
-								{ text: "Stretched", value: ParticleSystem.BILLBOARDMODE_STRETCHED },
-								{ text: "Stretched Local", value: ParticleSystem.BILLBOARDMODE_STRETCHED_LOCAL },
-							]}
-							onChange={() => this.props.onChange()}
-						/>
-						<EditorInspectorSwitchField object={particle} property="isBillboardBased" label="Is Billboard Based" onChange={() => this.props.onChange()} />
-					</>
-				)}
+				{isBaseSystem && isBillboardRenderMode && <div className="px-2 text-sm text-muted-foreground">Billboard orientation is controlled by selected Render Mode.</div>}
 
-				{/* World Space (isLocal inverted) */}
-				{(() => {
-					const proxy = {
-						get worldSpace() {
-							return !particle.isLocal;
-						},
-						set worldSpace(value: boolean) {
-							particle.isLocal = !value;
-						},
-					};
-					return <EditorInspectorSwitchField object={proxy} property="worldSpace" label="World Space" onChange={() => this.props.onChange()} />;
-				})()}
+				<EditorInspectorSwitchField object={system} property="worldSpace" label="World Space" onChange={() => this.props.onChange()} />
 
 				{/* Material Inspector - только для solid с материалом */}
 				{isSolidSystem && this._getMaterialInspector()}
@@ -124,7 +126,14 @@ export class EffectEditorParticleRendererProperties extends Component<IEffectEdi
 				{/* Blend Mode - только для base */}
 				{isBaseSystem && (
 					<EditorInspectorListField
-						object={particle}
+						object={{
+							get blendMode() {
+								return getUiBlendMode(system);
+							},
+							set blendMode(value: number) {
+								setUiBlendMode(system, value);
+							},
+						}}
 						property="blendMode"
 						label="Blend Mode"
 						items={[
@@ -166,7 +175,7 @@ export class EffectEditorParticleRendererProperties extends Component<IEffectEdi
 			return null;
 		}
 
-		const system = nodeData.data;
+		const system = nodeData.data as QuarksParticleSystem;
 
 		// Material inspector for solid-mode particle systems.
 		if (!isSolidParticleSystem(system) || !(system as any).mesh || !(system as any).mesh.material) {
@@ -178,17 +187,8 @@ export class EffectEditorParticleRendererProperties extends Component<IEffectEdi
 	}
 
 	private _handleRenderModeChanged(system: QuarksParticleSystem, renderMode: QuarksRenderMode): void {
-		const particle = createParticleUiProxy(system);
 		system.renderMode = renderMode;
-
-		// Keep emitter shape model aligned with selected render mode.
-		if (renderMode === QuarksRenderMode.Mesh) {
-			if (!isSolidParticleSystem(system)) {
-				particle.createSphereEmitter(1, Math.PI * 2, 1);
-			}
-		} else if (isSolidParticleSystem(system)) {
-			particle.createPointEmitter();
-		}
+		system.neededToUpdateRender = true;
 
 		this.props.onChange();
 	}
@@ -265,14 +265,14 @@ export class EffectEditorParticleRendererProperties extends Component<IEffectEdi
 			return null;
 		}
 
-		const system = nodeData.data;
+		const system = nodeData.data as QuarksParticleSystem;
 
 		// Base mode uses particleTexture, solid mode texture is driven by material.
 		if (isBaseParticleSystem(system)) {
 			return (
 				<EditorInspectorTextureField
-					object={createParticleUiProxy(system)}
-					property="particleTexture"
+					object={system}
+					property="texture"
 					title="Texture"
 					scene={editor.preview.scene as any}
 					onChange={() => this.props.onChange()}
@@ -290,11 +290,27 @@ export class EffectEditorParticleRendererProperties extends Component<IEffectEdi
 			return null;
 		}
 
-		const system = nodeData.data;
+		const system = nodeData.data as QuarksParticleSystem;
 
 		// Base mode stores render order in renderingGroupId.
 		if (isBaseParticleSystem(system)) {
-			return <EditorInspectorNumberField object={createParticleUiProxy(system)} property="renderingGroupId" label="Render Order" min={0} step={1} onChange={() => this.props.onChange()} />;
+			return (
+				<EditorInspectorNumberField
+					object={{
+						get renderingGroupId() {
+							return system.renderOrder;
+						},
+						set renderingGroupId(value: number) {
+							system.renderOrder = value;
+						},
+					}}
+					property="renderingGroupId"
+					label="Render Order"
+					min={0}
+					step={1}
+					onChange={() => this.props.onChange()}
+				/>
+			);
 		}
 
 		// Solid mode keeps renderOrder and mirrors it to mesh.renderingGroupId.
@@ -325,14 +341,14 @@ export class EffectEditorParticleRendererProperties extends Component<IEffectEdi
 			return null;
 		}
 
-		const system = nodeData.data;
+		const system = nodeData.data as QuarksParticleSystem;
 
 		// UV Tile only available for ParticleSystem (sprite sheets)
 		if (isBaseParticleSystem(system)) {
 			return (
 				<EditorInspectorSectionField title="UV Tile">
-					<EditorInspectorNumberField object={createParticleUiProxy(system)} property="spriteCellWidth" label="U Tile Count" min={1} step={1} onChange={() => this.props.onChange()} />
-					<EditorInspectorNumberField object={createParticleUiProxy(system)} property="spriteCellHeight" label="V Tile Count" min={1} step={1} onChange={() => this.props.onChange()} />
+					<EditorInspectorNumberField object={system} property="uTileCount" label="U Tile Count" min={1} step={1} onChange={() => this.props.onChange()} />
+					<EditorInspectorNumberField object={system} property="vTileCount" label="V Tile Count" min={1} step={1} onChange={() => this.props.onChange()} />
 				</EditorInspectorSectionField>
 			);
 		}
@@ -348,11 +364,33 @@ export class EffectEditorParticleRendererProperties extends Component<IEffectEdi
 			return null;
 		}
 
-		const system = nodeData.data;
+		const system = nodeData.data as QuarksParticleSystem;
 
 		// Start Tile Index only available for ParticleSystem (sprite sheets)
 		if (isBaseParticleSystem(system)) {
-			return <EditorInspectorNumberField object={createParticleUiProxy(system)} property="startSpriteCellID" label="Start Tile Index" min={0} step={1} onChange={() => this.props.onChange()} />;
+			const target = system as QuarksParticleSystem;
+			return (
+				<EditorInspectorNumberField
+					object={{
+						get startSpriteCellID() {
+							const json = (target.startTileIndex as any)?.toJSON?.();
+							if (json?.type === "ConstantValue") {
+								return Number(json.value ?? 0);
+							}
+							return 0;
+						},
+						set startSpriteCellID(value: number) {
+							const safeValue = Math.max(0, Math.floor(value));
+							target.startTileIndex = new ConstantValue(safeValue);
+						},
+					}}
+					property="startSpriteCellID"
+					label="Start Tile Index"
+					min={0}
+					step={1}
+					onChange={() => this.props.onChange()}
+				/>
+			);
 		}
 
 		// SolidParticleSystem uses mesh UVs, no tile index
@@ -362,7 +400,7 @@ export class EffectEditorParticleRendererProperties extends Component<IEffectEdi
 	private _getGeometryField(): ReactNode {
 		const { nodeData, editor } = this.props;
 
-		if (nodeData.type !== "particle" || !nodeData.data || !isSolidParticleSystem(nodeData.data) || !editor.preview?.scene) {
+		if (nodeData.type !== "particle" || !nodeData.data || !isSolidParticleSystem(nodeData.data as QuarksParticleSystem) || !editor.preview?.scene) {
 			return null;
 		}
 
@@ -396,8 +434,8 @@ export class EffectEditorParticleRendererProperties extends Component<IEffectEdi
 				// Store reference to source mesh for UI display
 				(system as any)._sourceMesh = value;
 
-				// Replace the particle mesh (this will rebuild the entire SPS)
-				createParticleUiProxy(system).replaceParticleMesh(clonedMesh);
+				// TODO: Quarks mesh geometry replacement should be wired directly without compat storage.
+				(system as any)._particleMesh = clonedMesh;
 
 				// Notify change
 				this.props.onChange();
