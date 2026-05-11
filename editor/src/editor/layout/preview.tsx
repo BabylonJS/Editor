@@ -36,6 +36,7 @@ import {
 	SelectionOutlineLayer,
 	ClusteredLightContainer,
 	Tools,
+	_GetAudioEngine,
 } from "babylonjs";
 
 import { SpinnerUIComponent } from "../../ui/spinner";
@@ -551,6 +552,8 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
 		this.camera = new EditorCamera("camera", Vector3.Zero(), this.scene);
 		this.camera.attachControl(true);
+
+		_GetAudioEngine(null).listener.attach(this.camera);
 
 		this.gizmo = new EditorPreviewGizmo(this.scene);
 		this.gizmo.setSnapPreferences(this.state.gizmoSnap);
@@ -1106,6 +1109,8 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		if (!isNodeLocked(camera)) {
 			this.scene.activeCamera?.attachControl(true);
 		}
+
+		_GetAudioEngine(null).listener.attach(camera);
 
 		disposeSSAO2RenderingPipeline();
 		disposeVLSPostProcess(this.props.editor);

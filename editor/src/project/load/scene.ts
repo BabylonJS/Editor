@@ -1,7 +1,21 @@
 import { join, basename } from "path/posix";
 import { readJSON, readdir } from "fs-extra";
 
-import { AbstractMesh, AnimationGroup, Camera, Color3, Light, SceneLoaderFlags, Texture, TransformNode, Animation, Color4, IParticleSystem, Vector3 } from "babylonjs";
+import {
+	AbstractMesh,
+	AnimationGroup,
+	Camera,
+	Color3,
+	Light,
+	SceneLoaderFlags,
+	Texture,
+	TransformNode,
+	Animation,
+	Color4,
+	IParticleSystem,
+	Vector3,
+	_GetAudioEngine,
+} from "babylonjs";
 
 import { Editor } from "../../editor/main";
 
@@ -209,6 +223,8 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 		if (camera) {
 			editor.layout.preview.camera.dispose();
 			editor.layout.preview.camera = camera;
+
+			_GetAudioEngine(null).listener.attach(camera);
 
 			camera.attachControl(true);
 			camera.configureFromPreferences();

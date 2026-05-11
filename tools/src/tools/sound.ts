@@ -23,6 +23,7 @@ export interface SoundNode extends TransformNode {
 
 	sound?: StaticSound;
 
+	isPaused(): boolean;
 	isPlaying(): boolean;
 
 	get volume(): number;
