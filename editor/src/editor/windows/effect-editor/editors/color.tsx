@@ -7,8 +7,25 @@ import { EditorInspectorListField } from "../../../layout/inspector/fields/list"
 import { EditorInspectorBlockField } from "../../../layout/inspector/fields/block";
 
 import { type Color, parseConstantColor } from "../types";
+import type { EditorColorArray } from "../quarks-adapter";
 
 export type EffectColorType = "ConstantColor" | "ColorRange" | "Gradient" | "RandomColor" | "RandomColorBetweenGradient";
+
+function toEditorColorKeys(keys: Array<{ pos?: number; value: unknown }>): Array<{ pos: number; value: EditorColorArray }> {
+	return keys.map((key) => ({
+		pos: Number(key.pos ?? 0),
+		value: Array.isArray(key.value)
+			? [Number(key.value[0] ?? 0), Number(key.value[1] ?? 0), Number(key.value[2] ?? 0), Number(key.value[3] ?? 1)]
+			: [0, 0, 0, 1],
+	}));
+}
+
+function toEditorAlphaKeys(keys: Array<{ pos?: number; value: unknown }> | undefined): Array<{ pos: number; value: number }> {
+	return (keys ?? []).map((key) => ({
+		pos: Number(key.pos ?? 0),
+		value: Number(key.value ?? 1),
+	}));
+}
 
 export interface IEffectColorEditorProps {
 	value: Color | undefined;
@@ -62,12 +79,12 @@ export function EffectColorEditor(props: IEffectColorEditorProps): ReactNode {
 			let newValue: Color;
 			const currentColor = value ? parseConstantColor(value) : new Color4(1, 1, 1, 1);
 			if (newType === "ConstantColor") {
-				newValue = { type: "ConstantColor", value: [currentColor.r, currentColor.g, currentColor.b, currentColor.a] };
+				newValue = { type: "ConstantColor", color: [currentColor.r, currentColor.g, currentColor.b, currentColor.a] };
 			} else if (newType === "ColorRange") {
 				newValue = {
 					type: "ColorRange",
-					colorA: [currentColor.r, currentColor.g, currentColor.b, currentColor.a],
-					colorB: [1, 1, 1, 1],
+					a: [currentColor.r, currentColor.g, currentColor.b, currentColor.a],
+					b: [1, 1, 1, 1],
 				};
 			} else if (newType === "Gradient") {
 				newValue = {
@@ -84,14 +101,15 @@ export function EffectColorEditor(props: IEffectColorEditorProps): ReactNode {
 			} else if (newType === "RandomColor") {
 				newValue = {
 					type: "RandomColor",
-					colorA: [currentColor.r, currentColor.g, currentColor.b, currentColor.a],
-					colorB: [1, 1, 1, 1],
+					a: [currentColor.r, currentColor.g, currentColor.b, currentColor.a],
+					b: [1, 1, 1, 1],
 				};
 			} else {
 				// RandomColorBetweenGradient
 				newValue = {
 					type: "RandomColorBetweenGradient",
 					gradient1: {
+						type: "Gradient",
 						colorKeys: [
 							{ pos: 0, value: [currentColor.r, currentColor.g, currentColor.b, currentColor.a] },
 							{ pos: 1, value: [1, 1, 1, 1] },
@@ -102,6 +120,7 @@ export function EffectColorEditor(props: IEffectColorEditorProps): ReactNode {
 						],
 					},
 					gradient2: {
+						type: "Gradient",
 						colorKeys: [
 							{ pos: 0, value: [1, 0, 0, 1] },
 							{ pos: 1, value: [0, 1, 0, 1] },
@@ -138,7 +157,7 @@ export function EffectColorEditor(props: IEffectColorEditorProps): ReactNode {
 								return constantColor;
 							},
 							set color(newColor: Color4) {
-								onChange({ type: "ConstantColor", value: [newColor.r, newColor.g, newColor.b, newColor.a] });
+								onChange({ type: "ConstantColor", color: [newColor.r, newColor.g, newColor.b, newColor.a] });
 							},
 						};
 						return <EditorInspectorColorField object={wrapperColor} property="color" label="Color" onChange={() => {}} />;
@@ -150,25 +169,25 @@ export function EffectColorEditor(props: IEffectColorEditorProps): ReactNode {
 				<>
 					{(() => {
 						const colorRange = value && typeof value === "object" && "type" in value && value.type === "ColorRange" ? value : null;
-						const colorA = colorRange ? new Color4(colorRange.colorA[0], colorRange.colorA[1], colorRange.colorA[2], colorRange.colorA[3]) : new Color4(0, 0, 0, 1);
-						const colorB = colorRange ? new Color4(colorRange.colorB[0], colorRange.colorB[1], colorRange.colorB[2], colorRange.colorB[3]) : new Color4(1, 1, 1, 1);
+						const colorA = colorRange ? new Color4(colorRange.a[0], colorRange.a[1], colorRange.a[2], colorRange.a[3]) : new Color4(0, 0, 0, 1);
+						const colorB = colorRange ? new Color4(colorRange.b[0], colorRange.b[1], colorRange.b[2], colorRange.b[3]) : new Color4(1, 1, 1, 1);
 						const wrapperRange = {
 							get colorA() {
 								return colorA;
 							},
 							set colorA(newColor: Color4) {
-								const currentB = colorRange ? colorRange.colorB : [1, 1, 1, 1];
-								onChange({ type: "ColorRange", colorA: [newColor.r, newColor.g, newColor.b, newColor.a], colorB: currentB as [number, number, number, number] });
+								const currentB = colorRange ? colorRange.b : [1, 1, 1, 1];
+								onChange({ type: "ColorRange", a: [newColor.r, newColor.g, newColor.b, newColor.a], b: currentB as [number, number, number, number] });
 							},
 							get colorB() {
 								return colorB;
 							},
 							set colorB(newColor: Color4) {
-								const currentA = colorRange ? colorRange.colorA : [0, 0, 0, 1];
+								const currentA = colorRange ? colorRange.a : [0, 0, 0, 1];
 								onChange({
 									type: "ColorRange",
-									colorA: currentA as [number, number, number, number],
-									colorB: [newColor.r, newColor.g, newColor.b, newColor.a] as [number, number, number, number],
+									a: currentA as [number, number, number, number],
+									b: [newColor.r, newColor.g, newColor.b, newColor.a] as [number, number, number, number],
 								});
 							},
 						};
@@ -205,8 +224,8 @@ export function EffectColorEditor(props: IEffectColorEditorProps): ReactNode {
 							onChange={(newColorKeys, newAlphaKeys) => {
 								onChange({
 									type: "Gradient",
-									colorKeys: newColorKeys,
-									alphaKeys: newAlphaKeys,
+									colorKeys: toEditorColorKeys(newColorKeys),
+									alphaKeys: toEditorAlphaKeys(newAlphaKeys),
 								});
 							}}
 						/>
@@ -218,28 +237,28 @@ export function EffectColorEditor(props: IEffectColorEditorProps): ReactNode {
 					{(() => {
 						const randomColor = value && typeof value === "object" && "type" in value && value.type === "RandomColor" ? value : null;
 						const colorA = randomColor
-							? new Color4(randomColor.colorA[0], randomColor.colorA[1], randomColor.colorA[2], randomColor.colorA[3])
+							? new Color4(randomColor.a[0], randomColor.a[1], randomColor.a[2], randomColor.a[3])
 							: new Color4(0, 0, 0, 1);
 						const colorB = randomColor
-							? new Color4(randomColor.colorB[0], randomColor.colorB[1], randomColor.colorB[2], randomColor.colorB[3])
+							? new Color4(randomColor.b[0], randomColor.b[1], randomColor.b[2], randomColor.b[3])
 							: new Color4(1, 1, 1, 1);
 						const wrapperRandom = {
 							get colorA() {
 								return colorA;
 							},
 							set colorA(newColor: Color4) {
-								const currentB = randomColor ? randomColor.colorB : [1, 1, 1, 1];
-								onChange({ type: "RandomColor", colorA: [newColor.r, newColor.g, newColor.b, newColor.a], colorB: currentB as [number, number, number, number] });
+								const currentB = randomColor ? randomColor.b : [1, 1, 1, 1];
+								onChange({ type: "RandomColor", a: [newColor.r, newColor.g, newColor.b, newColor.a], b: currentB as [number, number, number, number] });
 							},
 							get colorB() {
 								return colorB;
 							},
 							set colorB(newColor: Color4) {
-								const currentA = randomColor ? randomColor.colorA : [0, 0, 0, 1];
+								const currentA = randomColor ? randomColor.a : [0, 0, 0, 1];
 								onChange({
 									type: "RandomColor",
-									colorA: currentA as [number, number, number, number],
-									colorB: [newColor.r, newColor.g, newColor.b, newColor.a] as [number, number, number, number],
+									a: currentA as [number, number, number, number],
+									b: [newColor.r, newColor.g, newColor.b, newColor.a] as [number, number, number, number],
 								});
 							},
 						};
@@ -288,8 +307,9 @@ export function EffectColorEditor(props: IEffectColorEditorProps): ReactNode {
 											onChange({
 												type: "RandomColorBetweenGradient",
 												gradient1: {
-													colorKeys: newColorKeys,
-													alphaKeys: newAlphaKeys,
+													type: "Gradient",
+													colorKeys: toEditorColorKeys(newColorKeys),
+													alphaKeys: toEditorAlphaKeys(newAlphaKeys),
 												},
 												gradient2: randomGradient.gradient2,
 											});
@@ -309,8 +329,9 @@ export function EffectColorEditor(props: IEffectColorEditorProps): ReactNode {
 												type: "RandomColorBetweenGradient",
 												gradient1: randomGradient.gradient1,
 												gradient2: {
-													colorKeys: newColorKeys,
-													alphaKeys: newAlphaKeys,
+													type: "Gradient",
+													colorKeys: toEditorColorKeys(newColorKeys),
+													alphaKeys: toEditorAlphaKeys(newAlphaKeys),
 												},
 											});
 										}

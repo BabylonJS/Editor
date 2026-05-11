@@ -4,13 +4,15 @@ import { EditorInspectorNumberField } from "../../../layout/inspector/fields/num
 import { EditorInspectorListField } from "../../../layout/inspector/fields/list";
 import { EditorInspectorBlockField } from "../../../layout/inspector/fields/block";
 
-import { type Value, type IConstantValue, type IIntervalValue, parseConstantValue, parseIntervalValue } from "../types";
+import { type Value, parseConstantValue, parseIntervalValue } from "../types";
 
 type PiecewiseBezier = Extract<Value, { type: "PiecewiseBezier" }>;
 import { BezierEditor } from "./bezier";
 
+type BezierFunction = { p0: number; p1: number; p2: number; p3: number };
+
 // Vec3Function is a custom editor extension, not part of the core Value type
-export type EffectValueType = IConstantValue["type"] | IIntervalValue["type"] | PiecewiseBezier["type"] | "Vec3Function";
+export type EffectValueType = Value["type"] | PiecewiseBezier["type"] | "Vec3Function";
 
 export interface IVec3Function {
 	type: "Vec3Function";
@@ -40,9 +42,7 @@ export function EffectValueEditor(props: IEffectValueEditorProps): ReactNode {
 	// Determine current type from value
 	let currentType: EffectValueType = "ConstantValue";
 	if (value) {
-		if (typeof value === "number") {
-			currentType = "ConstantValue";
-		} else if ("type" in value) {
+		if ("type" in value) {
 			if (value.type === "Vec3Function") {
 				currentType = "Vec3Function";
 			} else if (value.type === "ConstantValue") {
@@ -70,23 +70,13 @@ export function EffectValueEditor(props: IEffectValueEditorProps): ReactNode {
 			// Convert value to new type
 			let newValue: Value | IVec3Function;
 			if (newType === "ConstantValue") {
-				const currentValue =
-					value && typeof value !== "number" && "type" in value && value.type !== "Vec3Function"
-						? parseConstantValue(value as Value)
-						: typeof value === "number"
-							? value
-							: 1;
+				const currentValue = value && "type" in value && value.type !== "Vec3Function" ? parseConstantValue(value as Value) : 1;
 				newValue = { type: "ConstantValue", value: currentValue };
 			} else if (newType === "IntervalValue") {
-				const interval = value && typeof value !== "number" && "type" in value && value.type !== "Vec3Function" ? parseIntervalValue(value as Value) : { min: 0, max: 1 };
-				newValue = { type: "IntervalValue", min: interval.min, max: interval.max };
+				const interval = value && "type" in value && value.type !== "Vec3Function" ? parseIntervalValue(value as Value) : { min: 0, max: 1 };
+				newValue = { type: "IntervalValue", a: interval.min, b: interval.max };
 			} else if (newType === "Vec3Function") {
-				const currentValue =
-					value && typeof value !== "number" && "type" in value && value.type !== "Vec3Function"
-						? parseConstantValue(value as Value)
-						: typeof value === "number"
-							? value
-							: 1;
+				const currentValue = value && "type" in value && value.type !== "Vec3Function" ? parseConstantValue(value as Value) : 1;
 				newValue = {
 					type: "Vec3Function",
 					x: { type: "ConstantValue", value: currentValue },
@@ -95,12 +85,7 @@ export function EffectValueEditor(props: IEffectValueEditorProps): ReactNode {
 				};
 			} else {
 				// PiecewiseBezier - convert from current value
-				const currentValue =
-					value && typeof value !== "number" && "type" in value && value.type !== "Vec3Function"
-						? parseConstantValue(value as Value)
-						: typeof value === "number"
-							? value
-							: 1;
+				const currentValue = value && "type" in value && value.type !== "Vec3Function" ? parseConstantValue(value as Value) : 1;
 				newValue = {
 					type: "PiecewiseBezier",
 					functions: [
@@ -130,12 +115,7 @@ export function EffectValueEditor(props: IEffectValueEditorProps): ReactNode {
 			{currentType === "ConstantValue" && (
 				<>
 					{(() => {
-						const constantValue =
-							value && typeof value !== "number" && "type" in value && value.type !== "Vec3Function"
-								? parseConstantValue(value as Value)
-								: typeof value === "number"
-									? value
-									: 1;
+						const constantValue = value && "type" in value && value.type !== "Vec3Function" ? parseConstantValue(value as Value) : 1;
 						const wrapperValue = {
 							get value() {
 								return constantValue;
@@ -163,22 +143,21 @@ export function EffectValueEditor(props: IEffectValueEditorProps): ReactNode {
 			{currentType === "IntervalValue" && (
 				<>
 					{(() => {
-						const interval =
-							value && typeof value !== "number" && "type" in value && value.type !== "Vec3Function" ? parseIntervalValue(value as Value) : { min: 0, max: 1 };
+						const interval = value && "type" in value && value.type !== "Vec3Function" ? parseIntervalValue(value as Value) : { min: 0, max: 1 };
 						const wrapperInterval = {
 							get min() {
 								return interval.min;
 							},
 							set min(newMin: number) {
-								const currentMax = value && typeof value !== "number" && "type" in value && value.type === "IntervalValue" ? value.max : interval.max;
-								onChange({ type: "IntervalValue", min: newMin, max: currentMax });
+								const currentMax = value && "type" in value && value.type === "IntervalValue" ? value.b : interval.max;
+								onChange({ type: "IntervalValue", a: newMin, b: currentMax });
 							},
 							get max() {
 								return interval.max;
 							},
 							set max(newMax: number) {
-								const currentMin = value && typeof value !== "number" && "type" in value && value.type === "IntervalValue" ? value.min : interval.min;
-								onChange({ type: "IntervalValue", min: currentMin, max: newMax });
+								const currentMin = value && "type" in value && value.type === "IntervalValue" ? value.a : interval.min;
+								onChange({ type: "IntervalValue", a: currentMin, b: newMax });
 							},
 						};
 						return (
@@ -235,7 +214,7 @@ export function EffectValueEditor(props: IEffectValueEditorProps): ReactNode {
 									function: bezierValue.functions[0].function,
 								};
 							},
-							set data(newData: any) {
+							set data(newData: { function?: BezierFunction }) {
 								// Update first function or create new
 								if (!bezierValue) {
 									onChange({
@@ -260,7 +239,7 @@ export function EffectValueEditor(props: IEffectValueEditorProps): ReactNode {
 								}
 							},
 						};
-						return <BezierEditor value={wrapperBezier} onChange={() => {}} />;
+						return <BezierEditor value={wrapperBezier as any} onChange={() => {}} />;
 					})()}
 				</>
 			)}

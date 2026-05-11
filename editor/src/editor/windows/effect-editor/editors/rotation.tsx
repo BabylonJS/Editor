@@ -3,10 +3,10 @@ import { ReactNode } from "react";
 import { EditorInspectorListField } from "../../../layout/inspector/fields/list";
 import { EditorInspectorBlockField } from "../../../layout/inspector/fields/block";
 
-import { type Rotation, type IEulerRotation, type IAxisAngleRotation, type IRandomQuatRotation, parseConstantValue, type Value } from "../types";
+import { type Rotation, parseConstantValue, type Value } from "../types";
 import { EffectValueEditor } from "./value";
 
-export type EffectRotationType = IEulerRotation["type"] | IAxisAngleRotation["type"] | IRandomQuatRotation["type"];
+export type EffectRotationType = Rotation["type"];
 
 export interface IEffectRotationEditorProps {
 	value: Rotation | undefined;
@@ -24,13 +24,7 @@ export function EffectRotationEditor(props: IEffectRotationEditorProps): ReactNo
 	// Determine current type from value
 	let currentType: EffectRotationType = "Euler";
 	if (value) {
-		if (
-			typeof value === "number" ||
-			(typeof value === "object" && "type" in value && (value.type === "ConstantValue" || value.type === "IntervalValue" || value.type === "PiecewiseBezier"))
-		) {
-			// Simple VEffectValue - convert to Euler
-			currentType = "Euler";
-		} else if (typeof value === "object" && "type" in value) {
+		if (typeof value === "object" && "type" in value) {
 			if (value.type === "Euler") {
 				currentType = "Euler";
 			} else if (value.type === "AxisAngle") {
@@ -61,7 +55,7 @@ export function EffectRotationEditor(props: IEffectRotationEditorProps): ReactNo
 				if (value && typeof value === "object" && "type" in value && value.type === "Euler") {
 					newValue = value;
 				} else {
-					const angleZ = value ? (typeof value === "number" ? value : parseConstantValue(value as Value)) : 0;
+					const angleZ = value ? parseConstantValue(value as unknown as Value) : 0;
 					newValue = {
 						type: "Euler",
 						angleZ: { type: "ConstantValue", value: angleZ },
@@ -70,7 +64,7 @@ export function EffectRotationEditor(props: IEffectRotationEditorProps): ReactNo
 				}
 			} else if (newType === "AxisAngle") {
 				// Convert to AxisAngle
-				const angle = value ? (typeof value === "number" ? value : parseConstantValue(value as Value)) : 0;
+				const angle = value ? parseConstantValue(value as unknown as Value) : 0;
 				newValue = {
 					type: "AxisAngle",
 					x: { type: "ConstantValue", value: 0 },

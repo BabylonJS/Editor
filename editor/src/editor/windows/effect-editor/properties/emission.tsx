@@ -9,19 +9,17 @@ import { type Value, parseConstantValue } from "../types";
 import { EffectValueEditor } from "../editors/value";
 import type { IQuarksNode } from "../quarks-bridge";
 import {
-	Bezier,
 	ConeEmitter,
 	ConstantValue,
 	EmitterMode,
 	HemisphereEmitter,
-	IntervalValue,
 	type ParticleSystem,
-	PiecewiseBezier,
 	PointEmitter,
 	RectangleEmitter,
 	SphereEmitter,
 	type BurstParameters,
 } from "babylon.quarks";
+import { createConstantValue, editorValueToGenerator, generatorToEditorValue } from "../quarks-adapter";
 
 export interface IEffectEditorEmissionPropertiesProps {
 	nodeData: IQuarksNode;
@@ -40,56 +38,6 @@ interface IEmissionBurst {
 const burstEditorState = new WeakMap<ParticleSystem, IEmissionBurst[]>();
 const createBurstId = (): string => `burst-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
-function createValueGenerator(value: Value): any {
-	if (typeof value === "number") {
-		return new ConstantValue(value);
-	}
-	if (!value || typeof value !== "object") {
-		return new ConstantValue(0);
-	}
-	if (value.type === "ConstantValue") {
-		return new ConstantValue(Number(value.value ?? 0));
-	}
-	if (value.type === "IntervalValue") {
-		const min = Number(value.min ?? value.a ?? 0);
-		const max = Number(value.max ?? value.b ?? 0);
-		return new IntervalValue(min, max);
-	}
-	if (value.type === "PiecewiseBezier") {
-		const functions = Array.isArray(value.functions) ? value.functions : [];
-		const curves = functions
-			.map((entry: any) => {
-				const fn = entry?.function;
-				if (!fn) {
-					return null;
-				}
-				return [new Bezier(Number(fn.p0 ?? 0), Number(fn.p1 ?? 0), Number(fn.p2 ?? 0), Number(fn.p3 ?? 0)), Number(entry?.start ?? 0)] as [Bezier, number];
-			})
-			.filter((entry): entry is [Bezier, number] => !!entry);
-		return new PiecewiseBezier(curves.length > 0 ? curves : [[new Bezier(0, 0, 0, 0), 0]]);
-	}
-	return new ConstantValue(parseConstantValue(value, 0));
-}
-
-function readValueGenerator(generator: any): Value {
-	if (!generator || typeof generator !== "object") {
-		return { type: "ConstantValue", value: 0 };
-	}
-	if (typeof generator.toJSON === "function") {
-		const json = generator.toJSON();
-		if (json?.type === "ConstantValue") {
-			return { type: "ConstantValue", value: Number(json.value ?? 0) };
-		}
-		if (json?.type === "IntervalValue") {
-			return { type: "IntervalValue", min: Number(json.a ?? json.min ?? 0), max: Number(json.b ?? json.max ?? 0) };
-		}
-		if (json?.type === "PiecewiseBezier") {
-			return { type: "PiecewiseBezier", functions: json.functions ?? [] };
-		}
-	}
-	return { type: "ConstantValue", value: 0 };
-}
-
 function getEditableBursts(system: ParticleSystem): IEmissionBurst[] {
 	const cached = burstEditorState.get(system);
 	if (cached) {
@@ -97,8 +45,8 @@ function getEditableBursts(system: ParticleSystem): IEmissionBurst[] {
 	}
 	const created = (system.emissionBursts ?? []).map((burst) => ({
 		id: createBurstId(),
-		time: Number(burst.time ?? 0),
-		count: readValueGenerator(burst.count),
+		time: createConstantValue(Number(burst.time ?? 0)),
+		count: generatorToEditorValue(burst.count),
 		cycle: Number(burst.cycle ?? 1),
 		interval: Number(burst.interval ?? 0),
 		probability: Number(burst.probability ?? 1),
@@ -110,7 +58,7 @@ function getEditableBursts(system: ParticleSystem): IEmissionBurst[] {
 function applyBursts(system: ParticleSystem, bursts: IEmissionBurst[]): void {
 	const runtimeBursts: BurstParameters[] = bursts.map((burst) => ({
 		time: parseConstantValue(burst.time, 0),
-		count: createValueGenerator(burst.count),
+		count: editorValueToGenerator(burst.count),
 		cycle: burst.cycle,
 		interval: burst.interval,
 		probability: burst.probability,
@@ -226,9 +174,9 @@ function renderEmitterShape(system: ParticleSystem, onChange: () => void): React
 					<EditorInspectorNumberField object={shape} property="spread" label="Spread" min={0} max={1} step={0.01} onChange={onChange} />
 					<EffectValueEditor
 						label="Speed"
-						value={readValueGenerator(shape.speed)}
+						value={generatorToEditorValue(shape.speed)}
 						onChange={(value) => {
-							shape.speed = createValueGenerator(value);
+							shape.speed = editorValueToGenerator(value as Value);
 							onChange();
 						}}
 					/>
@@ -256,9 +204,9 @@ function renderEmitterShape(system: ParticleSystem, onChange: () => void): React
 					<EditorInspectorNumberField object={shape} property="spread" label="Spread" min={0} max={1} step={0.01} onChange={onChange} />
 					<EffectValueEditor
 						label="Speed"
-						value={readValueGenerator(shape.speed)}
+						value={generatorToEditorValue(shape.speed)}
 						onChange={(value) => {
-							shape.speed = createValueGenerator(value);
+							shape.speed = editorValueToGenerator(value as Value);
 							onChange();
 						}}
 					/>
@@ -285,9 +233,9 @@ function renderEmitterShape(system: ParticleSystem, onChange: () => void): React
 					<EditorInspectorNumberField object={shape} property="spread" label="Spread" min={0} max={1} step={0.01} onChange={onChange} />
 					<EffectValueEditor
 						label="Speed"
-						value={readValueGenerator(shape.speed)}
+						value={generatorToEditorValue(shape.speed)}
 						onChange={(value) => {
-							shape.speed = createValueGenerator(value);
+							shape.speed = editorValueToGenerator(value as Value);
 							onChange();
 						}}
 					/>
@@ -314,9 +262,9 @@ function renderEmitterShape(system: ParticleSystem, onChange: () => void): React
 					<EditorInspectorNumberField object={shape} property="spread" label="Spread" min={0} max={1} step={0.01} onChange={onChange} />
 					<EffectValueEditor
 						label="Speed"
-						value={readValueGenerator(shape.speed)}
+						value={generatorToEditorValue(shape.speed)}
 						onChange={(value) => {
-							shape.speed = createValueGenerator(value);
+							shape.speed = editorValueToGenerator(value as Value);
 							onChange();
 						}}
 					/>
@@ -335,8 +283,8 @@ function renderBursts(system: ParticleSystem, onChange: () => void): ReactNode {
 	const addBurst = () => {
 		const updated = [...bursts, {
 			id: createBurstId(),
-			time: 0,
-			count: 1,
+			time: createConstantValue(0),
+			count: createConstantValue(1),
 			cycle: 1,
 			interval: 0,
 			probability: 1,
@@ -480,7 +428,7 @@ function renderEmissionParameters(nodeData: IQuarksNode, onChange: () => void): 
 			<EditorInspectorNumberField
 				object={{
 					get emitRate() {
-						return parseConstantValue(system.emissionOverTime, 0);
+						return parseConstantValue(generatorToEditorValue(system.emissionOverTime), 0);
 					},
 					set emitRate(value: number) {
 						system.emissionOverTime = new ConstantValue(value);
@@ -496,9 +444,9 @@ function renderEmissionParameters(nodeData: IQuarksNode, onChange: () => void): 
 			<EditorInspectorSectionField title="Emit Over Distance">
 				<EffectValueEditor
 					label="Emit Over Distance"
-					value={readValueGenerator(system.emissionOverDistance)}
+						value={generatorToEditorValue(system.emissionOverDistance)}
 					onChange={(val) => {
-						system.emissionOverDistance = createValueGenerator(val as Value);
+							system.emissionOverDistance = editorValueToGenerator(val as Value);
 						onChange();
 					}}
 				/>

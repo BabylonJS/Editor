@@ -4,6 +4,7 @@ import { EditorInspectorBlockField } from "../../../layout/inspector/fields/bloc
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../../../ui/shadcn/ui/dropdown-menu";
 import { HiOutlineArrowPath } from "react-icons/hi2";
 import { Button } from "../../../../ui/shadcn/ui/button";
+import type { FunctionEditorValue } from "./function";
 
 export interface IBezierCurve {
 	p0: number;
@@ -14,7 +15,7 @@ export interface IBezierCurve {
 }
 
 export interface IBezierEditorProps {
-	value: any;
+	value: FunctionEditorValue | null | undefined;
 	onChange: () => void;
 }
 
@@ -79,28 +80,14 @@ export class BezierEditor extends Component<IBezierEditorProps, IBezierEditorSta
 		if (!this.props.value || !this.props.value.data) {
 			return CURVE_PRESETS.linear;
 		}
-
-		// Support both old format (array) and new format (direct object)
-		if (this.props.value.data.functions && Array.isArray(this.props.value.data.functions)) {
-			const firstFunction = this.props.value.data.functions[0];
-			if (firstFunction && firstFunction.function) {
-				return {
-					p0: firstFunction.function.p0 ?? 0,
-					p1: firstFunction.function.p1 ?? 1.0 / 3,
-					p2: firstFunction.function.p2 ?? (1.0 / 3) * 2,
-					p3: firstFunction.function.p3 ?? 1,
-					start: 0,
-				};
-			}
-		}
-
-		// New format: direct function object
-		if (this.props.value.data.function) {
+		const data = this.props.value.data as Record<string, unknown>;
+		const fn = data.function as { p0?: number; p1?: number; p2?: number; p3?: number } | undefined;
+		if (fn) {
 			return {
-				p0: this.props.value.data.function.p0 ?? 0,
-				p1: this.props.value.data.function.p1 ?? 1.0 / 3,
-				p2: this.props.value.data.function.p2 ?? (1.0 / 3) * 2,
-				p3: this.props.value.data.function.p3 ?? 1,
+				p0: fn.p0 ?? 0,
+				p1: fn.p1 ?? 1.0 / 3,
+				p2: fn.p2 ?? (1.0 / 3) * 2,
+				p3: fn.p3 ?? 1,
 				start: 0,
 			};
 		}
@@ -116,9 +103,10 @@ export class BezierEditor extends Component<IBezierEditorProps, IBezierEditorSta
 		if (!this.props.value.data) {
 			this.props.value.data = {};
 		}
+		const data = this.props.value.data as Record<string, unknown>;
 
 		// Save as direct function object (not array)
-		this.props.value.data.function = {
+		data.function = {
 			p0: Math.max(0, Math.min(1, this.state.curve.p0)),
 			p1: Math.max(0, Math.min(1, this.state.curve.p1)),
 			p2: Math.max(0, Math.min(1, this.state.curve.p2)),

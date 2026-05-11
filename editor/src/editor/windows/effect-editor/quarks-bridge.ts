@@ -2,17 +2,7 @@ import { Constants } from "@babylonjs/core/Engines/constants";
 import { Texture } from "@babylonjs/core/Materials/Textures/texture";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { Scene } from "@babylonjs/core/scene";
-import {
-	BatchedRenderer,
-	ConstantValue,
-	ParticleEmitter,
-	ParticleSystem,
-	QuarksLoader,
-	QuarksUtil,
-	RenderMode,
-	SphereEmitter,
-	type Behavior,
-} from "babylon.quarks";
+import { BatchedRenderer, ConstantValue, ParticleEmitter, ParticleSystem, QuarksLoader, QuarksUtil, RenderMode, SphereEmitter, type Behavior } from "babylon.quarks";
 
 export type QuarksNodeType = "group" | "particle";
 
@@ -111,9 +101,7 @@ function serializeNode(node: TransformNode, meta: ISerializationMeta): any {
 		name: node.name || "Group",
 		position: [node.position.x, node.position.y, node.position.z],
 		rotation: [node.rotation.x, node.rotation.y, node.rotation.z],
-		quaternion: node.rotationQuaternion
-			? [node.rotationQuaternion.x, node.rotationQuaternion.y, node.rotationQuaternion.z, node.rotationQuaternion.w]
-			: undefined,
+		quaternion: node.rotationQuaternion ? [node.rotationQuaternion.x, node.rotationQuaternion.y, node.rotationQuaternion.z, node.rotationQuaternion.w] : undefined,
 		scale: [node.scaling.x, node.scaling.y, node.scaling.z],
 		visible: node.isEnabled(),
 		children: node
@@ -185,7 +173,6 @@ export class QuarksEffectDocument {
 		setNodeUuid(emitter);
 		emitter.parent = parent;
 		this._batchRenderer.addSystem(system);
-		// New systems are created in a stopped state to keep UX deterministic.
 		system.stop();
 		return emitter;
 	}

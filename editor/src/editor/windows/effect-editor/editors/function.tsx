@@ -7,9 +7,13 @@ import { EditorInspectorBlockField } from "../../../layout/inspector/fields/bloc
 import { BezierEditor } from "./bezier";
 
 export type FunctionType = "ConstantValue" | "IntervalValue" | "PiecewiseBezier" | "Vector3Function";
+export type FunctionEditorValue = {
+	functionType?: FunctionType;
+	data?: Record<string, unknown>;
+};
 
 export interface IFunctionEditorProps {
-	value: any;
+	value: FunctionEditorValue | null | undefined;
 	onChange: () => void;
 	availableTypes?: FunctionType[];
 	label: string;
@@ -17,22 +21,17 @@ export interface IFunctionEditorProps {
 
 export function FunctionEditor(props: IFunctionEditorProps): ReactNode {
 	const { value, onChange, availableTypes, label } = props;
-
-	// Default available types if not specified
 	const types = availableTypes || ["ConstantValue", "IntervalValue", "PiecewiseBezier", "Vector3Function"];
-
-	// Initialize function type if not set
-	if (!value || !value.functionType) {
-		value.functionType = types[0];
-		value.data = {};
+	if (!value) {
+		return null;
 	}
-
-	const functionType = value.functionType as FunctionType;
-
-	// Ensure data object exists
+	if (!value.functionType) {
+		value.functionType = types[0];
+	}
 	if (!value.data) {
 		value.data = {};
 	}
+	const functionType = value.functionType as FunctionType;
 
 	const typeItems = types.map((type) => ({
 		text: type,
@@ -47,20 +46,19 @@ export function FunctionEditor(props: IFunctionEditorProps): ReactNode {
 				label={label || ""}
 				items={typeItems}
 				onChange={() => {
-					// Reset data when type changes and initialize defaults
-					const newType = value.functionType;
+					const newType = value.functionType as FunctionType;
 					value.data = {};
 					if (newType === "ConstantValue") {
-						value.data.value = 1.0;
+						(value.data as Record<string, unknown>).value = 1.0;
 					} else if (newType === "IntervalValue") {
-						value.data.min = 0;
-						value.data.max = 1;
+						(value.data as Record<string, unknown>).min = 0;
+						(value.data as Record<string, unknown>).max = 1;
 					} else if (newType === "PiecewiseBezier") {
-						value.data.function = { p0: 0, p1: 1.0 / 3, p2: (1.0 / 3) * 2, p3: 1 };
+						(value.data as Record<string, unknown>).function = { p0: 0, p1: 1.0 / 3, p2: (1.0 / 3) * 2, p3: 1 };
 					} else if (newType === "Vector3Function") {
-						value.data.x = { functionType: "ConstantValue", data: { value: 0 } };
-						value.data.y = { functionType: "ConstantValue", data: { value: 0 } };
-						value.data.z = { functionType: "ConstantValue", data: { value: 0 } };
+						(value.data as Record<string, unknown>).x = { functionType: "ConstantValue", data: { value: 0 } };
+						(value.data as Record<string, unknown>).y = { functionType: "ConstantValue", data: { value: 0 } };
+						(value.data as Record<string, unknown>).z = { functionType: "ConstantValue", data: { value: 0 } };
 					}
 					onChange();
 				}}
@@ -68,15 +66,15 @@ export function FunctionEditor(props: IFunctionEditorProps): ReactNode {
 
 			{functionType === "ConstantValue" && (
 				<>
-					{value.data.value === undefined && (value.data.value = 1.0)}
+					{(value.data as Record<string, unknown>).value === undefined && ((value.data as Record<string, unknown>).value = 1.0)}
 					<EditorInspectorNumberField object={value.data} property="value" label={label ? "Value" : ""} step={0.1} onChange={onChange} />
 				</>
 			)}
 
 			{functionType === "IntervalValue" && (
 				<>
-					{value.data.min === undefined && (value.data.min = 0)}
-					{value.data.max === undefined && (value.data.max = 1)}
+					{(value.data as Record<string, unknown>).min === undefined && ((value.data as Record<string, unknown>).min = 0)}
+					{(value.data as Record<string, unknown>).max === undefined && ((value.data as Record<string, unknown>).max = 1)}
 					<EditorInspectorBlockField>
 						<div className="px-2">{label ? "Range" : ""}</div>
 						<div className="flex items-center">
@@ -89,7 +87,7 @@ export function FunctionEditor(props: IFunctionEditorProps): ReactNode {
 
 			{functionType === "PiecewiseBezier" && (
 				<>
-					{!value.data.function && (value.data.function = { p0: 0, p1: 1.0 / 3, p2: (1.0 / 3) * 2, p3: 1 })}
+					{!(value.data as Record<string, unknown>).function && ((value.data as Record<string, unknown>).function = { p0: 0, p1: 1.0 / 3, p2: (1.0 / 3) * 2, p3: 1 })}
 					<BezierEditor value={value} onChange={onChange} />
 				</>
 			)}
@@ -99,7 +97,7 @@ export function FunctionEditor(props: IFunctionEditorProps): ReactNode {
 					<EditorInspectorBlockField>
 						<div className="px-2">X</div>
 						<FunctionEditor
-							value={value.data.x || { functionType: "ConstantValue", data: { value: 0 } }}
+							value={((value.data as Record<string, unknown>).x as FunctionEditorValue | undefined) ?? { functionType: "ConstantValue", data: { value: 0 } }}
 							onChange={onChange}
 							availableTypes={["ConstantValue", "IntervalValue", "PiecewiseBezier"]}
 							label=""
@@ -108,7 +106,7 @@ export function FunctionEditor(props: IFunctionEditorProps): ReactNode {
 					<EditorInspectorBlockField>
 						<div className="px-2">Y</div>
 						<FunctionEditor
-							value={value.data.y || { functionType: "ConstantValue", data: { value: 0 } }}
+							value={((value.data as Record<string, unknown>).y as FunctionEditorValue | undefined) ?? { functionType: "ConstantValue", data: { value: 0 } }}
 							onChange={onChange}
 							availableTypes={["ConstantValue", "IntervalValue", "PiecewiseBezier"]}
 							label=""
@@ -117,7 +115,7 @@ export function FunctionEditor(props: IFunctionEditorProps): ReactNode {
 					<EditorInspectorBlockField>
 						<div className="px-2">Z</div>
 						<FunctionEditor
-							value={value.data.z || { functionType: "ConstantValue", data: { value: 0 } }}
+							value={((value.data as Record<string, unknown>).z as FunctionEditorValue | undefined) ?? { functionType: "ConstantValue", data: { value: 0 } }}
 							onChange={onChange}
 							availableTypes={["ConstantValue", "IntervalValue", "PiecewiseBezier"]}
 							label=""

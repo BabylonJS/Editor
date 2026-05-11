@@ -1,6 +1,5 @@
 import { ReactNode } from "react";
 import { Color4 } from "@babylonjs/core/Maths/math.color";
-import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 
 import { EditorInspectorColorField } from "../../../layout/inspector/fields/color";
 import { EditorInspectorColorGradientField } from "../../../layout/inspector/fields/gradient";
@@ -9,109 +8,30 @@ import { EditorInspectorBlockField } from "../../../layout/inspector/fields/bloc
 import type { IGradientKey } from "../../../../ui/gradient-picker";
 
 export type ColorFunctionType = "ConstantColor" | "ColorRange" | "Gradient" | "RandomColor" | "RandomColorBetweenGradient";
+export type ColorFunctionEditorValue = {
+	colorFunctionType?: ColorFunctionType;
+	data?: Record<string, unknown>;
+};
 
 export interface IColorFunctionEditorProps {
-	value: any;
+	value: ColorFunctionEditorValue | null | undefined;
 	onChange: () => void;
 	label: string;
 }
 
 export function ColorFunctionEditor(props: IColorFunctionEditorProps): ReactNode {
 	const { value, onChange, label } = props;
-
-	// Convert from Quarks format to UI format if needed
-	// Quarks format: { color: { type: "Gradient" | "ConstantColor" | "RandomColorBetweenGradient", ... } }
-	// UI format: { colorFunctionType: "Gradient" | "ConstantColor" | "RandomColorBetweenGradient", data: {...} }
-	if (value && !value.colorFunctionType) {
-		// Check if this is Quarks format
-		if (value.color && typeof value.color === "object" && "type" in value.color) {
-			const colorType = value.color.type;
-
-			if (colorType === "Gradient") {
-				// Convert Gradient format
-				value.colorFunctionType = "Gradient";
-				value.data = {
-					colorKeys: value.color.color?.keys || [],
-					alphaKeys: value.color.alpha?.keys || [],
-				};
-				delete value.color;
-			} else if (colorType === "ConstantColor") {
-				// Convert ConstantColor format
-				value.colorFunctionType = "ConstantColor";
-				const color =
-					value.color.color ||
-					(value.color.value ? { r: value.color.value[0], g: value.color.value[1], b: value.color.value[2], a: value.color.value[3] } : { r: 1, g: 1, b: 1, a: 1 });
-				value.data = {
-					color: {
-						r: color.r ?? 1,
-						g: color.g ?? 1,
-						b: color.b ?? 1,
-						a: color.a !== undefined ? color.a : 1,
-					},
-				};
-				delete value.color;
-			} else if (colorType === "RandomColorBetweenGradient") {
-				// Convert RandomColorBetweenGradient format
-				value.colorFunctionType = "RandomColorBetweenGradient";
-				value.data = {
-					gradient1: {
-						colorKeys: value.color.gradient1?.color?.keys || [],
-						alphaKeys: value.color.gradient1?.alpha?.keys || [],
-					},
-					gradient2: {
-						colorKeys: value.color.gradient2?.color?.keys || [],
-						alphaKeys: value.color.gradient2?.alpha?.keys || [],
-					},
-				};
-				delete value.color;
-			} else {
-				// Fallback: try old format
-				const hasColorKeys = value.color.color?.keys && value.color.color.keys.length > 0;
-				const hasAlphaKeys = value.color.alpha?.keys && value.color.alpha.keys.length > 0;
-				const hasKeys = value.color.keys && value.color.keys.length > 0;
-
-				if (hasColorKeys || hasAlphaKeys || hasKeys) {
-					value.colorFunctionType = "Gradient";
-					value.data = {
-						colorKeys: hasColorKeys ? value.color.color.keys : hasKeys ? value.color.keys : [],
-						alphaKeys: hasAlphaKeys ? value.color.alpha.keys : [],
-					};
-					delete value.color;
-				} else {
-					value.colorFunctionType = "ConstantColor";
-					value.data = {};
-				}
-			}
-		} else if (value.color) {
-			// Old Quarks format without type
-			const hasColorKeys = value.color.color?.keys && value.color.color.keys.length > 0;
-			const hasAlphaKeys = value.color.alpha?.keys && value.color.alpha.keys.length > 0;
-			const hasKeys = value.color.keys && value.color.keys.length > 0;
-
-			if (hasColorKeys || hasAlphaKeys || hasKeys) {
-				value.colorFunctionType = "Gradient";
-				value.data = {
-					colorKeys: hasColorKeys ? value.color.color.keys : hasKeys ? value.color.keys : [],
-					alphaKeys: hasAlphaKeys ? value.color.alpha.keys : [],
-				};
-				delete value.color;
-			} else {
-				value.colorFunctionType = "ConstantColor";
-				value.data = {};
-			}
-		} else {
-			// Initialize color function type if not set
-			value.colorFunctionType = "ConstantColor";
-			value.data = {};
-		}
+	if (!value) {
+		return null;
 	}
-
-	const functionType = value.colorFunctionType as ColorFunctionType;
-
-	// Ensure data object exists
+	if (!value.colorFunctionType) {
+		value.colorFunctionType = "ConstantColor";
+	}
 	if (!value.data) {
 		value.data = {};
 	}
+	const data = value.data as Record<string, unknown>;
+	const functionType = value.colorFunctionType as ColorFunctionType;
 
 	const typeItems = [
 		{ text: "Color", value: "ConstantColor" },
@@ -133,24 +53,24 @@ export function ColorFunctionEditor(props: IColorFunctionEditorProps): ReactNode
 					const newType = value.colorFunctionType;
 					value.data = {};
 					if (newType === "ConstantColor") {
-						value.data.color = new Color4(1, 1, 1, 1);
+						data.color = new Color4(1, 1, 1, 1);
 					} else if (newType === "ColorRange") {
-						value.data.colorA = new Color4(0, 0, 0, 1);
-						value.data.colorB = new Color4(1, 1, 1, 1);
+						data.colorA = new Color4(0, 0, 0, 1);
+						data.colorB = new Color4(1, 1, 1, 1);
 					} else if (newType === "Gradient") {
-						value.data.colorKeys = [
+						data.colorKeys = [
 							{ pos: 0, value: [0, 0, 0, 1] },
 							{ pos: 1, value: [1, 1, 1, 1] },
 						];
-						value.data.alphaKeys = [
+						data.alphaKeys = [
 							{ pos: 0, value: 1 },
 							{ pos: 1, value: 1 },
 						];
 					} else if (newType === "RandomColor") {
-						value.data.colorA = new Color4(0, 0, 0, 1);
-						value.data.colorB = new Color4(1, 1, 1, 1);
+						data.colorA = new Color4(0, 0, 0, 1);
+						data.colorB = new Color4(1, 1, 1, 1);
 					} else if (newType === "RandomColorBetweenGradient") {
-						value.data.gradient1 = {
+						data.gradient1 = {
 							colorKeys: [
 								{ pos: 0, value: [0, 0, 0, 1] },
 								{ pos: 1, value: [1, 1, 1, 1] },
@@ -160,7 +80,7 @@ export function ColorFunctionEditor(props: IColorFunctionEditorProps): ReactNode
 								{ pos: 1, value: 1 },
 							],
 						};
-						value.data.gradient2 = {
+						data.gradient2 = {
 							colorKeys: [
 								{ pos: 0, value: [1, 0, 0, 1] },
 								{ pos: 1, value: [0, 1, 0, 1] },
@@ -177,15 +97,15 @@ export function ColorFunctionEditor(props: IColorFunctionEditorProps): ReactNode
 
 			{functionType === "ConstantColor" && (
 				<>
-					{!value.data.color && (value.data.color = new Color4(1, 1, 1, 1))}
+					{!data.color && (data.color = new Color4(1, 1, 1, 1))}
 					<EditorInspectorColorField object={value.data} property="color" label="Color" onChange={onChange} />
 				</>
 			)}
 
 			{functionType === "ColorRange" && (
 				<>
-					{!value.data.colorA && (value.data.colorA = new Color4(0, 0, 0, 1))}
-					{!value.data.colorB && (value.data.colorB = new Color4(1, 1, 1, 1))}
+					{!data.colorA && (data.colorA = new Color4(0, 0, 0, 1))}
+					{!data.colorB && (data.colorB = new Color4(1, 1, 1, 1))}
 					<EditorInspectorColorField object={value.data} property="colorA" label="Color A" onChange={onChange} />
 					<EditorInspectorColorField object={value.data} property="colorB" label="Color B" onChange={onChange} />
 				</>
@@ -193,35 +113,24 @@ export function ColorFunctionEditor(props: IColorFunctionEditorProps): ReactNode
 
 			{functionType === "Gradient" &&
 				(() => {
-					// Convert old format (Vector3 + position) to new format (array + pos) if needed
-					const convertColorKeys = (keys: any[]): IGradientKey[] => {
+					const convertColorKeys = (keys: IGradientKey[] | undefined): IGradientKey[] => {
 						if (!keys || keys.length === 0) {
 							return [
 								{ pos: 0, value: [0, 0, 0, 1] },
 								{ pos: 1, value: [1, 1, 1, 1] },
 							];
 						}
-						return keys.map((key) => {
-							if (key.color && key.color instanceof Vector3) {
-								// Old format: { color: Vector3, position: number }
-								return {
-									pos: key.position ?? key.pos ?? 0,
-									value: [key.color.x, key.color.y, key.color.z, 1],
-								};
-							}
-							// Already in new format or other format
-							return {
-								pos: key.pos ?? key.position ?? 0,
-								value: Array.isArray(key.value)
-									? key.value
-									: typeof key.value === "object" && "r" in key.value
-										? [key.value.r, key.value.g, key.value.b, key.value.a ?? 1]
-										: [0, 0, 0, 1],
-							};
-						});
+						return keys.map((key) => ({
+							pos: key.pos ?? 0,
+							value: Array.isArray(key.value)
+								? key.value
+								: typeof key.value === "object" && "r" in key.value
+									? [key.value.r, key.value.g, key.value.b, key.value.a ?? 1]
+									: [0, 0, 0, 1],
+						}));
 					};
 
-					const convertAlphaKeys = (keys: any[]): IGradientKey[] => {
+					const convertAlphaKeys = (keys: IGradientKey[] | undefined): IGradientKey[] => {
 						if (!keys || keys.length === 0) {
 							return [
 								{ pos: 0, value: 1 },
@@ -229,14 +138,14 @@ export function ColorFunctionEditor(props: IColorFunctionEditorProps): ReactNode
 							];
 						}
 						return keys.map((key) => ({
-							pos: key.pos ?? key.position ?? 0,
+							pos: key.pos ?? 0,
 							value: typeof key.value === "number" ? key.value : 1,
 						}));
 					};
 
 					const wrapperGradient = {
-						colorKeys: convertColorKeys(value.data.colorKeys),
-						alphaKeys: convertAlphaKeys(value.data.alphaKeys),
+						colorKeys: convertColorKeys(data.colorKeys as IGradientKey[] | undefined),
+						alphaKeys: convertAlphaKeys(data.alphaKeys as IGradientKey[] | undefined),
 					};
 
 					return (
@@ -245,8 +154,8 @@ export function ColorFunctionEditor(props: IColorFunctionEditorProps): ReactNode
 							property=""
 							label=""
 							onChange={(newColorKeys, newAlphaKeys) => {
-								value.data.colorKeys = newColorKeys;
-								value.data.alphaKeys = newAlphaKeys;
+								data.colorKeys = newColorKeys;
+								data.alphaKeys = newAlphaKeys;
 								onChange();
 							}}
 						/>
@@ -255,8 +164,8 @@ export function ColorFunctionEditor(props: IColorFunctionEditorProps): ReactNode
 
 			{functionType === "RandomColor" && (
 				<>
-					{!value.data.colorA && (value.data.colorA = new Color4(0, 0, 0, 1))}
-					{!value.data.colorB && (value.data.colorB = new Color4(1, 1, 1, 1))}
+					{!data.colorA && (data.colorA = new Color4(0, 0, 0, 1))}
+					{!data.colorB && (data.colorB = new Color4(1, 1, 1, 1))}
 					<EditorInspectorColorField object={value.data} property="colorA" label="Color A" onChange={onChange} />
 					<EditorInspectorColorField object={value.data} property="colorB" label="Color B" onChange={onChange} />
 				</>
@@ -264,33 +173,24 @@ export function ColorFunctionEditor(props: IColorFunctionEditorProps): ReactNode
 
 			{functionType === "RandomColorBetweenGradient" &&
 				(() => {
-					// Convert old format to new format if needed
-					const convertColorKeys = (keys: any[]): IGradientKey[] => {
+					const convertColorKeys = (keys: IGradientKey[] | undefined): IGradientKey[] => {
 						if (!keys || keys.length === 0) {
 							return [
 								{ pos: 0, value: [0, 0, 0, 1] },
 								{ pos: 1, value: [1, 1, 1, 1] },
 							];
 						}
-						return keys.map((key) => {
-							if (key.color && key.color instanceof Vector3) {
-								return {
-									pos: key.position ?? key.pos ?? 0,
-									value: [key.color.x, key.color.y, key.color.z, 1],
-								};
-							}
-							return {
-								pos: key.pos ?? key.position ?? 0,
-								value: Array.isArray(key.value)
-									? key.value
-									: typeof key.value === "object" && "r" in key.value
-										? [key.value.r, key.value.g, key.value.b, key.value.a ?? 1]
-										: [0, 0, 0, 1],
-							};
-						});
+						return keys.map((key) => ({
+							pos: key.pos ?? 0,
+							value: Array.isArray(key.value)
+								? key.value
+								: typeof key.value === "object" && "r" in key.value
+									? [key.value.r, key.value.g, key.value.b, key.value.a ?? 1]
+									: [0, 0, 0, 1],
+						}));
 					};
 
-					const convertAlphaKeys = (keys: any[]): IGradientKey[] => {
+					const convertAlphaKeys = (keys: IGradientKey[] | undefined): IGradientKey[] => {
 						if (!keys || keys.length === 0) {
 							return [
 								{ pos: 0, value: 1 },
@@ -298,26 +198,26 @@ export function ColorFunctionEditor(props: IColorFunctionEditorProps): ReactNode
 							];
 						}
 						return keys.map((key) => ({
-							pos: key.pos ?? key.position ?? 0,
+							pos: key.pos ?? 0,
 							value: typeof key.value === "number" ? key.value : 1,
 						}));
 					};
 
-					if (!value.data.gradient1) {
-						value.data.gradient1 = {};
+					if (!data.gradient1) {
+						data.gradient1 = {};
 					}
-					if (!value.data.gradient2) {
-						value.data.gradient2 = {};
+					if (!data.gradient2) {
+						data.gradient2 = {};
 					}
 
 					const wrapperGradient1 = {
-						colorKeys: convertColorKeys(value.data.gradient1.colorKeys),
-						alphaKeys: convertAlphaKeys(value.data.gradient1.alphaKeys),
+						colorKeys: convertColorKeys((data.gradient1 as Record<string, unknown>).colorKeys as IGradientKey[] | undefined),
+						alphaKeys: convertAlphaKeys((data.gradient1 as Record<string, unknown>).alphaKeys as IGradientKey[] | undefined),
 					};
 
 					const wrapperGradient2 = {
-						colorKeys: convertColorKeys(value.data.gradient2.colorKeys),
-						alphaKeys: convertAlphaKeys(value.data.gradient2.alphaKeys),
+						colorKeys: convertColorKeys((data.gradient2 as Record<string, unknown>).colorKeys as IGradientKey[] | undefined),
+						alphaKeys: convertAlphaKeys((data.gradient2 as Record<string, unknown>).alphaKeys as IGradientKey[] | undefined),
 					};
 
 					return (
@@ -329,8 +229,8 @@ export function ColorFunctionEditor(props: IColorFunctionEditorProps): ReactNode
 									property=""
 									label=""
 									onChange={(newColorKeys, newAlphaKeys) => {
-										value.data.gradient1.colorKeys = newColorKeys;
-										value.data.gradient1.alphaKeys = newAlphaKeys;
+										(data.gradient1 as Record<string, unknown>).colorKeys = newColorKeys;
+										(data.gradient1 as Record<string, unknown>).alphaKeys = newAlphaKeys;
 										onChange();
 									}}
 								/>
@@ -342,8 +242,8 @@ export function ColorFunctionEditor(props: IColorFunctionEditorProps): ReactNode
 									property=""
 									label=""
 									onChange={(newColorKeys, newAlphaKeys) => {
-										value.data.gradient2.colorKeys = newColorKeys;
-										value.data.gradient2.alphaKeys = newAlphaKeys;
+										(data.gradient2 as Record<string, unknown>).colorKeys = newColorKeys;
+										(data.gradient2 as Record<string, unknown>).alphaKeys = newAlphaKeys;
 										onChange();
 									}}
 								/>
