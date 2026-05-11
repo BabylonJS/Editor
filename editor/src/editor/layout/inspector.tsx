@@ -35,7 +35,6 @@ import { EditorCameraInspector } from "./inspector/camera/editor";
 import { EditorFreeCameraInspector } from "./inspector/camera/free";
 import { EditorArcRotateCameraInspector } from "./inspector/camera/arc-rotate";
 
-import { EditorSoundInspector } from "./inspector/sound/sound";
 import { EditorSoundNodeInspector } from "./inspector/sound/sound-node";
 
 import { EditorAdvancedDynamicTextureInspector } from "./inspector/gui/gui";
@@ -87,7 +86,6 @@ export class EditorInspector extends Component<IEditorInspectorProps, IEditorIns
 
 		EditorSceneInspector,
 
-		EditorSoundInspector,
 		EditorSoundNodeInspector,
 
 		EditorAdvancedDynamicTextureInspector,

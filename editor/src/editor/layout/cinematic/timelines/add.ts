@@ -1,10 +1,12 @@
-import { Sound, AnimationGroup } from "babylonjs";
+import { AnimationGroup } from "babylonjs";
 import { ICinematicAnimationGroup, ICinematicKey, ICinematicKeyCut, ICinematicKeyEvent, ICinematicSound, ICinematicTrack, isCinematicKeyCut } from "babylonjs-editor-tools";
+
+import { showAlert } from "../../../../ui/dialog";
 
 import { registerUndoRedo } from "../../../../tools/undoredo";
 import { getInspectorPropertyValue } from "../../../../tools/property";
 
-import { showAlert } from "../../../../ui/dialog";
+import { SoundNode } from "../../../nodes/sound";
 
 import { getDefaultRenderingPipeline } from "../../../rendering/default-pipeline";
 
@@ -116,17 +118,16 @@ export function addSoundKey(cinematicEditor: CinematicEditor, track: ICinematicT
 		return;
 	}
 
-	const sound = track.sound as Sound;
-	const buffer = sound.getAudioBuffer();
+	const node = track.sound as SoundNode;
 
-	if (!buffer) {
+	if (!node.sound?.buffer) {
 		return showAlert(
 			"Can't add sound track",
 			"The sound track is not ready yet, please wait until the sound is loaded. If this problem persists, please verify the sound file is correctly loaded."
 		);
 	}
 
-	const duration = buffer.duration;
+	const duration = node.sound.buffer.duration;
 	const fps = cinematicEditor.cinematic.framesPerSecond;
 
 	const key = {

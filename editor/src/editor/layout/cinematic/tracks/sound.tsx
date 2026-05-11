@@ -3,13 +3,14 @@ import { HiSpeakerWave } from "react-icons/hi2";
 
 import { ICinematicTrack } from "babylonjs-editor-tools";
 
-import { getSoundById } from "../../../../tools/sound/tools";
+import { Button } from "../../../../ui/shadcn/ui/button";
+
+import { isSoundNode } from "../../../../tools/guards/sound";
 import { registerUndoRedo } from "../../../../tools/undoredo";
 
 import { CinematicEditor } from "../editor";
 
 import { CinematicEditorRemoveTrackButton } from "./remove";
-import { Button } from "../../../../ui/shadcn/ui/button";
 
 export interface ICinematicEditorSoundTrackProps {
 	track: ICinematicTrack;
@@ -37,7 +38,11 @@ export function CinematicEditorSoundTrack(props: ICinematicEditorSoundTrackProps
 		setDragOver(false);
 
 		const data = JSON.parse(event.dataTransfer.getData("graph/node")) as string[];
-		const sound = getSoundById(data[0], props.cinematicEditor.editor.layout.preview.scene);
+
+		let sound = props.cinematicEditor.editor.layout.preview.scene.getNodeById(data[0]);
+		if (!isSoundNode(sound)) {
+			sound = null;
+		}
 
 		if (sound && sound !== props.track.sound) {
 			const oldSound = props.track.node;

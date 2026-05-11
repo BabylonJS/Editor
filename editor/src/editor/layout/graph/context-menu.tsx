@@ -29,8 +29,6 @@ import { getLightCommands } from "../../dialogs/command-palette/light";
 import { getCameraCommands } from "../../dialogs/command-palette/camera";
 import { getSpriteCommands } from "../../dialogs/command-palette/sprite";
 
-import { isSound } from "../../../tools/guards/sound";
-import { reloadSound } from "../../../tools/sound/tools";
 import { registerUndoRedo } from "../../../tools/undoredo";
 import { waitNextAnimationFrame } from "../../../tools/tools";
 import { isClusteredLight } from "../../../tools/light/cluster";
@@ -95,7 +93,7 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
 								</>
 							)}
 
-							{!isScene(this.props.object) && !isSound(this.props.object) && !isClusteredLightContainer(this.props.object) && (
+							{!isScene(this.props.object) && !isClusteredLightContainer(this.props.object) && (
 								<>
 									<ContextMenuItem onClick={() => this._cloneNode(this.props.object)}>Clone</ContextMenuItem>
 
@@ -146,8 +144,6 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
 									)}
 								</>
 							)}
-
-							{isSound(this.props.object) && <ContextMenuItem onClick={() => this._reloadSound()}>Reload</ContextMenuItem>}
 
 							{isScene(this.props.object) && this.props.editor.state.enableExperimentalFeatures && (
 								<>
@@ -224,7 +220,6 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
 								)}
 
 							{!isScene(this.props.object) &&
-								!isSound(this.props.object) &&
 								!isSprite(this.props.object) &&
 								!isAnyParticleSystem(this.props.object) &&
 								!isClusteredLightContainer(this.props.object) && (
@@ -485,13 +480,5 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
 				clone = cloneNode(this.props.editor, node, cloneOptions);
 			},
 		});
-	}
-
-	private _reloadSound(): void {
-		reloadSound(this.props.editor, this.props.object);
-
-		if (this.props.editor.layout.inspector.state.editedObject === this.props.object) {
-			this.props.editor.layout.inspector.setEditedObject(this.props.object);
-		}
 	}
 }

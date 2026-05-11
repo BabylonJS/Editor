@@ -52,7 +52,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 
 import { Editor } from "../main";
 
-import { isSound } from "../../tools/guards/sound";
 import { isVector3 } from "../../tools/guards/math";
 import { isDomTextInputFocused } from "../../tools/dom";
 import { isNodeLocked } from "../../tools/node/metadata";
@@ -440,14 +439,6 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 			} else if (isVector3(selectedNode.emitter)) {
 				target = selectedNode.emitter;
 			}
-		} else if (isSound(selectedNode)) {
-			const soundPosition = (selectedNode as any)["_position"] as Vector3;
-
-			if (selectedNode["_connectedTransformNode"]) {
-				target = selectedNode["_connectedTransformNode"].getAbsolutePosition();
-			} else if (!soundPosition.equalsToFloats(0, 0, 0)) {
-				target = (selectedNode as any)["_position"]();
-			}
 		} else if (isSprite(selectedNode)) {
 			const bb = new BoundingBox(new Vector3(-selectedNode.width * 0.5, -selectedNode.height * 0.5, 0), new Vector3(selectedNode.width * 0.5, selectedNode.height * 0.5, 0));
 			const center = bb.centerWorld;
@@ -545,10 +536,6 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		this.scene.skipPointerUpPicking = true;
 		this.scene.skipPointerDownPicking = true;
 		this.scene.skipPointerMovePicking = true;
-
-		if (!this.scene.soundTracks && this.scene.mainSoundTrack) {
-			this.scene.soundTracks = [this.scene.mainSoundTrack];
-		}
 
 		this.camera = new EditorCamera("camera", Vector3.Zero(), this.scene);
 		this.camera.attachControl(true);

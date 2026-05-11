@@ -3,28 +3,27 @@ import { DragEvent, useEffect, useState } from "react";
 import { MdOutlineInfo } from "react-icons/md";
 import { HiOutlineTrash } from "react-icons/hi2";
 
-import { Scene, Node, IParticleSystem, Sound } from "babylonjs";
+import { Scene, Node, IParticleSystem } from "babylonjs";
 
 import { Button } from "../../../../ui/shadcn/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../../../ui/shadcn/ui/tooltip";
 
 import { isNode } from "../../../../tools/guards/nodes";
-import { isSound } from "../../../../tools/guards/sound";
-import { getSoundById } from "../../../../tools/sound/tools";
+import { isSoundNode } from "../../../../tools/guards/sound";
 import { registerSimpleUndoRedo } from "../../../../tools/undoredo";
 import { isAnyParticleSystem } from "../../../../tools/guards/particles";
 import { getInspectorPropertyValue, setInspectorEffectivePropertyValue } from "../../../../tools/property";
 
 import { IEditorInspectorFieldProps } from "./field";
 
-export interface IEditorInspectorSceneEntityFieldProps<T = Node | IParticleSystem | Sound> extends IEditorInspectorFieldProps {
+export interface IEditorInspectorSceneEntityFieldProps<T = Node | IParticleSystem> extends IEditorInspectorFieldProps {
 	scene: Scene;
 	type?: "node" | "particleSystem" | "sound";
 
 	onChange?: (value: T | null) => void;
 }
 
-export function EditorInspectorSceneEntityField<T extends Node | IParticleSystem | Sound>(props: IEditorInspectorSceneEntityFieldProps<T>) {
+export function EditorInspectorSceneEntityField<T extends Node | IParticleSystem>(props: IEditorInspectorSceneEntityFieldProps<T>) {
 	const [dragOver, setDragOver] = useState(false);
 	const [value, setValue] = useState<T | null>(null);
 
@@ -42,7 +41,7 @@ export function EditorInspectorSceneEntityField<T extends Node | IParticleSystem
 	}, [props.object, props.property]);
 
 	function getObjectById(id: string): T | null {
-		return (props.scene.getNodeById(id) as T) ?? (props.scene.particleSystems?.find((ps) => ps.id === id) as T) ?? (getSoundById(id, props.scene) as T);
+		return (props.scene.getNodeById(id) as T) ?? (props.scene.particleSystems?.find((ps) => ps.id === id) as T);
 	}
 
 	function handleDragOver(ev: DragEvent<HTMLDivElement>) {
@@ -69,7 +68,7 @@ export function EditorInspectorSceneEntityField<T extends Node | IParticleSystem
 
 		const entity = getObjectById(data[0]);
 
-		if (props.type === "sound" && !isSound(entity)) {
+		if (props.type === "sound" && !isSoundNode(entity)) {
 			return;
 		}
 

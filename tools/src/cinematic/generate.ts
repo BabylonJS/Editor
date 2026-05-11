@@ -1,11 +1,11 @@
 import { Scene } from "@babylonjs/core/scene";
-import { Sound } from "@babylonjs/core/Audio/sound";
 import { Animation } from "@babylonjs/core/Animations/animation";
 import { IAnimationKey } from "@babylonjs/core/Animations/animationKey";
 import { AnimationEvent } from "@babylonjs/core/Animations/animationEvent";
 import { AnimationGroup } from "@babylonjs/core/Animations/animationGroup";
 
 import { isCamera } from "../tools/guards";
+import { SoundNode } from "../tools/sound";
 import { getAnimationTypeForObject } from "../tools/animation";
 
 import { getMotionBlurPostProcess } from "../rendering/motion-blur";
@@ -141,10 +141,9 @@ export function generateCinematicAnimationGroup(cinematic: ICinematic, scene: Sc
 			}
 		}
 
-		const sound = track.sound as Sound;
-		const soundBuffer = sound?.getAudioBuffer();
+		const sound = track.sound as SoundNode;
 
-		if (!options?.ignoreSounds && sound && soundBuffer && track.sounds?.length) {
+		if (!options?.ignoreSounds && sound && sound.sound?.buffer && track.sounds?.length) {
 			const dummyObject = {
 				dummy: 0,
 				volume: 0,
@@ -166,7 +165,9 @@ export function generateCinematicAnimationGroup(cinematic: ICinematic, scene: Sc
 							const offset = (frameDiff + configuration.startFrame) / cinematic.framesPerSecond;
 
 							// sound.stop();
-							sound.play(0, offset);
+							sound.play({
+								startOffset: offset,
+							});
 						},
 						false
 					)
@@ -203,7 +204,7 @@ export function generateCinematicAnimationGroup(cinematic: ICinematic, scene: Sc
 				result.addTargetedAnimation(volumeAnimation, dummyObject);
 
 				registerAfterAnimationCallback(result, scene, () => {
-					sound.setVolume(dummyObject.volume);
+					sound.volume = dummyObject.volume;
 				});
 			}
 		}

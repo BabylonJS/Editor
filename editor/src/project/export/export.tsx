@@ -275,19 +275,6 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 		}
 	});
 
-	// Configure sounds
-	data.sounds?.forEach((sound) => {
-		const instantiatedSound = scene.getSoundByName(sound.name);
-		if (instantiatedSound) {
-			sound.id = instantiatedSound.id;
-			sound.uniqueId = instantiatedSound.uniqueId;
-
-			// TODO: Find a better way to handle spatial sound property in Babylon.js.
-			// sound.spatialSound is always overridden to true on sound.serialize().
-			instantiatedSound.spatialSound = sound.spatialSound;
-		}
-	});
-
 	// Extract textures from particle systems.
 	await Promise.all(
 		data.particleSystems?.map(async (particleSystemData: any) => {

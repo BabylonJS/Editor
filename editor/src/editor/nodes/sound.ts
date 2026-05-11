@@ -1,6 +1,19 @@
 import { dirname, join } from "path/posix";
 
-import { Scene, TransformNode, Tools, SerializationHelper, GetClass, Matrix, Node, CreateSoundAsync, StaticSound, serialize } from "babylonjs";
+import {
+	Scene,
+	TransformNode,
+	Tools,
+	SerializationHelper,
+	GetClass,
+	Matrix,
+	Node,
+	CreateSoundAsync,
+	StaticSound,
+	serialize,
+	IStaticSoundStopOptions,
+	IStaticSoundPlayOptions,
+} from "babylonjs";
 
 import { projectConfiguration } from "../../project/configuration";
 
@@ -44,10 +57,10 @@ export class SoundNode extends TransformNode {
 
 		this.sound = await CreateSoundAsync(this.soundRelativePath, absolutePath, {
 			spatialAutoUpdate: true,
-			spatialEnabled: this._spatial,
 		});
 
 		this.sound.volume = this._volume;
+		this.sound._isSpatial = this._spatial;
 
 		if (this.sound.spatial) {
 			this.sound.spatial.attach(this);
@@ -146,6 +159,14 @@ export class SoundNode extends TransformNode {
 		if (this.sound && this.sound.spatial) {
 			this.sound.spatial.distanceModel = value;
 		}
+	}
+
+	public play(options?: Partial<IStaticSoundPlayOptions>): void {
+		this.sound?.play(options);
+	}
+
+	public stop(options?: Partial<IStaticSoundStopOptions>): void {
+		this.sound?.stop(options);
 	}
 
 	public disposeSound(): void {

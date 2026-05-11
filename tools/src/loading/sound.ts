@@ -85,25 +85,6 @@ export function registerAudioParser() {
 
 	registered = true;
 
-	AddParser("AudioEditorPlugin", (parsedData: any, scene: Scene, container: AssetContainer, _rootUrl: string) => {
-		parsedData.sounds?.forEach((sound) => {
-			const instance = container.sounds?.find((s) => s.name === sound.name);
-			if (instance) {
-				instance.id = sound.id;
-				instance.uniqueId = sound.uniqueId;
-
-				scene.onBeforeRenderObservable.addOnce(() => {
-					// Backward compatibility, check if "spatialSound" is not getter only
-					try {
-						instance.spatialSound = sound.spatialSound;
-					} catch (e) {
-						// Catch silently.
-					}
-				});
-			}
-		});
-	});
-
 	AddParser("SoundNode", (parsedData: any, scene: Scene, container: AssetContainer, rootUrl: string) => {
 		parsedData.transformNodes?.forEach((transformNode: any) => {
 			if (!transformNode.isSoundNode) {

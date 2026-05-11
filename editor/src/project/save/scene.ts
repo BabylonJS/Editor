@@ -56,7 +56,6 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 		createDirectoryIfNotExist(join(scenePath, "shadowGenerators")),
 		createDirectoryIfNotExist(join(scenePath, "sceneLinks")),
 		createDirectoryIfNotExist(join(scenePath, "gui")),
-		createDirectoryIfNotExist(join(scenePath, "sounds")),
 		createDirectoryIfNotExist(join(scenePath, "soundNodes")),
 		createDirectoryIfNotExist(join(scenePath, "particleSystems")),
 		createDirectoryIfNotExist(join(scenePath, "morphTargetManagers")),
@@ -539,41 +538,6 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 			})
 		);
 	}
-
-	// Write sounds. @deprecated.
-	const soundtracks = scene.soundTracks ?? [];
-
-	await Promise.all(
-		soundtracks.map(async (soundtrack) => {
-			await Promise.all(
-				soundtrack.soundCollection.map(async (sound) => {
-					const soundPath = join(scenePath, "sounds", `${sound.id}.json`);
-
-					// TODO: Find a better way to handle spatial sound property in Babylon.js.
-					// sound.spatialSound is always overridden to true on sound.serialize().
-					const spatialSound = sound.spatialSound;
-
-					const soundData = {
-						...sound.serialize(),
-						id: sound.id,
-						uniqueId: sound.uniqueId,
-					};
-
-					sound.spatialSound = spatialSound;
-
-					try {
-						await writeJSON(soundPath, soundData, {
-							spaces: 4,
-						});
-					} catch (e) {
-						editor.layout.console.error(`Failed to write sound ${sound.name}`);
-					} finally {
-						savedFiles.push(soundPath);
-					}
-				})
-			);
-		})
-	);
 
 	// Write sound nodes
 	await Promise.all(

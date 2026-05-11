@@ -51,7 +51,6 @@ import { LoadSceneProgressComponent, showLoadSceneProgressDialog } from "./progr
 import { loadGuis } from "./plugins/gui";
 import { loadMeshes } from "./plugins/meshes";
 import { loadLights } from "./plugins/lights";
-import { loadSounds } from "./plugins/sounds";
 import { loadCameras } from "./plugins/cameras";
 import { loadSkeletons } from "./plugins/skeletons";
 import { loadSpriteMaps } from "./plugins/sprite-maps";
@@ -138,7 +137,6 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 		createDirectoryIfNotExist(join(scenePath, "shadowGenerators")),
 		createDirectoryIfNotExist(join(scenePath, "sceneLinks")),
 		createDirectoryIfNotExist(join(scenePath, "gui")),
-		createDirectoryIfNotExist(join(scenePath, "sounds")),
 		createDirectoryIfNotExist(join(scenePath, "soundNodes")),
 		createDirectoryIfNotExist(join(scenePath, "particleSystems")),
 		createDirectoryIfNotExist(join(scenePath, "morphTargetManagers")),
@@ -159,7 +157,6 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 		shadowGeneratorFiles,
 		sceneLinkFiles,
 		guiFiles,
-		soundFiles,
 		soundNodeFiles,
 		particleSystemFiles,
 		morphTargetManagerFiles,
@@ -177,7 +174,6 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 		readdir(join(scenePath, "shadowGenerators")),
 		readdir(join(scenePath, "sceneLinks")),
 		readdir(join(scenePath, "gui")),
-		readdir(join(scenePath, "sounds")),
 		readdir(join(scenePath, "soundNodes")),
 		readdir(join(scenePath, "particleSystems")),
 		readdir(join(scenePath, "morphTargetManagers")),
@@ -199,7 +195,6 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 			shadowGeneratorFiles.length +
 			sceneLinkFiles.length +
 			guiFiles.length +
-			soundFiles.length +
 			soundNodeFiles.length +
 			particleSystemFiles.length +
 			morphTargetManagerFiles.length +
@@ -302,7 +297,6 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 	}
 
 	await loadGuis(editor, guiFiles, pluginLoadOptions);
-	await loadSounds(editor, soundFiles, scene, pluginLoadOptions);
 	await loadSoundNodes(editor, soundNodeFiles, scene, pluginLoadOptions);
 	await loadParticleSystems(editor, particleSystemFiles, scene, pluginLoadOptions);
 	await loadAnimationGroups(editor, animationGroupFiles, scene, pluginLoadOptions);

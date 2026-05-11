@@ -1,6 +1,5 @@
 export const tsClassDecoratorsExample = `
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
-import { Sound } from "@babylonjs/core/Audio/sound";
 import { ParticleSystem } from "@babylonjs/core/Particles/particleSystem";
 
 import {
@@ -8,6 +7,7 @@ import {
     nodeFromDescendants,
     particleSystemFromScene,
     soundFromScene,
+    SoundNode,
 } from "babylonjs-editor-tools";
 
 export default class MyScriptComponent {
@@ -20,8 +20,8 @@ export default class MyScriptComponent {
     @particleSystemFromScene("particles")
     private _particleSystem: ParticleSystem;
 
-    @soundFromScene("assets/sound.mp3")
-    private _mySound: Sound;
+    @soundFromScene("running")
+    private _mySound: SoundNode;
 
     public constructor(public object: TransformNode) {
         // 🚫 decorators were not processed, the sound is NOT available.
