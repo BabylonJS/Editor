@@ -21,7 +21,7 @@ import { saveSingleFileDialog } from "../../../tools/dialog";
 import { IEffectEditor } from ".";
 import { ParticleSystem } from "babylon.quarks";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
-import { IQuarksEffectFile, IQuarksNode, QuarksEffectDocument } from "./quarks-bridge";
+import { IQuarksEffectFile, IQuarksNode, QuarksEffectDocument, getQuarksTransformUuid } from "./quarks-bridge";
 
 export type PlaybackState = "playing" | "paused" | "stopped" | "unavailable";
 type StoredPlaybackState = Exclude<PlaybackState, "unavailable">;
@@ -109,10 +109,18 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 			this._playbackByUuid.clear();
 
 			const effects = this._normalizeImportedEffects(json);
+			if (effects.length === 0) {
+				this._createDefaultEffectDocument(basename(filePath, ".fx") || "Effect");
+				this._rebuildTree();
+				this._notifyUiStateChanged();
+				return;
+			}
+
 			for (const effect of effects) {
 				const document = QuarksEffectDocument.fromQuarksJson(this.props.editor.preview.scene, effect.data, effect.name);
 				document.stop();
 				this._effects.set(document.id, document);
+				this._registerEffectNaturalIdle(document);
 				this._setNodePlaybackState(document.toNodeTree(), "stopped");
 			}
 
@@ -134,6 +142,7 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 			const document = QuarksEffectDocument.fromQuarksJson(this.props.editor.preview.scene, json, basename(filePath, ".json") || "Effect");
 			document.stop();
 			this._effects.set(document.id, document);
+			this._registerEffectNaturalIdle(document);
 			this._setNodePlaybackState(document.toNodeTree(), "stopped");
 			this._rebuildTree();
 			this._notifyUiStateChanged();
@@ -191,6 +200,7 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 			return;
 		}
 
+		effect.resetNaturalIdleTracking(transform);
 		effect.playNode(transform);
 		this._setNodePlaybackState(node, "playing");
 		this._rebuildTree();
@@ -243,6 +253,7 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 			return;
 		}
 
+		effect.resetNaturalIdleTracking(transform);
 		effect.stopNode(transform);
 		this._setNodePlaybackState(node, "stopped");
 		this._rebuildTree();
@@ -265,6 +276,7 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 			return;
 		}
 
+		effect.resetNaturalIdleTracking(transform);
 		effect.restartNode(transform);
 		this._setNodePlaybackState(node, "playing");
 		this._rebuildTree();
@@ -382,12 +394,24 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 
 		for (const effect of this._effects.values()) {
 			const root = effect.toNodeTree();
-			root.uuid = effect.id;
-			root.name = effect.name;
 			nodes.push(this._convertNode(root, true));
 		}
 
-		this.setState({ nodes });
+		const prevSelected = this.state.selectedNodeId;
+		const selectionStillValid =
+			prevSelected !== null && prevSelected !== undefined && this._nodeIndex.has(String(prevSelected));
+		const nextSelectedId = selectionStillValid ? prevSelected : null;
+
+		const nodesWithSelection =
+			nextSelectedId !== null && nextSelectedId !== undefined
+				? this._setNodeSelected(nodes, nextSelectedId)
+				: nodes;
+
+		this.setState({ nodes: nodesWithSelection, selectedNodeId: nextSelectedId }, () => {
+			if (!selectionStillValid && prevSelected !== null && prevSelected !== undefined) {
+				this.props.onNodeSelected?.(null);
+			}
+		});
 	}
 
 	/** Converts internal node model into Blueprint tree data. */
@@ -436,9 +460,7 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 			return;
 		}
 
-		const document = QuarksEffectDocument.createEmpty(this.props.editor.preview.scene, `Effect ${this._effects.size + 1}`);
-		this._effects.set(document.id, document);
-		this._setNodePlaybackState(document.toNodeTree(), "stopped");
+		this._createDefaultEffectDocument(`Effect ${this._effects.size + 1}`);
 		this._rebuildTree();
 		this._notifyUiStateChanged();
 	}
@@ -507,8 +529,8 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 
 		const filePath = saveSingleFileDialog({
 			title: "Export Effect",
-			filters: [{ name: "Effect Files", extensions: ["effect", "json"] }],
-			defaultPath: `${effect.name}.effect`,
+			filters: [{ name: "Quarks Files", extensions: ["json"] }],
+			defaultPath: `${effect.name}.json`,
 		});
 
 		if (!filePath) {
@@ -691,5 +713,30 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 		}
 
 		throw new Error("Unsupported effect file format");
+	}
+
+	/** Subscribes to Quarks emitEnd + last particle death so non-looping playback clears "playing" in the tree. */
+	private _registerEffectNaturalIdle(document: QuarksEffectDocument): void {
+		document.setNaturalIdleHandler((emitter) => {
+			const uuid = getQuarksTransformUuid(emitter);
+			this._playbackByUuid.set(uuid, "stopped");
+			this._rebuildTree();
+			this._notifyUiStateChanged();
+		});
+	}
+
+	/** Creates a valid default Quarks document with one editable particle system. */
+	private _createDefaultEffectDocument(name: string): QuarksEffectDocument {
+		if (!this.props.editor.preview?.scene) {
+			throw new Error("Preview scene is not ready");
+		}
+
+		const document = QuarksEffectDocument.createEmpty(this.props.editor.preview.scene, name);
+		this._effects.set(document.id, document);
+		this._registerEffectNaturalIdle(document);
+		document.createParticle(document.root);
+		document.stop();
+		this._setNodePlaybackState(document.toNodeTree(), "stopped");
+		return document;
 	}
 }

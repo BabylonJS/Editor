@@ -61,7 +61,7 @@ export class EffectEditorToolbar extends Component<IEffectEditorToolbarProps, IE
 							<MenubarSub>
 								<MenubarSubTrigger>Import...</MenubarSubTrigger>
 								<MenubarSubContent>
-									<MenubarItem onClick={() => this._handleImportBabylonEffect()}>Babylon Effect</MenubarItem>
+									<MenubarItem onClick={() => this._handleImportBabylonEffect()}>Editor Effect</MenubarItem>
 									<MenubarItem onClick={() => this._handleImportQuarks()}>Quarks Effect</MenubarItem>
 								</MenubarSubContent>
 							</MenubarSub>
@@ -84,7 +84,7 @@ export class EffectEditorToolbar extends Component<IEffectEditorToolbarProps, IE
 	private _handleOpen(): void {
 		const file = openSingleFileDialog({
 			title: "Open Effect File",
-			filters: [{ name: "Effect Files", extensions: ["Effect", "json"] }],
+			filters: [{ name: "Effect Files", extensions: ["fx", "json"] }],
 		});
 
 		if (!file) {
@@ -106,8 +106,8 @@ export class EffectEditorToolbar extends Component<IEffectEditorToolbarProps, IE
 	private _handleSaveAs(): void {
 		const file = saveSingleFileDialog({
 			title: "Save Effect File",
-			filters: [{ name: "Effect Files", extensions: ["Effect", "json"] }],
-			defaultPath: this.props.editor.state.filePath || "untitled.Effect",
+			filters: [{ name: "Effect Files", extensions: ["fx", "json"] }],
+			defaultPath: this.props.editor.state.filePath || "untitled.fx",
 		});
 
 		if (!file) {
@@ -122,8 +122,8 @@ export class EffectEditorToolbar extends Component<IEffectEditorToolbarProps, IE
 	 */
 	private _handleImportBabylonEffect(): void {
 		const file = openSingleFileDialog({
-			title: "Import Babylon Effect JSON",
-			filters: [{ name: "Effect Files", extensions: ["effect"] }],
+			title: "Import Effect File",
+			filters: [{ name: "Effect Files", extensions: ["fx", "json"] }],
 		});
 
 		if (!file) {

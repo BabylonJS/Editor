@@ -1305,7 +1305,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 
 		const name = await findAvailableFilename(this.state.browsedPath, "New Effect", ".fx");
 		const defaultEffectFile = {
-			version: "1.0.0",
+			version: "quarks-editor-1",
 			effects: [],
 		};
 

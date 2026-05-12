@@ -98,14 +98,17 @@ export default class EffectEditorWindow extends Component<IEffectEditorWindowPro
 		}
 	}
 
-	public async save(): Promise<void> {
-		if (!this.state.filePath || !this.editor.graph) {
+	public async save(filePath: string = this.state.filePath ?? ""): Promise<void> {
+		if (!filePath || !this.editor.graph) {
 			return;
 		}
 
 		try {
 			const fileData = this.editor.graph.serializeToFileFormat();
-			await writeJSON(this.state.filePath, fileData, { spaces: "\t", encoding: "utf-8" });
+			await writeJSON(filePath, fileData, { spaces: "\t", encoding: "utf-8" });
+			if (filePath !== this.state.filePath) {
+				this.setState({ filePath });
+			}
 			toast.success("Effect saved");
 			ipcRenderer.send("editor:asset-updated", "Effect", fileData);
 		} catch (error) {
@@ -115,8 +118,7 @@ export default class EffectEditorWindow extends Component<IEffectEditorWindowPro
 	}
 
 	public async saveAs(filePath: string): Promise<void> {
-		this.setState({ filePath });
-		await this.save();
+		await this.save(filePath);
 	}
 
 	public async importFile(filePath: string): Promise<void> {

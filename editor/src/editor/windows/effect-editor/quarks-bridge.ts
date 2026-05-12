@@ -2,7 +2,18 @@ import { Constants } from "@babylonjs/core/Engines/constants";
 import { Texture } from "@babylonjs/core/Materials/Textures/texture";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { Scene } from "@babylonjs/core/scene";
-import { BatchedRenderer, ConstantValue, ParticleEmitter, ParticleSystem, QuarksLoader, QuarksUtil, RenderMode, SphereEmitter, type Behavior } from "babylon.quarks";
+import {
+	BatchedRenderer,
+	ConstantValue,
+	ParticleEmitter,
+	ParticleSystem,
+	QuarksLoader,
+	QuarksUtil,
+	RenderMode,
+	SphereEmitter,
+	type Behavior,
+	type ParticleSystemEvent,
+} from "babylon.quarks";
 
 export type QuarksNodeType = "group" | "particle";
 
@@ -43,8 +54,13 @@ function createId(prefix: string): string {
 	return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
-function getNodeUuid(node: TransformNode): string {
+/** Stable id for tree/serialization; matches QuarksLoader `data.uuid` when present. */
+export function getQuarksTransformUuid(node: TransformNode): string {
 	return ((node as any)._quarksUUID as string) ?? node.uniqueId.toString();
+}
+
+function getNodeUuid(node: TransformNode): string {
+	return getQuarksTransformUuid(node);
 }
 
 function setNodeUuid(node: TransformNode, uuid?: string): void {
@@ -53,9 +69,10 @@ function setNodeUuid(node: TransformNode, uuid?: string): void {
 
 function makeNode(node: TransformNode): IQuarksNode {
 	const isParticle = node instanceof ParticleEmitter;
+	const stableId = getNodeUuid(node);
 	return {
-		id: createId("node"),
-		uuid: getNodeUuid(node),
+		id: stableId,
+		uuid: stableId,
 		name: node.name || (isParticle ? "Particle" : "Group"),
 		type: isParticle ? "particle" : "group",
 		data: isParticle ? (node.system as ParticleSystem) : node,
@@ -111,11 +128,31 @@ function serializeNode(node: TransformNode, meta: ISerializationMeta): any {
 	};
 }
 
+interface IEmitterCompletionTracking {
+	emissionEnded: boolean;
+}
+
+/**
+ * Quarks leaves non-loop systems with `emitEnded` set after the last particle dies; `update()` then
+ * no-ops until `restart()` (e.g. via `stop()`). `play()` only clears `paused`, so replay must restart first.
+ */
+function playParticleSystem(system: ParticleSystem): void {
+	const emitEnded = (system as unknown as { emitEnded?: boolean }).emitEnded === true;
+	if (!system.looping && system.particleNum === 0 && emitEnded) {
+		system.restart();
+		return;
+	}
+	system.play();
+}
+
 export class QuarksEffectDocument {
 	public readonly id: string;
 	public name: string;
 	public readonly root: TransformNode;
 	private readonly _batchRenderer: BatchedRenderer;
+	private _naturalIdleHandler?: (emitter: ParticleEmitter) => void;
+	private readonly _emitterCompletionTracking = new WeakMap<ParticleEmitter, IEmitterCompletionTracking>();
+	private readonly _emitterCompletionUnbind = new Map<ParticleEmitter, () => void>();
 
 	public constructor(id: string, name: string, root: TransformNode, batchRenderer: BatchedRenderer) {
 		this.id = id;
@@ -174,11 +211,33 @@ export class QuarksEffectDocument {
 		emitter.parent = parent;
 		this._batchRenderer.addSystem(system);
 		system.stop();
+		this._bindEmitterNaturalIdleIfNeeded(emitter);
 		return emitter;
+	}
+
+	/**
+	 * When a non-looping system finishes emitting and the last particle dies, Quarks does not call stop().
+	 * Subscribe to emitEnd + particleDied and invoke the handler once the system is fully idle.
+	 */
+	public setNaturalIdleHandler(handler: (emitter: ParticleEmitter) => void): void {
+		this._naturalIdleHandler = handler;
+		this._bindAllEmitterNaturalIdleListeners();
+	}
+
+	/** Call after user play/restart so a new non-loop run can fire idle again. */
+	public resetNaturalIdleTracking(subtreeRoot: TransformNode): void {
+		QuarksUtil.runOnAllParticleEmitters(subtreeRoot, (emitter) => {
+			const tracking = this._emitterCompletionTracking.get(emitter);
+			if (tracking) {
+				tracking.emissionEnded = false;
+			}
+		});
 	}
 
 	public removeNode(node: TransformNode): void {
 		if (node instanceof ParticleEmitter) {
+			const unbind = this._emitterCompletionUnbind.get(node);
+			unbind?.();
 			(node.system as ParticleSystem).dispose();
 		}
 		for (const child of node.getChildren()) {
@@ -191,11 +250,11 @@ export class QuarksEffectDocument {
 
 	public playNode(node: TransformNode): void {
 		if (node instanceof ParticleEmitter) {
-			node.system.play();
+			playParticleSystem(node.system as ParticleSystem);
 			return;
 		}
 
-		QuarksUtil.play(node);
+		QuarksUtil.runOnAllParticleEmitters(node, (emitter) => playParticleSystem(emitter.system as ParticleSystem));
 	}
 
 	public pauseNode(node: TransformNode): void {
@@ -228,7 +287,7 @@ export class QuarksEffectDocument {
 	}
 
 	public play(): void {
-		QuarksUtil.play(this.root);
+		QuarksUtil.runOnAllParticleEmitters(this.root, (emitter) => playParticleSystem(emitter.system as ParticleSystem));
 	}
 
 	public pause(): void {
@@ -251,6 +310,7 @@ export class QuarksEffectDocument {
 	public toNodeTree(): IQuarksNode {
 		const rootNode = makeNode(this.root);
 		rootNode.uuid = this.id;
+		rootNode.id = this.id;
 		rootNode.name = this.name;
 		return rootNode;
 	}
@@ -294,8 +354,69 @@ export class QuarksEffectDocument {
 	}
 
 	public dispose(): void {
+		this._disposeNaturalIdleListeners();
 		QuarksUtil.stop(this.root);
 		this.removeNode(this.root);
 		this._batchRenderer.dispose();
+	}
+
+	private _bindAllEmitterNaturalIdleListeners(): void {
+		if (!this._naturalIdleHandler) {
+			return;
+		}
+		QuarksUtil.runOnAllParticleEmitters(this.root, (emitter) => this._bindEmitterNaturalIdleIfNeeded(emitter));
+	}
+
+	private _bindEmitterNaturalIdleIfNeeded(emitter: ParticleEmitter): void {
+		if (!this._naturalIdleHandler || this._emitterCompletionUnbind.has(emitter)) {
+			return;
+		}
+
+		const system = emitter.system as ParticleSystem;
+		const tracking: IEmitterCompletionTracking = { emissionEnded: false };
+		this._emitterCompletionTracking.set(emitter, tracking);
+
+		const onEmitEnd = (_event: ParticleSystemEvent): void => {
+			tracking.emissionEnded = true;
+			this._tryNaturalIdle(system, emitter);
+		};
+
+		const onParticleDied = (_event: ParticleSystemEvent): void => {
+			this._tryNaturalIdle(system, emitter);
+		};
+
+		system.addEventListener("emitEnd", onEmitEnd);
+		system.addEventListener("particleDied", onParticleDied);
+
+		const unbind = (): void => {
+			system.removeEventListener("emitEnd", onEmitEnd);
+			system.removeEventListener("particleDied", onParticleDied);
+			this._emitterCompletionUnbind.delete(emitter);
+			this._emitterCompletionTracking.delete(emitter);
+		};
+
+		this._emitterCompletionUnbind.set(emitter, unbind);
+	}
+
+	private _tryNaturalIdle(system: ParticleSystem, emitter: ParticleEmitter): void {
+		if (!this._naturalIdleHandler || system.looping) {
+			return;
+		}
+		const tracking = this._emitterCompletionTracking.get(emitter);
+		if (!tracking?.emissionEnded || system.particleNum > 0) {
+			return;
+		}
+		tracking.emissionEnded = false;
+		// Avoid `stop()`/`restart()` here — that can show one frame of new particles before pause.
+		system.pause();
+		this._naturalIdleHandler(emitter);
+	}
+
+	private _disposeNaturalIdleListeners(): void {
+		for (const unbind of this._emitterCompletionUnbind.values()) {
+			unbind();
+		}
+		this._emitterCompletionUnbind.clear();
+		this._naturalIdleHandler = undefined;
 	}
 }
