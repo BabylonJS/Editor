@@ -39,4 +39,3 @@ export * from "./cinematic/typings";
 export * from "./cinematic/generate";
 export * from "./cinematic/guards";
 export * from "./cinematic/cinematic";
-

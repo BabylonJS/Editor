@@ -46,11 +46,7 @@ export class EffectEditorPreviewSelection {
 		mat.alpha = 1;
 		mat.disableDepthTest = true;
 
-		const ring = MeshBuilder.CreateTorus(
-			"effectEditorSelectionRing",
-			{ diameter: 1.1, thickness: 0.06, tessellation: 48 },
-			this._scene
-		);
+		const ring = MeshBuilder.CreateTorus("effectEditorSelectionRing", { diameter: 1.1, thickness: 0.06, tessellation: 48 }, this._scene);
 		ring.material = mat;
 		ring.parent = node;
 		ring.position.y = 0.12;

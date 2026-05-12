@@ -11,7 +11,7 @@ import { Material } from "@babylonjs/core/Materials/material";
 import { Constants } from "@babylonjs/core/Engines/constants";
 import { ParticleSystem } from "@babylonjs/core/Particles/particleSystem";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
-import { ConstantValue, RenderMode as QuarksRenderMode } from "babylon.quarks";
+import { ConstantValue, RenderMode as QuarksRenderMode, type ParticleSystem as QuarksParticleSystem } from "babylon.quarks";
 
 import { EditorPBRMaterialInspector } from "../../../layout/inspector/material/pbr";
 import { EditorStandardMaterialInspector } from "../../../layout/inspector/material/standard";
@@ -28,7 +28,6 @@ import { EditorFireMaterialInspector } from "../../../layout/inspector/material/
 import { EditorGradientMaterialInspector } from "../../../layout/inspector/material/gradient";
 
 import type { IQuarksNode } from "../quarks-bridge";
-import type { ParticleSystem as QuarksParticleSystem } from "babylon.quarks";
 import { IEffectEditor } from "..";
 
 export interface IEffectEditorParticleRendererPropertiesProps {
@@ -55,13 +54,14 @@ function getUiBlendMode(system: QuarksParticleSystem): number {
 }
 
 function setUiBlendMode(system: QuarksParticleSystem, value: number): void {
-	system.blending = value === ParticleSystem.BLENDMODE_ADD
-		? Constants.ALPHA_ADD
-		: value === ParticleSystem.BLENDMODE_MULTIPLY
-			? Constants.ALPHA_MULTIPLY
-			: value === ParticleSystem.BLENDMODE_ONEONE
-				? Constants.ALPHA_ONEONE
-				: Constants.ALPHA_COMBINE;
+	system.blending =
+		value === ParticleSystem.BLENDMODE_ADD
+			? Constants.ALPHA_ADD
+			: value === ParticleSystem.BLENDMODE_MULTIPLY
+				? Constants.ALPHA_MULTIPLY
+				: value === ParticleSystem.BLENDMODE_ONEONE
+					? Constants.ALPHA_ONEONE
+					: Constants.ALPHA_COMBINE;
 }
 
 function isSolidParticleSystem(system: QuarksParticleSystem): boolean {
@@ -269,15 +269,7 @@ export class EffectEditorParticleRendererProperties extends Component<IEffectEdi
 
 		// Base mode uses particleTexture, solid mode texture is driven by material.
 		if (isBaseParticleSystem(system)) {
-			return (
-				<EditorInspectorTextureField
-					object={system}
-					property="texture"
-					title="Texture"
-					scene={editor.preview.scene as any}
-					onChange={() => this.props.onChange()}
-				/>
-			);
+			return <EditorInspectorTextureField object={system} property="texture" title="Texture" scene={editor.preview.scene as any} onChange={() => this.props.onChange()} />;
 		}
 
 		return null;

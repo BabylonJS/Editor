@@ -45,8 +45,8 @@
 		"build-all-concurrently": "concurrently \"yarn build-tools\" \"yarn build-cli\" -c bgYellow.bold,bgBlue.bold --names tools,cli && yarn build-editor && concurrently \"yarn workspace babylonjs-editor-plugins build-concurrently\" \"yarn workspace babylonjs-editor-templates build-concurrently\" \"yarn workspace babylonjs-editor-website build\" -c bgYellow.bold,bgBlue.bold,bgGreen.bold --names plugins,templates,website",
 		"start": "yarn workspace babylonjs-editor start",
 		"package": "yarn clean && yarn clean:node_modules && yarn && yarn lint && yarn build-all-concurrently && yarn test && node build.mjs",
-		"clean": "rimraf editor/build editor/declaration editor/electron-packages editor/coverage tools/build tools/declaration tools/coverage website/.next cli/build cli/declaration && yarn workspace babylonjs-editor-plugins clean && yarn workspace babylonjs-editor-templates clean",
-		"clean:node_modules": "rm -rf editor/node_modules tools/node_modules plugins/**/node_modules templates/**/node_modules website/node_modules node_modules",
+		"clean": "del-cli editor/build editor/declaration editor/electron-packages editor/coverage tools/build tools/declaration tools/coverage website/.next cli/build cli/declaration && yarn workspace babylonjs-editor-plugins clean && yarn workspace babylonjs-editor-templates clean",
+		"clean:node_modules": "del-cli editor/node_modules tools/node_modules \"plugins/**/node_modules\" \"templates/**/node_modules\" website/node_modules node_modules",
 		"test": "yarn workspace babylonjs-editor-tools test && yarn workspace babylonjs-editor test",
 		"coverage": "yarn workspace babylonjs-editor-tools coverage && yarn workspace babylonjs-editor coverage",
 		"format": "prettier --write \"editor/src/**/*.{ts,mts,tsx,js,json}\" \"tools/src/**/*.{ts,mts,tsx,js,json}\" \"cli/src/**/*.{ts,mts,tsx,js,json}\" \"plugins/**/src/**/*.{ts,mts,tsx,js,json}\" \"website/src/**/*.{ts,mts,tsx,js,json}\"",
@@ -71,7 +71,7 @@
 		"eslint": "9.29.0",
 		"minimist": "1.2.8",
 		"prettier": "3.8.1",
-		"rimraf": "6.0.1"
+		"del-cli": "7.0.0"
 	},
 	"dependencies": {},
 	"resolutions": {

@@ -1,4 +1,4 @@
-import { Component, ReactNode } from "react";
+import { Component, createRef, ReactNode } from "react";
 import { ArcRotateCamera } from "@babylonjs/core/Cameras/arcRotateCamera";
 import { Engine } from "@babylonjs/core/Engines/engine";
 import { DirectionalLight } from "@babylonjs/core/Lights/directionalLight";
@@ -7,6 +7,7 @@ import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { Scene } from "@babylonjs/core/scene";
 import { GridMaterial } from "@babylonjs/materials";
+import { ParticleSystem, QuarksUtil } from "babylon.quarks";
 import { IoPause, IoPlay, IoRefresh, IoStop } from "react-icons/io5";
 
 import { EditorInspectorNumberField } from "../../layout/inspector/fields/number";
@@ -37,12 +38,11 @@ export class EffectEditorPreview extends Component<IEffectEditorPreviewProps> {
 	private _lastFrameMs: number = performance.now();
 	private readonly _playSpeedModel = { playSpeed: 1 };
 	private _selectionVisual: EffectEditorPreviewSelection | null = null;
+	private readonly _perfParticleCountRef = createRef<HTMLSpanElement>();
+	private readonly _perfFpsRef = createRef<HTMLSpanElement>();
 
 	public componentDidUpdate(prevProps: IEffectEditorPreviewProps): void {
-		if (
-			this._selectionVisual &&
-			(prevProps.selectedNodeId !== this.props.selectedNodeId || prevProps.editor?.graph !== this.props.editor?.graph)
-		) {
+		if (this._selectionVisual && (prevProps.selectedNodeId !== this.props.selectedNodeId || prevProps.editor?.graph !== this.props.editor?.graph)) {
 			this._syncSelectionVisual();
 		}
 	}
@@ -68,7 +68,18 @@ export class EffectEditorPreview extends Component<IEffectEditorPreviewProps> {
 		return (
 			<div className="relative w-full h-full">
 				<canvas ref={(r) => this._onGotCanvasRef(r)} className="w-full h-full outline-none" />
-				{showPlaybackBar && controlState != null && (
+				<div
+					className="pointer-events-none absolute bottom-4 left-4 z-[2147483646] flex flex-wrap gap-2 rounded-lg border border-border bg-background/85 px-3 py-2 text-xs text-muted-foreground shadow-md backdrop-blur-sm"
+					aria-live="polite"
+				>
+					<span className="rounded-full border border-border bg-muted/50 px-2.5 py-1 font-mono tabular-nums">
+						Particles: <span ref={this._perfParticleCountRef}>0</span>
+					</span>
+					<span className="rounded-full border border-border bg-muted/50 px-2.5 py-1 font-mono tabular-nums">
+						FPS: <span ref={this._perfFpsRef}>0</span>
+					</span>
+				</div>
+				{showPlaybackBar && controlState !== null && controlState !== undefined && (
 					<div className="absolute top-4 left-1/2 -translate-x-1/2 z-[2147483647] flex items-center gap-2 rounded-md border border-border bg-background/95 px-2 py-1.5 shadow-md backdrop-blur-sm">
 						<TooltipProvider>
 							<>
@@ -100,13 +111,7 @@ export class EffectEditorPreview extends Component<IEffectEditorPreviewProps> {
 								</Tooltip>
 								<Tooltip>
 									<TooltipTrigger asChild>
-										<Button
-											variant="secondary"
-											size="icon"
-											onClick={() => this._handleStop()}
-											className="h-10 w-10 shrink-0"
-											disabled={!controlState.canStop}
-										>
+										<Button variant="secondary" size="icon" onClick={() => this._handleStop()} className="h-10 w-10 shrink-0" disabled={!controlState.canStop}>
 											<IoStop className="w-5 h-5" />
 										</Button>
 									</TooltipTrigger>
@@ -142,18 +147,21 @@ export class EffectEditorPreview extends Component<IEffectEditorPreviewProps> {
 		if (id === null || id === undefined || id === "") {
 			return false;
 		}
-		return this.props.editor?.graph?.getNodeData(id) != null;
+		const nodeData = this.props.editor?.graph?.getNodeData(id);
+		return nodeData !== null && nodeData !== undefined;
 	}
 
 	/** Returns current playback state/availability for selected node. */
 	private _getPlaybackControlState(): IPlaybackControlState {
-		return this.props.editor?.graph?.getNodePlaybackControlState(this.props.selectedNodeId) ?? {
-			state: "unavailable",
-			canPlayPause: false,
-			canStop: false,
-			canRestart: false,
-			reason: "Preview is not ready.",
-		};
+		return (
+			this.props.editor?.graph?.getNodePlaybackControlState(this.props.selectedNodeId) ?? {
+				state: "unavailable",
+				canPlayPause: false,
+				canStop: false,
+				canRestart: false,
+				reason: "Preview is not ready.",
+			}
+		);
 	}
 
 	/** Initializes Babylon engine/scene and starts quarks update loop. */
@@ -207,12 +215,34 @@ export class EffectEditorPreview extends Component<IEffectEditorPreviewProps> {
 			for (const effect of this.props.editor?.graph?.getAllEffects() ?? []) {
 				effect.update(scaledDelta);
 			}
+			this._updatePerfHud();
 			this.scene?.render();
 		});
 
 		window.addEventListener("resize", () => this.engine?.resize());
 		this.props.onSceneReady?.(this.scene);
 		this.forceUpdate();
+	}
+
+	/** Writes particle total and engine FPS into the HUD (DOM refs; no React state per frame). */
+	private _updatePerfHud(): void {
+		if (!this.engine) {
+			return;
+		}
+		const fpsEl = this._perfFpsRef.current;
+		const particlesEl = this._perfParticleCountRef.current;
+		if (fpsEl) {
+			fpsEl.textContent = Math.round(this.engine.getFps()).toString();
+		}
+		if (particlesEl) {
+			let total = 0;
+			for (const effect of this.props.editor?.graph?.getAllEffects() ?? []) {
+				QuarksUtil.runOnAllParticleEmitters(effect.root, (emitter) => {
+					total += (emitter.system as ParticleSystem).particleNum;
+				});
+			}
+			particlesEl.textContent = total.toString();
+		}
 	}
 
 	/** Updates position gizmo + selection ring for the current graph selection. */

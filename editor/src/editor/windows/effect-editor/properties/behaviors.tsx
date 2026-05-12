@@ -135,7 +135,11 @@ function createBehaviorInstance(config: EditorBehavior, system: QuarksParticleSy
 		case BEHAVIOR_TYPES.FrameOverLife:
 			return new FrameOverLife(editorValueToFunctionGenerator(config.frame as EditorValue));
 		case BEHAVIOR_TYPES.ForceOverLife:
-			return new ForceOverLife(editorValueToGenerator(config.x as EditorValue), editorValueToGenerator(config.y as EditorValue), editorValueToGenerator(config.z as EditorValue));
+			return new ForceOverLife(
+				editorValueToGenerator(config.x as EditorValue),
+				editorValueToGenerator(config.y as EditorValue),
+				editorValueToGenerator(config.z as EditorValue)
+			);
 		case BEHAVIOR_TYPES.OrbitOverLife:
 			return new OrbitOverLife(editorValueToGenerator(config.orbitSpeed as EditorValue), toQuarksVector3(config.axis, [0, 1, 0]));
 		case BEHAVIOR_TYPES.WidthOverLength:
@@ -153,7 +157,23 @@ function createBehaviorInstance(config: EditorBehavior, system: QuarksParticleSy
 
 function normalizeBehaviorForEditor(behavior: any): EditorBehavior {
 	const config: EditorBehavior = { ...(behavior?.toJSON?.() ?? behavior), id: createBehaviorId() };
-	const valueFields = ["magnitude", "frequency", "power", "positionAmount", "rotationAmount", "angularVelocity", "size", "speed", "frame", "x", "y", "z", "orbitSpeed", "width", "angle"];
+	const valueFields = [
+		"magnitude",
+		"frequency",
+		"power",
+		"positionAmount",
+		"rotationAmount",
+		"angularVelocity",
+		"size",
+		"speed",
+		"frame",
+		"x",
+		"y",
+		"z",
+		"orbitSpeed",
+		"width",
+		"angle",
+	];
 	const colorFields = ["color"];
 
 	for (const field of valueFields) {
@@ -516,17 +536,18 @@ export function createDefaultBehaviorData(type: string): Behavior {
 			} else if (fnType === "IntervalValue") {
 				data[prop.name] = { type: "IntervalValue", a: 0, b: 1 };
 			} else {
-				data[prop.name] = fnType === "Vector3Function"
-					? {
-						type: "Vec3Function",
-						x: { type: "ConstantValue", value: 1 },
-						y: { type: "ConstantValue", value: 1 },
-						z: { type: "ConstantValue", value: 1 },
-					}
-					: {
-						type: "PiecewiseBezier",
-						functions: [{ function: { p0: 0, p1: 1 / 3, p2: (1 / 3) * 2, p3: 1 }, start: 0 }],
-					};
+				data[prop.name] =
+					fnType === "Vector3Function"
+						? {
+								type: "Vec3Function",
+								x: { type: "ConstantValue", value: 1 },
+								y: { type: "ConstantValue", value: 1 },
+								z: { type: "ConstantValue", value: 1 },
+							}
+						: {
+								type: "PiecewiseBezier",
+								functions: [{ function: { p0: 0, p1: 1 / 3, p2: (1 / 3) * 2, p3: 1 }, start: 0 }],
+							};
 			}
 		} else if (prop.type === "colorFunction") {
 			data[prop.name] = {
@@ -619,7 +640,17 @@ function renderProperty(prop: IBehaviorProperty, behavior: Behavior, onChange: (
 					color: [1, 1, 1, 1],
 				};
 			}
-			return <EffectColorEditor key={prop.name} value={behavior[prop.name] as EditorColor} onChange={(value) => { behavior[prop.name] = value; onChange(); }} label={prop.label} />;
+			return (
+				<EffectColorEditor
+					key={prop.name}
+					value={behavior[prop.name] as EditorColor}
+					onChange={(value) => {
+						behavior[prop.name] = value;
+						onChange();
+					}}
+					label={prop.label}
+				/>
+			);
 
 		case "rotation":
 			if (!behavior[prop.name]) {
@@ -644,21 +675,22 @@ function renderProperty(prop: IBehaviorProperty, behavior: Behavior, onChange: (
 		case "function":
 			if (!behavior[prop.name]) {
 				const functionType = prop.functionTypes?.[0] || "ConstantValue";
-				behavior[prop.name] = functionType === "Vector3Function"
-					? {
-						type: "Vec3Function",
-						x: { type: "ConstantValue", value: 1 },
-						y: { type: "ConstantValue", value: 1 },
-						z: { type: "ConstantValue", value: 1 },
-					}
-					: functionType === "IntervalValue"
-						? { type: "IntervalValue", a: 0, b: 1 }
-						: functionType === "PiecewiseBezier"
-							? { type: "PiecewiseBezier", functions: [{ function: { p0: 0, p1: 1 / 3, p2: (1 / 3) * 2, p3: 1 }, start: 0 }] }
-							: {
-						type: functionType,
-						value: prop.default !== undefined ? prop.default : 1,
-					};
+				behavior[prop.name] =
+					functionType === "Vector3Function"
+						? {
+								type: "Vec3Function",
+								x: { type: "ConstantValue", value: 1 },
+								y: { type: "ConstantValue", value: 1 },
+								z: { type: "ConstantValue", value: 1 },
+							}
+						: functionType === "IntervalValue"
+							? { type: "IntervalValue", a: 0, b: 1 }
+							: functionType === "PiecewiseBezier"
+								? { type: "PiecewiseBezier", functions: [{ function: { p0: 0, p1: 1 / 3, p2: (1 / 3) * 2, p3: 1 }, start: 0 }] }
+								: {
+										type: functionType,
+										value: prop.default !== undefined ? prop.default : 1,
+									};
 			}
 			return (
 				<EffectValueEditor
@@ -715,9 +747,7 @@ export function EffectEditorBehaviorsProperties(props: IEffectEditorBehaviorsPro
 	const behaviorConfigs: EditorBehavior[] = getEditorBehaviors(sourceSystem);
 
 	const applyBehaviors = (): void => {
-		const runtimeBehaviors = behaviorConfigs
-			.map((behavior) => createBehaviorInstance(behavior, sourceSystem))
-			.filter((behavior): behavior is RuntimeBehavior => !!behavior);
+		const runtimeBehaviors = behaviorConfigs.map((behavior) => createBehaviorInstance(behavior, sourceSystem)).filter((behavior): behavior is RuntimeBehavior => !!behavior);
 		sourceSystem.behaviors = runtimeBehaviors;
 		sourceSystem.neededToUpdateRender = true;
 		behaviorUiState.set(sourceSystem, behaviorConfigs);

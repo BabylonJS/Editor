@@ -14,9 +14,7 @@ export type EffectColorType = "ConstantColor" | "ColorRange" | "Gradient" | "Ran
 function toEditorColorKeys(keys: Array<{ pos?: number; value: unknown }>): Array<{ pos: number; value: EditorColorArray }> {
 	return keys.map((key) => ({
 		pos: Number(key.pos ?? 0),
-		value: Array.isArray(key.value)
-			? [Number(key.value[0] ?? 0), Number(key.value[1] ?? 0), Number(key.value[2] ?? 0), Number(key.value[3] ?? 1)]
-			: [0, 0, 0, 1],
+		value: Array.isArray(key.value) ? [Number(key.value[0] ?? 0), Number(key.value[1] ?? 0), Number(key.value[2] ?? 0), Number(key.value[3] ?? 1)] : [0, 0, 0, 1],
 	}));
 }
 
@@ -236,12 +234,8 @@ export function EffectColorEditor(props: IEffectColorEditorProps): ReactNode {
 				<>
 					{(() => {
 						const randomColor = value && typeof value === "object" && "type" in value && value.type === "RandomColor" ? value : null;
-						const colorA = randomColor
-							? new Color4(randomColor.a[0], randomColor.a[1], randomColor.a[2], randomColor.a[3])
-							: new Color4(0, 0, 0, 1);
-						const colorB = randomColor
-							? new Color4(randomColor.b[0], randomColor.b[1], randomColor.b[2], randomColor.b[3])
-							: new Color4(1, 1, 1, 1);
+						const colorA = randomColor ? new Color4(randomColor.a[0], randomColor.a[1], randomColor.a[2], randomColor.a[3]) : new Color4(0, 0, 0, 1);
+						const colorB = randomColor ? new Color4(randomColor.b[0], randomColor.b[1], randomColor.b[2], randomColor.b[3]) : new Color4(1, 1, 1, 1);
 						const wrapperRandom = {
 							get colorA() {
 								return colorA;

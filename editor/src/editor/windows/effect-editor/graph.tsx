@@ -398,14 +398,10 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 		}
 
 		const prevSelected = this.state.selectedNodeId;
-		const selectionStillValid =
-			prevSelected !== null && prevSelected !== undefined && this._nodeIndex.has(String(prevSelected));
+		const selectionStillValid = prevSelected !== null && prevSelected !== undefined && this._nodeIndex.has(String(prevSelected));
 		const nextSelectedId = selectionStillValid ? prevSelected : null;
 
-		const nodesWithSelection =
-			nextSelectedId !== null && nextSelectedId !== undefined
-				? this._setNodeSelected(nodes, nextSelectedId)
-				: nodes;
+		const nodesWithSelection = nextSelectedId !== null && nextSelectedId !== undefined ? this._setNodeSelected(nodes, nextSelectedId) : nodes;
 
 		this.setState({ nodes: nodesWithSelection, selectedNodeId: nextSelectedId }, () => {
 			if (!selectionStillValid && prevSelected !== null && prevSelected !== undefined) {
@@ -546,13 +542,7 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 		const playbackState = this.getNodePlaybackState(node.id);
 		const stateLabel = playbackState === "playing" ? "Playing" : playbackState === "paused" ? "Paused" : playbackState === "stopped" ? "Stopped" : "Unavailable";
 		const stateClassName =
-			playbackState === "playing"
-				? "bg-emerald-400"
-				: playbackState === "paused"
-					? "bg-amber-400"
-					: playbackState === "stopped"
-						? "bg-slate-400"
-						: "bg-red-400";
+			playbackState === "playing" ? "bg-emerald-400" : playbackState === "paused" ? "bg-amber-400" : playbackState === "stopped" ? "bg-slate-400" : "bg-red-400";
 
 		return (
 			<ContextMenu>

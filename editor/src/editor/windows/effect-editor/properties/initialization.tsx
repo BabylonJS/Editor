@@ -5,10 +5,7 @@ import { type Color, type Rotation, type Value } from "../types";
 import type { IQuarksNode } from "../quarks-bridge";
 import { EffectValueEditor, type IVec3Function } from "../editors/value";
 import { EffectColorEditor } from "../editors/color";
-import {
-	ParticleSystem as QuarksParticleSystem,
-	Vector3Function,
-} from "babylon.quarks";
+import { ParticleSystem as QuarksParticleSystem, Vector3Function } from "babylon.quarks";
 import {
 	colorGeneratorToEditorColor,
 	createConstantValue,
@@ -105,21 +102,58 @@ export function EffectEditorParticleInitializationProperties(props: IEffectEdito
 
 	return (
 		<>
-			<EditorInspectorBlockField><div className="px-2">Start Life</div><EffectValueEditor value={getStartLife()} onChange={setStartLife} availableTypes={["ConstantValue", "IntervalValue", "PiecewiseBezier"]} min={0} step={0.1} /></EditorInspectorBlockField>
-			<EditorInspectorBlockField><div className="px-2">Start Size</div><EffectValueEditor value={getStartSize()} onChange={setStartSize} availableTypes={["ConstantValue", "IntervalValue", "PiecewiseBezier", "Vec3Function"]} min={0} step={0.01} /></EditorInspectorBlockField>
-			<EditorInspectorBlockField><div className="px-2">Scale X</div><EffectValueEditor value={getScaleX()} onChange={setScaleX} availableTypes={["ConstantValue", "IntervalValue"]} min={0} step={0.01} /></EditorInspectorBlockField>
-			<EditorInspectorBlockField><div className="px-2">Scale Y</div><EffectValueEditor value={getScaleY()} onChange={setScaleY} availableTypes={["ConstantValue", "IntervalValue"]} min={0} step={0.01} /></EditorInspectorBlockField>
-			<EditorInspectorBlockField><div className="px-2">Start Speed</div><EffectValueEditor value={getStartSpeed()} onChange={setStartSpeed} availableTypes={["ConstantValue", "IntervalValue", "PiecewiseBezier"]} min={0} step={0.1} /></EditorInspectorBlockField>
-			<EditorInspectorBlockField><div className="px-2">Start Color</div><EffectColorEditor value={getStartColor()} onChange={setStartColor} /></EditorInspectorBlockField>
+			<EditorInspectorBlockField>
+				<div className="px-2">Start Life</div>
+				<EffectValueEditor value={getStartLife()} onChange={setStartLife} availableTypes={["ConstantValue", "IntervalValue", "PiecewiseBezier"]} min={0} step={0.1} />
+			</EditorInspectorBlockField>
+			<EditorInspectorBlockField>
+				<div className="px-2">Start Size</div>
+				<EffectValueEditor
+					value={getStartSize()}
+					onChange={setStartSize}
+					availableTypes={["ConstantValue", "IntervalValue", "PiecewiseBezier", "Vec3Function"]}
+					min={0}
+					step={0.01}
+				/>
+			</EditorInspectorBlockField>
+			<EditorInspectorBlockField>
+				<div className="px-2">Scale X</div>
+				<EffectValueEditor value={getScaleX()} onChange={setScaleX} availableTypes={["ConstantValue", "IntervalValue"]} min={0} step={0.01} />
+			</EditorInspectorBlockField>
+			<EditorInspectorBlockField>
+				<div className="px-2">Scale Y</div>
+				<EffectValueEditor value={getScaleY()} onChange={setScaleY} availableTypes={["ConstantValue", "IntervalValue"]} min={0} step={0.01} />
+			</EditorInspectorBlockField>
+			<EditorInspectorBlockField>
+				<div className="px-2">Start Speed</div>
+				<EffectValueEditor value={getStartSpeed()} onChange={setStartSpeed} availableTypes={["ConstantValue", "IntervalValue", "PiecewiseBezier"]} min={0} step={0.1} />
+			</EditorInspectorBlockField>
+			<EditorInspectorBlockField>
+				<div className="px-2">Start Color</div>
+				<EffectColorEditor value={getStartColor()} onChange={setStartColor} />
+			</EditorInspectorBlockField>
 			<EditorInspectorBlockField>
 				<div className="px-2">Start Rotation</div>
 				{(() => {
 					const rotation = getStartRotation();
-					const angleZ = rotation && typeof rotation === "object" && "type" in rotation && rotation.type === "Euler" && rotation.angleZ ? rotation.angleZ : { type: "IntervalValue" as const, a: 0, b: 0 };
-					return <EffectValueEditor value={angleZ} onChange={(newAngleZ) => setStartRotation({ type: "Euler", angleZ: newAngleZ as Value, order: "xyz" })} availableTypes={["ConstantValue", "IntervalValue", "PiecewiseBezier"]} step={0.1} />;
+					const angleZ =
+						rotation && typeof rotation === "object" && "type" in rotation && rotation.type === "Euler" && rotation.angleZ
+							? rotation.angleZ
+							: { type: "IntervalValue" as const, a: 0, b: 0 };
+					return (
+						<EffectValueEditor
+							value={angleZ}
+							onChange={(newAngleZ) => setStartRotation({ type: "Euler", angleZ: newAngleZ as Value, order: "xyz" })}
+							availableTypes={["ConstantValue", "IntervalValue", "PiecewiseBezier"]}
+							step={0.1}
+						/>
+					);
 				})()}
 			</EditorInspectorBlockField>
-			<EditorInspectorBlockField><div className="px-2">Angular Speed</div><EffectValueEditor value={getAngularSpeed()} onChange={setAngularSpeed} availableTypes={["ConstantValue", "IntervalValue"]} step={0.1} /></EditorInspectorBlockField>
+			<EditorInspectorBlockField>
+				<div className="px-2">Angular Speed</div>
+				<EffectValueEditor value={getAngularSpeed()} onChange={setAngularSpeed} availableTypes={["ConstantValue", "IntervalValue"]} step={0.1} />
+			</EditorInspectorBlockField>
 		</>
 	);
 }

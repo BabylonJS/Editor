@@ -72,10 +72,18 @@ type ShapeKey = "point" | "sphere" | "cone" | "hemisphere" | "rectangle";
 
 function getShapeKey(system: ParticleSystem): ShapeKey {
 	const shape = system.emitterShape;
-	if (shape instanceof SphereEmitter) return "sphere";
-	if (shape instanceof ConeEmitter) return "cone";
-	if (shape instanceof HemisphereEmitter) return "hemisphere";
-	if (shape instanceof RectangleEmitter) return "rectangle";
+	if (shape instanceof SphereEmitter) {
+		return "sphere";
+	}
+	if (shape instanceof ConeEmitter) {
+		return "cone";
+	}
+	if (shape instanceof HemisphereEmitter) {
+		return "hemisphere";
+	}
+	if (shape instanceof RectangleEmitter) {
+		return "rectangle";
+	}
 	return "point";
 }
 
@@ -281,14 +289,17 @@ function renderBursts(system: ParticleSystem, onChange: () => void): ReactNode {
 	const bursts = getEditableBursts(system);
 
 	const addBurst = () => {
-		const updated = [...bursts, {
-			id: createBurstId(),
-			time: createConstantValue(0),
-			count: createConstantValue(1),
-			cycle: 1,
-			interval: 0,
-			probability: 1,
-		}];
+		const updated = [
+			...bursts,
+			{
+				id: createBurstId(),
+				time: createConstantValue(0),
+				count: createConstantValue(1),
+				cycle: 1,
+				interval: 0,
+				probability: 1,
+			},
+		];
 		applyBursts(system, updated);
 		onChange();
 	};
@@ -444,9 +455,9 @@ function renderEmissionParameters(nodeData: IQuarksNode, onChange: () => void): 
 			<EditorInspectorSectionField title="Emit Over Distance">
 				<EffectValueEditor
 					label="Emit Over Distance"
-						value={generatorToEditorValue(system.emissionOverDistance)}
+					value={generatorToEditorValue(system.emissionOverDistance)}
 					onChange={(val) => {
-							system.emissionOverDistance = editorValueToGenerator(val as Value);
+						system.emissionOverDistance = editorValueToGenerator(val as Value);
 						onChange();
 					}}
 				/>

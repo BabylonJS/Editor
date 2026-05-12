@@ -27,7 +27,7 @@ export interface IEffectEditorToolbarState {
 }
 
 export class EffectEditorToolbar extends Component<IEffectEditorToolbarProps, IEffectEditorToolbarState> {
-	constructor(props: IEffectEditorToolbarProps) {
+	public constructor(props: IEffectEditorToolbarProps) {
 		super(props);
 		this.state = {};
 	}
@@ -148,5 +148,4 @@ export class EffectEditorToolbar extends Component<IEffectEditorToolbarProps, IE
 
 		this.props.editor.importQuarksFile(file);
 	}
-
 }
