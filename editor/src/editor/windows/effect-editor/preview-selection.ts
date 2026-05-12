@@ -1,6 +1,7 @@
 import type { Mesh } from "@babylonjs/core/Meshes/mesh";
 import type { Scene } from "@babylonjs/core/scene";
 import type { TransformNode } from "@babylonjs/core/Meshes/transformNode";
+import { Engine } from "@babylonjs/core/Engines/engine";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { Color3 } from "@babylonjs/core/Maths/math.color";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
@@ -25,7 +26,6 @@ export class EffectEditorPreviewSelection {
 		this._positionGizmo = new PositionGizmo(this._utilityLayer);
 		this._positionGizmo.scaleRatio = 2.5;
 		this._positionGizmo.planarGizmoEnabled = true;
-		this._positionGizmo.isEnabled = true;
 
 		this._softenPlanarMaterials();
 	}
@@ -44,7 +44,8 @@ export class EffectEditorPreviewSelection {
 		mat.disableLighting = true;
 		mat.emissiveColor = new Color3(0.35, 0.85, 1);
 		mat.alpha = 1;
-		mat.disableDepthTest = true;
+		mat.depthFunction = Engine.ALWAYS;
+		mat.disableDepthWrite = true;
 
 		const ring = MeshBuilder.CreateTorus("effectEditorSelectionRing", { diameter: 1.1, thickness: 0.06, tessellation: 48 }, this._scene);
 		ring.material = mat;

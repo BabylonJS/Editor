@@ -28,6 +28,7 @@ import { EditorFireMaterialInspector } from "../../../layout/inspector/material/
 import { EditorGradientMaterialInspector } from "../../../layout/inspector/material/gradient";
 
 import type { IQuarksNode } from "../quarks-bridge";
+import type { Editor } from "../../../main";
 import { IEffectEditor } from "..";
 
 export interface IEffectEditorParticleRendererPropertiesProps {
@@ -224,7 +225,12 @@ export class EffectEditorParticleRendererProperties extends Component<IEffectEdi
 				return <EditorNodeMaterialInspector mesh={mesh} material={material as any} />;
 
 			case "MultiMaterial":
-				return <EditorMultiMaterialInspector material={material as any} />;
+				return (
+					<EditorMultiMaterialInspector
+						material={material as any}
+						editor={{ layout: { preview: { lastPickingInfo: null } } } as unknown as Editor}
+					/>
+				);
 
 			case "SkyMaterial":
 				return <EditorSkyMaterialInspector mesh={mesh} material={material as any} />;
