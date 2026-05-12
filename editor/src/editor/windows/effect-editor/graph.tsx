@@ -49,6 +49,8 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 	private _effects: Map<string, QuarksEffectDocument> = new Map();
 	private _nodeIndex: Map<string, IQuarksNode> = new Map();
 	private _playbackByUuid: Map<string, StoredPlaybackState> = new Map();
+	/** User expand/collapse only; `_rebuildTree` must not reset expansion. */
+	private _userTreeExpandOverride: Map<string, boolean> = new Map();
 
 	public constructor(props: IEffectEditorGraphProps) {
 		super(props);
@@ -410,6 +412,15 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 		});
 	}
 
+	/** Expanded state: user overrides win; otherwise match previous default (root + groups open). */
+	private _getTreeNodeIsExpanded(nodeId: string | number, isEffectRoot: boolean, nodeType: IQuarksNode["type"]): boolean {
+		const key = String(nodeId);
+		if (this._userTreeExpandOverride.has(key)) {
+			return this._userTreeExpandOverride.get(key)!;
+		}
+		return isEffectRoot || nodeType === "group";
+	}
+
 	/** Converts internal node model into Blueprint tree data. */
 	private _convertNode(node: IQuarksNode, isEffectRoot: boolean): TreeNodeInfo<IQuarksNode> {
 		this._nodeIndex.set(node.id, node);
@@ -424,7 +435,7 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 			id: node.id,
 			label: this._getNodeLabelComponent(node),
 			icon,
-			isExpanded: isEffectRoot || node.type === "group",
+			isExpanded: this._getTreeNodeIsExpanded(node.id, isEffectRoot, node.type),
 			hasCaret: node.children.length > 0 || node.type === "group",
 			nodeData: node,
 			childNodes: node.children.map((child) => this._convertNode(child, false)),
@@ -587,11 +598,13 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 
 	/** Expands tree node preserving existing tree state. */
 	private _handleNodeExpanded(node: TreeNodeInfo<IQuarksNode>): void {
+		this._userTreeExpandOverride.set(String(node.id), true);
 		this.setState({ nodes: this._setNodeExpanded(this.state.nodes, node.id, true) });
 	}
 
 	/** Collapses tree node preserving existing tree state. */
 	private _handleNodeCollapsed(node: TreeNodeInfo<IQuarksNode>): void {
+		this._userTreeExpandOverride.set(String(node.id), false);
 		this.setState({ nodes: this._setNodeExpanded(this.state.nodes, node.id, false) });
 	}
 
@@ -627,6 +640,7 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 		}
 		this._effects.clear();
 		this._playbackByUuid.clear();
+		this._userTreeExpandOverride.clear();
 		this._notifyUiStateChanged();
 	}
 

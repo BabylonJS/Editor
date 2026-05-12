@@ -158,7 +158,16 @@ export function EffectColorEditor(props: IEffectColorEditorProps): ReactNode {
 								onChange({ type: "ConstantColor", color: [newColor.r, newColor.g, newColor.b, newColor.a] });
 							},
 						};
-						return <EditorInspectorColorField object={wrapperColor} property="color" label="Color" onChange={() => {}} />;
+						return (
+							<EditorInspectorColorField
+								object={wrapperColor}
+								property="color"
+								label="Color"
+								onChange={(c) => {
+									wrapperColor.color = c as Color4;
+								}}
+							/>
+						);
 					})()}
 				</>
 			)}
@@ -191,8 +200,22 @@ export function EffectColorEditor(props: IEffectColorEditorProps): ReactNode {
 						};
 						return (
 							<>
-								<EditorInspectorColorField object={wrapperRange} property="colorA" label="Color A" onChange={() => {}} />
-								<EditorInspectorColorField object={wrapperRange} property="colorB" label="Color B" onChange={() => {}} />
+								<EditorInspectorColorField
+									object={wrapperRange}
+									property="colorA"
+									label="Color A"
+									onChange={(c) => {
+										wrapperRange.colorA = c as Color4;
+									}}
+								/>
+								<EditorInspectorColorField
+									object={wrapperRange}
+									property="colorB"
+									label="Color B"
+									onChange={(c) => {
+										wrapperRange.colorB = c as Color4;
+									}}
+								/>
 							</>
 						);
 					})()}
@@ -258,8 +281,22 @@ export function EffectColorEditor(props: IEffectColorEditorProps): ReactNode {
 						};
 						return (
 							<>
-								<EditorInspectorColorField object={wrapperRandom} property="colorA" label="Color A" onChange={() => {}} />
-								<EditorInspectorColorField object={wrapperRandom} property="colorB" label="Color B" onChange={() => {}} />
+								<EditorInspectorColorField
+									object={wrapperRandom}
+									property="colorA"
+									label="Color A"
+									onChange={(c) => {
+										wrapperRandom.colorA = c as Color4;
+									}}
+								/>
+								<EditorInspectorColorField
+									object={wrapperRandom}
+									property="colorB"
+									label="Color B"
+									onChange={(c) => {
+										wrapperRandom.colorB = c as Color4;
+									}}
+								/>
 							</>
 						);
 					})()}
