@@ -3,7 +3,7 @@ import { Scene } from "@babylonjs/core/scene";
 import { ISceneDecoratorData } from "../../decorators/apply";
 
 import { ScriptMap } from "../loader";
-import { AdvancedAssetContainer } from "../container";
+import { AdvancedAssetContainer } from "../container/container";
 
 import { preloadSceneScriptAsset } from "./preload/scene";
 import { preloadCommonScriptAsset } from "./preload/common";

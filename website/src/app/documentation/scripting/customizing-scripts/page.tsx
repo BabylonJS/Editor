@@ -1,7 +1,6 @@
 "use client";
 
 import { Fade } from "react-awesome-reveal";
-import { IoIosWarning } from "react-icons/io";
 
 import { CodeBlock } from "../../code";
 
@@ -39,15 +38,6 @@ export default function DocumentationRunningProjectPage() {
 						<div>
 							Each decorator is composed of at least a label and an optional description. This label is used to be displayed in the editor (if not provided, the name
 							of the property is used as a label), where the description is used as a tooltip to help the user to understand what's the purpose of the property.
-						</div>
-
-						<div className="flex gap-2 items-center">
-							<IoIosWarning size="64px" color="orange" />
-
-							<div>
-								Those decorators are available in the <b>babylonjs-editor-tools</b> package that is provided as a depdendency in the <b>package.json</b> file. In
-								case a decorator that is documented here is not available in the code, make sure to install the up-to-date package in your project.
-							</div>
 						</div>
 
 						<div className="text-3xl md:text-2xl lg:text-3xl my-3">@visibleAsBoolean</div>

@@ -19,6 +19,7 @@ import { SpotLight } from "@babylonjs/core/Lights/spotLight";
 import { PointLight } from "@babylonjs/core/Lights/pointLight";
 import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
 import { DirectionalLight } from "@babylonjs/core/Lights/directionalLight";
+import { ClusteredLightContainer } from "@babylonjs/core/Lights/Clustered/clusteredLightContainer";
 
 import { ParticleSystem } from "@babylonjs/core/Particles/particleSystem";
 import { IParticleSystem } from "@babylonjs/core/Particles/IParticleSystem";
@@ -183,6 +184,14 @@ export function isLight(object: any): object is Light {
 	}
 
 	return false;
+}
+
+/**
+ * Returns wether or not the given object is a ClusteredLightContainer.
+ * @param object defines the reference to the object to test its class name.
+ */
+export function isClusteredLightContainer(object: any): object is ClusteredLightContainer {
+	return object.getClassName?.() === "ClusteredLightContainer";
 }
 
 /**

@@ -21,12 +21,12 @@ import { iblShadowsRenderingPipelineCameraConfigurations, parseIblShadowsRenderi
 import { createDirectoryIfNotExist } from "../../tools/fs";
 
 import { createSceneLink } from "../../tools/scene/scene-link";
-import { isCubeTexture, isTexture } from "../../tools/guards/texture";
 import { updateIblShadowsRenderPipeline } from "../../tools/light/ibl";
 import { forceCompileAllSceneMaterials } from "../../tools/scene/materials";
 import { IAssetCache, loadSavedAssetsCache } from "../../tools/assets/cache";
 import { checkProjectCachedCompressedTextures } from "../../tools/assets/ktx";
 import { isAbstractMesh, isEditorCamera, isMesh } from "../../tools/guards/nodes";
+import { isCubeTexture, isHDRCubeTexture, isTexture } from "../../tools/guards/texture";
 import { updateAllLights, updatePointLightShadowMapRenderListPredicate } from "../../tools/light/shadows";
 
 import { registerTextureParser } from "./texture";
@@ -222,7 +222,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 
 			scene.environmentTexture = Texture.Parse(environmentTexture, scene, join(projectPath, "/"));
 
-			if (isCubeTexture(scene.environmentTexture)) {
+			if (isCubeTexture(scene.environmentTexture) || isHDRCubeTexture(scene.environmentTexture)) {
 				scene.environmentTexture.url = join(projectPath, scene.environmentTexture.name);
 			}
 		}
@@ -287,7 +287,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 
 	// Configure textures urls
 	scene.textures.forEach((texture) => {
-		if (isTexture(texture) || isCubeTexture(texture)) {
+		if (isTexture(texture) || isCubeTexture(texture) || isHDRCubeTexture(texture)) {
 			texture.url = texture.name;
 		}
 	});
@@ -314,13 +314,13 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 
 	// Scene animations
 	scene.animations ??= [];
-	config.animations?.forEach((data) => {
+	config.animations?.forEach((data: any) => {
 		scene.animations.push(Animation.Parse(data));
 	});
 
 	// Scene animation groups
 	// TODO: legacy
-	config.animationGroups?.forEach((data) => {
+	config.animationGroups?.forEach((data: any) => {
 		const group = AnimationGroup.Parse(data, scene);
 		if (group.targetedAnimations.length === 0) {
 			group.dispose();
@@ -356,7 +356,9 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 				loadResult.sceneLinks.push(sceneLink);
 			}
 		} catch (e) {
-			editor.layout.console.error(`Failed to load scene link file "${file}": ${e.message}`);
+			if (e instanceof Error) {
+				editor.layout.console.error(`Failed to load scene link file "${file}": ${e.message}`);
+			}
 		}
 
 		progress.step(progressStep);
@@ -365,7 +367,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 	loadedScenes.pop();
 
 	// Configure waiting parent ids.
-	const allNodes = [...scene.transformNodes, ...scene.meshes, ...scene.lights, ...scene.cameras];
+	const allNodes = [...scene.transformNodes, ...scene.meshes, ...scene.lights, ...scene.cameras, ...editor.layout.preview.clusteredLightContainer.lights];
 
 	allNodes.forEach((n) => {
 		if ((n.metadata?._waitingParentId ?? null) === null) {
@@ -393,6 +395,21 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 		}
 	});
 
+	// Configure clustered lights
+	if (config.clusteredLight) {
+		config.clusteredLight.lights.forEach((lightId: any) => {
+			const light = scene.getLightById(lightId);
+			if (light) {
+				editor.layout.preview.clusteredLightContainer.addLight(light);
+			}
+		});
+
+		editor.layout.preview.clusteredLightContainer.horizontalTiles = config.clusteredLight.horizontalTiles;
+		editor.layout.preview.clusteredLightContainer.verticalTiles = config.clusteredLight.verticalTiles;
+		editor.layout.preview.clusteredLightContainer.depthSlices = config.clusteredLight.depthSlices;
+		editor.layout.preview.clusteredLightContainer.maxRange = config.clusteredLight.maxRange;
+	}
+
 	if (!options?.asLink) {
 		allNodes.forEach((n) => {
 			if (n.metadata) {
@@ -407,7 +424,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 		// For each camera
 		const postProcessConfigurations = Array.isArray(config.rendering) ? config.rendering : [];
 
-		postProcessConfigurations.forEach((configuration) => {
+		postProcessConfigurations.forEach((configuration: any) => {
 			const camera = scene.getCameraById(configuration.cameraId);
 			if (!camera) {
 				return;

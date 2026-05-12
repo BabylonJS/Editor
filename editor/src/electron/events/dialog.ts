@@ -1,9 +1,10 @@
 import { ipcMain, dialog } from "electron";
 
-ipcMain.on("editor:open-single-file-dialog", async (ev, title, filters) => {
+ipcMain.on("editor:open-single-file-dialog", async (ev, title, filters, defaultPath) => {
 	const result = await dialog.showOpenDialog({
 		title,
 		filters,
+		defaultPath,
 		properties: ["openFile"],
 	});
 

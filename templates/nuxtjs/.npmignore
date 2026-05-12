@@ -1,0 +1,6 @@
+.nuxt
+.output
+.data
+.bjseditor
+
+node_modules

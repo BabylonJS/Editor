@@ -1,6 +1,6 @@
 import { describe, expect, test, beforeEach, afterEach, vi } from "vitest";
 
-import { NullEngine, Scene, Mesh, DirectionalLight, Vector3, FreeCamera, TransformNode, InstancedMesh, Skeleton } from "babylonjs";
+import { NullEngine, Scene, Mesh, DirectionalLight, Vector3, FreeCamera, TransformNode, InstancedMesh, Skeleton, ClusteredLightContainer, PointLight } from "babylonjs";
 
 vi.mock("babylonjs-editor-tools", () => ({}));
 
@@ -20,9 +20,14 @@ describe("tools/node/clone", () => {
 			layout: {
 				preview: {
 					scene,
+					clusteredLightContainer: new ClusteredLightContainer("clusteredLightContainer", [], scene),
 				},
 			},
 		} as any;
+
+		editor.layout.preview.clusteredLightContainer.addLight = vi.fn(function (light) {
+			this._lights.push(light);
+		});
 	});
 
 	afterEach(() => {
@@ -78,6 +83,24 @@ describe("tools/node/clone", () => {
 			expect(treeClone.name).toBe("testTree (Clone)");
 			expect(treeClone.getDescendants()[0]).not.toBe(childTree);
 			expect(treeClone.getDescendants()[0].name).toBe("testChildTree");
+		});
+
+		test("should clone light", () => {
+			const light = new PointLight("testLight", new Vector3(0, 1, 0), scene);
+			const clone = cloneNode(editor, light);
+
+			expect(clone).toBeDefined();
+			expect(editor.layout.preview.clusteredLightContainer.lights.includes(clone as PointLight)).toBe(false);
+		});
+
+		test("should clone clustered light", () => {
+			const light = new PointLight("testLight", new Vector3(0, 1, 0), scene);
+			editor.layout.preview.clusteredLightContainer.addLight(light);
+
+			const clone = cloneNode(editor, light);
+
+			expect(clone).toBeDefined();
+			expect(editor.layout.preview.clusteredLightContainer.lights.includes(clone as PointLight)).toBe(true);
 		});
 	});
 });

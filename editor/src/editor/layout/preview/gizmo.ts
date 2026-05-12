@@ -7,6 +7,7 @@ import {
 	RotationGizmo,
 	ScaleGizmo,
 	Scene,
+	Tools,
 	UtilityLayerRenderer,
 	Vector3,
 	CameraGizmo,
@@ -15,6 +16,7 @@ import {
 	Sprite,
 } from "babylonjs";
 
+import { defaultGizmoSnapPreferences, IGizmoSnapPreferences } from "../../../tools/gizmo-snap-preferences";
 import { isSprite } from "../../../tools/guards/sprites";
 import { registerUndoRedo } from "../../../tools/undoredo";
 import { isNodeLocked } from "../../../tools/node/metadata";
@@ -43,6 +45,8 @@ export class EditorPreviewGizmo {
 	private _attachedSprite: Sprite | null = null;
 
 	private _spriteTransformNode: TransformNode;
+
+	private _snapPreferences: IGizmoSnapPreferences = { ...defaultGizmoSnapPreferences };
 
 	public constructor(scene: Scene) {
 		this._gizmosLayer = new UtilityLayerRenderer(scene);
@@ -105,6 +109,34 @@ export class EditorPreviewGizmo {
 		this._spriteTransformNode.billboardMode = this._scalingGizmo || this._rotationGizmo ? TransformNode.BILLBOARDMODE_ALL : TransformNode.BILLBOARDMODE_NONE;
 
 		this.setAttachedObject(this._attachedSprite ?? this._attachedNode);
+		this._applySnapToCurrentGizmos();
+	}
+
+	public getSnapPreferences(): IGizmoSnapPreferences {
+		return { ...this._snapPreferences };
+	}
+
+	public setSnapPreferences(prefs: IGizmoSnapPreferences): void {
+		this._snapPreferences = { ...prefs };
+		this._applySnapToCurrentGizmos();
+	}
+
+	private _applySnapToCurrentGizmos(): void {
+		if (this._positionGizmo) {
+			const enabled = this._snapPreferences.translationEnabled && this._snapPreferences.translationStep > 0;
+			this._positionGizmo.snapDistance = enabled ? this._snapPreferences.translationStep : 0;
+		}
+
+		if (this._rotationGizmo) {
+			const enabled = this._snapPreferences.rotationEnabled && this._snapPreferences.rotationStepDegrees > 0;
+			this._rotationGizmo.snapDistance = enabled ? Tools.ToRadians(this._snapPreferences.rotationStepDegrees) : 0;
+		}
+
+		if (this._scalingGizmo) {
+			const enabled = this._snapPreferences.scaleEnabled && this._snapPreferences.scaleStep > 0;
+			this._scalingGizmo.incrementalSnap = true;
+			this._scalingGizmo.snapDistance = enabled ? this._snapPreferences.scaleStep : 0;
+		}
 	}
 
 	/**

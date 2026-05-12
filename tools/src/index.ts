@@ -1,6 +1,7 @@
 export * from "./loading/loader";
 export * from "./loading/material";
-export * from "./loading/container";
+export * from "./loading/container/container";
+export * from "./loading/container/entries";
 
 export * from "./loading/script/apply";
 export * from "./loading/script/preload";
@@ -13,12 +14,15 @@ export * from "./tools/animation";
 export * from "./tools/sprite";
 export * from "./tools/particle";
 export * from "./tools/ragdoll";
+export * from "./tools/mesh";
 
-export * from "./rendering/ssao";
+export * from "./rendering/vls";
 export * from "./rendering/ssr";
+export * from "./rendering/taa";
+export * from "./rendering/ssao";
 export * from "./rendering/motion-blur";
 export * from "./rendering/default-pipeline";
-export * from "./rendering/vls";
+export * from "./rendering/tools";
 
 export * from "./decorators/scene";
 export * from "./decorators/gui";

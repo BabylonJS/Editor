@@ -65,8 +65,8 @@ export async function computeOrGetThumbnail(editor: Editor, options: IComputeThu
 
 	++requestedPreviewCount;
 
-	if (previewCount > 0) {
-		await waitUntil(() => previewCount === 0);
+	if (previewCount === 4) {
+		await waitUntil(() => previewCount < 4);
 	}
 
 	++previewCount;
@@ -114,26 +114,19 @@ export async function computeOrGetThumbnail(editor: Editor, options: IComputeThu
 	return thumbnail;
 }
 
-let worker: Worker | null = null;
-
 /**
  * Creates or gets the current worker used to compute thumbnails.
  * Worker is null by default and can be terminated in case the asset takes too much time to compute its thumbnail.
  */
 export function createOrGetThumbnailWorker() {
-	if (!worker) {
-		worker = loadWorker("workers/thumbnail/main.js");
-	}
-
-	return worker;
+	return loadWorker("workers/thumbnail/main.js");
 }
 
 /**
  * Terminates the current thumbnail worker if any.
  */
-export function terminateWorker() {
-	worker?.terminate();
-	worker = null;
+export function terminateWorker(worker: Worker) {
+	worker.terminate();
 }
 
 export interface IThumbnailOptions {
@@ -167,18 +160,21 @@ export interface IThumbnailOptions {
  */
 export async function getAssetThumbnailBase64(absolutePath: string, options: IThumbnailOptions) {
 	const result = await new Promise<{ preview: string }>(async (resolve) => {
+		const worker = createOrGetThumbnailWorker();
+
 		const timeoutId = setTimeout(() => {
-			terminateWorker();
+			terminateWorker(worker);
 			resolve({ preview: "" });
 		}, 10_000);
 
-		const r = await executeSimpleWorker<{ preview: string }>(createOrGetThumbnailWorker(), {
+		const r = await executeSimpleWorker<{ preview: string }>(worker, {
 			absolutePath,
 			...options,
 			id: Tools.RandomId(),
 		});
 
 		clearTimeout(timeoutId);
+		terminateWorker(worker);
 
 		if (r) {
 			resolve(r);

@@ -1,8 +1,8 @@
-import { basename } from "path/posix";
+import { basename, extname } from "path/posix";
 
 import { useEffect, useRef } from "react";
 
-import { Engine, Scene, CreateSphere, ArcRotateCamera, Vector3, PBRMaterial, CubeTexture, Texture } from "babylonjs";
+import { Engine, Scene, CreateSphere, ArcRotateCamera, Vector3, PBRMaterial, CubeTexture, Texture, HDRCubeTexture } from "babylonjs";
 
 import { showAlert } from "../../../../ui/dialog";
 
@@ -30,16 +30,27 @@ function AssetBrowserEnvViewer(props: IAssetBrowserEnvViewerProps) {
 		const scene = new Scene(engine);
 		scene.clearColor.set(0, 0, 0, 0);
 
-		const texture = CubeTexture.CreateFromPrefilteredData(props.absolutePath, scene);
-		texture.coordinatesMode = Texture.CUBIC_MODE;
+		let texture: CubeTexture | HDRCubeTexture | null = null;
+		switch (extname(props.absolutePath).toLowerCase()) {
+			case ".env":
+				texture = CubeTexture.CreateFromPrefilteredData(props.absolutePath, scene);
+				break;
+			case ".hdr":
+				texture = new HDRCubeTexture(props.absolutePath, scene, 512);
+				break;
+		}
 
-		const material = new PBRMaterial("material", scene);
-		material.metallic = 1;
-		material.roughness = 0;
-		material.reflectionTexture = texture;
+		if (texture) {
+			texture.coordinatesMode = Texture.CUBIC_MODE;
 
-		const sphere = CreateSphere("sphere", { diameter: 100 }, scene);
-		sphere.material = material;
+			const material = new PBRMaterial("material", scene);
+			material.metallic = 1;
+			material.roughness = 0;
+			material.reflectionTexture = texture;
+
+			const sphere = CreateSphere("sphere", { diameter: 100 }, scene);
+			sphere.material = material;
+		}
 
 		const camera = new ArcRotateCamera("camera", Math.PI / 2, Math.PI / 2, 150, Vector3.Zero(), scene, true);
 		camera.lowerRadiusLimit = 75;

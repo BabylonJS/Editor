@@ -190,6 +190,7 @@ export function DashboardCreateProjectDialog(props: IDashboardCreateProjectDialo
 										</SelectTrigger>
 										<SelectContent>
 											{getTemplateSelectItem("nextjs")}
+											{getTemplateSelectItem("nuxtjs")}
 											{getTemplateSelectItem("solidjs")}
 											{getTemplateSelectItem("vanillajs")}
 											{getTemplateSelectItem("electron")}

@@ -3,6 +3,7 @@ import { execSync } from "node:child_process";
 import { access, rename, rm, mkdir, copyFile } from "node:fs/promises";
 
 import nextjsTemplatePackageJson from "./templates/nextjs/package.json" with { type: "json" };
+import nuxtjsTemplatePackageJson from "./templates/nuxtjs/package.json" with { type: "json" };
 import solidjsTemplatePackageJson from "./templates/solidjs/package.json" with { type: "json" };
 import vanillajsTemplatePackageJson from "./templates/vanillajs/package.json" with { type: "json" };
 import electronTemplatePackageJson from "./templates/electron/package.json" with { type: "json" };
@@ -14,6 +15,10 @@ const templates = [
 	{
 		name: "nextjs",
 		packageJson: nextjsTemplatePackageJson,
+	},
+	{
+		name: "nuxtjs",
+		packageJson: nuxtjsTemplatePackageJson,
 	},
 	{
 		name: "solidjs",

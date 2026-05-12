@@ -1,3 +1,5 @@
+import { IGizmoSnapPreferences } from "../tools/gizmo-snap-preferences";
+
 export interface IEditorProject {
 	/**
 	 * The version of the editor that saved this project.
@@ -26,6 +28,11 @@ export interface IEditorProject {
 	 * The package manager being used by the project.
 	 */
 	packageManager?: EditorProjectPackageManager;
+
+	/**
+	 * Gizmo snap preferences (translate / rotate / scale).
+	 */
+	gizmoSnap?: IGizmoSnapPreferences;
 }
 
 export interface IEditorProjectPlugin {
@@ -37,4 +44,4 @@ export interface IEditorProjectPlugin {
 
 export type EditorProjectPackageManager = "npm" | "yarn" | "pnpm" | "bun";
 
-export type EditorProjectTemplate = "nextjs" | "solidjs" | "vanillajs" | "electron";
+export type EditorProjectTemplate = "nextjs" | "nuxtjs" | "solidjs" | "vanillajs" | "electron";

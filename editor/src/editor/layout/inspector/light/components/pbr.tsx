@@ -1,7 +1,7 @@
 import { Light } from "babylonjs";
 
-import { EditorInspectorListField } from "../fields/list";
-import { EditorInspectorNumberField } from "../fields/number";
+import { EditorInspectorListField } from "../../fields/list";
+import { EditorInspectorNumberField } from "../../fields/number";
 
 export interface IEditorLightPBRInspectorProps {
 	object: Light;

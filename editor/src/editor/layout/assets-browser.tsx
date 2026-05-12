@@ -112,7 +112,7 @@ const ParticleSystemSelectable = createSelectable(AssetBrowserParticleSystemItem
 
 const directoryPackagesExtensions = [".scene", ".navmesh"];
 
-RegisterSceneLoaderPlugin(new AssimpJSLoader(true));
+RegisterSceneLoaderPlugin(new AssimpJSLoader(true, true));
 
 export interface IEditorAssetsBrowserProps {
 	/**
@@ -1473,6 +1473,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 				return openModelViewer(this.props.editor, item.props.absolutePath);
 
 			case ".env":
+			case ".hdr":
 				return openEnvViewer(item.props.absolutePath);
 
 			case ".ts":

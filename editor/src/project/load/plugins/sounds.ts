@@ -30,6 +30,13 @@ export async function loadSounds(editor: Editor, soundFiles: string[], scene: Sc
 				sound.id = data.id;
 				sound.uniqueId = data.uniqueId;
 
+				if (data.spatialSound && !sound["_connectedTransformNode"]) {
+					const attachedNode = scene.getMeshById(data.connectedMeshId) ?? scene.getTransformNodeById(data.connectedMeshId);
+					if (attachedNode) {
+						sound.attachToMesh(attachedNode);
+					}
+				}
+
 				scene.onBeforeRenderObservable.addOnce(() => {
 					// TODO: Find a better way to handle spatial sound property in Babylon.js.
 					// sound.spatialSound is always overridden to true on sound.serialize().
@@ -38,7 +45,9 @@ export async function loadSounds(editor: Editor, soundFiles: string[], scene: Sc
 
 				return sound;
 			} catch (e) {
-				editor.layout.console.error(`Failed to load sound file "${file}": ${e.message}`);
+				if (e instanceof Error) {
+					editor.layout.console.error(`Failed to load sound file "${file}": ${e.message}`);
+				}
 			}
 
 			options.progress.step(options.progressStep);

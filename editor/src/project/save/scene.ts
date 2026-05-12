@@ -18,7 +18,7 @@ import { isSpriteManagerNode, isSpriteMapNode } from "../../tools/guards/sprites
 import { serializePhysicsAggregate } from "../../tools/physics/serialization/aggregate";
 import { isAnimationGroupFromSceneLink, isFromSceneLink } from "../../tools/scene/scene-link";
 import { isGPUParticleSystem, isNodeParticleSystemSetMesh, isParticleSystem } from "../../tools/guards/particles";
-import { isAnyTransformNode, isCollisionMesh, isEditorCamera, isMesh, isTransformNode } from "../../tools/guards/nodes";
+import { isAnyTransformNode, isClusteredLightContainer, isCollisionMesh, isEditorCamera, isMesh, isTransformNode } from "../../tools/guards/nodes";
 
 import { taaPipelineCameraConfigurations } from "../../editor/rendering/taa";
 import { vlsPostProcessCameraConfigurations } from "../../editor/rendering/vls";
@@ -390,8 +390,8 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 
 	// Write lights
 	await Promise.all(
-		scene.lights.map(async (light) => {
-			if (isFromSceneLink(light)) {
+		scene.lights.concat(editor.layout.preview.clusteredLightContainer.lights).map(async (light) => {
+			if (isFromSceneLink(light) || isClusteredLightContainer(light)) {
 				return;
 			}
 
@@ -564,7 +564,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 							spaces: 4,
 						});
 					} catch (e) {
-						editor.layout.console.error(`Failed to write scene link node ${sound.name}`);
+						editor.layout.console.error(`Failed to write sound ${sound.name}`);
 					} finally {
 						savedFiles.push(soundPath);
 					}
@@ -773,6 +773,13 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 					uniqueId: undefined,
 				},
 				animations: scene.animations.map((animation) => animation.serialize()),
+				clusteredLight: {
+					maxRange: editor.layout.preview.clusteredLightContainer.maxRange,
+					depthSlices: editor.layout.preview.clusteredLightContainer.depthSlices,
+					verticalTiles: editor.layout.preview.clusteredLightContainer.verticalTiles,
+					horizontalTiles: editor.layout.preview.clusteredLightContainer.horizontalTiles,
+					lights: editor.layout.preview.clusteredLightContainer.lights.map((light) => light.id),
+				},
 			},
 			{
 				spaces: 4,
@@ -783,8 +790,6 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 	} finally {
 		savedFiles.push(configPath);
 	}
-
-	dialog.dispose();
 
 	// Remove old files
 	const files = await normalizedGlob(join(scenePath, "/**"), {
@@ -834,4 +839,6 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 
 	// Update assets cache in all scenes and assets files.
 	await applyAssetsCache();
+
+	dialog.dispose();
 }

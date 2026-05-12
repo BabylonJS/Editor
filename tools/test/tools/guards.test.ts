@@ -20,6 +20,8 @@ import {
 	isParticleSystem,
 	isGPUParticleSystem,
 	isAnyParticleSystem,
+	isClusteredLightContainer,
+	isSprite,
 } from "../../src/tools/guards";
 
 describe("tools/guards", () => {
@@ -181,6 +183,18 @@ describe("tools/guards", () => {
 			expect(isAnyParticleSystem({ getClassName: () => "GPUParticleSystem" })).toBeTruthy();
 
 			expect(isAnyParticleSystem({ getClassName: () => "SolidPS" })).toBeFalsy();
+		});
+	});
+
+	describe("isClusteredLightContainer", () => {
+		test("should return a boolean indicated if the passed object is a clustered light container or not", () => {
+			expect(isClusteredLightContainer({ getClassName: () => "ClusteredLightContainer" })).toBeTruthy();
+		});
+	});
+
+	describe("isSprite", () => {
+		test("should return a boolean indicated if the passed object is a sprite or not", () => {
+			expect(isSprite({ getClassName: () => "Sprite" })).toBeTruthy();
 		});
 	});
 });

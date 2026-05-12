@@ -10,7 +10,7 @@ import { Editor } from "../../main";
 import { isSound } from "../../../tools/guards/sound";
 import { isNodeLocked } from "../../../tools/node/metadata";
 import { projectVectorOnScreen } from "../../../tools/maths/projection";
-import { isCamera, isEditorCamera, isLight, isNode } from "../../../tools/guards/nodes";
+import { isCamera, isClusteredLightContainer, isEditorCamera, isLight, isNode } from "../../../tools/guards/nodes";
 
 export interface IEditorPreviewIconsProps {
 	editor: Editor;
@@ -116,14 +116,21 @@ export class EditorPreviewIcons extends Component<IEditorPreviewIconsProps, IEdi
 				buttons.splice(0, buttons.length);
 
 				scene.lights.forEach((light) => {
-					if (!this._isInFrustrum(light.getAbsolutePosition(), scene)) {
-						return;
+					if (this._isInFrustrum(light.getAbsolutePosition(), scene) && !isClusteredLightContainer(light)) {
+						buttons.push({
+							node: light,
+							position: projectVectorOnScreen(light.getAbsolutePosition(), scene),
+						});
 					}
+				});
 
-					buttons.push({
-						node: light,
-						position: projectVectorOnScreen(light.getAbsolutePosition(), scene),
-					});
+				this.props.editor.layout.preview.clusteredLightContainer.lights.forEach((light) => {
+					if (this._isInFrustrum(light.getAbsolutePosition(), scene)) {
+						buttons.push({
+							node: light,
+							position: projectVectorOnScreen(light.getAbsolutePosition(), scene),
+						});
+					}
 				});
 
 				scene.cameras.forEach((camera) => {
@@ -131,14 +138,12 @@ export class EditorPreviewIcons extends Component<IEditorPreviewIconsProps, IEdi
 						return;
 					}
 
-					if (!this._isInFrustrum(camera.computeWorldMatrix().getTranslation(), scene) || this.props.editor.layout.preview.gizmo.attachedNode === camera) {
-						return;
+					if (this._isInFrustrum(camera.computeWorldMatrix().getTranslation(), scene) && this.props.editor.layout.preview.gizmo.attachedNode !== camera) {
+						buttons.push({
+							node: camera,
+							position: projectVectorOnScreen(camera.computeWorldMatrix().getTranslation(), scene),
+						});
 					}
-
-					buttons.push({
-						node: camera,
-						position: projectVectorOnScreen(camera.computeWorldMatrix().getTranslation(), scene),
-					});
 				});
 
 				scene.soundTracks?.forEach((soundtrack) => {
@@ -149,14 +154,12 @@ export class EditorPreviewIcons extends Component<IEditorPreviewIconsProps, IEdi
 							return;
 						}
 
-						if (!this._isInFrustrum(sound["_connectedTransformNode"].getAbsolutePosition(), scene)) {
-							return;
+						if (this._isInFrustrum(sound["_connectedTransformNode"].getAbsolutePosition(), scene)) {
+							buttons.push({
+								node: sound as any,
+								position: projectVectorOnScreen(sound["_connectedTransformNode"].computeWorldMatrix().getTranslation(), scene),
+							});
 						}
-
-						buttons.push({
-							node: sound as any,
-							position: projectVectorOnScreen(sound["_connectedTransformNode"].computeWorldMatrix().getTranslation(), scene),
-						});
 					});
 				});
 
