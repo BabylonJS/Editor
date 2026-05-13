@@ -1,5 +1,5 @@
 import { Scene } from "@babylonjs/core/scene";
-import { Engine } from "@babylonjs/core/Engines/engine";
+import { AbstractEngine } from "@babylonjs/core/Engines/abstractEngine";
 
 import { SceneLoaderQualitySelector } from "../loading/loader";
 
@@ -12,9 +12,21 @@ import { getPowerOfTwoUntil } from "./scalar";
  * @param engine defines the reference to the engine to configure the texture format to use.
  * @see `@babylonjs/core/Engines/Extensions/engine.textureSelector.d.ts` for more information.
  */
-export function configureEngineToUseCompressedTextures(engine: Engine) {
+export function configureEngineToUseCompressedTextures(engine: AbstractEngine) {
 	engine.setCompressedTextureExclusions([".env", ".hdr", ".dds"]);
 	engine.setTextureFormatToUse(["-dxt.ktx", "-astc.ktx", "-pvrtc.ktx", "-etc1.ktx", "-etc2.ktx"]);
+}
+
+/**
+ * Adds the texture located at the given URL to the list of excluded compressed textures.
+ * Which means it will not be loaded as a compressed texture even if it has a supported format and the hardware supports it.
+ * @param engine defines the reference to the engine to register the excluded texture.
+ * @param textureUrl defines the URL of the texture to exclude
+ */
+export function addExcludedCompressedTexture(engine: AbstractEngine, textureUrl: string) {
+	if (engine._excludedCompressedTextures && !engine._excludedCompressedTextures?.includes(textureUrl)) {
+		engine._excludedCompressedTextures?.push(textureUrl);
+	}
 }
 
 /**
