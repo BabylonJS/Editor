@@ -7,6 +7,7 @@ import { SpriteManager } from "@babylonjs/core/Sprites/spriteManager";
 import { AddParser } from "@babylonjs/core/Loading/Plugins/babylonFileParser.function";
 
 import { SpriteManagerNode } from "../tools/sprite";
+import { addExcludedCompressedTexture } from "../tools/texture";
 
 function parseSerializedSpriteManager(spriteManager: SpriteManager, parsedSpriteManager: any) {
 	if (parsedSpriteManager?.fogEnabled !== undefined) {
@@ -56,6 +57,8 @@ export function registerSpriteManagerParser() {
 				return;
 			}
 
+			const engine = scene.getEngine();
+
 			instance.isSpriteManager = transformNode.isSpriteManager;
 
 			if (transformNode.atlasJsonRelativePath) {
@@ -73,6 +76,9 @@ export function registerSpriteManagerParser() {
 					const atlasJson = JSON.parse(request.responseText);
 					const imagePath = `${Tools.GetFolderPath(atlasJsonAbsolutePath)}${atlasJson.meta.image}`;
 
+					// Temporarily excluded sprites from compressed textures support
+					addExcludedCompressedTexture(engine, imagePath);
+
 					const spriteManager = new SpriteManager(instance.name, imagePath, 1000, 64, scene, undefined, undefined, true, atlasJson);
 					instance.spriteManager = spriteManager;
 
@@ -81,6 +87,9 @@ export function registerSpriteManagerParser() {
 					}
 				});
 			} else if (transformNode.spriteManager?.textureUrl) {
+				// Temporarily excluded sprites from compressed textures support
+				addExcludedCompressedTexture(engine, transformNode.spriteManager.textureUrl);
+
 				const imagePath = `${rootUrl}${transformNode.spriteManager.textureUrl}`;
 				const spriteManager = new SpriteManager(
 					instance.name,

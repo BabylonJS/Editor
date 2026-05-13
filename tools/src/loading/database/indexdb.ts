@@ -52,11 +52,11 @@ export function getFromIndexDB<T>(database: IDBDatabase, storeName: string, key:
  * @param data defines the value to put in the database
  */
 export async function putInIndexDB<T>(database: IDBDatabase, storeName: string, data: T): Promise<void> {
-	const versionTransation = database.transaction(storeName, "readwrite");
-	const versionRequest = versionTransation.objectStore(storeName).put(data);
+	const transaction = database.transaction(storeName, "readwrite");
+	const request = transaction.objectStore(storeName).put(data);
 
 	await new Promise<void>((resolve, reject) => {
-		versionRequest.addEventListener("error", () => reject());
-		versionRequest.addEventListener("success", () => resolve());
+		request.addEventListener("error", () => reject());
+		request.addEventListener("success", () => resolve());
 	});
 }
