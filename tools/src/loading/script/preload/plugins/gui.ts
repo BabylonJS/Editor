@@ -1,10 +1,11 @@
 import { AdvancedDynamicTexture } from "@babylonjs/gui/2D/advancedDynamicTexture";
 
+import { loadJsonFile } from "../../../../tools/request";
+
 import { IScriptAssetParserParameters, registerScriptAssetParser } from "../../preload";
 
 export async function preloadFullScreenScriptAsset(parameters: IScriptAssetParserParameters) {
-	const response = await fetch(`${parameters.rootUrl}${parameters.key}`);
-	const data = await response.json();
+	const data = await loadJsonFile<any>(`${parameters.rootUrl}${parameters.key}`);
 
 	let gui: AdvancedDynamicTexture | null = null;
 

@@ -102,7 +102,29 @@ export function registerAudioParser() {
 				scene.addPendingData(soundAbsolutePath);
 
 				if (!cachedSoundBuffers.has(soundAbsolutePath)) {
-					cachedSoundBuffers.set(soundAbsolutePath, CreateSoundBufferAsync(soundAbsolutePath));
+					const promise = new Promise<StaticSoundBuffer | null>(async (resolve, reject) => {
+						if (!scene.offlineProvider) {
+							return CreateSoundBufferAsync(soundAbsolutePath)
+								.then((buffer) => resolve(buffer))
+								.catch((e) => reject(e));
+						}
+
+						scene.offlineProvider.loadFile(
+							soundAbsolutePath,
+							(data: ArrayBuffer) => {
+								CreateSoundBufferAsync(data)
+									.then((buffer) => resolve(buffer))
+									.catch((e) => reject(e));
+							},
+							undefined,
+							() => {
+								reject(null);
+							},
+							true
+						);
+					});
+
+					cachedSoundBuffers.set(soundAbsolutePath, promise);
 				}
 
 				const promise = cachedSoundBuffers.get(soundAbsolutePath)!;

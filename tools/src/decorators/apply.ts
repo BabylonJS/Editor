@@ -14,6 +14,7 @@ import { NodeParticleSystemSet } from "@babylonjs/core/Particles/Node/nodePartic
 
 import { AdvancedDynamicTexture } from "@babylonjs/gui/2D/advancedDynamicTexture";
 
+import { loadJsonFile } from "../tools/request";
 import { getNodeById, getNodeByName } from "../tools/scene";
 import { copyAndParseRagdollConfiguration } from "../tools/ragdoll";
 import { ISpriteAnimation, SpriteManagerNode } from "../tools/sprite";
@@ -170,8 +171,7 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 		const guiUrl = `${rootUrl}assets/${params.pathInAssets}`;
 
 		try {
-			const response = await fetch(guiUrl);
-			const data = await response.json();
+			const data = await loadJsonFile<any>(guiUrl);
 
 			const gui = AdvancedDynamicTexture.CreateFullscreenUI(data.name, true, scene);
 			gui.parseSerializedObject(data.content, false);
