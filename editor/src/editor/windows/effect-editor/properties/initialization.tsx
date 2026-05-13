@@ -5,10 +5,10 @@ import { type Color, type Rotation, type Value } from "../types";
 import type { IQuarksNode } from "../quarks-bridge";
 import { EffectValueEditor, type IVec3Function } from "../editors/value";
 import { EffectColorEditor } from "../editors/color";
+import { EffectRotationEditor } from "../editors/rotation";
 import { ParticleSystem as QuarksParticleSystem, Vector3Function } from "babylon.quarks";
 import {
 	colorGeneratorToEditorColor,
-	createConstantValue,
 	editorColorToGenerator,
 	editorRotationToGenerator,
 	editorValueToGenerator,
@@ -78,14 +78,6 @@ export function EffectEditorParticleInitializationProperties(props: IEffectEdito
 		onChange();
 	};
 
-	const getAngularSpeed = (): Value => {
-		const rotation = getStartRotation();
-		return rotation.type === "Euler" ? (rotation.angleZ ?? createConstantValue(0)) : createConstantValue(0);
-	};
-	const setAngularSpeed = (value: Value): void => {
-		setStartRotation({ type: "Euler", angleZ: value, order: "xyz" });
-	};
-
 	const getScaleX = (): Value => getVector3EditorValue(system).x;
 	const setScaleX = (value: Value): void => {
 		const current = getVector3EditorValue(system);
@@ -134,25 +126,7 @@ export function EffectEditorParticleInitializationProperties(props: IEffectEdito
 			</EditorInspectorBlockField>
 			<EditorInspectorBlockField>
 				<div className="px-2">Start Rotation</div>
-				{(() => {
-					const rotation = getStartRotation();
-					const angleZ =
-						rotation && typeof rotation === "object" && "type" in rotation && rotation.type === "Euler" && rotation.angleZ
-							? rotation.angleZ
-							: { type: "IntervalValue" as const, a: 0, b: 0 };
-					return (
-						<EffectValueEditor
-							value={angleZ}
-							onChange={(newAngleZ) => setStartRotation({ type: "Euler", angleZ: newAngleZ as Value, order: "xyz" })}
-							availableTypes={["ConstantValue", "IntervalValue", "PiecewiseBezier"]}
-							step={0.1}
-						/>
-					);
-				})()}
-			</EditorInspectorBlockField>
-			<EditorInspectorBlockField>
-				<div className="px-2">Angular Speed</div>
-				<EffectValueEditor value={getAngularSpeed()} onChange={setAngularSpeed} availableTypes={["ConstantValue", "IntervalValue"]} step={0.1} />
+				<EffectRotationEditor value={getStartRotation()} onChange={setStartRotation} />
 			</EditorInspectorBlockField>
 		</>
 	);

@@ -301,6 +301,10 @@ export class EffectEditorLayout extends Component<IEffectEditorLayoutProps, IEff
 			waitNextAnimationFrame().then(() => this.props.editor.preview?.resize());
 		});
 
-		return component;
+		return (
+			<div className="flex h-full min-h-0 w-full flex-col overflow-hidden">
+				{component}
+			</div>
+		);
 	}
 }

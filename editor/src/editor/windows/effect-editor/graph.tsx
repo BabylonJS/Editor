@@ -19,9 +19,11 @@ import {
 } from "../../../ui/shadcn/ui/context-menu";
 import { saveSingleFileDialog } from "../../../tools/dialog";
 import { IEffectEditor } from ".";
-import { ParticleSystem } from "babylon.quarks";
+import { ParticleSystem, QuarksUtil } from "babylon.quarks";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { IQuarksEffectFile, IQuarksNode, QuarksEffectDocument, getQuarksTransformUuid } from "./quarks-bridge";
+import { applyQuarksLoadedInspectorHints } from "./quarks-inspector-hints";
+import { flushQuarksParticleBatchGeometry } from "./quarks-mesh-geometry";
 
 export type PlaybackState = "playing" | "paused" | "stopped" | "unavailable";
 type StoredPlaybackState = Exclude<PlaybackState, "unavailable">;
@@ -124,6 +126,8 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 				this._effects.set(document.id, document);
 				this._registerEffectNaturalIdle(document);
 				this._setNodePlaybackState(document.toNodeTree(), "stopped");
+				this._flushParticleBatchGeometryForDocument(document);
+				applyQuarksLoadedInspectorHints(document.root);
 			}
 
 			this._rebuildTree();
@@ -146,6 +150,8 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 			this._effects.set(document.id, document);
 			this._registerEffectNaturalIdle(document);
 			this._setNodePlaybackState(document.toNodeTree(), "stopped");
+			this._flushParticleBatchGeometryForDocument(document);
+			applyQuarksLoadedInspectorHints(document.root);
 			this._rebuildTree();
 			this._notifyUiStateChanged();
 		} catch (error) {
@@ -351,10 +357,12 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 	}
 
 	public render(): ReactNode {
+		const hasNodes = this.state.nodes.length > 0;
+
 		return (
-			<div className="flex flex-col w-full h-full text-foreground">
-				{this.state.nodes.length > 0 && (
-					<div className="overflow-auto">
+			<div className="flex h-full min-h-0 w-full flex-col text-foreground">
+				{hasNodes ? (
+					<div className="min-h-0 flex-1 overflow-auto pb-6">
 						<Tree
 							contents={this.state.nodes}
 							onNodeExpand={(n) => this._handleNodeExpanded(n)}
@@ -362,31 +370,38 @@ export class EffectEditorGraph extends Component<IEffectEditorGraphProps, IEffec
 							onNodeClick={(n) => this._handleNodeClicked(n)}
 						/>
 					</div>
+				) : (
+					<div className="flex min-h-0 flex-1 flex-col" style={{ minHeight: "80px" }}>
+						<ContextMenu>
+							<ContextMenuTrigger className="flex h-full min-h-0 w-full flex-1">
+								<div className="flex h-full w-full flex-1 items-center justify-center">
+									<div className="p-4 text-muted-foreground">No particles. Right-click to add.</div>
+								</div>
+							</ContextMenuTrigger>
+							<ContextMenuContent>
+								<ContextMenuSub>
+									<ContextMenuSubTrigger className="flex items-center gap-2">
+										<AiOutlinePlus className="w-5 h-5" /> Add
+									</ContextMenuSubTrigger>
+									<ContextMenuSubContent>
+										<ContextMenuItem onClick={() => this._handleCreateEffect()}>
+											<IoSparklesSharp className="w-4 h-4" /> Effect
+										</ContextMenuItem>
+									</ContextMenuSubContent>
+								</ContextMenuSub>
+							</ContextMenuContent>
+						</ContextMenu>
+					</div>
 				)}
-
-				<div className="flex-1" style={{ minHeight: "80px" }}>
-					<ContextMenu>
-						<ContextMenuTrigger className="w-full h-full">
-							<div className="w-full h-full flex items-center justify-center">
-								{this.state.nodes.length === 0 && <div className="p-4 text-muted-foreground">No particles. Right-click to add.</div>}
-							</div>
-						</ContextMenuTrigger>
-						<ContextMenuContent>
-							<ContextMenuSub>
-								<ContextMenuSubTrigger className="flex items-center gap-2">
-									<AiOutlinePlus className="w-5 h-5" /> Add
-								</ContextMenuSubTrigger>
-								<ContextMenuSubContent>
-									<ContextMenuItem onClick={() => this._handleCreateEffect()}>
-										<IoSparklesSharp className="w-4 h-4" /> Effect
-									</ContextMenuItem>
-								</ContextMenuSubContent>
-							</ContextMenuSub>
-						</ContextMenuContent>
-					</ContextMenu>
-				</div>
 			</div>
 		);
+	}
+
+	/** Ensures batch meshes exist for paused systems after load so Renderer inspector can bind materials. */
+	private _flushParticleBatchGeometryForDocument(document: QuarksEffectDocument): void {
+		QuarksUtil.runOnAllParticleEmitters(document.root, (emitter) => {
+			flushQuarksParticleBatchGeometry(emitter.system as ParticleSystem);
+		});
 	}
 
 	/** Rebuilds tree from live quarks document roots. */

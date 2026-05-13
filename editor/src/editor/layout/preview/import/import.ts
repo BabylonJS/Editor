@@ -22,6 +22,9 @@ import {
 	HDRCubeTexture,
 } from "babylonjs";
 
+// Registers SceneLoader plugins for .glb / .gltf (and other formats); required for ImportMeshAsync on those paths.
+import "babylonjs-loaders";
+
 import { UniqueNumber } from "../../../../tools/tools";
 import { isMesh } from "../../../../tools/guards/nodes";
 import { isSprite } from "../../../../tools/guards/sprites";

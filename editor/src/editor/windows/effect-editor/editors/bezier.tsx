@@ -1,4 +1,4 @@
-import { Component, ReactNode, MouseEvent } from "react";
+import { Component, ReactNode, PointerEvent } from "react";
 import { EditorInspectorNumberField } from "../../../layout/inspector/fields/number";
 import { EditorInspectorBlockField } from "../../../layout/inspector/fields/block";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../../../ui/shadcn/ui/dropdown-menu";
@@ -26,7 +26,6 @@ export interface IBezierEditorState {
 	hoveredPoint: "p0" | "p1" | "p2" | "p3" | null;
 	width: number;
 	height: number;
-	showValues: boolean;
 }
 
 type CurvePreset = "linear" | "easeIn" | "easeOut" | "easeInOut" | "easeInBack" | "easeOutBack";
@@ -41,8 +40,15 @@ const CURVE_PRESETS: Record<CurvePreset, IBezierCurve> = {
 };
 
 export class BezierEditor extends Component<IBezierEditorProps, IBezierEditorState> {
+	private static _gradientIdSeq = 0;
+
+	private readonly _fillGradientId = `bezier-editor-fill-${BezierEditor._gradientIdSeq++}`;
+
 	private _svgRef: SVGSVGElement | null = null;
 	private _containerRef: HTMLDivElement | null = null;
+
+	/** Synchronous drag target so pointermove runs before dragging state is committed in React. */
+	private _activeDragPoint: "p0" | "p1" | "p2" | "p3" | null = null;
 
 	public constructor(props: IBezierEditorProps) {
 		super(props);
@@ -53,7 +59,6 @@ export class BezierEditor extends Component<IBezierEditorProps, IBezierEditorSta
 			hoveredPoint: null,
 			width: 400,
 			height: 250,
-			showValues: false,
 		};
 	}
 
@@ -105,14 +110,22 @@ export class BezierEditor extends Component<IBezierEditorProps, IBezierEditorSta
 		}
 		const data = this.props.value.data as Record<string, unknown>;
 
-		// Save as direct function object (not array)
+		// Save as direct function object (not array). Quarks Bezier.genValue uses raw coefficients — no clamp.
+		const { p0, p1, p2, p3 } = this.state.curve;
 		data.function = {
-			p0: Math.max(0, Math.min(1, this.state.curve.p0)),
-			p1: Math.max(0, Math.min(1, this.state.curve.p1)),
-			p2: Math.max(0, Math.min(1, this.state.curve.p2)),
-			p3: Math.max(0, Math.min(1, this.state.curve.p3)),
+			p0: Number.isFinite(p0) ? p0 : 0,
+			p1: Number.isFinite(p1) ? p1 : 1 / 3,
+			p2: Number.isFinite(p2) ? p2 : (1.0 / 3) * 2,
+			p3: Number.isFinite(p3) ? p3 : 1,
 		};
 	}
+
+	/** Keep the same `curve` object reference so EditorInspectorNumberField pointer-drag listeners stay on the mutated object. */
+	private _onCurveNumberChange = (): void => {
+		this.setState((s) => ({ curve: s.curve }));
+		this._saveCurveToValue();
+		this.props.onChange();
+	};
 
 	private _applyPreset(preset: CurvePreset): void {
 		const presetCurve = CURVE_PRESETS[preset];
@@ -149,148 +162,115 @@ export class BezierEditor extends Component<IBezierEditorProps, IBezierEditorSta
 		};
 	}
 
-	private _valueToSvgY(value: number): number {
-		// Map value from [0, 1] to SVG Y coordinate
-		// Center is at height/2, full range is height * 0.8 (40% above and below center)
-		const padding = this.state.height * 0.1;
-		const range = this.state.height * 0.8;
-		return padding + (1 - value) * range;
+	/** Scalar range mapped to the vertical chart (includes overshoot from control points). */
+	private _valueSpan(curve: IBezierCurve): { lo: number; hi: number } {
+		const pad = 0.12;
+		let lo = Math.min(0, 1, curve.p0, curve.p1, curve.p2, curve.p3) - pad;
+		let hi = Math.max(0, 1, curve.p0, curve.p1, curve.p2, curve.p3) + pad;
+		const span = hi - lo;
+		const minSpan = 0.6;
+		if (span < minSpan) {
+			const mid = (lo + hi) / 2;
+			lo = mid - minSpan / 2;
+			hi = mid + minSpan / 2;
+		}
+		return { lo, hi };
 	}
 
-	private _svgYToValue(svgY: number): number {
+	private _valueToSvgY(value: number, curve: IBezierCurve): number {
+		const { lo, hi } = this._valueSpan(curve);
 		const padding = this.state.height * 0.1;
 		const range = this.state.height * 0.8;
-		return Math.max(0, Math.min(1, (this.state.height - svgY - padding) / range));
+		const t = (value - lo) / (hi - lo);
+		return padding + (1 - t) * range;
 	}
 
-	private _handleMouseDown = (ev: MouseEvent<SVGCircleElement>, point: "p0" | "p1" | "p2" | "p3"): void => {
+	private _svgYToValue(svgY: number, curve: IBezierCurve): number {
+		const { lo, hi } = this._valueSpan(curve);
+		const padding = this.state.height * 0.1;
+		const range = this.state.height * 0.8;
+		const t = (this.state.height - svgY - padding) / range;
+		return lo + t * (hi - lo);
+	}
+
+	private _handlePointerDown = (ev: PointerEvent<SVGCircleElement>, point: "p0" | "p1" | "p2" | "p3"): void => {
+		ev.preventDefault();
 		ev.stopPropagation();
 		if (ev.button !== 0) {
 			return;
 		}
 
+		this._activeDragPoint = point;
 		this.setState({
 			dragging: true,
 			dragPoint: point,
 		});
-
-		let mouseMoveListener: (event: globalThis.MouseEvent) => void;
-		let mouseUpListener: (event: globalThis.MouseEvent) => void;
-
-		mouseMoveListener = (ev: globalThis.MouseEvent) => {
-			if (!this.state.dragging || !this.state.dragPoint) {
-				return;
-			}
-
-			const svgPos = this._screenToSvg(ev.clientX, ev.clientY);
-			const value = this._svgYToValue(svgPos.y);
-
-			const curve = { ...this.state.curve };
-
-			if (this.state.dragPoint === "p0") {
-				curve.p0 = value;
-			} else if (this.state.dragPoint === "p1") {
-				curve.p1 = value;
-			} else if (this.state.dragPoint === "p2") {
-				curve.p2 = value;
-			} else if (this.state.dragPoint === "p3") {
-				curve.p3 = value;
-			}
-
-			this.setState({ curve });
-		};
-
-		mouseUpListener = () => {
-			document.body.removeEventListener("mousemove", mouseMoveListener);
-			document.body.removeEventListener("mouseup", mouseUpListener);
-			document.body.style.cursor = "";
-
-			this._saveCurveToValue();
-			this.props.onChange();
-
-			this.setState({
-				dragging: false,
-				dragPoint: null,
-			});
-		};
-
-		document.body.style.cursor = "move";
-		document.body.addEventListener("mousemove", mouseMoveListener);
-		document.body.addEventListener("mouseup", mouseUpListener);
+		ev.currentTarget.setPointerCapture(ev.pointerId);
 	};
 
-	private _bezierValue(t: number, p0: number, p1: number, p2: number, p3: number): number {
-		const t2 = t * t;
-		const t3 = t2 * t;
-		const mt = 1 - t;
-		const mt2 = mt * mt;
-		const mt3 = mt2 * mt;
-		return p0 * mt3 + p1 * mt2 * t * 3 + p2 * mt * t2 * 3 + p3 * t3;
-	}
-
-	private _renderCurve(curve: IBezierCurve): ReactNode {
-		const segments = 100;
-		const pathData: string[] = [];
-		const gradientId = `gradient-${Math.random().toString(36).substr(2, 9)}`;
-
-		// Calculate actual Bezier curve points
-		// For cubic Bezier: B(t) = (1-t)³P₀ + 3(1-t)²tP₁ + 3(1-t)t²P₂ + t³P₃
-		// But we're using p0, p1, p2, p3 as control values, not positions
-		// We need to map them to actual control points
-		const p0X = 0;
-		const p0Y = this._valueToSvgY(curve.p0);
-		const p1X = this.state.width / 3;
-		const p1Y = this._valueToSvgY(curve.p1);
-		const p2X = (this.state.width * 2) / 3;
-		const p2Y = this._valueToSvgY(curve.p2);
-		const p3X = this.state.width;
-		const p3Y = this._valueToSvgY(curve.p3);
-
-		// Generate curve path
-		for (let i = 0; i <= segments; i++) {
-			const t = i / segments;
-			const x = t * this.state.width;
-			const y = this._bezierValue(t, p0Y, p1Y, p2Y, p3Y);
-
-			if (i === 0) {
-				pathData.push(`M ${x} ${y}`);
-			} else {
-				pathData.push(`L ${x} ${y}`);
-			}
+	private _handlePointerMove = (ev: PointerEvent<SVGCircleElement>): void => {
+		if (!this._activeDragPoint) {
+			return;
 		}
 
+		const svgPos = this._screenToSvg(ev.clientX, ev.clientY);
+		const value = this._svgYToValue(svgPos.y, this.state.curve);
+		const curve = { ...this.state.curve };
+		curve[this._activeDragPoint] = value;
+		this.setState({ curve });
+	};
+
+	private _finishPointerDrag = (ev: PointerEvent<SVGCircleElement>): void => {
+		if (!this._activeDragPoint) {
+			return;
+		}
+		this._activeDragPoint = null;
+		try {
+			ev.currentTarget.releasePointerCapture(ev.pointerId);
+		} catch {
+			// Capture may already be released.
+		}
+
+		this._saveCurveToValue();
+		this.props.onChange();
+
+		this.setState({
+			dragging: false,
+			dragPoint: null,
+		});
+	};
+
+	private _renderCurve(curve: IBezierCurve): ReactNode {
+		const p0X = 0;
+		const p0Y = this._valueToSvgY(curve.p0, curve);
+		const p1X = this.state.width / 3;
+		const p1Y = this._valueToSvgY(curve.p1, curve);
+		const p2X = (this.state.width * 2) / 3;
+		const p2Y = this._valueToSvgY(curve.p2, curve);
+		const p3X = this.state.width;
+		const p3Y = this._valueToSvgY(curve.p3, curve);
+
+		const strokePath = `M ${p0X} ${p0Y} C ${p1X} ${p1Y} ${p2X} ${p2Y} ${p3X} ${p3Y}`;
+		const fillPath = `${strokePath} L ${this.state.width} ${this.state.height} L 0 ${this.state.height} Z`;
+
 		const isHovered = (point: "p0" | "p1" | "p2" | "p3") => this.state.hoveredPoint === point || this.state.dragPoint === point;
-		const getPointRadius = (point: "p0" | "p1" | "p2" | "p3") => {
-			if (point === "p0" || point === "p3") {
-				return isHovered(point) ? 7 : 5;
-			}
-			return isHovered(point) ? 6 : 4;
-		};
-		const getPointColor = (point: "p0" | "p1" | "p2" | "p3") => {
-			if (point === "p0" || point === "p3") {
-				return isHovered(point) ? "#3b82f6" : "#2563eb";
-			}
-			return isHovered(point) ? "#8b5cf6" : "#7c3aed";
-		};
+		const pointRadius = (point: "p0" | "p1" | "p2" | "p3") => (point === "p0" || point === "p3" ? 5 : 4);
+		const pointColor = (point: "p0" | "p1" | "p2" | "p3") => (point === "p0" || point === "p3" ? "#2563eb" : "#7c3aed");
 
 		return (
 			<g>
 				<defs>
-					<linearGradient id={gradientId} x1="0%" y1="0%" x2="0%" y2="100%">
+					<linearGradient id={this._fillGradientId} x1="0%" y1="0%" x2="0%" y2="100%">
 						<stop offset="0%" stopColor="#3b82f6" stopOpacity="0.3" />
 						<stop offset="100%" stopColor="#3b82f6" stopOpacity="0.05" />
 					</linearGradient>
 				</defs>
 
 				{/* Filled area under curve */}
-				<path
-					d={`${pathData.join(" ")} L ${this.state.width} ${this.state.height} L 0 ${this.state.height} Z`}
-					fill={`url(#${gradientId})`}
-					className="transition-opacity duration-200"
-				/>
+				<path d={fillPath} fill={`url(#${this._fillGradientId})`} />
 
 				{/* Curve line */}
-				<path d={pathData.join(" ")} stroke="#3b82f6" strokeWidth="2.5" fill="none" className="transition-all duration-200" />
+				<path d={strokePath} stroke="#3b82f6" strokeWidth="2.5" fill="none" />
 
 				{/* Control lines */}
 				<line x1={p0X} y1={p0Y} x2={p1X} y2={p1Y} stroke="#8b5cf6" strokeWidth="1.5" strokeDasharray="4 2" className="opacity-40" />
@@ -301,14 +281,11 @@ export class BezierEditor extends Component<IBezierEditorProps, IBezierEditorSta
 					const x = point === "p0" ? p0X : point === "p1" ? p1X : point === "p2" ? p2X : p3X;
 					const y = point === "p0" ? p0Y : point === "p1" ? p1Y : point === "p2" ? p2Y : p3Y;
 					const value = curve[point];
-					const radius = getPointRadius(point);
-					const color = getPointColor(point);
+					const radius = pointRadius(point);
+					const color = pointColor(point);
 
 					return (
 						<g key={point}>
-							{/* Outer glow when hovered */}
-							{isHovered(point) && <circle cx={x} cy={y} r={radius + 4} fill={color} opacity="0.2" className="transition-all duration-200" />}
-							{/* Point circle */}
 							<circle
 								cx={x}
 								cy={y}
@@ -316,10 +293,17 @@ export class BezierEditor extends Component<IBezierEditorProps, IBezierEditorSta
 								fill={color}
 								stroke="white"
 								strokeWidth="2"
-								className="cursor-move transition-all duration-200 hover:scale-110"
-								onMouseDown={(ev) => this._handleMouseDown(ev, point)}
-								onMouseEnter={() => this.setState({ hoveredPoint: point, showValues: true })}
-								onMouseLeave={() => this.setState({ hoveredPoint: null, showValues: false })}
+								className="cursor-ns-resize"
+								onPointerDown={(e) => this._handlePointerDown(e, point)}
+								onPointerMove={this._handlePointerMove}
+								onPointerUp={this._finishPointerDrag}
+								onPointerCancel={this._finishPointerDrag}
+								onPointerEnter={() => this.setState({ hoveredPoint: point })}
+								onPointerLeave={() => {
+									if (!this._activeDragPoint) {
+										this.setState({ hoveredPoint: null });
+									}
+								}}
 							/>
 							{/* Value label */}
 							{isHovered(point) && (
@@ -336,11 +320,13 @@ export class BezierEditor extends Component<IBezierEditorProps, IBezierEditorSta
 
 	private _renderGrid(): ReactNode {
 		const gridLines: ReactNode[] = [];
+		const curve = this.state.curve;
+		const { lo, hi } = this._valueSpan(curve);
 
 		// Horizontal grid lines (value markers)
 		for (let i = 0; i <= 10; i++) {
-			const value = i / 10;
-			const y = this._valueToSvgY(value);
+			const value = lo + ((hi - lo) * i) / 10;
+			const y = this._valueToSvgY(value, curve);
 			const isMainLine = i % 5 === 0;
 
 			gridLines.push(
@@ -359,7 +345,7 @@ export class BezierEditor extends Component<IBezierEditorProps, IBezierEditorSta
 							{value.toFixed(1)}
 						</text>
 					)}
-				</g>
+				</g>,
 			);
 		}
 
@@ -389,20 +375,22 @@ export class BezierEditor extends Component<IBezierEditorProps, IBezierEditorSta
 			);
 		}
 
-		// Center line (value = 0.5)
-		gridLines.push(
-			<line
-				key="center"
-				x1="0"
-				y1={this._valueToSvgY(0.5)}
-				x2={this.state.width}
-				y2={this._valueToSvgY(0.5)}
-				stroke="currentColor"
-				strokeWidth="1"
-				className="opacity-30"
-				strokeDasharray="2 2"
-			/>
-		);
+		// Reference line at scalar 0.5 when visible in the current span
+		if (0.5 > lo && 0.5 < hi) {
+			gridLines.push(
+				<line
+					key="center"
+					x1="0"
+					y1={this._valueToSvgY(0.5, curve)}
+					x2={this.state.width}
+					y2={this._valueToSvgY(0.5, curve)}
+					stroke="currentColor"
+					strokeWidth="1"
+					className="opacity-30"
+					strokeDasharray="2 2"
+				/>,
+			);
+		}
 
 		return <g>{gridLines}</g>;
 	}
@@ -444,8 +432,8 @@ export class BezierEditor extends Component<IBezierEditorProps, IBezierEditorSta
 						width={this.state.width}
 						height={this.state.height}
 						viewBox={`0 0 ${this.state.width} ${this.state.height}`}
-						className="w-full h-full"
-						style={{ background: "var(--background)" }}
+						className="w-full h-full touch-none"
+						style={{ background: "var(--background)", touchAction: "none" }}
 					>
 						{/* Grid */}
 						{this._renderGrid()}
@@ -468,14 +456,8 @@ export class BezierEditor extends Component<IBezierEditorProps, IBezierEditorSta
 								object={this.state.curve}
 								property="p0"
 								label=""
-								min={0}
-								max={1}
 								step={0.01}
-								onChange={() => {
-									this.setState({ curve: { ...this.state.curve } });
-									this._saveCurveToValue();
-									this.props.onChange();
-								}}
+								onChange={this._onCurveNumberChange}
 							/>
 						</div>
 						<div className="flex flex-col gap-1">
@@ -484,14 +466,8 @@ export class BezierEditor extends Component<IBezierEditorProps, IBezierEditorSta
 								object={this.state.curve}
 								property="p1"
 								label=""
-								min={0}
-								max={1}
 								step={0.01}
-								onChange={() => {
-									this.setState({ curve: { ...this.state.curve } });
-									this._saveCurveToValue();
-									this.props.onChange();
-								}}
+								onChange={this._onCurveNumberChange}
 							/>
 						</div>
 						<div className="flex flex-col gap-1">
@@ -500,14 +476,8 @@ export class BezierEditor extends Component<IBezierEditorProps, IBezierEditorSta
 								object={this.state.curve}
 								property="p2"
 								label=""
-								min={0}
-								max={1}
 								step={0.01}
-								onChange={() => {
-									this.setState({ curve: { ...this.state.curve } });
-									this._saveCurveToValue();
-									this.props.onChange();
-								}}
+								onChange={this._onCurveNumberChange}
 							/>
 						</div>
 						<div className="flex flex-col gap-1">
@@ -516,14 +486,8 @@ export class BezierEditor extends Component<IBezierEditorProps, IBezierEditorSta
 								object={this.state.curve}
 								property="p3"
 								label=""
-								min={0}
-								max={1}
 								step={0.01}
-								onChange={() => {
-									this.setState({ curve: { ...this.state.curve } });
-									this._saveCurveToValue();
-									this.props.onChange();
-								}}
+								onChange={this._onCurveNumberChange}
 							/>
 						</div>
 					</div>
