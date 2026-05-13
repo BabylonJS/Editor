@@ -114,6 +114,26 @@ const sceneConfigurationMap: Map<
 	}
 > = new Map();
 
+async function waitForWaitingItems(scene: Scene, onProgress: (value: number) => void) {
+	const waitingItemsCount = scene.getWaitingItemsCount();
+
+	while (!scene.isDisposed && (!scene.isReady() || scene.getWaitingItemsCount() > 0)) {
+		await new Promise<void>((resolve) => setTimeout(resolve, 150));
+
+		const loadedItemsCount = waitingItemsCount - scene.getWaitingItemsCount();
+
+		if (loadedItemsCount === waitingItemsCount) {
+			scene.textures.forEach((texture) => {
+				if (texture.delayLoadState === Constants.DELAYLOADSTATE_NONE) {
+					texture.delayLoadState = Constants.DELAYLOADSTATE_LOADED;
+				}
+			});
+		}
+
+		onProgress(loadedItemsCount / waitingItemsCount);
+	}
+}
+
 export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scene, scriptsMap: ScriptMap, options?: SceneLoaderOptions) {
 	scene.loadingQuality = options?.quality ?? "high";
 
@@ -145,6 +165,11 @@ export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scen
 		},
 	});
 
+	// Wait until scene is ready.
+	await waitForWaitingItems(scene, (progress) => {
+		options?.onProgress?.(0.5 + progress * 0.25);
+	});
+
 	if (!options?.skipAssetsPreload) {
 		// Loop until all assets are loaded.
 		// This is required as some assets can be linked to scripts that are themselves linked to .scene files
@@ -165,23 +190,9 @@ export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scen
 	configuration.clusteredLightContainer = clusteredLightContainer;
 
 	// Wait until scene is ready.
-	const waitingItemsCount = scene.getWaitingItemsCount();
-
-	while (!scene.isDisposed && (!scene.isReady() || scene.getWaitingItemsCount() > 0)) {
-		await new Promise<void>((resolve) => setTimeout(resolve, 150));
-
-		const loadedItemsCount = waitingItemsCount - scene.getWaitingItemsCount();
-
-		if (loadedItemsCount === waitingItemsCount) {
-			scene.textures.forEach((texture) => {
-				if (texture.delayLoadState === Constants.DELAYLOADSTATE_NONE) {
-					texture.delayLoadState = Constants.DELAYLOADSTATE_LOADED;
-				}
-			});
-		}
-
-		options?.onProgress?.(0.5 + (loadedItemsCount / waitingItemsCount) * 0.5);
-	}
+	await waitForWaitingItems(scene, (progress) => {
+		options?.onProgress?.(0.75 + progress * 0.25);
+	});
 
 	options?.onProgress?.(1);
 

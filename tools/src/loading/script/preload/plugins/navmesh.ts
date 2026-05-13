@@ -2,15 +2,16 @@ import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 
 import { CreateNavigationPluginAsync } from "@babylonjs/addons";
 
+import { loadFile, loadJsonFile } from "../../../../tools/request";
+
 import { IScriptAssetParserParameters, registerScriptAssetParser } from "../../preload";
 
 export async function preloadNavMeshScriptAsset(parameters: IScriptAssetParserParameters) {
-	const [configResponse, navmeshResponse, tilesResponse] = await Promise.all([
-		fetch(`${parameters.rootUrl}${parameters.key}/config.json`),
-		fetch(`${parameters.rootUrl}${parameters.key}/navmesh.bin`),
-		fetch(`${parameters.rootUrl}${parameters.key}/tilecache.bin`),
+	const [config, navmeshData, tilesData] = await Promise.all([
+		loadJsonFile<any>(`${parameters.rootUrl}${parameters.key}/config.json`),
+		loadFile(`${parameters.rootUrl}${parameters.key}/navmesh.bin`, "arraybuffer"),
+		loadFile(`${parameters.rootUrl}${parameters.key}/tilecache.bin`, "arraybuffer"),
 	]);
-	const [config, navmeshData, tilesData] = await Promise.all([configResponse.json(), navmeshResponse.arrayBuffer(), tilesResponse.arrayBuffer()]);
 
 	const [recastCore, recastGenerators] = await Promise.all([import("@recast-navigation/core"), import("@recast-navigation/generators")]);
 

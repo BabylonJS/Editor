@@ -1,14 +1,35 @@
 import { AbstractEngine } from "@babylonjs/core/Engines/abstractEngine";
 import { IOfflineProvider } from "@babylonjs/core/Offline/IOfflineProvider";
 
-import { ILoadFileProgressEvent, loadFile } from "../../tools/request";
+import { ILoadFileProgressEvent, loadFile, loadJsonFile } from "../../tools/request";
 
-import { getFromDatabase, openDatabase, putInDatabase } from "./indexdb";
+import { getFromIndexDB, openIndexDB, putInIndexDB } from "./indexdb";
 
-export async function setupOfflineProvider(name: string) {
-	AbstractEngine.OfflineProviderFactory = (urlToScene: string, callbackManifestChecked: (checked: boolean) => any, disableManifestCheck = false) => {
+/**
+ * Setups offline support for the scene loading using IndexedDB as offline storage.
+ * This allows scenes and assets to be loaded from the local database when offline.
+ * @param name defines the name of the database to setup
+ */
+export function setupOfflineProvider(name: string) {
+	AbstractEngine.OfflineProviderFactory = (urlToScene: string, callbackManifestChecked: (checked: boolean) => any, disableManifestCheck: boolean = false) => {
 		return new Database(name, urlToScene, callbackManifestChecked, disableManifestCheck);
 	};
+}
+
+/**
+ * Creates a database for offline support and opens it.
+ * If the database already exists in indexDB, it will be opened and returned. Otherwise, a new database will be created and opened.
+ * @param name defines the name of the database to create (if doesn't exists) and open
+ * @param urlToScene defines the Url of the scene to load.
+ */
+export async function createAndOpenDatabase(name: string, urlToScene: string) {
+	const database = await new Promise<Database | null>((resolve) => {
+		const databaseInstance = new Database(name, urlToScene, (checked) => resolve(checked ? databaseInstance : null), false);
+	});
+
+	await database?.open();
+
+	return database;
 }
 
 interface _IVersionObjectStore {
@@ -51,14 +72,10 @@ export class Database implements IOfflineProvider {
 
 	private async _checkManifest(urlToScene: string, callbackManifestChecked: (checked: boolean) => any): Promise<void> {
 		try {
-			const response = await fetch(`${urlToScene}.manifest?${Date.now()}`, {
-				method: "GET",
-			});
+			const manifest = await loadJsonFile<any>(`${urlToScene}.manifest?${Date.now()}`);
 
-			const manifest = await response.json();
 			this._manifestVersion = manifest.version;
 			callbackManifestChecked(true);
-			console.log(this._manifestVersion);
 		} catch (e) {
 			this.enableSceneOffline = false;
 			this.enableTexturesOffline = false;
@@ -72,17 +89,17 @@ export class Database implements IOfflineProvider {
 	 * @param successCallback defines the callback to call on success
 	 * @param errorCallback defines the callback to call on error
 	 */
-	public async open(successCallback: () => void, errorCallback: () => void): Promise<void> {
+	public async open(successCallback?: () => void, errorCallback?: () => void): Promise<void> {
 		try {
-			this._database = await openDatabase(this.name, (database) => {
+			this._database = await openIndexDB(this.name, (database) => {
 				database.createObjectStore("files", { keyPath: "url" });
 				database.createObjectStore("images", { keyPath: "url" });
 				database.createObjectStore("versions", { keyPath: "url" });
 			});
 
-			successCallback();
+			successCallback?.();
 		} catch (e) {
-			errorCallback();
+			errorCallback?.();
 		}
 	}
 
@@ -104,14 +121,14 @@ export class Database implements IOfflineProvider {
 			data = await loadFile(url, "blob");
 
 			await Promise.all([
-				putInDatabase<_IFilesObjectStore>(this._database, "images", { url, data }),
-				putInDatabase<_IVersionObjectStore>(this._database, "versions", {
+				putInIndexDB<_IFilesObjectStore>(this._database, "images", { url, data }),
+				putInIndexDB<_IVersionObjectStore>(this._database, "versions", {
 					url,
 					version: this._manifestVersion!,
 				}),
 			]);
 		} else {
-			data = (await getFromDatabase<_IFilesObjectStore>(this._database, "images", url))?.data ?? null;
+			data = (await getFromIndexDB<_IFilesObjectStore>(this._database, "images", url))?.data ?? null;
 		}
 
 		if (data !== null) {
@@ -152,14 +169,14 @@ export class Database implements IOfflineProvider {
 			data = await loadFile(url, useArrayBuffer ? "arraybuffer" : "text", progressCallBack);
 
 			await Promise.all([
-				putInDatabase<_IFilesObjectStore>(this._database, "files", { url, data }),
-				putInDatabase<_IVersionObjectStore>(this._database, "versions", {
+				putInIndexDB<_IFilesObjectStore>(this._database, "files", { url, data }),
+				putInIndexDB<_IVersionObjectStore>(this._database, "versions", {
 					url,
 					version: this._manifestVersion!,
 				}),
 			]);
 		} else {
-			data = (await getFromDatabase<_IFilesObjectStore>(this._database, "files", url))?.data ?? null;
+			data = (await getFromIndexDB<_IFilesObjectStore>(this._database, "files", url))?.data ?? null;
 		}
 
 		if (data !== null) {
@@ -169,8 +186,24 @@ export class Database implements IOfflineProvider {
 		}
 	}
 
+	public async saveFile(url: string, useArrayBuffer: boolean, progress?: (data: ILoadFileProgressEvent) => void): Promise<void> {
+		if (!this._database) {
+			throw new Error("Database is not available");
+		}
+
+		const data = await loadFile(url, useArrayBuffer ? "arraybuffer" : "text", progress);
+
+		await Promise.all([
+			putInIndexDB<_IFilesObjectStore>(this._database, "files", { url, data }),
+			putInIndexDB<_IVersionObjectStore>(this._database, "versions", {
+				url,
+				version: this._manifestVersion!,
+			}),
+		]);
+	}
+
 	private async _getFileVersionForUrl(url: string): Promise<number | null> {
-		const data = await getFromDatabase<_IVersionObjectStore>(this._database!, "versions", url);
+		const data = await getFromIndexDB<_IVersionObjectStore>(this._database!, "versions", url);
 		return data?.version ?? null;
 	}
 }

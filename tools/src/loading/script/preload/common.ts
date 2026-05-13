@@ -1,6 +1,5 @@
-export async function preloadCommonScriptAsset(key: string, rootUrl: string) {
-	const response = await fetch(`${rootUrl}${key}`);
-	const data = await response.json();
+import { loadJsonFile } from "../../../tools/request";
 
-	return data;
+export async function preloadCommonScriptAsset(key: string, rootUrl: string) {
+	return loadJsonFile<any>(`${rootUrl}${key}`);
 }
