@@ -61,17 +61,12 @@ import { getCameraFocusPositionFor } from "../../tools/camera/focus";
 import { ITweenConfiguration, Tween } from "../../tools/animation/tween";
 import { checkProjectCachedCompressedTextures } from "../../tools/assets/ktx";
 import { createSceneLink, getRootSceneLink } from "../../tools/scene/scene-link";
-import {
-	defaultGizmoSnapPreferences,
-	gizmoSnapMinStep,
-	IGizmoSnapPreferences,
-	roundGizmoSnapSteps,
-} from "../../tools/gizmo-snap-preferences";
+import { defaultGizmoSnapPreferences, gizmoSnapMinStep, IGizmoSnapPreferences, roundGizmoSnapSteps } from "../../tools/gizmo-snap-preferences";
 import { UniqueNumber, waitNextAnimationFrame, waitUntil } from "../../tools/tools";
 import { isSprite, isSpriteManagerNode, isSpriteMapNode } from "../../tools/guards/sprites";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../../ui/shadcn/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "../../ui/shadcn/ui/popover";
-import { isAbstractMesh, isAnyTransformNode, isCamera, isCollisionInstancedMesh, isCollisionMesh, isInstancedMesh, isLight, isMesh, isNode } from "../../tools/guards/nodes";
+import { isAbstractMesh, isAnyTransformNode, isCamera, isCollisionInstancedMesh, isCollisionMesh, isLight, isNode } from "../../tools/guards/nodes";
 
 import { EditorCamera } from "../nodes/camera";
 

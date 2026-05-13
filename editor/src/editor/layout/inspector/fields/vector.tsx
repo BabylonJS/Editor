@@ -22,9 +22,14 @@ export interface IEditorInspectorVectorFieldProps extends IEditorInspectorFieldP
 }
 
 export function EditorInspectorVectorField(props: IEditorInspectorVectorFieldProps) {
-	const value = props.object[props.property] as IVector4Like;
+	const value = props.object?.[props.property] as IVector4Like | undefined;
 
 	const [pointerOver, setPointerOver] = useState(false);
+
+	// Return null if value is undefined or null
+	if (!value || typeof value !== "object") {
+		return null;
+	}
 
 	return (
 		<div className="flex gap-2 items-center px-2" onMouseOver={() => setPointerOver(true)} onMouseLeave={() => setPointerOver(false)}>
