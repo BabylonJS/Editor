@@ -16,6 +16,7 @@ export interface SoundNode extends TransformNode {
 
 	isPaused(): boolean;
 	isPlaying(): boolean;
+	isStopped(): boolean;
 
 	get volume(): number;
 	set volume(value: number);

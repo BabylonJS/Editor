@@ -1,10 +1,12 @@
 import { Scene } from "@babylonjs/core/scene";
 import { SoundState } from "@babylonjs/core/AudioV2/soundState";
 import { AssetContainer } from "@babylonjs/core/assetContainer";
-import { StaticSound } from "@babylonjs/core/AudioV2/abstractAudio/staticSound";
+import { _WebAudioEngine } from "@babylonjs/core/AudioV2/webAudio/webAudioEngine";
 import { AddParser } from "@babylonjs/core/Loading/Plugins/babylonFileParser.function";
+import { _WebAudioStaticSound } from "@babylonjs/core/AudioV2/webAudio/webAudioStaticSound";
 import { StaticSoundBuffer } from "@babylonjs/core/AudioV2/abstractAudio/staticSoundBuffer";
-import { CreateSoundAsync, CreateSoundBufferAsync } from "@babylonjs/core/AudioV2/abstractAudio/audioEngineV2";
+import { IStaticSoundOptions, StaticSound } from "@babylonjs/core/AudioV2/abstractAudio/staticSound";
+import { _GetAudioEngine, CreateSoundAsync, CreateSoundBufferAsync } from "@babylonjs/core/AudioV2/abstractAudio/audioEngineV2";
 
 import { SoundNode } from "../tools/sound";
 
@@ -12,38 +14,45 @@ let registered = false;
 
 const cachedSoundBuffers: Map<string, Promise<StaticSoundBuffer | null>> = new Map();
 
+function createSoundInstance(name: string, options: Partial<IStaticSoundOptions>) {
+	const audioEngine = _GetAudioEngine(null) as _WebAudioEngine;
+	return new _WebAudioStaticSound(name, audioEngine, options);
+}
+
 export function configureSourceNodeFrom(source: SoundNode, target: SoundNode) {
 	if (!source.soundRelativePath || !source.sound) {
 		return;
 	}
 
-	CreateSoundAsync(source.soundRelativePath, source.sound.buffer, {
+	const sound = createSoundInstance(source.soundRelativePath, {
 		spatialAutoUpdate: true,
-	}).then((sound) => {
-		if (target.isDisposed()) {
-			return sound.dispose();
-		}
+	});
 
-		sound.volume = source.volume;
-		sound._isSpatial = source.sound!._isSpatial;
+	sound
+		._initAsync(source.sound.buffer!, {
+			spatialAutoUpdate: true,
+		})
+		.then(() => {
+			sound.volume = source.volume;
+			sound._isSpatial = source.sound!._isSpatial;
 
-		if (sound._isSpatial) {
-			sound.spatial.attach(target);
-			sound.spatial.maxDistance = source.sound!.spatial.maxDistance;
-			sound.spatial.panningModel = source.sound!.spatial.panningModel;
-			sound.spatial.distanceModel = source.sound!.spatial.distanceModel;
-		}
+			if (sound._isSpatial) {
+				sound.spatial.attach(target);
+				sound.spatial.maxDistance = source.sound!.spatial.maxDistance;
+				sound.spatial.panningModel = source.sound!.spatial.panningModel;
+				sound.spatial.distanceModel = source.sound!.spatial.distanceModel;
+			}
 
-		target.sound = sound;
-		target.isSoundNode = true;
-		target.soundRelativePath = source.soundRelativePath;
-
-		target.onDisposeObservable.addOnce(() => {
-			sound.dispose();
+			target.sound = sound;
+			target.isSoundNode = true;
+			target.soundRelativePath = source.soundRelativePath;
 		});
 
-		configureSoundNodePrototype(target, sound);
+	target.onDisposeObservable.addOnce(() => {
+		sound.dispose();
 	});
+
+	configureSoundNodePrototype(target, sound);
 }
 
 export function configureSoundNodePrototype(instance: SoundNode, sound: StaticSound) {
@@ -67,6 +76,7 @@ export function configureSoundNodePrototype(instance: SoundNode, sound: StaticSo
 
 	instance.isPaused = () => sound.state === SoundState.Paused;
 	instance.isPlaying = () => sound.state === SoundState.Started;
+	instance.isStopped = () => sound.state === SoundState.Stopped;
 
 	instance.pause = () => sound.pause();
 	instance.resume = () => sound.resume();
