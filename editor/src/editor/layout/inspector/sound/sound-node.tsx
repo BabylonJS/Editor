@@ -118,6 +118,7 @@ export class EditorSoundNodeInspector extends Component<IEditorInspectorImplemen
 
 				{this.props.object.isSpatial && sound.spatial && (
 					<>
+						<EditorInspectorSwitchField object={this.props.object} property="autoUpdateSpatial" label="Auto Update Spatial" onChange={() => this.forceUpdate()} />
 						<EditorInspectorListField
 							object={this.props.object}
 							property="distanceModel"

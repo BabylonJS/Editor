@@ -14,6 +14,8 @@ export interface SoundNode extends TransformNode {
 
 	sound?: StaticSound;
 
+	autoUpdateSpatial: boolean;
+
 	isPaused(): boolean;
 	isPlaying(): boolean;
 	isStopped(): boolean;

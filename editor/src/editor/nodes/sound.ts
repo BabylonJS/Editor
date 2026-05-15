@@ -28,6 +28,9 @@ export class SoundNode extends TransformNode {
 	@serialize()
 	public soundRelativePath: string | null = null;
 
+	@serialize()
+	public autoUpdateSpatial: boolean = true;
+
 	private _volume: number = 1;
 	private _spatial: boolean = true;
 	private _maxDistance: number = 1000;
