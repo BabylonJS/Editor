@@ -1,4 +1,5 @@
 import { Scene } from "@babylonjs/core/scene";
+import { Observer } from "@babylonjs/core/Misc/observable";
 import { SoundState } from "@babylonjs/core/AudioV2/soundState";
 import { AssetContainer } from "@babylonjs/core/assetContainer";
 import { _WebAudioEngine } from "@babylonjs/core/AudioV2/webAudio/webAudioEngine";
@@ -11,12 +12,67 @@ import { _GetAudioEngine, CreateSoundAsync, CreateSoundBufferAsync } from "@baby
 import { SoundNode } from "../tools/sound";
 
 let registered = false;
+let registeredUpdateObserver: Observer<Scene> | null = null;
 
+const soundInstances: SoundNode[] = [];
 const cachedSoundBuffers: Map<string, Promise<StaticSoundBuffer | null>> = new Map();
 
 function createSoundInstance(name: string, options: Partial<IStaticSoundOptions>) {
 	const audioEngine = _GetAudioEngine(null) as _WebAudioEngine;
 	return new _WebAudioStaticSound(name, audioEngine, options);
+}
+
+function registerUpdateSoundsObserver(scene: Scene) {
+	registeredUpdateObserver?.remove();
+
+	if (!soundInstances.length) {
+		return;
+	}
+
+	registeredUpdateObserver = scene.onBeforeRenderObservable.add(() => {
+		soundInstances.forEach((instance) => {
+			if (instance.isEnabled(false) && instance.autoUpdateSpatial && instance.sound?._isSpatial && instance.isPlaying() && scene.activeCamera) {
+				instance.sound.spatial.update();
+			}
+		});
+	});
+}
+
+function registerSoundNodeEvents(instance: SoundNode) {
+	instance.sound?.onDisposeObservable.addOnce(() => {
+		const index = soundInstances.indexOf(instance);
+		if (index !== -1) {
+			soundInstances.splice(index, 1);
+		}
+	});
+
+	instance.onDisposeObservable.addOnce(() => {
+		instance.sound?.dispose();
+	});
+}
+
+function loadSoundBuffer(scene: Scene, soundAbsolutePath: string) {
+	return new Promise<StaticSoundBuffer | null>(async (resolve, reject) => {
+		if (!scene.offlineProvider) {
+			return CreateSoundBufferAsync(soundAbsolutePath)
+				.then((buffer) => resolve(buffer))
+				.catch((e) => reject(e));
+		}
+
+		scene.offlineProvider.loadFile(
+			soundAbsolutePath,
+			(data: ArrayBuffer) => {
+				CreateSoundBufferAsync(data)
+					.then((buffer) => resolve(buffer))
+					.catch((e) => reject(e));
+			},
+			undefined,
+			() => {
+				reject(null);
+			},
+			true
+		);
+	});
 }
 
 export function configureSourceNodeFrom(source: SoundNode, target: SoundNode) {
@@ -25,12 +81,12 @@ export function configureSourceNodeFrom(source: SoundNode, target: SoundNode) {
 	}
 
 	const sound = createSoundInstance(source.soundRelativePath, {
-		spatialAutoUpdate: true,
+		spatialAutoUpdate: false,
 	});
 
 	sound
 		._initAsync(source.sound.buffer!, {
-			spatialAutoUpdate: true,
+			spatialAutoUpdate: false,
 		})
 		.then(() => {
 			sound.volume = source.volume;
@@ -46,12 +102,13 @@ export function configureSourceNodeFrom(source: SoundNode, target: SoundNode) {
 			target.sound = sound;
 			target.isSoundNode = true;
 			target.soundRelativePath = source.soundRelativePath;
+			target.autoUpdateSpatial = source.autoUpdateSpatial;
+
+			soundInstances.push(target);
+			registerUpdateSoundsObserver(target.getScene());
 		});
 
-	target.onDisposeObservable.addOnce(() => {
-		sound.dispose();
-	});
-
+	registerSoundNodeEvents(target);
 	configureSoundNodePrototype(target, sound);
 }
 
@@ -112,36 +169,14 @@ export function registerAudioParser() {
 				scene.addPendingData(soundAbsolutePath);
 
 				if (!cachedSoundBuffers.has(soundAbsolutePath)) {
-					const promise = new Promise<StaticSoundBuffer | null>(async (resolve, reject) => {
-						if (!scene.offlineProvider) {
-							return CreateSoundBufferAsync(soundAbsolutePath)
-								.then((buffer) => resolve(buffer))
-								.catch((e) => reject(e));
-						}
-
-						scene.offlineProvider.loadFile(
-							soundAbsolutePath,
-							(data: ArrayBuffer) => {
-								CreateSoundBufferAsync(data)
-									.then((buffer) => resolve(buffer))
-									.catch((e) => reject(e));
-							},
-							undefined,
-							() => {
-								reject(null);
-							},
-							true
-						);
-					});
-
-					cachedSoundBuffers.set(soundAbsolutePath, promise);
+					cachedSoundBuffers.set(soundAbsolutePath, loadSoundBuffer(scene, soundAbsolutePath));
 				}
 
 				const promise = cachedSoundBuffers.get(soundAbsolutePath)!;
 
 				promise.then((buffer) => {
 					CreateSoundAsync(transformNode.soundRelativePath, buffer!, {
-						spatialAutoUpdate: true,
+						spatialAutoUpdate: false,
 					}).then((sound) => {
 						scene.removePendingData(soundAbsolutePath);
 
@@ -162,12 +197,13 @@ export function registerAudioParser() {
 						instance.sound = sound;
 						instance.isSoundNode = true;
 						instance.soundRelativePath = transformNode.soundRelativePath;
+						instance.autoUpdateSpatial = transformNode.autoUpdateSpatial;
 
-						instance.onDisposeObservable.addOnce(() => {
-							sound.dispose();
-						});
+						soundInstances.push(instance);
 
+						registerSoundNodeEvents(instance);
 						configureSoundNodePrototype(instance, sound);
+						registerUpdateSoundsObserver(scene);
 					});
 				});
 			}
