@@ -1,4 +1,4 @@
-import { Node, Tools, Sprite, ParticleSystem, GPUParticleSystem } from "babylonjs";
+import { Node, Tools, Sprite, ParticleSystem, GPUParticleSystem, Mesh } from "babylonjs";
 
 import { Editor } from "../../editor/main";
 
@@ -14,6 +14,8 @@ import { UniqueNumber } from "../tools";
 import { cloneSprite } from "../sprite/tools";
 
 import { isClusteredLight } from "../light/cluster";
+
+import { parsePhysicsAggregate, serializePhysicsAggregate } from "../physics/serialization/aggregate";
 
 import { isTexture } from "../guards/texture";
 import { isSprite, isSpriteManagerNode, isSpriteMapNode } from "../guards/sprites";
@@ -37,12 +39,17 @@ export function cloneNode(editor: Editor, node: Node | Sprite | ParticleSystem |
 	const name = `${node.name?.replace(` ${suffix}`, "")} ${suffix}`;
 
 	if (isMesh(node)) {
-		clone = node.clone(name, {
+		const clonedMesh = (clone = node.clone(name, {
 			parent: node.parent,
 			doNotCloneChildren: false,
-			clonePhysicsImpostor: true,
+			clonePhysicsImpostor: false,
 			cloneThinInstances: options?.cloneThinInstances ?? true,
-		});
+		}) as Mesh);
+
+		if (node.physicsAggregate) {
+			clonedMesh.physicsAggregate = parsePhysicsAggregate(clonedMesh, serializePhysicsAggregate(node.physicsAggregate));
+			clonedMesh.physicsAggregate.body.disableSync = true;
+		}
 	} else if (isLight(node)) {
 		clone = node.clone(name, node.parent);
 		if (isClusteredLight(node, editor) && isLight(clone)) {
