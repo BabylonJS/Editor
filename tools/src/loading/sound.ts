@@ -1,5 +1,6 @@
 import { Scene } from "@babylonjs/core/scene";
 import { Observer } from "@babylonjs/core/Misc/observable";
+import { Database } from "@babylonjs/core/Offline/database";
 import { SoundState } from "@babylonjs/core/AudioV2/soundState";
 import { AssetContainer } from "@babylonjs/core/assetContainer";
 import { _WebAudioEngine } from "@babylonjs/core/AudioV2/webAudio/webAudioEngine";
@@ -53,7 +54,7 @@ function registerSoundNodeEvents(instance: SoundNode) {
 
 function loadSoundBuffer(scene: Scene, soundAbsolutePath: string) {
 	return new Promise<StaticSoundBuffer | null>(async (resolve, reject) => {
-		if (!scene.offlineProvider) {
+		if (!scene.offlineProvider || !Database.IDBStorageEnabled) {
 			return CreateSoundBufferAsync(soundAbsolutePath)
 				.then((buffer) => resolve(buffer))
 				.catch((e) => reject(e));
