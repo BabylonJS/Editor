@@ -9,7 +9,7 @@ import { IScript } from "../../script";
 
 import { applyDecorators } from "../../decorators/apply";
 
-import { isAnyParticleSystem, isNode, isScene } from "../../tools/guards";
+import { isAnyParticleSystem, isNode, isScene, isSoundNode } from "../../tools/guards";
 
 import { ScriptMap } from "../loader";
 
@@ -136,7 +136,7 @@ export function _registerScriptInstance(object: any, scriptInstance: IScript, ke
 		scriptsDictionary.get(object)!.push(registeredScript);
 	}
 
-	if (isNode(object) || isAnyParticleSystem(object) || isScene(object)) {
+	if (isNode(object) || isAnyParticleSystem(object) || isScene(object) || isSoundNode(object)) {
 		object.onDisposeObservable.addOnce((() => {
 			const scripts = scriptsDictionary.get(object)?.slice();
 			scripts?.forEach((s) => {
