@@ -97,7 +97,13 @@ export async function _preloadScriptsAssets(rootUrl: string, scene: Scene, scrip
 					const extension = key.split(".").pop();
 					switch (extension) {
 						case "scene":
-							scriptAssetsCache.set(key, new AdvancedAssetContainer(await preloadSceneScriptAsset(key, rootUrl, scene), rootUrl, scriptsMap));
+							const container = await preloadSceneScriptAsset(key, rootUrl, scene);
+							scene.onDisposeObservable.addOnce(() => {
+								container.dispose();
+								scriptAssetsCache.delete(key);
+							});
+
+							scriptAssetsCache.set(key, new AdvancedAssetContainer(container, rootUrl, scriptsMap));
 							break;
 
 						default:
