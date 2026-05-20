@@ -139,6 +139,26 @@ export class Database implements IOfflineProvider {
 		}
 	}
 
+	public async saveImage(url: string): Promise<void> {
+		if (!this._database) {
+			throw new Error("Database is not available");
+		}
+
+		const data = await loadFile(url, "blob");
+
+		await Promise.all([
+			putInIndexDB<_IFilesObjectStore>(this._database, "images", { url, data }),
+			putInIndexDB<_IVersionObjectStore>(this._database, "versions", {
+				url,
+				version: this._manifestVersion!,
+			}),
+		]);
+	}
+
+	/**
+	 * Checks wehter or not the file located at the given URL is matching the current manifest version in the database.
+	 * @param url defines the URL to check the version for
+	 */
 	public async isFileMatchingVersion(url: string): Promise<boolean> {
 		return (await this._getFileVersionForUrl(url)) === this._manifestVersion;
 	}

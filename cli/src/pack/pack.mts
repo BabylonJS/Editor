@@ -137,6 +137,8 @@ export async function pack(projectDir: string, options: IPackOptions) {
 		await ensureSceneDirectories(sceneFile);
 
 		const directories = await readSceneDirectories(sceneFile);
+
+		// Config
 		const sceneConfigPath = join(sceneFile, "config.json");
 		if (!(await pathExists(sceneConfigPath))) {
 			sceneLog.warn(`Scene ${sceneFilename} does not have a config.json file. Skipping...`);
@@ -144,6 +146,16 @@ export async function pack(projectDir: string, options: IPackOptions) {
 		}
 
 		const config = await fs.readJSON(sceneConfigPath);
+
+		// Attributes
+		const attributesPath = join(sceneFile, "attributes.json");
+		if (await pathExists(attributesPath)) {
+			const attributes = await fs.readJSON(attributesPath);
+			if (attributes.doNotExport) {
+				sceneLog.info(`Skipped scene ${sceneFilename} because scene is marked as doNotExport.`);
+				continue;
+			}
+		}
 
 		options.onStepChanged?.("scenes", {
 			message: `Packing scene ${sceneName}...`,
