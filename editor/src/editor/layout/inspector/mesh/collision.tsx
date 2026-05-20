@@ -43,10 +43,6 @@ export class EditorMeshCollisionInspector extends Component<IEditorInspectorImpl
 	}
 
 	public render(): ReactNode {
-		// if (collisionMesh && isInstancedMesh(this.props.object)) {
-		//     return false;
-		// }
-
 		return (
 			<EditorInspectorSectionField
 				title="Collisions"
@@ -68,16 +64,25 @@ export class EditorMeshCollisionInspector extends Component<IEditorInspectorImpl
 				/>
 
 				{this._mesh.checkCollisions && (
-					<div
-						className="flex gap-2 items-center"
-						onMouseMove={() => this._setTemporaryCollisionMeshVisible(true)}
-						onMouseLeave={() => this._setTemporaryCollisionMeshVisible(false)}
-					>
-						{this._getCollisionType(this._collisionMesh, "cube", <RxCube size={42} />)}
-						{this._getCollisionType(this._collisionMesh, "sphere", <ImSphere size={42} />)}
-						{this._getCollisionType(this._collisionMesh, "capsule", <RiCapsuleFill size={42} />)}
-						{this._getCollisionType(this._collisionMesh, "lod", <GiMeshNetwork size={42} />)}
-					</div>
+					<>
+  					<EditorInspectorSwitchField
+                label="Trigger Only"
+                object={this._mesh.metadata ??= {}}
+                property="isTriggerOnly"
+                onChange={() => this.forceUpdate()}
+            />
+
+						<div
+							className="flex gap-2 items-center"
+							onMouseMove={() => this._setTemporaryCollisionMeshVisible(true)}
+							onMouseLeave={() => this._setTemporaryCollisionMeshVisible(false)}
+						>
+							{this._getCollisionType(this._collisionMesh, "cube", <RxCube size={42} />)}
+							{this._getCollisionType(this._collisionMesh, "sphere", <ImSphere size={42} />)}
+							{this._getCollisionType(this._collisionMesh, "capsule", <RiCapsuleFill size={42} />)}
+							{this._getCollisionType(this._collisionMesh, "lod", <GiMeshNetwork size={42} />)}
+						</div>
+					</>
 				)}
 			</EditorInspectorSectionField>
 		);

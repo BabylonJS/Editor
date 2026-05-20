@@ -181,14 +181,14 @@ export class CollisionMesh extends Mesh {
 	}
 
 	private _createCapsuleCollisionMesh(sourceMesh: AbstractMesh, boundingInfo: BoundingInfo): void {
-		const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingSphere.minimum);
+    const size = boundingInfo.boundingBox.maximum.subtract(boundingInfo.boundingBox.minimum);
 
 		const geometry = new Geometry(
 			Tools.RandomId(),
 			sourceMesh.getScene(),
 			CreateCapsuleVertexData({
-				height: Math.abs(size.y),
-				radius: boundingInfo.boundingSphere.radius,
+      height: Math.abs(size.y),
+      radius: Math.max(size.x, size.z) / 2,
 
 				subdivisions: 16,
 				tessellation: 16,
