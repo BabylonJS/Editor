@@ -23,6 +23,8 @@ import { FaMagnifyingGlass } from "react-icons/fa6";
 import { IoRefresh, IoCheckmark, IoArrowDownCircleOutline } from "react-icons/io5";
 import { FaArrowLeft, FaArrowRight, FaFolder, FaFolderOpen, FaRegFolderOpen } from "react-icons/fa";
 
+import { toast } from "sonner";
+
 import { Tree, TreeNodeInfo } from "@blueprintjs/core";
 
 import { Editor } from "../main";
@@ -46,7 +48,7 @@ import { getMaterialCommands, getMaterialsLibraryCommands } from "../dialogs/com
 
 import { loadScene } from "../../project/load/scene";
 import { saveProject, saveProjectConfiguration } from "../../project/save/save";
-import { onProjectConfigurationChangedObservable, projectConfiguration } from "../../project/configuration";
+import { getProjectAssetsRootUrl, onProjectConfigurationChangedObservable, projectConfiguration } from "../../project/configuration";
 
 import { Button } from "../../ui/shadcn/ui/button";
 import { showAlert, showConfirm, showPrompt } from "../../ui/dialog";
@@ -93,6 +95,8 @@ import { openEnvViewer } from "./assets-browser/viewers/env-viewer";
 import { openModelViewer } from "./assets-browser/viewers/model-viewer";
 
 import { EditorAssetsTreeLabel } from "./assets-browser/label";
+
+import { EditorAssetsBrowserRenameProgressComponent } from "./assets-browser/rename-progress";
 
 import "babylonjs-loaders";
 
@@ -415,53 +419,62 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 	 *  Handles the file renamed event. This will update the file paths in the editor.
 	 */
 	public async handleFileRenamed(oldAbsolutePath: string, newAbsolutePath: string): Promise<void> {
-		if (!this.props.editor.state.projectPath) {
+		const toastId = toast(<EditorAssetsBrowserRenameProgressComponent />, {
+			duration: Infinity,
+			dismissible: false,
+		});
+
+		const rootUrl = getProjectAssetsRootUrl();
+
+		if (!rootUrl || !this.props.editor.state.projectPath) {
 			return;
 		}
 
+		const oldRelativePath = oldAbsolutePath.replace(join(rootUrl, "/"), "");
+		const newRelativePath = newAbsolutePath.replace(join(rootUrl, "/"), "");
+
 		// Scene
 		if (oldAbsolutePath === this.props.editor.state.lastOpenedScenePath) {
-			renameScene(oldAbsolutePath, newAbsolutePath);
+			await renameScene(oldAbsolutePath, newAbsolutePath);
+
+			this._handleFileRenamed(oldRelativePath, newRelativePath);
 
 			return this.props.editor.setState({ lastOpenedScenePath: newAbsolutePath }, () => {
 				saveProjectConfiguration(this.props.editor);
 			});
 		}
 
-		const oldRelativePath = oldAbsolutePath.replace(join(dirname(this.props.editor.state.projectPath), "/"), "");
-		const newRelativePath = newAbsolutePath.replace(join(dirname(this.props.editor.state.projectPath), "/"), "");
-
 		const fStat = await stat(newAbsolutePath);
 		if (fStat.isDirectory()) {
 			const extension = extname(newAbsolutePath).toLowerCase();
 			if (extension === ".scene") {
-				renameScene(oldAbsolutePath, newAbsolutePath);
+				await renameScene(oldAbsolutePath, newAbsolutePath);
 			}
 
-			const files = await normalizedGlob(join(newAbsolutePath, "**"), {
+			const files = (await normalizedGlob(join(newAbsolutePath, "**"), {
 				ignore: {
 					ignored: (p) => p.isDirectory() && extname(p.name).toLowerCase() !== ".scene",
 				},
-			});
+			})) as string[];
 
-			files.forEach((file) => {
-				const newFileRelativePath = file.replace(join(dirname(this.props.editor.state.projectPath!), "/"), "");
+			for (const file of files) {
+				const newFileRelativePath = file.replace(join(rootUrl, "/"), "");
 				const oldFileRelativePath = newFileRelativePath.replace(newRelativePath, oldRelativePath);
 
 				const extension = extname(oldFileRelativePath).toLowerCase();
 				if (extension === ".scene") {
-					const oldSceneRelativePath = join(oldAbsolutePath, basename(oldFileRelativePath));
-					renameScene(oldSceneRelativePath, file);
+					const oldSceneAbsolutePath = join(rootUrl, oldFileRelativePath);
+					await renameScene(oldSceneAbsolutePath, file);
 
-					if (oldSceneRelativePath === this.props.editor.state.lastOpenedScenePath) {
+					if (oldSceneAbsolutePath === this.props.editor.state.lastOpenedScenePath) {
 						this.props.editor.setState({ lastOpenedScenePath: file }, () => {
 							saveProjectConfiguration(this.props.editor);
 						});
 					}
-				} else {
-					this._handleFileRenamed(oldFileRelativePath, newFileRelativePath);
 				}
-			});
+
+				this._handleFileRenamed(oldFileRelativePath, newFileRelativePath);
+			}
 		} else {
 			this._handleFileRenamed(oldRelativePath, newRelativePath);
 		}
@@ -470,6 +483,9 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 		this.props.editor.layout.inspector.forceUpdate();
 
 		await saveAssetsCache();
+
+		toast.dismiss(toastId);
+		toast.success("Assets updated successfully");
 	}
 
 	private _handleFileRenamed(oldRelativePath: string, newRelativePath: string): void {
@@ -525,9 +541,11 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 			}
 		});
 
-		assetsCache[oldRelativePath] = {
-			newRelativePath,
-		};
+		if (!oldRelativePath.includes(".scene") || oldRelativePath.endsWith(".scene")) {
+			assetsCache[oldRelativePath] = {
+				newRelativePath,
+			};
+		}
 	}
 
 	/**
