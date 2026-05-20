@@ -177,7 +177,7 @@ export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scen
 		let loadedAssetsCount = 0;
 		do {
 			loadedAssetsCount = await _preloadScriptsAssets(rootUrl, scene, scriptsMap);
-		} while (loadedAssetsCount !== 0);
+		} while (loadedAssetsCount !== 0 && !scene.isDisposed);
 	}
 
 	// Ensure all meshes perform their delay state check
