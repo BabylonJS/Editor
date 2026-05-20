@@ -1,9 +1,12 @@
+import { cpus } from "os";
 import { join } from "path/posix";
-import { readFile, remove, writeFile, writeJSON } from "fs-extra";
+import { remove, writeJSON } from "fs-extra";
 
 import { getProjectAssetsRootUrl } from "../../project/configuration";
 
 import { normalizedGlob } from "../fs";
+import { executeSimpleWorker } from "../worker";
+import { splitArrayIntoChunks } from "../tools";
 
 export interface IAssetCache {
 	/**
@@ -94,51 +97,47 @@ export async function applyAssetsCache() {
  * Applies the update of all assets in the given directory that still reference old paths.
  * It'll basically look for all .material, .scene, .npss, .babylon files etc.
  * @param directory defines the directory to search for assets.
- * @param entires defines the assets cache entries.
+ * @param entries defines the assets cache entries.
  */
-export async function applyDirectoryAssetsCache(directory: string, entires: [string, IAssetCache][]) {
-	const materialFiles = await normalizedGlob(join(directory, "/**/*.material"), {
+export async function applyDirectoryAssetsCache(directory: string, entries: [string, IAssetCache][]) {
+	const materialFiles = (await normalizedGlob(join(directory, "/**/*.material"), {
 		nodir: true,
-	});
+	})) as string[];
 
-	const nodeParticleSystemSetFiles = await normalizedGlob(join(directory, "/**/*.npss"), {
+	const nodeParticleSystemSetFiles = (await normalizedGlob(join(directory, "/**/*.npss"), {
 		nodir: true,
-	});
+	})) as string[];
 
-	const babylonFiles = await normalizedGlob(join(directory, "/**/*.babylon"), {
+	const babylonFiles = (await normalizedGlob(join(directory, "/**/*.babylon"), {
 		nodir: true,
-	});
+	})) as string[];
 
 	const allFiles = [...materialFiles, ...nodeParticleSystemSetFiles, ...babylonFiles];
 
-	const sceneFolders = await normalizedGlob(join(directory, "/**/*.scene"), {
+	const sceneFolders = (await normalizedGlob(join(directory, "/**/*.scene"), {
 		nodir: false,
-	});
+	})) as string[];
 
 	await Promise.all(
 		sceneFolders.map(async (sceneFolder) => {
-			const sceneJsonFiles = await normalizedGlob(join(sceneFolder, "/**/*.json"), {
+			const sceneJsonFiles = (await normalizedGlob(join(sceneFolder, "/**/*.json"), {
 				nodir: true,
-			});
+			})) as string[];
 
 			allFiles.push(...sceneJsonFiles);
 		})
 	);
 
+	const cpusCount = cpus().length;
+	const chunksSize = Math.ceil(allFiles.length / cpusCount);
+	const chunks = splitArrayIntoChunks(allFiles, chunksSize);
+
 	await Promise.all(
-		allFiles.map(async (file: string) => {
-			try {
-				let data = await readFile(file, "utf-8");
-
-				for (const [originalRelativePath, cache] of entires) {
-					const regex = new RegExp(originalRelativePath, "g");
-					data = data.replace(regex, cache.newRelativePath);
-				}
-
-				await writeFile(file, data, "utf-8");
-			} catch (e) {
-				// Catch silently.
-			}
+		chunks.map(async (chunk) => {
+			return executeSimpleWorker("workers/files-replace.js", {
+				entries,
+				allFiles: chunk,
+			});
 		})
 	);
 }

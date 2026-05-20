@@ -1,6 +1,7 @@
 import { join, basename, dirname } from "path/posix";
 import { readJSON, writeJson, readdir, pathExists, remove } from "fs-extra";
 
+import { ensureSceneFolders } from "../../project/save/scene";
 import { getProjectAssetsRootUrl, projectConfiguration } from "../../project/configuration";
 
 /**
@@ -19,6 +20,8 @@ export async function renameScene(oldAbsolutePath: string, newAbsolutePath: stri
 	const newRelativePath = newAbsolutePath.replace(rootUrl, "");
 
 	const name = basename(oldAbsolutePath, ".scene");
+
+	await ensureSceneFolders(newAbsolutePath);
 
 	const [meshesFiles, lodsFiles] = await Promise.all([readdir(join(newAbsolutePath, "meshes")), readdir(join(newAbsolutePath, "lods"))]);
 

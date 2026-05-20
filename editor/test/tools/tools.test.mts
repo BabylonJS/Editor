@@ -1,6 +1,6 @@
 import { describe, expect, test, vi } from "vitest";
 
-import { waitNextAnimationFrame, unique, UniqueNumber, sortAlphabetically, getCurrentCallStack } from "../../src/tools/tools";
+import { waitNextAnimationFrame, unique, UniqueNumber, sortAlphabetically, getCurrentCallStack, splitArrayIntoChunks } from "../../src/tools/tools";
 
 describe("tools/tools", () => {
 	describe("waitNextAnimationFrame", () => {
@@ -64,6 +64,22 @@ describe("tools/tools", () => {
 		test("should return the current call stack", () => {
 			const callStack = getCurrentCallStack();
 			expect(typeof callStack).toBe("string");
+		});
+	});
+
+	describe("splitArrayIntoChunks", () => {
+		test("should split an array into chunks of specified size", () => {
+			const array = [1, 2, 3, 4, 5, 6, 7];
+			const chunkSize = 3;
+			const chunks = splitArrayIntoChunks(array, chunkSize);
+			expect(chunks).toEqual([[1, 2, 3], [4, 5, 6], [7]]);
+		});
+
+		test("should return an empty array when input is empty", () => {
+			const array: number[] = [];
+			const chunkSize = 3;
+			const chunks = splitArrayIntoChunks(array, chunkSize);
+			expect(chunks).toEqual([]);
 		});
 	});
 });
