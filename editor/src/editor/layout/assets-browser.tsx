@@ -27,13 +27,14 @@ import { Tree, TreeNodeInfo } from "@blueprintjs/core";
 
 import { Editor } from "../main";
 
-import { UniqueNumber } from "../../tools/tools";
 import { execNodePty } from "../../tools/node-pty";
 import { clearUndoRedo } from "../../tools/undoredo";
 import { isTexture } from "../../tools/guards/texture";
 import { renameScene } from "../../tools/scene/rename";
+import { isSoundNode } from "../../tools/guards/sound";
 import { openMultipleFilesDialog } from "../../tools/dialog";
 import { onSelectedAssetChanged } from "../../tools/observables";
+import { sortAlphabetically, UniqueNumber } from "../../tools/tools";
 import { findAvailableFilename, normalizedGlob } from "../../tools/fs";
 import { loadSavedThumbnailsCache } from "../../tools/assets/thumbnail";
 import { assetsCache, saveAssetsCache } from "../../tools/assets/cache";
@@ -96,7 +97,6 @@ import { EditorAssetsTreeLabel } from "./assets-browser/label";
 import "babylonjs-loaders";
 
 import { AssimpJSLoader } from "../../loader/assimpjs";
-import { isSoundNode } from "../../tools/guards/sound";
 
 const HDRSelectable = createSelectable(AssetBrowserHDRItem);
 const GuiSelectable = createSelectable(AssetBrowserGUIItem);
@@ -230,7 +230,9 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 		document.addEventListener("keydown", (ev) => {
 			if (this._isMouseOver && ev.key.toLowerCase() === "a" && (ev.ctrlKey || ev.metaKey)) {
 				ev.preventDefault();
-				this.setState({ selectedKeys: this.state.files.map((f) => join(this.state.browsedPath!, f)) });
+				this.setState({
+					selectedKeys: this.state.files.map((f) => join(this.state.browsedPath!, f)),
+				});
 			}
 		});
 
@@ -267,6 +269,8 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 				ignored: (p) => !p.isDirectory() || directoryPackagesExtensions.includes(extname(p.name).toLowerCase()),
 			},
 		});
+
+		sortAlphabetically(files);
 
 		const allNodes: TreeNodeInfo[] = [];
 		const filesTreeNodes: TreeNodeInfo[] = [];
