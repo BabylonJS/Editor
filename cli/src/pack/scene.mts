@@ -5,6 +5,7 @@ import fs from "fs-extra";
 import { readSceneDirectories } from "../tools/scene.mjs";
 
 import { compressFileToKtx } from "./assets/ktx.mjs";
+import { collectUsedAssetsForScene } from "./assets/collect.mjs";
 import { extractNodeMaterialTextures } from "./assets/material.mjs";
 import { getExtractedTextureOutputPath } from "./assets/texture.mjs";
 import { extractNodeParticleSystemSetTextures, extractParticleSystemTextures } from "./assets/particle-system.mjs";
@@ -618,4 +619,9 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 
 		options.exportedAssets.push(manifestDestination);
 	}
+
+	const usedFiles = await collectUsedAssetsForScene(scene, options.publicDir);
+	usedFiles.push(`${options.sceneName}.babylon`);
+
+	return usedFiles;
 }

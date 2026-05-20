@@ -10,8 +10,8 @@ import { locatePVRTexTool, setPVRTexToolAbsolutePath } from "../tools/ktx.mjs";
 import { ensureSceneDirectories, readSceneDirectories } from "../tools/scene.mjs";
 
 import { createBabylonScene } from "./scene.mjs";
-import { createAssets } from "./assets/assets.mjs";
 import { createScriptsFile } from "./scripts.mjs";
+import { createAssets } from "./assets/assets.mjs";
 import { createGeometryFiles } from "./geometry.mjs";
 
 export type PackStepType = "assets" | "scenes" | "scripts" | "upload";
@@ -113,6 +113,8 @@ export async function pack(projectDir: string, options: IPackOptions) {
 	}
 
 	// Pack scenes
+	const scenesUsedFiles: Record<string, string[]> = {};
+
 	const sceneFiles = await normalizedGlob(`${assetsDirectory}/**/*`, {
 		nodir: false,
 		ignore: {
@@ -147,7 +149,7 @@ export async function pack(projectDir: string, options: IPackOptions) {
 			message: `Packing scene ${sceneName}...`,
 		});
 
-		await createBabylonScene({
+		const sceneUsedFiles = await createBabylonScene({
 			...options,
 			...projectConfiguration,
 			config,
@@ -158,6 +160,8 @@ export async function pack(projectDir: string, options: IPackOptions) {
 			exportedAssets,
 			babylonjsEditorToolsVersion,
 		});
+
+		scenesUsedFiles[`${sceneName}.scene`] = sceneUsedFiles.map((asset) => asset.replace(publicDir + "/", ""));
 
 		options.onStepChanged?.("scenes", {
 			message: `Packing scene ${sceneName} geometries...`,
@@ -206,7 +210,7 @@ export async function pack(projectDir: string, options: IPackOptions) {
 			message: "Collected scripts",
 		});
 
-		// Write list of exported assets
+		// Write lists of exported assets
 		const assetsListPath = join(publicDir, "assets-list.json");
 		await fs.writeJSON(
 			assetsListPath,
@@ -218,6 +222,14 @@ export async function pack(projectDir: string, options: IPackOptions) {
 		);
 
 		exportedAssets.push(assetsListPath);
+
+		const scenesUsedFilesPath = join(publicDir, "scenes-used-files.json");
+		await fs.writeJSON(scenesUsedFilesPath, scenesUsedFiles, {
+			spaces: "\t",
+			encoding: "utf-8",
+		});
+
+		exportedAssets.push(scenesUsedFilesPath);
 
 		// Clean
 		if (options.optimize) {

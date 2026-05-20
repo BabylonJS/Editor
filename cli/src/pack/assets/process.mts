@@ -14,7 +14,7 @@ const supportedAudioExtensions: string[] = [".mp3", ".wav", ".wave", ".ogg"];
 const supportedJsonExtensions: string[] = [".material", ".gui", ".cinematic", ".npss", ".ragdoll", ".json"];
 const supportedMiscExtensions: string[] = [".3dl", ".exr", ".hdr"];
 
-const supportedExtensions: string[] = [
+export const supportedExtensions: string[] = [
 	...supportedImagesExtensions,
 	...supportedCubeTexturesExtensions,
 	...supportedAudioExtensions,
