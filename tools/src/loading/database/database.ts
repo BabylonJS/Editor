@@ -1,6 +1,7 @@
 import { AbstractEngine } from "@babylonjs/core/Engines/abstractEngine";
 import { IOfflineProvider } from "@babylonjs/core/Offline/IOfflineProvider";
 
+import { waitUntil } from "../../tools/tools";
 import { ILoadFileProgressEvent, loadFile, loadJsonFile } from "../../tools/request";
 
 import { getFromIndexDB, openIndexDB, putInIndexDB } from "./indexdb";
@@ -103,6 +104,11 @@ export class Database implements IOfflineProvider {
 		}
 	}
 
+	public close(): void {
+		this._database?.close();
+		this._database = null;
+	}
+
 	/**
 	 * Loads an image from the offline support
 	 * @param url defines the url to load from
@@ -115,6 +121,8 @@ export class Database implements IOfflineProvider {
 		}
 
 		let data: any = null;
+
+		await waitUntil(() => this._manifestVersion !== null);
 
 		const version = await this._getFileVersionForUrl(url);
 		if (version !== this._manifestVersion) {
@@ -160,7 +168,8 @@ export class Database implements IOfflineProvider {
 	 * @param url defines the URL to check the version for
 	 */
 	public async isFileMatchingVersion(url: string): Promise<boolean> {
-		return (await this._getFileVersionForUrl(url)) === this._manifestVersion;
+		const version = await this._getFileVersionForUrl(url);
+		return version === this._manifestVersion;
 	}
 
 	/**
@@ -183,6 +192,8 @@ export class Database implements IOfflineProvider {
 		}
 
 		let data: any = null;
+
+		await waitUntil(() => this._manifestVersion !== null);
 
 		const version = await this._getFileVersionForUrl(url);
 		if (version !== this._manifestVersion) {
