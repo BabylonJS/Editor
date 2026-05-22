@@ -1,6 +1,6 @@
-import { join, basename } from "node:path/posix";
+import { join, basename, extname } from "node:path/posix";
 
-import fs from "fs-extra";
+import fs, { pathExists } from "fs-extra";
 
 import { readSceneDirectories } from "../tools/scene.mjs";
 
@@ -34,6 +34,23 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 	const particleSystems: any[] = [];
 	const shadowGenerators: any[] = [];
 	const morphTargetManagers: any[] = [];
+
+	// Merged decals
+	let mergedDecalsIds: any[] = [];
+
+	const mergedDecalsPath = join(options.sceneFile, "decals.json");
+	if (await pathExists(mergedDecalsPath)) {
+		const mergedDecals = await fs.readJSON(mergedDecalsPath, {
+			encoding: "utf-8",
+		});
+
+		mergedDecals.forEach((mesh) => {
+			mesh.delayLoadingFile = join(options.sceneName, basename(mesh.delayLoadingFile));
+			meshes.push(mesh);
+		});
+
+		mergedDecalsIds = mergedDecals.map((m) => m.metadata?.mergedMeshesIds ?? []).flat();
+	}
 
 	// Meshes
 	const meshesResult = await Promise.all(
@@ -123,6 +140,13 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 				});
 			}
 
+			if (mesh.metadata?.decal && mergedDecalsIds.includes(mesh.id)) {
+				return {
+					lodMeshes,
+					effectiveMaterials,
+				};
+			}
+
 			return {
 				mesh,
 				lodMeshes,
@@ -132,16 +156,16 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 	);
 
 	meshesResult.forEach((result) => {
-		if (result) {
+		if (result?.mesh) {
 			meshes.push(result.mesh);
+		}
 
-			result.lodMeshes.forEach((lodMesh) => {
-				meshes.push(lodMesh);
-			});
+		result?.lodMeshes.forEach((lodMesh) => {
+			meshes.push(lodMesh);
+		});
 
-			if (result.effectiveMaterials.length) {
-				materials.push(...result.effectiveMaterials);
-			}
+		if (result?.effectiveMaterials.length) {
+			materials.push(...result.effectiveMaterials);
 		}
 	});
 
@@ -623,5 +647,10 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 	const usedFiles = await collectUsedAssetsForScene(scene, options.publicDir);
 	usedFiles.push(`${options.sceneName}.babylon`);
 
-	return usedFiles;
+	const geometryFiles = usedFiles.filter((file) => extname(file).toLowerCase() === ".babylonbinarymeshdata").map((file) => basename(file));
+
+	return {
+		usedFiles,
+		geometryFiles,
+	};
 }

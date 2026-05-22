@@ -5,7 +5,8 @@ import { pathExists } from "fs-extra";
 import { supportedExtensions } from "./process.mjs";
 import { allKtxFormats, getCompressedTextureFilename, ktxSupportedextensions } from "./ktx.mjs";
 
-const collectedSupportedExtensions: string[] = [...supportedExtensions, ".babylonbinarymeshdata"];
+const binaryGeometryExtension = ".babylonbinarymeshdata";
+const collectedSupportedExtensions: string[] = [...supportedExtensions, binaryGeometryExtension];
 
 export async function collectUsedAssetsForScene(scene: any, publicDir: string) {
 	const result: string[] = [];
@@ -25,7 +26,11 @@ export async function collectUsedAssetsForScene(scene: any, publicDir: string) {
 					stringValues.push(value);
 				}
 			} else if (typeof value === "object") {
-				recursivelyCollect(value);
+				if (Array.isArray(value)) {
+					value.forEach((v) => recursivelyCollect(v));
+				} else {
+					recursivelyCollect(value);
+				}
 			}
 		}
 	}
@@ -34,11 +39,15 @@ export async function collectUsedAssetsForScene(scene: any, publicDir: string) {
 
 	await Promise.all(
 		stringValues.map(async (value) => {
+			const extension = extname(value).toLowerCase();
+			if (extension === binaryGeometryExtension) {
+				return result.push(value);
+			}
+
 			const absolutePath = join(publicDir, value);
 			if (await pathExists(absolutePath)) {
 				result.push(value);
 
-				const extension = extname(value).toLowerCase();
 				if (ktxSupportedextensions.includes(extension)) {
 					for (const format of allKtxFormats) {
 						const compressedTexturePath = join(publicDir, getCompressedTextureFilename(value, format));

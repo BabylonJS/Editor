@@ -161,7 +161,7 @@ export async function pack(projectDir: string, options: IPackOptions) {
 			message: `Packing scene ${sceneName}...`,
 		});
 
-		const sceneUsedFiles = await createBabylonScene({
+		const sceneFiles = await createBabylonScene({
 			...options,
 			...projectConfiguration,
 			config,
@@ -173,7 +173,7 @@ export async function pack(projectDir: string, options: IPackOptions) {
 			babylonjsEditorToolsVersion,
 		});
 
-		scenesUsedFiles[`${sceneName}.scene`] = sceneUsedFiles.map((asset) => asset.replace(publicDir + "/", ""));
+		scenesUsedFiles[`${sceneName}.scene`] = sceneFiles.usedFiles.map((asset) => asset.replace(publicDir + "/", ""));
 
 		options.onStepChanged?.("scenes", {
 			message: `Packing scene ${sceneName} geometries...`,
@@ -181,6 +181,7 @@ export async function pack(projectDir: string, options: IPackOptions) {
 
 		// Copy geometry files
 		await createGeometryFiles({
+			...sceneFiles,
 			directories,
 			publicDir,
 			sceneFile,
