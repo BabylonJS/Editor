@@ -1,5 +1,5 @@
 import { join, basename } from "path/posix";
-import { readJSON, remove, stat, writeFile, writeJSON } from "fs-extra";
+import { pathExists, readJSON, remove, stat, writeFile, writeJSON } from "fs-extra";
 
 import filenamify from "filenamify";
 
@@ -33,6 +33,7 @@ import { iblShadowsRenderingPipelineCameraConfigurations } from "../../editor/re
 import { writeBinaryGeometry } from "../tools/geometry";
 import { writeBinaryMorphTarget } from "../tools/morph-target";
 
+import { saveMergedDecals } from "./decals";
 import { showSaveSceneProgressDialog } from "./dialog";
 
 export function ensureSceneFolders(scenePath: string) {
@@ -790,6 +791,20 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 	} finally {
 		savedFiles.push(configPath);
 	}
+
+	// Don't remove attributes if exist
+	const attributesPath = join(scenePath, "attributes.json");
+	if (await pathExists(attributesPath)) {
+		savedFiles.push(attributesPath);
+	}
+
+	// Merge all decals
+	dialog.setName("Merging decals");
+	await saveMergedDecals(editor, {
+		scenePath,
+		savedFiles,
+		relativeScenePath,
+	});
 
 	// Remove old files
 	const files = await normalizedGlob(join(scenePath, "/**"), {
