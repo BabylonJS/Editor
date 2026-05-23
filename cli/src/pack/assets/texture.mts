@@ -12,6 +12,11 @@ export function getExtractedTextureOutputPath(publicDir: string) {
 	return join(publicDir, "assets", "editor-generated_extracted-textures");
 }
 
+export type DownscaledTextureSize = {
+	width: number;
+	height: number;
+};
+
 export interface IComputeExportedTextureOptions extends IProcessAssetFileOptions {
 	force: boolean;
 	exportedAssets: string[];
@@ -31,12 +36,7 @@ export async function processExportedTexture(absolutePath: string, options: ICom
 
 	const isPowerOfTwo = width === getPowerOfTwoUntil(width) || height === getPowerOfTwoUntil(height);
 
-	type _DownscaledTextureSize = {
-		width: number;
-		height: number;
-	};
-
-	const availableSizes: _DownscaledTextureSize[] = [];
+	const availableSizes: DownscaledTextureSize[] = [];
 
 	let midWidth = (width * 0.66) >> 0;
 	let midHeight = (height * 0.66) >> 0;
