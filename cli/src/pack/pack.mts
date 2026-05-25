@@ -2,6 +2,7 @@ import fs, { pathExists } from "fs-extra";
 import { basename, extname, join } from "node:path/posix";
 
 import ora from "ora";
+import chalk from "chalk";
 import cliSpinners from "cli-spinners";
 
 import { CancellationToken } from "../tools/cancel.mjs";
@@ -113,6 +114,8 @@ export async function pack(projectDir: string, options: IPackOptions) {
 	}
 
 	// Pack scenes
+	let totalReusedGeometriesCount = 0;
+
 	const scenesUsedFiles: Record<string, string[]> = {};
 
 	const sceneFiles = await normalizedGlob(`${assetsDirectory}/**/*`, {
@@ -173,6 +176,8 @@ export async function pack(projectDir: string, options: IPackOptions) {
 			babylonjsEditorToolsVersion,
 		});
 
+		totalReusedGeometriesCount += sceneFiles.reusedGeometriesCount;
+
 		scenesUsedFiles[`${sceneName}.scene`] = sceneFiles.usedFiles.map((asset) => asset.replace(publicDir + "/", ""));
 
 		options.onStepChanged?.("scenes", {
@@ -230,7 +235,7 @@ export async function pack(projectDir: string, options: IPackOptions) {
 			exportedAssets.map((asset) => asset.replace(publicDir + "/", "")),
 			{
 				spaces: "\t",
-				encoding: "utf-8",
+				// encoding: "utf-8",
 			}
 		);
 
@@ -239,7 +244,7 @@ export async function pack(projectDir: string, options: IPackOptions) {
 		const scenesUsedFilesPath = join(publicDir, "scenes-used-files.json");
 		await fs.writeJSON(scenesUsedFilesPath, scenesUsedFiles, {
 			spaces: "\t",
-			encoding: "utf-8",
+			// encoding: "utf-8",
 		});
 
 		exportedAssets.push(scenesUsedFilesPath);
@@ -255,6 +260,11 @@ export async function pack(projectDir: string, options: IPackOptions) {
 					fs.remove(file);
 				}
 			});
+		}
+
+		// Performance
+		if (totalReusedGeometriesCount > 0) {
+			console.log(chalk.green(`Total reused geometries: ${totalReusedGeometriesCount}`));
 		}
 	}
 }
