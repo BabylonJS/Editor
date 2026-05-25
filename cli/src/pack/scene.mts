@@ -2,12 +2,13 @@ import { join, basename, extname } from "node:path/posix";
 
 import fs, { pathExists } from "fs-extra";
 
+import { isSameArray } from "../tools/array.mjs";
 import { readSceneDirectories } from "../tools/scene.mjs";
 
 import { compressFileToKtx } from "./assets/ktx.mjs";
-import { collectUsedAssetsForScene } from "./assets/collect.mjs";
 import { extractNodeMaterialTextures } from "./assets/material.mjs";
 import { getExtractedTextureOutputPath } from "./assets/texture.mjs";
+import { collectUsedAssetsForScene, traverseAndReplaceInSceneObject } from "./assets/collect.mjs";
 import { extractNodeParticleSystemSetTextures, extractParticleSystemTextures } from "./assets/particle-system.mjs";
 
 export interface ICreateBabylonSceneOptions {
@@ -611,6 +612,61 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 		scene.environmentTexture = scene.environmentTexture.name;
 	}
 
+	// Manage usedfiles
+	const usedFiles = await collectUsedAssetsForScene(scene, options.publicDir);
+	usedFiles.push(`${options.sceneName}.babylon`);
+
+	const geometryFiles = usedFiles.filter((file) => extname(file).toLowerCase() === ".babylonbinarymeshdata").map((file) => basename(file));
+
+	// Reuse geometries with same data
+	const geometries = await Promise.all(
+		geometryFiles.map(async (file) => {
+			const data = await fs.readFile(join(options.sceneFile, "geometries", file));
+			return {
+				file,
+				data,
+			};
+		})
+	);
+
+	const sameArrays: Record<string, string[]> = {};
+
+	for (let i = 0, iLen = geometries.length; i < iLen; ++i) {
+		for (let j = i + 1, jLen = geometries.length; j < jLen; ++j) {
+			if (isSameArray<ArrayBufferLike>(geometries[i].data, geometries[j].data)) {
+				if (!sameArrays[geometries[i].file]) {
+					sameArrays[geometries[i].file] = [];
+				}
+
+				sameArrays[geometries[i].file].push(join(options.sceneName, geometries[j].file));
+			}
+		}
+	}
+
+	let reusedGeometriesCount = 0;
+
+	for (const sourceGeometryId of Object.keys(sameArrays)) {
+		const otherGeometries = sameArrays[sourceGeometryId];
+
+		traverseAndReplaceInSceneObject(scene, (_, value) => {
+			if (otherGeometries.includes(value)) {
+				const usedFilesIndex = usedFiles.indexOf(value);
+				if (usedFilesIndex !== -1) {
+					usedFiles.splice(usedFilesIndex, 1);
+				}
+
+				const geometryFilesIndex = geometryFiles.indexOf(basename(value));
+				if (geometryFilesIndex !== -1) {
+					geometryFiles.splice(geometryFilesIndex, 1);
+				}
+
+				++reusedGeometriesCount;
+
+				return join(options.sceneName, sourceGeometryId);
+			}
+		});
+	}
+
 	// Write final scene file.
 	const destination = join(options.publicDir, `${options.sceneName}.babylon`);
 	await fs.writeJSON(destination, scene, {
@@ -644,13 +700,9 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 		options.exportedAssets.push(manifestDestination);
 	}
 
-	const usedFiles = await collectUsedAssetsForScene(scene, options.publicDir);
-	usedFiles.push(`${options.sceneName}.babylon`);
-
-	const geometryFiles = usedFiles.filter((file) => extname(file).toLowerCase() === ".babylonbinarymeshdata").map((file) => basename(file));
-
 	return {
 		usedFiles,
 		geometryFiles,
+		reusedGeometriesCount,
 	};
 }

@@ -13,6 +13,36 @@ import { allKtxFormats, getCompressedTextureFilename, ktxSupportedextensions } f
 const binaryGeometryExtension = ".babylonbinarymeshdata";
 const collectedSupportedExtensions: string[] = [...supportedExtensions, binaryGeometryExtension];
 
+export function traverseAndReplaceInSceneObject(scene: any, callback: (key: string, value: string) => string | undefined) {
+	function recursivelyCollect(root: any) {
+		for (const thing in root) {
+			if (!root.hasOwnProperty(thing)) {
+				continue;
+			}
+
+			const value = root[thing];
+
+			if (typeof value === "string") {
+				const extension = extname(value).toLowerCase();
+				if (extension && collectedSupportedExtensions.includes(extension)) {
+					const newValue = callback(thing, value);
+					if (newValue !== undefined) {
+						root[thing] = newValue;
+					}
+				}
+			} else if (typeof value === "object") {
+				if (Array.isArray(value)) {
+					value.forEach((v) => recursivelyCollect(v));
+				} else {
+					recursivelyCollect(value);
+				}
+			}
+		}
+	}
+
+	recursivelyCollect(scene);
+}
+
 async function _checkKtxSupportForTexture(value: string, publicDir: string, result: string[]) {
 	for (const format of allKtxFormats) {
 		const compressedTexturePath = join(publicDir, getCompressedTextureFilename(value, format));
