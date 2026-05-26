@@ -12,6 +12,7 @@ import { collectUsedAssetsForScene, traverseAndReplaceInSceneObject } from "./as
 import { extractNodeParticleSystemSetTextures, extractParticleSystemTextures } from "./assets/particle-system.mjs";
 
 export interface ICreateBabylonSceneOptions {
+	buildTime: number;
 	sceneFile: string;
 	sceneName: string;
 	publicDir: string;
@@ -681,16 +682,15 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 		const manifestDestination = join(options.publicDir, `${options.sceneName}.babylon.manifest`);
 
 		let manifest = {
-			version: 0,
+			version: options.buildTime,
 			enableSceneOffline: true,
 			enableTexturesOffline: true,
 		};
 
 		if (await fs.pathExists(manifestDestination)) {
 			manifest = await fs.readJSON(manifestDestination);
+			manifest.version = options.buildTime;
 		}
-
-		++manifest.version;
 
 		await fs.writeJSON(manifestDestination, manifest, {
 			encoding: "utf-8",
