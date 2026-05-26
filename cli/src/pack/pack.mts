@@ -34,6 +34,8 @@ export interface IPackOptions {
 export async function pack(projectDir: string, options: IPackOptions) {
 	projectDir = getProjectDir(projectDir);
 
+	const buildTime = Date.now();
+
 	// Load project configuration
 	const projectFiles = await fs.readdir(projectDir);
 	const projectConfigurationFile = projectFiles.find((file) => extname(file).toLowerCase() === ".bjseditor");
@@ -172,6 +174,7 @@ export async function pack(projectDir: string, options: IPackOptions) {
 			publicDir,
 			sceneFile,
 			sceneName,
+			buildTime,
 			exportedAssets,
 			babylonjsEditorToolsVersion,
 		});
