@@ -1,7 +1,9 @@
 import { Scene } from "@babylonjs/core/scene";
 import { AssetContainer } from "@babylonjs/core/assetContainer";
 import { SceneComponentConstants } from "@babylonjs/core/sceneComponent";
+import { ShadowGenerator } from "@babylonjs/core/Lights/Shadows/shadowGenerator";
 import { GetParser, AddParser } from "@babylonjs/core/Loading/Plugins/babylonFileParser.function";
+import { RegisterShadowGeneratorSceneComponent } from "@babylonjs/core/Lights/Shadows/shadowGeneratorSceneComponent.pure";
 
 import { getPowerOfTwoUntil } from "../tools/scalar";
 
@@ -13,6 +15,8 @@ export function registerShadowGeneratorParser() {
 	}
 
 	registered = true;
+
+	RegisterShadowGeneratorSceneComponent(ShadowGenerator);
 
 	const shadowsGeneratorParser = GetParser(SceneComponentConstants.NAME_SHADOWGENERATOR);
 
