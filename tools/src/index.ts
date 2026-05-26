@@ -16,6 +16,7 @@ export * from "./tools/sound";
 export * from "./tools/particle";
 export * from "./tools/ragdoll";
 export * from "./tools/mesh";
+export * from "./tools/node";
 
 export * from "./rendering/vls";
 export * from "./rendering/ssr";
