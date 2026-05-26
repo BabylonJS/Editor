@@ -130,7 +130,6 @@ export class EditorPreviewAxisHelper extends Component<IEditorPreviewAxisHelperP
 		this._createNegativeAlphaSphere(dummy, new Vector3(0, -0.25, 0));
 		this._createNegativeAlphaSphere(dummy, new Vector3(0, 0, -0.25));
 
-		const absoluteSize = 164 * devicePixelRatio;
 		const engine = this.props.editor.layout.preview.engine!;
 
 		this.scene.onBeforeRenderObservable.add(() => {
@@ -139,15 +138,16 @@ export class EditorPreviewAxisHelper extends Component<IEditorPreviewAxisHelperP
 				dummy.rotationQuaternion!.copyFrom(activeCamera.absoluteRotation.invert());
 			}
 
+			const absoluteSize = 164 * (1 / engine.getHardwareScalingLevel());
 			const width = absoluteSize / engine.getRenderWidth();
 			const height = absoluteSize / engine.getRenderHeight();
 
 			camera.viewport = new Viewport(1 - width, 0, width, height);
 
 			this.setState({
-				xLabelPosition: projectVectorOnScreen(xSphere.computeWorldMatrix(true).getTranslation(), this.scene!),
-				yLabelPosition: projectVectorOnScreen(ySphere.computeWorldMatrix(true).getTranslation(), this.scene!),
-				zLabelPosition: projectVectorOnScreen(zSphere.computeWorldMatrix(true).getTranslation(), this.scene!),
+				xLabelPosition: projectVectorOnScreen(xSphere.getAbsolutePosition(), this.scene!),
+				yLabelPosition: projectVectorOnScreen(ySphere.getAbsolutePosition(), this.scene!),
+				zLabelPosition: projectVectorOnScreen(zSphere.getAbsolutePosition(), this.scene!),
 			});
 
 			this._checkAxisUnderPointer();

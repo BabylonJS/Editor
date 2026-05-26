@@ -999,7 +999,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 							</Button>
 						</DropdownMenuTrigger>
 						<DropdownMenuContent onClick={() => this.forceUpdate()}>
-							<DropdownMenuLabel>Render options</DropdownMenuLabel>
+							<DropdownMenuLabel className="text-center text-lg">Options</DropdownMenuLabel>
 							<DropdownMenuSeparator />
 							<DropdownMenuItem className="flex gap-2 items-center" onClick={() => (this.axis.enabled ? this.axis.stop() : this.axis.start())}>
 								{this.axis?.enabled && <FaCheck className="w-4 h-4" />} Axis Helper
@@ -1030,7 +1030,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 								{this.scene?.particlesEnabled && <FaCheck className="w-4 h-4" />} Particles enabled
 							</DropdownMenuItem>
 							<DropdownMenuSeparator />
-							<DropdownMenuLabel>Renderer dimensions</DropdownMenuLabel>
+							<DropdownMenuLabel className="text-center text-lg">Dimensions</DropdownMenuLabel>
 							<DropdownMenuSeparator />
 							<DropdownMenuItem className="flex gap-2 items-center" onClick={() => this.setFixedDimensions("720p")}>
 								{this.state.fixedDimensions === "720p" && <FaCheck className="w-4 h-4" />} 720p
@@ -1043,6 +1043,22 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 							</DropdownMenuItem>
 							<DropdownMenuItem className="flex gap-2 items-center" onClick={() => this.setFixedDimensions("fit")}>
 								{this.state.fixedDimensions === "fit" && <FaCheck className="w-4 h-4" />} Fit
+							</DropdownMenuItem>
+							<DropdownMenuSeparator />
+							<DropdownMenuLabel className="text-center text-lg">Scaling</DropdownMenuLabel>
+							<DropdownMenuSeparator />
+							<DropdownMenuItem className="flex gap-2 items-center" onClick={() => this.engine?.setHardwareScalingLevel(2)}>
+								{this.engine?.getHardwareScalingLevel() === 2 && <FaCheck className="w-4 h-4" />} 50%
+							</DropdownMenuItem>
+							<DropdownMenuItem className="flex gap-2 items-center" onClick={() => this.engine?.setHardwareScalingLevel(1)}>
+								{this.engine?.getHardwareScalingLevel() === 1 && <FaCheck className="w-4 h-4" />} 100%
+							</DropdownMenuItem>
+							<DropdownMenuItem className="flex gap-2 items-center" onClick={() => this.engine?.setHardwareScalingLevel(0.5)}>
+								{this.engine?.getHardwareScalingLevel() === 0.5 && <FaCheck className="w-4 h-4" />} 200%
+							</DropdownMenuItem>
+							<DropdownMenuItem className="flex gap-2 items-center" onClick={() => this.engine?.setHardwareScalingLevel(1 / devicePixelRatio)}>
+								{this.engine?.getHardwareScalingLevel() === 1 / devicePixelRatio && <FaCheck className="w-4 h-4" />} Default ({(devicePixelRatio * 100).toFixed(0)}
+								%)
 							</DropdownMenuItem>
 						</DropdownMenuContent>
 					</DropdownMenu>

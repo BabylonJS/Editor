@@ -3,7 +3,7 @@ import { Component, ReactNode } from "react";
 import { HiSpeakerWave } from "react-icons/hi2";
 import { FaCamera, FaLightbulb } from "react-icons/fa";
 
-import { Mesh, Node, Scene, Vector3, Ray } from "babylonjs";
+import { Mesh, Node, Scene, Vector3, Ray, Camera, Observer } from "babylonjs";
 
 import { Editor } from "../../main";
 
@@ -31,6 +31,8 @@ export class EditorPreviewIcons extends Component<IEditorPreviewIconsProps, IEdi
 
 	private _iconsRefs: (HTMLDivElement | null)[] = [];
 
+	private _cameraViewMatrixObserver: Observer<Camera> | null = null;
+
 	public constructor(props: IEditorPreviewIconsProps) {
 		super(props);
 
@@ -49,6 +51,7 @@ export class EditorPreviewIcons extends Component<IEditorPreviewIconsProps, IEdi
 							if (ref) {
 								setTimeout(() => {
 									ref.style.opacity = "1";
+									this._configureDivStyle(ref, data.absolutePosition, this.props.editor.layout.preview.scene);
 								}, 0);
 							}
 							this._iconsRefs[index] = ref;
@@ -103,9 +106,23 @@ export class EditorPreviewIcons extends Component<IEditorPreviewIconsProps, IEdi
 		let lastTime = 0;
 		let buttons: _IButtonData[] = [];
 
+		let cameraDirty = true;
+		let camera: Camera | null = null;
+
 		scene.getEngine().runRenderLoop(
 			(this._renderFunction = () => {
 				if (!this.props.editor.layout.preview.renderScene) {
+					return;
+				}
+
+				if (scene.activeCamera && camera !== scene.activeCamera) {
+					camera = scene.activeCamera;
+
+					this._cameraViewMatrixObserver?.remove();
+					this._cameraViewMatrixObserver = camera.onViewMatrixChangedObservable.add(() => (cameraDirty = true));
+				}
+
+				if (!cameraDirty) {
 					return;
 				}
 
@@ -115,6 +132,10 @@ export class EditorPreviewIcons extends Component<IEditorPreviewIconsProps, IEdi
 				if (shouldUpdate) {
 					buttons = [];
 					lastTime = 0;
+
+					if (camera) {
+						cameraDirty = false;
+					}
 
 					// Collect data
 					scene.lights.forEach((light) => {
@@ -150,18 +171,20 @@ export class EditorPreviewIcons extends Component<IEditorPreviewIconsProps, IEdi
 
 				buttons.forEach((data, index) => {
 					const divRef = this._iconsRefs[index];
-					if (!divRef) {
-						return;
+					if (divRef) {
+						this._configureDivStyle(divRef, data.absolutePosition, scene);
 					}
-
-					divRef.style.display = this._isInFrustrum(data.absolutePosition, scene, false) ? "block" : "none";
-
-					const pos2d = projectVectorOnScreen(data.absolutePosition, scene);
-					divRef.style.top = `${pos2d.y}px`;
-					divRef.style.left = `${pos2d.x}px`;
 				});
 			})
 		);
+	}
+
+	private _configureDivStyle(divRef: HTMLDivElement, absolutePosition: Vector3, scene: Scene): void {
+		divRef.style.display = this._isInFrustrum(absolutePosition, scene, false) ? "block" : "none";
+
+		const pos2d = projectVectorOnScreen(absolutePosition, scene);
+		divRef.style.top = `${pos2d.y}px`;
+		divRef.style.left = `${pos2d.x}px`;
 	}
 
 	private _onNodeClicked(node: Node, shiftKey: boolean): void {
@@ -215,6 +238,9 @@ export class EditorPreviewIcons extends Component<IEditorPreviewIconsProps, IEdi
 		if (this._renderFunction) {
 			this.props.editor.layout.preview.engine.stopRenderLoop(this._renderFunction);
 		}
+
+		this._cameraViewMatrixObserver?.remove();
+		this._cameraViewMatrixObserver = null;
 
 		this._renderFunction = null;
 
