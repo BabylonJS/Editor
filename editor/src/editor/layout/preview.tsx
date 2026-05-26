@@ -303,6 +303,10 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		this._renderScene = render;
 	}
 
+	public get renderScene(): boolean {
+		return this._renderScene;
+	}
+
 	/**
 	 * Resizes the engine.
 	 */
@@ -770,7 +774,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		}
 	}
 
-	private _decalMeshPredicate(m: AbstractMesh): boolean {
+	public _pickingDecalMeshPredicate(m: AbstractMesh): boolean {
 		if (!m.isVisible || !m.isEnabled() || !m.metadata?.decal) {
 			return false;
 		}
@@ -782,13 +786,13 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		return true;
 	}
 
-	private _meshPredicate(m: AbstractMesh): boolean {
+	public _pickingMeshPredicate(m: AbstractMesh): boolean {
 		return !m._masterMesh && !isCollisionMesh(m) && !isCollisionInstancedMesh(m) && m.isVisible && m.isEnabled();
 	}
 
 	private _getPickingInfo(x: number, y: number): PickingInfo {
-		const decalPick = this.scene.pick(x, y, (m) => this._decalMeshPredicate(m), false);
-		const meshPick = this.scene.pick(x, y, (m) => this._meshPredicate(m), false);
+		const decalPick = this.scene.pick(x, y, (m) => this._pickingDecalMeshPredicate(m), false);
+		const meshPick = this.scene.pick(x, y, (m) => this._pickingMeshPredicate(m), false);
 		const spritePick = this.scene.pickSprite(x, y, (s) => isSprite(s), false);
 
 		this._lastPickedDecal = null;
