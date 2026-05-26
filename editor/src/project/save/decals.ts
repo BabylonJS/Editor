@@ -54,6 +54,10 @@ export async function saveMergedDecals(editor: Editor, options: ISavedMergedDeca
 				mergedMesh.material = array[0].material;
 				mergedMesh.isPickable = false;
 				mergedMesh.receiveShadows = true;
+				mergedMesh.metadata = {
+					decal: {},
+					isStaticGroup: true,
+				};
 
 				const data = await SceneSerializer.SerializeMesh(mergedMesh, false, false);
 
