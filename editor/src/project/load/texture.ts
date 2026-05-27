@@ -1,5 +1,6 @@
 import { pathExistsSync } from "fs-extra";
-import { join, dirname, extname, resolve } from "path/posix";
+import { resolve as nativeResolve } from "path";
+import { join, dirname, extname } from "path/posix";
 
 import { Engine, Scene, SerializationHelper, BaseTexture } from "babylonjs";
 
@@ -26,7 +27,7 @@ function textureParser(editor: Editor, source: any, scene: Scene, rootUrl: strin
 		// Re-write rootUrl to exclude public/scene in order to
 		// reuse already loaded textures and save video memory.
 		if (!source.url?.includes("assets/editor-generated_extracted-textures")) {
-			rootUrl = join(resolve(rootUrl, "../../"), "/");
+			rootUrl = join(nativeResolve(rootUrl, "../../").replace(/\\/g, "/"), "/");
 		}
 	}
 
