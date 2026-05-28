@@ -61,6 +61,8 @@ export class Database implements IOfflineProvider {
 	private _database: IDBDatabase | null = null;
 	private _manifestVersion: number | null = null;
 
+	private _loadFilePromises: Map<string, Promise<any>> = new Map();
+
 	public constructor(name: string, urlToScene: string, callbackManifestChecked: (checked: boolean) => any, disableManifestCheck: boolean) {
 		this.name = name;
 
@@ -107,6 +109,8 @@ export class Database implements IOfflineProvider {
 	public close(): void {
 		this._database?.close();
 		this._database = null;
+
+		this._loadFilePromises.clear();
 	}
 
 	/**
@@ -124,27 +128,45 @@ export class Database implements IOfflineProvider {
 
 		await waitUntil(() => this._manifestVersion !== null);
 
-		const version = await this._getFileVersionForUrl(url);
-		if (version !== this._manifestVersion) {
-			data = await loadFile(url, "blob");
-
-			await Promise.all([
-				putInIndexDB<_IFilesObjectStore>(this._database, "images", { url, data }),
-				putInIndexDB<_IVersionObjectStore>(this._database, "versions", {
-					url,
-					version: this._manifestVersion!,
-				}),
-			]);
-		} else {
-			data = (await getFromIndexDB<_IFilesObjectStore>(this._database, "images", url))?.data ?? null;
+		const existingLoadingPromise = this._loadFilePromises.get(url);
+		if (existingLoadingPromise) {
+			return existingLoadingPromise.then((data) => {
+				if (data !== null) {
+					const objectUrl = URL.createObjectURL(data);
+					image.src = objectUrl;
+				} else {
+					image.src = url;
+				}
+			});
 		}
 
-		if (data !== null) {
-			const objectUrl = URL.createObjectURL(data);
-			image.src = objectUrl;
-		} else {
-			image.src = url;
-		}
+		const loadingPromise = new Promise<string>(async (resolve) => {
+			const version = await this._getFileVersionForUrl(url);
+			if (version !== this._manifestVersion) {
+				data = await loadFile(url, "blob");
+
+				await Promise.all([
+					putInIndexDB<_IFilesObjectStore>(this._database!, "images", { url, data }),
+					putInIndexDB<_IVersionObjectStore>(this._database!, "versions", {
+						url,
+						version: this._manifestVersion!,
+					}),
+				]);
+			} else {
+				data = (await getFromIndexDB<_IFilesObjectStore>(this._database!, "images", url))?.data ?? null;
+			}
+
+			if (data !== null) {
+				const objectUrl = URL.createObjectURL(data);
+				image.src = objectUrl;
+			} else {
+				image.src = url;
+			}
+
+			resolve(image.src);
+		});
+
+		this._loadFilePromises.set(url, loadingPromise);
 	}
 
 	public async saveImage(url: string): Promise<void> {
@@ -195,26 +217,43 @@ export class Database implements IOfflineProvider {
 
 		await waitUntil(() => this._manifestVersion !== null);
 
-		const version = await this._getFileVersionForUrl(url);
-		if (version !== this._manifestVersion) {
-			data = await loadFile(url, useArrayBuffer ? "arraybuffer" : "text", progressCallBack);
-
-			await Promise.all([
-				putInIndexDB<_IFilesObjectStore>(this._database, "files", { url, data }),
-				putInIndexDB<_IVersionObjectStore>(this._database, "versions", {
-					url,
-					version: this._manifestVersion!,
-				}),
-			]);
-		} else {
-			data = (await getFromIndexDB<_IFilesObjectStore>(this._database, "files", url))?.data ?? null;
+		const existingLoadingPromise = this._loadFilePromises.get(url);
+		if (existingLoadingPromise) {
+			return existingLoadingPromise.then((data) => {
+				if (data !== null) {
+					sceneLoaded(data);
+				} else {
+					errorCallback?.();
+				}
+			});
 		}
 
-		if (data !== null) {
-			sceneLoaded(data);
-		} else {
-			errorCallback?.();
-		}
+		const loadingPromise = new Promise<any>(async (resolve) => {
+			const version = await this._getFileVersionForUrl(url);
+			if (version !== this._manifestVersion) {
+				data = await loadFile(url, useArrayBuffer ? "arraybuffer" : "text", progressCallBack);
+
+				await Promise.all([
+					putInIndexDB<_IFilesObjectStore>(this._database!, "files", { url, data }),
+					putInIndexDB<_IVersionObjectStore>(this._database!, "versions", {
+						url,
+						version: this._manifestVersion!,
+					}),
+				]);
+			} else {
+				data = (await getFromIndexDB<_IFilesObjectStore>(this._database!, "files", url))?.data ?? null;
+			}
+
+			if (data !== null) {
+				sceneLoaded(data);
+			} else {
+				errorCallback?.();
+			}
+
+			resolve(data);
+		});
+
+		this._loadFilePromises.set(url, loadingPromise);
 	}
 
 	public async saveFile(url: string, useArrayBuffer: boolean, progress?: (data: ILoadFileProgressEvent) => void): Promise<void> {
