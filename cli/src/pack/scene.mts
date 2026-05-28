@@ -1,4 +1,4 @@
-import { join, basename, extname } from "node:path/posix";
+import { join, basename } from "node:path/posix";
 
 import fs, { pathExists } from "fs-extra";
 
@@ -6,10 +6,12 @@ import { isSameArray } from "../tools/array.mjs";
 import { readSceneDirectories } from "../tools/scene.mjs";
 
 import { compressFileToKtx } from "./assets/ktx.mjs";
+import { collectUsedAssetsForScene } from "./assets/collect.mjs";
 import { extractNodeMaterialTextures } from "./assets/material.mjs";
 import { getExtractedTextureOutputPath } from "./assets/texture.mjs";
-import { collectUsedAssetsForScene, traverseAndReplaceInSceneObject } from "./assets/collect.mjs";
 import { extractNodeParticleSystemSetTextures, extractParticleSystemTextures } from "./assets/particle-system.mjs";
+
+import { configureMeshBinaryInfo } from "./geometry.mjs";
 
 export interface ICreateBabylonSceneOptions {
 	buildTime: number;
@@ -37,6 +39,16 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 	const shadowGenerators: any[] = [];
 	const morphTargetManagers: any[] = [];
 
+	let geometriesOffset = 0;
+	let geometriesPath: string | null = null;
+
+	interface _ICollectedGeometry {
+		mesh: any;
+		buffer: Buffer;
+	}
+
+	const collectedGeometries: _ICollectedGeometry[] = [];
+
 	// Merged decals
 	let mergedDecalsIds: any[] = [];
 
@@ -46,10 +58,21 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 			encoding: "utf-8",
 		});
 
-		mergedDecals.forEach((mesh) => {
-			mesh.delayLoadingFile = join(options.sceneName, basename(mesh.delayLoadingFile));
-			meshes.push(mesh);
-		});
+		await Promise.all(
+			mergedDecals.map(async (mesh) => {
+				if (mesh.delayLoadingFile) {
+					collectedGeometries.push({
+						mesh,
+						buffer: await fs.readFile(join(options.sceneFile, "geometries", basename(mesh.delayLoadingFile))),
+					});
+
+					geometriesPath ??= join(options.sceneName, basename(mesh.delayLoadingFile));
+					mesh.delayLoadingFile = geometriesPath;
+				}
+
+				meshes.push(mesh);
+			})
+		);
 
 		mergedDecalsIds = mergedDecals.map((m) => m.metadata?.mergedMeshesIds ?? []).flat();
 	}
@@ -65,7 +88,13 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 			}
 
 			if (mesh.delayLoadingFile) {
-				mesh.delayLoadingFile = join(options.sceneName, basename(mesh.delayLoadingFile));
+				collectedGeometries.push({
+					mesh,
+					buffer: await fs.readFile(join(options.sceneFile, "geometries", basename(mesh.delayLoadingFile))),
+				});
+
+				geometriesPath ??= join(options.sceneName, basename(mesh.delayLoadingFile));
+				mesh.delayLoadingFile = geometriesPath;
 			}
 
 			if (mesh.metadata?.parentId) {
@@ -120,7 +149,13 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 						const lodMesh = lodData.meshes[0];
 
 						if (lodMesh.delayLoadingFile) {
-							lodMesh.delayLoadingFile = join(options.sceneName, basename(lodMesh.delayLoadingFile));
+							collectedGeometries.push({
+								mesh: lodMesh,
+								buffer: await fs.readFile(join(options.sceneFile, "geometries", basename(lodMesh.delayLoadingFile))),
+							});
+
+							geometriesPath ??= join(options.sceneName, basename(lodMesh.delayLoadingFile));
+							lodMesh.delayLoadingFile = geometriesPath;
 						}
 
 						if (data.basePoseMatrix) {
@@ -617,65 +652,80 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 	const usedFiles = await collectUsedAssetsForScene(scene, options.publicDir);
 	usedFiles.push(`${options.sceneName}.babylon`);
 
-	const geometryFiles = usedFiles.filter((file) => extname(file).toLowerCase() === ".babylonbinarymeshdata").map((file) => basename(file));
+	const sameArrays = new Map<Buffer, any[]>();
 
-	// Reuse geometries with same data
-	const geometries = await Promise.all(
-		geometryFiles.map(async (file) => {
-			const data = await fs.readFile(join(options.sceneFile, "geometries", file));
-			return {
-				file,
-				data,
-			};
-		})
-	);
+	for (let i = 0, iLen = collectedGeometries.length; i < iLen; ++i) {
+		const a = collectedGeometries[i];
 
-	const sameArrays: Record<string, string[]> = {};
+		for (let j = i + 1, jLen = collectedGeometries.length; j < jLen; ++j) {
+			const b = collectedGeometries[j];
 
-	for (let i = 0, iLen = geometries.length; i < iLen; ++i) {
-		for (let j = i + 1, jLen = geometries.length; j < jLen; ++j) {
-			if (isSameArray<ArrayBufferLike>(geometries[i].data, geometries[j].data)) {
-				if (!sameArrays[geometries[i].file]) {
-					sameArrays[geometries[i].file] = [];
+			if (isSameArray<ArrayBufferLike>(a.buffer, b.buffer)) {
+				// Search for existing mesh
+				let foundMesh = false;
+				for (const [, meshes] of sameArrays.entries()) {
+					if (meshes.includes(b.mesh)) {
+						foundMesh = true;
+						break;
+					}
 				}
 
-				sameArrays[geometries[i].file].push(join(options.sceneName, geometries[j].file));
+				if (foundMesh) {
+					continue;
+				}
+
+				if (!sameArrays.has(a.buffer)) {
+					sameArrays.set(a.buffer, [a.mesh]);
+				}
+
+				sameArrays.get(a.buffer)!.push(b.mesh);
 			}
 		}
 	}
 
+	const finalGeometryBuffers: Buffer[] = [];
+	for (const data of collectedGeometries) {
+		if (sameArrays.has(data.buffer)) {
+			continue;
+		}
+
+		finalGeometryBuffers.push(data.buffer);
+		geometriesOffset += configureMeshBinaryInfo(data.mesh, geometriesOffset);
+	}
+
 	let reusedGeometriesCount = 0;
 
-	for (const sourceGeometryId of Object.keys(sameArrays)) {
-		const otherGeometries = sameArrays[sourceGeometryId];
+	for (const [buffer, meshes] of sameArrays.entries()) {
+		finalGeometryBuffers.push(buffer);
+		reusedGeometriesCount += meshes.length;
 
-		traverseAndReplaceInSceneObject(scene, (_, value) => {
-			if (otherGeometries.includes(value)) {
-				const usedFilesIndex = usedFiles.indexOf(value);
-				if (usedFilesIndex !== -1) {
-					usedFiles.splice(usedFilesIndex, 1);
-				}
+		if (meshes.length > 0) {
+			geometriesOffset += configureMeshBinaryInfo(meshes[0], geometriesOffset);
 
-				const geometryFilesIndex = geometryFiles.indexOf(basename(value));
-				if (geometryFilesIndex !== -1) {
-					geometryFiles.splice(geometryFilesIndex, 1);
-				}
-
-				++reusedGeometriesCount;
-
-				return join(options.sceneName, sourceGeometryId);
+			const binaryInfo = meshes[0]._binaryInfo;
+			for (let i = 1, len = meshes.length; i < len; ++i) {
+				meshes[i]._binaryInfo = binaryInfo;
 			}
-		});
+		}
 	}
 
 	// Write final scene file.
-	const destination = join(options.publicDir, `${options.sceneName}.babylon`);
-	await fs.writeJSON(destination, scene, {
+	const sceneDestination = join(options.publicDir, `${options.sceneName}.babylon`);
+	await fs.writeJSON(sceneDestination, scene, {
 		encoding: "utf-8",
 		// spaces: "\t", // Useful for debug
 	});
 
-	options.exportedAssets.push(destination);
+	options.exportedAssets.push(sceneDestination);
+
+	// Write final geometry file
+	if (geometriesPath) {
+		const totalLength = finalGeometryBuffers.reduce((acc, buffer) => acc + buffer.length, 0);
+		const geometriesDestination = join(options.publicDir, options.sceneName, basename(geometriesPath));
+		await fs.writeFile(geometriesDestination, Buffer.concat(finalGeometryBuffers, totalLength));
+
+		options.exportedAssets.push(geometriesDestination);
+	}
 
 	// Write manifest
 	if (options.optimize) {
@@ -702,7 +752,6 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 
 	return {
 		usedFiles,
-		geometryFiles,
 		reusedGeometriesCount,
 	};
 }

@@ -189,7 +189,6 @@ export async function pack(projectDir: string, options: IPackOptions) {
 
 		// Copy geometry files
 		await createGeometryFiles({
-			...sceneFiles,
 			directories,
 			publicDir,
 			sceneFile,
