@@ -1,5 +1,7 @@
+import { dirname, join } from "path/posix";
+import { pathExists, remove, writeFile } from "fs-extra";
+
 import sharp from "sharp";
-import { pathExists, writeFile } from "fs-extra";
 
 import { toast } from "sonner";
 import { ReactNode } from "react";
@@ -10,7 +12,13 @@ import { ISize } from "babylonjs";
 
 import { IoResizeSharp } from "react-icons/io5";
 
+import { isTexture } from "../../../../tools/guards/texture";
+import { temporaryDirectoryName } from "../../../../tools/project";
 import { getPowerOfTwoUntil } from "../../../../tools/maths/scalar";
+import { checkProjectCachedCompressedTextures } from "../../../../tools/assets/ktx";
+
+import { getCompressedTextureFilename, KTXToolsType } from "../../../../project/export/ktx";
+import { getProjectAssetsRootUrl, projectConfiguration } from "../../../../project/configuration";
 
 import { SpinnerUIComponent } from "../../../../ui/spinner";
 import { ContextMenuItem, ContextMenuSeparator, ContextMenuSub, ContextMenuSubContent, ContextMenuSubTrigger } from "../../../../ui/shadcn/ui/context-menu";
@@ -154,6 +162,29 @@ export class AssetBrowserImageItem extends AssetsBrowserItem {
 
 				const buffer = await sharp(file).resize(width, height).toBuffer();
 				await writeFile(file, buffer);
+
+				try {
+					const relativePath = file.replace(getProjectAssetsRootUrl()!, "");
+					const supportedType = this.props.editor.layout.preview.engine.texturesSupported[0] as KTXToolsType;
+
+					if (supportedType) {
+						const projectDirectory = dirname(projectConfiguration.path!);
+						const texturesDirectory = join(projectDirectory, temporaryDirectoryName, "textures");
+
+						const absoluteTexturePath = join(getProjectAssetsRootUrl()!, relativePath);
+						this.props.editor.layout.preview.scene.textures.forEach((texture) => {
+							if (isTexture(texture) && texture.name === relativePath) {
+								texture.updateURL(absoluteTexturePath);
+							}
+						});
+
+						await remove(join(texturesDirectory, getCompressedTextureFilename(relativePath, supportedType)));
+
+						checkProjectCachedCompressedTextures(this.props.editor);
+					}
+				} catch (e) {
+					// Catch silently.
+				}
 			})
 		);
 
