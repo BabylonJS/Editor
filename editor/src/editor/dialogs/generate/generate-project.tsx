@@ -26,12 +26,18 @@ export interface IEditorGenerateProjectComponentState {
 export interface IEditorGenerateOptions {
 	optimize: boolean;
 	uploadToS3: boolean;
+
+	mergeDecals: boolean;
+	mergeGeometries: boolean;
 }
 
 export class EditorGenerateProjectComponent extends Component<IEditorGenerateProjectComponentProps, IEditorGenerateProjectComponentState> {
 	private _options: IEditorGenerateOptions = {
 		optimize: true,
 		uploadToS3: false,
+
+		mergeDecals: false,
+		mergeGeometries: false,
 	};
 
 	public constructor(props: IEditorGenerateProjectComponentProps) {

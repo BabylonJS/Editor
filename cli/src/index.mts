@@ -20,8 +20,11 @@ program
 	.command("pack")
 	.description("Packs the project located in the specified directory. Current directory is used by default.")
 	.argument("[projectDir]", "The root directory of the project to package", process.cwd())
-	.action((projectDir: string) => {
+	.option("--merge-geometries", "Optimize the loading process of geometries by merging them into a single file.", false)
+	.option("--merge-decals", "Try to optimize draw calls count by merging decals which share the same material into a single mesh and geometry.", false)
+	.action((projectDir: string, options: { mergeGeometries: boolean; mergeDecals: boolean }) => {
 		pack(projectDir, {
+			...options,
 			optimize: true,
 		});
 	});
@@ -30,8 +33,11 @@ program
 	.command("s3")
 	.description("Packs and deploys the project located in the specified directory into a S3 bucket. Current directory is used by default.")
 	.argument("[projectDir]", "The root directory of the project to package and deploy into a S3 bucket.", process.cwd())
-	.action((projectDir: string) => {
+	.option("--merge-geometries", "Optimize the loading process of geometries by merging them into a single file.", false)
+	.option("--merge-decals", "Try to optimize draw calls count by merging decals which share the same material into a single mesh and geometry.", false)
+	.action((projectDir: string, options: { mergeGeometries: boolean; mergeDecals: boolean }) => {
 		s3(projectDir, {
+			...options,
 			optimize: true,
 		});
 	});

@@ -1,4 +1,4 @@
-import { join, basename } from "node:path/posix";
+import { join, basename, extname } from "node:path/posix";
 
 import fs, { pathExists } from "fs-extra";
 
@@ -22,6 +22,9 @@ export interface ICreateBabylonSceneOptions {
 	exportedAssets: string[];
 	optimize: boolean;
 	compressedTexturesEnabled: boolean;
+
+	mergeDecals?: boolean;
+	mergeGeometries?: boolean;
 
 	config: any;
 	directories: Awaited<ReturnType<typeof readSceneDirectories>>;
@@ -53,7 +56,7 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 	let mergedDecalsIds: any[] = [];
 
 	const mergedDecalsPath = join(options.sceneFile, "decals.json");
-	if (await pathExists(mergedDecalsPath)) {
+	if (options.mergeDecals && (await pathExists(mergedDecalsPath))) {
 		const mergedDecals = await fs.readJSON(mergedDecalsPath, {
 			encoding: "utf-8",
 		});
@@ -66,8 +69,12 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 						buffer: await fs.readFile(join(options.sceneFile, "geometries", basename(mesh.delayLoadingFile))),
 					});
 
-					geometriesPath ??= join(options.sceneName, basename(mesh.delayLoadingFile));
-					mesh.delayLoadingFile = geometriesPath;
+					if (options.mergeGeometries) {
+						geometriesPath ??= join(options.sceneName, basename(mesh.delayLoadingFile));
+						mesh.delayLoadingFile = geometriesPath;
+					} else {
+						mesh.delayLoadingFile = join(options.sceneName, basename(mesh.delayLoadingFile));
+					}
 				}
 
 				meshes.push(mesh);
@@ -87,14 +94,22 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 				return null;
 			}
 
-			if (mesh.delayLoadingFile) {
-				collectedGeometries.push({
-					mesh,
-					buffer: await fs.readFile(join(options.sceneFile, "geometries", basename(mesh.delayLoadingFile))),
-				});
+			const isDecal = mesh.metadata?.decal && options.mergeDecals && mergedDecalsIds.includes(mesh.id);
 
-				geometriesPath ??= join(options.sceneName, basename(mesh.delayLoadingFile));
-				mesh.delayLoadingFile = geometriesPath;
+			if (mesh.delayLoadingFile) {
+				if (!isDecal) {
+					collectedGeometries.push({
+						mesh,
+						buffer: await fs.readFile(join(options.sceneFile, "geometries", basename(mesh.delayLoadingFile))),
+					});
+				}
+
+				if (options.mergeGeometries) {
+					geometriesPath ??= join(options.sceneName, basename(mesh.delayLoadingFile));
+					mesh.delayLoadingFile = geometriesPath;
+				} else {
+					mesh.delayLoadingFile = join(options.sceneName, basename(mesh.delayLoadingFile));
+				}
 			}
 
 			if (mesh.metadata?.parentId) {
@@ -154,8 +169,12 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 								buffer: await fs.readFile(join(options.sceneFile, "geometries", basename(lodMesh.delayLoadingFile))),
 							});
 
-							geometriesPath ??= join(options.sceneName, basename(lodMesh.delayLoadingFile));
-							lodMesh.delayLoadingFile = geometriesPath;
+							if (options.mergeGeometries) {
+								geometriesPath ??= join(options.sceneName, basename(lodMesh.delayLoadingFile));
+								lodMesh.delayLoadingFile = geometriesPath;
+							} else {
+								lodMesh.delayLoadingFile = join(options.sceneName, basename(lodMesh.delayLoadingFile));
+							}
 						}
 
 						if (data.basePoseMatrix) {
@@ -177,7 +196,7 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 				});
 			}
 
-			if (mesh.metadata?.decal && mergedDecalsIds.includes(mesh.id)) {
+			if (isDecal) {
 				return {
 					lodMeshes,
 					effectiveMaterials,
@@ -652,6 +671,8 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 	const usedFiles = await collectUsedAssetsForScene(scene, options.publicDir);
 	usedFiles.push(`${options.sceneName}.babylon`);
 
+	const geometryFiles = usedFiles.filter((file) => extname(file).toLowerCase() === ".babylonbinarymeshdata").map((file) => basename(file));
+
 	const sameArrays = new Map<Buffer, any[]>();
 
 	for (let i = 0, iLen = collectedGeometries.length; i < iLen; ++i) {
@@ -684,27 +705,37 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 	}
 
 	const finalGeometryBuffers: Buffer[] = [];
-	for (const data of collectedGeometries) {
-		if (sameArrays.has(data.buffer)) {
-			continue;
-		}
 
-		finalGeometryBuffers.push(data.buffer);
-		geometriesOffset += configureMeshBinaryInfo(data.mesh, geometriesOffset);
+	if (options.mergeGeometries) {
+		for (const data of collectedGeometries) {
+			if (sameArrays.has(data.buffer)) {
+				continue;
+			}
+
+			const configuredBinaryInfo = configureMeshBinaryInfo(data.mesh, geometriesOffset);
+			geometriesOffset += configuredBinaryInfo.offset;
+
+			finalGeometryBuffers.push(data.buffer);
+		}
 	}
 
 	let reusedGeometriesCount = 0;
 
 	for (const [buffer, meshes] of sameArrays.entries()) {
-		finalGeometryBuffers.push(buffer);
 		reusedGeometriesCount += meshes.length;
 
 		if (meshes.length > 0) {
-			geometriesOffset += configureMeshBinaryInfo(meshes[0], geometriesOffset);
+			if (options.mergeGeometries) {
+				const configuredBinaryInfo = configureMeshBinaryInfo(meshes[0], geometriesOffset);
+				geometriesOffset += configuredBinaryInfo.offset;
+
+				finalGeometryBuffers.push(buffer);
+			}
 
 			const binaryInfo = meshes[0]._binaryInfo;
 			for (let i = 1, len = meshes.length; i < len; ++i) {
 				meshes[i]._binaryInfo = binaryInfo;
+				meshes[i].delayLoadingFile = meshes[0].delayLoadingFile;
 			}
 		}
 	}
@@ -721,7 +752,11 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 	// Write final geometry file
 	if (geometriesPath) {
 		const totalLength = finalGeometryBuffers.reduce((acc, buffer) => acc + buffer.length, 0);
-		const geometriesDestination = join(options.publicDir, options.sceneName, basename(geometriesPath));
+
+		const geometriesFolder = join(options.publicDir, options.sceneName);
+		await fs.ensureDir(geometriesFolder);
+
+		const geometriesDestination = join(geometriesFolder, basename(geometriesPath));
 		await fs.writeFile(geometriesDestination, Buffer.concat(finalGeometryBuffers, totalLength));
 
 		options.exportedAssets.push(geometriesDestination);
@@ -752,6 +787,7 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 
 	return {
 		usedFiles,
+		geometryFiles,
 		reusedGeometriesCount,
 	};
 }

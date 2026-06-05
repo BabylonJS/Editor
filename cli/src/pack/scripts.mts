@@ -55,13 +55,14 @@ export async function createScriptsFile(projectDir: string): Promise<void> {
 				// Catch silently.
 			}
 
-			const [nodesFiles, meshesFiles, lightsFiles, cameraFiles, spriteManagerfiles, spriteMapFiles] = await Promise.all([
+			const [nodesFiles, meshesFiles, lightsFiles, cameraFiles, spriteManagerfiles, spriteMapFiles, soundNodesFiles] = await Promise.all([
 				tryReadDir(join(file, "nodes")),
 				tryReadDir(join(file, "meshes")),
 				tryReadDir(join(file, "lights")),
 				tryReadDir(join(file, "cameras")),
 				tryReadDir(join(file, "sprite-managers")),
 				tryReadDir(join(file, "sprite-maps")),
+				tryReadDir(join(file, "soundNodes")),
 			]);
 
 			await Promise.all(
@@ -72,6 +73,7 @@ export async function createScriptsFile(projectDir: string): Promise<void> {
 					...cameraFiles.map((file) => join("cameras", file)),
 					...spriteMapFiles.map((file) => join("sprite-maps", file)),
 					...spriteManagerfiles.map((file) => join("sprite-managers", file)),
+					...soundNodesFiles.map((file) => join("soundNodes", file)),
 				].map(async (f) => {
 					const data = await fs.readJSON(join(file, f), "utf-8");
 					if (data.metadata) {

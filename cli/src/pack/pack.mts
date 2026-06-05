@@ -27,6 +27,9 @@ export interface IPackOptions {
 	pvrTexToolAbsolutePath?: string;
 	cancellationToken?: CancellationToken;
 
+	mergeDecals?: boolean;
+	mergeGeometries?: boolean;
+
 	onProgress?: (progress: number) => void;
 	onStepChanged?: (step: PackStepType, detail?: IPackStepDetails) => void;
 }
@@ -189,6 +192,8 @@ export async function pack(projectDir: string, options: IPackOptions) {
 
 		// Copy geometry files
 		await createGeometryFiles({
+			...options,
+			...sceneFiles,
 			directories,
 			publicDir,
 			sceneFile,
