@@ -25,6 +25,19 @@ export interface IEditorProject {
 	compressedTexturesEnabledInPreview: boolean;
 
 	/**
+	 * If the ETC2 compressed textures are enabled using PVRTexTool.
+	 */
+	compressedEtc2Enabled?: boolean;
+	/**
+	 * If the PVRTC compressed textures are enabled using PVRTexTool.
+	 */
+	compressedPvrtcEnabled?: boolean;
+	/**
+	 * The quality of the compressed textures.
+	 */
+	compressedTextureQuality?: EditorProjectCompressedTextureQuality;
+
+	/**
 	 * The package manager being used by the project.
 	 */
 	packageManager?: EditorProjectPackageManager;
@@ -41,6 +54,8 @@ export interface IEditorProjectPlugin {
 	 */
 	nameOrPath: string;
 }
+
+export type EditorProjectCompressedTextureQuality = "very-fast" | "fast" | "normal" | "high";
 
 export type EditorProjectPackageManager = "npm" | "yarn" | "pnpm" | "bun";
 

@@ -37,6 +37,9 @@ export async function loadProject(editor: Editor, path: string) {
 
 		compressedTexturesEnabled: project.compressedTexturesEnabled ?? false,
 		compressedTexturesEnabledInPreview: project.compressedTexturesEnabledInPreview ?? false,
+		compressedEtc2Enabled: project.compressedEtc2Enabled ?? false,
+		compressedPvrtcEnabled: project.compressedPvrtcEnabled ?? false,
+		compressedTextureQuality: project.compressedTextureQuality ?? "very-fast",
 	});
 
 	editor.layout.forceUpdate();

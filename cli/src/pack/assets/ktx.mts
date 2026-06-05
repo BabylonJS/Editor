@@ -25,10 +25,41 @@ export function getCompressedTextureFilename(path: string, format: KTXToolsType)
 
 export type CompressFileToKtxOptions = {
 	format: KTXToolsType;
-	compressedTexturesEnabled: boolean;
 	force?: boolean;
 	exportedAssets?: string[];
 	destinationFolder?: string;
+
+	compressedTexturesEnabled: boolean;
+	compressedEtc2Enabled?: boolean;
+	compressedPvrtcEnabled?: boolean;
+	compressedTextureQuality?: string;
+};
+
+const qualityDictionary: Record<string, Record<string, string>> = {
+	"very-fast": {
+		"-astc.ktx": "astcveryfast",
+		"-pvrtc.ktx": "pvrtcfastest",
+		"-etc1.ktx": "etcfast",
+		"-etc2.ktx": "etcfast",
+	},
+	fast: {
+		"-astc.ktx": "astcfast",
+		"-pvrtc.ktx": "pvrtcfast",
+		"-etc1.ktx": "etcfast",
+		"-etc2.ktx": "etcfast",
+	},
+	normal: {
+		"-astc.ktx": "astcmedium",
+		"-pvrtc.ktx": "pvrtcnormal",
+		"-etc1.ktx": "etcnormal",
+		"-etc2.ktx": "etcnormal",
+	},
+	high: {
+		"-astc.ktx": "astcexhaustive",
+		"-pvrtc.ktx": "pvrtcbest",
+		"-etc1.ktx": "etcslow",
+		"-etc2.ktx": "etcslow",
+	},
 };
 
 export async function compressFileToKtx(absolutePath: string, options: Partial<CompressFileToKtxOptions>): Promise<void> {
@@ -36,12 +67,20 @@ export async function compressFileToKtx(absolutePath: string, options: Partial<C
 		await compressFileToKtxFormat(absolutePath, options as CompressFileToKtxOptions);
 	} else {
 		await Promise.all(
-			allKtxFormats.map((f) =>
-				compressFileToKtxFormat(absolutePath, {
+			allKtxFormats.map(async (f) => {
+				if (f === "-etc2.ktx" && !options.compressedEtc2Enabled) {
+					return;
+				}
+
+				if (f === "-pvrtc.ktx" && !options.compressedPvrtcEnabled) {
+					return;
+				}
+
+				return compressFileToKtxFormat(absolutePath, {
 					...options,
 					format: f,
-				} as CompressFileToKtxOptions)
-			)
+				} as CompressFileToKtxOptions);
+			})
 		);
 	}
 }
@@ -88,10 +127,12 @@ export async function compressFileToKtxFormat(absolutePath: string, options: Com
 		return null;
 	}
 
+	const quality = options.compressedTextureQuality ?? "very-fast";
+
 	let command: string | null = null;
 	switch (options.format) {
 		case "-astc.ktx":
-			command = `"${pvrTexToolAbsolutePath}" -i "${absolutePath}" -flip y -pot + -m -dither -ics lRGB -f ASTC_8x8,UBN,lRGB -q astcveryfast -o "${options.destinationFolder}"`;
+			command = `"${pvrTexToolAbsolutePath}" -i "${absolutePath}" -flip y -pot + -m -dither -ics lRGB -f ASTC_8x8,UBN,lRGB -q ${qualityDictionary[quality]["-astc.ktx"]} -o "${options.destinationFolder}"`;
 			break;
 
 		case "-dxt.ktx":
@@ -99,15 +140,15 @@ export async function compressFileToKtxFormat(absolutePath: string, options: Com
 			break;
 
 		case "-pvrtc.ktx":
-			command = `"${pvrTexToolAbsolutePath}" -i "${absolutePath}" -flip y -pot + -square + -m -dither -ics lRGB ${hasAlpha ? "-l" : ""} -f ${hasAlpha ? "PVRTCI_2BPP_RGBA" : "PVRTCI_2BPP_RGB"},UBN,lRGB -q pvrtcfastest -o "${options.destinationFolder}"`;
+			command = `"${pvrTexToolAbsolutePath}" -i "${absolutePath}" -flip y -pot + -square + -m -dither -ics lRGB ${hasAlpha ? "-l" : ""} -f ${hasAlpha ? "PVRTCI_2BPP_RGBA" : "PVRTCI_2BPP_RGB"},UBN,lRGB -q ${qualityDictionary[quality]["-pvrtc.ktx"]} -o "${options.destinationFolder}"`;
 			break;
 
 		case "-etc1.ktx":
-			command = `"${pvrTexToolAbsolutePath}" -i "${absolutePath}" -flip y -pot + -m -dither -ics lRGB -f ETC1,UBN,lRGB -q etcfast -o "${options.destinationFolder}"`;
+			command = `"${pvrTexToolAbsolutePath}" -i "${absolutePath}" -flip y -pot + -m -dither -ics lRGB -f ETC1,UBN,lRGB -q ${qualityDictionary[quality]["-etc1.ktx"]} -o "${options.destinationFolder}"`;
 			break;
 
 		case "-etc2.ktx":
-			command = `"${pvrTexToolAbsolutePath}" -i "${absolutePath}" -flip y -pot + -m -dither -ics lRGB -f ${hasAlpha ? "ETC2_RGBA" : "ETC2_RGB"},UBN,lRGB -q etcfast -o "${options.destinationFolder}"`;
+			command = `"${pvrTexToolAbsolutePath}" -i "${absolutePath}" -flip y -pot + -m -dither -ics lRGB -f ${hasAlpha ? "ETC2_RGBA" : "ETC2_RGB"},UBN,lRGB -q ${qualityDictionary[quality]["-etc2.ktx"]} -o "${options.destinationFolder}"`;
 			break;
 	}
 

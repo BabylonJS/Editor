@@ -7,11 +7,13 @@ import { Label } from "../../../../ui/shadcn/ui/label";
 import { Button } from "../../../../ui/shadcn/ui/button";
 import { Switch } from "../../../../ui/shadcn/ui/switch";
 import { Separator } from "../../../../ui/shadcn/ui/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../../ui/shadcn/ui/select";
 
 import { Editor } from "../../../main";
 
 import { openSingleFileDialog } from "../../../../tools/dialog";
 
+import { EditorProjectCompressedTextureQuality } from "../../../../project/typings";
 import { getCompressedTexturesCliPath, setCompressedTexturesCliPath } from "../../../../project/export/ktx";
 
 export interface IEditorEditProjectTextureComponentProps {
@@ -38,7 +40,7 @@ export class EditorEditProjectTextureComponent extends Component<IEditorEditProj
 					</Button>
 				</div>
 
-				<div className="flex flex-col gap-3">
+				<div className="flex flex-col gap-4">
 					<div className="flex justify-between items-center">
 						<Label>PVRTexTool CLI path</Label>
 					</div>
@@ -56,13 +58,48 @@ export class EditorEditProjectTextureComponent extends Component<IEditorEditProj
 						<Switch checked={this.props.editor.state.compressedTexturesEnabled} onCheckedChange={(v) => this.props.editor.setState({ compressedTexturesEnabled: v })} />
 					</div>
 
-					<div className="flex justify-between items-center gap-2">
-						Enabled in preview
-						<Switch
-							checked={this.props.editor.state.compressedTexturesEnabledInPreview}
-							onCheckedChange={(v) => this.props.editor.setState({ compressedTexturesEnabledInPreview: v })}
-						/>
-					</div>
+					{this.props.editor.state.compressedTexturesEnabled && (
+						<>
+							<div className="flex justify-between items-center gap-2">
+								Enabled in preview
+								<Switch
+									checked={this.props.editor.state.compressedTexturesEnabledInPreview}
+									onCheckedChange={(v) => this.props.editor.setState({ compressedTexturesEnabledInPreview: v })}
+								/>
+							</div>
+
+							<div className="flex justify-between items-center gap-2">
+								ETC2 Enabled
+								<Switch checked={this.props.editor.state.compressedEtc2Enabled} onCheckedChange={(v) => this.props.editor.setState({ compressedEtc2Enabled: v })} />
+							</div>
+
+							<div className="flex justify-between items-center gap-2">
+								PVRTC Enabled
+								<Switch
+									checked={this.props.editor.state.compressedPvrtcEnabled}
+									onCheckedChange={(v) => this.props.editor.setState({ compressedPvrtcEnabled: v })}
+								/>
+							</div>
+
+							<div className="flex justify-between items-center gap-2">
+								<div>Quality</div>
+								<Select
+									value={this.props.editor.state.compressedTextureQuality}
+									onValueChange={(v) => this.props.editor.setState({ compressedTextureQuality: v as EditorProjectCompressedTextureQuality })}
+								>
+									<SelectTrigger className="w-44">
+										<SelectValue placeholder="Quality" />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="very-fast">Very fast</SelectItem>
+										<SelectItem value="fast">Fast</SelectItem>
+										<SelectItem value="normal">Normal</SelectItem>
+										<SelectItem value="high">High</SelectItem>
+									</SelectContent>
+								</Select>
+							</div>
+						</>
+					)}
 				</div>
 			</div>
 		);
