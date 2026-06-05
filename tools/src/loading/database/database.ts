@@ -132,8 +132,7 @@ export class Database implements IOfflineProvider {
 		if (existingLoadingPromise) {
 			return existingLoadingPromise.then((data) => {
 				if (data !== null) {
-					const objectUrl = URL.createObjectURL(data);
-					image.src = objectUrl;
+					image.src = data;
 				} else {
 					image.src = url;
 				}

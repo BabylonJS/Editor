@@ -56,6 +56,8 @@ export function EditorGenerateComponent(props: IEditorGenerateComponentProps) {
 		try {
 			await pack(projectDir, {
 				optimize: props.options.optimize,
+				mergeDecals: props.options.mergeDecals,
+				mergeGeometries: props.options.mergeGeometries,
 				cancellationToken: props.cancellationToken ?? undefined,
 				pvrTexToolAbsolutePath: getCompressedTexturesCliPath() ?? undefined,
 				onProgress: (progress) => setPackProgress(progress),

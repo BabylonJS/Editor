@@ -12,11 +12,23 @@ export interface IEditorGenerateProjectOptionsComponentProps {
 
 export function EditorGenerateOptionsComponent(props: IEditorGenerateProjectOptionsComponentProps) {
 	const [optimize, setOptimize] = useState(props.options.optimize);
+
+	const [mergeDecals, setMergeDecals] = useState(props.options.mergeDecals);
+	const [mergeGeometries, setMergeGeometries] = useState(props.options.mergeGeometries);
+
 	const [uploadToS3, setUploadToS3] = useState(props.options.uploadToS3);
 
 	useEffect(() => {
 		props.options.optimize = optimize;
 	}, [optimize]);
+
+	useEffect(() => {
+		props.options.mergeDecals = mergeDecals;
+	}, [mergeDecals]);
+
+	useEffect(() => {
+		props.options.mergeGeometries = mergeGeometries;
+	}, [mergeGeometries]);
 
 	useEffect(() => {
 		props.options.uploadToS3 = uploadToS3;
@@ -28,6 +40,28 @@ export function EditorGenerateOptionsComponent(props: IEditorGenerateProjectOpti
 				<Field orientation="horizontal">
 					<Checkbox id="optimize-checkbox" name="optimize-checkbox" checked={optimize} onCheckedChange={(v) => setOptimize(Boolean(v))} />
 					<Label htmlFor="optimize-checkbox">Optimize assets</Label>
+				</Field>
+
+				<Field orientation="horizontal" className="items-start">
+					<Checkbox id="merge-geometries" name="merge-geometries-checkbox" checked={mergeGeometries} onCheckedChange={(v) => setMergeGeometries(Boolean(v))} />
+					<div className="flex flex-col gap-1">
+						<Label htmlFor="merge-geometries-checkbox">Merge geometries</Label>
+						{mergeGeometries && (
+							<div className="text-xs text-muted-foreground">
+								Optimize the loading process by merging all geometries into a unique geometry file. Don't use this option if you need incremental loading.
+							</div>
+						)}
+					</div>
+				</Field>
+
+				<Field orientation="horizontal" className="items-start">
+					<Checkbox id="merge-decals" name="merge-decals-checkbox" checked={mergeDecals} onCheckedChange={(v) => setMergeDecals(Boolean(v))} />
+					<div className="flex flex-col gap-1">
+						<Label htmlFor="merge-decals-checkbox">Merge decals</Label>
+						{mergeDecals && (
+							<div className="text-xs text-muted-foreground">Merge all decals that share the same material into a unique geometry to decrease draw calls count.</div>
+						)}
+					</div>
 				</Field>
 
 				<Field orientation="horizontal" className="items-start">
