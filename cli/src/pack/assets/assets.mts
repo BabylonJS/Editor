@@ -15,7 +15,11 @@ export interface ICreateAssetsOptions extends IPackOptions {
 	optimize: boolean;
 	exportedAssets: string[];
 	cache: Record<string, string>;
+
 	compressedTexturesEnabled: boolean;
+	compressedEtc2Enabled?: boolean;
+	compressedPvrtcEnabled?: boolean;
+	compressedTextureQuality?: string;
 }
 
 export async function createAssets(options: ICreateAssetsOptions) {

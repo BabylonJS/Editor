@@ -19,7 +19,7 @@ import { onProjectConfigurationChangedObservable, projectConfiguration } from ".
 import { loadProject } from "../project/load/load";
 import { startProjectDevProcess } from "../project/run";
 import { exportProject } from "../project/export/export";
-import { EditorProjectPackageManager } from "../project/typings";
+import { EditorProjectCompressedTextureQuality, EditorProjectPackageManager } from "../project/typings";
 
 import { disposeVLSPostProcess } from "./rendering/vls";
 import { disposeSSRRenderingPipeline } from "./rendering/ssr";
@@ -96,6 +96,18 @@ export interface IEditorState {
 	 * Defines wether or not compressed textures are enabled in the preview.
 	 */
 	compressedTexturesEnabledInPreview: boolean;
+	/**
+	 * Defines wether or not ETC2 compressed textures are enabled.
+	 */
+	compressedEtc2Enabled: boolean;
+	/**
+	 * Defines wether or not PVRTC compressed textures are enabled.
+	 */
+	compressedPvrtcEnabled: boolean;
+	/**
+	 * Defines the quality of the compressed textures.
+	 */
+	compressedTextureQuality?: EditorProjectCompressedTextureQuality;
 
 	/**
 	 * Defines wether or not experimental features are enabled.
@@ -155,6 +167,10 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 
 			compressedTexturesEnabled: false,
 			compressedTexturesEnabledInPreview: false,
+			compressedEtc2Enabled: false,
+			compressedPvrtcEnabled: false,
+			compressedTextureQuality: "very-fast",
+
 			enableExperimentalFeatures: tryGetExperimentalFeaturesEnabledFromLocalStorage(),
 			openedTabs: [],
 
