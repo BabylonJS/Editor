@@ -63,7 +63,7 @@ import { saveSceneScreenshot } from "../../tools/scene/screenshot";
 import { onTextureAddedObservable } from "../../tools/observables";
 import { getCameraFocusPositionFor } from "../../tools/camera/focus";
 import { ITweenConfiguration, Tween } from "../../tools/animation/tween";
-import { checkProjectCachedCompressedTextures } from "../../tools/assets/ktx";
+import { checkProjectCachedCompressedTextures, initializeKtx2Decoder } from "../../tools/assets/ktx";
 import { createSceneLink, getRootSceneLink } from "../../tools/scene/scene-link";
 import { UniqueNumber, waitNextAnimationFrame, waitUntil } from "../../tools/tools";
 import { isSprite, isSpriteManagerNode, isSpriteMapNode } from "../../tools/guards/sprites";
@@ -506,6 +506,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
 		await waitUntil(() => this.props.editor.path);
 
+		initializeKtx2Decoder(this.props.editor.path!);
 		await Promise.all([await initializeRecast(this.props.editor), await initializeHavok(this.props.editor.path!)]);
 
 		SceneLoaderFlags.ShowLoadingScreen = false;

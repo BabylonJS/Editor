@@ -10,7 +10,8 @@ import { loadSavedAssetsCache } from "../../tools/assets/cache";
 
 import { Editor } from "../../editor/main";
 
-import { getCompressedTextureFilename, ktxSupportedextensions, KTXToolsType } from "../export/ktx";
+import { getKtx2CompressedTextureFilename } from "../export/ktx2";
+import { getKtxCompressedTextureFilename, ktxSupportedextensions, KTXToolsType } from "../export/ktx";
 
 import { projectConfiguration } from "../configuration";
 
@@ -52,7 +53,8 @@ function textureParser(editor: Editor, source: any, scene: Scene, rootUrl: strin
 
 	const supportedType = engine.texturesSupported[0] as KTXToolsType;
 
-	const compressedTextureFilename = getCompressedTextureFilename(source.name, supportedType);
+	const compressedTextureFilename =
+		editor.state.compressedTextureSoftware === "PVRTexTool" ? getKtxCompressedTextureFilename(source.name, supportedType) : getKtx2CompressedTextureFilename(source.name);
 
 	const projectDirectory = dirname(projectConfiguration.path);
 	const compressedTextureAbsolutePath = join(projectDirectory, temporaryDirectoryName, "textures", compressedTextureFilename);

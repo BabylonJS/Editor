@@ -3,6 +3,7 @@ import { AbstractEngine } from "@babylonjs/core/Engines/abstractEngine";
 import { loadJsonFile } from "../../tools/request";
 
 import { createAndOpenDatabase } from "./database";
+import { isUsingKtx2CompressedTextures } from "../../tools/texture";
 
 const supportedJsonExtensions = ["babylon", "json"];
 const supportedImageExtensions = ["jpg", "jpeg", "png", "bmp", "webp"];
@@ -40,7 +41,7 @@ export async function preloadAssetsToDatabase(databaseName: string, rootUrl: str
 
 	let loadedCount = 0;
 
-	const supportedKtxFormat = options?.engine?.texturesSupported[0];
+	const supportedKtxFormat = options?.engine?.textureFormatInUse ? options?.engine?.texturesSupported[0] : null;
 	const totalLength = Object.values(scenesUsedFiles).reduce((sum, files) => sum + files.length, 0);
 
 	function notifyProgress(resolve?: () => void) {
@@ -73,6 +74,11 @@ export async function preloadAssetsToDatabase(databaseName: string, rootUrl: str
 					notifyProgress();
 					continue;
 				}
+			}
+
+			if (extension === "ktx2" && !isUsingKtx2CompressedTextures()) {
+				notifyProgress();
+				continue;
 			}
 
 			if (promises.length > 300) {

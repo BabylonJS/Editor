@@ -30,7 +30,7 @@ export class EditorEditProjectComponent extends Component<IEditorEditProjectComp
 	public render(): ReactNode {
 		return (
 			<AlertDialog open={this.props.open}>
-				<AlertDialogContent>
+				<AlertDialogContent className="flex flex-col justify-center">
 					<AlertDialogHeader>
 						<AlertDialogTitle className="text-3xl font-[400]">Edit Project</AlertDialogTitle>
 					</AlertDialogHeader>

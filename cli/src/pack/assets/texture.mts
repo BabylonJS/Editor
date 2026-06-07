@@ -6,6 +6,7 @@ import fs from "fs-extra";
 import { getPowerOfTwoUntil } from "../../tools/scalar.mjs";
 
 import { compressFileToKtx } from "./ktx.mjs";
+import { compressFileToKtx2 } from "./ktx2.mjs";
 import { IProcessAssetFileOptions } from "./process.mjs";
 
 export function getExtractedTextureOutputPath(publicDir: string) {
@@ -17,10 +18,14 @@ export type DownscaledTextureSize = {
 	height: number;
 };
 
+export type EditorProjectCompressedTextureSoftware = "PVRTexTool" | "Khronos KTX-Software";
+
 export interface IComputeExportedTextureOptions extends IProcessAssetFileOptions {
 	force: boolean;
 	exportedAssets: string[];
+
 	compressedTexturesEnabled: boolean;
+	compressedTextureSoftware?: EditorProjectCompressedTextureSoftware;
 }
 
 export async function processExportedTexture(absolutePath: string, options: IComputeExportedTextureOptions): Promise<void> {
@@ -87,8 +92,10 @@ export async function processExportedTexture(absolutePath: string, options: ICom
 			}
 		}
 
-		await compressFileToKtx(finalPath, {
-			...options,
-		});
+		if (options.compressedTextureSoftware === "PVRTexTool") {
+			await compressFileToKtx(finalPath, { ...options });
+		} else if (options.compressedTextureSoftware === "Khronos KTX-Software") {
+			await compressFileToKtx2(finalPath, { ...options });
+		}
 	}
 }

@@ -16,6 +16,10 @@ export interface IEditorProject {
 	plugins: IEditorProjectPlugin[];
 
 	/**
+	 * Defines the software used for compressing textures.
+	 */
+	compressedTextureSoftware?: EditorProjectCompressedTextureSoftware;
+	/**
 	 * If the compressed textures are enabled using PVRTexTool.
 	 */
 	compressedTexturesEnabled: boolean;
@@ -55,6 +59,7 @@ export interface IEditorProjectPlugin {
 	nameOrPath: string;
 }
 
+export type EditorProjectCompressedTextureSoftware = "PVRTexTool" | "Khronos KTX-Software";
 export type EditorProjectCompressedTextureQuality = "very-fast" | "fast" | "normal" | "high";
 
 export type EditorProjectPackageManager = "npm" | "yarn" | "pnpm" | "bun";

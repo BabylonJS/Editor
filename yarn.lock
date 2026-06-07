@@ -1160,6 +1160,11 @@
   dependencies:
     "@types/emscripten" "^1.39.6"
 
+"@babylonjs/ktx2decoder@9.9.1":
+  version "9.9.1"
+  resolved "https://registry.yarnpkg.com/@babylonjs/ktx2decoder/-/ktx2decoder-9.9.1.tgz#e20597387b85fedfbd0f928dae14fb5e05112755"
+  integrity sha512-bYard3iFXVmfCuLd1alVtGn8/s9wMlzM+oC8e8NEY5N89QkE+aDLc+Ga1vF2Jio/8nxS1Dek6y29/EYD3Veivg==
+
 "@babylonjs/materials@9.9.1":
   version "9.9.1"
   resolved "https://registry.yarnpkg.com/@babylonjs/materials/-/materials-9.9.1.tgz#8df3971acaf2db79b46cfe27b02e7f36882b31d8"
@@ -6946,9 +6951,10 @@ babylonjs-editor-tools@latest:
 
 "babylonjs-editor-tools@link:../../../Library/Caches/Yarn/v6/npm-babylonjs-editor-5.2.4-3cce3a704dc0c4572a85041a993264060376230a-integrity/node_modules/tools":
   version "0.0.0"
+  uid ""
 
 "babylonjs-editor-tools@link:tools":
-  version "5.4.1"
+  version "5.4.2-alpha.0"
 
 babylonjs-editor@latest:
   version "5.2.4"
@@ -7054,6 +7060,13 @@ babylonjs-gui@8.41.0, babylonjs-gui@9.9.1:
   version "9.9.1"
   resolved "https://registry.yarnpkg.com/babylonjs-gui/-/babylonjs-gui-9.9.1.tgz#c4464ff1d9ecc989bfbba3357c287b1325221138"
   integrity sha512-w6HSvuHSqLYUOuxvko+gkjAQMvatf7gnOPufLRslm+P4tC+5KMEd0hyC+1vHCJuQmZXXkoc/GnozzFeaqllHZw==
+  dependencies:
+    babylonjs "9.9.1"
+
+babylonjs-ktx2decoder@9.9.1:
+  version "9.9.1"
+  resolved "https://registry.yarnpkg.com/babylonjs-ktx2decoder/-/babylonjs-ktx2decoder-9.9.1.tgz#3ffccb60706267de894b24cefb87341d6af5d44c"
+  integrity sha512-Ixs+OK4uLdu3dz4VNA9wG/8w7OYBEMF8KPhnAc7Usx9B1e1eD8SqpCGDbtUb2wBNz/4kdbGMcmi2H50dtSiMQw==
   dependencies:
     babylonjs "9.9.1"
 

@@ -6,6 +6,31 @@ import { SceneLoaderQualitySelector } from "../loading/loader";
 import { isTexture } from "./guards";
 import { getPowerOfTwoUntil } from "./scalar";
 
+let useKtx2CompressedTextures = false;
+
+/**
+ * Sets wether or not to use KTX2 compressed textures in the application (disabled by default).
+ * When enabled, the application will try to load KTX2 textures instead of the original textures when possible, and will ignore any KTX2 texture when disabled.
+ * @param enabled defines wether or not to use KTX2 compressed textures in the application.
+ */
+export function setUseKtx2CompressedTextures(enabled: boolean) {
+	useKtx2CompressedTextures = enabled;
+}
+
+/**
+ * Returns wether or not KTX2 compressed textures are enabled in the application.
+ */
+export function isUsingKtx2CompressedTextures() {
+	return useKtx2CompressedTextures;
+}
+
+/**
+ * @internal
+ */
+export function _getKtx2TextureName(name: string) {
+	return `${name.substring(0, name.lastIndexOf("."))}.ktx2`;
+}
+
 /**
  * Set the compressed texture format to use, based on the formats you have, and the formats
  * supported by the hardware / browser.

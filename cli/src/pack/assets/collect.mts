@@ -24,6 +24,15 @@ async function _checkKtxSupportForTexture(value: string, publicDir: string, resu
 	}
 }
 
+async function _checkKtx2SupportForTexture(value: string, publicDir: string, result: string[]) {
+	const compressedTexturePath = join(publicDir, `${value.substring(0, value.lastIndexOf("."))}.ktx2`);
+	const finalName = `${value.substring(0, value.lastIndexOf("."))}.ktx2`;
+
+	if (!result.includes(finalName) && (await pathExists(compressedTexturePath))) {
+		result.push(finalName);
+	}
+}
+
 export async function collectUsedAssetsForScene(scene: any, publicDir: string) {
 	const result: string[] = [];
 	let stringValues: string[] = [];
@@ -69,7 +78,7 @@ export async function collectUsedAssetsForScene(scene: any, publicDir: string) {
 				}
 
 				if (ktxSupportedextensions.includes(extension)) {
-					await _checkKtxSupportForTexture(value, publicDir, result);
+					await Promise.all([_checkKtxSupportForTexture(value, publicDir, result), _checkKtx2SupportForTexture(value, publicDir, result)]);
 				}
 
 				if (supportedImagesExtensions.includes(extension)) {
@@ -119,7 +128,7 @@ export async function collectUsedAssetsForScene(scene: any, publicDir: string) {
 							}
 
 							if (ktxSupportedextensions.includes(extension)) {
-								await _checkKtxSupportForTexture(finalName, publicDir, result);
+								await Promise.all([_checkKtxSupportForTexture(finalName, publicDir, result), _checkKtx2SupportForTexture(finalName, publicDir, result)]);
 							}
 						})
 					);

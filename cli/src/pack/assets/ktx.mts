@@ -1,8 +1,8 @@
+import { createReadStream } from "node:fs";
 import { basename, extname, join, dirname } from "node:path/posix";
 
 import fs from "fs-extra";
 import { PNG } from "pngjs";
-import { createReadStream } from "node:fs";
 
 import { executeAsync } from "../../tools/process.mjs";
 import { pvrTexToolAbsolutePath } from "../../tools/ktx.mjs";
