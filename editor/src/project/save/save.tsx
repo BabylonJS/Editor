@@ -51,6 +51,7 @@ export async function saveProjectConfiguration(editor: Editor) {
 		packageManager: editor.state.packageManager,
 		lastOpenedScene: editor.state.lastOpenedScenePath?.replace(dirname(editor.state.projectPath!), ""),
 
+		compressedTextureSoftware: editor.state.compressedTextureSoftware,
 		compressedTexturesEnabled: editor.state.compressedTexturesEnabled,
 		compressedTexturesEnabledInPreview: editor.state.compressedTexturesEnabledInPreview,
 		compressedEtc2Enabled: editor.state.compressedEtc2Enabled,

@@ -35,6 +35,7 @@ export async function loadProject(editor: Editor, path: string) {
 		plugins: project.plugins.map((plugin) => plugin.nameOrPath),
 		lastOpenedScenePath: project.lastOpenedScene ? join(directory, project.lastOpenedScene) : null,
 
+		compressedTextureSoftware: project.compressedTextureSoftware ?? "PVRTexTool",
 		compressedTexturesEnabled: project.compressedTexturesEnabled ?? false,
 		compressedTexturesEnabledInPreview: project.compressedTexturesEnabledInPreview ?? false,
 		compressedEtc2Enabled: project.compressedEtc2Enabled ?? false,

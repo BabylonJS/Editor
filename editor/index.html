@@ -1,19 +1,17 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
+	<head>
+		<meta charset="UTF-8" />
+		<title>Babylon.js Editor</title>
 
-<head>
-    <meta charset="UTF-8">
-    <title>Babylon.js Editor</title>
+		<!-- 'unsafe-eval' is used to support Havok Physics engine -->
+		<meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval'; worker-src 'self' blob:" />
 
-    <!-- 'unsafe-eval' is used to support Havok Physics engine -->
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval';" />
+		<link rel="stylesheet" href="build/index.css" />
+		<link rel="stylesheet" href="fonts/inter.css" />
+	</head>
 
-    <link rel="stylesheet" href="build/index.css">
-    <link rel="stylesheet" href="fonts/inter.css">
-</head>
-
-<body>
-    <div id="babylonjs-editor-main-div" />
-</body>
-
+	<body>
+		<div id="babylonjs-editor-main-div" />
+	</body>
 </html>

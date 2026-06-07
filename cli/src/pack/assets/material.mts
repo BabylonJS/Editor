@@ -5,13 +5,15 @@ import fs from "fs-extra";
 import { extractTextureAssetFromDataString, extractTextureAssetFromUrl } from "../../tools/extract.mjs";
 
 import { compressFileToKtx } from "./ktx.mjs";
-import { getExtractedTextureOutputPath } from "./texture.mjs";
+import { compressFileToKtx2 } from "./ktx2.mjs";
+import { EditorProjectCompressedTextureSoftware, getExtractedTextureOutputPath } from "./texture.mjs";
 
 export interface IProcessExportedMaterialOptions {
 	force: boolean;
 	publicDir: string;
 	exportedAssets: string[];
 	optimize: boolean;
+	compressedTextureSoftware?: EditorProjectCompressedTextureSoftware;
 }
 
 export async function processExportedMaterial(absolutePath: string, options: IProcessExportedMaterialOptions) {
@@ -37,10 +39,11 @@ export async function processExportedMaterial(absolutePath: string, options: IPr
 
 			options.exportedAssets.push(finalPath);
 
-			await compressFileToKtx(finalPath, {
-				force: options.force,
-				exportedAssets: options.exportedAssets,
-			});
+			if (options.compressedTextureSoftware === "PVRTexTool") {
+				await compressFileToKtx(finalPath, { force: options.force, exportedAssets: options.exportedAssets });
+			} else if (options.compressedTextureSoftware === "Khronos KTX-Software") {
+				await compressFileToKtx2(finalPath, { force: options.force, exportedAssets: options.exportedAssets });
+			}
 		})
 	);
 }

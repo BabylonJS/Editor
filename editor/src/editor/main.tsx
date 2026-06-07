@@ -19,7 +19,7 @@ import { onProjectConfigurationChangedObservable, projectConfiguration } from ".
 import { loadProject } from "../project/load/load";
 import { startProjectDevProcess } from "../project/run";
 import { exportProject } from "../project/export/export";
-import { EditorProjectCompressedTextureQuality, EditorProjectPackageManager } from "../project/typings";
+import { EditorProjectCompressedTextureQuality, EditorProjectCompressedTextureSoftware, EditorProjectPackageManager } from "../project/typings";
 
 import { disposeVLSPostProcess } from "./rendering/vls";
 import { disposeSSRRenderingPipeline } from "./rendering/ssr";
@@ -88,6 +88,10 @@ export interface IEditorState {
 	 */
 	packageManager?: EditorProjectPackageManager;
 
+	/**
+	 * Defines the software used for compressing textures.
+	 */
+	compressedTextureSoftware?: EditorProjectCompressedTextureSoftware;
 	/**
 	 * Defines wether or not compressed textures are enabled.
 	 */
@@ -165,6 +169,7 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 			lastOpenedScenePath: null,
 			projectPath: props.projectPath,
 
+			compressedTextureSoftware: "PVRTexTool",
 			compressedTexturesEnabled: false,
 			compressedTexturesEnabledInPreview: false,
 			compressedEtc2Enabled: false,

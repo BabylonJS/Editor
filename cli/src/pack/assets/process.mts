@@ -3,10 +3,11 @@ import { basename, extname, join } from "node:path/posix";
 import fs from "fs-extra";
 
 import { compressFileToKtx } from "./ktx.mjs";
+import { compressFileToKtx2 } from "./ktx2.mjs";
 import { ICreateAssetsOptions } from "./assets.mjs";
-import { processExportedTexture } from "./texture.mjs";
 import { processExportedMaterial } from "./material.mjs";
 import { processExportedNodeParticleSystemSet } from "./particle-system.mjs";
+import { EditorProjectCompressedTextureSoftware, processExportedTexture } from "./texture.mjs";
 
 export const supportedImagesExtensions: string[] = [".jpg", ".jpeg", ".webp", ".png", ".bmp"];
 export const supportedCubeTexturesExtensions: string[] = [".env", ".dds", ".hdr"];
@@ -32,6 +33,7 @@ export interface IProcessAssetFileOptions extends ICreateAssetsOptions {
 	compressedEtc2Enabled?: boolean;
 	compressedPvrtcEnabled?: boolean;
 	compressedTextureQuality?: string;
+	compressedTextureSoftware?: EditorProjectCompressedTextureSoftware;
 }
 
 export async function processAssetFile(file: string, options: IProcessAssetFileOptions) {
@@ -89,10 +91,11 @@ export async function processAssetFile(file: string, options: IProcessAssetFileO
 	options.exportedAssets.push(finalPath);
 
 	if (options.optimize) {
-		await compressFileToKtx(finalPath, {
-			force: isNewFile,
-			...options,
-		});
+		if (options.compressedTextureSoftware === "PVRTexTool") {
+			await compressFileToKtx(finalPath, { force: isNewFile, ...options });
+		} else if (options.compressedTextureSoftware === "Khronos KTX-Software") {
+			await compressFileToKtx2(finalPath, { force: isNewFile, ...options });
+		}
 	}
 
 	if (options.optimize) {
