@@ -1,5 +1,5 @@
 import { platform } from "os";
-import { exec } from "child_process";
+import { exec, execSync } from "child_process";
 
 import { EditorProjectPackageManager } from "../project/typings";
 
@@ -23,11 +23,34 @@ export function getFilePathArgument(argv?: string[] | null): string | null {
 	return index < argv.length ? argv[index] : null;
 }
 
+let envPathComputed = false;
+
 /**
  * Executes the given command asynchronously using `child_process`
  * @param command defines the command to execute.
  */
 export function executeAsync(command: string): Promise<void> {
+	if (!envPathComputed) {
+		try {
+			switch (platform()) {
+				case "darwin":
+					const path = execSync("/usr/libexec/path_helper -s", {
+						encoding: "utf8",
+					});
+
+					const match = path.match(/PATH="([^"]+)"/);
+					if (match) {
+						process.env.PATH = match[1];
+					}
+					break;
+			}
+		} catch (e) {
+			console.error("Failed to execute /usr/bin/env to get the environment variables:", e);
+		} finally {
+			envPathComputed = true;
+		}
+	}
+
 	return new Promise<void>((resolve, reject) => {
 		exec(command, (error, stdout, stderr) => {
 			if (error) {
