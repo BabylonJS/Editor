@@ -6,8 +6,9 @@ import { isAbstractMesh, isTransformNode } from "../tools/guards";
 
 export function configureTransformNodes(scene: Scene | AssetContainer) {
 	const computedMaterials = new Set<Material>();
+	const nodes = [...scene.transformNodes, ...scene.meshes];
 
-	scene.transformNodes.forEach((transformNode) => {
+	nodes.forEach((transformNode) => {
 		if (transformNode.metadata?.isStaticGroup) {
 			const descendants = transformNode.getDescendants(false);
 			descendants.push(transformNode);

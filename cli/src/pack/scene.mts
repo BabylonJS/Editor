@@ -163,6 +163,10 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 						const lodData = await fs.readJSON(join(options.sceneFile, "lods", lodFile));
 						const lodMesh = lodData.meshes[0];
 
+						if (lodMesh.metadata?.doNotSerialize) {
+							return null;
+						}
+
 						if (lodMesh.delayLoadingFile) {
 							collectedGeometries.push({
 								mesh: lodMesh,
@@ -189,10 +193,12 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 				);
 
 				lodsResult.forEach((lodData) => {
-					lodMeshes.push(lodData.lodMesh);
+					if (lodData) {
+						lodMeshes.push(lodData.lodMesh);
 
-					mesh.lodMeshIds.push(lodData.lodMesh.id);
-					mesh.lodDistances.push(lodData.distanceOrScreenCoverage);
+						mesh.lodMeshIds.push(lodData.lodMesh.id);
+						mesh.lodDistances.push(lodData.distanceOrScreenCoverage);
+					}
 				});
 			}
 
