@@ -1,5 +1,5 @@
 import { join } from "path/posix";
-import { writeJSON } from "fs-extra";
+import { pathExists, readJSON, writeJSON } from "fs-extra";
 
 import { Mesh, Tools, SceneSerializer } from "babylonjs";
 
@@ -18,8 +18,15 @@ export interface ISavedMergedDecalsOptions {
 
 export async function saveMergedDecals(editor: Editor, options: ISavedMergedDecalsOptions) {
 	const scene = editor.layout.preview.scene;
-
 	const decalsMap = new Map<string, Mesh[]>();
+	const decalsJsonPath = join(options.scenePath, "decals.json");
+
+	let decalsJson: any;
+	if (await pathExists(decalsJsonPath)) {
+		decalsJson = await readJSON(decalsJsonPath, {
+			encoding: "utf-8",
+		});
+	}
 
 	scene.meshes.forEach((mesh) => {
 		if (mesh.metadata.scripts?.length || !isNodeFromStaticGroup(mesh)) {
@@ -38,25 +45,24 @@ export async function saveMergedDecals(editor: Editor, options: ISavedMergedDeca
 	});
 
 	const meshData = await Promise.all(
-		decalsMap.values().map(async (array) => {
+		decalsMap.entries().map(async ([materialId, array]) => {
 			if (array.length < 2) {
 				return null;
 			}
 
+			const existingMergedDecal = decalsJson?.find((d) => d.materialId === materialId);
+
 			try {
 				const mergedMesh = (await Mesh.MergeMeshesAsync(array, false, true, undefined, false, undefined)) as Mesh;
-				mergedMesh.metadata = {
-					mergedMeshesIds: array.map((mesh) => mesh.id),
-				};
-
-				mergedMesh.id = Tools.RandomId();
-				mergedMesh.uniqueId = UniqueNumber.Get();
+				mergedMesh.id = existingMergedDecal?.id ?? Tools.RandomId();
+				mergedMesh.uniqueId = existingMergedDecal?.uniqueId ?? UniqueNumber.Get();
 				mergedMesh.material = array[0].material;
 				mergedMesh.isPickable = false;
 				mergedMesh.receiveShadows = true;
 				mergedMesh.metadata = {
 					decal: {},
 					isStaticGroup: true,
+					mergedMeshesIds: array.map((mesh) => mesh.id),
 				};
 
 				const data = await SceneSerializer.SerializeMesh(mergedMesh, false, false);
@@ -68,7 +74,7 @@ export async function saveMergedDecals(editor: Editor, options: ISavedMergedDeca
 					return editor.layout.console.warn(`Failed to merge decals "${array[0].name}": geometry not found.`);
 				}
 
-				const geometryFileName = `${mergedMesh.id}_merged_decals.babylonbinarymeshdata`;
+				const geometryFileName = `${materialId}_merged_decals.babylonbinarymeshdata`;
 
 				mesh.delayLoadingFile = join(options.relativeScenePath, `geometries/${geometryFileName}`);
 				mesh.boundingBoxMaximum = mergedMesh.getBoundingInfo()?.maximum?.asArray() ?? [0, 0, 0];
@@ -99,8 +105,6 @@ export async function saveMergedDecals(editor: Editor, options: ISavedMergedDeca
 	);
 
 	if (meshData.length) {
-		const decalsJsonPath = join(options.scenePath, "decals.json");
-
 		await writeJSON(
 			decalsJsonPath,
 			meshData.filter((mesh) => mesh !== null),

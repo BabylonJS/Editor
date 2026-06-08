@@ -6,6 +6,7 @@ import { XMarkIcon } from "@heroicons/react/20/solid";
 import { Mesh } from "babylonjs";
 
 import { Button } from "../../../../ui/shadcn/ui/button";
+import { Checkbox } from "../../../../ui/shadcn/ui/checkbox";
 
 import { Editor } from "../../../main";
 
@@ -93,26 +94,40 @@ export class MeshLODInspector extends Component<IMeshLODInspectorProps, IIMeshLO
 					}}
 				/>
 
-				{lods.map((lod) => (
-					<div
-						key={lod.mesh?.id ?? "null"}
-						className={`
-							flex justify-between items-center p-2 rounded-lg bg-muted-foreground/35 dark:bg-muted-foreground/5 cursor-pointer
-							hover:bg-muted dark:hover:bg-muted
-							transition-all duration-300 ease-in-out
-						`}
-					>
-						<div className="flex flex-col justify-center">
-							<div>{lod.mesh?.name}</div>
-							<div className="text-sm text-muted-foreground">
-								{lod.mesh?.geometry?.getTotalVertices() ?? 0} vertices, {lod.mesh?.geometry?.getTotalIndices() ?? 0} indices
+				{lods.map((lod) => {
+					const doNotSerialize = lod.mesh?.metadata?.doNotSerialize ?? false;
+
+					return (
+						<div
+							key={lod.mesh?.id ?? "null"}
+							className={`
+								flex justify-between items-center p-2 rounded-lg bg-muted-foreground/35 dark:bg-muted-foreground/5 cursor-pointer
+								hover:bg-muted dark:hover:bg-muted
+								transition-all duration-300 ease-in-out
+							`}
+							onClick={() => {
+								if (lod.mesh) {
+									lod.mesh.metadata ??= {};
+									lod.mesh.metadata.doNotSerialize = !doNotSerialize;
+									this.forceUpdate();
+								}
+							}}
+						>
+							<div className="flex gap-2 items-center">
+								<Checkbox checked={!doNotSerialize} />
+								<div className="flex flex-col justify-center">
+									<div>{lod.mesh?.name}</div>
+									<div className="text-sm text-muted-foreground">
+										{lod.mesh?.geometry?.getTotalVertices() ?? 0} vertices, {lod.mesh?.geometry?.getTotalIndices() ?? 0} indices
+									</div>
+								</div>
 							</div>
+							<Button variant="ghost" className="p-0.5 w-8 h-8" onClick={() => this._handleRemoveLOD(lod.mesh)}>
+								<XMarkIcon className="w-6 h-6" />
+							</Button>
 						</div>
-						<Button variant="ghost" className="p-0.5 w-8 h-8" onClick={() => this._handleRemoveLOD(lod.mesh)}>
-							<XMarkIcon className="w-6 h-6" />
-						</Button>
-					</div>
-				))}
+					);
+				})}
 
 				<div
 					onDrop={(ev) => this._handleDrop(ev)}
