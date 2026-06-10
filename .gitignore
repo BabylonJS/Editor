@@ -149,6 +149,9 @@ cli/build
 cli/declaration
 !cli/bin
 
+mcp/build
+mcp/declaration
+
 # Template
 templates/nextjs/.next
 templates/electron/public/scene

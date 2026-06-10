@@ -7,7 +7,7 @@
 			"label": "watch-all-editor",
 			"group": "build",
 			"problemMatcher": "$tsc-watch",
-			"dependsOn": ["watch-editor", "watch-tools", "watch-plugins", "watch-cli"],
+			"dependsOn": ["watch-editor", "watch-tools", "watch-plugins", "watch-cli", "watch-mcp-server"],
 			"presentation": {
 				"panel": "shared",
 				"group": "watch"
@@ -53,6 +53,18 @@
 			"label": "watch-cli",
 			"type": "npm",
 			"script": "watch-cli",
+			"group": "build",
+			"problemMatcher": "$tsc-watch",
+			"presentation": {
+				"panel": "shared",
+				"group": "watch"
+			},
+			"isBackground": true
+		},
+		{
+			"label": "watch-mcp-server",
+			"type": "npm",
+			"script": "watch-mcp-server",
 			"group": "build",
 			"problemMatcher": "$tsc-watch",
 			"presentation": {
