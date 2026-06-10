@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 import { PropsWithChildren } from "react";
+import { IoArrowDownCircleSharp } from "react-icons/io5";
 
 import { Toaster } from "@/components/ui/sonner";
 
@@ -23,6 +24,7 @@ export default function DocumentationLayout(props: PropsWithChildren) {
 				</Link>
 
 				<Link href="/download" className="flex items-center gap-2 text-black bg-neutral-50 rounded-full px-5 py-2">
+					<IoArrowDownCircleSharp className="w-6 h-6" />
 					Download
 				</Link>
 			</div>
