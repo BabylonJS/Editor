@@ -10,7 +10,6 @@ import { useEffect, useRef, useState } from "react";
 
 import { FaToolbox } from "react-icons/fa6";
 import { GiBookmarklet } from "react-icons/gi";
-import { IoMdCloudDownload } from "react-icons/io";
 import { IoArrowDownCircleSharp, IoLogoGithub, IoSpeedometer } from "react-icons/io5";
 
 import isMobile from "is-mobile";
@@ -83,6 +82,7 @@ export default function HomePage() {
 							onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
 							className={`hidden lg:flex items-center gap-2 text-black bg-neutral-50 rounded-full px-5 py-2 ${section2Visible ? "" : "pointer-events-none opacity-0"} transition-all duration-1000 ease-in-out`}
 						>
+							<IoArrowDownCircleSharp className="w-6 h-6 opacity-75" />
 							Download
 						</Link>
 					</div>
@@ -400,7 +400,7 @@ export default function HomePage() {
 						<Fade>
 							<Link href="/download">
 								<button className="flex items-center gap-2 text-black bg-neutral-50 rounded-full px-5 py-2">
-									<IoMdCloudDownload className="w-6 h-6" />
+									<IoArrowDownCircleSharp className="w-6 h-6 opacity-75" />
 									Download the App
 								</button>
 							</Link>

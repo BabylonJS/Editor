@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 
+import { FaBook } from "react-icons/fa";
 import { Fade } from "react-awesome-reveal";
 
 import { DownloadVersionComponent } from "./version";
@@ -15,6 +16,7 @@ export default function DownloadPage() {
 				</Link>
 
 				<Link href="/documentation" className="flex items-center gap-2 text-black bg-neutral-50 rounded-full px-5 py-2">
+					<FaBook className="w-6 h-6" />
 					Documentation
 				</Link>
 			</div>
