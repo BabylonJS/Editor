@@ -48,6 +48,13 @@
 			"cwd": "${workspaceFolder}/cli",
 			"request": "launch",
 			"command": "node ./build/src/index.mjs"
+		},
+		{
+			"name": "Inspect MCP Server",
+			"type": "node-terminal",
+			"cwd": "${workspaceFolder}/mcp",
+			"request": "launch",
+			"command": "yarn inspect"
 		}
 	],
 	"compounds": [
@@ -63,6 +70,15 @@
 		{
 			"name": "Debug Editor & CLI",
 			"configurations": ["Electron With Devtools", "Debug Editor CLI"],
+			"stopAll": true,
+			"presentation": {
+				"group": "Editor",
+				"order": 1
+			}
+		},
+		{
+			"name": "Debug Editor & MCP Server",
+			"configurations": ["Electron With Devtools", "Inspect MCP Server"],
 			"stopAll": true,
 			"presentation": {
 				"group": "Editor",

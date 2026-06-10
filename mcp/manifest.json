@@ -1,0 +1,24 @@
+{
+	"mcpb_version": "0.1",
+	"name": "babylonjs-editor",
+	"display_name": "Babylon.js Editor",
+	"version": "1.0.0",
+	"description": "Lets Claude control the Babylon.js Editor to build games / 3D applications.",
+	"author": { "name": "Your Name" },
+	"server": {
+		"type": "node",
+		"entry_point": "build/src/index.mjs",
+		"mcp_config": {
+			"command": "node",
+			"args": ["${__dirname}/build/src/index.mjs"]
+		}
+	},
+	"tools": [
+		{ "name": "list_scene_nodes", "description": "List all scene nodes" },
+		{ "name": "create_mesh", "description": "Create a box, sphere, or ground" }
+	],
+	"compatibility": {
+		"platforms": ["darwin", "win32", "linux"],
+		"runtimes": { "node": ">=20.0.0" }
+	}
+}
