@@ -1,0 +1,116 @@
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+
+import { z } from "zod";
+
+import { callTextTool } from "./helpers.mjs";
+
+export function registerNodeTools(server: McpServer): void {
+	server.registerTool(
+		"get_node",
+		{
+			title: "Get node",
+			description:
+				"Get full details of a single node: id, name, className, position, rotation, scaling, enabled/visible state, parent id, material id and metadata. " +
+				"Address the node by `nodeId` (preferred, the Babylon `node.id`) or `nodeName`. Use it to read current values before modifying them.",
+			inputSchema: z.object({
+				nodeId: z.string().optional().describe("Id of the target node (preferred). Get it from `get_scene_hierarchy`."),
+				nodeName: z.string().optional().describe("Name of the target node. Used only if `nodeId` is not provided or does not resolve."),
+			}),
+		},
+		async (args): Promise<CallToolResult> => callTextTool("get_node", args)
+	);
+
+	server.registerTool(
+		"set_node_transform",
+		{
+			title: "Set node transform",
+			description:
+				"Set a node's transform. Positions/scaling are in editor units (centimeters); rotation is in radians (Euler angles). " +
+				"Only the provided fields are changed. The change is reflected live in the editor inspector.",
+			inputSchema: z.object({
+				nodeId: z.string().optional().describe("Id of the target node (preferred)."),
+				nodeName: z.string().optional().describe("Name of the target node."),
+				position: z.array(z.number()).length(3).optional().describe("World position `[x,y,z]` in centimeters."),
+				rotation: z.array(z.number()).length(3).optional().describe("Euler rotation `[x,y,z]` in radians."),
+				scaling: z.array(z.number()).length(3).optional().describe("Scaling `[x,y,z]`."),
+			}),
+		},
+		async (args): Promise<CallToolResult> => callTextTool("set_node_transform", args)
+	);
+
+	server.registerTool(
+		"set_node_properties",
+		{
+			title: "Set node properties",
+			description:
+				'Deep-set arbitrary node properties by dotted path, e.g. `"material.albedoColor"`, `"isVisible"`, `"receiveShadows"`. ' +
+				"Values may be numbers, strings, booleans, or `[r,g,b]`/`[x,y,z]` arrays which are coerced to Color3/Vector3 based on the existing property type. " +
+				"Use this for any property not covered by a dedicated tool.",
+			inputSchema: z.object({
+				nodeId: z.string().optional().describe("Id of the target node (preferred)."),
+				nodeName: z.string().optional().describe("Name of the target node."),
+				properties: z.record(z.string(), z.any()).describe("Map of dotted property path to value."),
+			}),
+		},
+		async (args): Promise<CallToolResult> => callTextTool("set_node_properties", args)
+	);
+
+	server.registerTool(
+		"set_node_parent",
+		{
+			title: "Set node parent",
+			description:
+				"Reparent a node while preserving its world transform. Pass `parentId`/`parentName` to set the new parent, or omit both to move the node to the scene root. " +
+				"Note: a non-shadow light should live in the ClusteredLightContainer for performance; reparenting such a light into the container attaches it correctly.",
+			inputSchema: z.object({
+				nodeId: z.string().optional().describe("Id of the node to reparent (preferred)."),
+				nodeName: z.string().optional().describe("Name of the node to reparent."),
+				parentId: z.string().optional().describe("Id of the new parent. Omit (and omit parentName) to move to the scene root."),
+				parentName: z.string().optional().describe("Name of the new parent."),
+				preserveWorldTransform: z.boolean().optional().describe("Keep the node's world transform after reparenting. Defaults to true."),
+			}),
+		},
+		async (args): Promise<CallToolResult> => callTextTool("set_node_parent", args)
+	);
+
+	server.registerTool(
+		"rename_node",
+		{
+			title: "Rename node",
+			description: "Rename a node. The new name appears immediately in the editor's scene graph.",
+			inputSchema: z.object({
+				nodeId: z.string().optional().describe("Id of the target node (preferred)."),
+				nodeName: z.string().optional().describe("Name of the target node."),
+				newName: z.string().describe("The new name for the node."),
+			}),
+		},
+		async (args): Promise<CallToolResult> => callTextTool("rename_node", args)
+	);
+
+	server.registerTool(
+		"delete_node",
+		{
+			title: "Delete node",
+			description: "Remove a node and all of its descendants from the scene. This is destructive; verify the target with `get_node` first if unsure.",
+			inputSchema: z.object({
+				nodeId: z.string().optional().describe("Id of the target node (preferred)."),
+				nodeName: z.string().optional().describe("Name of the target node."),
+			}),
+		},
+		async (args): Promise<CallToolResult> => callTextTool("delete_node", args)
+	);
+
+	server.registerTool(
+		"select_node",
+		{
+			title: "Select node",
+			description: "Select and focus a node in the editor (UX only, no scene change). Helps the user follow what the agent is doing.",
+			inputSchema: z.object({
+				nodeId: z.string().optional().describe("Id of the target node (preferred)."),
+				nodeName: z.string().optional().describe("Name of the target node."),
+			}),
+		},
+		async (args): Promise<CallToolResult> => callTextTool("select_node", args)
+	);
+}

@@ -213,6 +213,46 @@ export class EditorMarketplaceBrowser extends Component<IMarketplaceBrowserProps
 		this.setState({ query }, () => this._handleSearch());
 	}
 
+	/**
+	 * Returns the registered marketplace provider matching the given source id (e.g. "polyhaven").
+	 * @param source defines the id of the provider to retrieve.
+	 */
+	public getProviderBySource(source: string): MarketplaceProvider | undefined {
+		return this.state.providers.find((p) => p.id === source);
+	}
+
+	/**
+	 * Selects the marketplace provider matching the given source id and optionally runs a search.
+	 * Used by the MCP integration so downloads/searches are driven through the visible browser.
+	 * @param source defines the id of the provider to select.
+	 * @param query defines the optional query to search for once the provider is selected.
+	 */
+	public selectProviderAndSearch(source: string, query?: string): Promise<boolean> {
+		this.props.editor.layout.selectTab("marketplace");
+
+		const provider = this.getProviderBySource(source);
+		if (!provider) {
+			return Promise.reject(new Error(`Unknown marketplace source: ${source}`));
+		}
+
+		return new Promise<boolean>((resolve) => {
+			this.setState(
+				{
+					selectedProvider: provider,
+					filters: this._getDefaultFilters(provider),
+					selectedAsset: null,
+					currentPage: 1,
+					pageTokenStack: [undefined],
+					nextPageToken: undefined,
+					totalCount: undefined,
+					assets: [],
+					query: query ?? this.state.query,
+				},
+				() => this._handleSearch().then(resolve)
+			);
+		});
+	}
+
 	private async _handleSearch(pageToken?: string): Promise<boolean> {
 		const provider = this.state.selectedProvider;
 		const query = this.state.query;

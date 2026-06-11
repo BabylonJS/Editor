@@ -37,6 +37,8 @@ import { Toaster } from "../ui/shadcn/ui/sonner";
 import { EditorLayout } from "./layout";
 import { removeNodes } from "./layout/graph/remove";
 
+import { initializeMcpServer } from "../mcp/mcp";
+
 import "./nodes/camera";
 import "./nodes/scene-link";
 // import "./nodes/sprite-manager";
@@ -277,6 +279,10 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 			enableExperimentalFeatures: this.state.enableExperimentalFeatures,
 			openedTabs: this.state.openedTabs,
 		});
+
+		// Start the MCP server once the layout/preview scene is ready.
+		await waitUntil(() => this.layout?.preview?.scene);
+		initializeMcpServer(this);
 	}
 
 	/**
