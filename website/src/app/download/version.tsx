@@ -20,6 +20,18 @@ export interface IDownloadVersionComponentProps {
 }
 
 export function DownloadVersionComponent(props: IDownloadVersionComponentProps) {
+	function handleCallHook(platform: string, arch: string) {
+		fetch("/api/hooks/download", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				content: `${platform} ${arch}`,
+			}),
+		});
+	}
+
 	return (
 		<div className="flex flex-col gap-8 w-full">
 			<Fade>
@@ -31,12 +43,22 @@ export function DownloadVersionComponent(props: IDownloadVersionComponentProps) 
 					<div className="flex flex-col gap-4 items-center w-full">
 						<WindowsIcon color="#fff" className="w-20 lg:w-32 h-20 lg:h-32" />
 
-						<a href={props.windowsx64Link} download className="font-semibold font-sans tracking-tighter underline underline-offset-2">
+						<a
+							download
+							href={props.windowsx64Link}
+							onClick={() => handleCallHook("Windows", "x64")}
+							className="font-semibold font-sans tracking-tighter underline underline-offset-2"
+						>
 							x64 Installer
 						</a>
 
 						{props.windowsArm64Link && (
-							<a href={props.windowsx64Link} download className="font-semibold font-sans tracking-tighter underline underline-offset-2">
+							<a
+								download
+								href={props.windowsArm64Link}
+								onClick={() => handleCallHook("Windows", "arm64")}
+								className="font-semibold font-sans tracking-tighter underline underline-offset-2"
+							>
 								arm64 Installer
 							</a>
 						)}
@@ -45,11 +67,21 @@ export function DownloadVersionComponent(props: IDownloadVersionComponentProps) 
 					<div className="flex flex-col gap-4 items-center w-full">
 						<AppleIcon color="#fff" className="w-20 lg:w-32 h-20 lg:h-32" />
 
-						<a href={props.macArm64Link} download className="font-semibold font-sans tracking-tighter underline underline-offset-2">
+						<a
+							download
+							href={props.macArm64Link}
+							onClick={() => handleCallHook("macOS", "arm64")}
+							className="font-semibold font-sans tracking-tighter underline underline-offset-2"
+						>
 							Apple Silicon
 						</a>
 
-						<a href={props.macIntelLink} download className="font-semibold font-sans tracking-tighter underline underline-offset-2">
+						<a
+							download
+							href={props.macIntelLink}
+							onClick={() => handleCallHook("macOS", "x64")}
+							className="font-semibold font-sans tracking-tighter underline underline-offset-2"
+						>
 							Intel Chip
 						</a>
 					</div>
@@ -59,13 +91,23 @@ export function DownloadVersionComponent(props: IDownloadVersionComponentProps) 
 							<LinuxIcon color="#fff" className="w-20 lg:w-32 h-20 lg:h-32" />
 
 							{props.linuxx64Link && (
-								<a href={props.linuxx64Link} download className="font-semibold font-sans tracking-tighter underline underline-offset-2">
+								<a
+									download
+									href={props.linuxx64Link}
+									onClick={() => handleCallHook("Linux", "x64")}
+									className="font-semibold font-sans tracking-tighter underline underline-offset-2"
+								>
 									x64 AppImage
 								</a>
 							)}
 
 							{props.linuxArm64Link && (
-								<a href={props.linuxArm64Link} download className="font-semibold font-sans tracking-tighter underline underline-offset-2">
+								<a
+									download
+									href={props.linuxArm64Link}
+									onClick={() => handleCallHook("Linux", "arm64")}
+									className="font-semibold font-sans tracking-tighter underline underline-offset-2"
+								>
 									arm64 AppImage
 								</a>
 							)}
