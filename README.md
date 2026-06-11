@@ -4,8 +4,8 @@
 
 ## Introduction
 
-The Babylon.js Editor is a desktop application used to create and edit 3D scenes using the Babylon.js framework.
-The Editor is available on both Windows and macOS.
+The Babylon.js Editor is a desktop application used to create and edit 3D scenes using the Babylon.js 3D engine.
+The Editor is available on Windows, macOS and Linux.
 
 It includes built-in templates, including a Next.js template, allowing you to bypass the tedious setup process and dive straight into building your project.
 
@@ -25,7 +25,7 @@ It includes built-in templates, including a Next.js template, allowing you to by
 
 ## Prerequisites
 
-### Prerequisites for Window
+### Prerequisites for Windows
 
 On **Windows**, you need some tools to be present in the system like Python and C++ compiler. Windows users can easily install them by running the following command in PowerShell as administrator:
 
