@@ -892,7 +892,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		return (
 			<div className="flex flex-wrap gap-2 items-center h-10">
 				<TooltipProvider>
-					<Select value={this.scene?.activeCamera?.id} onOpenChange={(o) => o && this.forceUpdate()} onValueChange={(v) => this._switchToCamera(v)}>
+					<Select value={this.scene?.activeCamera?.id} onOpenChange={(o) => o && this.forceUpdate()} onValueChange={(v) => this._switchToCameraById(v)}>
 						<SelectTrigger className="w-36 border-none bg-muted/50">
 							<SelectValue placeholder="Select Value..." />
 						</SelectTrigger>
@@ -1101,7 +1101,17 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		);
 	}
 
-	private _switchToCamera(id: string): void {
+	/**
+	 * Makes the given camera the editor's active camera, saving the rendering configurations of the
+	 * previously active camera and restoring those associated to the new one. This is the supported way
+	 * to switch cameras so that per-camera post-processes are set up correctly (and exported for runtime).
+	 * @param camera defines the reference to the camera to activate.
+	 */
+	public switchToCamera(camera: Camera): void {
+		this._switchToCameraById(camera.id);
+	}
+
+	private _switchToCameraById(id: string): void {
 		const camera = this.scene.cameras.find((c) => c.id === id);
 		if (!camera) {
 			return;

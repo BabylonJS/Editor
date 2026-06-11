@@ -66,7 +66,9 @@ export function setActiveCamera(scene: Scene, data: any, options: IMCPActionOpti
 		throw new Error(`Node "${node.name}" is not a camera.`);
 	}
 
-	scene.activeCamera = node as Camera;
+	// Switch through the preview so the per-camera rendering configurations (post-processes) are
+	// saved for the previous camera and restored for the new one.
+	options.editor.layout.preview.switchToCamera(node as Camera);
 
 	options.editor.layout.inspector.forceUpdate();
 
