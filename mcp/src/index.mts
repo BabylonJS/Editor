@@ -1,40 +1,38 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-
-import { z } from "zod";
 
 import packageJson from "../package.json" with { type: "json" };
 
-import { notifyAndGetResultFromEditor } from "./request.mjs";
+import { registerSceneTools } from "./tools/scene.mjs";
+import { registerNodeTools } from "./tools/nodes.mjs";
+import { registerMeshTools } from "./tools/meshes.mjs";
+import { registerLightTools } from "./tools/lights.mjs";
+import { registerCameraTools } from "./tools/cameras.mjs";
+import { registerMaterialTools } from "./tools/materials.mjs";
+import { registerAssetTools } from "./tools/assets.mjs";
+import { registerParticleTools } from "./tools/particles.mjs";
+import { registerMarketplaceTools } from "./tools/marketplace.mjs";
+import { registerScriptTools } from "./tools/scripts.mjs";
+import { registerVerificationTools } from "./tools/verification.mjs";
+import { registerBatchTools } from "./tools/batch.mjs";
 
 const server = new McpServer({
 	name: "babylonjs-editor-mcp",
 	version: packageJson.version,
 });
 
-server.registerTool(
-	"get_scene_hierarchy",
-	{
-		title: "Get scene hierarchy",
-		description: "Retrieve the hierarchy of nodes in the current scene expressed in JSON format.",
-		inputSchema: z.object({
-			rootNodeName: z.string().optional().describe("The name of the root node to get the hierarchy from. If not provided, the root node of the scene is used."),
-		}),
-	},
-	async ({ rootNodeName }): Promise<CallToolResult> => {
-		const result = await notifyAndGetResultFromEditor("get_scene_hierarchy", { rootNodeName });
-		return {
-			isError: result?.isError,
-			content: [
-				{
-					type: "text",
-					text: result?.text,
-				},
-			],
-		};
-	}
-);
+registerSceneTools(server);
+registerNodeTools(server);
+registerMeshTools(server);
+registerLightTools(server);
+registerCameraTools(server);
+registerMaterialTools(server);
+registerAssetTools(server);
+registerParticleTools(server);
+registerMarketplaceTools(server);
+registerScriptTools(server);
+registerVerificationTools(server);
+registerBatchTools(server);
 
 const transport = new StdioServerTransport();
 await server.connect(transport);
