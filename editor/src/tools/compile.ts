@@ -3,13 +3,31 @@ import { dirname, join } from "path/posix";
 
 import { build, BuildOptions, Plugin } from "esbuild";
 
-import { projectConfiguration } from "../../../project/configuration";
+import { getProjectAssetsRootUrl, projectConfiguration } from "../project/configuration";
+
+import { ensureTemporaryDirectoryExists } from "./project";
+
+export async function compileScriptFromAssets(absolutePath: string) {
+	const temporaryDirectory = await ensureTemporaryDirectoryExists(projectConfiguration.path!);
+
+	const relativePath = absolutePath.replace(getProjectAssetsRootUrl()!, "").replace("/", "_");
+	const outfile = join(temporaryDirectory, "scripts", relativePath.replace(".js", ".cjs"));
+
+	await compileScript({
+		outfile,
+		entryPoints: [absolutePath],
+	});
+
+	return outfile;
+}
 
 export interface ICompilePlayScriptOptions {
+	entryPoints: string[];
+	outfile: string;
 	onTransformSource?: (path: string) => void;
 }
 
-export async function compilePlayScript(temporaryDirectory: string, options?: ICompilePlayScriptOptions) {
+export async function compileScript(options: ICompilePlayScriptOptions) {
 	if (!projectConfiguration.path) {
 		return;
 	}
@@ -33,7 +51,7 @@ export async function compilePlayScript(temporaryDirectory: string, options?: IC
 					.replace(/import\.meta\.dirname/g, "__dirname")
 					.replace(/import\("/g, 'require("');
 
-				options?.onTransformSource?.(args.path);
+				options.onTransformSource?.(args.path);
 
 				return {
 					loader: "default",
@@ -52,7 +70,7 @@ export async function compilePlayScript(temporaryDirectory: string, options?: IC
 	// - babylonjs-*: it is **IMPORTANT HERE** that all the babylonjs dependencies are set external. The editor overrides module loading in order to always return the editor's version of the library.
 
 	const buildOptions = {
-		entryPoints: [join(projectDir, "src/scripts.ts")],
+		entryPoints: options.entryPoints,
 		bundle: true,
 		platform: "node",
 		target: "node20",
@@ -61,7 +79,7 @@ export async function compilePlayScript(temporaryDirectory: string, options?: IC
 		// IMPORTANT: force .cjs extension as the editor will use "require".
 		// When type is set to "module" in package.json, the output will be esm.
 		// Let "require" create a wrapper by naming the file extension ".cjs".
-		outfile: join(temporaryDirectory, "play/script.cjs"),
+		outfile: options.outfile,
 
 		treeShaking: true,
 		sourcemap: true,

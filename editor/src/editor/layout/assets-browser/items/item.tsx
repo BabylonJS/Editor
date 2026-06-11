@@ -477,7 +477,6 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 			case ".wave":
 				return <BsFiletypeWav size="64px" />;
 
-			case ".js":
 			case ".jsx":
 				return <SiJavascript size="64px" />;
 

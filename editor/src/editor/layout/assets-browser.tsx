@@ -83,6 +83,7 @@ import { AssetBrowserImageItem } from "./assets-browser/items/image-item";
 import { AssetBrowserNavmeshItem } from "./assets-browser/items/navmesh-item";
 import { AssetBrowserMaterialItem } from "./assets-browser/items/material-item";
 import { AssetBrowserCinematicItem } from "./assets-browser/items/cinematic-item";
+import { AssetBrowserJavaScriptItem } from "./assets-browser/items/javascript-item";
 import { AssetsBrowserItem, IAssetsBrowserItemProps } from "./assets-browser/items/item";
 import { AssetBrowserParticleSystemItem } from "./assets-browser/items/particle-system-item";
 
@@ -113,6 +114,7 @@ const NavmeshSelectable = createSelectable(AssetBrowserNavmeshItem);
 const RagdollSelectable = createSelectable(AssetBrowserRagdollItem);
 const MaterialSelectable = createSelectable(AssetBrowserMaterialItem);
 const CinematicSelectable = createSelectable(AssetBrowserCinematicItem);
+const JavascriptSelectable = createSelectable(AssetBrowserJavaScriptItem);
 const ParticleSystemSelectable = createSelectable(AssetBrowserParticleSystemItem);
 
 const directoryPackagesExtensions = [".scene", ".navmesh"];
@@ -928,6 +930,9 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 
 			case ".ragdoll":
 				return <RagdollSelectable {...props} />;
+
+			case ".js":
+				return <JavascriptSelectable {...props} />;
 
 			default:
 				return <DefaultSelectable {...props} />;
