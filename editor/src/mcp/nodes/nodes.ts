@@ -1,12 +1,12 @@
-import { Scene, TransformNode, AbstractMesh } from "babylonjs";
+import { Scene, AbstractMesh, Camera, Light, TransformNode } from "babylonjs";
 
-import { isLight, isClusteredLightContainer, isAbstractMesh, isAnyTransformNode } from "../../tools/guards/nodes";
+import { isLight, isCamera, isClusteredLightContainer, isAbstractMesh, isAnyTransformNode } from "../../tools/guards/nodes";
 
 import { IMCPActionOptions } from "../action";
 import { resolveNode, toNodeSummary, toVector3, deepSet } from "../tools/resolve";
 
 /**
- * Returns the full details of a node.
+ * Returns the full details of a node, including transform, camera and light specific properties.
  */
 export function getNode(scene: Scene, data: any): any {
 	const node = resolveNode({ scene, nodeId: data.nodeId, nodeName: data.nodeName });
@@ -20,15 +20,23 @@ export function getNode(scene: Scene, data: any): any {
 		metadata: node.metadata ?? null,
 	};
 
-	if (isAbstractMesh(node) || isAnyTransformNode(node)) {
-		const transform = node as unknown as TransformNode;
-		result.position = [transform.position.x, transform.position.y, transform.position.z];
-		result.rotation = [transform.rotation.x, transform.rotation.y, transform.rotation.z];
-		result.scaling = [transform.scaling.x, transform.scaling.y, transform.scaling.z];
+	// Transform-like properties read by duck-typing so they also cover cameras and lights.
+	const anyNode = node as any;
 
-		if (transform.rotationQuaternion) {
-			result.rotationQuaternion = [transform.rotationQuaternion.x, transform.rotationQuaternion.y, transform.rotationQuaternion.z, transform.rotationQuaternion.w];
-		}
+	if (anyNode.position?.x !== undefined) {
+		result.position = [anyNode.position.x, anyNode.position.y, anyNode.position.z];
+	}
+	if (anyNode.rotation?.x !== undefined) {
+		result.rotation = [anyNode.rotation.x, anyNode.rotation.y, anyNode.rotation.z];
+	}
+	if (anyNode.scaling?.x !== undefined) {
+		result.scaling = [anyNode.scaling.x, anyNode.scaling.y, anyNode.scaling.z];
+	}
+	if (anyNode.direction?.x !== undefined) {
+		result.direction = [anyNode.direction.x, anyNode.direction.y, anyNode.direction.z];
+	}
+	if (anyNode.rotationQuaternion) {
+		result.rotationQuaternion = [anyNode.rotationQuaternion.x, anyNode.rotationQuaternion.y, anyNode.rotationQuaternion.z, anyNode.rotationQuaternion.w];
 	}
 
 	if (isAbstractMesh(node)) {
@@ -37,34 +45,73 @@ export function getNode(scene: Scene, data: any): any {
 		result.materialId = mesh.material?.id ?? null;
 	}
 
+	if (isCamera(node)) {
+		const camera = node as Camera;
+		const target = (camera as any).getTarget?.();
+		if (target) {
+			result.target = [target.x, target.y, target.z];
+		}
+		result.fov = (camera as any).fov;
+		result.minZ = camera.minZ;
+		result.maxZ = camera.maxZ;
+	}
+
+	if (isLight(node)) {
+		const light = node as Light;
+		result.intensity = light.intensity;
+		result.diffuse = [light.diffuse.r, light.diffuse.g, light.diffuse.b];
+		if ((light as any).range !== undefined) {
+			result.range = (light as any).range;
+		}
+		if ((light as any).angle !== undefined) {
+			result.angle = (light as any).angle;
+		}
+	}
+
 	return result;
 }
 
 /**
- * Sets the transform (position/rotation/scaling) of a node.
+ * Sets the transform of a node. Supports meshes/transform nodes (position/rotation/scaling),
+ * lights (position/direction) and cameras (position/rotation/target). Only the provided and
+ * supported properties are applied.
  */
 export function setNodeTransform(scene: Scene, data: any, options: IMCPActionOptions): any {
 	const node = resolveNode({ scene, nodeId: data.nodeId, nodeName: data.nodeName });
 
-	if (!isAbstractMesh(node) && !isAnyTransformNode(node)) {
-		throw new Error(`Node "${node.name}" does not support transforms.`);
+	const anyNode = node as any;
+	let applied = false;
+
+	if (data.position && anyNode.position?.copyFrom) {
+		anyNode.position.copyFrom(toVector3(data.position));
+		applied = true;
 	}
 
-	const transform = node as unknown as TransformNode;
-
-	if (data.position) {
-		transform.position.copyFrom(toVector3(data.position));
-	}
-
-	if (data.rotation) {
-		if (transform.rotationQuaternion) {
-			transform.rotationQuaternion = null;
+	if (data.rotation && anyNode.rotation?.copyFrom) {
+		if (anyNode.rotationQuaternion) {
+			anyNode.rotationQuaternion = null;
 		}
-		transform.rotation.copyFrom(toVector3(data.rotation));
+		anyNode.rotation.copyFrom(toVector3(data.rotation));
+		applied = true;
 	}
 
-	if (data.scaling) {
-		transform.scaling.copyFrom(toVector3(data.scaling));
+	if (data.scaling && anyNode.scaling?.copyFrom) {
+		anyNode.scaling.copyFrom(toVector3(data.scaling));
+		applied = true;
+	}
+
+	if (data.direction && anyNode.direction?.copyFrom) {
+		anyNode.direction.copyFrom(toVector3(data.direction));
+		applied = true;
+	}
+
+	if (data.target && typeof anyNode.setTarget === "function") {
+		anyNode.setTarget(toVector3(data.target));
+		applied = true;
+	}
+
+	if (!applied) {
+		throw new Error(`Node "${node.name}" does not support any of the provided transform properties (position, rotation, scaling, direction, target).`);
 	}
 
 	options.editor.layout.graph.setSelectedNode(node);

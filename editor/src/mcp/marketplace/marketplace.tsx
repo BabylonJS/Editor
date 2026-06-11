@@ -1,10 +1,13 @@
 import { relative, dirname } from "path/posix";
 
+import { toast } from "sonner";
+
 import { Scene } from "babylonjs";
 
 import { waitUntil } from "../../tools/tools";
 
 import { EditorMarketplaceBrowser } from "../../editor/layout/marketplace";
+import { ImportProgress } from "../../editor/layout/marketplace/import-progress";
 
 import { projectConfiguration } from "../../project/configuration";
 
@@ -36,7 +39,7 @@ async function openMarketplaceBrowser(options: IMCPActionOptions): Promise<Edito
 /**
  * Opens the marketplace browser tab in the editor.
  */
-export async function openMarketplace(_scene: Scene, data: any, options: IMCPActionOptions): Promise<any> {
+export async function openMarketplaceAndSelectAsset(_: Scene, data: any, options: IMCPActionOptions): Promise<any> {
 	const browser = await openMarketplaceBrowser(options);
 
 	if (data.source) {
@@ -49,7 +52,7 @@ export async function openMarketplace(_scene: Scene, data: any, options: IMCPAct
 /**
  * Searches a marketplace, driven through the editor's marketplace browser so it is visible.
  */
-export async function searchMarketplace(_scene: Scene, data: any, options: IMCPActionOptions): Promise<any> {
+export async function openMarketplaceAndSearch(_: Scene, data: any, options: IMCPActionOptions): Promise<any> {
 	const browser = await openMarketplaceBrowser(options);
 
 	await browser.selectProviderAndSearch(data.source, data.query);
@@ -105,8 +108,26 @@ export async function downloadMarketplaceAsset(_scene: Scene, data: any, options
 	const types = Object.keys(downloadOptions[quality] ?? {});
 	const type = types[0];
 
-	// downloadAndImport runs the same path as the UI: shows progress in the console and refreshes the assets browser.
-	await provider.downloadAndImport(asset, options.editor, quality, type, type);
+	// Show the same bottom-right progress toast the editor UI uses, so the user sees the download
+	// progress (and can cancel it) when the agent triggers a marketplace import.
+	toast(<ImportProgress asset={asset} editor={options.editor} provider={provider} quality={quality} type={type} />, {
+		id: asset.id,
+		duration: Infinity,
+		dismissible: false,
+	});
+
+	try {
+		// downloadAndImport runs the same path as the UI: shows progress and refreshes the assets browser.
+		await provider.downloadAndImport(asset, options.editor, quality, type, type);
+		toast.success(`Successfully imported ${asset.name}`, { id: asset.id, duration: 3000 });
+	} catch (e) {
+		if (e instanceof Error && e.message === "Download aborted by user.") {
+			toast.error(`Import of ${asset.name} was cancelled and cleaned up.`, { id: asset.id, duration: 3000 });
+		} else {
+			toast.error(`Failed to import ${asset.name}: ${e instanceof Error ? e.message : String(e)}`, { id: asset.id, duration: 5000 });
+		}
+		throw e;
+	}
 
 	const assetDir = provider.getAssetDir(asset.id, projectConfiguration.path);
 

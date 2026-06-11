@@ -26,14 +26,17 @@ export function registerNodeTools(server: McpServer): void {
 		{
 			title: "Set node transform",
 			description:
-				"Set a node's transform. Positions/scaling are in editor units (centimeters); rotation is in radians (Euler angles). " +
-				"Only the provided fields are changed. The change is reflected live in the editor inspector.",
+				"Set a node's transform. Works for meshes/transform nodes (position/rotation/scaling), lights (position and/or direction) and cameras (position, rotation and/or target). " +
+				"Positions/targets are in editor units (centimeters); rotation/direction are in radians/world units. Only the provided and node-supported fields are applied; " +
+				"the change is reflected live in the editor inspector. Use `get_node` first to see which of these properties a given node exposes.",
 			inputSchema: z.object({
 				nodeId: z.string().optional().describe("Id of the target node (preferred)."),
 				nodeName: z.string().optional().describe("Name of the target node."),
-				position: z.array(z.number()).length(3).optional().describe("World position `[x,y,z]` in centimeters."),
-				rotation: z.array(z.number()).length(3).optional().describe("Euler rotation `[x,y,z]` in radians."),
-				scaling: z.array(z.number()).length(3).optional().describe("Scaling `[x,y,z]`."),
+				position: z.array(z.number()).length(3).optional().describe("World position `[x,y,z]` in centimeters (meshes, cameras, point/spot/directional lights)."),
+				rotation: z.array(z.number()).length(3).optional().describe("Euler rotation `[x,y,z]` in radians (meshes, transform nodes, free/universal cameras)."),
+				scaling: z.array(z.number()).length(3).optional().describe("Scaling `[x,y,z]` (meshes and transform nodes only)."),
+				direction: z.array(z.number()).length(3).optional().describe("Direction vector `[x,y,z]` for directional/spot/hemispheric lights (the way the light points)."),
+				target: z.array(z.number()).length(3).optional().describe("Point `[x,y,z]` (centimeters) a camera looks at. Applies to cameras that support `setTarget`."),
 			}),
 		},
 		async (args): Promise<CallToolResult> => callTextTool("set_node_transform", args)
@@ -46,7 +49,9 @@ export function registerNodeTools(server: McpServer): void {
 			description:
 				'Deep-set arbitrary node properties by dotted path, e.g. `"material.albedoColor"`, `"isVisible"`, `"receiveShadows"`. ' +
 				"Values may be numbers, strings, booleans, or `[r,g,b]`/`[x,y,z]` arrays which are coerced to Color3/Vector3 based on the existing property type. " +
-				"Use this for any property not covered by a dedicated tool.",
+				"This is the catch-all for DEEP customization not covered by a dedicated tool — including built-in collisions: " +
+				'`"checkCollisions"` (true to make a mesh block moveWithCollisions), `"ellipsoid"`/`"ellipsoidOffset"` ([x,y,z], the collider used for character-style movement), `"isPickable"`, `"applyGravity"`. ' +
+				"For Havok rigid-body physics use `set_mesh_physics` instead. You can set many properties at once via the `properties` map, and many nodes at once via `execute_batch`.",
 			inputSchema: z.object({
 				nodeId: z.string().optional().describe("Id of the target node (preferred)."),
 				nodeName: z.string().optional().describe("Name of the target node."),

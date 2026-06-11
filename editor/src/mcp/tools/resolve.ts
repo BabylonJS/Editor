@@ -1,6 +1,6 @@
-import { Scene, Node, Material, Color3, Color4, Vector2, Vector3, Vector4, AbstractMesh, TransformNode } from "babylonjs";
+import { Scene, Node, Material, Color3, Color4, Vector2, Vector3, Vector4, AbstractMesh } from "babylonjs";
 
-import { isAbstractMesh, isAnyTransformNode } from "../../tools/guards/nodes";
+import { isAbstractMesh } from "../../tools/guards/nodes";
 
 /**
  * Defines the shape of the options used to resolve a node from the scene.
@@ -30,6 +30,7 @@ export interface INodeSummary {
 	position?: [number, number, number];
 	rotation?: [number, number, number];
 	scaling?: [number, number, number];
+	direction?: [number, number, number];
 	parentId?: string | null;
 	materialId?: string | null;
 	isEnabled: boolean;
@@ -97,11 +98,21 @@ export function toNodeSummary(node: Node): INodeSummary {
 		parentId: node.parent?.id ?? null,
 	};
 
-	if (isAbstractMesh(node) || isAnyTransformNode(node)) {
-		const transform = node as unknown as TransformNode;
-		summary.position = [transform.position.x, transform.position.y, transform.position.z];
-		summary.rotation = [transform.rotation.x, transform.rotation.y, transform.rotation.z];
-		summary.scaling = [transform.scaling.x, transform.scaling.y, transform.scaling.z];
+	// Transform-like properties are read by duck-typing so they also cover cameras and lights
+	// (which expose position/direction without being TransformNodes).
+	const anyNode = node as any;
+
+	if (anyNode.position?.x !== undefined) {
+		summary.position = [anyNode.position.x, anyNode.position.y, anyNode.position.z];
+	}
+	if (anyNode.rotation?.x !== undefined) {
+		summary.rotation = [anyNode.rotation.x, anyNode.rotation.y, anyNode.rotation.z];
+	}
+	if (anyNode.scaling?.x !== undefined) {
+		summary.scaling = [anyNode.scaling.x, anyNode.scaling.y, anyNode.scaling.z];
+	}
+	if (anyNode.direction?.x !== undefined) {
+		summary.direction = [anyNode.direction.x, anyNode.direction.y, anyNode.direction.z];
 	}
 
 	if (isAbstractMesh(node)) {

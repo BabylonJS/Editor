@@ -10,13 +10,14 @@ import { getSceneHierarchy } from "./scene/hierarchy";
 import { listScenes, getActiveScene, saveScene, getSceneSettings, setSceneSettings } from "./scene/scene";
 
 import { getNode, setNodeTransform, setNodeProperties, setNodeParent, renameNode, deleteNode, selectNode } from "./nodes/nodes";
-import { createPrimitiveMesh, createInstance, cloneMesh, setMeshMaterial, setMeshVisibility } from "./meshes/meshes";
+import { createPrimitiveMesh, createInstance, cloneMesh, setMeshMaterial, setMeshVisibility, setMeshPhysics, getMeshBoundingInfo } from "./meshes/meshes";
 import { createLight, setLightShadows, createClusteredLightContainer, addLightToClusteredContainer } from "./lights/lights";
 import { createCamera, setActiveCamera } from "./cameras/cameras";
+import { getCameraPostProcesses, setCameraPostProcess } from "./rendering/post-process";
 import { listMaterials, createMaterial, setMaterialProperties, assignTextureToMaterial, setEnvironmentTexture } from "./materials/materials";
 import { listAssets, getAssetPreview, instantiateMeshAsset } from "./assets/assets";
 import { listParticleAssets, instantiateParticleSystem } from "./particles/particles";
-import { openMarketplace, searchMarketplace, downloadMarketplaceAsset } from "./marketplace/marketplace";
+import { openMarketplaceAndSelectAsset, openMarketplaceAndSearch, downloadMarketplaceAsset } from "./marketplace/marketplace";
 import { listScripts, createScript, readScript, writeScript, attachScript, listAttachedScripts, setScriptExportedValue, detachScript } from "./scripts/scripts";
 import { getScreenshot, focusNode, runProject } from "./screenshot";
 import { createBatchHandler } from "./batch";
@@ -59,6 +60,8 @@ export const MCPEndpoints: Record<string, (scene: Scene, data: any, options: IMC
 	clone_mesh: cloneMesh,
 	set_mesh_material: setMeshMaterial,
 	set_mesh_visibility: setMeshVisibility,
+	set_mesh_physics: setMeshPhysics,
+	get_mesh_bounding_info: getMeshBoundingInfo,
 
 	// Lights & shadows
 	create_light: createLight,
@@ -69,6 +72,10 @@ export const MCPEndpoints: Record<string, (scene: Scene, data: any, options: IMC
 	// Cameras
 	create_camera: createCamera,
 	set_active_camera: setActiveCamera,
+
+	// Camera post-processes / rendering pipelines
+	get_camera_post_processes: getCameraPostProcesses,
+	set_camera_post_process: setCameraPostProcess,
 
 	// Materials & textures
 	list_materials: listMaterials,
@@ -87,8 +94,8 @@ export const MCPEndpoints: Record<string, (scene: Scene, data: any, options: IMC
 	instantiate_particle_system: instantiateParticleSystem,
 
 	// Marketplace
-	open_marketplace: openMarketplace,
-	search_marketplace: searchMarketplace,
+	open_marketplace: openMarketplaceAndSelectAsset,
+	search_marketplace: openMarketplaceAndSearch,
 	download_marketplace_asset: downloadMarketplaceAsset,
 
 	// Scripts
