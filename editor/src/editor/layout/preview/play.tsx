@@ -14,8 +14,8 @@ import { Scene, Vector3, HavokPlugin } from "babylonjs";
 
 import { ensureTemporaryDirectoryExists } from "../../../tools/project";
 
+import { compileScript } from "../../../tools/compile";
 import { wait, waitNextAnimationFrame } from "../../../tools/tools";
-import { compilePlayScript } from "../../../tools/scene/play/compile";
 import { forceCompileAllSceneMaterials } from "../../../tools/scene/materials";
 import { applyOverrides, restorePlayOverrides } from "../../../tools/scene/play/override";
 
@@ -285,13 +285,15 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 	/**
 	 * The script that is required and executed is a bundled version of the "src/scripts.ts" file.
 	 * Here we use esbuild to bundle the scripts and transform the imports to use the correct paths.
-	 * @see compilePlayScript for more information.
+	 * @see compileScript for more information.
 	 */
 	private async _compileScripts(): Promise<boolean> {
 		const log = await this.props.editor.layout.console.progress("Compiling scripts...");
 
 		try {
-			await compilePlayScript(this._temporaryDirectory!, {
+			await compileScript({
+				entryPoints: [join(dirname(projectConfiguration.path!), "src/scripts.ts")],
+				outfile: join(this._temporaryDirectory!, "play/script.cjs"),
 				onTransformSource: (path) =>
 					log.setState({
 						message: `Compiling source: ${basename(path)}`,
