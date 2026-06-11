@@ -22,6 +22,8 @@ export function registerScriptTools(server: McpServer): void {
 			title: "Create script",
 			description:
 				"Create a new TypeScript script using the editor's default skeleton. The path MUST live under `src/**` (scripts outside `src/` are not valid editor scripts). " +
+				"Scripts are for runtime BEHAVIOR ONLY (input, movement, game rules, AI, collision reactions, runtime spawning) — NOT for building the scene. " +
+				"Before writing a script, author the geometry, materials, lights and props with the editor tools (`create_primitive_mesh`, `instantiate_mesh_asset`, `create_material`, `create_instance`, `create_light`, `set_mesh_physics`) so they remain real, hand-editable assets. " +
 				"After creating, edit it with `write_script` and attach it to a node with `attach_script`.",
 			inputSchema: z.object({
 				path: z.string().describe("Project path for the new script under `src/`, e.g. `src/door.ts`."),
@@ -48,8 +50,10 @@ export function registerScriptTools(server: McpServer): void {
 		{
 			title: "Write script",
 			description:
-				"Overwrite a script's content. The file must be under `src/**`. Implement behaviors with the editor's `IScript` interface (`onStart`/`onUpdate`/`onStop`) and export inspector-editable values where it helps reuse. " +
-				"Example: a door that opens when the player is near checks distance in `onUpdate` and plays an animation.",
+				"Overwrite a script's content. The file must be under `src/**`. Implement runtime behaviors with the editor's `IScript` interface (`onStart`/`onUpdate`/`onStop`) and export inspector-editable values where it helps reuse. " +
+				"Keep scripts to LOGIC, not scene construction: do not use `new Mesh`/`MeshBuilder`/`new StandardMaterial`/`new ...Light` to build geometry, materials or lighting in code — that content must be authored with the editor tools so the user can hand-edit it. " +
+				"Reference already-authored assets from the script (e.g. look them up by name, or expose exported values set via `set_script_exported_value`). " +
+				"Example: a door that opens when the player is near checks distance in `onUpdate` and plays an animation on the existing authored door mesh.",
 			inputSchema: z.object({
 				path: z.string().describe("Project path of the script under `src/`."),
 				content: z.string().describe("The full new content of the script file."),
