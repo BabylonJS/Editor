@@ -58,6 +58,117 @@ export function listMaterials(scene: Scene): any {
 }
 
 /**
+ * Catalog of the material types the editor can create, with their key controllable properties.
+ * The "library" materials come from the Babylon.js Materials Library (babylonjs-materials) and mirror
+ * the editor's dedicated inspectors. Properties listed here can all be set with `set_material_properties`.
+ */
+const materialTypesCatalog = [
+	{
+		type: "pbr",
+		className: "PBRMaterial",
+		library: false,
+		use: "Realistic physically-based surfaces (metal, plastic, wood, stone). The default choice for most meshes.",
+		keyProperties: ["albedoColor [r,g,b]", "metallic (0..1)", "roughness (0..1)", "emissiveColor [r,g,b]", "alpha (0..1)", "albedoTexture", "bumpTexture", "metallicTexture"],
+	},
+	{
+		type: "standard",
+		className: "StandardMaterial",
+		library: false,
+		use: "Simple, cheap non-PBR surfaces and unlit/flat looks.",
+		keyProperties: ["diffuseColor [r,g,b]", "specularColor [r,g,b]", "emissiveColor [r,g,b]", "alpha (0..1)", "diffuseTexture", "bumpTexture"],
+	},
+	{
+		type: "node",
+		className: "NodeMaterial",
+		library: false,
+		use: "Custom shader graphs (advanced). Prefer authoring these by hand in the Node Material Editor.",
+		keyProperties: [],
+	},
+	{
+		type: "sky",
+		className: "SkyMaterial",
+		library: true,
+		use: "Procedural physically-based sky (no HDR needed). Apply it to a `skybox` mesh. Animate `inclination` for a day/night cycle.",
+		keyProperties: [
+			"inclination (-0.6..0.6, sun height / time of day)",
+			"azimuth (0..1, sun horizontal direction)",
+			"luminance (>=0.01, overall brightness)",
+			"turbidity (>=0, haziness)",
+			"rayleigh (sky scattering)",
+			"mieCoefficient (0..1)",
+			"mieDirectionalG (0..1)",
+			"useSunPosition (bool)",
+			"sunPosition [x,y,z]",
+			"dithering (bool)",
+		],
+	},
+	{
+		type: "grid",
+		className: "GridMaterial",
+		library: true,
+		use: "Blueprint / editor-style reference grid. Great for prototyping floors and level blockouts.",
+		keyProperties: ["mainColor [r,g,b]", "lineColor [r,g,b]", "gridRatio", "majorUnitFrequency", "minorUnitVisibility (0..1)", "opacity (0..1)"],
+	},
+	{
+		type: "normal",
+		className: "NormalMaterial",
+		library: true,
+		use: "Renders surface normals as colors. Useful for debugging or a stylized look.",
+		keyProperties: ["diffuseColor [r,g,b]", "diffuseTexture"],
+	},
+	{
+		type: "water",
+		className: "WaterMaterial",
+		library: true,
+		use: "Animated water for lakes/oceans/rivers. Apply to a ground or plane.",
+		keyProperties: ["waterColor [r,g,b]", "waveHeight", "waveLength", "windForce", "windDirection [x,y]", "bumpHeight", "colorBlendFactor (0..1)", "waveSpeed"],
+	},
+	{
+		type: "lava",
+		className: "LavaMaterial",
+		library: true,
+		use: "Animated lava / flowing molten surfaces (needs a noise/diffuse texture for the full effect).",
+		keyProperties: ["speed", "movingSpeed", "lowFrequencySpeed", "fogColor [r,g,b]", "diffuseTexture", "noiseTexture"],
+	},
+	{
+		type: "triplanar",
+		className: "TriPlanarMaterial",
+		library: true,
+		use: "Texture meshes that have no UVs (terrain, voxels, CSG) by projecting on the 3 axes.",
+		keyProperties: ["tileSize", "diffuseColor [r,g,b]", "diffuseTextureX", "diffuseTextureY", "diffuseTextureZ", "normalTextureX/Y/Z"],
+	},
+	{
+		type: "cell",
+		className: "CellMaterial",
+		library: true,
+		use: "Toon / cel shading for stylized games.",
+		keyProperties: ["diffuseColor [r,g,b]", "computeHighLevel (bool)", "diffuseTexture"],
+	},
+	{
+		type: "fire",
+		className: "FireMaterial",
+		library: true,
+		use: "Animated fire surface (needs diffuse/distortion/opacity textures for the full effect).",
+		keyProperties: ["speed", "diffuseTexture", "distortionTexture", "opacityTexture"],
+	},
+	{
+		type: "gradient",
+		className: "GradientMaterial",
+		library: true,
+		use: "Two-color gradient (sky-like / stylized backgrounds and surfaces).",
+		keyProperties: ["topColor [r,g,b]", "bottomColor [r,g,b]", "offset", "smoothness", "scale"],
+	},
+];
+
+/**
+ * Lists the material types the editor can create (including the Materials Library) and their key
+ * controllable properties, so the agent knows what is available and how to tune each one.
+ */
+export function listMaterialTypes(): any {
+	return { types: materialTypesCatalog };
+}
+
+/**
  * Creates a material and persists it as a `.material` asset so it appears in the assets browser.
  */
 export async function createMaterial(scene: Scene, data: any, options: IMCPActionOptions): Promise<any> {

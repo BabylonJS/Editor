@@ -92,6 +92,11 @@ export async function compileScript(options: ICompilePlayScriptOptions) {
 			"sharp",
 			"electron",
 
+			// The editor public API. Kept external so the editor's runtime module override (see
+			// editor/src/editor/overrides.ts) returns the running editor's own exports — this is what
+			// lets "agentdata" automation scripts do `import { UniqueNumber } from "babylonjs-editor"`.
+			"babylonjs-editor",
+
 			"babylonjs",
 			"babylonjs-gui",
 			"babylonjs-loaders",

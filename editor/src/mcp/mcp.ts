@@ -14,11 +14,12 @@ import { createPrimitiveMesh, createInstance, cloneMesh, setMeshMaterial, setMes
 import { createLight, setLightShadows, createClusteredLightContainer, addLightToClusteredContainer } from "./lights/lights";
 import { createCamera, setActiveCamera } from "./cameras/cameras";
 import { getCameraPostProcesses, setCameraPostProcess } from "./rendering/post-process";
-import { listMaterials, createMaterial, setMaterialProperties, assignTextureToMaterial, setEnvironmentTexture } from "./materials/materials";
+import { listMaterials, listMaterialTypes, createMaterial, setMaterialProperties, assignTextureToMaterial, setEnvironmentTexture } from "./materials/materials";
 import { listAssets, getAssetPreview, instantiateMeshAsset } from "./assets/assets";
 import { listParticleAssets, instantiateParticleSystem } from "./particles/particles";
 import { openMarketplaceAndSelectAsset, openMarketplaceAndSearch, downloadMarketplaceAsset } from "./marketplace/marketplace";
 import { listScripts, createScript, readScript, writeScript, attachScript, listAttachedScripts, setScriptExportedValue, detachScript } from "./scripts/scripts";
+import { writeAgentScript, runAgentScript, listAgentScripts, getEditorApi } from "./scripts/editor-scripts";
 import { getScreenshot, focusNode, runProject } from "./screenshot";
 import { createBatchHandler } from "./batch";
 
@@ -79,6 +80,7 @@ export const MCPEndpoints: Record<string, (scene: Scene, data: any, options: IMC
 
 	// Materials & textures
 	list_materials: listMaterials,
+	list_material_types: listMaterialTypes,
 	create_material: createMaterial,
 	set_material_properties: setMaterialProperties,
 	assign_texture_to_material: assignTextureToMaterial,
@@ -107,6 +109,12 @@ export const MCPEndpoints: Record<string, (scene: Scene, data: any, options: IMC
 	list_attached_scripts: listAttachedScripts,
 	set_script_exported_value: setScriptExportedValue,
 	detach_script: detachScript,
+
+	// Agent automation scripts (.js run in the editor via main(editor))
+	get_editor_api: getEditorApi,
+	write_agent_script: writeAgentScript,
+	run_agent_script: runAgentScript,
+	list_agent_scripts: listAgentScripts,
 
 	// Verification & utility
 	get_screenshot: getScreenshot,

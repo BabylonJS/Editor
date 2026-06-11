@@ -40,9 +40,9 @@ export function registerAssetTools(server: McpServer): void {
 		{
 			title: "Instantiate mesh asset",
 			description:
-				"Load a mesh asset (`.glb/.gltf/.babylon/.fbx`) into the scene — the equivalent of drag'n'dropping it in the editor preview. glTF/glb assets are auto-scaled (x100) to editor units; do NOT re-apply scaling. " +
-				"IMPORTANT for performance: import a mesh ONCE, then use `create_instance` to place many copies (e.g. a forest of trees). Importing the same asset repeatedly duplicates the geometry and is wasteful. " +
-				"Returns `{ rootNodeId, createdNodes[] }`. Some assets ship multiple LOD meshes named `name_LOD0`, `name_LOD1`, ...; the editor does not wire LODs automatically.",
+				"Load a mesh asset (`.glb/.gltf/.babylon/.fbx`) into the scene — the equivalent of drag'n'dropping it in the editor preview. This is the main way to bring in rich, hand-editable content: trees, rocks, buildings, props, characters, vehicles, weapons, etc. glTF/glb assets are auto-scaled (x100) to editor units; do NOT re-apply scaling. " +
+				"IMPORTANT for performance: import a mesh ONCE, then use `create_instance` to place many copies (e.g. a forest of trees, a street of identical buildings, a crowd). Importing the same asset repeatedly duplicates the geometry and is wasteful. " +
+				"Find assets with `list_assets`, or download new ones via the visible marketplace tools. Returns `{ rootNodeId, createdNodes[] }`. Some assets ship multiple LOD meshes named `name_LOD0`, `name_LOD1`, ...; the editor does not wire LODs automatically.",
 			inputSchema: z.object({
 				path: z.string().describe("Project-relative or absolute path to the mesh asset."),
 				name: z.string().optional().describe("Name for the instantiated root node."),

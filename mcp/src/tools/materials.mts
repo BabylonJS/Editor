@@ -17,13 +17,28 @@ export function registerMaterialTools(server: McpServer): void {
 	);
 
 	server.registerTool(
+		"list_material_types",
+		{
+			title: "List material types",
+			description:
+				"List every material type the editor can create — including the Babylon.js Materials Library (sky, grid, normal, water, lava, triplanar, cell, fire, gradient) — with each type's purpose and its KEY controllable properties. " +
+				"Call this to discover what's available before `create_material`, and to learn which properties to pass to `set_material_properties` (e.g. a SkyMaterial's `inclination`/`azimuth`/`luminance`/`turbidity`). " +
+				"Use these specialized materials for authored, hand-editable effects (procedural sky, water, lava, toon shading, reference grid) instead of faking them in code.",
+			inputSchema: z.object({}),
+		},
+		async (args): Promise<CallToolResult> => callTextTool("list_material_types", args)
+	);
+
+	server.registerTool(
 		"create_material",
 		{
 			title: "Create material",
 			description:
 				"Create a new material and persist it as a `.material` asset so it appears in the editor's assets browser. " +
-				"Prefer `pbr` for realistic surfaces and `standard` for simple ones; specialized types (sky, grid, water, lava, etc.) exist for specific effects. " +
-				"Returns `{ id, name, path }`; assign it to meshes with `set_mesh_material` and tune it with `set_material_properties`.",
+				"Prefer `pbr` for realistic surfaces and `standard` for simple ones. The Materials Library types are for authored special effects: " +
+				"`sky` (procedural sky on a skybox), `water` (lakes/oceans), `lava`, `fire`, `cell` (toon shading), `grid` (blueprint floor), `gradient`, `triplanar` (texturing meshes without UVs), `normal`. " +
+				"Call `list_material_types` first to see each type's key properties. Returns `{ id, name, path }`; assign it with `set_mesh_material` and tune it with `set_material_properties` " +
+				"(e.g. a sunset sky: create a `sky` material on a `skybox` mesh, then set `inclination`/`azimuth`/`luminance`/`turbidity`).",
 			inputSchema: z.object({
 				type: z
 					.enum(["pbr", "standard", "sky", "grid", "normal", "water", "lava", "triplanar", "cell", "fire", "gradient", "node"])
@@ -41,7 +56,8 @@ export function registerMaterialTools(server: McpServer): void {
 			title: "Set material properties",
 			description:
 				"Deep-set material properties by dotted path: `albedoColor`, `metallic`, `roughness`, `emissiveColor`, `alpha`, `wireframe` (PBR) or `diffuseColor`, `specularColor`, etc. (Standard). " +
-				"Color values can be `[r,g,b]` arrays and are coerced to Color3. Use this to tune a skybox's colors for a sunset, make a surface metallic, etc.",
+				"Color values can be `[r,g,b]` arrays and are coerced to Color3. Use this to tune a skybox's colors for a sunset, make a surface metallic, etc. " +
+				'You can also reach nested objects — e.g. tile a ground texture with `{ "albedoTexture.uScale": 20, "albedoTexture.vScale": 20 }` (after assigning it via `assign_texture_to_material`).',
 			inputSchema: z.object({
 				materialId: z.string().describe("Id of the material to modify."),
 				properties: z.record(z.string(), z.any()).describe("Map of dotted property path to value. `[r,g,b]` arrays are coerced to Color3."),
