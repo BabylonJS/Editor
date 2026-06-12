@@ -1,7 +1,10 @@
-import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { IObstacle } from "@babylonjs/core/Navigation/INavigationEngine";
 
-import { CreateNavigationPluginAsync } from "@babylonjs/addons";
+import { CreateNavigationPluginAsync } from "@babylonjs/addons/navigation/factory/factory.single-thread";
 
+import { getNodeById } from "../../../../tools/scene";
+import { isAbstractMesh } from "../../../../tools/guards";
+import { RecastNavigationHelper } from "../../../../tools/navmesh";
 import { loadFile, loadJsonFile } from "../../../../tools/request";
 
 import { IScriptAssetParserParameters, registerScriptAssetParser } from "../../preload";
@@ -15,26 +18,49 @@ export async function preloadNavMeshScriptAsset(parameters: IScriptAssetParserPa
 
 	const [recastCore, recastGenerators] = await Promise.all([import("@recast-navigation/core"), import("@recast-navigation/generators")]);
 
-	const recast = await CreateNavigationPluginAsync({
+	const recast = (await CreateNavigationPluginAsync({
 		instance: {
 			...recastCore,
 			...recastGenerators,
 		},
-	});
+	})) as RecastNavigationHelper;
 	recast.buildFromNavmeshData(new Uint8Array(navmeshData));
 	recast.buildFromTileCacheData(new Uint8Array(tilesData));
 
-	config.obstacleMeshes.forEach((obstacle: any) => {
-		switch (obstacle.type) {
-			case "box":
-				recast.addBoxObstacle(Vector3.FromArray(obstacle.position), Vector3.FromArray(obstacle.extent), obstacle.angle);
-				break;
+	const createdObstacles: IObstacle[] = [];
 
-			case "cylinder":
-				recast.addCylinderObstacle(Vector3.FromArray(obstacle.position), obstacle.radius, obstacle.height);
-				break;
-		}
-	});
+	recast.refreshObstacles = function () {
+		createdObstacles.forEach((obstacle) => recast.removeObstacle(obstacle));
+		createdObstacles.splice(0, createdObstacles.length);
+
+		config.obstacleMeshes.forEach((obstacle: any) => {
+			const node = getNodeById(obstacle.id, parameters.scene);
+			if (!isAbstractMesh(node)) {
+				return;
+			}
+
+			const position = node.getAbsolutePosition();
+			const boundingBox = node.getBoundingInfo().boundingBox;
+
+			switch (obstacle.type) {
+				case "box":
+					const boxObstacle = recast.addBoxObstacle(position, boundingBox.extendSizeWorld, obstacle.angle);
+					if (boxObstacle) {
+						createdObstacles.push(boxObstacle);
+					}
+					break;
+
+				case "cylinder":
+					const cylinderObstacle = recast.addCylinderObstacle(position, boundingBox.extendSizeWorld.x, boundingBox.extendSizeWorld.y);
+					if (cylinderObstacle) {
+						createdObstacles.push(cylinderObstacle);
+					}
+					break;
+			}
+		});
+	};
+
+	recast.refreshObstacles();
 
 	return recast;
 }
