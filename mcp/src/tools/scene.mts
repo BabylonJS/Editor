@@ -18,6 +18,7 @@ export function registerSceneTools(server: McpServer): void {
 			inputSchema: z.object({
 				rootNodeName: z.string().optional().describe("Name of the root node to get the hierarchy from. If not provided, the whole scene hierarchy is returned."),
 			}),
+			annotations: { readOnlyHint: true },
 		},
 		async (args): Promise<CallToolResult> => callTextTool("get_scene_hierarchy", args)
 	);
@@ -28,6 +29,7 @@ export function registerSceneTools(server: McpServer): void {
 			title: "List scenes",
 			description: "List all `.scene` assets in the project, including which one is currently active. A project can contain multiple scenes that share the same assets.",
 			inputSchema: z.object({}),
+			annotations: { readOnlyHint: true },
 		},
 		async (args): Promise<CallToolResult> => callTextTool("list_scenes", args)
 	);
@@ -39,6 +41,7 @@ export function registerSceneTools(server: McpServer): void {
 			description:
 				"Get the name/path of the currently edited scene plus counts of meshes, lights and materials. Useful to gauge scene complexity before adding more content.",
 			inputSchema: z.object({}),
+			annotations: { readOnlyHint: true },
 		},
 		async (args): Promise<CallToolResult> => callTextTool("get_active_scene", args)
 	);
@@ -49,6 +52,7 @@ export function registerSceneTools(server: McpServer): void {
 			title: "Save scene",
 			description: "Save the current scene/project to disk. Call this once you are satisfied with the result so the user's work is persisted.",
 			inputSchema: z.object({}),
+			annotations: { idempotentHint: true },
 		},
 		async (args): Promise<CallToolResult> => callTextTool("save_scene", args)
 	);
@@ -60,6 +64,7 @@ export function registerSceneTools(server: McpServer): void {
 			description:
 				"Get scene-level settings: clear color, ambient color, environment texture, fog and active camera. Inspect these before tuning the overall mood/lighting of a scene.",
 			inputSchema: z.object({}),
+			annotations: { readOnlyHint: true },
 		},
 		async (args): Promise<CallToolResult> => callTextTool("get_scene_settings", args)
 	);
@@ -79,6 +84,7 @@ export function registerSceneTools(server: McpServer): void {
 						"Map of dotted property path to value. Arrays like `[r,g,b]` are coerced to Color3/Color4 and `[x,y,z]` to Vector3 based on the existing property type."
 					),
 			}),
+			annotations: { idempotentHint: true },
 		},
 		async (args): Promise<CallToolResult> => callTextTool("set_scene_settings", args)
 	);

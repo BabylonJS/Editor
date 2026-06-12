@@ -17,6 +17,7 @@ export function registerAssetTools(server: McpServer): void {
 				type: z.enum(["texture", "cube-texture", "mesh", "sound", "material", "particle", "json", "navmesh"]).optional().describe("Filter by asset type."),
 				folder: z.string().optional().describe("Project-relative folder to list. Defaults to the whole assets tree."),
 			}),
+			annotations: { readOnlyHint: true },
 		},
 		async (args): Promise<CallToolResult> => callTextTool("list_assets", args)
 	);
@@ -31,6 +32,7 @@ export function registerAssetTools(server: McpServer): void {
 			inputSchema: z.object({
 				path: z.string().describe("Project-relative or absolute path to the asset (or its folder)."),
 			}),
+			annotations: { readOnlyHint: true },
 		},
 		async (args): Promise<CallToolResult> => callImageTool("get_asset_preview", args)
 	);

@@ -17,6 +17,8 @@ import { getCameraPostProcesses, setCameraPostProcess } from "./rendering/post-p
 import { listMaterials, listMaterialTypes, createMaterial, setMaterialProperties, assignTextureToMaterial, setEnvironmentTexture } from "./materials/materials";
 import { listAssets, getAssetPreview, instantiateMeshAsset } from "./assets/assets";
 import { listParticleAssets, instantiateParticleSystem } from "./particles/particles";
+import { listSoundAssets, createSound, setSoundProperties } from "./sounds/sounds";
+import { listAnimationGroups, playAnimationGroup, stopAnimationGroup, createAnimation, deleteAnimationGroup } from "./animations/animations";
 import { openMarketplaceAndSelectAsset, openMarketplaceAndSearch, downloadMarketplaceAsset } from "./marketplace/marketplace";
 import { listScripts, createScript, readScript, writeScript, attachScript, listAttachedScripts, setScriptExportedValue, detachScript } from "./scripts/scripts";
 import { writeAgentScript, runAgentScript, listAgentScripts, getEditorApi } from "./scripts/editor-scripts";
@@ -97,6 +99,18 @@ export const MCPEndpoints: Record<string, (scene: Scene, data: any, options: IMC
 	// Particle systems
 	list_particle_assets: listParticleAssets,
 	instantiate_particle_system: instantiateParticleSystem,
+
+	// Sounds
+	list_sound_assets: listSoundAssets,
+	create_sound: createSound,
+	set_sound_properties: setSoundProperties,
+
+	// Animations
+	list_animation_groups: listAnimationGroups,
+	play_animation_group: playAnimationGroup,
+	stop_animation_group: stopAnimationGroup,
+	create_animation: createAnimation,
+	delete_animation_group: deleteAnimationGroup,
 
 	// Marketplace
 	open_marketplace: openMarketplaceAndSelectAsset,

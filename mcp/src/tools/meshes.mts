@@ -13,7 +13,9 @@ export function registerMeshTools(server: McpServer): void {
 			description:
 				"Create a built-in primitive mesh (box, sphere, ground, plane, cylinder, capsule, torus, torusknot, skybox) or an `empty` transform node used for grouping. " +
 				"Returns the created node summary including its `id`, which you can pass to other tools (set material, set transform, create instances from it, etc.). " +
-				"Positions are in centimeters. To build a scene, chain `create_primitive_mesh` calls (or `instantiate_mesh_asset`), then assign materials, then verify with `get_screenshot`.",
+				"Positions are in centimeters. Pass `options` to shape the primitive (e.g. `{ size }` for a box, `{ diameter }` for a sphere, `{ width, height, subdivisions }` for a ground). " +
+				"For a ground with HEIGHT VARIATIONS / terrain, create it with enough `subdivisions` then displace its vertices with an agent script (`write_agent_script` + `run_agent_script`) or apply a heightmap — a flat `ground` cannot be made hilly with `set_node_transform` alone. " +
+				"To build a scene, chain `create_primitive_mesh` calls (or `instantiate_mesh_asset`), then assign materials, then verify with `get_screenshot`.",
 			inputSchema: z.object({
 				type: z.enum(["box", "sphere", "ground", "plane", "cylinder", "capsule", "torus", "torusknot", "skybox", "empty"]).describe("The primitive type to create."),
 				name: z.string().optional().describe("Name for the new mesh. A default is used if omitted."),
@@ -89,6 +91,7 @@ export function registerMeshTools(server: McpServer): void {
 				nodeName: z.string().optional().describe("Name of the target mesh."),
 				materialId: z.string().describe("Id of the material to assign."),
 			}),
+			annotations: { idempotentHint: true },
 		},
 		async (args): Promise<CallToolResult> => callTextTool("set_mesh_material", args)
 	);
@@ -105,6 +108,7 @@ export function registerMeshTools(server: McpServer): void {
 				isEnabled: z.boolean().optional().describe("Whether the mesh (and its children) is enabled."),
 				visibility: z.number().optional().describe("Visibility factor between 0 (transparent) and 1 (opaque)."),
 			}),
+			annotations: { idempotentHint: true },
 		},
 		async (args): Promise<CallToolResult> => callTextTool("set_mesh_visibility", args)
 	);
@@ -128,6 +132,7 @@ export function registerMeshTools(server: McpServer): void {
 				friction: z.number().optional().describe("Surface friction, 0..1."),
 				restitution: z.number().optional().describe("Bounciness, 0..1."),
 			}),
+			annotations: { idempotentHint: true },
 		},
 		async (args): Promise<CallToolResult> => callTextTool("set_mesh_physics", args)
 	);
@@ -143,6 +148,7 @@ export function registerMeshTools(server: McpServer): void {
 				nodeId: z.string().optional().describe("Id of the target mesh (preferred)."),
 				nodeName: z.string().optional().describe("Name of the target mesh."),
 			}),
+			annotations: { readOnlyHint: true },
 		},
 		async (args): Promise<CallToolResult> => callTextTool("get_mesh_bounding_info", args)
 	);

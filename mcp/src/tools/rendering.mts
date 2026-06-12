@@ -18,6 +18,7 @@ export function registerRenderingTools(server: McpServer): void {
 				nodeId: z.string().optional().describe("Id of the target camera (preferred). Get it from `get_scene_hierarchy`."),
 				nodeName: z.string().optional().describe("Name of the target camera."),
 			}),
+			annotations: { readOnlyHint: true },
 		},
 		async (args): Promise<CallToolResult> => callTextTool("get_camera_post_processes", args)
 	);
@@ -45,6 +46,7 @@ export function registerRenderingTools(server: McpServer): void {
 						"Flat map of post-process properties to set. Keys depend on `type` (see the examples in this tool's description). Arrays are coerced to colors/vectors where relevant."
 					),
 			}),
+			annotations: { idempotentHint: true },
 		},
 		async (args): Promise<CallToolResult> => callTextTool("set_camera_post_process", args)
 	);

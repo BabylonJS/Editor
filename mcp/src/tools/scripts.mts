@@ -12,6 +12,7 @@ export function registerScriptTools(server: McpServer): void {
 			title: "List scripts",
 			description: "List the TypeScript scripts under the project's `src/` folder. Scripts implement behaviors (`onStart`/`onUpdate`/`onStop`) and are attached to nodes.",
 			inputSchema: z.object({}),
+			annotations: { readOnlyHint: true },
 		},
 		async (args): Promise<CallToolResult> => callTextTool("list_scripts", args)
 	);
@@ -41,6 +42,7 @@ export function registerScriptTools(server: McpServer): void {
 			inputSchema: z.object({
 				path: z.string().describe("Project path of the script under `src/`."),
 			}),
+			annotations: { readOnlyHint: true },
 		},
 		async (args): Promise<CallToolResult> => callTextTool("read_script", args)
 	);
@@ -58,6 +60,7 @@ export function registerScriptTools(server: McpServer): void {
 				path: z.string().describe("Project path of the script under `src/`."),
 				content: z.string().describe("The full new content of the script file."),
 			}),
+			annotations: { idempotentHint: true },
 		},
 		async (args): Promise<CallToolResult> => callTextTool("write_script", args)
 	);
@@ -73,6 +76,7 @@ export function registerScriptTools(server: McpServer): void {
 				nodeName: z.string().optional().describe("Name of the target node."),
 				path: z.string().describe("Project path of the script under `src/` to attach."),
 			}),
+			annotations: { idempotentHint: true },
 		},
 		async (args): Promise<CallToolResult> => callTextTool("attach_script", args)
 	);
@@ -87,6 +91,7 @@ export function registerScriptTools(server: McpServer): void {
 				nodeId: z.string().optional().describe("Id of the target node (preferred)."),
 				nodeName: z.string().optional().describe("Name of the target node."),
 			}),
+			annotations: { readOnlyHint: true },
 		},
 		async (args): Promise<CallToolResult> => callTextTool("list_attached_scripts", args)
 	);
@@ -104,6 +109,7 @@ export function registerScriptTools(server: McpServer): void {
 				key: z.string().describe("Name of the exported value to set."),
 				value: z.any().describe("The new value."),
 			}),
+			annotations: { idempotentHint: true },
 		},
 		async (args): Promise<CallToolResult> => callTextTool("set_script_exported_value", args)
 	);
@@ -118,6 +124,7 @@ export function registerScriptTools(server: McpServer): void {
 				nodeName: z.string().optional().describe("Name of the target node."),
 				path: z.string().describe("Project path of the attached script to remove."),
 			}),
+			annotations: { destructiveHint: true, idempotentHint: true },
 		},
 		async (args): Promise<CallToolResult> => callTextTool("detach_script", args)
 	);

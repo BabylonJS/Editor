@@ -17,6 +17,7 @@ export function registerNodeTools(server: McpServer): void {
 				nodeId: z.string().optional().describe("Id of the target node (preferred). Get it from `get_scene_hierarchy`."),
 				nodeName: z.string().optional().describe("Name of the target node. Used only if `nodeId` is not provided or does not resolve."),
 			}),
+			annotations: { readOnlyHint: true },
 		},
 		async (args): Promise<CallToolResult> => callTextTool("get_node", args)
 	);
@@ -38,6 +39,7 @@ export function registerNodeTools(server: McpServer): void {
 				direction: z.array(z.number()).length(3).optional().describe("Direction vector `[x,y,z]` for directional/spot/hemispheric lights (the way the light points)."),
 				target: z.array(z.number()).length(3).optional().describe("Point `[x,y,z]` (centimeters) a camera looks at. Applies to cameras that support `setTarget`."),
 			}),
+			annotations: { idempotentHint: true },
 		},
 		async (args): Promise<CallToolResult> => callTextTool("set_node_transform", args)
 	);
@@ -57,6 +59,7 @@ export function registerNodeTools(server: McpServer): void {
 				nodeName: z.string().optional().describe("Name of the target node."),
 				properties: z.record(z.string(), z.any()).describe("Map of dotted property path to value."),
 			}),
+			annotations: { idempotentHint: true },
 		},
 		async (args): Promise<CallToolResult> => callTextTool("set_node_properties", args)
 	);
@@ -75,6 +78,7 @@ export function registerNodeTools(server: McpServer): void {
 				parentName: z.string().optional().describe("Name of the new parent."),
 				preserveWorldTransform: z.boolean().optional().describe("Keep the node's world transform after reparenting. Defaults to true."),
 			}),
+			annotations: { idempotentHint: true },
 		},
 		async (args): Promise<CallToolResult> => callTextTool("set_node_parent", args)
 	);
@@ -89,6 +93,7 @@ export function registerNodeTools(server: McpServer): void {
 				nodeName: z.string().optional().describe("Name of the target node."),
 				newName: z.string().describe("The new name for the node."),
 			}),
+			annotations: { idempotentHint: true },
 		},
 		async (args): Promise<CallToolResult> => callTextTool("rename_node", args)
 	);
@@ -102,6 +107,7 @@ export function registerNodeTools(server: McpServer): void {
 				nodeId: z.string().optional().describe("Id of the target node (preferred)."),
 				nodeName: z.string().optional().describe("Name of the target node."),
 			}),
+			annotations: { destructiveHint: true, idempotentHint: true },
 		},
 		async (args): Promise<CallToolResult> => callTextTool("delete_node", args)
 	);
@@ -115,6 +121,7 @@ export function registerNodeTools(server: McpServer): void {
 				nodeId: z.string().optional().describe("Id of the target node (preferred)."),
 				nodeName: z.string().optional().describe("Name of the target node."),
 			}),
+			annotations: { readOnlyHint: true },
 		},
 		async (args): Promise<CallToolResult> => callTextTool("select_node", args)
 	);
@@ -129,6 +136,7 @@ export function registerNodeTools(server: McpServer): void {
 				"Returns `{ count, nodes }`; if `count` is 0, ask the user to select a node in the editor first. " +
 				"Then drive instancing with the returned `id` (prefer `create_instance` over `clone_mesh` for performance) and scatter the copies with `set_node_transform`.",
 			inputSchema: z.object({}),
+			annotations: { readOnlyHint: true },
 		},
 		async (args): Promise<CallToolResult> => callTextTool("get_selected_nodes", args)
 	);

@@ -12,6 +12,7 @@ export function registerMaterialTools(server: McpServer): void {
 			title: "List materials",
 			description: "List all materials in the scene/project (including `.material` assets). Use the returned `id` with `set_mesh_material` or `set_material_properties`.",
 			inputSchema: z.object({}),
+			annotations: { readOnlyHint: true },
 		},
 		async (args): Promise<CallToolResult> => callTextTool("list_materials", args)
 	);
@@ -25,6 +26,7 @@ export function registerMaterialTools(server: McpServer): void {
 				"Call this to discover what's available before `create_material`, and to learn which properties to pass to `set_material_properties` (e.g. a SkyMaterial's `inclination`/`azimuth`/`luminance`/`turbidity`). " +
 				"Use these specialized materials for authored, hand-editable effects (procedural sky, water, lava, toon shading, reference grid) instead of faking them in code.",
 			inputSchema: z.object({}),
+			annotations: { readOnlyHint: true },
 		},
 		async (args): Promise<CallToolResult> => callTextTool("list_material_types", args)
 	);
@@ -57,11 +59,16 @@ export function registerMaterialTools(server: McpServer): void {
 			description:
 				"Deep-set material properties by dotted path: `albedoColor`, `metallic`, `roughness`, `emissiveColor`, `alpha`, `wireframe` (PBR) or `diffuseColor`, `specularColor`, etc. (Standard). " +
 				"Color values can be `[r,g,b]` arrays and are coerced to Color3. Use this to tune a skybox's colors for a sunset, make a surface metallic, etc. " +
+				"Materials Library types are tuned here too, each via its own properties (so you usually do NOT need a separate `list_material_types` call); most common: " +
+				"`sky` -> `inclination` (sun height / time of day), `azimuth`, `luminance`, `turbidity`; " +
+				"`water` -> `waveHeight`, `waveLength`, `windForce`, `waveSpeed`, `bumpHeight`, `waterColor` (animated waves work out of the box); " +
+				"`gradient` -> `topColor`, `bottomColor`, `offset`; `grid` -> `mainColor`, `lineColor`, `gridRatio`. Call `list_material_types` only when you need the full per-type list. " +
 				'You can also reach nested objects — e.g. tile a ground texture with `{ "albedoTexture.uScale": 20, "albedoTexture.vScale": 20 }` (after assigning it via `assign_texture_to_material`).',
 			inputSchema: z.object({
 				materialId: z.string().describe("Id of the material to modify."),
 				properties: z.record(z.string(), z.any()).describe("Map of dotted property path to value. `[r,g,b]` arrays are coerced to Color3."),
 			}),
+			annotations: { idempotentHint: true },
 		},
 		async (args): Promise<CallToolResult> => callTextTool("set_material_properties", args)
 	);
@@ -80,6 +87,7 @@ export function registerMaterialTools(server: McpServer): void {
 					.describe("Material texture channel, e.g. `albedoTexture`, `bumpTexture`, `metallicTexture`, `emissiveTexture`, `diffuseTexture`, `opacityTexture`."),
 				texturePath: z.string().describe("Project-relative or absolute path to the texture asset."),
 			}),
+			annotations: { idempotentHint: true },
 		},
 		async (args): Promise<CallToolResult> => callTextTool("assign_texture_to_material", args)
 	);
@@ -94,6 +102,7 @@ export function registerMaterialTools(server: McpServer): void {
 				texturePath: z.string().describe("Project-relative or absolute path to the `.env`/`.hdr` cube texture."),
 				createSkybox: z.boolean().optional().describe("Also create a skybox mesh using this texture."),
 			}),
+			annotations: { idempotentHint: true },
 		},
 		async (args): Promise<CallToolResult> => callTextTool("set_environment_texture", args)
 	);

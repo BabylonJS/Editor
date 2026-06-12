@@ -60,6 +60,7 @@ export function registerLightTools(server: McpServer): void {
 				useBlurExponentialShadowMap: z.boolean().optional().describe("Use a blurred exponential shadow map for softer shadows."),
 				darkness: z.number().optional().describe("Shadow darkness (0..1)."),
 			}),
+			annotations: { idempotentHint: true },
 		},
 		async (args): Promise<CallToolResult> => callTextTool("set_light_shadows", args)
 	);
@@ -75,6 +76,7 @@ export function registerLightTools(server: McpServer): void {
 				nodeId: z.string().optional().describe("Id of the target light (preferred)."),
 				nodeName: z.string().optional().describe("Name of the target light."),
 			}),
+			annotations: { destructiveHint: true, idempotentHint: true },
 		},
 		async (args): Promise<CallToolResult> => callTextTool("remove_light_shadows", args)
 	);
@@ -87,6 +89,7 @@ export function registerLightTools(server: McpServer): void {
 				"Create the scene's ClusteredLightContainer if it does not already exist. This is the performance-friendly home for all NON-shadow-casting lights. " +
 				"Create it once, then add lights with `add_light_to_clustered_container`.",
 			inputSchema: z.object({}),
+			annotations: { idempotentHint: true },
 		},
 		async (args): Promise<CallToolResult> => callTextTool("create_clustered_light_container", args)
 	);
@@ -102,6 +105,7 @@ export function registerLightTools(server: McpServer): void {
 				nodeId: z.string().optional().describe("Id of the light to move (preferred)."),
 				nodeName: z.string().optional().describe("Name of the light to move."),
 			}),
+			annotations: { idempotentHint: true },
 		},
 		async (args): Promise<CallToolResult> => callTextTool("add_light_to_clustered_container", args)
 	);
@@ -117,6 +121,7 @@ export function registerLightTools(server: McpServer): void {
 				nodeId: z.string().optional().describe("Id of the light to remove (preferred)."),
 				nodeName: z.string().optional().describe("Name of the light to remove."),
 			}),
+			annotations: { idempotentHint: true },
 		},
 		async (args): Promise<CallToolResult> => callTextTool("remove_light_from_clustered_container", args)
 	);

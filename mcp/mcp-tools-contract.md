@@ -128,6 +128,30 @@ Per-camera effects. **Post-processes are per-camera**, so configuring one switch
 | `list_particle_assets` | List `.npss` node particle system assets. | `{}` | `{ assets: [{ name, path }] }` |
 | `instantiate_particle_system` | Instantiate a `.npss` asset / create a default one in the scene. | `{ path?, name?, emitterNodeId?, position? }` | created summary |
 
+### Sounds (audio ambience & spatial sound — required by prompts: "sounds of nature", "people talking in the market place")
+
+Audio is authored as `SoundNode`s in the scene graph (a `TransformNode` subclass; `editor/src/editor/nodes/sound.ts`). A `SoundNode` wraps a Babylon `StaticSound` loaded from a project sound asset via `setSoundAbsolutePath(absolutePath)`. Persisted/serialized properties: `soundRelativePath`, `volume` (0..1), `isSpatial` (3D positional sound attached to the node's transform), `autoUpdateSpatial`, `maxDistance`, `distanceModel` (`"linear"|"inverse"|"exponential"`), `panningModel` (`"HRTF"|"equalpower"`). Spatial sounds are positioned by the node's transform, so parent/position the SoundNode where the sound should emit (e.g. a fountain, a market stall). Reuse `editor/src/editor/nodes/sound.ts` `SoundNode` + `setSoundAbsolutePath`; mirror `editor/src/project/add/sound.ts` / `editor/src/editor/layout/preview/import/sound.ts` for graph refresh + selection. `list_assets` already supports `type: "sound"`.
+
+| endpoint | description | input | output |
+|---|---|---|---|
+| `list_sound_assets` | List `.mp3/.ogg/.wav` sound assets in the project. | `{}` | `{ assets: [{ name, path }] }` |
+| `create_sound` | Create a `SoundNode` in the scene from a sound asset and load it. Set `spatial: true` (default) + `parentId/parentName`/`position` for 3D positional ambience emitted at a place; `spatial: false` for a global 2D ambience/music bed. Values in editor units (cm). After creation: refresh graph, select node, set edited object. | `{ path, name?, parentId?, parentName?, position?: [x,y,z], volume?: number, spatial?: boolean, maxDistance?: number, distanceModel?: "linear"|"inverse"|"exponential", panningModel?: "HRTF"|"equalpower" }` | created node summary |
+| `set_sound_properties` | Update properties of an existing `SoundNode`. Only provided fields are applied. Resolve node by id/name; throw if it is not a `SoundNode`. `forceUpdate` the inspector after. | `{ nodeId?, nodeName?, volume?, spatial?, maxDistance?, distanceModel?, panningModel?, autoUpdateSpatial? }` | updated node summary |
+
+### Animations (animation groups — required by prompts: "idle animations", "an animation of opening", "animated meshes")
+
+Animations live as Babylon `AnimationGroup`s on the scene (`scene.animationGroups`), visible/playable in the editor's Animation Groups inspector (`editor/src/editor/layout/inspector/scene/animation-groups.tsx`) and exported with the scene. Two sources: (1) animation groups imported with a mesh asset (e.g. a glTF character's idle/walk clips) — list and preview them; (2) keyframe animations authored by the agent (e.g. a door that swings open) — `create_animation` builds a Babylon `Animation`, wraps it in a named `AnimationGroup` via `addTargetedAnimation`, and calls `scene.addAnimationGroup`. BEHAVIOR scripts then play the right group at runtime (e.g. `scene.getAnimationGroupByName(name)?.play()` when the player is close). After mutating groups: `editor.layout.inspector.forceUpdate()` (and graph refresh where the inspector shows the scene).
+
+For `create_animation`, infer the Babylon `ANIMATIONTYPE_*` from the resolved current value at `targetProperty` (dotted path supported, e.g. `"rotation.y"`): `number`→FLOAT, `Vector2`→VECTOR2, `Vector3`→VECTOR3, `Color3`→COLOR3, `Quaternion`→QUATERNION; fall back to the shape of the first key's `value` (number → FLOAT, `[x,y,z]` → VECTOR3). Coerce array key `value`s to the matching Vector/Color type. `loopMode`: `"cycle"|"constant"|"relative"` → `Animation.ANIMATIONLOOPMODE_*`.
+
+| endpoint | description | input | output |
+|---|---|---|---|
+| `list_animation_groups` | List the scene's animation groups (imported clips + authored ones). | `{}` | `{ groups: [{ name, from, to, isPlaying, targetedAnimationCount }] }` |
+| `play_animation_group` | Preview an animation group in the editor (e.g. play a character's idle clip). | `{ name, loop?: boolean (default true), speed?: number, from?: number, to?: number }` | `{ playing: true, name }` |
+| `stop_animation_group` | Stop a playing animation group, or all groups when `name` is omitted. | `{ name? }` | `{ stopped: true }` |
+| `create_animation` | Author a keyframe `AnimationGroup` targeting a node property (e.g. a door opening = animate `rotation.y`). Builds a Babylon `Animation` from `keys`, wraps it in a named group, adds it to the scene. | `{ nodeId?, nodeName?, name, targetProperty: string, framesPerSecond?: number (default 60), loopMode?: "cycle"|"constant"|"relative", keys: [{ frame: number, value: number | [number,number,number] }] }` | `{ name, from, to, targetedAnimationCount }` |
+| `delete_animation_group` | Remove an animation group from the scene (disposes it). | `{ name }` | `{ deleted: true }` |
+
 ### Marketplace (must be visible in editor — spec §marketplace, §important notes)
 
 | endpoint | description | input | output |

@@ -12,6 +12,7 @@ export function registerParticleTools(server: McpServer): void {
 			title: "List particle assets",
 			description: "List the `.npss` node particle system assets available in the project. Use `instantiate_particle_system` to bring one into the scene.",
 			inputSchema: z.object({}),
+			annotations: { readOnlyHint: true },
 		},
 		async (args): Promise<CallToolResult> => callTextTool("list_particle_assets", args)
 	);
