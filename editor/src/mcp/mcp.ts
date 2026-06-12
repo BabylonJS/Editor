@@ -11,7 +11,7 @@ import { listScenes, getActiveScene, saveScene, getSceneSettings, setSceneSettin
 
 import { getNode, setNodeTransform, setNodeProperties, setNodeParent, renameNode, deleteNode, selectNode } from "./nodes/nodes";
 import { createPrimitiveMesh, createInstance, cloneMesh, setMeshMaterial, setMeshVisibility, setMeshPhysics, getMeshBoundingInfo } from "./meshes/meshes";
-import { createLight, setLightShadows, createClusteredLightContainer, addLightToClusteredContainer } from "./lights/lights";
+import { createLight, setLightShadows, removeLightShadows, createClusteredLightContainer, addLightToClusteredContainer, removeLightFromClusteredContainer } from "./lights/lights";
 import { createCamera, setActiveCamera } from "./cameras/cameras";
 import { getCameraPostProcesses, setCameraPostProcess } from "./rendering/post-process";
 import { listMaterials, listMaterialTypes, createMaterial, setMaterialProperties, assignTextureToMaterial, setEnvironmentTexture } from "./materials/materials";
@@ -67,8 +67,10 @@ export const MCPEndpoints: Record<string, (scene: Scene, data: any, options: IMC
 	// Lights & shadows
 	create_light: createLight,
 	set_light_shadows: setLightShadows,
+	remove_light_shadows: removeLightShadows,
 	create_clustered_light_container: createClusteredLightContainer,
 	add_light_to_clustered_container: addLightToClusteredContainer,
+	remove_light_from_clustered_container: removeLightFromClusteredContainer,
 
 	// Cameras
 	create_camera: createCamera,

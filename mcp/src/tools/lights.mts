@@ -41,17 +41,42 @@ export function registerLightTools(server: McpServer): void {
 			title: "Set light shadows",
 			description:
 				"Enable or disable a shadow generator on a light and configure it. A light that casts shadows must remain a regular scene light (the ClusteredLightContainer does not support shadow-casting lights). " +
-				"Typically used for the sun/key directional light.",
+				"Typically used for the sun/key directional light. " +
+				"Choose `generatorType`: 'classic' (default, works for any shadow light) or 'cascaded' to use a CascadedShadowGenerator — ideal for large outdoor scenes and a directional sun light, but ONLY valid on a directional light. " +
+				"To stop a light from casting shadows, prefer `remove_light_shadows`.",
 			inputSchema: z.object({
 				nodeId: z.string().optional().describe("Id of the target light (preferred)."),
 				nodeName: z.string().optional().describe("Name of the target light."),
 				enabled: z.boolean().describe("Whether the light casts shadows."),
+				generatorType: z
+					.enum(["classic", "cascaded"])
+					.optional()
+					.describe(
+						"Shadow generator type. 'classic' (default) for any shadow light; 'cascaded' (CascadedShadowGenerator) only for directional lights, best for large outdoor scenes."
+					),
 				mapSize: z.number().optional().describe("Shadow map resolution (e.g. 1024, 2048)."),
+				numCascades: z.number().optional().describe("Number of cascades (cascaded only, e.g. 4). Higher gives better quality at a higher cost."),
+				lambda: z.number().optional().describe("Cascade split blend factor in 0..1 (cascaded only). Closer to 1 favors logarithmic splits. Defaults to 1."),
 				useBlurExponentialShadowMap: z.boolean().optional().describe("Use a blurred exponential shadow map for softer shadows."),
 				darkness: z.number().optional().describe("Shadow darkness (0..1)."),
 			}),
 		},
 		async (args): Promise<CallToolResult> => callTextTool("set_light_shadows", args)
+	);
+
+	server.registerTool(
+		"remove_light_shadows",
+		{
+			title: "Remove light shadows",
+			description:
+				"Remove the shadow generator from a light so it stops casting shadows. " +
+				"After removing shadows, a light can be moved into the scene's ClusteredLightContainer for performance with `add_light_to_clustered_container`.",
+			inputSchema: z.object({
+				nodeId: z.string().optional().describe("Id of the target light (preferred)."),
+				nodeName: z.string().optional().describe("Name of the target light."),
+			}),
+		},
+		async (args): Promise<CallToolResult> => callTextTool("remove_light_shadows", args)
 	);
 
 	server.registerTool(
@@ -79,5 +104,20 @@ export function registerLightTools(server: McpServer): void {
 			}),
 		},
 		async (args): Promise<CallToolResult> => callTextTool("add_light_to_clustered_container", args)
+	);
+
+	server.registerTool(
+		"remove_light_from_clustered_container",
+		{
+			title: "Remove light from clustered container",
+			description:
+				"Remove a light from the scene's ClusteredLightContainer. The light is automatically added back to the scene as a regular light, " +
+				"after which it can cast shadows again (e.g. with `set_light_shadows`).",
+			inputSchema: z.object({
+				nodeId: z.string().optional().describe("Id of the light to remove (preferred)."),
+				nodeName: z.string().optional().describe("Name of the light to remove."),
+			}),
+		},
+		async (args): Promise<CallToolResult> => callTextTool("remove_light_from_clustered_container", args)
 	);
 }

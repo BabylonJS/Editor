@@ -1,4 +1,4 @@
-import { Scene, Node, Light, ShadowGenerator, IShadowLight, DirectionalLight, SpotLight, PointLight } from "babylonjs";
+import { Scene, Node, Light, ShadowGenerator, CascadedShadowGenerator, IShadowLight, DirectionalLight, SpotLight, PointLight } from "babylonjs";
 
 import { isLight } from "../../tools/guards/nodes";
 
@@ -95,7 +95,27 @@ export function setLightShadows(scene: Scene, data: any, options: IMCPActionOpti
 
 	if (data.enabled) {
 		const mapSize = data.mapSize ?? 1024;
-		const generator = new ShadowGenerator(mapSize, light, true);
+		const generatorType = data.generatorType ?? "classic";
+
+		if (generatorType === "cascaded" && !(light instanceof DirectionalLight)) {
+			throw new Error(
+				`A CascadedShadowGenerator can only be created on a directional light. Light "${light.name}" is a ${(light as Light).getClassName()}. ` +
+					`Use generatorType "classic" instead, or change the light to a directional light.`
+			);
+		}
+
+		const generator = generatorType === "cascaded" ? new CascadedShadowGenerator(mapSize, light as DirectionalLight, true) : new ShadowGenerator(mapSize, light, true);
+
+		if (generator instanceof CascadedShadowGenerator) {
+			generator.lambda = data.lambda ?? 1;
+			generator.depthClamp = true;
+			generator.autoCalcDepthBounds = true;
+			generator.autoCalcDepthBoundsRefreshRate = 60;
+
+			if (data.numCascades !== undefined) {
+				generator.numCascades = data.numCascades;
+			}
+		}
 
 		if (!(light instanceof PointLight)) {
 			generator.usePercentageCloserFiltering = true;
@@ -114,6 +134,30 @@ export function setLightShadows(scene: Scene, data: any, options: IMCPActionOpti
 		}
 
 		generator.getShadowMap()?.renderList?.push(...scene.meshes);
+	}
+
+	options.editor.layout.inspector.setEditedObject(node);
+	options.editor.layout.inspector.forceUpdate();
+
+	return toNodeSummary(node);
+}
+
+/**
+ * Removes the shadow generator (if any) from a light, so it stops casting shadows.
+ * After this, a non-shadow light can be moved into the ClusteredLightContainer for performance.
+ */
+export function removeLightShadows(scene: Scene, data: any, options: IMCPActionOptions): any {
+	const node = resolveNode({ scene, nodeId: data.nodeId, nodeName: data.nodeName });
+
+	if (!isLight(node)) {
+		throw new Error(`Node "${node.name}" is not a light.`);
+	}
+
+	const light = node as IShadowLight;
+
+	const generator = light.getShadowGenerator();
+	if (generator) {
+		generator.dispose();
 	}
 
 	options.editor.layout.inspector.setEditedObject(node);
@@ -158,6 +202,34 @@ export function addLightToClusteredContainer(scene: Scene, data: any, options: I
 	}
 
 	options.editor.layout.preview.clusteredLightContainer.addLight(light);
+
+	options.editor.layout.graph.refresh().then(() => {
+		options.editor.layout.graph.setSelectedNode(light);
+	});
+	options.editor.layout.inspector.setEditedObject(light);
+
+	return toNodeSummary(light);
+}
+
+/**
+ * Removes a light from the scene's ClusteredLightContainer.
+ * The light is automatically added back to the scene as a regular light.
+ */
+export function removeLightFromClusteredContainer(scene: Scene, data: any, options: IMCPActionOptions): any {
+	const node = resolveNode({ scene, nodeId: data.nodeId, nodeName: data.nodeName });
+
+	if (!isLight(node)) {
+		throw new Error(`Node "${node.name}" is not a light.`);
+	}
+
+	const light = node as Light;
+	const container = options.editor.layout.preview.clusteredLightContainer;
+
+	if (!container.lights.includes(light)) {
+		throw new Error(`Light "${light.name}" is not part of the clustered light container.`);
+	}
+
+	container.removeLight(light);
 
 	options.editor.layout.graph.refresh().then(() => {
 		options.editor.layout.graph.setSelectedNode(light);
