@@ -1,18 +1,32 @@
 {
-	"mcpb_version": "0.1",
+	"manifest_version": "0.4",
 	"name": "babylonjs-editor",
 	"display_name": "Babylon.js Editor",
 	"version": "1.0.0",
 	"description": "Control the Babylon.js Editor to build games and 3D applications: compose scenes from primitives and assets, manage materials/textures, lights and cameras, download marketplace assets, write and attach TypeScript behaviors, optimize with mesh instancing, and verify the result visually with screenshots.",
-	"author": { "name": "Babylon.js Editor" },
+	"long_description": "This extension exposes the Babylon.js Editor's scene-composition capabilities to Claude so you can build real, hand-editable WebGL games and 3D scenes from natural language. Everything the agent creates (meshes, materials, instances, lights, cameras, particles, physics) becomes genuine editor content you can keep tweaking by hand.\n\n**Requirements:** the Babylon.js Editor (version 5+) must be running with a project open. The extension's MCP server talks to the editor over a local HTTP channel (127.0.0.1:3712); it does not modify any files on its own and performs no network access beyond the local editor.\n\nTypical uses: scatter a forest from a single tree, lay out a level from modular pieces, set up sky/lighting/post-processing, author materials and physics bodies, and attach runtime behavior scripts — all verifiable live with in-editor screenshots.",
+	"author": {
+		"name": "Julien Moreau-Mathis",
+		"url": "https://github.com/BabylonJS/Editor"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/BabylonJS/Editor"
+	},
+	"homepage": "https://editor.babylonjs.com",
+	"documentation": "https://editor.babylonjs.com/documentation",
+	"support": "https://github.com/BabylonJS/Editor/issues",
+	"license": "Apache-2.0",
+	"keywords": ["babylonjs", "babylon", "3d", "webgl", "game-engine", "editor", "scene", "gamedev", "mcp"],
 	"server": {
 		"type": "node",
-		"entry_point": "build/src/index.mjs",
+		"entry_point": "server/index.mjs",
 		"mcp_config": {
 			"command": "node",
-			"args": ["${__dirname}/build/src/index.mjs"]
+			"args": ["${__dirname}/server/index.mjs"]
 		}
 	},
+	"tools_generated": false,
 	"tools": [
 		{ "name": "get_scene_hierarchy", "description": "Get the current scene's node hierarchy as a tree of { id, name, type, children }." },
 		{ "name": "list_scenes", "description": "List all .scene assets in the project and which one is active." },
@@ -27,6 +41,7 @@
 		{ "name": "rename_node", "description": "Rename a node." },
 		{ "name": "delete_node", "description": "Delete a node and its descendants." },
 		{ "name": "select_node", "description": "Select/focus a node in the editor (UX only)." },
+		{ "name": "get_selected_nodes", "description": "Get the nodes the user has currently selected in the editor's scene graph (e.g. to instantiate the selected node to build a forest)." },
 		{ "name": "create_primitive_mesh", "description": "Create a primitive mesh (box, sphere, ground, plane, cylinder, etc.) or an empty transform node." },
 		{ "name": "create_instance", "description": "Create InstancedMesh copies of a source mesh (performance-preferred over cloning)." },
 		{ "name": "clone_mesh", "description": "Clone a mesh; share geometry by default. Use only when a copy needs a different material." },
@@ -35,9 +50,11 @@
 		{ "name": "set_mesh_physics", "description": "Add/update/remove a Havok physics body on a mesh (mass, motion type, shape, friction, restitution) for gameplay." },
 		{ "name": "get_mesh_bounding_info", "description": "Get a mesh's local/world bounding box and hierarchy bounds (size, min, max, center) for scattering and placement." },
 		{ "name": "create_light", "description": "Create a directional, point, spot or hemispheric light." },
-		{ "name": "set_light_shadows", "description": "Enable/disable and configure a light's shadow generator." },
+		{ "name": "set_light_shadows", "description": "Enable and configure a light's shadow generator (classic or cascaded for directional lights)." },
+		{ "name": "remove_light_shadows", "description": "Remove the shadow generator from a light so it stops casting shadows." },
 		{ "name": "create_clustered_light_container", "description": "Create the scene's ClusteredLightContainer for non-shadow lights." },
 		{ "name": "add_light_to_clustered_container", "description": "Move a non-shadow light into the ClusteredLightContainer for performance." },
+		{ "name": "remove_light_from_clustered_container", "description": "Remove a light from the ClusteredLightContainer; it returns to the scene as a regular light." },
 		{ "name": "create_camera", "description": "Create a free, arcrotate or universal camera." },
 		{ "name": "set_active_camera", "description": "Set the scene's active camera." },
 		{ "name": "get_camera_post_processes", "description": "Read a camera's post-processes (bloom, tone mapping, SSAO, SSR, motion blur, VLS, TAA)." },

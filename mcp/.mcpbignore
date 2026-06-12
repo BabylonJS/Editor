@@ -1,0 +1,20 @@
+# The MCP server is shipped as a single self-contained bundle in server/index.mjs
+# (produced by `yarn bundle`, which inlines all runtime dependencies via esbuild).
+# Everything else is development-only and must NOT be included in the .mcpb package.
+
+# Dependencies are bundled into server/index.mjs — no node_modules needed at runtime.
+node_modules/
+
+# TypeScript sources and tsc output (the bundle is the only thing executed).
+src/
+build/
+declaration/
+tsconfig.json
+*.map
+
+# Project/dev metadata not needed inside the extension.
+package.json
+.gitignore
+
+# Documentation & specs kept in the repo, not shipped in the extension.
+*.md
