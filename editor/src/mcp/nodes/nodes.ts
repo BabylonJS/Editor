@@ -1,4 +1,4 @@
-import { Scene, AbstractMesh, Camera, Light, TransformNode } from "babylonjs";
+import { Scene, Node, AbstractMesh, Camera, Light, TransformNode } from "babylonjs";
 
 import { isLight, isCamera, isClusteredLightContainer, isAbstractMesh, isAnyTransformNode } from "../../tools/guards/nodes";
 
@@ -215,4 +215,33 @@ export function selectNode(scene: Scene, data: any, options: IMCPActionOptions):
 	options.editor.layout.preview.gizmo.setAttachedObject(node);
 
 	return { selected: true };
+}
+
+/**
+ * Returns the nodes currently selected by the user in the editor's graph (scene tree).
+ * Useful to act on "the selected node" requested by the user (e.g. instantiate it many times to build a forest).
+ */
+export function getSelectedNodes(_scene: Scene, _data: any, options: IMCPActionOptions): any {
+	const selected = options.editor.layout.graph.getSelectedNodes();
+
+	const nodes = selected
+		.map((treeNode) => treeNode.nodeData)
+		.filter((nodeData) => !!nodeData)
+		.map((nodeData) => {
+			if (nodeData instanceof Node) {
+				return toNodeSummary(nodeData);
+			}
+
+			// Particle systems / sprites are selectable in the graph but are not scene-graph nodes.
+			return {
+				id: (nodeData as any).id ?? null,
+				name: (nodeData as any).name ?? null,
+				className: (nodeData as any).getClassName?.() ?? null,
+			};
+		});
+
+	return {
+		count: nodes.length,
+		nodes,
+	};
 }
