@@ -258,7 +258,9 @@ export class EditorMarketplaceBrowser extends Component<IMarketplaceBrowserProps
 		const query = this.state.query;
 		const filters = this.state.filters;
 		const requestId = ++this._searchRequestId;
-		this.setState({ loading: true });
+		this.setState({
+			loading: true,
+		});
 
 		if (pageToken === undefined && arguments.length === 0) {
 			this.setState({
@@ -290,7 +292,9 @@ export class EditorMarketplaceBrowser extends Component<IMarketplaceBrowserProps
 			return false;
 		} finally {
 			if (requestId === this._searchRequestId) {
-				this.setState({ loading: false });
+				this.setState({
+					loading: false,
+				});
 			}
 		}
 	}

@@ -19,8 +19,8 @@ import { IMCPActionOptions } from "../action";
 async function openMarketplaceBrowser(options: IMCPActionOptions): Promise<EditorMarketplaceBrowser> {
 	const editor = options.editor;
 
-	if (!editor.state.openedTabs.includes("marketplace")) {
-		editor.layout.addLayoutTab(<EditorMarketplaceBrowser editor={editor} />, {
+	if (!editor.layout.marketplace) {
+		editor.layout.addLayoutTab(<EditorMarketplaceBrowser editor={editor} ref={(r) => (editor.layout.marketplace = r)} />, {
 			id: "marketplace",
 			title: "Marketplace",
 			enableClose: true,
@@ -58,15 +58,20 @@ export async function openMarketplaceAndSearch(_: Scene, data: any, options: IMC
 	await browser.selectProviderAndSearch(data.source, data.query);
 
 	const provider = browser.getProviderBySource(data.source);
-	const result = await provider!.search(data.query, undefined, undefined);
+	const result = await provider!.search(
+		data.query,
+		undefined,
+		data.source === "sketchfab"
+			? {
+					downloadable: true,
+				}
+			: undefined
+	);
 
 	return {
 		results: result.assets.map((asset) => ({
-			id: asset.id,
-			name: asset.name,
-			source: data.source,
+			...asset,
 			type: data.type ?? null,
-			thumbnailUrl: asset.thumbnailUrl,
 		})),
 	};
 }

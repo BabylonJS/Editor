@@ -319,7 +319,7 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 			return this.props.editor.layout.removeLayoutTab("marketplace");
 		}
 
-		this.props.editor.layout.addLayoutTab(<EditorMarketplaceBrowser editor={this.props.editor} />, {
+		this.props.editor.layout.addLayoutTab(<EditorMarketplaceBrowser editor={this.props.editor} ref={(r) => (this.props.editor.layout.marketplace = r)} />, {
 			id: "marketplace",
 			title: "Marketplace",
 			enableClose: true,
