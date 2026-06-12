@@ -28,6 +28,8 @@ export interface IMarketplaceAsset {
 	marketplaceActionLabel?: string;
 	isDownloadable?: boolean;
 	downloadOptions?: IDownloadOptions;
+
+	[extraKey: string]: any;
 }
 
 export interface IMarketplaceSearchResult {

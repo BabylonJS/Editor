@@ -38,8 +38,13 @@ export class PolyHavenProvider extends MarketplaceProvider {
 					assets.push({
 						id,
 						name: assetData.name,
-						thumbnailUrl: `https://cdn.polyhaven.com/asset_img/thumbs/${id}.png`,
 						tags: assetData.tags,
+						polycount: assetData.polycount,
+						dimensions: assetData.dimensions,
+						description: assetData.description,
+						texel_density: assetData.texel_density,
+						max_resolution: assetData.max_resolution,
+						thumbnailUrl: `https://cdn.polyhaven.com/asset_img/thumbs/${id}.png`,
 						author: assetData.authors ? Object.keys(assetData.authors).join(", ") : undefined,
 					});
 				}
