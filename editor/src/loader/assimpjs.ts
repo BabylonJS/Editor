@@ -5,9 +5,11 @@ import { ISceneLoaderPluginAsync, ISceneLoaderPluginExtensions, ISceneLoaderProg
 import { waitUntil } from "../tools/tools";
 import { ipcSendAsyncWithMessageId } from "../tools/ipc";
 
-import { parseNodes } from "./node";
+import { buildNodeGraph } from "./node";
 import { writeTexture } from "./texture";
+import { buildMeshGeometry } from "./mesh";
 import { parseMaterial } from "./material";
+import { buildSkeleton } from "./skeleton";
 import { parseAnimations } from "./animation";
 import { AssimpJSRuntime, IAssimpJSRootData } from "./types";
 
@@ -138,6 +140,11 @@ export class AssimpJSLoader implements ISceneLoaderPluginAsync {
 				materials: {},
 				geometries: {},
 				rootUrl: fileName ? rootUrl : dirname(rootUrl),
+				nodes: new Map(),
+				orderedNodeNames: [],
+				meshNodes: [],
+				skeleton: null,
+				boneIndexByName: new Map(),
 			};
 
 			this._parseRoot(runtime);
@@ -160,7 +167,16 @@ export class AssimpJSLoader implements ISceneLoaderPluginAsync {
 			}
 		});
 
-		parseNodes(runtime, [runtime.data.rootnode], null);
+		// 1. Build the full node hierarchy (transform nodes + empty meshes), recording local matrices.
+		buildNodeGraph(runtime, [runtime.data.rootnode], null, null);
+
+		// 2. Build the skeleton from the bone references, now that the whole hierarchy is available.
+		buildSkeleton(runtime);
+
+		// 3. Build the meshes' geometry and skinning data (needs the resolved bone indices).
+		runtime.meshNodes.forEach((meshNode) => buildMeshGeometry(runtime, meshNode));
+
+		// 4. Build the animation groups (drives both nodes and the skeleton via linked transform nodes).
 		parseAnimations(runtime);
 	}
 
