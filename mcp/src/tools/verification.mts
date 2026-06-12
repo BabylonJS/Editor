@@ -17,6 +17,7 @@ export function registerVerificationTools(server: McpServer): void {
 				width: z.number().optional().describe("Screenshot width in pixels."),
 				height: z.number().optional().describe("Screenshot height in pixels."),
 			}),
+			annotations: { readOnlyHint: true },
 		},
 		async (args): Promise<CallToolResult> => callImageTool("get_screenshot", args)
 	);
@@ -30,6 +31,7 @@ export function registerVerificationTools(server: McpServer): void {
 				nodeId: z.string().optional().describe("Id of the node to frame (preferred)."),
 				nodeName: z.string().optional().describe("Name of the node to frame."),
 			}),
+			annotations: { readOnlyHint: true },
 		},
 		async (args): Promise<CallToolResult> => callTextTool("focus_node", args)
 	);
@@ -40,6 +42,7 @@ export function registerVerificationTools(server: McpServer): void {
 			title: "Run project",
 			description: "Start the project's dev/run process to play-test the game. Optional; use after scripts are attached and the scene is composed.",
 			inputSchema: z.object({}),
+			annotations: { openWorldHint: true },
 		},
 		async (args): Promise<CallToolResult> => callTextTool("run_project", args)
 	);

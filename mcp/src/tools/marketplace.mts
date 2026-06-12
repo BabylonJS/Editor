@@ -18,6 +18,7 @@ export function registerMarketplaceTools(server: McpServer): void {
 					.optional()
 					.describe("Which marketplace to open. Poly Haven: textures/meshes/cube textures; Ambient CG: mostly cube textures; Sketchfab: meshes."),
 			}),
+			annotations: { readOnlyHint: true, openWorldHint: true },
 		},
 		async (args): Promise<CallToolResult> => callTextTool("open_marketplace", args)
 	);
@@ -34,6 +35,7 @@ export function registerMarketplaceTools(server: McpServer): void {
 				query: z.string().describe("Search query, e.g. 'rusty metal', 'oak tree'."),
 				type: z.enum(["texture", "mesh", "cube-texture"]).optional().describe("Filter results by asset type."),
 			}),
+			annotations: { readOnlyHint: true, openWorldHint: true },
 		},
 		async (args): Promise<CallToolResult> => callTextTool("search_marketplace", args)
 	);
@@ -50,6 +52,7 @@ export function registerMarketplaceTools(server: McpServer): void {
 				assetId: z.string().describe("Id of the asset to download (from `search_marketplace`)."),
 				resolution: z.string().optional().describe("Desired resolution, e.g. '2k', '4k'. Keep it web-friendly (max 4K)."),
 			}),
+			annotations: { openWorldHint: true },
 		},
 		async (args): Promise<CallToolResult> => callTextTool("download_marketplace_asset", args)
 	);

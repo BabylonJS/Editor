@@ -41,7 +41,10 @@
 		{ "name": "rename_node", "description": "Rename a node." },
 		{ "name": "delete_node", "description": "Delete a node and its descendants." },
 		{ "name": "select_node", "description": "Select/focus a node in the editor (UX only)." },
-		{ "name": "get_selected_nodes", "description": "Get the nodes the user has currently selected in the editor's scene graph (e.g. to instantiate the selected node to build a forest)." },
+		{
+			"name": "get_selected_nodes",
+			"description": "Get the nodes the user has currently selected in the editor's scene graph (e.g. to instantiate the selected node to build a forest)."
+		},
 		{ "name": "create_primitive_mesh", "description": "Create a primitive mesh (box, sphere, ground, plane, cylinder, etc.) or an empty transform node." },
 		{ "name": "create_instance", "description": "Create InstancedMesh copies of a source mesh (performance-preferred over cloning)." },
 		{ "name": "clone_mesh", "description": "Clone a mesh; share geometry by default. Use only when a copy needs a different material." },
@@ -58,7 +61,10 @@
 		{ "name": "create_camera", "description": "Create a free, arcrotate or universal camera." },
 		{ "name": "set_active_camera", "description": "Set the scene's active camera." },
 		{ "name": "get_camera_post_processes", "description": "Read a camera's post-processes (bloom, tone mapping, SSAO, SSR, motion blur, VLS, TAA)." },
-		{ "name": "set_camera_post_process", "description": "Enable/disable and customize a per-camera post-process in realtime (switches the active camera so it is set up for runtime)." },
+		{
+			"name": "set_camera_post_process",
+			"description": "Enable/disable and customize a per-camera post-process in realtime (switches the active camera so it is set up for runtime)."
+		},
 		{ "name": "list_materials", "description": "List all materials in the scene/project." },
 		{ "name": "list_material_types", "description": "List creatable material types incl. the Materials Library (sky, water, lava, grid, ...) with their key properties." },
 		{ "name": "create_material", "description": "Create a material (PBR, Standard, Node, or a Materials Library type like SkyMaterial) and persist it as a .material asset." },
@@ -70,6 +76,14 @@
 		{ "name": "instantiate_mesh_asset", "description": "Load a mesh asset into the scene (drag'n'drop equivalent; glTF auto-scaled)." },
 		{ "name": "list_particle_assets", "description": "List the .npss node particle system assets in the project." },
 		{ "name": "instantiate_particle_system", "description": "Instantiate a particle system asset or create a default one in the scene." },
+		{ "name": "list_sound_assets", "description": "List the .mp3/.ogg/.wav sound assets available in the project." },
+		{ "name": "create_sound", "description": "Create a SoundNode from a sound asset; spatial (3D positional) or global 2D ambience/music." },
+		{ "name": "set_sound_properties", "description": "Update an existing SoundNode's volume, spatial mode, falloff and panning properties." },
+		{ "name": "list_animation_groups", "description": "List the scene's animation groups (imported clips and authored ones)." },
+		{ "name": "play_animation_group", "description": "Preview an animation group in the editor (loop, speed, frame range)." },
+		{ "name": "stop_animation_group", "description": "Stop a playing animation group, or all animation groups if none is given." },
+		{ "name": "create_animation", "description": "Author a keyframe AnimationGroup on a node property (e.g. a door opening) for behavior scripts to play at runtime." },
+		{ "name": "delete_animation_group", "description": "Remove and dispose an animation group from the scene by name." },
 		{ "name": "open_marketplace", "description": "Open the visible marketplace browser tab in the editor." },
 		{ "name": "search_marketplace", "description": "Search a marketplace through the editor's visible browser." },
 		{ "name": "download_marketplace_asset", "description": "Trigger a visible download of a marketplace asset into the project." },

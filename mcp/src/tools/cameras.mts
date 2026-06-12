@@ -33,6 +33,7 @@ export function registerCameraTools(server: McpServer): void {
 				nodeId: z.string().optional().describe("Id of the camera (preferred)."),
 				nodeName: z.string().optional().describe("Name of the camera."),
 			}),
+			annotations: { idempotentHint: true },
 		},
 		async (args): Promise<CallToolResult> => callTextTool("set_active_camera", args)
 	);

@@ -15,6 +15,7 @@ export function registerAgentScriptTools(server: McpServer): void {
 				"ALWAYS call this before writing or running an agent script (`write_agent_script`/`run_agent_script`) so you know what `editor` exposes " +
 				"(the live Babylon scene at `editor.layout.preview.scene`, the scene graph, inspector, assets browser, console, etc.) and the required `export function main(editor) { ... }` skeleton.",
 			inputSchema: z.object({}),
+			annotations: { readOnlyHint: true },
 		},
 		async (args): Promise<CallToolResult> => callTextTool("get_editor_api", args)
 	);
@@ -32,6 +33,7 @@ export function registerAgentScriptTools(server: McpServer): void {
 				name: z.string().describe('Script file name under `agentdata/`, e.g. `forest.js` (a `.js` extension is added if missing; subfolders allowed, no "..").'),
 				content: z.string().describe("The full JavaScript source. Must contain `export function main(editor) { ... }`."),
 			}),
+			annotations: { idempotentHint: true },
 		},
 		async (args): Promise<CallToolResult> => callTextTool("write_agent_script", args)
 	);
@@ -58,6 +60,7 @@ export function registerAgentScriptTools(server: McpServer): void {
 			title: "List agent automation scripts",
 			description: "List the `.js` automation scripts currently stored in the project's `agentdata/` folder.",
 			inputSchema: z.object({}),
+			annotations: { readOnlyHint: true },
 		},
 		async (args): Promise<CallToolResult> => callTextTool("list_agent_scripts", args)
 	);
