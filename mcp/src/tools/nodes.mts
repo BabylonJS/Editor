@@ -125,7 +125,7 @@ export function registerNodeTools(server: McpServer): void {
 			title: "Get selected nodes",
 			description:
 				"Get the nodes the user has currently selected in the editor's scene graph, as an array of node summaries (id, name, className, transform, …). " +
-				"Use this whenever the user refers to \"the selected node(s)\" — e.g. \"instantiate the selected node 100 times to build a forest\". " +
+				'Use this whenever the user refers to "the selected node(s)" — e.g. "instantiate the selected node 100 times to build a forest". ' +
 				"Returns `{ count, nodes }`; if `count` is 0, ask the user to select a node in the editor first. " +
 				"Then drive instancing with the returned `id` (prefer `create_instance` over `clone_mesh` for performance) and scatter the copies with `set_node_transform`.",
 			inputSchema: z.object({}),

@@ -151,6 +151,8 @@ cli/declaration
 
 mcp/build
 mcp/declaration
+mcp/server
+*.mcpb
 
 # Template
 templates/nextjs/.next
