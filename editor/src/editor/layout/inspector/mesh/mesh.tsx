@@ -366,7 +366,7 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 	private _getMaterialInspectorComponent(material: Material): ReactNode {
 		switch (material.getClassName()) {
 			case "PBRMaterial":
-				return <EditorPBRMaterialInspector mesh={this.props.object} material={this.props.object.material as PBRMaterial} />;
+				return <EditorPBRMaterialInspector mesh={this.props.object} material={this.props.object.material as PBRMaterial} editor={this.props.editor} />;
 
 			case "StandardMaterial":
 				return <EditorStandardMaterialInspector mesh={this.props.object} material={this.props.object.material as StandardMaterial} />;

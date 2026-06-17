@@ -1,8 +1,22 @@
+import sharp from "sharp";
+import { dirname, join } from "path/posix";
+
 import { Component, ReactNode } from "react";
 
-import { PBRMaterial, AbstractMesh } from "babylonjs";
+import { PBRMaterial, AbstractMesh, Texture } from "babylonjs";
 
+import { showAlert } from "../../../../ui/dialog";
+import { Button } from "../../../../ui/shadcn/ui/button";
+import { isTexture } from "../../../../tools/guards/texture";
+import { saveSingleFileDialog } from "../../../../tools/dialog";
 import { registerSimpleUndoRedo } from "../../../../tools/undoredo";
+import { checkProjectCachedCompressedTextures } from "../../../../tools/assets/ktx";
+
+import { getProjectAssetsRootUrl } from "../../../../project/configuration";
+
+import { configureImportedTexture } from "../../preview/import/import";
+
+import { Editor } from "../../../main";
 
 import { EditorInspectorColorField } from "../fields/color";
 import { EditorInspectorBlockField } from "../fields/block";
@@ -20,6 +34,7 @@ import { EditorMaterialInspectorUtilsComponent } from "./components/utils";
 export interface IEditorPBRMaterialInspectorProps {
 	mesh?: AbstractMesh;
 	material: PBRMaterial;
+	editor: Editor;
 }
 
 export interface IEditorPBRMaterialInspectorState {
@@ -168,6 +183,8 @@ export class EditorPBRMaterialInspector extends Component<IEditorPBRMaterialInsp
 							</>
 						)}
 					</EditorInspectorTextureField>
+
+					{this._getMaterialTexturesOptimizations()}
 				</EditorInspectorSectionField>
 
 				<EditorInspectorSectionField title="Material Colors">
@@ -385,5 +402,131 @@ export class EditorPBRMaterialInspector extends Component<IEditorPBRMaterialInsp
 		this.setState({
 			subSurfaceEnabled: v,
 		});
+	}
+
+	private _getMaterialTexturesOptimizations(): ReactNode {
+		const optimizations: ReactNode[] = [];
+
+		// Check for ORM
+		const ambientTexture = this.props.material.ambientTexture;
+		const metallicTexture = this.props.material.metallicTexture;
+		const metallicReflectanceTexture = this.props.material.metallicReflectanceTexture;
+
+		const ORMTextures = [ambientTexture, metallicTexture, metallicReflectanceTexture].filter((texture) => {
+			return isTexture(texture) && (texture ?? null) !== null;
+		});
+
+		if (ORMTextures.length > 1) {
+			optimizations.push(
+				<div key="optimization-orm" className="flex flex-col gap-2 p-2 bg-background rounded-lg">
+					<div>Textures can be combined into a single ORM texture to optimize performance and resource consumption. Mergable textures are:</div>
+					<ul className="list-disc list-inside">
+						{ambientTexture && <li>Ambient Texture</li>}
+						{metallicTexture && <li>Metallic Texture</li>}
+						{metallicReflectanceTexture && <li>Metallic Reflectance Texture</li>}
+					</ul>
+
+					<Button
+						onClick={(ev) => {
+							ev.currentTarget.disabled = true;
+							this._createAndAssignORMTexture(metallicTexture as Texture, metallicReflectanceTexture as Texture, ambientTexture as Texture).then(() => {
+								ev.currentTarget.disabled = false;
+							});
+						}}
+					>
+						Create and assign ORM texture
+					</Button>
+				</div>
+			);
+		}
+
+		if (!optimizations.length) {
+			return false;
+		}
+
+		return (
+			<div className="flex flex-col gap-2 p-2 rounded-lg bg-yellow-600">
+				<div className="text-black text-center text-lg font-semibold animate-pulse">Optimisations available</div>
+				{optimizations}
+			</div>
+		);
+	}
+
+	private async _createAndAssignORMTexture(metallicTexture: Texture | null, metallicReflectanceTexture: Texture | null, ambientTexture: Texture | null): Promise<void> {
+		const rootUrl = getProjectAssetsRootUrl()!;
+
+		const metal = metallicTexture ? sharp(join(rootUrl, metallicTexture.name)) : null;
+		const reflectance = metallicReflectanceTexture ? sharp(join(rootUrl, metallicReflectanceTexture.name)) : null;
+		const occlusion = ambientTexture ? sharp(join(rootUrl, ambientTexture.name)) : null;
+
+		// Check dimensions of the textures
+		const dimensions = [metal, reflectance, occlusion].map((texture) => {
+			return texture?.metadata() ?? null;
+		});
+
+		const metadata = await Promise.all(dimensions);
+
+		const width = metadata[0]?.width ?? metadata[1]?.width ?? metadata[2]?.width ?? 0;
+		const height = metadata[0]?.height ?? metadata[1]?.height ?? metadata[2]?.height ?? 0;
+
+		if (metadata.some((meta) => meta && (meta.width !== width || meta.height !== height))) {
+			showAlert("Can't merge textures", "Textures must have the same dimensions to be combined into an ORM texture.");
+			return;
+		}
+
+		const [occlusionBuffer, metalBufferData, reflectanceBufferData] = await Promise.all([
+			occlusion?.ensureAlpha().removeAlpha().toColorspace("b-w").raw().toBuffer(),
+			metal?.ensureAlpha().raw().toBuffer(),
+			reflectance?.ensureAlpha().removeAlpha().toColorspace("b-w").raw().toBuffer(),
+		]);
+
+		const ormBuffer = Buffer.alloc(width * height * 4);
+
+		for (let i = 0; i < width * height; ++i) {
+			ormBuffer[i * 4 + 0] = occlusionBuffer?.[i] ?? metalBufferData?.[i * 4 + 0] ?? 255;
+			ormBuffer[i * 4 + 1] = metalBufferData?.[i * 4 + 1] ?? 255;
+			ormBuffer[i * 4 + 2] = reflectanceBufferData?.[i] ?? metalBufferData?.[i * 4 + 2] ?? 255;
+			ormBuffer[i * 4 + 3] = metalBufferData?.[i * 4 + 3] ?? 255; // Alpha channel
+		}
+
+		const ormPath = saveSingleFileDialog({
+			title: "Save ORM Texture",
+			filters: [{ name: "PNG Image", extensions: ["png"] }],
+			defaultPath: join(rootUrl, dirname(metallicTexture?.name ?? metallicReflectanceTexture?.name ?? ambientTexture?.name!)),
+		});
+
+		if (!ormPath) {
+			return;
+		}
+
+		const instance = sharp(ormBuffer, {
+			raw: {
+				width,
+				height,
+				channels: 4,
+			},
+		}).png();
+
+		await instance.toFile(ormPath);
+
+		this.props.material.ambientTexture = null;
+		this.props.material.metallicReflectanceTexture = null;
+
+		const invertY = (metallicTexture?.invertY ?? true) && (metallicReflectanceTexture?.invertY ?? true) && (ambientTexture?.invertY ?? true);
+
+		const texture = new Texture(ormPath, this.props.material.getScene(), false, invertY);
+		this.props.material.metallicTexture = texture;
+
+		this.props.material.useRoughnessFromMetallicTextureGreen = metal !== null;
+		this.props.material.useMetallnessFromMetallicTextureBlue = reflectance !== null;
+		this.props.material.useAmbientOcclusionFromMetallicTextureRed = occlusion !== null;
+
+		const invertVScale = (metallicTexture?.vScale ?? -1) === -1 && (metallicReflectanceTexture?.vScale ?? -1) === -1 && (ambientTexture?.vScale ?? -1) === -1;
+		texture.vScale = invertVScale ? -1 : 1;
+
+		configureImportedTexture(texture, false);
+		checkProjectCachedCompressedTextures(this.props.editor);
+
+		this.props.editor.layout.inspector.forceUpdate();
 	}
 }

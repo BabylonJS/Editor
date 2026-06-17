@@ -16,6 +16,8 @@ import { checkNodeJSAvailable, checkVisualStudioCodeAvailable, nodeJSAvailable, 
 import { saveProject } from "../project/save/save";
 import { onProjectConfigurationChangedObservable, projectConfiguration } from "../project/configuration";
 
+// import { initializeMcpServer } from "../mcp/mcp";
+
 import { loadProject } from "../project/load/load";
 import { startProjectDevProcess } from "../project/run";
 import { exportProject } from "../project/export/export";
@@ -36,8 +38,6 @@ import { Toaster } from "../ui/shadcn/ui/sonner";
 
 import { EditorLayout } from "./layout";
 import { removeNodes } from "./layout/graph/remove";
-
-import { initializeMcpServer } from "../mcp/mcp";
 
 import "./nodes/camera";
 import "./nodes/scene-link";
@@ -282,7 +282,9 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 
 		// Start the MCP server once the layout/preview scene is ready.
 		await waitUntil(() => this.layout?.preview?.scene);
-		initializeMcpServer(this);
+
+		// Initialize the MCP server to allow communication between the editor and AI agents
+		// initializeMcpServer(this);
 	}
 
 	/**
