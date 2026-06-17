@@ -10,8 +10,8 @@
 		"postbuild": "next-sitemap"
 	},
 	"dependencies": {
-		"@babylonjs/core": "9.9.1",
-		"@babylonjs/materials": "9.9.1",
+		"@babylonjs/core": "9.12.1",
+		"@babylonjs/materials": "9.12.1",
 		"@radix-ui/react-progress": "^1.1.2",
 		"@radix-ui/react-slot": "1.2.4",
 		"babylonjs-editor-tools": "link:../tools",
