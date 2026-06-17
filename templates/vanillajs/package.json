@@ -12,11 +12,11 @@
 		"serve": "vite preview"
 	},
 	"dependencies": {
-		"@babylonjs/addons": "9.9.1",
-		"@babylonjs/core": "9.9.1",
-		"@babylonjs/gui": "9.9.1",
+		"@babylonjs/addons": "9.12.1",
+		"@babylonjs/core": "9.12.1",
+		"@babylonjs/gui": "9.12.1",
 		"@babylonjs/havok": "1.3.12",
-		"@babylonjs/materials": "9.9.1",
+		"@babylonjs/materials": "9.12.1",
 		"babylonjs-editor-tools": "latest"
 	},
 	"devDependencies": {
