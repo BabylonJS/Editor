@@ -446,7 +446,7 @@ export class EditorPBRMaterialInspector extends Component<IEditorPBRMaterialInsp
 
 		return (
 			<div className="flex flex-col gap-2 p-2 rounded-lg bg-yellow-600">
-				<div className="text-black text-center text-lg font-semibold animate-pulse">Optimisations available</div>
+				<div className="text-black text-center text-lg font-semibold animate-pulse">Optimizations available</div>
 				{optimizations}
 			</div>
 		);
