@@ -20,6 +20,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 
 import { isDarwin } from "../tools/os";
 import { ProjectType } from "../tools/project";
+import { tryGetDefaultIdeFromLocalStorage } from "../tools/local-storage";
 import { execNodePty, NodePtyInstance } from "../tools/node-pty";
 
 import { IEditorProject } from "../project/typings";
@@ -142,6 +143,11 @@ export function DashboardProjectItem(props: IDashboardProjectItemProps) {
 		execNodePty(`code "${dirname(props.project.absolutePath)}"`);
 	}
 
+	function handleOpenInDefaultIde() {
+		const projectDir = dirname(props.project.absolutePath);
+		ipcRenderer.send("editor:open-with", projectDir, tryGetDefaultIdeFromLocalStorage());
+	}
+
 	return (
 		<ContextMenu onOpenChange={(o) => setContextMenuOpen(o)}>
 			<ContextMenuTrigger>
@@ -185,6 +191,9 @@ export function DashboardProjectItem(props: IDashboardProjectItemProps) {
 											{`Show in ${isDarwin() ? "Finder" : "Explorer"}`}
 										</DropdownMenuItem>
 										<DropdownMenuSeparator />
+										<DropdownMenuItem className="flex items-center gap-2" onClick={() => handleOpenInDefaultIde()}>
+											Open in Default IDE
+										</DropdownMenuItem>
 										<DropdownMenuItem className="flex items-center gap-2" onClick={() => handleOpenInVisualStudioCode()}>
 											Open in Visual Studio Code
 										</DropdownMenuItem>
@@ -237,6 +246,9 @@ export function DashboardProjectItem(props: IDashboardProjectItemProps) {
 					{`Show in ${isDarwin() ? "Finder" : "Explorer"}`}
 				</ContextMenuItem>
 				<ContextMenuSeparator />
+				<ContextMenuItem className="flex items-center gap-2" onClick={() => handleOpenInDefaultIde()}>
+					Open in Default IDE
+				</ContextMenuItem>
 				<ContextMenuItem className="flex items-center gap-2" onClick={() => handleOpenInVisualStudioCode()}>
 					Open in Visual Studio Code
 				</ContextMenuItem>
