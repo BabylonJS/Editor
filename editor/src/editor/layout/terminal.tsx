@@ -23,6 +23,7 @@ export class EditorTerminal extends Component<IEditorTerminalProps, IEditorTermi
 	private _webglAddon: WebglAddon | null = null;
 	private _pty: NodePtyInstance | null = null;
 	private _projectPath: string | null = null;
+	private _resizeObserver: ResizeObserver | null = null;
 
 	constructor(props: IEditorTerminalProps) {
 		super(props);
@@ -81,6 +82,9 @@ export class EditorTerminal extends Component<IEditorTerminalProps, IEditorTermi
 	}
 
 	private _dispose(): void {
+		this._resizeObserver?.disconnect();
+		this._resizeObserver = null;
+
 		this._fitAddon?.dispose();
 		this._fitAddon = null;
 
@@ -149,11 +153,7 @@ export class EditorTerminal extends Component<IEditorTerminalProps, IEditorTermi
 			// WebGL not available; keep default renderer
 		}
 
-		requestAnimationFrame(() => {
-			if (this._terminal && this._fitAddon) {
-				this._fitAddon.fit();
-			}
-		});
+		requestAnimationFrame(() => this._fit());
 
 		const cwd = this._projectPath ? dirname(this._projectPath) : undefined;
 		this._pty = await execNodePty("", { interactive: true, cwd } as any);
@@ -170,14 +170,28 @@ export class EditorTerminal extends Component<IEditorTerminalProps, IEditorTermi
 			this._pty?.resize(cols, rows);
 		});
 
-		const ro = new ResizeObserver(() => {
-			requestAnimationFrame(() => {
-				if (this._terminal && this._fitAddon) {
-					this._fitAddon.fit();
-				}
-			});
+		this._resizeObserver = new ResizeObserver(() => {
+			requestAnimationFrame(() => this._fit());
 		});
-		ro.observe(ref);
+		this._resizeObserver.observe(ref);
+	}
+
+	/**
+	 * Fits the terminal to its container, guarding against invalid dimensions.
+	 * In flexlayout, an inactive tab can be mounted at 0x0; fitting then yields
+	 * NaN/Infinity cols/rows and corrupts the rendered output. Skip those cases.
+	 */
+	private _fit(): void {
+		if (!this._terminal || !this._fitAddon) {
+			return;
+		}
+
+		const dimensions = this._fitAddon.proposeDimensions();
+		if (!dimensions || !isFinite(dimensions.cols) || !isFinite(dimensions.rows) || dimensions.cols <= 0 || dimensions.rows <= 0) {
+			return;
+		}
+
+		this._fitAddon.fit();
 	}
 
 	private async _restartTerminal(): Promise<void> {

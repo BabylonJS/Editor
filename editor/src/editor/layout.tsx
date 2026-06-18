@@ -90,7 +90,7 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
 		marketplace: <EditorMarketplaceBrowser editor={this.props.editor} ref={(r) => (this.marketplace = r)} />,
 	};
 
-	private _layoutVersion: string = "5.0.0-alpha.2";
+	private _layoutVersion: string = "5.0.0-alpha.3";
 
 	public constructor(props: IEditorLayoutProps) {
 		super(props);
