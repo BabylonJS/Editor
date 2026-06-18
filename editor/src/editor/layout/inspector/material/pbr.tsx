@@ -1,10 +1,25 @@
+import sharp from "sharp";
+import { dirname, join } from "path/posix";
+
 import { Component, ReactNode } from "react";
 
-import { PBRMaterial, AbstractMesh } from "babylonjs";
+import { PBRMaterial, AbstractMesh, Texture } from "babylonjs";
 
+import { showAlert } from "../../../../ui/dialog";
+import { Button } from "../../../../ui/shadcn/ui/button";
+import { isTexture } from "../../../../tools/guards/texture";
+import { saveSingleFileDialog } from "../../../../tools/dialog";
 import { registerSimpleUndoRedo } from "../../../../tools/undoredo";
+import { checkProjectCachedCompressedTextures } from "../../../../tools/assets/ktx";
+
+import { getProjectAssetsRootUrl } from "../../../../project/configuration";
+
+import { configureImportedTexture } from "../../preview/import/import";
+
+import { Editor } from "../../../main";
 
 import { EditorInspectorColorField } from "../fields/color";
+import { EditorInspectorBlockField } from "../fields/block";
 import { EditorInspectorStringField } from "../fields/string";
 import { EditorInspectorNumberField } from "../fields/number";
 import { EditorInspectorSwitchField } from "../fields/switch";
@@ -12,20 +27,32 @@ import { EditorInspectorTextureField } from "../fields/texture";
 import { EditorInspectorSectionField } from "../fields/section";
 
 import { EditorAlphaModeField } from "./components/alpha";
+import { EditorDetailMapInspector } from "./components/detail";
 import { EditorTransparencyModeField } from "./components/transparency";
 import { EditorMaterialInspectorUtilsComponent } from "./components/utils";
 
 export interface IEditorPBRMaterialInspectorProps {
 	mesh?: AbstractMesh;
 	material: PBRMaterial;
+	editor: Editor;
 }
 
-export class EditorPBRMaterialInspector extends Component<IEditorPBRMaterialInspectorProps> {
+export interface IEditorPBRMaterialInspectorState {
+	subSurfaceEnabled: boolean;
+}
+
+export class EditorPBRMaterialInspector extends Component<IEditorPBRMaterialInspectorProps, IEditorPBRMaterialInspectorState> {
 	public constructor(props: IEditorPBRMaterialInspectorProps) {
 		super(props);
+
+		this.state = {
+			subSurfaceEnabled: this.props.material.subSurface.isRefractionEnabled || this.props.material.subSurface.isTranslucencyEnabled,
+		};
 	}
 
 	public render(): ReactNode {
+		const scene = this.props.material.getScene();
+
 		return (
 			<>
 				<EditorInspectorSectionField title="Material" label={this.props.material.getClassName()}>
@@ -156,6 +183,8 @@ export class EditorPBRMaterialInspector extends Component<IEditorPBRMaterialInsp
 							</>
 						)}
 					</EditorInspectorTextureField>
+
+					{this._getMaterialTexturesOptimizations()}
 				</EditorInspectorSectionField>
 
 				<EditorInspectorSectionField title="Material Colors">
@@ -234,6 +263,107 @@ export class EditorPBRMaterialInspector extends Component<IEditorPBRMaterialInsp
 					</EditorInspectorSectionField>
 				)}
 
+				<EditorDetailMapInspector material={this.props.material} />
+
+				<EditorInspectorSectionField title="Sub Surface">
+					<EditorInspectorSwitchField
+						noUndoRedo
+						object={this.state}
+						property="subSurfaceEnabled"
+						label="Enabled"
+						onChange={(v) => this._handleSubSurfaceEnabledChange(v)}
+					/>
+
+					{this.state.subSurfaceEnabled && (
+						<>
+							<EditorInspectorColorField label={<div className="w-14">Tint</div>} object={this.props.material.subSurface} property="tintColor" />
+
+							<EditorInspectorTextureField scene={scene} object={this.props.material.subSurface} property="thicknessTexture" title="Thickness Texture">
+								<EditorInspectorSwitchField
+									label="Use Mask From Thickness Texture"
+									object={this.props.material.subSurface}
+									property="useMaskFromThicknessTexture"
+								/>
+								<EditorInspectorNumberField label="Minimum Thickness" object={this.props.material.subSurface} property="minimumThickness" min={0} />
+								<EditorInspectorNumberField label="Maximum Thickness" object={this.props.material.subSurface} property="maximumThickness" min={0} />
+							</EditorInspectorTextureField>
+
+							<EditorInspectorBlockField>
+								<div className="font-semibold text-base text-center">Refraction</div>
+								<EditorInspectorSwitchField
+									label="Enabled"
+									object={this.props.material.subSurface}
+									property="isRefractionEnabled"
+									onChange={() => this.forceUpdate()}
+								/>
+
+								{this.props.material.subSurface.isRefractionEnabled && (
+									<>
+										<EditorInspectorNumberField label="Intensity" object={this.props.material.subSurface} property="refractionIntensity" min={0} />
+										<EditorInspectorNumberField label="Index of Refraction" object={this.props.material.subSurface} property="indexOfRefraction" min={0} />
+									</>
+								)}
+							</EditorInspectorBlockField>
+
+							<EditorInspectorBlockField>
+								<div className="font-semibold text-base text-center">Translucency</div>
+								<EditorInspectorSwitchField
+									label="Enabled"
+									object={this.props.material.subSurface}
+									property="isTranslucencyEnabled"
+									onChange={() => this.forceUpdate()}
+								/>
+
+								{this.props.material.subSurface.isTranslucencyEnabled && (
+									<>
+										<EditorInspectorNumberField label="Intensity" object={this.props.material.subSurface} property="translucencyIntensity" min={0} />
+									</>
+								)}
+							</EditorInspectorBlockField>
+						</>
+					)}
+				</EditorInspectorSectionField>
+
+				<EditorInspectorSectionField title="Iridescence">
+					<EditorInspectorSwitchField label="Enabled" object={this.props.material.iridescence} property="isEnabled" onChange={() => this.forceUpdate()} />
+
+					{this.props.material.iridescence.isEnabled && (
+						<>
+							<EditorInspectorNumberField label="Intensity" object={this.props.material.iridescence} property="intensity" min={0} />
+							<EditorInspectorNumberField label="Index of Refraction" object={this.props.material.iridescence} property="indexOfRefraction" min={0} />
+							<EditorInspectorNumberField label="Minimum Thickness" object={this.props.material.iridescence} property="minimumThickness" min={0} />
+							<EditorInspectorNumberField label="Maximum Thickness" object={this.props.material.iridescence} property="maximumThickness" min={0} />
+
+							<EditorInspectorTextureField scene={scene} object={this.props.material.iridescence} property="texture" title="Intensity Texture" />
+							<EditorInspectorTextureField scene={scene} object={this.props.material.iridescence} property="thicknessTexture" title="Thickness Texture" />
+						</>
+					)}
+				</EditorInspectorSectionField>
+
+				<EditorInspectorSectionField title="Sheen">
+					<EditorInspectorSwitchField label="Enabled" object={this.props.material.sheen} property="isEnabled" onChange={() => this.forceUpdate()} />
+
+					{this.props.material.sheen.isEnabled && (
+						<>
+							<EditorInspectorNumberField label="Intensity" object={this.props.material.sheen} property="intensity" min={0} />
+							<EditorInspectorColorField label={<div className="w-14">Color</div>} object={this.props.material.sheen} property="color" />
+
+							<EditorInspectorTextureField scene={scene} object={this.props.material.sheen} property="texture" title="Tint Texture">
+								<EditorInspectorSwitchField
+									label="Use Roughness From Main Texture"
+									object={this.props.material.sheen}
+									property="useRoughnessFromMainTexture"
+									onChange={() => this.forceUpdate()}
+								/>
+							</EditorInspectorTextureField>
+
+							{!this.props.material.sheen.useRoughnessFromMainTexture && (
+								<EditorInspectorTextureField scene={scene} object={this.props.material.sheen} property="textureRoughness" title="Roughness Texture" />
+							)}
+						</>
+					)}
+				</EditorInspectorSectionField>
+
 				<EditorInspectorSectionField title="Intensity Properties">
 					<EditorInspectorNumberField label="Direct Intensity" object={this.props.material} property="directIntensity" min={0} />
 					<EditorInspectorNumberField label="Environment Intensity" object={this.props.material} property="environmentIntensity" min={0} />
@@ -249,6 +379,7 @@ export class EditorPBRMaterialInspector extends Component<IEditorPBRMaterialInsp
 					<EditorInspectorSwitchField label="Use Radiance Occlusion" object={this.props.material} property="useRadianceOcclusion" />
 					<EditorInspectorSwitchField label="Use Horizon Occlusion" object={this.props.material} property="useHorizonOcclusion" />
 					<EditorInspectorSwitchField label="Use Physical Light Falloff" object={this.props.material} property="usePhysicalLightFalloff" />
+					<EditorInspectorSwitchField label="Use Spherical Harmonics" object={this.props.material.brdf} property="useSphericalHarmonics" />
 					<EditorInspectorSwitchField label="Use Radiance Over Alpha" object={this.props.material} property="useRadianceOverAlpha" />
 					<EditorInspectorSwitchField label="Use Specular Over Alpha" object={this.props.material} property="useSpecularOverAlpha" />
 					<EditorInspectorSwitchField label="Separate Culling Pass" object={this.props.material} property="separateCullingPass" />
@@ -256,8 +387,146 @@ export class EditorPBRMaterialInspector extends Component<IEditorPBRMaterialInsp
 					<EditorInspectorNumberField label="Z Offset" object={this.props.material} property="zOffset" />
 					<EditorInspectorNumberField label="Z Offset Units" object={this.props.material} property="zOffsetUnits" />
 					<EditorInspectorSwitchField label="Fog Enabled" object={this.props.material} property="fogEnabled" />
+					<EditorInspectorSwitchField label="Use Logarithmic Depth" object={this.props.material} property="useLogarithmicDepth" />
 				</EditorInspectorSectionField>
 			</>
 		);
+	}
+
+	private _handleSubSurfaceEnabledChange(v: boolean): void {
+		if (!v) {
+			this.props.material.subSurface.isRefractionEnabled = false;
+			this.props.material.subSurface.isTranslucencyEnabled = false;
+		}
+
+		this.setState({
+			subSurfaceEnabled: v,
+		});
+	}
+
+	private _getMaterialTexturesOptimizations(): ReactNode {
+		const optimizations: ReactNode[] = [];
+
+		// Check for ORM
+		const ambientTexture = this.props.material.ambientTexture;
+		const metallicTexture = this.props.material.metallicTexture;
+		const metallicReflectanceTexture = this.props.material.metallicReflectanceTexture;
+
+		const ORMTextures = [ambientTexture, metallicTexture, metallicReflectanceTexture].filter((texture) => {
+			return isTexture(texture) && (texture ?? null) !== null;
+		});
+
+		if (ORMTextures.length > 1) {
+			optimizations.push(
+				<div key="optimization-orm" className="flex flex-col gap-2 p-2 bg-background rounded-lg">
+					<div>Textures can be combined into a single ORM texture to optimize performance and resource consumption. Mergable textures are:</div>
+					<ul className="list-disc list-inside">
+						{ambientTexture && <li>Ambient Texture</li>}
+						{metallicTexture && <li>Metallic Texture</li>}
+						{metallicReflectanceTexture && <li>Metallic Reflectance Texture</li>}
+					</ul>
+
+					<Button
+						onClick={(ev) => {
+							ev.currentTarget.disabled = true;
+							this._createAndAssignORMTexture(metallicTexture as Texture, metallicReflectanceTexture as Texture, ambientTexture as Texture).then(() => {
+								ev.currentTarget.disabled = false;
+							});
+						}}
+					>
+						Create and assign ORM texture
+					</Button>
+				</div>
+			);
+		}
+
+		if (!optimizations.length) {
+			return false;
+		}
+
+		return (
+			<div className="flex flex-col gap-2 p-2 rounded-lg bg-yellow-600">
+				<div className="text-black text-center text-lg font-semibold animate-pulse">Optimizations available</div>
+				{optimizations}
+			</div>
+		);
+	}
+
+	private async _createAndAssignORMTexture(metallicTexture: Texture | null, metallicReflectanceTexture: Texture | null, ambientTexture: Texture | null): Promise<void> {
+		const rootUrl = getProjectAssetsRootUrl()!;
+
+		const metal = metallicTexture ? sharp(join(rootUrl, metallicTexture.name)) : null;
+		const reflectance = metallicReflectanceTexture ? sharp(join(rootUrl, metallicReflectanceTexture.name)) : null;
+		const occlusion = ambientTexture ? sharp(join(rootUrl, ambientTexture.name)) : null;
+
+		// Check dimensions of the textures
+		const dimensions = [metal, reflectance, occlusion].map((texture) => {
+			return texture?.metadata() ?? null;
+		});
+
+		const metadata = await Promise.all(dimensions);
+
+		const width = metadata[0]?.width ?? metadata[1]?.width ?? metadata[2]?.width ?? 0;
+		const height = metadata[0]?.height ?? metadata[1]?.height ?? metadata[2]?.height ?? 0;
+
+		if (metadata.some((meta) => meta && (meta.width !== width || meta.height !== height))) {
+			showAlert("Can't merge textures", "Textures must have the same dimensions to be combined into an ORM texture.");
+			return;
+		}
+
+		const [occlusionBuffer, metalBufferData, reflectanceBufferData] = await Promise.all([
+			occlusion?.ensureAlpha().removeAlpha().toColorspace("b-w").raw().toBuffer(),
+			metal?.ensureAlpha().raw().toBuffer(),
+			reflectance?.ensureAlpha().removeAlpha().toColorspace("b-w").raw().toBuffer(),
+		]);
+
+		const ormBuffer = Buffer.alloc(width * height * 4);
+
+		for (let i = 0; i < width * height; ++i) {
+			ormBuffer[i * 4 + 0] = occlusionBuffer?.[i] ?? metalBufferData?.[i * 4 + 0] ?? 255;
+			ormBuffer[i * 4 + 1] = metalBufferData?.[i * 4 + 1] ?? 255;
+			ormBuffer[i * 4 + 2] = reflectanceBufferData?.[i] ?? metalBufferData?.[i * 4 + 2] ?? 255;
+			ormBuffer[i * 4 + 3] = metalBufferData?.[i * 4 + 3] ?? 255; // Alpha channel
+		}
+
+		const ormPath = saveSingleFileDialog({
+			title: "Save ORM Texture",
+			filters: [{ name: "PNG Image", extensions: ["png"] }],
+			defaultPath: join(rootUrl, dirname(metallicTexture?.name ?? metallicReflectanceTexture?.name ?? ambientTexture?.name!)),
+		});
+
+		if (!ormPath) {
+			return;
+		}
+
+		const instance = sharp(ormBuffer, {
+			raw: {
+				width,
+				height,
+				channels: 4,
+			},
+		}).png();
+
+		await instance.toFile(ormPath);
+
+		this.props.material.ambientTexture = null;
+		this.props.material.metallicReflectanceTexture = null;
+
+		const invertY = (metallicTexture?.invertY ?? true) && (metallicReflectanceTexture?.invertY ?? true) && (ambientTexture?.invertY ?? true);
+
+		const texture = new Texture(ormPath, this.props.material.getScene(), false, invertY);
+		this.props.material.metallicTexture = texture;
+
+		this.props.material.useRoughnessFromMetallicTextureGreen = metal !== null;
+		this.props.material.useMetallnessFromMetallicTextureBlue = reflectance !== null;
+		this.props.material.useAmbientOcclusionFromMetallicTextureRed = occlusion !== null;
+
+		const invertVScale = (metallicTexture?.vScale ?? -1) === -1 && (metallicReflectanceTexture?.vScale ?? -1) === -1 && (ambientTexture?.vScale ?? -1) === -1;
+		texture.vScale = invertVScale ? -1 : 1;
+
+		configureImportedTexture(texture, false);
+		checkProjectCachedCompressedTextures(this.props.editor);
+
+		this.props.editor.layout.inspector.forceUpdate();
 	}
 }

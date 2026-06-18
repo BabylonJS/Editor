@@ -1,10 +1,13 @@
 import { join } from "node:path";
 import { rm } from "node:fs/promises";
 import { platform, arch } from "node:os";
+import { execSync } from "node:child_process";
 
 import dotEnv from "dotenv";
 import yargs from "minimist";
 import Builder from "electron-builder";
+
+import packageJson from "./editor/package.json" with { type: "json" };
 
 dotEnv.config();
 const args = yargs(process.argv.slice(2));
@@ -17,6 +20,7 @@ function build({ x64, arm64 } = options) {
 		arm64,
 		projectDir: "./editor",
 		config: {
+			protocols: packageJson.build.protocols,
 			publish: {
 				provider: "generic",
 				url: `https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/updates/${platform() === "darwin" && architecture === "x64" ? "x64/" : ""}`,
@@ -30,6 +34,23 @@ function build({ x64, arm64 } = options) {
 							notarize: args.noSign ? false : true,
 							identity: args.noSign ? null : undefined,
 						},
+			win: {
+				target: "nsis",
+				verifyUpdateCodeSignature: false,
+				forceCodeSigning: args.noSign ? false : true,
+				signtoolOptions: args.noSign
+					? undefined
+					: {
+							sign: (configuration) => {
+								if (configuration.path) {
+									execSync(`smctl.exe sign --keypair-alias=${process.env.KEYPAIR_ALIAS} --input "${String(configuration.path)}"`);
+								}
+							},
+							publisherName: "cesharpe",
+							signingHashAlgorithms: ["sha256"],
+							rfc3161TimeStampServer: "http://timestamp.digicert.com",
+						},
+			},
 			fileAssociations: [
 				{
 					ext: "bjseditor",
@@ -44,6 +65,7 @@ function build({ x64, arm64 } = options) {
 			},
 			nsis: {
 				oneClick: false,
+				allowToChangeInstallationDirectory: true,
 			},
 			linux: {
 				target: "AppImage",

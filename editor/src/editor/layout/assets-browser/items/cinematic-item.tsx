@@ -24,6 +24,9 @@ export class AssetBrowserCinematicItem extends AssetsBrowserItem {
 		const data = await readJSON(this.props.absolutePath);
 		const cinematic = parseCinematic(data, this.props.editor.layout.preview.scene);
 
-		this.props.editor.layout.addLayoutTab("Cinematic Editor", <CinematicEditor cinematic={cinematic} editor={this.props.editor} absolutePath={this.props.absolutePath} />);
+		this.props.editor.layout.addLayoutTab(<CinematicEditor cinematic={cinematic} editor={this.props.editor} absolutePath={this.props.absolutePath} />, {
+			setAsActiveTab: true,
+			title: "Cinematic Editor",
+		});
 	}
 }

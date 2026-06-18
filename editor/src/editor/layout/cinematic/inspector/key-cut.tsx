@@ -1,6 +1,12 @@
+import { IAnimationKey } from "babylonjs";
 import { ICinematicKeyCut, ICinematicTrack, getAnimationTypeForObject } from "babylonjs-editor-tools";
 
-import { registerSimpleUndoRedo } from "../../../../tools/undoredo";
+import { Button } from "../../../../ui/shadcn/ui/button";
+
+import { getInspectorPropertyValue } from "../../../../tools/property";
+import { registerSimpleUndoRedo, registerUndoRedo } from "../../../../tools/undoredo";
+
+import { getDefaultRenderingPipeline } from "../../../rendering/default-pipeline";
 
 import { CinematicEditor } from "../editor";
 
@@ -19,6 +25,35 @@ export interface ICinematicEditorKeyCutInspectorProps {
 export function CinematicEditorKeyCutInspector(props: ICinematicEditorKeyCutInspectorProps) {
 	const animationType = getAnimationTypeForObject(props.cinematicKey.key1.value);
 
+	function copyCurrentValue(key: IAnimationKey) {
+		const node = props.track.defaultRenderingPipeline ? getDefaultRenderingPipeline() : props.track.node;
+
+		if (!node || !props.track?.propertyPath) {
+			return;
+		}
+
+		const oldValue = key.value.clone?.() ?? key.value;
+
+		let newValue = getInspectorPropertyValue(node, props.track.propertyPath);
+		newValue = newValue.clone?.() ?? newValue;
+
+		registerUndoRedo({
+			executeRedo: false,
+			action: () => {
+				props.cinematicEditor.updateTracksAtCurrentTime();
+			},
+			undo: () => {
+				key.value = oldValue;
+			},
+			redo: () => {
+				key.value = newValue;
+			},
+		});
+
+		key.value = newValue;
+		props.cinematicEditor.inspector.forceUpdate();
+	}
+
 	return (
 		<EditorInspectorSectionField title="Key Cut">
 			<EditorInspectorNumberField
@@ -31,7 +66,8 @@ export function CinematicEditorKeyCutInspector(props: ICinematicEditorKeyCutInsp
 					props.cinematicKey.key2.frame = v;
 
 					props.cinematicEditor.timelines.sortAnimationsKeys();
-					props.cinematicEditor.timelines.updateTracksAtCurrentTime();
+					props.cinematicEditor.curves.forceUpdate();
+					props.cinematicEditor.updateTracksAtCurrentTime();
 				}}
 			/>
 
@@ -41,8 +77,15 @@ export function CinematicEditorKeyCutInspector(props: ICinematicEditorKeyCutInsp
 				property: "value",
 				label: "End",
 				step: props.track.propertyPath === "depthOfField.focusDistance" ? (props.cinematicEditor.editor.layout.preview.scene.activeCamera?.maxZ ?? 0) / 1000 : 0.01,
-				onChange: () => props.cinematicEditor.timelines.updateTracksAtCurrentTime(),
+				onChange: () => {
+					props.cinematicEditor.curves.forceUpdate();
+					props.cinematicEditor.updateTracksAtCurrentTime();
+				},
 			})}
+
+			<Button variant="secondary" onClick={() => copyCurrentValue(props.cinematicKey.key1)}>
+				Set current value
+			</Button>
 
 			{getPropertyInspector({
 				animationType,
@@ -50,8 +93,15 @@ export function CinematicEditorKeyCutInspector(props: ICinematicEditorKeyCutInsp
 				property: "value",
 				label: "New",
 				step: props.track.propertyPath === "depthOfField.focusDistance" ? (props.cinematicEditor.editor.layout.preview.scene.activeCamera?.maxZ ?? 0) / 1000 : 0.01,
-				onChange: () => props.cinematicEditor.timelines.updateTracksAtCurrentTime(),
+				onChange: () => {
+					props.cinematicEditor.curves.forceUpdate();
+					props.cinematicEditor.updateTracksAtCurrentTime();
+				},
 			})}
+
+			<Button variant="secondary" onClick={() => copyCurrentValue(props.cinematicKey.key2)}>
+				Set current value
+			</Button>
 
 			<EditorInspectorSwitchField
 				label="In Tangents"
@@ -67,7 +117,7 @@ export function CinematicEditorKeyCutInspector(props: ICinematicEditorKeyCutInsp
 						executeRedo: true,
 					});
 
-					props.cinematicEditor.inspector.forceUpdate();
+					props.cinematicEditor.forceUpdate();
 				}}
 			/>
 
@@ -87,7 +137,7 @@ export function CinematicEditorKeyCutInspector(props: ICinematicEditorKeyCutInsp
 						executeRedo: true,
 					});
 
-					props.cinematicEditor.inspector.forceUpdate();
+					props.cinematicEditor.forceUpdate();
 				}}
 			/>
 

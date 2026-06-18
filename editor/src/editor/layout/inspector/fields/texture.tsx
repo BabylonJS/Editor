@@ -1,22 +1,25 @@
+import { clipboard } from "electron";
 import { pathExists } from "fs-extra";
-import { extname, join, dirname } from "path/posix";
+import { extname, join, dirname, basename } from "path/posix";
 
 import sharp from "sharp";
 
 import { Component, DragEvent, PropsWithChildren, ReactNode } from "react";
 
+import { toast } from "sonner";
+
 import { SiDotenv } from "react-icons/si";
 import { IoIosColorPalette } from "react-icons/io";
 import { XMarkIcon } from "@heroicons/react/20/solid";
-import { MdOutlineQuestionMark } from "react-icons/md";
+import { MdOutlineHdrOn, MdOutlineQuestionMark } from "react-icons/md";
 
-import { CubeTexture, Scene, Texture, ColorGradingTexture } from "babylonjs";
+import { CubeTexture, Scene, Texture, ColorGradingTexture, HDRCubeTexture } from "babylonjs";
 
 import { isScene } from "../../../../tools/guards/scene";
 import { registerUndoRedo } from "../../../../tools/undoredo";
 import { updateIblShadowsRenderPipeline } from "../../../../tools/light/ibl";
 import { onSelectedAssetChanged, onTextureAddedObservable } from "../../../../tools/observables";
-import { isColorGradingTexture, isCubeTexture, isTexture } from "../../../../tools/guards/texture";
+import { isColorGradingTexture, isCubeTexture, isHDRCubeTexture, isTexture } from "../../../../tools/guards/texture";
 
 import { projectConfiguration } from "../../../../project/configuration";
 
@@ -47,7 +50,7 @@ export interface IEditorInspectorTextureFieldProps extends PropsWithChildren {
 	noPopover?: boolean;
 
 	scene?: Scene;
-	onChange?: (texture: Texture | CubeTexture | ColorGradingTexture | null) => void;
+	onChange?: (texture: Texture | CubeTexture | ColorGradingTexture | HDRCubeTexture | null) => void;
 }
 
 export interface IEditorInspectorTextureFieldState {
@@ -71,8 +74,8 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 	}
 
 	public render(): ReactNode {
-		const texture = this.props.object[this.props.property] as Texture | CubeTexture | ColorGradingTexture;
-		const textureUrl = (isTexture(texture) || isCubeTexture(texture) || isColorGradingTexture(texture)) && texture.url;
+		const texture = this.props.object[this.props.property] as Texture | CubeTexture | ColorGradingTexture | HDRCubeTexture;
+		const textureUrl = (isTexture(texture) || isCubeTexture(texture) || isColorGradingTexture(texture) || isHDRCubeTexture(texture)) && texture.url;
 
 		return (
 			<div
@@ -85,7 +88,14 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 					{this._getPreviewComponent(textureUrl)}
 
 					<div className="flex flex-col w-full">
-						<div className="px-2">{this.props.title}</div>
+						<div className="flex flex-col px-2">
+							<div>{this.props.title}</div>
+							{this.state.previewError && textureUrl && (
+								<div className="text-red-500 text-sm cursor-pointer" onClick={() => this._copyMissingTexture(textureUrl)}>
+									...{textureUrl.substring(Math.max(0, textureUrl.length - 30))}
+								</div>
+							)}
+						</div>
 
 						{textureUrl && !texture.loadingError && (
 							<div className="flex flex-col gap-1 mt-1 w-full">
@@ -128,7 +138,7 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 									</>
 								)}
 
-								{isCubeTexture(texture) && (
+								{(isCubeTexture(texture) || isHDRCubeTexture(texture)) && (
 									<>
 										<EditorInspectorNumberField
 											label="Rotation Y"
@@ -183,7 +193,7 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 					</div>
 				</div>
 
-				{texture && this.props.children}
+				{texture && <div className="flex flex-col gap-2">{this.props.children}</div>}
 			</div>
 		);
 	}
@@ -194,15 +204,25 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 		}
 	}
 
+	private _copyMissingTexture(textureUrl: string): void {
+		clipboard.writeText(basename(textureUrl));
+		toast.info("Texture name copied to clipboard", { duration: 3000 });
+	}
+
 	private _handleReloadTexture(texture: Texture | CubeTexture): void {
 		if (!projectConfiguration.path || !texture.url) {
 			return;
 		}
 
 		const wasLoadingError = texture.loadingError;
-
 		const projectDir = join(dirname(projectConfiguration.path));
-		const texturePath = texture.url.startsWith(projectDir) ? texture.url : join(projectDir, texture.url);
+
+		let texturePath: string;
+		if (texture.url.startsWith("data:")) {
+			texturePath = texture.url;
+		} else {
+			texturePath = texture.url.startsWith(projectDir) ? texture.url : join(projectDir, texture.url);
+		}
 
 		texture.updateURL(texturePath, undefined, () => {
 			texture["_loadingError"] = false;
@@ -223,6 +243,8 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 							<>
 								{isCubeTexture(this.props.object[this.props.property]) ? (
 									<SiDotenv className="w-24 h-24" />
+								) : isHDRCubeTexture(this.props.object[this.props.property]) ? (
+									<MdOutlineHdrOn className="w-24 h-24" />
 								) : isColorGradingTexture(this.props.object[this.props.property]) ? (
 									<IoIosColorPalette className="w-24 h-24" />
 								) : extname(textureUrl).toLowerCase() === ".exr" ? (
@@ -238,7 +260,7 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 						</PopoverTrigger>
 						<PopoverContent side="left">
 							<>
-								{isCubeTexture(this.props.object[this.props.property])
+								{isCubeTexture(this.props.object[this.props.property]) || isHDRCubeTexture(this.props.object[this.props.property])
 									? this._getCubeTextureInspector()
 									: isColorGradingTexture(this.props.object[this.props.property])
 										? this._getColorGradingTextureInspector()
@@ -254,10 +276,12 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 	}
 
 	private _getCubeTextureInspector(): ReactNode {
-		const texture = this.props.object[this.props.property] as CubeTexture;
-		if (!isCubeTexture(texture)) {
+		const texture = this.props.object[this.props.property] as CubeTexture | HDRCubeTexture;
+		if (!isCubeTexture(texture) && !isHDRCubeTexture(texture)) {
 			return;
 		}
+
+		const isDataString = texture.url.startsWith("data:");
 
 		return (
 			<div className="flex flex-col gap-2 h-full">
@@ -266,10 +290,13 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 						<div className="w-1/2">Path</div>
 
 						<div
-							onClick={() => onSelectedAssetChanged.notifyObservers(join(dirname(projectConfiguration.path!), texture.name))}
-							className="text-white/50 w-full text-end overflow-hidden whitespace-nowrap text-ellipsis underline-offset-2 cursor-pointer hover:underline"
+							onClick={() => !isDataString && onSelectedAssetChanged.notifyObservers(join(dirname(projectConfiguration.path!), texture.name))}
+							className={`
+								text-white/50 w-full text-end overflow-hidden whitespace-nowrap
+								${isDataString ? "" : "text-ellipsis underline-offset-2 cursor-pointer hover:underline"}
+							`}
 						>
-							{texture.name}
+							{isDataString ? texture.name.substring(0, 64) : texture.name}
 						</div>
 					</div>
 
@@ -321,6 +348,8 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 			return;
 		}
 
+		const isDataString = texture.name.startsWith("data:");
+
 		return (
 			<div className="flex flex-col gap-2 h-full">
 				<EditorInspectorSectionField title="Common">
@@ -328,10 +357,13 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 						<div className="w-1/2">Path</div>
 
 						<div
-							onClick={() => onSelectedAssetChanged.notifyObservers(join(dirname(projectConfiguration.path!), texture.name))}
-							className="text-white/50 w-full text-end overflow-hidden whitespace-nowrap text-ellipsis underline-offset-2 cursor-pointer hover:underline"
+							onClick={() => !isDataString && onSelectedAssetChanged.notifyObservers(join(dirname(projectConfiguration.path!), texture.name))}
+							className={`
+								text-white/50 w-full text-end overflow-hidden whitespace-nowrap text-ellipsis
+								${isDataString ? "" : "underline-offset-2 cursor-pointer hover:underline"}
+							`}
 						>
-							{texture.name}
+							{isDataString ? texture.name.substring(0, 64) : texture.name}
 						</div>
 					</div>
 				</EditorInspectorSectionField>
@@ -344,6 +376,8 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 		if (!isTexture(texture)) {
 			return;
 		}
+
+		const isDataString = texture.name.startsWith("data:");
 
 		const o = {
 			samplingMode: texture.samplingMode,
@@ -363,10 +397,13 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 						<div className="w-1/2">Path</div>
 
 						<div
-							onClick={() => onSelectedAssetChanged.notifyObservers(join(dirname(projectConfiguration.path!), texture.name))}
-							className="text-white/50 w-full text-end overflow-hidden whitespace-nowrap text-ellipsis underline-offset-2 cursor-pointer hover:underline"
+							onClick={() => !isDataString && onSelectedAssetChanged.notifyObservers(join(dirname(projectConfiguration.path!), texture.name))}
+							className={`
+								text-white/50 w-full text-end overflow-hidden whitespace-nowrap text-ellipsis
+								${isDataString ? "" : "underline-offset-2 cursor-pointer hover:underline"}
+							`}
 						>
-							{texture.name}
+							{isDataString ? texture.name.substring(0, 64) : texture.name}
 						</div>
 					</div>
 					<EditorInspectorSwitchField
@@ -518,9 +555,13 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 	}
 
 	private async _computeTemporaryPreview(): Promise<void> {
-		const texture = this.props.object[this.props.property] as Texture | CubeTexture | null | undefined;
+		const texture = this.props.object[this.props.property] as Texture | CubeTexture | HDRCubeTexture | null | undefined;
 		if (!texture?.url || extname(texture.url).toLowerCase() === ".exr") {
 			return;
+		}
+
+		if (texture.url.startsWith("data:")) {
+			return this._computeTemporaryPreviewFromDataString(texture.url);
 		}
 
 		const path = join(dirname(projectConfiguration.path!), texture.url);
@@ -537,7 +578,7 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 			});
 		}
 
-		const buffer = await sharp(path).resize(128, 128).toBuffer();
+		const buffer = (await sharp(path).resize(128, 128).toBuffer()) as Buffer<ArrayBuffer>;
 
 		if (this.state.previewTemporaryUrl) {
 			URL.revokeObjectURL(this.state.previewTemporaryUrl);
@@ -547,6 +588,29 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 			previewError: false,
 			previewTemporaryUrl: URL.createObjectURL(new Blob([buffer])),
 		});
+	}
+
+	private async _computeTemporaryPreviewFromDataString(dataString: string): Promise<void> {
+		const split = dataString.split(",");
+		const header = split[0];
+
+		const headerSplit = header.split(";");
+		const dataType = headerSplit[1];
+
+		const byteString = split[1];
+
+		if (dataType === "base64") {
+			const buffer = (await sharp(Buffer.from(byteString, "base64")).resize(128, 128).toBuffer()) as Buffer<ArrayBuffer>;
+
+			if (this.state.previewTemporaryUrl) {
+				URL.revokeObjectURL(this.state.previewTemporaryUrl);
+			}
+
+			this.setState({
+				previewError: false,
+				previewTemporaryUrl: URL.createObjectURL(new Blob([buffer])),
+			});
+		}
 	}
 
 	private _handleDragOver(ev: DragEvent<HTMLDivElement>): void {
@@ -623,11 +687,20 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 				break;
 
 			case ".env":
+			case ".hdr":
 				if (this.props.acceptCubeTexture) {
 					const oldTexture = this.props.object[this.props.property];
-					const newTexture = configureImportedTexture(
-						CubeTexture.CreateFromPrefilteredData(absolutePath, this.props.scene ?? (isScene(this.props.object) ? this.props.object : this.props.object.getScene()))
-					);
+					const newTexture =
+						extname(absolutePath).toLowerCase() === ".env"
+							? configureImportedTexture(
+									CubeTexture.CreateFromPrefilteredData(
+										absolutePath,
+										this.props.scene ?? (isScene(this.props.object) ? this.props.object : this.props.object.getScene())
+									)
+								)
+							: configureImportedTexture(
+									new HDRCubeTexture(absolutePath, this.props.scene ?? (isScene(this.props.object) ? this.props.object : this.props.object.getScene()), 512)
+								);
 
 					const scene = newTexture.getScene();
 

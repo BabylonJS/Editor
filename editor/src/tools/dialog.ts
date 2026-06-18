@@ -3,18 +3,15 @@ import { FileFilter, ipcRenderer } from "electron";
 export type OpenFileDialogOptions = {
 	title?: string;
 	filters?: FileFilter[];
+	defaultPath?: string;
 };
 
 export function openSingleFileDialog(options?: OpenFileDialogOptions): string {
-	return ipcRenderer.sendSync("editor:open-single-file-dialog", options?.title, options?.filters);
+	return ipcRenderer.sendSync("editor:open-single-file-dialog", options?.title, options?.filters, options?.defaultPath);
 }
 
 export function openMultipleFilesDialog(options?: OpenFileDialogOptions): string[] {
 	return ipcRenderer.sendSync("editor:open-multiple-files-dialog", options?.title, options?.filters);
-}
-
-export function openMultipleFilesAndFoldersDialog(options?: OpenFileDialogOptions): string[] {
-	return ipcRenderer.sendSync("editor:open-multiple-files-and-folders-dialog", options?.title, options?.filters);
 }
 
 export function openSingleFolderDialog(title?: string): string {

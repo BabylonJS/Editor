@@ -7,15 +7,13 @@ import { Editor } from "../../editor/main";
 
 import { compressFileToKtx } from "./ktx";
 import { processExportedTexture } from "./texture";
+import { processExportedMaterial } from "./materials";
+import { processExportedNodeParticleSystemSet } from "./particles";
 
 const supportedImagesExtensions: string[] = [".jpg", ".jpeg", ".webp", ".png", ".bmp"];
-
-const supportedCubeTexturesExtensions: string[] = [".env", ".dds"];
-
+const supportedCubeTexturesExtensions: string[] = [".env", ".dds", ".hdr"];
 const supportedAudioExtensions: string[] = [".mp3", ".wav", ".wave", ".ogg"];
-
-const supportedJsonExtensions: string[] = [".material", ".gui", ".cinematic", ".npss", ".json"];
-
+const supportedJsonExtensions: string[] = [".material", ".gui", ".cinematic", ".npss", ".ragdoll", ".json"];
 const supportedMiscExtensions: string[] = [".3dl", ".exr", ".hdr"];
 
 const supportedExtensions: string[] = [
@@ -35,8 +33,10 @@ export type ProcessFileOptions = {
 };
 
 export async function processAssetFile(editor: Editor, file: string, options: ProcessFileOptions): Promise<void> {
+	const isNavMesh = file.includes(".navmesh");
 	const extension = extname(file).toLocaleLowerCase();
-	if (!supportedExtensions.includes(extension)) {
+
+	if (!isNavMesh && !supportedExtensions.includes(extension)) {
 		return;
 	}
 
@@ -60,25 +60,21 @@ export async function processAssetFile(editor: Editor, file: string, options: Pr
 
 	let isNewFile = false;
 
-	if (options.optimize) {
-		const fileStat = await stat(file);
-		const hash = fileStat.mtimeMs.toString();
+	const fileStat = await stat(file);
+	const hash = fileStat.mtimeMs.toString();
 
-		isNewFile = !options.cache[relativePath] || options.cache[relativePath] !== hash;
+	isNewFile = !options.cache[relativePath] || options.cache[relativePath] !== hash;
 
-		options.cache[relativePath] = hash;
-	}
+	options.cache[relativePath] = hash;
 
 	const finalPath = join(options.scenePath, relativePath);
 	const finalPathExists = await pathExists(finalPath);
 
-	if (supportedExtensions.includes(extension)) {
-		if (isNewFile || !finalPathExists) {
-			await copyFile(file, finalPath);
-		}
-
-		options.exportedAssets.push(finalPath);
+	if (isNewFile || !finalPathExists) {
+		await copyFile(file, finalPath);
 	}
+
+	options.exportedAssets.push(finalPath);
 
 	if (options.optimize) {
 		await compressFileToKtx(editor, finalPath, {
@@ -87,10 +83,24 @@ export async function processAssetFile(editor: Editor, file: string, options: Pr
 		});
 	}
 
-	if (options.optimize && supportedImagesExtensions.includes(extension)) {
-		await processExportedTexture(editor, finalPath, {
-			force: isNewFile,
-			exportedAssets: options.exportedAssets,
-		});
+	if (options.optimize) {
+		if (supportedImagesExtensions.includes(extension)) {
+			await processExportedTexture(editor, finalPath, {
+				force: isNewFile,
+				exportedAssets: options.exportedAssets,
+			});
+		} else if (extension === ".material") {
+			await processExportedMaterial(editor, finalPath, {
+				force: isNewFile,
+				scenePath: options.scenePath,
+				exportedAssets: options.exportedAssets,
+			});
+		} else if (extension === ".npss") {
+			await processExportedNodeParticleSystemSet(editor, finalPath, {
+				force: isNewFile,
+				scenePath: options.scenePath,
+				exportedAssets: options.exportedAssets,
+			});
+		}
 	}
 }

@@ -1,6 +1,6 @@
 import { Node } from "babylonjs";
 
-export interface IMetadata {
+export interface INodeMetadata {
 	/**
 	 * Defines wether or not the object is locked.
 	 */
@@ -20,7 +20,7 @@ export interface IMetadata {
  * @param node defines the node to ensure metadata for.
  * @returns the metadata of the node, creating it if does not exist.
  */
-export function ensureNodeMetadata(node: Node): IMetadata {
+export function ensureNodeMetadata(node: Node): INodeMetadata {
 	node.metadata ??= {};
 	return node.metadata;
 }

@@ -18,7 +18,7 @@ import { isNodeLocked } from "../../tools/node/metadata";
 import { setInspectorSearch } from "./inspector/fields/field";
 import { IEditorInspectorImplementationProps } from "./inspector/inspector";
 
-import { EditorSceneInspector } from "./inspector/scene";
+import { EditorSceneInspector } from "./inspector/scene/scene";
 
 import { EditorMeshInspector } from "./inspector/mesh/mesh";
 import { EditorTransformNodeInspector } from "./inspector/transform";
@@ -29,12 +29,13 @@ import { EditorSpotLightInspector } from "./inspector/light/spot";
 import { EditorPointLightInspector } from "./inspector/light/point";
 import { EditorDirectionalLightInspector } from "./inspector/light/directional";
 import { EditorHemisphericLightInspector } from "./inspector/light/hemispheric";
+import { EditorClusteredLightContainerInspector } from "./inspector/light/clustered-container";
 
 import { EditorCameraInspector } from "./inspector/camera/editor";
 import { EditorFreeCameraInspector } from "./inspector/camera/free";
 import { EditorArcRotateCameraInspector } from "./inspector/camera/arc-rotate";
 
-import { EditorSoundInspector } from "./inspector/sound/sound";
+import { EditorSoundNodeInspector } from "./inspector/sound/sound-node";
 
 import { EditorAdvancedDynamicTextureInspector } from "./inspector/gui/gui";
 
@@ -42,10 +43,15 @@ import { EditorDecalsInspector } from "./inspector/decals/decals";
 
 import { EditorParticleSystemInspector } from "./inspector/particles/particle-system";
 import { EditorGPUParticleSystemInspector } from "./inspector/particles/gpu-particle-system";
+import { EditorNodeParticleSystemSetMeshInspector } from "./inspector/particles/node-particle-system-set";
 
 import { EditorSpriteInspector } from "./inspector/sprites/sprite";
 import { EditorSpriteMapNodeInspector } from "./inspector/sprites/sprite-map";
 import { EditorSpriteManagerNodeInspector } from "./inspector/sprites/sprite-manager";
+
+import { EditorSkeletonInspector } from "./inspector/mesh/skeleton";
+
+import { EditorMarketplaceAssetInspector } from "./inspector/marketplace/asset";
 
 export interface IEditorInspectorProps {
 	/**
@@ -72,6 +78,7 @@ export class EditorInspector extends Component<IEditorInspectorProps, IEditorIns
 		EditorDirectionalLightInspector,
 		EditorSpotLightInspector,
 		EditorHemisphericLightInspector,
+		EditorClusteredLightContainerInspector,
 
 		EditorCameraInspector,
 		EditorFreeCameraInspector,
@@ -79,15 +86,21 @@ export class EditorInspector extends Component<IEditorInspectorProps, IEditorIns
 
 		EditorSceneInspector,
 
-		EditorSoundInspector,
+		EditorSoundNodeInspector,
+
 		EditorAdvancedDynamicTextureInspector,
 
 		EditorParticleSystemInspector,
 		EditorGPUParticleSystemInspector,
+		EditorNodeParticleSystemSetMeshInspector,
 
 		EditorSpriteMapNodeInspector,
 		EditorSpriteManagerNodeInspector,
 		EditorSpriteInspector,
+
+		EditorSkeletonInspector,
+
+		EditorMarketplaceAssetInspector,
 	];
 
 	public constructor(props: IEditorInspectorProps) {

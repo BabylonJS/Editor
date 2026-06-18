@@ -7,6 +7,7 @@ import { SpriteManager } from "@babylonjs/core/Sprites/spriteManager";
 import { AddParser } from "@babylonjs/core/Loading/Plugins/babylonFileParser.function";
 
 import { SpriteManagerNode } from "../tools/sprite";
+import { addExcludedCompressedTexture } from "../tools/texture";
 
 function parseSerializedSpriteManager(spriteManager: SpriteManager, parsedSpriteManager: any) {
 	if (parsedSpriteManager?.fogEnabled !== undefined) {
@@ -36,62 +37,80 @@ function parseSerializedSpriteManager(spriteManager: SpriteManager, parsedSprite
 	}
 }
 
-AddParser("SpriteManagerNode", (parsedData: any, scene: Scene, container: AssetContainer, rootUrl: string) => {
-	parsedData.transformNodes?.forEach((transformNode: any) => {
-		if (!transformNode.isSpriteManager) {
-			return;
-		}
+let registered = false;
 
-		const instance = container.transformNodes?.find((t) => t.id === transformNode.id) as SpriteManagerNode;
-		if (!instance) {
-			return;
-		}
+export function registerSpriteManagerParser() {
+	if (registered) {
+		return;
+	}
 
-		instance.isSpriteManager = transformNode.isSpriteManager;
+	registered = true;
 
-		if (transformNode.atlasJsonRelativePath) {
-			const atlasJsonAbsolutePath = `${rootUrl}${transformNode.atlasJsonRelativePath}`;
+	AddParser("SpriteManagerNode", (parsedData: any, scene: Scene, container: AssetContainer, rootUrl: string) => {
+		parsedData.transformNodes?.forEach((transformNode: any) => {
+			if (!transformNode.isSpriteManager) {
+				return;
+			}
 
-			scene.addPendingData(atlasJsonAbsolutePath);
+			const instance = container.transformNodes?.find((t) => t.id === transformNode.id) as SpriteManagerNode;
+			if (!instance) {
+				return;
+			}
 
-			const atlasRequest = new WebRequest();
-			atlasRequest.open("GET", atlasJsonAbsolutePath);
-			atlasRequest.send();
+			const engine = scene.getEngine();
 
-			atlasRequest.addEventListener("load", () => {
-				scene.removePendingData(atlasJsonAbsolutePath);
+			instance.isSpriteManager = transformNode.isSpriteManager;
 
-				const atlasJson = JSON.parse(atlasRequest.responseText);
-				const imagePath = `${Tools.GetFolderPath(atlasJsonAbsolutePath)}${atlasJson.meta.image}`;
+			if (transformNode.atlasJsonRelativePath) {
+				const atlasJsonAbsolutePath = `${rootUrl}${transformNode.atlasJsonRelativePath}`;
 
-				const spriteManager = new SpriteManager(instance.name, imagePath, 1000, 64, scene, undefined, undefined, true, atlasJson);
+				scene.addPendingData(atlasJsonAbsolutePath);
+
+				const request = new WebRequest();
+				request.open("GET", atlasJsonAbsolutePath);
+				request.send();
+
+				request.addEventListener("load", () => {
+					scene.removePendingData(atlasJsonAbsolutePath);
+
+					const atlasJson = JSON.parse(request.responseText);
+					const imagePath = `${Tools.GetFolderPath(atlasJsonAbsolutePath)}${atlasJson.meta.image}`;
+
+					// Temporarily excluded sprites from compressed textures support
+					addExcludedCompressedTexture(engine, imagePath);
+
+					const spriteManager = new SpriteManager(instance.name, imagePath, 1000, 64, scene, undefined, undefined, true, atlasJson);
+					instance.spriteManager = spriteManager;
+
+					if (transformNode.spriteManager) {
+						parseSerializedSpriteManager(spriteManager, transformNode.spriteManager);
+					}
+				});
+			} else if (transformNode.spriteManager?.textureUrl) {
+				// Temporarily excluded sprites from compressed textures support
+				addExcludedCompressedTexture(engine, transformNode.spriteManager.textureUrl);
+
+				const imagePath = `${rootUrl}${transformNode.spriteManager.textureUrl}`;
+				const spriteManager = new SpriteManager(
+					instance.name,
+					imagePath,
+					1000,
+					{
+						width: transformNode.spriteManager.cellWidth,
+						height: transformNode.spriteManager.cellHeight,
+					},
+					scene,
+					undefined,
+					undefined,
+					false
+				);
+
 				instance.spriteManager = spriteManager;
 
 				if (transformNode.spriteManager) {
 					parseSerializedSpriteManager(spriteManager, transformNode.spriteManager);
 				}
-			});
-		} else if (transformNode.spriteManager?.textureUrl) {
-			const imagePath = `${rootUrl}${transformNode.spriteManager.textureUrl}`;
-			const spriteManager = new SpriteManager(
-				instance.name,
-				imagePath,
-				1000,
-				{
-					width: transformNode.spriteManager.cellWidth,
-					height: transformNode.spriteManager.cellHeight,
-				},
-				scene,
-				undefined,
-				undefined,
-				false
-			);
-
-			instance.spriteManager = spriteManager;
-
-			if (transformNode.spriteManager) {
-				parseSerializedSpriteManager(spriteManager, transformNode.spriteManager);
 			}
-		}
+		});
 	});
-});
+}

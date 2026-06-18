@@ -4,6 +4,7 @@ import { Node } from "@babylonjs/core/node";
 import { Bone } from "@babylonjs/core/Bones/bone";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { GroundMesh } from "@babylonjs/core/Meshes/groundMesh";
+import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { InstancedMesh } from "@babylonjs/core/Meshes/instancedMesh";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 
@@ -18,6 +19,7 @@ import { SpotLight } from "@babylonjs/core/Lights/spotLight";
 import { PointLight } from "@babylonjs/core/Lights/pointLight";
 import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
 import { DirectionalLight } from "@babylonjs/core/Lights/directionalLight";
+import { ClusteredLightContainer } from "@babylonjs/core/Lights/Clustered/clusteredLightContainer";
 
 import { ParticleSystem } from "@babylonjs/core/Particles/particleSystem";
 import { IParticleSystem } from "@babylonjs/core/Particles/IParticleSystem";
@@ -25,11 +27,13 @@ import { GPUParticleSystem } from "@babylonjs/core/Particles/gpuParticleSystem";
 
 import { Sprite } from "@babylonjs/core/Sprites/sprite";
 
+import { SoundNode } from "./sound";
+
 /**
  * Returns wether or not the given object is an AbstractMesh.
  * @param object defines the reference to the object to test its class name.
  */
-export function isAbstractMesh(object: any): object is Mesh {
+export function isAbstractMesh(object: any): object is AbstractMesh {
 	switch (object.getClassName?.()) {
 		case "Mesh":
 		case "LineMesh":
@@ -185,6 +189,14 @@ export function isLight(object: any): object is Light {
 }
 
 /**
+ * Returns wether or not the given object is a ClusteredLightContainer.
+ * @param object defines the reference to the object to test its class name.
+ */
+export function isClusteredLightContainer(object: any): object is ClusteredLightContainer {
+	return object.getClassName?.() === "ClusteredLightContainer";
+}
+
+/**
  * Returns wether or not the given object is a Node.
  * @param object defines the reference to the object to test its class name.
  */
@@ -236,4 +248,12 @@ export function isAnyParticleSystem(object: any): object is IParticleSystem {
  */
 export function isSprite(object: any): object is Sprite {
 	return object.getClassName?.() === "Sprite";
+}
+
+/**
+ * Returns wether or not the given object is a SoundNode.
+ * @param object defines the reference to the object to test its class name.
+ */
+export function isSoundNode(object: any): object is SoundNode {
+	return isTransformNode(object) && (object as SoundNode).isSoundNode === true;
 }

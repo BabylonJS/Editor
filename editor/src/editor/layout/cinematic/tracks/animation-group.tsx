@@ -36,15 +36,16 @@ export function CinematicEditorAnimationGroupTrack(props: ICinematicEditorAnimat
 	return (
 		<div className="flex gap-2 items-center w-full h-full">
 			<div className="flex justify-center items-center w-8 h-8 rounded-md">
-				<MdAnimation className="w-4 h-4" />
+				<MdAnimation className="w-4 h-4 fill-orange-500" />
 			</div>
 
 			<div className="flex-1">
 				<Select value={props.track.animationGroup?.name} onValueChange={(v) => handleAnimationGroupChanged(v)}>
 					<SelectTrigger
 						className={`
-                            border-none w-full h-8
+                            border-accent/70 w-full h-8 bg-accent/35
                             [&>span]:text-center [&>span]:w-full [&>span]:text-xs [&>svg]:invisible [&>svg]:hover:visible
+							${props.cinematicEditor.state.selectedTrack !== props.track ? "pointer-events-none" : ""}
                         `}
 					>
 						<SelectValue placeholder="Animation Group..." />

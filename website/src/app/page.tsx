@@ -8,16 +8,19 @@ import { useEventListener } from "usehooks-ts";
 import { Fade } from "react-awesome-reveal";
 import { useEffect, useRef, useState } from "react";
 
+import { FaToolbox } from "react-icons/fa6";
 import { GiBookmarklet } from "react-icons/gi";
-import { FaToolbox, FaYoutube } from "react-icons/fa6";
-import { IoLogoGithub, IoSpeedometer } from "react-icons/io5";
-import { IoMdCloudDownload, IoMdPlayCircle } from "react-icons/io";
+import { IoArrowDownCircleSharp, IoLogoGithub, IoSpeedometer } from "react-icons/io5";
+
+import isMobile from "is-mobile";
 
 import { AppleIcon } from "@/components/icons/apple";
 import { LinuxIcon } from "@/components/icons/linux";
 import { WindowsIcon } from "@/components/icons/windows";
 
+import { Experiment } from "./experiment";
 import { LandingRendererComponent } from "./renderer";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "../components/ui/carousel";
 
 export default function HomePage() {
 	const section1Ref = useRef<HTMLDivElement>(null);
@@ -31,10 +34,11 @@ export default function HomePage() {
 	const [section2Visible, setSection2Visible] = useState(false);
 	const [section3Visible, setSection3Visible] = useState(false);
 
-	useEffect(() => {
-		updateScrollRatio();
+	const [mobile, setMobile] = useState(true);
 
-		// window.scrollTo({ top: 0, behavior: "instant" });
+	useEffect(() => {
+		setMobile(isMobile());
+		window.scrollTo({ top: 0, behavior: "instant" });
 	}, []);
 
 	useEventListener("scroll", () => {
@@ -78,6 +82,7 @@ export default function HomePage() {
 							onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
 							className={`hidden lg:flex items-center gap-2 text-black bg-neutral-50 rounded-full px-5 py-2 ${section2Visible ? "" : "pointer-events-none opacity-0"} transition-all duration-1000 ease-in-out`}
 						>
+							<IoArrowDownCircleSharp className="w-6 h-6 opacity-75" />
 							Download
 						</Link>
 					</div>
@@ -103,7 +108,7 @@ export default function HomePage() {
 								<div className="flex flex-col justify-center items-center gap-4">
 									<Link href="/download">
 										<button className="flex items-center gap-2 text-black bg-neutral-50 rounded-full px-5 py-2">
-											<IoMdCloudDownload className="w-6 h-6 opacity-75" />
+											<IoArrowDownCircleSharp className="w-6 h-6 opacity-75" />
 											Download the App
 										</button>
 									</Link>
@@ -151,6 +156,14 @@ export default function HomePage() {
 										,{" "}
 										<Link target="_blank" href="https://www.solidjs.com" className="underline underline-offset-4">
 											SolidJS
+										</Link>
+										,{" "}
+										<Link target="_blank" href="https://www.electronjs.org/" className="underline underline-offset-4">
+											Electron
+										</Link>
+										,{" "}
+										<Link target="_blank" href="https://nuxt.com/" className="underline underline-offset-4">
+											Nuxt
 										</Link>{" "}
 										and Vanilla templates, allowing you to bypass the tedious setup process and dive straight into building your project.
 										<br />
@@ -258,56 +271,72 @@ export default function HomePage() {
 					</div>
 
 					{/* Page 3 */}
-					<div className="relative flex flex-col justify-center items-center w-screen min-h-screen bg-neutral-950">
-						<div className="flex flex-col gap-20 justify-center items-center w-full px-5 lg:pt-20 lg:pb-10">
-							<Fade triggerOnce>
-								<div className="text-5xl md:text-7xl lg:text-8xl xl:text-9xl font-semibold font-sans drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)] tracking-tighter text-center px-5">
-									Mansion Experiment
-								</div>
-							</Fade>
-
-							<Fade triggerOnce delay={150}>
-								<div className="group relative w-full lg:max-w-[50vw] border-[10px] border-black/80 rounded-lg select-none cursor-pointer">
-									<video loop muted autoPlay playsInline className="w-full h-full object-cover">
-										<source src="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/experiments/mansion/cover.mp4" type="video/mp4" />
-									</video>
-
-									<Link
-										target="_blank"
-										href="https://youtu.be/vg5E8CY2F5w?si=-rEoBhdAmq-Opz9K"
-										className={`
-											absolute top-0 left-0 flex flex-col justify-center items-center w-full h-full
-											opacity-0 group-hover:opacity-100
-											transition-all duration-300 ease-in-out
-										`}
+					<div className="relative flex justify-center items-center w-screen min-h-screen bg-neutral-950">
+						<Carousel className="w-full">
+							<CarouselContent>
+								<CarouselItem className="basis-full">
+									<Experiment
+										mobile={mobile}
+										mobileAvailable={true}
+										title="Hunter Experiment"
+										coverVideo="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/experiments/hunter/cover.mp4"
+										youtubeVideo="https://youtu.be/fx-KlrvxDT0?si=lEpA4rDuaR1XGl4W"
+										liveLink="https://editor.babylonjs.com/experiments/hunter"
 									>
-										<button className="text-neutral-950 hover:text-neutral-100 transition-all duration-300 ease-in-out">
-											<IoMdPlayCircle className="w-32 h-32" />
-										</button>
-									</Link>
-								</div>
-							</Fade>
-
-							<Fade triggerOnce delay={300}>
-								<div className="leading-6 drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
-									To celebrate the release of Babylon.js Editor v5, a POC of a cinematic editor has been developed to produce a <b>short film</b>.
-									<br />
-									This short film has been made 100% using the Babylon.js Editor from <b>scene assembly</b> and <b>lighting</b> to animating.
-									<br />
-									The Editor's promise: bringing simplicity & fluidity to the creation of 3D games and applications. 3D models come from Quixel, Sketchfab and
-									Fab.com.
-								</div>
-							</Fade>
-
-							<Fade triggerOnce delay={450}>
-								<Link target="_blank" href="https://youtu.be/vg5E8CY2F5w?si=gWJ6o5-h3P8cyTuD">
-									<button className="flex items-center gap-2 text-black bg-neutral-50 rounded-full px-5 py-2">
-										<FaYoutube className="w-6 h-6" />
-										Watch on Youtube
-									</button>
-								</Link>
-							</Fade>
-						</div>
+										<>
+											This scene began as a simple test and gradually evolved into a real-time cinematic and technical showcase.
+											<br />
+											It focuses on the support and use of <b>animated 3D models</b> with <b>skeletons</b> support in the Babylon.js Editor.
+											<br />
+											All 3D assets come exclusively from <b>Fab</b> using the{" "}
+											<Link href="https://editor.babylonjs.com/documentation/plugins/fab" target="_blank" className="underline underline-offset-4">
+												Babylon.js Editor Fab Plugin
+											</Link>
+											.
+											<br />
+											The characters were created with Mixamo and animated using Mixamo’s animation library.
+											<br />
+											Blender was used to merge, retarget, and unify all animations into a single, reusable character model.
+										</>
+									</Experiment>
+								</CarouselItem>
+								<CarouselItem className="basis-full">
+									<Experiment
+										mobile={mobile}
+										mobileAvailable={false}
+										title="Mansion Experiment"
+										coverVideo="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/experiments/mansion/cover.mp4"
+										youtubeVideo="https://youtu.be/vg5E8CY2F5w?si=-rEoBhdAmq-Opz9K"
+										liveLink="https://editor.babylonjs.com/experiments/mansion"
+									>
+										<>
+											To celebrate the release of Babylon.js Editor v5, a POC of a cinematic editor has been developed to produce a <b>short film</b>.
+											<br />
+											This short film has been made 100% using the Babylon.js Editor from <b>scene assembly</b> and <b>lighting</b> to animating.
+											<br />
+											The Editor's promise: bringing simplicity & fluidity to the creation of 3D games and applications. 3D models come from Quixel, Sketchfab
+											and Fab.com.
+										</>
+									</Experiment>
+								</CarouselItem>
+							</CarouselContent>
+							<CarouselPrevious
+								className={`
+									absolute top-12 left-5 text-black
+									md:left-10
+									lg:top-1/2 lg:-translate-y-1/2 lg:left-10
+									lg:scale-150
+								`}
+							/>
+							<CarouselNext
+								className={`
+									absolute top-12 right-5 text-black
+									md:right-10
+									lg:top-1/2 lg:-translate-y-1/2 lg:right-10
+									lg:scale-150
+								`}
+							/>
+						</Carousel>
 					</div>
 
 					{/* Page 4 */}
@@ -335,7 +364,7 @@ export default function HomePage() {
 						</Fade>
 
 						<Fade triggerOnce className="flex justify-center items-center w-full max-w-[75vw] mx-auto bg-black">
-							<video className="w-full h-full object-contain" autoPlay muted playsInline loop>
+							<video className="w-full h-full object-contain scale-[1.35] pt-2 lg:scale-100 lg:pt-0" autoPlay muted playsInline loop>
 								<source src="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/bjs_speedesign.mp4" type="video/mp4" />
 							</video>
 						</Fade>
@@ -371,7 +400,7 @@ export default function HomePage() {
 						<Fade>
 							<Link href="/download">
 								<button className="flex items-center gap-2 text-black bg-neutral-50 rounded-full px-5 py-2">
-									<IoMdCloudDownload className="w-6 h-6" />
+									<IoArrowDownCircleSharp className="w-6 h-6 opacity-75" />
 									Download the App
 								</button>
 							</Link>

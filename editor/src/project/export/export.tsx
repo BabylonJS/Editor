@@ -5,20 +5,22 @@ import { RenderTargetTexture, SceneSerializer } from "babylonjs";
 
 import { toast } from "sonner";
 
-import { isTexture } from "../../tools/guards/texture";
 import { isNodeMaterial } from "../../tools/guards/material";
+import { isHDRCubeTexture } from "../../tools/guards/texture";
 import { getCollisionMeshFor } from "../../tools/mesh/collision";
+import { storeTexturesBaseSize } from "../../tools/material/texture";
 import { extractNodeMaterialTextures } from "../../tools/material/extract";
 import { createDirectoryIfNotExist, normalizedGlob } from "../../tools/fs";
-import { extractParticleSystemTextures } from "../../tools/particles/extract";
 import { isCollisionMesh, isEditorCamera, isMesh } from "../../tools/guards/nodes";
+import { extractNodeParticleSystemSetTextures, extractParticleSystemTextures } from "../../tools/particles/extract";
 
+import { taaPipelineCameraConfigurations } from "../../editor/rendering/taa";
+import { vlsPostProcessCameraConfigurations } from "../../editor/rendering/vls";
 import { saveRenderingConfigurationForCamera } from "../../editor/rendering/tools";
-import { serializeVLSPostProcess, vlsPostProcessCameraConfigurations } from "../../editor/rendering/vls";
-import { serializeSSRRenderingPipeline, ssrRenderingPipelineCameraConfigurations } from "../../editor/rendering/ssr";
-import { serializeSSAO2RenderingPipeline, ssaoRenderingPipelineCameraConfigurations } from "../../editor/rendering/ssao";
-import { motionBlurPostProcessCameraConfigurations, serializeMotionBlurPostProcess } from "../../editor/rendering/motion-blur";
-import { defaultPipelineCameraConfigurations, serializeDefaultRenderingPipeline } from "../../editor/rendering/default-pipeline";
+import { ssrRenderingPipelineCameraConfigurations } from "../../editor/rendering/ssr";
+import { ssaoRenderingPipelineCameraConfigurations } from "../../editor/rendering/ssao";
+import { defaultPipelineCameraConfigurations } from "../../editor/rendering/default-pipeline";
+import { motionBlurPostProcessCameraConfigurations } from "../../editor/rendering/motion-blur";
 
 import { Editor } from "../../editor/main";
 
@@ -29,10 +31,14 @@ import { configureMeshesLODs } from "./lod";
 import { handleExportScripts } from "./scripts";
 import { configureMaterials } from "./materials";
 import { configureMeshesPhysics } from "./physics";
+import { configureClusteredLights } from "./light";
+import { configureParticleSystems } from "./particles";
 import { EditorExportProjectProgressComponent } from "./progress";
+import { ExportSceneProgressComponent, showExportSceneProgressDialog } from "./dialog";
 
 export type IExportProjectOptions = {
 	optimize: boolean;
+	noDialog?: boolean;
 	noProgress?: boolean;
 };
 
@@ -44,6 +50,10 @@ export async function exportProject(editor: Editor, options: IExportProjectOptio
 	}
 
 	exporting = true;
+
+	if (options.optimize) {
+		editor.layout.selectTab("console");
+	}
 
 	try {
 		await _exportProject(editor, options);
@@ -68,8 +78,14 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 		duration: options.noProgress ? -1 : Infinity,
 	});
 
+	let dialog: ExportSceneProgressComponent | null = null;
+	if (!options.noDialog) {
+		dialog = await showExportSceneProgressDialog(editor, "Exporting scene...");
+	}
+
 	const scene = editor.layout.preview.scene;
 	const editorCamera = scene.cameras.find((camera) => isEditorCamera(camera));
+	const clusteredLightContainer = editor.layout.preview.clusteredLightContainer;
 
 	if (scene.activeCamera) {
 		saveRenderingConfigurationForCamera(scene.activeCamera);
@@ -78,35 +94,30 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 	const projectDir = dirname(editor.state.projectPath);
 	const publicPath = join(projectDir, "public");
 
+	const sceneName = basename(editor.state.lastOpenedScenePath).split(".").shift()!;
+
+	const scenePath = join(publicPath, "scene");
+	const extractedTexturesOutputPath = join(scenePath, "assets", "editor-generated_extracted-textures");
+
+	await Promise.all([
+		createDirectoryIfNotExist(publicPath),
+		createDirectoryIfNotExist(scenePath),
+		createDirectoryIfNotExist(join(scenePath, sceneName)),
+		createDirectoryIfNotExist(extractedTexturesOutputPath),
+	]);
+
+	const exportedAssets: string[] = [];
+
 	const savedGeometries: string[] = [];
 	const savedGeometryIds: string[] = [];
 
-	const extractedTexturesOutputPath = join(projectDir, "assets", "editor-generated_extracted-textures");
-
-	// Extract textures from particle systems.
-	if (scene.particleSystems.length) {
-		await createDirectoryIfNotExist(extractedTexturesOutputPath);
-		await extractParticleSystemTextures(editor, {
-			assetsDirectory: extractedTexturesOutputPath,
-		});
-	}
-
-	// Configure textures to store base size. This will be useful for the scene loader located
-	// in the `babylonjs-editor-tools` package.
-	scene.textures.forEach((texture) => {
-		if (isTexture(texture)) {
-			texture.metadata ??= {};
-			texture.metadata.baseSize = {
-				width: texture.getBaseSize().width,
-				height: texture.getBaseSize().height,
-			};
-		}
-	});
+	storeTexturesBaseSize(scene);
 
 	scene.meshes.forEach((mesh) => (mesh.doNotSerialize = mesh.metadata?.doNotSerialize ?? false));
 	scene.lights.forEach((light) => (light.doNotSerialize = light.metadata?.doNotSerialize ?? false));
 	scene.cameras.forEach((camera) => (camera.doNotSerialize = camera.metadata?.doNotSerialize ?? false));
 	scene.transformNodes.forEach((transformNode) => (transformNode.doNotSerialize = transformNode.metadata?.doNotSerialize ?? false));
+	clusteredLightContainer.lights.forEach((light) => (light.doNotSerialize = light.metadata?.doNotSerialize ?? false));
 
 	const data = await SceneSerializer.SerializeAsync(scene);
 
@@ -114,20 +125,19 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 	scene.lights.forEach((light) => (light.doNotSerialize = false));
 	scene.cameras.forEach((camera) => (camera.doNotSerialize = false));
 	scene.transformNodes.forEach((transformNode) => (transformNode.doNotSerialize = false));
+	clusteredLightContainer.lights.forEach((light) => (light.doNotSerialize = false));
 
 	const editorCameraIndex = data.cameras?.findIndex((camera) => camera.id === editorCamera?.id);
 	if (editorCameraIndex !== -1) {
 		data.cameras?.splice(editorCameraIndex, 1);
 	}
 
+	const clusteredLightContainerIndex = data.lights?.findIndex((light) => light.id === clusteredLightContainer.id);
+	if (clusteredLightContainerIndex !== -1) {
+		data.lights?.splice(clusteredLightContainerIndex, 1);
+	}
+
 	data.metadata ??= {};
-	data.metadata.rendering = {
-		ssrRenderingPipeline: serializeSSRRenderingPipeline(),
-		motionBlurPostProcess: serializeMotionBlurPostProcess(),
-		ssao2RenderingPipeline: serializeSSAO2RenderingPipeline(),
-		defaultRenderingPipeline: serializeDefaultRenderingPipeline(),
-		vlsPostProcess: serializeVLSPostProcess(),
-	};
 
 	data.metadata.rendering = scene.cameras
 		.filter((camera) => !isEditorCamera(camera))
@@ -138,8 +148,10 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 			ssrRenderingPipeline: ssrRenderingPipelineCameraConfigurations.get(camera),
 			motionBlurPostProcess: motionBlurPostProcessCameraConfigurations.get(camera),
 			defaultRenderingPipeline: defaultPipelineCameraConfigurations.get(camera),
+			taaRenderingPipeline: taaPipelineCameraConfigurations.get(camera),
 		}));
 
+	delete data.effectLayers;
 	delete data.postProcesses;
 	delete data.spriteManagers;
 
@@ -148,14 +160,15 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 	configureMaterials(data);
 	configureMeshesLODs(data, scene);
 	configureMeshesPhysics(data, scene);
+	configureParticleSystems(data, scene);
+	configureClusteredLights(data, clusteredLightContainer);
 
-	const sceneName = basename(editor.state.lastOpenedScenePath).split(".").shift()!;
-
-	await createDirectoryIfNotExist(publicPath);
-	await createDirectoryIfNotExist(join(publicPath, "scene"));
-	await createDirectoryIfNotExist(join(publicPath, "scene", sceneName));
-
-	const scenePath = join(publicPath, "scene");
+	// Configure environment texture
+	if (isHDRCubeTexture(scene.environmentTexture)) {
+		data.environmentTextureSize = 512;
+		data.environmentTextureType = "BABYLON.HDRCubeTexture";
+		data.environmentTextureRotationY = scene.environmentTexture.rotationY;
+	}
 
 	// Write all geometries as incremental. This makes the scene way less heavy as binary saved geometry
 	// is not stored in the JSON scene file. Moreover, this may allow to load geometries on the fly compared
@@ -262,14 +275,18 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 		}
 	});
 
-	// Configure sounds
-	data.sounds?.forEach((sound) => {
-		const instantiatedSound = scene.getSoundByName(sound.name);
-		if (instantiatedSound) {
-			sound.id = instantiatedSound.id;
-			sound.uniqueId = instantiatedSound.uniqueId;
-		}
-	});
+	// Extract textures from particle systems.
+	await Promise.all(
+		data.particleSystems?.map(async (particleSystemData: any) => {
+			const result = await extractParticleSystemTextures(editor, particleSystemData, {
+				assetsDirectory: extractedTexturesOutputPath,
+			});
+
+			if (result) {
+				exportedAssets.push(join(scenePath, result.relativePath));
+			}
+		})
+	);
 
 	// Extract textures from node materials.
 	const nodeMaterials = data.materials?.filter((materialData) => {
@@ -278,14 +295,33 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 	});
 
 	if (nodeMaterials.length) {
-		await createDirectoryIfNotExist(extractedTexturesOutputPath);
 		await Promise.all(
-			nodeMaterials.map(async (materialData) =>
-				extractNodeMaterialTextures(editor, {
+			nodeMaterials.map(async (materialData) => {
+				const relativePaths = await extractNodeMaterialTextures(editor, {
 					materialData,
 					assetsDirectory: extractedTexturesOutputPath,
-				})
-			)
+				});
+
+				exportedAssets.push(...relativePaths.map((path) => join(scenePath, path)));
+			})
+		);
+	}
+
+	// Extract texture from node particle systems.
+	const nodeParticleSystems = data.meshes?.filter((meshData) => {
+		return meshData.isNodeParticleSystemMesh && meshData.nodeParticleSystemSet;
+	});
+
+	if (nodeParticleSystems.length) {
+		await Promise.all(
+			nodeParticleSystems.map(async (meshData) => {
+				const relativePaths = await extractNodeParticleSystemSetTextures(editor, {
+					assetsDirectory: extractedTexturesOutputPath,
+					particlesData: meshData.nodeParticleSystemSet,
+				});
+
+				exportedAssets.push(...relativePaths.map((path) => join(scenePath, path)));
+			})
 		);
 	}
 
@@ -316,7 +352,6 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 	await handleExportScripts(editor);
 
 	// Export assets
-	const exportedAssets: string[] = [];
 	const promises: Promise<void>[] = [];
 	const progressStep = 100 / files.length;
 
@@ -343,6 +378,7 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 					optimize: options.optimize,
 				});
 				progress?.step(progressStep);
+				dialog?.step(progressStep);
 				resolve();
 			})
 		);
@@ -356,6 +392,7 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 	});
 
 	toast.dismiss(toastId);
+	dialog?.dispose();
 
 	if (options.optimize) {
 		toast.success("Project exported");

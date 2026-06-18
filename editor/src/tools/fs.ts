@@ -1,7 +1,7 @@
 import { glob } from "glob";
+import { watch } from "chokidar";
 import { join } from "path/posix";
-import { watch, FSWatcher } from "chokidar";
-import { ensureDir, pathExists } from "fs-extra";
+import { ensureDir, pathExists, readdir } from "fs-extra";
 
 /**
  * Creates a directory if it doesn't exist.
@@ -30,7 +30,7 @@ export async function normalizedGlob(...args: Parameters<typeof glob>): ReturnTy
  * @param absolutePath defines the absolute path to the file to watch.
  * @param onChange defines the callback called when the file changed.
  */
-export function watchFile(absolutePath: string, onChange: () => void): FSWatcher {
+export function watchFile(absolutePath: string, onChange: () => void) {
 	const watcher = watch(absolutePath, {
 		persistent: false,
 	});
@@ -48,7 +48,7 @@ export function watchFile(absolutePath: string, onChange: () => void): FSWatcher
  * @param originalName defines the original name of the file
  * @param extension defines the file extension (without dot)
  */
-export async function findAvailableFilename(absoluteDirname: string, originalName: string, extension: string): Promise<string> {
+export async function findAvailableFilename(absoluteDirname: string, originalName: string, extension: string) {
 	let index: number | undefined = undefined;
 	while (await pathExists(join(absoluteDirname, `${originalName}${index !== undefined ? ` ${index}` : ""}${extension}`))) {
 		index ??= 0;
@@ -56,4 +56,17 @@ export async function findAvailableFilename(absoluteDirname: string, originalNam
 	}
 
 	return `${originalName}${index !== undefined ? ` ${index}` : ""}${extension}`;
+}
+
+/**
+ * Tries to read a directory and returns its content if the directory exists.
+ * If not, returns an empty array.
+ * @param path defines the absolute path to read directory.
+ */
+export async function tryReadDir(path: string) {
+	if (await pathExists(path)) {
+		return readdir(path);
+	}
+
+	return [];
 }

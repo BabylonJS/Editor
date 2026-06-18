@@ -7,12 +7,15 @@ import { Editor } from "../../editor/main";
 
 import packageJson from "../../../package.json";
 
-import { EditorProjectPackageManager, IEditorProject } from "../typings";
+import { requirePlugin } from "../../tools/plugins/require";
+import { defaultGizmoSnapPreferences, roundGizmoSnapSteps } from "../../tools/scene/gizmo";
+
 import { projectConfiguration } from "../configuration";
+import { EditorProjectPackageManager, IEditorProject } from "../typings";
 
 import { loadScene } from "./scene";
 import { LoadScenePrepareComponent } from "./prepare";
-import { installBabylonJSEditorTools, installDependencies } from "./install";
+import { installBabylonJSEditorCLI, installBabylonJSEditorTools, installDependencies } from "./install";
 
 /**
  * Loads an editor project located at the given path. Typically called at startup when opening
@@ -24,6 +27,7 @@ export async function loadProject(editor: Editor, path: string) {
 	const directory = dirname(path);
 	const project = (await readJSON(path, "utf-8")) as IEditorProject;
 	const packageManager = project.packageManager ?? "yarn";
+	const gizmoSnap = roundGizmoSnapSteps({ ...defaultGizmoSnapPreferences, ...(project.gizmoSnap ?? {}) });
 
 	editor.setState({
 		packageManager,
@@ -31,11 +35,16 @@ export async function loadProject(editor: Editor, path: string) {
 		plugins: project.plugins.map((plugin) => plugin.nameOrPath),
 		lastOpenedScenePath: project.lastOpenedScene ? join(directory, project.lastOpenedScene) : null,
 
+		compressedTextureSoftware: project.compressedTextureSoftware ?? "PVRTexTool",
 		compressedTexturesEnabled: project.compressedTexturesEnabled ?? false,
 		compressedTexturesEnabledInPreview: project.compressedTexturesEnabledInPreview ?? false,
+		compressedEtc2Enabled: project.compressedEtc2Enabled ?? false,
+		compressedPvrtcEnabled: project.compressedPvrtcEnabled ?? false,
+		compressedTextureQuality: project.compressedTextureQuality ?? "very-fast",
 	});
 
 	editor.layout.forceUpdate();
+	editor.layout.preview?.updateGizmoSnapPreferences(gizmoSnap);
 
 	projectConfiguration.compressedTexturesEnabled = project.compressedTexturesEnabled ?? false;
 
@@ -59,7 +68,10 @@ export async function loadProject(editor: Editor, path: string) {
 
 		await loadScene(editor, directory, absolutePath);
 
-		editor.layout.graph.refresh();
+		editor.layout.preview.scene.onBeforeRenderObservable.addOnce(() => {
+			editor.layout.graph.refresh();
+		});
+
 		editor.layout.inspector.setEditedObject(editor.layout.preview.scene);
 	}
 }
@@ -88,24 +100,57 @@ export async function checkDependencies(
 		toast.warning(`Package manager "${packageManager}" is not available on your system. Dependencies will not be updated.`);
 	}
 
-	const toolsPackageJsonPath = join(directory, "node_modules/babylonjs-editor-tools/package.json");
+	const cliPackageJsonPath = "node_modules/babylonjs-editor-cli/package.json";
+	const toolsPackageJsonPath = "node_modules/babylonjs-editor-tools/package.json";
 
-	let matchesVersion = false;
-	try {
-		const toolsPackageJson = await readJSON(toolsPackageJsonPath, "utf-8");
-		if (toolsPackageJson.version === packageJson.version) {
-			matchesVersion = true;
+	let matchesCliVersion = false;
+	let matchesToolsVersion = false;
+
+	// Recursively search for the "babylonjs-editor-tools" package in parent directories, to handle monorepos where the package might be hoisted to the root "node_modules" folder.
+	const toolsPathSplit = directory.split("/");
+	do {
+		try {
+			const path = join(toolsPathSplit.join("/"), toolsPackageJsonPath);
+			const toolsPackageJson = await readJSON(path, "utf-8");
+
+			matchesToolsVersion = toolsPackageJson.version === packageJson.version;
+			break;
+		} catch (e) {
+			// Catch silently
 		}
-	} catch (e) {
-		// Catch silently
-	}
+
+		toolsPathSplit.pop();
+	} while (toolsPathSplit.length > 0);
+
+	const cliPathSplit = directory.split("/");
+	do {
+		try {
+			const path = join(cliPathSplit.join("/"), cliPackageJsonPath);
+			const cliPackageJson = await readJSON(path, "utf-8");
+
+			matchesCliVersion = cliPackageJson.version === packageJson.version;
+			break;
+		} catch (e) {
+			// Catch silently
+		}
+
+		cliPathSplit.pop();
+	} while (cliPathSplit.length > 0);
 
 	let toolsCode = 0;
-	if (!matchesVersion) {
+	if (!matchesToolsVersion) {
 		toolsCode = await installBabylonJSEditorTools(packageManager, directory, packageJson.version);
 		if (toolsCode !== 0) {
 			toast.warning(`Package manager "${packageManager}" is not available on your system. Can't install "babylonjs-editor-tools" package dependency.`);
 		}
+	}
+
+	if (!matchesCliVersion) {
+		installBabylonJSEditorCLI(packageManager, directory, packageJson.version).then((code) => {
+			if (code !== 0) {
+				toast.warning(`Package manager "${packageManager}" is not available on your system. Can't install "babylonjs-editor-cli" package dependency.`);
+			}
+		});
 	}
 
 	toast.dismiss(toastId);
@@ -124,22 +169,10 @@ export async function checkDependencies(
 export async function loadProjectPlugins(editor: Editor, path: string, project: IEditorProject) {
 	for (const plugin of project.plugins) {
 		try {
-			const isLocalPlugin = await pathExists(plugin.nameOrPath);
-
-			let requireId = plugin.nameOrPath;
-			if (!isLocalPlugin) {
-				const projectDir = dirname(path);
-				requireId = join(projectDir, "node_modules", plugin.nameOrPath);
-			}
-
-			const result = require(requireId);
-			result.main(editor);
-
-			if (isLocalPlugin) {
-				editor.layout.console.log(`Loaded plugin from local drive "${result.title ?? plugin.nameOrPath}"`);
-			} else {
-				editor.layout.console.log(`Loaded plugin "${result.title ?? plugin.nameOrPath}"`);
-			}
+			await requirePlugin(editor, {
+				projectPath: path,
+				pluginNameOrPath: plugin.nameOrPath,
+			});
 		} catch (e) {
 			console.error(e);
 			editor.layout.console.error(`Failed to load plugin from project "${plugin.nameOrPath}"`);

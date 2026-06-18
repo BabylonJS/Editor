@@ -1,7 +1,9 @@
-import { platform } from "os";
+import { platform, arch } from "os";
 import { autoUpdater } from "electron-updater";
 import { basename, dirname, join } from "path/posix";
 import { BrowserWindow, app, globalShortcut, ipcMain, nativeTheme } from "electron";
+
+import "dotenv/config";
 
 import { getFilePathArgument } from "./tools/process";
 
@@ -19,11 +21,15 @@ import "./electron/events/editor";
 import "./electron/events/window";
 import "./electron/assimp/assimpjs";
 import "./electron/events/export";
+import "./electron/protocol";
+import "./electron/oauth";
 
 try {
 	if (!app.isPackaged) {
 		process.env.DEBUG ??= "true";
 	}
+
+	process.env.SKETCHFAB_CLIENT_ID ??= "XZVigLIpz1lqWCkAMRWWpZzKIEVaMEIcsBrgQWrD";
 
 	if (process.env.DEBUG) {
 		require("electron-reloader")(module);
@@ -55,6 +61,20 @@ app.addListener("ready", async () => {
 	}
 
 	autoUpdater.checkForUpdatesAndNotify();
+
+	try {
+		fetch("https://editor.babylonjs.com/api/hooks/launch", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				content: `${platform()} ${arch()}`,
+			}),
+		});
+	} catch (error) {
+		// Catch silently, as this is not critical for the app to function.
+	}
 });
 
 app.on("window-all-closed", () => {
@@ -76,6 +96,8 @@ app.on("second-instance", async () => {
 	}
 });
 
+let shouldAppQuit = false;
+
 ipcMain.on("app:quit", () => {
 	for (const window of editorWindows.slice()) {
 		window.close();
@@ -86,11 +108,18 @@ ipcMain.on("app:quit", () => {
 	}
 
 	if (!editorWindows.length) {
+		shouldAppQuit = true;
 		app.quit();
 	}
 });
 
 let dashboardWindow: BrowserWindow | null = null;
+let menuOptions = { enableExperimentalFeatures: false, openedTabs: [] };
+
+ipcMain.on("editor:setup-menu", (_, options) => {
+	menuOptions = options;
+	setupEditorMenu(options);
+});
 
 async function openDashboard(): Promise<void> {
 	if (!dashboardWindow) {
@@ -107,9 +136,20 @@ async function openDashboard(): Promise<void> {
 	dashboardWindow.focus();
 }
 
-ipcMain.on("dashboard:open-project", (_, file) => {
+function closeDashboard(): void {
+	if (dashboardWindow) {
+		dashboardWindow.close();
+		dashboardWindow = null;
+	}
+}
+
+ipcMain.on("dashboard:open-project", (_, file: string, shouldCloseDashboard?: boolean) => {
 	openProject(file);
 	dashboardWindow?.minimize();
+
+	if (shouldCloseDashboard) {
+		closeDashboard();
+	}
 });
 
 ipcMain.on("dashboard:update-projects", () => {
@@ -127,18 +167,18 @@ async function openProject(filePath: string): Promise<void> {
 
 	notifyWindows("dashboard:opened-projects", openedProjects);
 
-	setupEditorMenu();
+	setupEditorMenu(menuOptions);
 
 	const window = await createEditorWindow();
 	window.setTitle(basename(dirname(filePath)));
 
-	window.on("focus", () => setupEditorMenu());
+	window.on("focus", () => setupEditorMenu(menuOptions));
 	window.once("closed", () => {
 		openedProjects.splice(openedProjects.indexOf(filePath), 1);
 		notifyWindows("dashboard:opened-projects", openedProjects);
 
-		if (openedProjects.length === 0) {
-			dashboardWindow?.restore();
+		if (openedProjects.length === 0 && !shouldAppQuit) {
+			openDashboard();
 		}
 	});
 

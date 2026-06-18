@@ -6,18 +6,4 @@ declare module "babylonjs" {
 		id?: string;
 		uniqueId?: number;
 	}
-
-	export interface IParticleSystem {
-		sourceParticleSystemSetId?: string;
-	}
-
-	// eslint-disable-next-line @typescript-eslint/naming-convention
-	export interface ParticleSystem {
-		sourceParticleSystemSetId?: string;
-	}
-
-	// eslint-disable-next-line @typescript-eslint/naming-convention
-	export interface GPUParticleSystem {
-		sourceParticleSystemSetId?: string;
-	}
 }

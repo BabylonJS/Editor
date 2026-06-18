@@ -3,11 +3,25 @@ import { ipcRenderer, shell } from "electron";
 
 import { Component, ReactNode } from "react";
 
-import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarSeparator, MenubarShortcut, MenubarTrigger } from "../../ui/shadcn/ui/menubar";
+import {
+	Menubar,
+	MenubarCheckboxItem,
+	MenubarContent,
+	MenubarItem,
+	MenubarLabel,
+	MenubarMenu,
+	MenubarSeparator,
+	MenubarShortcut,
+	MenubarSub,
+	MenubarSubContent,
+	MenubarSubTrigger,
+	MenubarTrigger,
+} from "../../ui/shadcn/ui/menubar";
 
 import { isDarwin } from "../../tools/os";
 import { execNodePty } from "../../tools/node-pty";
 import { openSingleFileDialog } from "../../tools/dialog";
+import { saveSceneScreenshot } from "../../tools/scene/screenshot";
 
 import { showConfirm } from "../../ui/dialog";
 import { ToolbarComponent } from "../../ui/toolbar";
@@ -23,6 +37,8 @@ import { getLightCommands } from "../dialogs/command-palette/light";
 import { getCameraCommands } from "../dialogs/command-palette/camera";
 import { getSpriteCommands } from "../dialogs/command-palette/sprite";
 import { ICommandPaletteType } from "../dialogs/command-palette/command-palette";
+
+import { EditorMarketplaceBrowser } from "./marketplace";
 
 export interface IEditorToolbarProps {
 	editor: Editor;
@@ -40,6 +56,7 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 
 		ipcRenderer.on("editor:open-project", () => this._handleOpenProject());
 		ipcRenderer.on("editor:open-vscode", () => this._handleOpenVisualStudioCode());
+		ipcRenderer.on("editor:toggle-marketplace", () => this._handleToggleMarketplace());
 
 		this._nodeCommands = getNodeCommands(this.props.editor);
 		this._meshCommands = getMeshCommands(this.props.editor);
@@ -84,9 +101,12 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 								Save <MenubarShortcut>CTRL+S</MenubarShortcut>
 							</MenubarItem>
 
-							<MenubarItem onClick={() => exportProject(this.props.editor, { optimize: true })}>
-								Generate <MenubarShortcut>CTRL+G</MenubarShortcut>
+							<MenubarSeparator />
+
+							<MenubarItem onClick={() => exportProject(this.props.editor, { optimize: false })}>
+								Generate Current Scene <MenubarShortcut>CTRL+G</MenubarShortcut>
 							</MenubarItem>
+							<MenubarItem onClick={() => this.props.editor.setState({ generateProject: true })}>Generate All Scenes and Assets...</MenubarItem>
 
 							<MenubarSeparator />
 
@@ -161,6 +181,29 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 
 							<MenubarSeparator />
 
+							<MenubarSub>
+								<MenubarSubTrigger>Screenshot</MenubarSubTrigger>
+								<MenubarSubContent className="w-52">
+									<MenubarLabel className="text-muted-foreground">Landscape</MenubarLabel>
+									<MenubarItem onClick={() => saveSceneScreenshot(this.props.editor.layout.preview.scene, { width: 1280, height: 720 })}>
+										720p <MenubarShortcut>(1280x720)</MenubarShortcut>
+									</MenubarItem>
+									<MenubarItem onClick={() => saveSceneScreenshot(this.props.editor.layout.preview.scene, { width: 1920, height: 1080 })}>
+										1080p <MenubarShortcut>(1920x1080)</MenubarShortcut>
+									</MenubarItem>
+									<MenubarItem onClick={() => saveSceneScreenshot(this.props.editor.layout.preview.scene, { width: 3840, height: 2160 })}>
+										4K <MenubarShortcut>(3840x2160)</MenubarShortcut>
+									</MenubarItem>
+									<MenubarLabel className="text-muted-foreground">Square</MenubarLabel>
+									<MenubarItem onClick={() => saveSceneScreenshot(this.props.editor.layout.preview.scene, { width: 512, height: 512 })}>512x512</MenubarItem>
+									<MenubarItem onClick={() => saveSceneScreenshot(this.props.editor.layout.preview.scene, { width: 1024, height: 1024 })}>1024x1024</MenubarItem>
+									<MenubarItem onClick={() => saveSceneScreenshot(this.props.editor.layout.preview.scene, { width: 2048, height: 2048 })}>2048x2048</MenubarItem>
+									<MenubarItem onClick={() => saveSceneScreenshot(this.props.editor.layout.preview.scene, { width: 4096, height: 4096 })}>4096x4096</MenubarItem>
+								</MenubarSubContent>
+							</MenubarSub>
+
+							<MenubarSeparator />
+
 							<MenubarItem onClick={() => this.props.editor.layout.preview.play.triggerPlayScene()}>Play Scene</MenubarItem>
 						</MenubarContent>
 					</MenubarMenu>
@@ -200,6 +243,18 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 							))}
 						</MenubarContent>
 					</MenubarMenu>
+
+					{/* View */}
+					{this.props.editor.state.enableExperimentalFeatures && (
+						<MenubarMenu>
+							<MenubarTrigger>Views</MenubarTrigger>
+							<MenubarContent className="border-black/50">
+								<MenubarCheckboxItem checked={this.props.editor.state.openedTabs.includes("marketplace")} onClick={() => this._handleToggleMarketplace()}>
+									Marketplace
+								</MenubarCheckboxItem>
+							</MenubarContent>
+						</MenubarMenu>
+					)}
 
 					{/* Window */}
 					<MenubarMenu>
@@ -257,5 +312,19 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 
 		const p = await execNodePty(`code "${join(dirname(this.props.editor.state.projectPath), "/")}"`);
 		await p.wait();
+	}
+
+	private _handleToggleMarketplace(): void {
+		if (this.props.editor.state.openedTabs.includes("marketplace")) {
+			return this.props.editor.layout.removeLayoutTab("marketplace");
+		}
+
+		this.props.editor.layout.addLayoutTab(<EditorMarketplaceBrowser editor={this.props.editor} ref={(r) => (this.props.editor.layout.marketplace = r)} />, {
+			id: "marketplace",
+			title: "Marketplace",
+			enableClose: true,
+			setAsActiveTab: true,
+			neighborId: "assets-browser",
+		});
 	}
 }

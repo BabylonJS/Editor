@@ -47,7 +47,7 @@ export function setCompressedTexturesCliPath(absolutePath: string) {
  * @param format defines the destination format of the texture.
  * @example image.png -> image-asct.ktx
  */
-export function getCompressedTextureFilename(path: string, format: KTXToolsType) {
+export function getKtxCompressedTextureFilename(path: string, format: KTXToolsType) {
 	return `${path.substring(0, path.lastIndexOf("."))}${format}`;
 }
 
@@ -81,7 +81,7 @@ export async function compressFileToKtxFormat(editor: Editor, absolutePath: stri
 		return null;
 	}
 
-	const filename = getCompressedTextureFilename(name, options.format);
+	const filename = getKtxCompressedTextureFilename(name, options.format);
 
 	options.destinationFolder ??= dirname(absolutePath);
 	options.destinationFolder = join(options.destinationFolder, filename);
@@ -123,7 +123,7 @@ export async function compressFileToKtxFormat(editor: Editor, absolutePath: stri
 			break;
 
 		case "-dxt.ktx":
-			command = `"${cliPath}" -i "${absolutePath}" -flip y -pot + -m -ics lRGB ${hasAlpha ? "-l" : ""} -f ${hasAlpha ? "BC2" : "BC1"},UBN,lRGB -o "${options.destinationFolder}"`;
+			command = `"${cliPath}" -i "${absolutePath}" -flip y -pot + -m -dither -ics lRGB ${hasAlpha ? "-l" : ""} -f ${hasAlpha ? "BC3" : "BC1"},UBN,lRGB -o "${options.destinationFolder}"`;
 			break;
 
 		case "-pvrtc.ktx":
@@ -154,6 +154,8 @@ export async function compressFileToKtxFormat(editor: Editor, absolutePath: stri
 		});
 
 		options.exportedAssets?.push(options.destinationFolder);
+
+		return options.destinationFolder;
 	} catch (e) {
 		log.setState({
 			error: true,

@@ -11,6 +11,10 @@ import { ISceneDecoratorData } from "./apply";
  * @example
  *  @guiFromAsset<MyScriptClass>("ui.gui", (instance, gui) => instance._onGuiLoaded(gui))
  *  private _ui!: AdvancedDynamicTexture;
+ * @deprecated Please use @visibleAsAsset decorator instead.
+ * @example
+ * 	@visibleAsAsset("gui", "GUI")
+ * 	private _ui!: AdvancedDynamicTexture;
  */
 export function guiFromAsset<T>(pathInAssets: string, onGuiCreated?: (instance: T, gui: AdvancedDynamicTexture) => unknown) {
 	return function (target: any, propertyKey: string | Symbol) {

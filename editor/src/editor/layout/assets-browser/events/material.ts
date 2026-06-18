@@ -1,9 +1,7 @@
-import { join } from "path/posix";
 import { ipcRenderer } from "electron";
 
-import { createDirectoryIfNotExist } from "../../../../tools/fs";
 import { isNodeMaterial } from "../../../../tools/guards/material";
-import { extractNodeMaterialTextures } from "../../../../tools/material/extract";
+import { normalizeNodeMaterialUniqueIds } from "../../../../tools/material/material";
 
 import { getProjectAssetsRootUrl } from "../../../../project/configuration";
 
@@ -21,21 +19,11 @@ export function listenMaterialAssetsEvents(editor: Editor) {
 		}
 
 		if (isNodeMaterial(material)) {
-			const rootUrl = getProjectAssetsRootUrl();
-
-			if (rootUrl) {
-				const outputPath = join(rootUrl, "assets", "editor-generated_extracted-textures");
-
-				await createDirectoryIfNotExist(outputPath);
-				await extractNodeMaterialTextures(editor, {
-					materialData,
-					assetsDirectory: outputPath,
-				});
-			}
-
 			material.clear();
-			material.parseSerializedObject(materialData, rootUrl ?? undefined);
+			material.parseSerializedObject(materialData, getProjectAssetsRootUrl() ?? undefined);
 			material.build(false);
+
+			normalizeNodeMaterialUniqueIds(material, materialData);
 		}
 	});
 }

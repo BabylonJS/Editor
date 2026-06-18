@@ -1,7 +1,8 @@
-import { Sound } from "babylonjs";
 import { ICinematicSound, ICinematicTrack } from "babylonjs-editor-tools";
 
 import { CinematicEditor } from "../editor";
+
+import { SoundNode } from "../../../nodes/sound";
 
 import { EditorInspectorNumberField } from "../../inspector/fields/number";
 import { EditorInspectorSectionField } from "../../inspector/fields/section";
@@ -13,14 +14,13 @@ export interface ICinematicEditorSoundKeyInspectorProps {
 }
 
 export function CinematicEditorSoundKeyInspector(props: ICinematicEditorSoundKeyInspectorProps) {
-	const sound = props.track.sound as Sound | null;
-	const buffer = sound?.getAudioBuffer();
+	const node = props.track.sound as SoundNode | null;
 
-	if (!sound || !buffer) {
+	if (!node || !node.sound?.buffer) {
 		return null;
 	}
 
-	const endFrame = buffer.duration * props.cinematicEditor.cinematic.framesPerSecond;
+	const endFrame = node.sound.duration * props.cinematicEditor.cinematic.framesPerSecond;
 
 	return (
 		<EditorInspectorSectionField title="Sound">
@@ -32,7 +32,7 @@ export function CinematicEditorSoundKeyInspector(props: ICinematicEditorSoundKey
 				step={1}
 				onChange={() => {
 					props.cinematicEditor.timelines.sortAnimationsKeys();
-					props.cinematicEditor.timelines.updateTracksAtCurrentTime();
+					props.cinematicEditor.updateTracksAtCurrentTime();
 				}}
 			/>
 
@@ -45,7 +45,7 @@ export function CinematicEditorSoundKeyInspector(props: ICinematicEditorSoundKey
 				max={props.cinematicKey.endFrame}
 				onChange={() => {
 					props.cinematicEditor.inspector.forceUpdate();
-					props.cinematicEditor.timelines.updateTracksAtCurrentTime();
+					props.cinematicEditor.updateTracksAtCurrentTime();
 				}}
 			/>
 
@@ -58,7 +58,7 @@ export function CinematicEditorSoundKeyInspector(props: ICinematicEditorSoundKey
 				max={endFrame}
 				onChange={() => {
 					props.cinematicEditor.inspector.forceUpdate();
-					props.cinematicEditor.timelines.updateTracksAtCurrentTime();
+					props.cinematicEditor.updateTracksAtCurrentTime();
 				}}
 			/>
 		</EditorInspectorSectionField>

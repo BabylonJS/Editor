@@ -1,5 +1,9 @@
+import { Scene } from "@babylonjs/core/scene";
+import { Observer } from "@babylonjs/core/Misc/observable";
 import { Animation } from "@babylonjs/core/Animations/animation";
 import { IAnimationKey } from "@babylonjs/core/Animations/animationKey";
+
+import { Cinematic } from "./cinematic";
 
 export function cloneKey(dataType: number, key: IAnimationKey): IAnimationKey {
 	let value: any;
@@ -38,4 +42,28 @@ export function getPropertyValue(object: any, property: string) {
 	}
 
 	return value;
+}
+
+export function registerAfterAnimationCallback(cinematic: Cinematic, scene: Scene, callback: () => void) {
+	let sceneRenderObserver: Observer<Scene> | null = null;
+
+	cinematic.onAnimationGroupPlayObservable.add(() => {
+		sceneRenderObserver = scene.onAfterAnimationsObservable.add(() => {
+			callback();
+		});
+	});
+
+	cinematic.onAnimationGroupPauseObservable.add(() => {
+		if (sceneRenderObserver) {
+			scene.onAfterAnimationsObservable.remove(sceneRenderObserver);
+			sceneRenderObserver = null;
+		}
+	});
+
+	cinematic.onAnimationGroupEndObservable.add(() => {
+		if (sceneRenderObserver) {
+			scene.onAfterAnimationsObservable.remove(sceneRenderObserver);
+			sceneRenderObserver = null;
+		}
+	});
 }

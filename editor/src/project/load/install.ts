@@ -55,3 +55,31 @@ export async function installBabylonJSEditorTools(packageManager: EditorProjectP
 	const p = await execNodePty(command, { cwd });
 	return p.wait();
 }
+
+/**
+ * Installs the babylonjs-editor-cli package that matches the given version.
+ * The given version is mostly the current version of the editor.
+ * @param packageManager defines the package manager to use for installation.
+ * @param cwd defines absolute path to the working directory where to install the dependencies.
+ * @param version defines the version of babylonjs-editor-cli to install.
+ */
+export async function installBabylonJSEditorCLI(packageManager: EditorProjectPackageManager, cwd: string, version: string) {
+	let command = "";
+	switch (packageManager) {
+		case "npm":
+			command = `npm install --save-dev babylonjs-editor-cli@${version}`;
+			break;
+		case "pnpm":
+			command = `pnpm add -D babylonjs-editor-cli@${version}`;
+			break;
+		case "bun":
+			command = `bun add --dev babylonjs-editor-cli@${version}`;
+			break;
+		default:
+			command = `yarn add -D babylonjs-editor-cli@${version}`;
+			break;
+	}
+
+	const p = await execNodePty(command, { cwd });
+	return p.wait();
+}

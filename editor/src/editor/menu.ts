@@ -1,9 +1,9 @@
 import { platform } from "os";
-import { BrowserWindow, Menu, shell } from "electron";
+import { BrowserWindow, Menu, MenuItem, shell } from "electron";
 
 import { cameraCommandItems, lightCommandItems, meshCommandItems, nodeCommandItems, spriteCommandItems } from "./dialogs/command-palette/shared-commands";
 
-export function setupEditorMenu(): void {
+export function setupEditorMenu(options: { enableExperimentalFeatures: boolean; openedTabs?: string[] }): void {
 	Menu.setApplicationMenu(
 		Menu.buildFromTemplate([
 			{
@@ -48,9 +48,16 @@ export function setupEditorMenu(): void {
 						click: () => BrowserWindow.getFocusedWindow()?.webContents.send("save"),
 					},
 					{
-						label: "Generate",
+						type: "separator",
+					},
+					{
+						label: "Generate Current Scene",
 						accelerator: "CommandOrControl+G",
 						click: () => BrowserWindow.getFocusedWindow()?.webContents.send("generate"),
+					},
+					{
+						label: "Generate All Scenes and Assets...",
+						click: () => BrowserWindow.getFocusedWindow()?.webContents.send("editor:generate-project"),
 					},
 					{
 						type: "separator",
@@ -154,6 +161,50 @@ export function setupEditorMenu(): void {
 						type: "separator",
 					},
 					{
+						label: "Screenshot",
+						submenu: [
+							{
+								type: "header",
+								label: "Landscape",
+							},
+							{
+								label: "720p (1280x720)",
+								click: () => BrowserWindow.getFocusedWindow()?.webContents.send("preview:screenshot", { width: 1280, height: 720 }),
+							},
+							{
+								label: "1080p (1920x1080)",
+								click: () => BrowserWindow.getFocusedWindow()?.webContents.send("preview:screenshot", { width: 1920, height: 1080 }),
+							},
+							{
+								label: "4K (3840x2160)",
+								click: () => BrowserWindow.getFocusedWindow()?.webContents.send("preview:screenshot", { width: 3840, height: 2160 }),
+							},
+							{
+								type: "header",
+								label: "Square",
+							},
+							{
+								label: "512x512",
+								click: () => BrowserWindow.getFocusedWindow()?.webContents.send("preview:screenshot", { width: 512, height: 512 }),
+							},
+							{
+								label: "1024x1024",
+								click: () => BrowserWindow.getFocusedWindow()?.webContents.send("preview:screenshot", { width: 1024, height: 1024 }),
+							},
+							{
+								label: "2048x2048",
+								click: () => BrowserWindow.getFocusedWindow()?.webContents.send("preview:screenshot", { width: 2048, height: 2048 }),
+							},
+							{
+								label: "4096x4096",
+								click: () => BrowserWindow.getFocusedWindow()?.webContents.send("preview:screenshot", { width: 4096, height: 4096 }),
+							},
+						],
+					},
+					{
+						type: "separator",
+					},
+					{
 						label: "Play Scene",
 						accelerator: "CommandOrControl+B",
 						click: () => BrowserWindow.getFocusedWindow()?.webContents.send("preview:play-scene"),
@@ -197,6 +248,21 @@ export function setupEditorMenu(): void {
 					})),
 				],
 			},
+			...(options.enableExperimentalFeatures
+				? [
+						{
+							label: "Views",
+							submenu: [
+								{
+									label: "Marketplace",
+									type: "checkbox" as MenuItem["type"],
+									checked: options.openedTabs?.includes("marketplace"),
+									click: () => BrowserWindow.getFocusedWindow()?.webContents.send("editor:toggle-marketplace"),
+								},
+							],
+						},
+					]
+				: []),
 			{
 				label: "Window",
 				submenu: [

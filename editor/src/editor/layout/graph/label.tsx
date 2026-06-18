@@ -5,23 +5,21 @@ import { DragEvent, useEffect, useRef, useState } from "react";
 import { FaLock } from "react-icons/fa";
 import { useEventListener } from "usehooks-ts";
 
-import { Node, TransformNode, AbstractMesh, Vector3 } from "babylonjs";
-
 import { Input } from "../../../ui/shadcn/ui/input";
 
 import { isDarwin } from "../../../tools/os";
 import { isScene } from "../../../tools/guards/scene";
-import { isSound } from "../../../tools/guards/sound";
 import { registerUndoRedo } from "../../../tools/undoredo";
-import { isAnyParticleSystem } from "../../../tools/guards/particles";
 import { isNodeSerializable, isNodeLocked } from "../../../tools/node/metadata";
-import { isAbstractMesh, isInstancedMesh, isMesh, isNode, isTransformNode } from "../../../tools/guards/nodes";
+import { isClusteredLightContainer, isInstancedMesh, isMesh, isNode, isTransformNode } from "../../../tools/guards/nodes";
 
 import { applySoundAsset } from "../preview/import/sound";
 import { applyTextureAssetToObject } from "../preview/import/texture";
 import { applyMaterialAssetToObject } from "../preview/import/material";
 
 import { Editor } from "../../main";
+
+import { setNewParentForGraphSelectedNodes } from "./move";
 
 export interface IEditorGraphLabelProps {
 	name: string;
@@ -109,115 +107,19 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
 
 		setOver(false);
 
-		if (!isNode(props.object) && !isScene(props.object)) {
+		if (!isNode(props.object) && !isScene(props.object) && !isClusteredLightContainer(props.object)) {
 			return;
 		}
 
 		const node = ev.dataTransfer.getData("graph/node");
 		if (node) {
-			return dropNodeFromGraph();
+			return setNewParentForGraphSelectedNodes(props.editor, props.object, ev.shiftKey);
 		}
 
 		const asset = ev.dataTransfer.getData("assets");
 		if (asset) {
 			return handleAssetsDropped();
 		}
-	}
-
-	function dropNodeFromGraph() {
-		const nodesToMove = props.editor.layout.graph.getSelectedNodes();
-
-		const newParent = props.object;
-		const oldHierarchyMap = new Map<unknown, unknown>();
-
-		nodesToMove.forEach((n) => {
-			if (n.nodeData && n.nodeData !== newParent) {
-				if (isNode(n.nodeData) && n.nodeData.parent !== newParent) {
-					const descendants = n.nodeData.getDescendants(false);
-					if (descendants.includes(newParent)) {
-						return;
-					}
-
-					return oldHierarchyMap.set(n.nodeData, n.nodeData.parent);
-				}
-
-				if (isSound(n.nodeData)) {
-					return oldHierarchyMap.set(n.nodeData, n.nodeData["_connectedTransformNode"]);
-				}
-
-				if (isAnyParticleSystem(n.nodeData)) {
-					return oldHierarchyMap.set(n.nodeData, n.nodeData.emitter);
-				}
-			}
-		});
-
-		if (!oldHierarchyMap.size) {
-			return;
-		}
-
-		registerUndoRedo({
-			executeRedo: true,
-			undo: () => {
-				nodesToMove.forEach((n) => {
-					if (n.nodeData && oldHierarchyMap.has(n.nodeData)) {
-						if (isNode(n.nodeData)) {
-							return (n.nodeData.parent = oldHierarchyMap.get(n.nodeData) as Node);
-						}
-
-						if (isSound(n.nodeData)) {
-							const oldSoundNode = oldHierarchyMap.get(n.nodeData);
-
-							if (oldSoundNode) {
-								return n.nodeData.attachToMesh(oldSoundNode as TransformNode);
-							}
-
-							n.nodeData.detachFromMesh();
-							n.nodeData.spatialSound = false;
-							n.nodeData.setPosition(Vector3.Zero());
-							return (n.nodeData["_connectedTransformNode"] = null);
-						}
-
-						if (isAnyParticleSystem(n.nodeData)) {
-							return (n.nodeData.emitter = oldHierarchyMap.get(n.nodeData) as AbstractMesh);
-						}
-					}
-				});
-			},
-			redo: () => {
-				nodesToMove.forEach((n) => {
-					if (n.nodeData === props.object) {
-						return;
-					}
-
-					if (n.nodeData && oldHierarchyMap.has(n.nodeData)) {
-						if (isNode(n.nodeData)) {
-							return (n.nodeData.parent = isScene(props.object) ? null : newParent);
-						}
-
-						if (isSound(n.nodeData)) {
-							if (isTransformNode(newParent) || isMesh(newParent) || isInstancedMesh(newParent)) {
-								return n.nodeData.attachToMesh(newParent);
-							}
-
-							if (isScene(newParent)) {
-								n.nodeData.detachFromMesh();
-								n.nodeData.spatialSound = false;
-								n.nodeData.setPosition(Vector3.Zero());
-								return (n.nodeData["_connectedTransformNode"] = null);
-							}
-						}
-
-						if (isAnyParticleSystem(n.nodeData)) {
-							if (isAbstractMesh(newParent)) {
-								return (n.nodeData.emitter = newParent);
-							}
-						}
-					}
-				});
-			},
-		});
-
-		props.editor.layout.graph.refresh();
 	}
 
 	function handleAssetsDropped() {
@@ -244,7 +146,7 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
 				case ".ogg":
 				case ".wav":
 				case ".wave":
-					if (isScene(props.object) || isTransformNode(props.object) || isMesh(props.object) || isInstancedMesh(props.object)) {
+					if (isScene(props.object) || isMesh(props.object) || isInstancedMesh(props.object) || isTransformNode(props.object)) {
 						applySoundAsset(props.editor, props.object, absolutePath).then(() => {
 							props.editor.layout.graph.refresh();
 						});

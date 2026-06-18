@@ -10,7 +10,7 @@ import { Editor } from "../../editor/main";
 
 import { IEditorProject } from "../typings";
 
-import { exportProject } from "../export/export";
+// import { exportProject } from "../export/export";
 
 import { projectsKey } from "../../tools/project";
 import { onProjectSavedObservable } from "../../tools/observables";
@@ -38,6 +38,7 @@ export async function saveProject(editor: Editor): Promise<void> {
 		}
 	} finally {
 		saving = false;
+		editor.layout.preview.setRenderScene(true);
 	}
 }
 
@@ -50,8 +51,14 @@ export async function saveProjectConfiguration(editor: Editor) {
 		packageManager: editor.state.packageManager,
 		lastOpenedScene: editor.state.lastOpenedScenePath?.replace(dirname(editor.state.projectPath!), ""),
 
+		compressedTextureSoftware: editor.state.compressedTextureSoftware,
 		compressedTexturesEnabled: editor.state.compressedTexturesEnabled,
 		compressedTexturesEnabledInPreview: editor.state.compressedTexturesEnabledInPreview,
+		compressedEtc2Enabled: editor.state.compressedEtc2Enabled,
+		compressedPvrtcEnabled: editor.state.compressedPvrtcEnabled,
+		compressedTextureQuality: editor.state.compressedTextureQuality,
+
+		gizmoSnap: editor.layout.preview?.state.gizmoSnap,
 	};
 
 	if (!editor.props.editedScenePath) {
@@ -109,5 +116,9 @@ async function _saveProject(editor: Editor) {
 		// Catch silently.
 	}
 
-	await exportProject(editor, { optimize: false, noProgress: true });
+	// exportProject(editor, {
+	// 	optimize: false,
+	// 	noProgress: true,
+	// 	noDialog: false,
+	// });
 }

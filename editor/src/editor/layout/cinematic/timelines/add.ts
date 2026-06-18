@@ -1,28 +1,60 @@
-import { Sound, AnimationGroup } from "babylonjs";
+import { AnimationGroup } from "babylonjs";
 import { ICinematicAnimationGroup, ICinematicKey, ICinematicKeyCut, ICinematicKeyEvent, ICinematicSound, ICinematicTrack, isCinematicKeyCut } from "babylonjs-editor-tools";
+
+import { showAlert } from "../../../../ui/dialog";
 
 import { registerUndoRedo } from "../../../../tools/undoredo";
 import { getInspectorPropertyValue } from "../../../../tools/property";
 
-import { showAlert } from "../../../../ui/dialog";
+import { SoundNode } from "../../../nodes/sound";
 
 import { getDefaultRenderingPipeline } from "../../../rendering/default-pipeline";
 
 import { CinematicEditor } from "../editor";
 
-export function addAnimationKey(cinematicEditor: CinematicEditor, type: "key" | "cut", track: ICinematicTrack, positionX?: number | null) {
-	positionX ??= cinematicEditor.timelines.state.rightClickPositionX;
+export function addAnimationKey(
+	cinematicEditor: CinematicEditor,
+	type: "key" | "cut",
+	track: ICinematicTrack,
+	positionX: number | null,
+	keyFrameAnimations?: (ICinematicKey | ICinematicKeyCut)[]
+) {
+	if (track.keyFrameAnimations) {
+		keyFrameAnimations = track.keyFrameAnimations;
+	} else if ((track.animationGroupWeight?.length ?? 0) > 0) {
+		keyFrameAnimations = track.animationGroupWeight;
+	} else if ((track.soundVolume?.length ?? 0) > 0) {
+		keyFrameAnimations = track.soundVolume;
+	}
 
-	const node = track.defaultRenderingPipeline ? getDefaultRenderingPipeline() : track.node;
-
-	if (positionX === null || !node || !track.propertyPath) {
+	if (positionX === null || !keyFrameAnimations) {
 		return;
 	}
 
-	const frame = Math.round(positionX / cinematicEditor.timelines.state.scale);
-	const value = getInspectorPropertyValue(node, track.propertyPath);
+	let value: any = null;
 
-	const existingKey = track.keyFrameAnimations!.find((k) => {
+	const scale = cinematicEditor.state.editType === "keyframes" ? cinematicEditor.state.timelinesScale : cinematicEditor.state.curvesZoom;
+	const frame = Math.round(positionX / scale);
+
+	if (keyFrameAnimations === track.keyFrameAnimations) {
+		const node = track.defaultRenderingPipeline ? getDefaultRenderingPipeline() : track.node;
+
+		if (positionX === null || !node || !track.propertyPath) {
+			return;
+		}
+
+		value = getInspectorPropertyValue(node, track.propertyPath);
+	} else if (keyFrameAnimations === track.animationGroupWeight && track.animationGroup) {
+		value = track.animationGroup.weight;
+	} else if (keyFrameAnimations === track.soundVolume && track.sound) {
+		value = track.sound.getVolume();
+	}
+
+	if (value === null) {
+		return;
+	}
+
+	const existingKey = keyFrameAnimations.find((k) => {
 		if (isCinematicKeyCut(k)) {
 			return k.key1.frame === frame;
 		}
@@ -56,12 +88,12 @@ export function addAnimationKey(cinematicEditor: CinematicEditor, type: "key" | 
 	registerUndoRedo({
 		executeRedo: true,
 		undo: () => {
-			const index = track.keyFrameAnimations!.indexOf(key);
+			const index = keyFrameAnimations.indexOf(key);
 			if (index !== -1) {
-				track.keyFrameAnimations!.splice(index, 1);
+				keyFrameAnimations.splice(index, 1);
 			}
 		},
-		redo: () => track.keyFrameAnimations!.push(key),
+		redo: () => keyFrameAnimations.push(key),
 		action: () => cinematicEditor.timelines.sortAnimationsKeys(),
 	});
 
@@ -79,24 +111,23 @@ export function addSoundKey(cinematicEditor: CinematicEditor, track: ICinematicT
 		return;
 	}
 
-	const frame = Math.round(positionX / cinematicEditor.timelines.state.scale);
+	const frame = Math.round(positionX / cinematicEditor.state.timelinesScale);
 	const existingKey = track.sounds!.find((k) => k.frame === frame);
 
 	if (existingKey) {
 		return;
 	}
 
-	const sound = track.sound as Sound;
-	const buffer = sound.getAudioBuffer();
+	const node = track.sound as SoundNode;
 
-	if (!buffer) {
+	if (!node.sound?.buffer) {
 		return showAlert(
 			"Can't add sound track",
 			"The sound track is not ready yet, please wait until the sound is loaded. If this problem persists, please verify the sound file is correctly loaded."
 		);
 	}
 
-	const duration = buffer.duration;
+	const duration = node.sound.buffer.duration;
 	const fps = cinematicEditor.cinematic.framesPerSecond;
 
 	const key = {
@@ -132,7 +163,7 @@ export function addEventKey(cinematicEditor: CinematicEditor, track: ICinematicT
 		return;
 	}
 
-	const frame = Math.round(positionX / cinematicEditor.timelines.state.scale);
+	const frame = Math.round(positionX / cinematicEditor.state.timelinesScale);
 
 	const existingKey = track.keyFrameEvents!.find((k) => {
 		return k.frame === frame;
@@ -172,7 +203,7 @@ export function addAnimationGroupKey(cinematicEditor: CinematicEditor, track: IC
 		return;
 	}
 
-	const frame = Math.round(positionX / cinematicEditor.timelines.state.scale);
+	const frame = Math.round(positionX / cinematicEditor.state.timelinesScale);
 	const existingKey = track.animationGroups!.find((k) => k.frame === frame);
 
 	if (existingKey) {

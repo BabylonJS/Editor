@@ -1,5 +1,5 @@
 import { join, basename } from "path/posix";
-import { readJSON, remove, stat, writeFile, writeJSON } from "fs-extra";
+import { pathExists, readJSON, remove, stat, writeFile, writeJSON } from "fs-extra";
 
 import filenamify from "filenamify";
 
@@ -7,17 +7,21 @@ import { RenderTargetTexture, SceneSerializer } from "babylonjs";
 
 import { Editor } from "../../editor/main";
 
+import { isTexture } from "../../tools/guards/texture";
+import { isSoundNode } from "../../tools/guards/sound";
 import { isSceneLinkNode } from "../../tools/guards/scene";
 import { applyAssetsCache } from "../../tools/assets/cache";
-import { isFromSceneLink } from "../../tools/scene/scene-link";
 import { isNodeVisibleInGraph } from "../../tools/node/metadata";
+import { storeTexturesBaseSize } from "../../tools/material/texture";
 import { getBufferSceneScreenshot } from "../../tools/scene/screenshot";
 import { createDirectoryIfNotExist, normalizedGlob } from "../../tools/fs";
 import { isSpriteManagerNode, isSpriteMapNode } from "../../tools/guards/sprites";
-import { isGPUParticleSystem, isParticleSystem } from "../../tools/guards/particles";
 import { serializePhysicsAggregate } from "../../tools/physics/serialization/aggregate";
-import { isCollisionMesh, isEditorCamera, isMesh, isTransformNode } from "../../tools/guards/nodes";
+import { isAnimationGroupFromSceneLink, isFromSceneLink } from "../../tools/scene/scene-link";
+import { isGPUParticleSystem, isNodeParticleSystemSetMesh, isParticleSystem } from "../../tools/guards/particles";
+import { isAnyTransformNode, isClusteredLightContainer, isCollisionMesh, isEditorCamera, isMesh, isTransformNode } from "../../tools/guards/nodes";
 
+import { taaPipelineCameraConfigurations } from "../../editor/rendering/taa";
 import { vlsPostProcessCameraConfigurations } from "../../editor/rendering/vls";
 import { saveRenderingConfigurationForCamera } from "../../editor/rendering/tools";
 import { ssrRenderingPipelineCameraConfigurations } from "../../editor/rendering/ssr";
@@ -29,15 +33,11 @@ import { iblShadowsRenderingPipelineCameraConfigurations } from "../../editor/re
 import { writeBinaryGeometry } from "../tools/geometry";
 import { writeBinaryMorphTarget } from "../tools/morph-target";
 
-export async function saveScene(editor: Editor, projectPath: string, scenePath: string): Promise<void> {
-	const fStat = await stat(scenePath);
-	if (!fStat.isDirectory()) {
-		return editor.layout.console.error("The scene path is not a directory.");
-	}
+import { saveMergedDecals } from "./decals";
+import { showSaveSceneProgressDialog } from "./dialog";
 
-	const relativeScenePath = scenePath.replace(join(projectPath, "/"), "");
-
-	await Promise.all([
+export function ensureSceneFolders(scenePath: string) {
+	return Promise.all([
 		createDirectoryIfNotExist(join(scenePath, "lods")),
 		createDirectoryIfNotExist(join(scenePath, "nodes")),
 		createDirectoryIfNotExist(join(scenePath, "meshes")),
@@ -48,23 +48,57 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 		createDirectoryIfNotExist(join(scenePath, "shadowGenerators")),
 		createDirectoryIfNotExist(join(scenePath, "sceneLinks")),
 		createDirectoryIfNotExist(join(scenePath, "gui")),
-		createDirectoryIfNotExist(join(scenePath, "sounds")),
+		createDirectoryIfNotExist(join(scenePath, "soundNodes")),
 		createDirectoryIfNotExist(join(scenePath, "particleSystems")),
 		createDirectoryIfNotExist(join(scenePath, "morphTargetManagers")),
 		createDirectoryIfNotExist(join(scenePath, "morphTargets")),
 		createDirectoryIfNotExist(join(scenePath, "animationGroups")),
 		createDirectoryIfNotExist(join(scenePath, "sprite-maps")),
 		createDirectoryIfNotExist(join(scenePath, "sprite-managers")),
+		createDirectoryIfNotExist(join(scenePath, "nodeParticleSystemSets")),
 	]);
+}
+
+export async function saveScene(editor: Editor, projectPath: string, scenePath: string): Promise<void> {
+	const fStat = await stat(scenePath);
+	if (!fStat.isDirectory()) {
+		return editor.layout.console.error("The scene path is not a directory.");
+	}
+
+	const dialog = await showSaveSceneProgressDialog(editor, "Saving scene...");
+
+	const relativeScenePath = scenePath.replace(join(projectPath, "/"), "");
+
+	await ensureSceneFolders(scenePath);
 
 	const scene = editor.layout.preview.scene;
+	const meshesToSave = scene.meshes.filter((mesh) => {
+		if ((!isMesh(mesh) && !isCollisionMesh(mesh)) || mesh._masterMesh || isFromSceneLink(mesh) || !isNodeVisibleInGraph(mesh)) {
+			return false;
+		}
+
+		return true;
+	});
+
+	const progressStep =
+		100 /
+		(meshesToSave.length +
+			scene.transformNodes.length +
+			scene.lights.length +
+			scene.cameras.length +
+			scene.particleSystems.length +
+			scene.skeletons.length +
+			scene.morphTargetManagers.length +
+			scene.animationGroups.length);
 
 	const savedFiles: string[] = [];
 	const savedGeometryIds: string[] = [];
 
+	storeTexturesBaseSize(scene);
+
 	// Write geometries and meshes
 	await Promise.all(
-		scene.meshes.map(async (mesh) => {
+		meshesToSave.map(async (mesh) => {
 			if ((!isMesh(mesh) && !isCollisionMesh(mesh)) || mesh._masterMesh || isFromSceneLink(mesh) || !isNodeVisibleInGraph(mesh)) {
 				return;
 			}
@@ -76,6 +110,16 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 					if (!meshToSerialize) {
 						return null;
 					}
+
+					meshToSerialize.material?.getActiveTextures().forEach((texture) => {
+						if (isTexture(texture)) {
+							texture.metadata ??= {};
+							texture.metadata.baseSize = {
+								width: texture.getBaseSize().width,
+								height: texture.getBaseSize().height,
+							};
+						}
+					});
 
 					const data = await SceneSerializer.SerializeMesh(meshToSerialize, false, false);
 					delete data.skeletons;
@@ -120,7 +164,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 							delete mesh.parentId;
 						}
 
-						if (!instantiatedMesh?.material) {
+						if (!instantiatedMesh?.material || instantiatedMesh.material === scene.defaultMaterial) {
 							delete mesh.materialUniqueId;
 						}
 
@@ -147,6 +191,15 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 							mesh.metadata ??= {};
 							mesh.metadata.physicsAggregate = serializePhysicsAggregate(instantiatedMesh.physicsAggregate);
 						}
+					});
+
+					data.materials = data.materials?.filter((material) => {
+						const instantiatedMaterial = scene.getMaterialById(material.id);
+						if (instantiatedMaterial && instantiatedMaterial !== scene.defaultMaterial) {
+							return true;
+						}
+
+						return false;
 					});
 
 					const lodLevel = mesh.getLODLevels().find((lodLevel) => lodLevel.mesh === meshToSerialize);
@@ -233,6 +286,8 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 						}
 					})
 			);
+
+			dialog.step(progressStep);
 		})
 	);
 
@@ -255,6 +310,8 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 			} finally {
 				savedFiles.push(skeletonPath);
 			}
+
+			dialog.step(progressStep);
 		})
 	);
 
@@ -302,13 +359,15 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 			} finally {
 				savedFiles.push(morphTargetManagerPath);
 			}
+
+			dialog.step(progressStep);
 		})
 	);
 
 	// Write transform nodes
 	await Promise.all(
 		scene.transformNodes.map(async (transformNode) => {
-			if (!isTransformNode(transformNode)) {
+			if (!isTransformNode(transformNode) || isFromSceneLink(transformNode)) {
 				return;
 			}
 
@@ -330,13 +389,15 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 			} finally {
 				savedFiles.push(transformNodePath);
 			}
+
+			dialog.step(progressStep);
 		})
 	);
 
 	// Write lights
 	await Promise.all(
-		scene.lights.map(async (light) => {
-			if (isFromSceneLink(light)) {
+		scene.lights.concat(editor.layout.preview.clusteredLightContainer.lights).map(async (light) => {
+			if (isFromSceneLink(light) || isClusteredLightContainer(light)) {
 				return;
 			}
 
@@ -376,6 +437,8 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 					savedFiles.push(shadowGeneratorPath);
 				}
 			}
+
+			dialog.step(progressStep);
 		})
 	);
 
@@ -404,6 +467,8 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 			} finally {
 				savedFiles.push(cameraPath);
 			}
+
+			dialog.step(progressStep);
 		})
 	);
 
@@ -425,6 +490,8 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 			} finally {
 				savedFiles.push(sceneLinkPath);
 			}
+
+			dialog.step(progressStep);
 		})
 	);
 
@@ -477,41 +544,49 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 		);
 	}
 
-	// Write sounds
-	const soundtracks = scene.soundTracks ?? [];
-
+	// Write sound nodes
 	await Promise.all(
-		soundtracks.map(async (soundtrack) => {
-			await Promise.all(
-				soundtrack.soundCollection.map(async (sound) => {
-					const soundPath = join(scenePath, "sounds", `${sound.id}.json`);
+		scene.transformNodes.map(async (transformNode) => {
+			if (!isSoundNode(transformNode) || isFromSceneLink(transformNode)) {
+				return;
+			}
 
-					try {
-						await writeJSON(
-							soundPath,
-							{
-								...sound.serialize(),
-								id: sound.id,
-								uniqueId: sound.uniqueId,
-							},
-							{
-								spaces: 4,
-							}
-						);
-					} catch (e) {
-						editor.layout.console.error(`Failed to write scene link node ${sound.name}`);
-					} finally {
-						savedFiles.push(soundPath);
-					}
-				})
-			);
+			const soundNodePath = join(scenePath, "soundNodes", `${transformNode.id}.json`);
+
+			try {
+				const data = transformNode.serialize();
+
+				data.metadata ??= {};
+				data.metadata.parentId = transformNode.parent?.uniqueId;
+
+				delete data.parentId;
+
+				await writeJSON(soundNodePath, data, {
+					spaces: 4,
+				});
+			} catch (e) {
+				editor.layout.console.error(`Failed to write sound node ${transformNode.name}`);
+			} finally {
+				savedFiles.push(soundNodePath);
+			}
+
+			dialog.step(progressStep);
 		})
 	);
 
 	// Write particle systems
 	await Promise.all(
 		scene.particleSystems.map(async (particleSystem) => {
+			if (particleSystem.isNodeGenerated) {
+				return;
+			}
+
 			const particleSystemPath = join(scenePath, "particleSystems", `${particleSystem.id}.json`);
+
+			const emitter = particleSystem.emitter;
+			if (emitter && isAnyTransformNode(emitter) && isFromSceneLink(emitter)) {
+				return;
+			}
 
 			try {
 				const data = particleSystem.serialize(true);
@@ -521,7 +596,6 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 				}
 
 				data.className = particleSystem.getClassName();
-				data.sourceParticleSystemSetId = particleSystem.sourceParticleSystemSetId;
 
 				await writeJSON(particleSystemPath, data, {
 					spaces: 4,
@@ -531,12 +605,48 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 			} finally {
 				savedFiles.push(particleSystemPath);
 			}
+
+			dialog.step(progressStep);
+		})
+	);
+
+	// Write node particle systems
+	await Promise.all(
+		scene.meshes.map(async (mesh) => {
+			if (!isNodeParticleSystemSetMesh(mesh) || isFromSceneLink(mesh)) {
+				return;
+			}
+
+			const nodeParticleSystemMeshPath = join(scenePath, "nodeParticleSystemSets", `${mesh.id}.json`);
+
+			try {
+				const data = mesh.serialize();
+
+				data.metadata ??= {};
+				data.metadata.parentId = mesh.parent?.uniqueId;
+
+				delete data.parentId;
+
+				await writeJSON(nodeParticleSystemMeshPath, data, {
+					spaces: 4,
+				});
+			} catch (e) {
+				editor.layout.console.error(`Failed to write transform node ${mesh.name}`);
+			} finally {
+				savedFiles.push(nodeParticleSystemMeshPath);
+			}
+
+			dialog.step(progressStep);
 		})
 	);
 
 	// Write animation groups
 	await Promise.all(
 		scene.animationGroups?.map(async (animationGroup) => {
+			if (isAnimationGroupFromSceneLink(animationGroup)) {
+				return;
+			}
+
 			const animationGroupPath = join(scenePath, "animationGroups", `${filenamify(animationGroup.name)}_${animationGroup.uniqueId}.json`);
 
 			try {
@@ -549,13 +659,15 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 			} finally {
 				savedFiles.push(animationGroupPath);
 			}
+
+			dialog.step(progressStep);
 		})
 	);
 
 	// Write sprite maps
 	await Promise.all(
 		scene.transformNodes.map(async (transformNode) => {
-			if (!isSpriteMapNode(transformNode)) {
+			if (!isSpriteMapNode(transformNode) || isFromSceneLink(transformNode)) {
 				return;
 			}
 
@@ -577,13 +689,15 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 			} finally {
 				savedFiles.push(spriteMapPath);
 			}
+
+			dialog.step(progressStep);
 		})
 	);
 
 	// Write sprite managers
 	await Promise.all(
 		scene.transformNodes.map(async (transformNode) => {
-			if (!isSpriteManagerNode(transformNode)) {
+			if (!isSpriteManagerNode(transformNode) || isFromSceneLink(transformNode)) {
 				return;
 			}
 
@@ -605,6 +719,8 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 			} finally {
 				savedFiles.push(spriteManagerPath);
 			}
+
+			dialog.step(progressStep);
 		})
 	);
 
@@ -622,6 +738,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 				clearColor: scene.clearColor.asArray(),
 				ambientColor: scene.ambientColor.asArray(),
 				environment: {
+					iblIntensity: scene.iblIntensity,
 					environmentIntensity: scene.environmentIntensity,
 					environmentTexture: scene.environmentTexture
 						? {
@@ -648,6 +765,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 					ssrRenderingPipeline: ssrRenderingPipelineCameraConfigurations.get(camera),
 					motionBlurPostProcess: motionBlurPostProcessCameraConfigurations.get(camera),
 					defaultRenderingPipeline: defaultPipelineCameraConfigurations.get(camera),
+					taaRenderingPipeline: taaPipelineCameraConfigurations.get(camera),
 					iblShadowsRenderPipeline: iblShadowsRenderingPipelineCameraConfigurations.get(camera),
 				})),
 				metadata: scene.metadata,
@@ -656,6 +774,13 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 					uniqueId: undefined,
 				},
 				animations: scene.animations.map((animation) => animation.serialize()),
+				clusteredLight: {
+					maxRange: editor.layout.preview.clusteredLightContainer.maxRange,
+					depthSlices: editor.layout.preview.clusteredLightContainer.depthSlices,
+					verticalTiles: editor.layout.preview.clusteredLightContainer.verticalTiles,
+					horizontalTiles: editor.layout.preview.clusteredLightContainer.horizontalTiles,
+					lights: editor.layout.preview.clusteredLightContainer.lights.map((light) => light.id),
+				},
 			},
 			{
 				spaces: 4,
@@ -666,6 +791,20 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 	} finally {
 		savedFiles.push(configPath);
 	}
+
+	// Don't remove attributes if exist
+	const attributesPath = join(scenePath, "attributes.json");
+	if (await pathExists(attributesPath)) {
+		savedFiles.push(attributesPath);
+	}
+
+	// Merge all decals
+	dialog.setName("Merging decals");
+	await saveMergedDecals(editor, {
+		scenePath,
+		savedFiles,
+		relativeScenePath,
+	});
 
 	// Remove old files
 	const files = await normalizedGlob(join(scenePath, "/**"), {
@@ -714,5 +853,8 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 	);
 
 	// Update assets cache in all scenes and assets files.
+	dialog.setName("Updating assets links");
 	await applyAssetsCache();
+
+	dialog.dispose();
 }

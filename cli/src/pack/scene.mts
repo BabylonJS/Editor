@@ -1,0 +1,799 @@
+import { join, basename, extname } from "node:path/posix";
+
+import fs, { pathExists } from "fs-extra";
+
+import { isSameArray } from "../tools/array.mjs";
+import { readSceneDirectories } from "../tools/scene.mjs";
+
+import { compressFileToKtx } from "./assets/ktx.mjs";
+import { collectUsedAssetsForScene } from "./assets/collect.mjs";
+import { extractNodeMaterialTextures } from "./assets/material.mjs";
+import { getExtractedTextureOutputPath } from "./assets/texture.mjs";
+import { extractNodeParticleSystemSetTextures, extractParticleSystemTextures } from "./assets/particle-system.mjs";
+
+import { configureMeshBinaryInfo } from "./geometry.mjs";
+
+export interface ICreateBabylonSceneOptions {
+	buildTime: number;
+	sceneFile: string;
+	sceneName: string;
+	publicDir: string;
+	babylonjsEditorToolsVersion: string;
+	exportedAssets: string[];
+	optimize: boolean;
+	compressedTexturesEnabled: boolean;
+
+	mergeDecals?: boolean;
+	mergeGeometries?: boolean;
+
+	config: any;
+	directories: Awaited<ReturnType<typeof readSceneDirectories>>;
+}
+
+export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
+	const lights: any[] = [];
+	const meshes: any[] = [];
+	const cameras: any[] = [];
+	const materials: any[] = [];
+	const skeletons: any[] = [];
+	const multiMaterials: any[] = [];
+	const transformNodes: any[] = [];
+	const particleSystems: any[] = [];
+	const shadowGenerators: any[] = [];
+	const morphTargetManagers: any[] = [];
+
+	let geometriesOffset = 0;
+	let geometriesPath: string | null = null;
+
+	interface _ICollectedGeometry {
+		mesh: any;
+		buffer: Buffer;
+	}
+
+	const collectedGeometries: _ICollectedGeometry[] = [];
+
+	// Merged decals
+	let mergedDecalsIds: any[] = [];
+
+	const mergedDecalsPath = join(options.sceneFile, "decals.json");
+	if (options.mergeDecals && (await pathExists(mergedDecalsPath))) {
+		const mergedDecals = await fs.readJSON(mergedDecalsPath, {
+			encoding: "utf-8",
+		});
+
+		await Promise.all(
+			mergedDecals.map(async (mesh) => {
+				if (mesh.delayLoadingFile) {
+					collectedGeometries.push({
+						mesh,
+						buffer: await fs.readFile(join(options.sceneFile, "geometries", basename(mesh.delayLoadingFile))),
+					});
+
+					if (options.mergeGeometries) {
+						geometriesPath ??= join(options.sceneName, basename(mesh.delayLoadingFile));
+						mesh.delayLoadingFile = geometriesPath;
+					} else {
+						mesh.delayLoadingFile = join(options.sceneName, basename(mesh.delayLoadingFile));
+					}
+				}
+
+				meshes.push(mesh);
+			})
+		);
+
+		mergedDecalsIds = mergedDecals.map((m) => m.metadata?.mergedMeshesIds ?? []).flat();
+	}
+
+	// Meshes
+	const meshesResult = await Promise.all(
+		options.directories.meshesFiles.map(async (file) => {
+			const data = await fs.readJSON(join(options.sceneFile, "meshes", file));
+			const mesh = data.meshes[0];
+
+			if (mesh.metadata?.doNotSerialize) {
+				return null;
+			}
+
+			const isDecal = mesh.metadata?.decal && options.mergeDecals && mergedDecalsIds.includes(mesh.id);
+
+			if (mesh.delayLoadingFile) {
+				if (!isDecal) {
+					collectedGeometries.push({
+						mesh,
+						buffer: await fs.readFile(join(options.sceneFile, "geometries", basename(mesh.delayLoadingFile))),
+					});
+				}
+
+				if (options.mergeGeometries) {
+					geometriesPath ??= join(options.sceneName, basename(mesh.delayLoadingFile));
+					mesh.delayLoadingFile = geometriesPath;
+				} else {
+					mesh.delayLoadingFile = join(options.sceneName, basename(mesh.delayLoadingFile));
+				}
+			}
+
+			if (mesh.metadata?.parentId) {
+				mesh.parentId = mesh.metadata.parentId;
+			}
+
+			mesh.instances?.forEach((instance) => {
+				if (instance.metadata?.parentId) {
+					instance.parentId = instance.metadata.parentId;
+				}
+			});
+
+			mesh.instances = mesh.instances?.filter((instance) => {
+				if (instance.metadata?.doNotSerialize) {
+					return null;
+				}
+
+				return instance;
+			});
+
+			if (data.basePoseMatrix) {
+				mesh.basePoseMatrix = data.basePoseMatrix;
+			}
+
+			let effectiveMaterials: any[] = [];
+
+			data.materials?.forEach((material) => {
+				const existingMaterial = materials.find((m) => m.id === material.id) ?? effectiveMaterials.find((m) => m.id === material.id);
+				if (!existingMaterial) {
+					effectiveMaterials.push(material);
+				}
+			});
+
+			data.multiMaterials?.forEach((multiMaterial) => {
+				delete multiMaterial.materialsUniqueIds;
+
+				const existingMultiMaterial = multiMaterials.find((mm) => mm.id === multiMaterial.id);
+				if (!existingMultiMaterial) {
+					multiMaterials.push(multiMaterial);
+				}
+			});
+
+			// LODs
+			let lodMeshes: any[] = [];
+			if (data.lods) {
+				mesh.lodMeshIds = [];
+				mesh.lodDistances = [];
+
+				const lodsResult = await Promise.all(
+					data.lods?.map(async (lodFile) => {
+						const lodData = await fs.readJSON(join(options.sceneFile, "lods", lodFile));
+						const lodMesh = lodData.meshes[0];
+
+						if (lodMesh.metadata?.doNotSerialize) {
+							return null;
+						}
+
+						if (lodMesh.delayLoadingFile) {
+							collectedGeometries.push({
+								mesh: lodMesh,
+								buffer: await fs.readFile(join(options.sceneFile, "geometries", basename(lodMesh.delayLoadingFile))),
+							});
+
+							if (options.mergeGeometries) {
+								geometriesPath ??= join(options.sceneName, basename(lodMesh.delayLoadingFile));
+								lodMesh.delayLoadingFile = geometriesPath;
+							} else {
+								lodMesh.delayLoadingFile = join(options.sceneName, basename(lodMesh.delayLoadingFile));
+							}
+						}
+
+						if (data.basePoseMatrix) {
+							lodMesh.basePoseMatrix = data.basePoseMatrix;
+						}
+
+						return {
+							lodMesh,
+							distanceOrScreenCoverage: lodData.distanceOrScreenCoverage,
+						};
+					})
+				);
+
+				lodsResult.forEach((lodData) => {
+					if (lodData) {
+						lodMeshes.push(lodData.lodMesh);
+
+						mesh.lodMeshIds.push(lodData.lodMesh.id);
+						mesh.lodDistances.push(lodData.distanceOrScreenCoverage);
+					}
+				});
+			}
+
+			if (isDecal) {
+				return {
+					lodMeshes,
+					effectiveMaterials,
+				};
+			}
+
+			return {
+				mesh,
+				lodMeshes,
+				effectiveMaterials,
+			};
+		})
+	);
+
+	meshesResult.forEach((result) => {
+		if (result?.mesh) {
+			meshes.push(result.mesh);
+		}
+
+		result?.lodMeshes.forEach((lodMesh) => {
+			meshes.push(lodMesh);
+		});
+
+		if (result?.effectiveMaterials.length) {
+			materials.push(...result.effectiveMaterials);
+		}
+	});
+
+	// Morph targets
+	const morphTargetResult = await Promise.all(
+		options.directories.morphTargetManagerFiles.map(async (file) => {
+			const data = await fs.readJSON(join(options.sceneFile, "morphTargetManagers", file));
+
+			if (options.babylonjsEditorToolsVersion >= "5.2.6") {
+				data.targets.forEach((target) => {
+					if (target.delayLoadingFile) {
+						target.delayLoadingFile = join(options.sceneName, "morphTargets", basename(target.delayLoadingFile));
+					}
+				});
+			} else {
+				await Promise.all(
+					data.targets.map(async (target) => {
+						const binaryFileData = join(options.sceneFile, "morphTargets", basename(target.delayLoadingFile));
+						const buffer = (await fs.readFile(binaryFileData)).buffer;
+
+						if (target.positionsCount) {
+							target.positions = Array.prototype.slice.call(new Float32Array(buffer, target.positionsOffset, target.positionsCount));
+						}
+
+						if (target.normalsCount) {
+							target.normals = Array.prototype.slice.call(new Float32Array(buffer, target.normalsOffset, target.normalsCount));
+						}
+
+						if (target.tangentsCount) {
+							target.tangents = Array.prototype.slice.call(new Float32Array(buffer, target.tangentsOffset, target.tangentsCount));
+						}
+
+						if (target.uvsCount) {
+							target.uvs = Array.prototype.slice.call(new Float32Array(buffer, target.uvsOffset, target.uvsCount));
+						}
+
+						if (target.uv2sCount) {
+							target.uv2s = Array.prototype.slice.call(new Float32Array(buffer, target.uv2sOffset, target.uv2sCount));
+						}
+
+						delete target.delayLoadingFile;
+
+						delete target.positionsCount;
+						delete target.normalsCount;
+						delete target.tangentsCount;
+						delete target.uvsCount;
+						delete target.uv2sCount;
+
+						delete target.positionsOffset;
+						delete target.normalsOffset;
+						delete target.tangentsOffset;
+						delete target.uvsOffset;
+						delete target.uv2sOffset;
+					})
+				);
+			}
+
+			return data;
+		})
+	);
+
+	morphTargetManagers.push(...morphTargetResult);
+
+	// Transform nodes
+	const transformNodesResult = await Promise.all(
+		options.directories.nodesFiles.map(async (file) => {
+			const data = await fs.readJSON(join(options.sceneFile, "nodes", file));
+			if (data.metadata?.doNotSerialize) {
+				return null;
+			}
+
+			if (data.metadata?.parentId) {
+				data.parentId = data.metadata.parentId;
+			}
+
+			return data;
+		})
+	);
+
+	transformNodes.push(
+		...transformNodesResult.filter((transformNode) => {
+			return transformNode !== null;
+		})
+	);
+
+	// Sprite managers
+	const spriteManagersResult = await Promise.all(
+		options.directories.spriteManagerFiles.map(async (file) => {
+			const data = await fs.readJSON(join(options.sceneFile, "sprite-managers", file));
+
+			if (data.metadata?.doNotSerialize) {
+				return null;
+			}
+
+			if (data.metadata?.parentId) {
+				data.parentId = data.metadata.parentId;
+			}
+
+			return data;
+		})
+	);
+
+	transformNodes.push(
+		...spriteManagersResult.filter((spriteManager) => {
+			return spriteManager !== null;
+		})
+	);
+
+	// Sprite maps
+	const spriteMapsResult = await Promise.all(
+		options.directories.spriteMapFiles.map(async (file) => {
+			const data = await fs.readJSON(join(options.sceneFile, "sprite-maps", file));
+
+			if (data.metadata?.doNotSerialize) {
+				return null;
+			}
+
+			if (data.metadata?.parentId) {
+				data.parentId = data.metadata.parentId;
+			}
+
+			return data;
+		})
+	);
+
+	transformNodes.push(
+		...spriteMapsResult.filter((spriteMap) => {
+			return spriteMap !== null;
+		})
+	);
+
+	// Sound nodes
+	const soundNodesResults = await Promise.all(
+		options.directories.soundNodeFiles.map(async (file) => {
+			const data = await fs.readJSON(join(options.sceneFile, "soundNodes", file));
+
+			if (data.metadata?.doNotSerialize) {
+				return null;
+			}
+
+			if (data.metadata?.parentId) {
+				data.parentId = data.metadata.parentId;
+			}
+
+			return data;
+		})
+	);
+
+	transformNodes.push(
+		...soundNodesResults.filter((soundNode) => {
+			return soundNode !== null;
+		})
+	);
+
+	// Lights
+	const lightsResult = await Promise.all(
+		options.directories.lightsFiles.map(async (file) => {
+			const data = await fs.readJSON(join(options.sceneFile, "lights", file));
+
+			if (data.metadata?.doNotSerialize) {
+				return null;
+			}
+
+			if (data.metadata?.parentId) {
+				data.parentId = data.metadata.parentId;
+			}
+
+			return data;
+		})
+	);
+
+	lights.push(
+		...lightsResult.filter((light) => {
+			return light !== null;
+		})
+	);
+
+	// Cameras
+	const camerasResult = await Promise.all(
+		options.directories.cameraFiles.map(async (file) => {
+			const data = await fs.readJSON(join(options.sceneFile, "cameras", file));
+
+			if (data.metadata?.doNotSerialize) {
+				return null;
+			}
+
+			if (data.metadata?.parentId) {
+				data.parentId = data.metadata.parentId;
+			}
+
+			return data;
+		})
+	);
+
+	cameras.push(
+		...camerasResult.filter((camera) => {
+			return camera !== null;
+		})
+	);
+
+	// Extract materials
+	const extractedTexturesOutputPath = getExtractedTextureOutputPath(options.publicDir);
+	await fs.ensureDir(extractedTexturesOutputPath);
+
+	await Promise.all(
+		materials.map(async (material) => {
+			if (material.customType === "BABYLON.NodeMaterial") {
+				const result = await extractNodeMaterialTextures(material, {
+					extractedTexturesOutputPath,
+				});
+
+				await Promise.all(
+					result.map(async (relativePath) => {
+						const finalPath = join(options.publicDir, relativePath);
+						options.exportedAssets.push(finalPath);
+
+						if (options.optimize && options.compressedTexturesEnabled) {
+							await compressFileToKtx(finalPath, {
+								...options,
+								force: false,
+								exportedAssets: options.exportedAssets,
+							});
+						}
+					})
+				);
+			}
+		})
+	);
+
+	// Extract particle systems
+	const particleSystemsResult = await Promise.all(
+		options.directories.particleSystemFiles.map(async (file) => {
+			const data = await fs.readJSON(join(options.sceneFile, "particleSystems", file));
+
+			if (data.metadata?.doNotSerialize) {
+				return null;
+			}
+
+			const result = await extractParticleSystemTextures(data, {
+				extractedTexturesOutputPath,
+			});
+
+			if (result) {
+				const finalPath = join(options.publicDir, result);
+				options.exportedAssets.push(finalPath);
+
+				if (options.optimize && options.compressedTexturesEnabled) {
+					await compressFileToKtx(finalPath, {
+						...options,
+						force: false,
+						exportedAssets: options.exportedAssets,
+					});
+				}
+			}
+
+			return data;
+		})
+	);
+
+	particleSystems.push(
+		...particleSystemsResult.filter((ps) => {
+			return ps !== null;
+		})
+	);
+
+	// Extract node particle system sets
+	const nodeParticleSystemSetsResult = await Promise.all(
+		options.directories.nodeParticleSystemSetFiles.map(async (file) => {
+			const data = await fs.readJSON(join(options.sceneFile, "nodeParticleSystemSets", file));
+
+			if (data.metadata?.doNotSerialize) {
+				return null;
+			}
+
+			if (data.metadata?.parentId) {
+				data.parentId = data.metadata.parentId;
+			}
+
+			if (data.nodeParticleSystemSet) {
+				const result = await extractNodeParticleSystemSetTextures(data.nodeParticleSystemSet, {
+					extractedTexturesOutputPath,
+				});
+
+				await Promise.all(
+					result.map(async (relativePath) => {
+						const finalPath = join(options.publicDir, relativePath);
+						options.exportedAssets.push(finalPath);
+
+						if (options.optimize && options.compressedTexturesEnabled) {
+							await compressFileToKtx(finalPath, {
+								...options,
+								force: false,
+								exportedAssets: options.exportedAssets,
+							});
+						}
+					})
+				);
+			}
+
+			return data;
+		})
+	);
+
+	meshes.push(
+		...nodeParticleSystemSetsResult.filter((node) => {
+			return node !== null;
+		})
+	);
+
+	// Shadow generators
+	const shadowGeneratorsResult = await Promise.all(
+		options.directories.shadowGeneratorFiles.map(async (file) => {
+			const data = await fs.readJSON(join(options.sceneFile, "shadowGenerators", file));
+
+			const light = lights.find((l) => l.id === data.lightId);
+			if (!light) {
+				return null;
+			}
+
+			return data;
+		})
+	);
+
+	shadowGenerators.push(
+		...shadowGeneratorsResult.filter((sg) => {
+			return sg !== null;
+		})
+	);
+
+	// Skeletons
+	const skeletonsResult = await Promise.all(
+		options.directories.skeletonFiles.map(async (file) => {
+			const data = await fs.readJSON(join(options.sceneFile, "skeletons", file));
+			const mesh = meshes.find((m) => m.skeletonId === data.id);
+			if (!mesh) {
+				return null;
+			}
+
+			return data;
+		})
+	);
+
+	skeletons.push(
+		...skeletonsResult.filter((skeleton) => {
+			return skeleton !== null;
+		})
+	);
+
+	const scene = {
+		autoClear: true,
+		clearColor: options.config.clearColor,
+		ambientColor: options.config.ambientColor,
+
+		gravity: options.config.gravity ?? [0, -9.81, 0],
+
+		collisionsEnabled: true,
+		useRightHandedSystem: false,
+
+		fogMode: options.config.fog.fogMode,
+		fogColor: options.config.fog.fogColor,
+		fogStart: options.config.fog.fogStart,
+		fogEnd: options.config.fog.fogEnd,
+		fogDensity: options.config.fog.fogDensity,
+
+		physicsEnabled: true,
+		physicsGravity: options.config.physics.gravity,
+		physicsEngine: "HavokPlugin",
+
+		metadata: {
+			...options.config.metadata,
+			rendering: options.config.rendering,
+			clusteredLight: options.config.clusteredLight,
+		},
+
+		morphTargetManagers,
+		lights,
+		cameras,
+
+		animations: options.config.animations,
+		materials,
+		multiMaterials,
+
+		environmentTexture: options.config.environment.environmentTexture,
+		environmentIntensity: options.config.environment.environmentIntensity,
+		iblIntensity: options.config.environment.iblIntensity ?? 1,
+
+		skeletons,
+		transformNodes,
+
+		geometries: {
+			boxes: [],
+			spheres: [],
+			cylinders: [],
+			toruses: [],
+			grounds: [],
+			planes: [],
+			torusKnots: [],
+			vertexData: [],
+		},
+
+		meshes,
+		particleSystems,
+
+		sounds: await Promise.all(
+			options.directories.soundFiles.map(async (file) => {
+				return fs.readJSON(join(options.sceneFile, "sounds", file));
+			})
+		),
+
+		shadowGenerators,
+
+		animationGroups: await Promise.all(
+			options.directories.animationGroupFiles.map(async (file) => {
+				return fs.readJSON(join(options.sceneFile, "animationGroups", file));
+			})
+		),
+
+		postProcesses: [],
+		spriteManagers: [],
+		reflectionProbes: [],
+	} as any;
+
+	// Resolve parenting for mesh instances.
+	const allNodes = [...scene.meshes, ...scene.cameras, ...scene.lights, ...scene.transformNodes, ...scene.meshes.map((m) => m.instances ?? []).flat()];
+
+	allNodes.forEach((node) => {
+		if (node.parentId !== undefined && node.parentInstanceIndex !== undefined) {
+			const effectiveMesh = scene.meshes.find((mesh) => {
+				return mesh.instances?.find((instance) => instance.uniqueId === node.parentId);
+			});
+
+			if (effectiveMesh) {
+				node.parentId = effectiveMesh.uniqueId;
+			}
+		}
+	});
+
+	// Configue ennviornment texture
+	if (scene.environmentTexture?.name && scene.environmentTexture.customType === "BABYLON.HDRCubeTexture") {
+		scene.environmentTextureSize = 512;
+		scene.environmentTextureType = "BABYLON.HDRCubeTexture";
+		scene.environmentTextureRotationY = scene.environmentTexture.rotationY;
+		scene.environmentTexture = scene.environmentTexture.name;
+	}
+
+	// Manage usedfiles
+	const usedFiles = await collectUsedAssetsForScene(scene, options.publicDir);
+	usedFiles.push(`${options.sceneName}.babylon`);
+
+	const geometryFiles = usedFiles.filter((file) => extname(file).toLowerCase() === ".babylonbinarymeshdata").map((file) => basename(file));
+
+	const sameArrays = new Map<Buffer, any[]>();
+
+	for (let i = 0, iLen = collectedGeometries.length; i < iLen; ++i) {
+		const a = collectedGeometries[i];
+
+		for (let j = i + 1, jLen = collectedGeometries.length; j < jLen; ++j) {
+			const b = collectedGeometries[j];
+
+			if (isSameArray<ArrayBufferLike>(a.buffer, b.buffer)) {
+				// Search for existing mesh
+				let foundMesh = false;
+				for (const [, meshes] of sameArrays.entries()) {
+					if (meshes.includes(b.mesh)) {
+						foundMesh = true;
+						break;
+					}
+				}
+
+				if (foundMesh) {
+					continue;
+				}
+
+				if (!sameArrays.has(a.buffer)) {
+					sameArrays.set(a.buffer, [a.mesh]);
+				}
+
+				sameArrays.get(a.buffer)!.push(b.mesh);
+			}
+		}
+	}
+
+	const finalGeometryBuffers: Buffer[] = [];
+
+	if (options.mergeGeometries) {
+		for (const data of collectedGeometries) {
+			if (sameArrays.has(data.buffer)) {
+				continue;
+			}
+
+			const configuredBinaryInfo = configureMeshBinaryInfo(data.mesh, geometriesOffset);
+			geometriesOffset += configuredBinaryInfo.offset;
+
+			finalGeometryBuffers.push(data.buffer);
+		}
+	}
+
+	let reusedGeometriesCount = 0;
+
+	for (const [buffer, meshes] of sameArrays.entries()) {
+		reusedGeometriesCount += meshes.length;
+
+		if (meshes.length > 0) {
+			if (options.mergeGeometries) {
+				const configuredBinaryInfo = configureMeshBinaryInfo(meshes[0], geometriesOffset);
+				geometriesOffset += configuredBinaryInfo.offset;
+
+				finalGeometryBuffers.push(buffer);
+			}
+
+			const binaryInfo = meshes[0]._binaryInfo;
+			for (let i = 1, len = meshes.length; i < len; ++i) {
+				meshes[i]._binaryInfo = binaryInfo;
+				meshes[i].delayLoadingFile = meshes[0].delayLoadingFile;
+			}
+		}
+	}
+
+	// Write final scene file.
+	const sceneDestination = join(options.publicDir, `${options.sceneName}.babylon`);
+	await fs.writeJSON(sceneDestination, scene, {
+		encoding: "utf-8",
+		// spaces: "\t", // Useful for debug
+	});
+
+	options.exportedAssets.push(sceneDestination);
+
+	// Write final geometry file
+	if (geometriesPath) {
+		const totalLength = finalGeometryBuffers.reduce((acc, buffer) => acc + buffer.length, 0);
+
+		const geometriesFolder = join(options.publicDir, options.sceneName);
+		await fs.ensureDir(geometriesFolder);
+
+		const geometriesDestination = join(geometriesFolder, basename(geometriesPath));
+		await fs.writeFile(geometriesDestination, Buffer.concat(finalGeometryBuffers, totalLength));
+
+		options.exportedAssets.push(geometriesDestination);
+	}
+
+	// Write manifest
+	if (options.optimize) {
+		const manifestDestination = join(options.publicDir, `${options.sceneName}.babylon.manifest`);
+
+		let manifest = {
+			version: options.buildTime,
+			enableSceneOffline: true,
+			enableTexturesOffline: true,
+		};
+
+		if (await fs.pathExists(manifestDestination)) {
+			manifest = await fs.readJSON(manifestDestination);
+			manifest.version = options.buildTime;
+		}
+
+		await fs.writeJSON(manifestDestination, manifest, {
+			encoding: "utf-8",
+			// spaces: "\t", // Useful for debug
+		});
+
+		options.exportedAssets.push(manifestDestination);
+	}
+
+	return {
+		usedFiles,
+		geometryFiles,
+		reusedGeometriesCount,
+	};
+}

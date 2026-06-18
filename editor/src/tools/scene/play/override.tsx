@@ -1,7 +1,7 @@
 import { isAbsolute } from "path";
 import { join, dirname } from "path/posix";
 
-import { Engine, WebRequest, Observable, Observer, ExitPointerlock, ExitFullscreen } from "babylonjs";
+import { Engine, WebRequest, Observable, Observer, ExitPointerlock, ExitFullscreen, SerializationHelper } from "babylonjs";
 
 import { getCurrentCallStack } from "../../tools";
 
@@ -16,6 +16,12 @@ const savedConsoleMethods: Record<string, any> = {
 
 const savedWindowMethods: Record<string, any> = {
 	fetch: window.fetch,
+
+	setTimeout: window.setTimeout,
+	clearTimeout: window.clearTimeout,
+
+	setInterval: window.setInterval,
+	clearInterval: window.clearInterval,
 };
 
 const savedWebRequestMethods: Record<string, any> = {
@@ -24,6 +30,12 @@ const savedWebRequestMethods: Record<string, any> = {
 
 const savedEngineMethods: Record<string, any> = {
 	createTexture: Engine.prototype.createTexture,
+	createCubeTexture: Engine.prototype.createCubeTexture,
+	createRawCubeTextureFromUrl: Engine.prototype.createRawCubeTextureFromUrl,
+};
+
+const savedTextureMethods: Record<string, any> = {
+	textureParser: null,
 };
 
 const savedObservableMethods: Record<string, any> = {
@@ -50,6 +62,9 @@ const savedHtmlElementListeners: {
 	listener: EventListenerOrEventListenerObject;
 }[] = [];
 
+const savedTimeoutIds: number[] = [];
+const savedIntervalIds: number[] = [];
+
 function normalizeUrl(url: string) {
 	if (url.startsWith("scene/")) {
 		url = url.substring("scene/".length);
@@ -74,8 +89,28 @@ export function restorePlayOverrides(editor: Editor) {
 
 	window.fetch = savedWindowMethods.fetch;
 
+	window.setTimeout = savedWindowMethods.setTimeout;
+	window.clearTimeout = savedWindowMethods.clearTimeout;
+
+	window.setInterval = savedWindowMethods.setInterval;
+	window.clearInterval = savedWindowMethods.clearInterval;
+
+	savedTimeoutIds.forEach((id) => {
+		clearTimeout(id);
+	});
+	savedTimeoutIds.splice(0, savedTimeoutIds.length);
+
+	savedIntervalIds.forEach((id) => {
+		clearInterval(id);
+	});
+	savedIntervalIds.splice(0, savedIntervalIds.length);
+
 	WebRequest.prototype.open = savedWebRequestMethods.open;
+
 	Engine.prototype.createTexture = savedEngineMethods.createTexture;
+	Engine.prototype.createCubeTexture = savedEngineMethods.createCubeTexture;
+	Engine.prototype.createRawCubeTextureFromUrl = savedEngineMethods.createRawCubeTextureFromUrl;
+	SerializationHelper._TextureParser = savedTextureMethods.textureParser;
 
 	Observable.prototype.add = savedObservableMethods.add;
 	Observable.prototype.addOnce = savedObservableMethods.addOnce;
@@ -154,6 +189,47 @@ export function applyOverrides(editor: Editor) {
 		return savedWindowMethods.fetch.call(window, input, init);
 	};
 
+	window.setTimeout = ((callback: (...args: any[]) => void, timeout?: number, ...args: any[]) => {
+		const id = savedWindowMethods.setTimeout.call(
+			window,
+			(...args: any[]) => {
+				callback(...args);
+				const index = savedTimeoutIds.indexOf(id);
+				if (index !== -1) {
+					savedTimeoutIds.splice(index, 1);
+				}
+			},
+			timeout,
+			...args
+		);
+		savedTimeoutIds.push(id);
+		return id;
+	}) as any;
+
+	window.clearTimeout = (id: number) => {
+		const index = savedTimeoutIds.indexOf(id);
+		if (index !== -1) {
+			savedTimeoutIds.splice(index, 1);
+		}
+
+		return savedWindowMethods.clearTimeout.call(window, id);
+	};
+
+	window.setInterval = (handler: TimerHandler, timeout?: number) => {
+		const id = savedWindowMethods.setInterval.call(window, handler, timeout);
+		savedIntervalIds.push(id);
+		return id;
+	};
+
+	window.clearInterval = (id: number) => {
+		const index = savedIntervalIds.indexOf(id);
+		if (index !== -1) {
+			savedIntervalIds.splice(index, 1);
+		}
+
+		return savedWindowMethods.clearInterval.call(window, id);
+	};
+
 	// HTML Element
 	HTMLElement.prototype.addEventListener = function (type: string, listener: EventListenerOrEventListenerObject, ...args: any[]) {
 		if (!getCurrentCallStack().includes(projectDir)) {
@@ -197,22 +273,44 @@ export function applyOverrides(editor: Editor) {
 	};
 
 	// Engine
-	Engine.prototype.createTexture = (url: string, ...args: any[]) => {
-		if (!isAbsolute(url) && !url.startsWith("data:")) {
-			url = normalizeUrl(url);
-			url = join(publicScene, url);
+	Engine.prototype.createRawCubeTextureFromUrl = (url: string, ...args: any[]) => {
+		if (url && url.includes(publicScene)) {
+			url = url.replace(publicScene, projectDir);
 		}
 
-		const temporaryTextureIndex = url?.indexOf(".bjseditor") ?? -1;
+		return savedEngineMethods.createRawCubeTextureFromUrl.call(editor.layout.preview.engine, url, ...args);
+	};
 
-		if (temporaryTextureIndex !== -1) {
-			url = join(publicDir, "..", url.substring(temporaryTextureIndex));
-		} else if (url?.includes(publicScene)) {
-			url = url.replace(publicScene, projectDir);
+	Engine.prototype.createCubeTexture = (rootUrl: string, ...args: any[]) => {
+		if (rootUrl && rootUrl.includes(publicScene)) {
+			rootUrl = rootUrl.replace(publicScene, projectDir);
+		}
+
+		return savedEngineMethods.createCubeTexture.call(editor.layout.preview.engine, rootUrl, ...args);
+	};
+
+	Engine.prototype.createTexture = (url: string, ...args: any[]) => {
+		if (url) {
+			if (!isAbsolute(url) && !url.startsWith("data:")) {
+				url = normalizeUrl(url);
+				url = join(publicScene, url);
+			}
+
+			const temporaryTextureIndex = url?.indexOf(".bjseditor") ?? -1;
+			const isExtractedTexture = url.includes("assets/editor-generated_extracted-textures");
+
+			if (temporaryTextureIndex !== -1) {
+				url = join(publicDir, "..", url.substring(temporaryTextureIndex));
+			} else if (url?.includes(publicScene) && !isExtractedTexture) {
+				url = url.replace(publicScene, projectDir);
+			}
 		}
 
 		return savedEngineMethods.createTexture.call(editor.layout.preview.engine, url, ...args);
 	};
+
+	// Textures
+	savedTextureMethods.textureParser = SerializationHelper._TextureParser;
 
 	// Observable
 	Observable.prototype.add = function (callback: any, ...args: any[]) {

@@ -1,20 +1,21 @@
 import { ipcRenderer } from "electron";
-import { copy, pathExists } from "fs-extra";
 import { join, basename, dirname } from "path/posix";
+import { copy, pathExists, readJSON, writeJSON } from "fs-extra";
 
 import { ReactNode } from "react";
 
 import { SiBabylondotjs } from "react-icons/si";
 import { HiOutlineDuplicate, HiOutlineExternalLink } from "react-icons/hi";
 
+import { ContextMenuCheckboxItem, ContextMenuItem, ContextMenuSeparator } from "../../../../ui/shadcn/ui/context-menu";
+
 import { renameScene } from "../../../../tools/scene/rename";
 import { waitNextAnimationFrame } from "../../../../tools/tools";
-
-import { ContextMenuItem } from "../../../../ui/shadcn/ui/context-menu";
 
 import { AssetsBrowserItem } from "./item";
 
 export class AssetBrowserSceneItem extends AssetsBrowserItem {
+	private _doNotExport: boolean = false;
 	private _previewPath: string | null = null;
 
 	/**
@@ -29,6 +30,10 @@ export class AssetBrowserSceneItem extends AssetsBrowserItem {
 				<ContextMenuItem className="flex items-center gap-2" onClick={() => this._handleEdit()}>
 					<HiOutlineExternalLink className="w-5 h-5" /> Edit...
 				</ContextMenuItem>
+				<ContextMenuSeparator />
+				<ContextMenuCheckboxItem checked={this._doNotExport} onClick={() => this._handleDoNotExport()}>
+					Do not export
+				</ContextMenuCheckboxItem>
 			</>
 		);
 	}
@@ -50,6 +55,13 @@ export class AssetBrowserSceneItem extends AssetsBrowserItem {
 		const previewPath = join(this.props.absolutePath, "preview.png");
 		if (await pathExists(previewPath)) {
 			this._previewPath = previewPath;
+			this.forceUpdate();
+		}
+
+		const attributesPath = join(this.props.absolutePath, "attributes.json");
+		if (await pathExists(attributesPath)) {
+			const attributes = await readJSON(attributesPath);
+			this._doNotExport = attributes.doNotExport;
 			this.forceUpdate();
 		}
 	}
@@ -79,6 +91,28 @@ export class AssetBrowserSceneItem extends AssetsBrowserItem {
 		waitNextAnimationFrame().then(() => {
 			this.props.editor.layout.assets.setSelectedFile(newAbsolutePath);
 		});
+	}
+
+	private async _handleDoNotExport(): Promise<void> {
+		this._doNotExport = !this._doNotExport;
+
+		let attributes = {
+			doNotExport: this._doNotExport,
+		};
+
+		const attributesPath = join(this.props.absolutePath, "attributes.json");
+		if (await pathExists(attributesPath)) {
+			attributes = await readJSON(attributesPath);
+		}
+
+		attributes.doNotExport = this._doNotExport;
+
+		await writeJSON(attributesPath, attributes, {
+			spaces: "\t",
+			encoding: "utf-8",
+		});
+
+		this.forceUpdate();
 	}
 
 	private async _handleEdit(): Promise<void> {

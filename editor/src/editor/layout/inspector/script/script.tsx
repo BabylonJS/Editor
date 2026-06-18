@@ -36,16 +36,20 @@ export class ScriptInspectorComponent extends Component<IScriptInspectorComponen
 	public render(): ReactNode {
 		return (
 			<EditorInspectorSectionField title="Scripts">
-				{this.props.object.metadata?.scripts?.map((script: any, index: number) => (
-					<InspectorScriptField
-						script={script}
-						scriptIndex={index}
-						key={Tools.RandomId()}
-						editor={this.props.editor}
-						object={this.props.object}
-						onRemove={() => this._handleRemoveScript(index)}
-					/>
-				))}
+				{this.props.object.metadata?.scripts?.map((script: any, index: number) => {
+					script._id ??= Tools.RandomId();
+
+					return (
+						<InspectorScriptField
+							key={script._id}
+							script={script}
+							scriptIndex={index}
+							editor={this.props.editor}
+							object={this.props.object}
+							onRemove={() => this._handleRemoveScript(index)}
+						/>
+					);
+				})}
 
 				{this._getEmptyComponent()}
 			</EditorInspectorSectionField>

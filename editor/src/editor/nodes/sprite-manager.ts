@@ -82,7 +82,7 @@ export class SpriteManagerNode extends TransformNode {
 		);
 		this.spriteManager.isPickable = true;
 
-		configureImportedTexture(this.spriteManager.texture);
+		configureImportedTexture(this.spriteManager.texture, true);
 
 		if (serializeSpriteManager) {
 			this._parseSpriteManager(serializeSpriteManager);
@@ -118,7 +118,7 @@ export class SpriteManagerNode extends TransformNode {
 		);
 		this.spriteManager.isPickable = true;
 
-		configureImportedTexture(this.spriteManager.texture);
+		configureImportedTexture(this.spriteManager.texture, true);
 
 		if (serializeSpriteManager) {
 			this._parseSpriteManager(serializeSpriteManager);
@@ -283,6 +283,6 @@ export class SpriteManagerNode extends TransformNode {
 	}
 }
 
-Node.AddNodeConstructor("SpriteMapNode", (name, scene) => {
+Node.AddNodeConstructor("SpriteManagerNode", (name, scene) => {
 	return () => new SpriteManagerNode(name, scene);
 });

@@ -10,6 +10,7 @@ import { EditorInspectorTextureField } from "../fields/texture";
 import { EditorInspectorSectionField } from "../fields/section";
 
 import { EditorAlphaModeField } from "./components/alpha";
+import { EditorDetailMapInspector } from "./components/detail";
 import { EditorTransparencyModeField } from "./components/transparency";
 import { EditorMaterialInspectorUtilsComponent } from "./components/utils";
 
@@ -79,6 +80,8 @@ export function EditorStandardMaterialInspector(props: IEditorStandardMaterialIn
 				<EditorInspectorNumberField label="Emissive Intensity" object={props.material} property="emissiveIntensity" min={0} />
 				<EditorInspectorNumberField label="Specular Intensity" object={props.material} property="specularIntensity" min={0} />
 			</EditorInspectorSectionField>
+
+			<EditorDetailMapInspector material={props.material} />
 
 			<EditorInspectorSectionField title="Misc">
 				<EditorInspectorSwitchField label="Disable Lighting" object={props.material} property="disableLighting" />

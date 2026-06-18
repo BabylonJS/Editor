@@ -1,4 +1,4 @@
-import { BaseTexture, Node, Observable, IParticleSystem, Sprite } from "babylonjs";
+import { BaseTexture, Node, Observable, IParticleSystem, Sprite, Skeleton } from "babylonjs";
 
 /**
  * Observable for when the project has been saved.
@@ -14,6 +14,11 @@ export const onNodesAddedObservable = new Observable<void>();
  * Observable for when a node has been modified in the editor.
  */
 export const onNodeModifiedObservable = new Observable<Node>();
+
+/**
+ * Observable for when a skeleton has been modified in the editor.
+ */
+export const onSkeletonModifiedObservable = new Observable<Skeleton>();
 
 /**
  * Observable for when a sprite has been modified in the editor.

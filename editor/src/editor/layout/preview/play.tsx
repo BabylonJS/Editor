@@ -10,17 +10,13 @@ import { Grid } from "react-loader-spinner";
 
 import { IoPlay, IoStop, IoRefresh } from "react-icons/io5";
 
-import { IRegisteredScript } from "babylonjs-editor-tools";
-import { Node, Scene, Vector3, HavokPlugin, Sprite } from "babylonjs";
+import { Scene, Vector3, HavokPlugin } from "babylonjs";
 
 import { ensureTemporaryDirectoryExists } from "../../../tools/project";
 
-import { isNode } from "../../../tools/guards/nodes";
-import { isScene } from "../../../tools/guards/scene";
-import { isSprite } from "../../../tools/guards/sprites";
-import { compilePlayScript } from "../../../tools/scene/play/compile";
+import { compileScript } from "../../../tools/compile";
+import { wait, waitNextAnimationFrame } from "../../../tools/tools";
 import { forceCompileAllSceneMaterials } from "../../../tools/scene/materials";
-import { cloneJSObject, wait, waitNextAnimationFrame } from "../../../tools/tools";
 import { applyOverrides, restorePlayOverrides } from "../../../tools/scene/play/override";
 
 import { exportProject } from "../../../project/export/export";
@@ -209,10 +205,10 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 	 * It will dispose the scene and reset the state.
 	 */
 	public stop(): void {
-		restorePlayOverrides(this.props.editor);
-
 		this.scene?.dispose();
 		this.scene = null;
+
+		restorePlayOverrides(this.props.editor);
 
 		this.props.editor.layout.preview.engine.wipeCaches(true);
 
@@ -262,6 +258,7 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 			// Export first as src/scripts.ts may change during the export.
 			await exportProject(this.props.editor, {
 				optimize: false,
+				noProgress: true,
 			});
 		}
 
@@ -288,13 +285,15 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 	/**
 	 * The script that is required and executed is a bundled version of the "src/scripts.ts" file.
 	 * Here we use esbuild to bundle the scripts and transform the imports to use the correct paths.
-	 * @see compilePlayScript for more information.
+	 * @see compileScript for more information.
 	 */
 	private async _compileScripts(): Promise<boolean> {
 		const log = await this.props.editor.layout.console.progress("Compiling scripts...");
 
 		try {
-			await compilePlayScript(this._temporaryDirectory!, {
+			await compileScript({
+				entryPoints: [join(dirname(projectConfiguration.path!), "src/scripts.ts")],
+				outfile: join(this._temporaryDirectory!, "play/script.cjs"),
 				onTransformSource: (path) =>
 					log.setState({
 						message: `Compiling source: ${basename(path)}`,
@@ -308,6 +307,7 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 
 			return true;
 		} catch (e) {
+			console.error("Failed to compile play scripts:", e);
 			if (e instanceof Error) {
 				this.props.editor.layout.console.error(`Failed to compile play scripts:\n${e.message}`);
 			}
@@ -396,13 +396,7 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 			if (this.canPlayScene) {
 				this.props.editor.layout.console.log(`Detected change in ${path}, restarting play...`);
 				await this._compileScripts();
-
-				if (this.props.editor.state.enableExperimentalFeatures) {
-					const scriptKey = path.replace(nativeJoin(srcPath, "/"), "").replace(/\\/g, "/");
-					this.hotReloadScript(scriptKey, true);
-				} else {
-					await this.restart();
-				}
+				await this.restart();
 			}
 		});
 	}
@@ -410,78 +404,5 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 	private _closeWatchSrcDirectory(): void {
 		this._srcWatcher?.close();
 		this._srcWatcher = null;
-	}
-
-	public hotReloadScript(scriptKey: string, compile: boolean): void {
-		if (!this.scene || !this.state.playing || !this.props.editor.state.enableExperimentalFeatures) {
-			return;
-		}
-
-		const oldScriptExports = this._compiledScriptExports;
-		const originalScene = this.props.editor.layout.preview.scene;
-
-		const projectDir = dirname(projectConfiguration.path!);
-		const rootUrl = join(projectDir, "public", "scene", "/");
-
-		if (compile) {
-			this._requireCompiledScripts();
-		}
-
-		if (oldScriptExports) {
-			Object.assign(this._compiledScriptExports.scriptAssetsCache, oldScriptExports.scriptAssetsCache);
-		}
-
-		const allNodes = [this.scene, ...this.scene.meshes, ...this.scene.transformNodes, ...this.scene.lights, ...this.scene.cameras] as (Node | Scene | Sprite)[];
-
-		this.scene.spriteManagers?.forEach((manager) => {
-			allNodes.push(...manager.sprites);
-		});
-
-		allNodes.forEach((n) => {
-			const runningScripts = oldScriptExports.scriptsDictionary.get(n) as IRegisteredScript[] | undefined;
-			if (!runningScripts) {
-				return;
-			}
-
-			const runningScriptsCopy = runningScripts.slice();
-
-			runningScriptsCopy.forEach(async (script) => {
-				if (script.key !== scriptKey) {
-					return;
-				}
-
-				oldScriptExports._removeRegisteredScriptInstance(n, script);
-
-				let sourceObject: Node | Scene | Sprite | null | undefined;
-				if (isScene(n)) {
-					sourceObject = originalScene;
-				} else if (isNode(n)) {
-					sourceObject = originalScene.getNodeById(n.id);
-				} else if (isSprite(n)) {
-					spriteLoop: for (const manager of originalScene.spriteManagers ?? []) {
-						for (const sprite of manager.sprites) {
-							if (sprite.uniqueId === n.uniqueId) {
-								sourceObject = sprite;
-								break spriteLoop;
-							}
-						}
-					}
-				}
-
-				const sourceMetadata = sourceObject?.metadata?.scripts?.find((sourceScript) => sourceScript.key === script.key);
-
-				if (sourceMetadata) {
-					n.metadata ??= {};
-					n.metadata.scripts ??= [];
-					n.metadata.scripts.push(cloneJSObject(sourceMetadata));
-				}
-			});
-		});
-
-		this._compiledScriptExports._preloadScriptsAssets(this.scene, rootUrl).then(() => {
-			allNodes.forEach((n) => {
-				this._compiledScriptExports._applyScriptsForObject(this.scene!, n, this._compiledScriptExports.scriptsMap, rootUrl);
-			});
-		});
 	}
 }

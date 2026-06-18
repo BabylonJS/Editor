@@ -66,8 +66,36 @@ export function EditorInspectorAssetField(props: IEditorInspectorAssetFieldProps
 		const relativePath = data[0].replace(rootUrl, "");
 		const extension = extname(relativePath).toLowerCase();
 
+		if (props.assetType === "json") {
+			try {
+				await readJSON(data[0]);
+			} catch (e) {
+				return showAlert("Can't assign asset", "Only parsable JSON files are supported.");
+			}
+		}
+
+		if (props.assetType === "gui" && extension !== ".gui") {
+			return showAlert("Can't assign asset", "Only GUI files (.gui) are supported.");
+		}
+
 		if (props.assetType === "nodeParticleSystemSet" && extension !== ".npss") {
 			return showAlert("Can't assign asset", "Only Node Particle System Set files (.npss) are supported.");
+		}
+
+		if (props.assetType === "scene" && extension !== ".scene") {
+			return showAlert("Can't assign asset", "Only Scene files (.scene) are supported.");
+		}
+
+		if (props.assetType === "cinematic" && extension !== ".cinematic") {
+			return showAlert("Can't assign asset", "Only Cinematic files (.cinematic) are supported.");
+		}
+
+		if (props.assetType === "navmesh" && extension !== ".navmesh") {
+			return showAlert("Can't assign asset", "Only NavMesh files (.navmesh) are supported.");
+		}
+
+		if (props.assetType === "ragdoll" && extension !== ".ragdoll") {
+			return showAlert("Can't assign asset", "Only Ragdoll configuration files (.ragdoll) are supported.");
 		}
 
 		if (props.assetType === "material") {
@@ -125,7 +153,7 @@ export function EditorInspectorAssetField(props: IEditorInspectorAssetFieldProps
 								<TooltipTrigger>
 									<MdOutlineInfo size={24} />
 								</TooltipTrigger>
-								<TooltipContent className="bg-muted text-muted-foreground text-sm p-2">{props.tooltip}</TooltipContent>
+								<TooltipContent className="bg-background text-muted-foreground text-sm p-2">{props.tooltip}</TooltipContent>
 							</Tooltip>
 						</TooltipProvider>
 					)}

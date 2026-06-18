@@ -6,6 +6,8 @@ import { createRoot } from "react-dom/client";
 
 import { Fade } from "react-awesome-reveal";
 
+import { FaGear } from "react-icons/fa6";
+
 import { Button } from "../ui/shadcn/ui/button";
 import { Toaster } from "../ui/shadcn/ui/sonner";
 import { Separator } from "../ui/shadcn/ui/separator";
@@ -15,9 +17,15 @@ import { wait } from "../tools/tools";
 import { openSingleFileDialog } from "../tools/dialog";
 import { ProjectType, projectsKey } from "../tools/project";
 import { checkNodeJSAvailable, nodeJSAvailable } from "../tools/process";
-import { tryAddProjectToLocalStorage, tryGetProjectsFromLocalStorage } from "../tools/local-storage";
+import {
+	tryAddProjectToLocalStorage,
+	tryGetCloseDashboardOnProjectOpenFromLocalStorage,
+	tryGetProjectsFromLocalStorage,
+	trySetCloseDashboardOnProjectOpenInLocalStorage,
+} from "../tools/local-storage";
 
 import { DashboardProjectItem } from "./item";
+import { DashboardPreferences } from "./preferences";
 import { DashboardCreateProjectDialog } from "./create";
 import { DashboardWindowControls } from "./window-controls";
 
@@ -48,6 +56,9 @@ export interface IDashboardState {
 	openedProjects: string[];
 
 	createProject: boolean;
+	preferencesOpen: boolean;
+
+	closeDashboardOnProjectOpen: boolean;
 }
 
 export class Dashboard extends Component<IDashboardProps, IDashboardState> {
@@ -59,6 +70,9 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
 			projects: tryGetProjectsFromLocalStorage(),
 
 			createProject: false,
+			preferencesOpen: false,
+
+			closeDashboardOnProjectOpen: tryGetCloseDashboardOnProjectOpenFromLocalStorage(),
 		};
 
 		webFrame.setZoomFactor(0.8);
@@ -67,40 +81,42 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
 	public render(): ReactNode {
 		return (
 			<>
-				<div className="flex flex-col gap-4 w-screen h-screen p-5 select-none overflow-x-hidden pt-10">
-					<DashboardWindowControls />
+				<div className="flex flex-col gap-4 w-screen h-screen p-5 select-none pt-10">
+					<div className="flex flex-col gap-4 flex-[0_0_auto]">
+						<DashboardWindowControls />
 
-					<Fade delay={0}>
-						<div className="flex justify-between items-end w-full mt-1">
-							<div className="text-5xl font-semibold">Dashboard</div>
+						<Fade delay={0}>
+							<div className="flex justify-between items-end w-full mt-1">
+								<div className="text-5xl font-semibold">Dashboard</div>
 
-							<div className="flex flex-col items-end gap-2">
-								<img alt="" src="assets/babylonjs_icon.png" className="w-[48px] object-contain" />
-								<div className="text-xs">Babylon.js Editor v{packageJson.version}</div>
+								<div className="flex flex-col items-end gap-2">
+									<img alt="" src="assets/babylonjs_icon.png" className="w-[48px] object-contain" />
+									<div className="text-xs">Babylon.js Editor v{packageJson.version}</div>
+								</div>
 							</div>
-						</div>
-					</Fade>
+						</Fade>
 
-					<Fade delay={250}>
-						<Separator />
-					</Fade>
+						<Fade delay={250}>
+							<Separator />
+						</Fade>
 
-					<Fade delay={500}>
-						<div className="flex justify-between items-center">
-							<div className="text-3xl font-semibold">Projects</div>
+						<Fade delay={500}>
+							<div className="flex justify-between items-center">
+								<div className="text-3xl font-semibold">Projects</div>
 
-							<div className="flex gap-2">
-								<Button variant="secondary" className="font-semibold" onClick={() => this._handleImportProject()}>
-									Import project
-								</Button>
-								<Button className="font-semibold" onClick={() => this.setState({ createProject: true })}>
-									Create project
-								</Button>
+								<div className="flex gap-2">
+									<Button variant="secondary" className="font-semibold" onClick={() => this._handleImportProject()}>
+										Import project
+									</Button>
+									<Button className="font-semibold" onClick={() => this.setState({ createProject: true })}>
+										Create project
+									</Button>
+								</div>
 							</div>
-						</div>
-					</Fade>
+						</Fade>
+					</div>
 
-					<Fade delay={750}>
+					<Fade delay={750} className="flex-auto overflow-y-auto p-2">
 						{!this.state.projects.length && <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">No project found.</div>}
 
 						{this.state.projects.length && (
@@ -110,22 +126,51 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
 										project={project}
 										key={project.absolutePath}
 										isOpened={this.state.openedProjects.includes(project.absolutePath)}
+										closeDashboardOnProjectOpen={this.state.closeDashboardOnProjectOpen}
 										onRemove={() => this._tryRemoveProjectFromLocalStorage(project)}
 									/>
 								))}
 							</div>
 						)}
 					</Fade>
+
+					<Fade delay={1000} className="flex-[0_0_auto]">
+						<div className="flex justify-end">
+							<Button
+								variant="ghost"
+								className="p-1 w-10 h-10"
+								onClick={() =>
+									this.setState({
+										preferencesOpen: true,
+									})
+								}
+							>
+								<FaGear className="w-6 h-6" />
+							</Button>
+						</div>
+					</Fade>
 				</div>
 
 				<DashboardCreateProjectDialog
 					isOpened={this.state.createProject}
+					closeDashboardOnProjectOpen={this.state.closeDashboardOnProjectOpen}
 					onClose={() => {
 						this.setState({
 							createProject: false,
 							projects: tryGetProjectsFromLocalStorage(),
 						});
 					}}
+				/>
+
+				<DashboardPreferences
+					isOpened={this.state.preferencesOpen}
+					closeDashboardOnProjectOpen={this.state.closeDashboardOnProjectOpen}
+					onClose={() =>
+						this.setState({
+							preferencesOpen: false,
+						})
+					}
+					onKeepDashboardChanged={(v) => this._handleKeepDashboardChanged(v)}
 				/>
 
 				<Toaster />
@@ -189,6 +234,14 @@ export class Dashboard extends Component<IDashboardProps, IDashboardState> {
 				</div>
 			).wait();
 		}
+	}
+
+	private _handleKeepDashboardChanged(checked: boolean): void {
+		trySetCloseDashboardOnProjectOpenInLocalStorage(checked);
+
+		this.setState({
+			closeDashboardOnProjectOpen: tryGetCloseDashboardOnProjectOpenFromLocalStorage(),
+		});
 	}
 
 	private _handleImportProject(): unknown {

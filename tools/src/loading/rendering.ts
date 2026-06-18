@@ -2,6 +2,7 @@ import { Scene } from "@babylonjs/core/scene";
 
 import { vlsPostProcessCameraConfigurations } from "../rendering/vls";
 import { ssrRenderingPipelineCameraConfigurations } from "../rendering/ssr";
+import { taaRenderingPipelineCameraConfigurations } from "../rendering/taa";
 import { ssaoRenderingPipelineCameraConfigurations } from "../rendering/ssao";
 import { motionBlurPostProcessCameraConfigurations } from "../rendering/motion-blur";
 import { defaultPipelineCameraConfigurations } from "../rendering/default-pipeline";
@@ -33,6 +34,10 @@ export function applyRenderingConfigurations(scene: Scene, rendering: any): void
 
 		if (configuration.defaultRenderingPipeline) {
 			defaultPipelineCameraConfigurations.set(camera, configuration.defaultRenderingPipeline);
+		}
+
+		if (configuration.taaRenderingPipeline) {
+			taaRenderingPipelineCameraConfigurations.set(camera, configuration.taaRenderingPipeline);
 		}
 	});
 }

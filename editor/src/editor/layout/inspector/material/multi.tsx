@@ -11,6 +11,8 @@ import { loadImportedMaterial } from "../../preview/import/import";
 
 import { registerUndoRedo } from "../../../../tools/undoredo";
 
+import { Editor } from "../../../main";
+
 import { EditorInspectorSectionField } from "../fields/section";
 
 import { EditorSkyMaterialInspector } from "./sky";
@@ -26,6 +28,7 @@ import { EditorStandardMaterialInspector } from "./standard";
 import { EditorTriPlanarMaterialInspector } from "./tri-planar";
 
 export interface IEditorPBRMaterialInspectorProps {
+	editor: Editor;
 	material: MultiMaterial;
 }
 
@@ -37,8 +40,10 @@ export class EditorMultiMaterialInspector extends Component<IEditorPBRMaterialIn
 	public constructor(props: IEditorPBRMaterialInspectorProps) {
 		super(props);
 
+		const subMeshId = props.editor.layout.preview.lastPickingInfo?.subMeshId ?? 0;
+
 		this.state = {
-			material: props.material.subMaterials[0] ?? null,
+			material: props.material.subMaterials[subMeshId] ?? null,
 		};
 	}
 
@@ -59,6 +64,7 @@ export class EditorMultiMaterialInspector extends Component<IEditorPBRMaterialIn
 				<TableBody>
 					{this.props.material.subMaterials.map((material, index) => (
 						<TableRow
+							key={`${material?.id}-${index}`}
 							onDrop={(ev) => {
 								ev.preventDefault();
 								ev.currentTarget.classList.remove("bg-muted");
@@ -121,7 +127,7 @@ export class EditorMultiMaterialInspector extends Component<IEditorPBRMaterialIn
 
 		switch (this.state.material.getClassName()) {
 			case "PBRMaterial":
-				return <EditorPBRMaterialInspector key={this.state.material.id} material={this.state.material as PBRMaterial} />;
+				return <EditorPBRMaterialInspector key={this.state.material.id} material={this.state.material as PBRMaterial} editor={this.props.editor} />;
 
 			case "StandardMaterial":
 				return <EditorStandardMaterialInspector key={this.state.material.id} material={this.state.material as StandardMaterial} />;

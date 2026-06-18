@@ -16,6 +16,10 @@ export class EditorCamera extends FreeCamera {
 	private _savedSpeed: number | null = null;
 	private _panInput: EditorFreeCameraPanInput;
 
+	private _isAttached: boolean = false;
+	private _isControlDown: boolean = false;
+	private _noPreventDefault: boolean | undefined = undefined;
+
 	private _keyboardUpListener: (ev: KeyboardEvent) => void;
 	private _keyboardDownListener: (ev: KeyboardEvent) => void;
 
@@ -37,6 +41,11 @@ export class EditorCamera extends FreeCamera {
 		window.addEventListener(
 			"keydown",
 			(this._keyboardDownListener = (ev) => {
+				if ((ev.ctrlKey || ev.metaKey) && !this._isControlDown && this._isAttached) {
+					this._isControlDown = true;
+					return super.detachControl();
+				}
+
 				if (ev.key !== "Shift" || isDomTextInputFocused()) {
 					return;
 				}
@@ -51,11 +60,12 @@ export class EditorCamera extends FreeCamera {
 		window.addEventListener(
 			"keyup",
 			(this._keyboardUpListener = (ev) => {
-				if (ev.key !== "Shift") {
-					return;
+				if (!ev.ctrlKey && !ev.metaKey && this._isControlDown && this._isAttached) {
+					this._isControlDown = false;
+					return super.attachControl(this._noPreventDefault);
 				}
 
-				if (this._savedSpeed !== null) {
+				if (ev.key === "Shift" && this._savedSpeed !== null) {
 					this.speed = this._savedSpeed;
 					this._savedSpeed = null;
 				}
@@ -67,12 +77,20 @@ export class EditorCamera extends FreeCamera {
 	 * Override attachControl to ensure pan input is attached
 	 */
 	public attachControl(noPreventDefault?: boolean): void {
+		this._isAttached = true;
+		this._noPreventDefault = noPreventDefault;
+
 		super.attachControl(noPreventDefault);
 
 		// Add pan input after camera is attached
 		if (this._panInput && !this.inputs.attached.editorPan) {
 			this.inputs.add(this._panInput);
 		}
+	}
+
+	public detachControl(): void {
+		this._isAttached = false;
+		super.detachControl();
 	}
 
 	/**
@@ -91,7 +109,7 @@ export class EditorCamera extends FreeCamera {
 				this.keysUpward = keys.keysUpward;
 				this.keysDownward = keys.keysDownward;
 			} else {
-				this._setDefaultKeys();
+				this._setDefaultKeysFromLayout();
 			}
 
 			// Load pan sensitivity multiplier if available
@@ -100,7 +118,7 @@ export class EditorCamera extends FreeCamera {
 			}
 		} catch (e) {
 			// If no preferences found or error occurred, use defaults
-			this._setDefaultKeys();
+			this._setDefaultKeysFromLayout();
 		}
 	}
 
@@ -138,13 +156,49 @@ export class EditorCamera extends FreeCamera {
 		this._panInput.panSensitivityMultiplier = value;
 	}
 
-	private _setDefaultKeys() {
+	private _setDefaultKeys(): void {
 		this.keysUp = DEFAULT_KEYS.keysUp;
 		this.keysDown = DEFAULT_KEYS.keysDown;
 		this.keysLeft = DEFAULT_KEYS.keysLeft;
 		this.keysRight = DEFAULT_KEYS.keysRight;
 		this.keysUpward = DEFAULT_KEYS.keysUpward;
 		this.keysDownward = DEFAULT_KEYS.keysDownward;
+	}
+
+	private _setDefaultKeysFromLayout(): void {
+		this._setDefaultKeys();
+
+		navigator.keyboard?.getLayoutMap().then((layout) => {
+			const keyUp = layout.get("KeyW")?.toUpperCase().charCodeAt(0);
+			if (keyUp) {
+				this.keysUp = [keyUp];
+			}
+
+			const keyDown = layout.get("KeyS")?.toUpperCase().charCodeAt(0);
+			if (keyDown) {
+				this.keysDown = [keyDown];
+			}
+
+			const keyLeft = layout.get("KeyA")?.toUpperCase().charCodeAt(0);
+			if (keyLeft) {
+				this.keysLeft = [keyLeft];
+			}
+
+			const keyRight = layout.get("KeyD")?.toUpperCase().charCodeAt(0);
+			if (keyRight) {
+				this.keysRight = [keyRight];
+			}
+
+			const keyUpward = layout.get("KeyE")?.toUpperCase().charCodeAt(0);
+			if (keyUpward) {
+				this.keysUpward = [keyUpward];
+			}
+
+			const keyDownward = layout.get("KeyQ")?.toUpperCase().charCodeAt(0);
+			if (keyDownward) {
+				this.keysDownward = [keyDownward];
+			}
+		});
 	}
 }
 

@@ -1,0 +1,24 @@
+{
+	"name": "babylonjs-editor-mcp-server",
+	"version": "0.1.0",
+	"description": "Babylon.js Editor MCP Server",
+	"productName": "Babylon.js Editor MCP Server",
+	"scripts": {
+		"build": "tsc -p .",
+		"watch": "concurrently \"tsc -p . --watch\" \"yarn bundle --watch\" -c bgYellow.bold,bgBlue.bold --names mcp-server-ts,mcp-server-bundle",
+		"bundle": "esbuild src/index.mts --bundle --platform=node --format=esm --target=node20 --outfile=server/index.mjs --banner:js=\"import{createRequire as ___mcpbRequire}from'module';const require=___mcpbRequire(import.meta.url);\"",
+		"inspect": "mcp-inspector node ./build/src/index.mjs",
+		"package": "yarn build && yarn bundle && mcpb pack . babylonjs-editor.mcpb"
+	},
+	"license": "(Apache-2.0)",
+	"main": "build/src/index.mjs",
+	"dependencies": {
+		"@modelcontextprotocol/sdk": "1.29.0",
+		"zod": "4.4.3"
+	},
+	"devDependencies": {
+		"@anthropic-ai/mcpb": "2.1.2",
+		"@modelcontextprotocol/inspector": "0.22.0",
+		"esbuild": "0.27.2"
+	}
+}

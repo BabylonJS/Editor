@@ -1,9 +1,10 @@
 import { platform } from "os";
 
 import { Component, ReactNode } from "react";
-import { Actions, IJsonModel, Layout, Model, TabNode } from "flexlayout-react";
+import { Actions, IJsonModel, Layout, Model, TabNode, TabSetNode } from "flexlayout-react";
 
-import { Tools } from "babylonjs";
+import { Observable, Tools } from "babylonjs";
+import { ipcRenderer } from "electron";
 
 import { waitNextAnimationFrame } from "../tools/tools";
 
@@ -18,12 +19,23 @@ import { EditorInspector } from "./layout/inspector";
 import { EditorAnimation } from "./layout/animation";
 import { EditorAssetsBrowser } from "./layout/assets-browser";
 import { EditorTerminal } from "./layout/terminal";
+import { EditorMarketplaceBrowser } from "./layout/marketplace";
 
 export interface IEditorLayoutProps {
 	/**
 	 * The editor reference.
 	 */
 	editor: Editor;
+}
+
+export interface IEditorLayoutTabOptions {
+	id?: string;
+	title: string;
+
+	neighborId?: "inspector" | "assets-browser";
+
+	enableClose?: boolean;
+	setAsActiveTab?: boolean;
 }
 
 export class EditorLayout extends Component<IEditorLayoutProps> {
@@ -55,10 +67,19 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
 	 * The terminal of the editor.
 	 */
 	public terminal: EditorTerminal;
+	/**
+	 * The marketplace browser of the editor.
+	 */
+	public marketplace: EditorMarketplaceBrowser | null;
+
+	/**
+	 * Observable for when the layout has changed.
+	 */
+	public onLayoutChanged: Observable<void> = new Observable<void>();
 
 	private _layoutRef: Layout | null = null;
 	private _model: Model = Model.fromJson(layoutModel as any);
-	private _components: Record<string, React.ReactNode> = {
+	private _components: Record<string, ReactNode> = {
 		console: <EditorConsole editor={this.props.editor} ref={(r) => (this.console = r!)} />,
 		preview: <EditorPreview editor={this.props.editor} ref={(r) => (this.preview = r!)} />,
 		inspector: <EditorInspector editor={this.props.editor} ref={(r) => (this.inspector = r!)} />,
@@ -66,6 +87,7 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
 		"assets-browser": <EditorAssetsBrowser editor={this.props.editor} ref={(r) => (this.assets = r!)} />,
 		animations: <EditorAnimation editor={this.props.editor} ref={(r) => (this.animations = r!)} />,
 		terminal: <EditorTerminal editor={this.props.editor} ref={(r) => (this.terminal = r!)} />,
+		marketplace: <EditorMarketplaceBrowser editor={this.props.editor} ref={(r) => (this.marketplace = r)} />,
 	};
 
 	private _layoutVersion: string = "5.0.0-alpha.2";
@@ -132,6 +154,40 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
 		layoutData.version = this._layoutVersion;
 
 		localStorage.setItem("babylonjs-editor-layout", JSON.stringify(layoutData));
+
+		const trackableTabs = ["marketplace"];
+		const openedTabs = trackableTabs.filter((t) => !!model.getNodeById(t));
+		const prev = this.props.editor.state.openedTabs ?? [];
+		const changed = openedTabs.length !== prev.length || openedTabs.some((t) => !prev.includes(t));
+
+		if (changed) {
+			this.props.editor.setState({ openedTabs });
+
+			ipcRenderer.send("editor:setup-menu", {
+				enableExperimentalFeatures: this.props.editor.state.enableExperimentalFeatures,
+				openedTabs,
+			});
+		}
+
+		this.onLayoutChanged.notifyObservers();
+	}
+
+	/**
+	 * Returns whether or not the tab identified by the given id is maximized.
+	 * @param tabId defines the id of the tab to check.
+	 */
+	public isTabMaximized(tabId: string): boolean {
+		const node = this._model.getNodeById(tabId);
+		if (!node || !(node instanceof TabNode)) {
+			return false;
+		}
+
+		const parent = node.getParent();
+		if (parent instanceof TabSetNode) {
+			return parent.isMaximized();
+		}
+
+		return false;
 	}
 
 	/**
@@ -145,18 +201,59 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
 
 	/**
 	 * Adds a new tab to the layout.
-	 * @param title defines the title of the tab.
 	 * @param component defines the reference to the React component to draw in.
+	 * @param options defines the options of the tab such as the title etc.
 	 */
-	public addLayoutTab(title: string, component: React.ReactNode): void {
-		const id = Tools.RandomId();
+	public addLayoutTab(component: ReactNode, options: IEditorLayoutTabOptions): void {
+		options.id ??= Tools.RandomId();
 
-		this._components[id] = component;
-		this._layoutRef?.addTabToActiveTabSet({
-			id,
-			name: title,
+		const activeTabId = this._layoutRef?.props.model.getActiveTabset()?.getSelectedNode()?.getId();
+
+		let tabsetId: string | undefined;
+
+		const existingNode = this._layoutRef?.props.model.getNodeById(options.id);
+		if (existingNode) {
+			tabsetId = existingNode.getParent()?.getId();
+
+			if (tabsetId) {
+				this._layoutRef?.props.model.doAction(Actions.deleteTab(options.id));
+			}
+		}
+
+		if (!tabsetId && options.neighborId) {
+			const neighborNode = this._layoutRef?.props.model.getNodeById(options.neighborId);
+			if (neighborNode) {
+				tabsetId = neighborNode.getParent()?.getId();
+			}
+		}
+
+		if (!tabsetId) {
+			tabsetId = this._layoutRef?.props.model.getActiveTabset()?.getId();
+		}
+
+		this._components[options.id!] = component;
+		this._layoutRef?.addTabToTabSet(tabsetId!, {
+			id: options.id,
+			name: options.title,
 			type: "tab",
-			component: id,
+			component: options.id,
+			enableClose: options.enableClose,
 		});
+
+		if (activeTabId && !options.setAsActiveTab) {
+			this._layoutRef?.props.model.doAction(Actions.selectTab(activeTabId));
+		}
+	}
+
+	/**
+	 * Removes the tab identified by the given id from the layout. The react component mounted in the tab will be unmounted
+	 * before the tab is removed completely to ensure proper resource cleanup.
+	 * @param tabId defines the id of the tab to remove from the layout.
+	 */
+	public removeLayoutTab(tabId: string): void {
+		const existingNode = this._layoutRef?.props.model.getNodeById(tabId);
+		if (existingNode) {
+			this._layoutRef?.props.model.doAction(Actions.deleteTab(tabId));
+		}
 	}
 }
