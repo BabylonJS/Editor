@@ -11,6 +11,7 @@ import { SceneLoaderFlags } from "@babylonjs/core/Loading/sceneLoaderFlags";
 import "@babylonjs/core/Loading/loadingScreen";
 import "@babylonjs/core/Loading/Plugins/babylonFileLoader";
 
+import "@babylonjs/core/Cameras/camera";
 import "@babylonjs/core/Cameras/universalCamera";
 
 import "@babylonjs/core/Meshes/groundMesh";
