@@ -98,7 +98,7 @@
 		"dotenv": "17.2.3",
 		"dunder-proto": "1.0.1",
 		"electron-updater": "6.6.2",
-		"esbuild": "0.27.2",
+		"esbuild": "0.28.1",
 		"filenamify": "4.3.0",
 		"flexlayout-react": "0.7.15",
 		"fluent-ffmpeg": "^2.1.3",
