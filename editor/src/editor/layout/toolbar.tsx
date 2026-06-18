@@ -19,7 +19,7 @@ import {
 } from "../../ui/shadcn/ui/menubar";
 
 import { isDarwin } from "../../tools/os";
-import { tryGetDefaultIdeFromLocalStorage } from "../../tools/local-storage";
+import { openInIde } from "../../tools/ide";
 import { execNodePty } from "../../tools/node-pty";
 import { openSingleFileDialog } from "../../tools/dialog";
 import { saveSceneScreenshot } from "../../tools/scene/screenshot";
@@ -326,7 +326,7 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 		}
 
 		const projectDir = dirname(this.props.editor.state.projectPath);
-		ipcRenderer.send("editor:open-with", projectDir, tryGetDefaultIdeFromLocalStorage());
+		openInIde(projectDir, true);
 	}
 
 	private _handleToggleMarketplace(): void {

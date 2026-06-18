@@ -26,7 +26,7 @@ import { Input } from "../../../../ui/shadcn/ui/input";
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger, ContextMenuSeparator } from "../../../../ui/shadcn/ui/context-menu";
 
 import { isDarwin } from "../../../../tools/os";
-import { tryGetDefaultIdeFromLocalStorage } from "../../../../tools/local-storage";
+import { openInIde } from "../../../../tools/ide";
 
 import { Editor } from "../../../main";
 
@@ -252,7 +252,7 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 	protected onDoubleClick(): void | Promise<void> {
 		// If it's a file (not a directory), open it in the default editor
 		if (!this.state.isDirectory) {
-			ipcRenderer.send("editor:open-with", this.props.absolutePath, tryGetDefaultIdeFromLocalStorage());
+			openInIde(this.props.absolutePath, false);
 		}
 	}
 
@@ -396,7 +396,7 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 		return (
 			<ContextMenuContent>
 				{!this.state.isDirectory && (
-					<ContextMenuItem className="flex items-center gap-2" onClick={() => ipcRenderer.send("editor:open-with", this.props.absolutePath, tryGetDefaultIdeFromLocalStorage())}>
+					<ContextMenuItem className="flex items-center gap-2" onClick={() => openInIde(this.props.absolutePath, false)}>
 						Open
 					</ContextMenuItem>
 				)}

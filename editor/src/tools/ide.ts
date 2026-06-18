@@ -1,16 +1,19 @@
 import { platform } from "os";
 import { shell } from "electron";
 
-import { executeAsync } from "./process";
+import { execNodePty } from "./node-pty";
+import { tryGetDefaultIdeFromLocalStorage } from "./local-storage";
 
 /**
- * Runs the given command using `executeAsync` (which also fixes the PATH on macOS so CLI tools
- * launched from the bundled app can be resolved). Resolves true on success, false otherwise.
+ * Runs the given command in a node-pty process so it is detached from the editor process: the
+ * launched IDE keeps running even if the editor is closed (same approach as the VSCode launcher).
+ * Resolves true when the command exited with a success code, false otherwise.
  */
 async function runCommand(command: string): Promise<boolean> {
 	try {
-		await executeAsync(command);
-		return true;
+		const p = await execNodePty(command);
+		const code = await p.wait();
+		return code === 0;
 	} catch (e) {
 		return false;
 	}
@@ -65,10 +68,11 @@ async function tryLaunchIde(ide: string, normalizedPath: string): Promise<boolea
  * Opens the given path (file or folder) in an IDE.
  * @param path defines the absolute path to the file or folder to open.
  * @param isDirectory defines wether or not the given path points to a directory.
- * @param ide defines the identifier of the preferred IDE to use. When set to "auto" (or omitted)
- * the first available IDE is detected and used. When set to "system" the OS default application is used.
+ * @param ide defines the identifier of the preferred IDE to use. Defaults to the one configured in
+ * the editor preferences. When set to "auto" the first available IDE is detected and used. When set
+ * to "system" the OS default application is used.
  */
-export async function openInIde(path: string, isDirectory: boolean, ide?: string): Promise<void> {
+export async function openInIde(path: string, isDirectory: boolean, ide: string = tryGetDefaultIdeFromLocalStorage()): Promise<void> {
 	const isWindows = platform() === "win32";
 	const normalizedPath = isWindows ? path.replace(/\//g, "\\") : path.replace(/\\/g, "/");
 

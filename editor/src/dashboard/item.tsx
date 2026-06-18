@@ -20,7 +20,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 
 import { isDarwin } from "../tools/os";
 import { ProjectType } from "../tools/project";
-import { tryGetDefaultIdeFromLocalStorage } from "../tools/local-storage";
+import { openInIde } from "../tools/ide";
 import { execNodePty, NodePtyInstance } from "../tools/node-pty";
 
 import { IEditorProject } from "../project/typings";
@@ -145,7 +145,7 @@ export function DashboardProjectItem(props: IDashboardProjectItemProps) {
 
 	function handleOpenInDefaultIde() {
 		const projectDir = dirname(props.project.absolutePath);
-		ipcRenderer.send("editor:open-with", projectDir, tryGetDefaultIdeFromLocalStorage());
+		openInIde(projectDir, true);
 	}
 
 	return (
