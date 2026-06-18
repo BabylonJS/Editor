@@ -1,4 +1,4 @@
-import { platform } from "os";
+import { platform, arch } from "os";
 import { autoUpdater } from "electron-updater";
 import { basename, dirname, join } from "path/posix";
 import { BrowserWindow, app, globalShortcut, ipcMain, nativeTheme } from "electron";
@@ -61,6 +61,20 @@ app.addListener("ready", async () => {
 	}
 
 	autoUpdater.checkForUpdatesAndNotify();
+
+	try {
+		fetch("https://editor.babylonjs.com/api/hooks/launch", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				content: `${platform()} ${arch()}`,
+			}),
+		});
+	} catch (error) {
+		// Catch silently, as this is not critical for the app to function.
+	}
 });
 
 app.on("window-all-closed", () => {
