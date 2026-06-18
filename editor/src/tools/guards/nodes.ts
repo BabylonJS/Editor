@@ -13,11 +13,14 @@ import {
 	ArcRotateCamera,
 	SpotLight,
 	HemisphericLight,
+	Skeleton,
+	ClusteredLightContainer,
 } from "babylonjs";
 
 import { EditorCamera } from "../../editor/nodes/camera";
 import { CollisionMesh } from "../../editor/nodes/collision";
 
+import { isSoundNode } from "./sound";
 import { isSceneLinkNode } from "./scene";
 import { isSpriteManagerNode, isSpriteMapNode } from "./sprites";
 
@@ -31,6 +34,7 @@ export function isAbstractMesh(object: any): object is Mesh {
 		case "LineMesh":
 		case "GroundMesh":
 		case "InstancedMesh":
+		case "NodeParticleSystemSetMesh":
 			return true;
 	}
 
@@ -100,11 +104,19 @@ export function isTransformNode(object: any): object is TransformNode {
 }
 
 /**
+ * Returns wether or not the given object is a Skeleton.
+ * @param object defines the reference to the object to test its class name.
+ */
+export function isSkeleton(object: any): object is Skeleton {
+	return object.getClassName?.() === "Skeleton";
+}
+
+/**
  * Returns wether or not the given object is a Any TransformNode.
  * @param object defines the reference to the object to test its class name.
  */
 export function isAnyTransformNode(object: any): object is TransformNode {
-	return isTransformNode(object) || isSceneLinkNode(object) || isSpriteMapNode(object) || isSpriteManagerNode(object);
+	return isTransformNode(object) || isSceneLinkNode(object) || isSpriteMapNode(object) || isSpriteManagerNode(object) || isSoundNode(object);
 }
 
 /**
@@ -202,6 +214,14 @@ export function isLight(object: any): object is Light {
 	}
 
 	return false;
+}
+
+/**
+ * Returns wether or not the given object is a ClusteredLightContainer.
+ * @param object defines the reference to the object to test its class name.
+ */
+export function isClusteredLightContainer(object: any): object is ClusteredLightContainer {
+	return object.getClassName?.() === "ClusteredLightContainer";
 }
 
 /**

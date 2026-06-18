@@ -5,15 +5,42 @@ import { registerUndoRedo } from "../../../../tools/undoredo";
 import { CinematicEditor } from "../editor";
 
 export function removeAnimationKey(cinematicEditor: CinematicEditor, track: ICinematicTrack, keyframe: ICinematicKey | ICinematicKeyCut) {
-	const index = track.keyFrameAnimations!.indexOf(keyframe);
-	if (index === -1) {
+	const keyFrameAnimationsIndex = track.keyFrameAnimations?.indexOf(keyframe) ?? -1;
+	const animationGroupWeightIndex = track.animationGroupWeight?.indexOf(keyframe) ?? -1;
+	const soundVolumeIndex = track.soundVolume?.indexOf(keyframe) ?? -1;
+
+	if (keyFrameAnimationsIndex === -1 && animationGroupWeightIndex === -1 && soundVolumeIndex === -1) {
 		return;
 	}
 
 	registerUndoRedo({
 		executeRedo: true,
-		undo: () => track.keyFrameAnimations!.splice(index, 0, keyframe),
-		redo: () => track.keyFrameAnimations!.splice(index, 1),
+		undo: () => {
+			if (keyFrameAnimationsIndex !== -1) {
+				track.keyFrameAnimations!.splice(keyFrameAnimationsIndex, 0, keyframe);
+			}
+
+			if (animationGroupWeightIndex !== -1) {
+				track.animationGroupWeight!.splice(animationGroupWeightIndex, 0, keyframe);
+			}
+
+			if (soundVolumeIndex !== -1) {
+				track.soundVolume!.splice(soundVolumeIndex, 0, keyframe);
+			}
+		},
+		redo: () => {
+			if (keyFrameAnimationsIndex !== -1) {
+				track.keyFrameAnimations!.splice(keyFrameAnimationsIndex, 1);
+			}
+
+			if (animationGroupWeightIndex !== -1) {
+				track.animationGroupWeight!.splice(animationGroupWeightIndex, 1);
+			}
+
+			if (soundVolumeIndex !== -1) {
+				track.soundVolume!.splice(soundVolumeIndex, 1);
+			}
+		},
 	});
 
 	cinematicEditor.forceUpdate();

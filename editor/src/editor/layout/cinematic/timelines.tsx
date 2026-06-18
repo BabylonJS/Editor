@@ -6,36 +6,39 @@ import { Tools } from "babylonjs";
 import { ICinematicTrack, isCinematicKeyCut } from "babylonjs-editor-tools";
 
 import { isDomElementDescendantOf } from "../../../tools/dom";
-import { updateLightShadowMapRefreshRate } from "../../../tools/light/shadows";
 
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "../../../ui/shadcn/ui/context-menu";
 
 import { CinematicEditor } from "./editor";
+import { CinematicEditorTracker } from "./tracker";
+
+import { isTrackInFilter } from "./tools/tracks";
 
 import { CinematicEditorKeyBase } from "./timelines/keys/base";
 import { addAnimationGroupKey, addAnimationKey, addEventKey, addSoundKey } from "./timelines/add";
 import { removeAnimationGroupKey, removeAnimationKey, removeEventKey, removeSoundKey } from "./timelines/remove";
 
 export interface ICinematicEditorTimelinesProps {
+	scale: number;
+	currentTime: number;
+	tracksFilter: string;
+
 	cinematicEditor: CinematicEditor;
 }
 
 export interface ICinematicEditorTimelinesState {
-	scale: number;
-	currentTime: number;
-
 	rightClickPositionX: number | null;
 }
 
 export class CinematicEditorTimelines extends Component<ICinematicEditorTimelinesProps, ICinematicEditorTimelinesState> {
+	public tracker: CinematicEditorTracker;
+
 	private _divRef: HTMLDivElement | null = null;
 
 	public constructor(props: ICinematicEditorTimelinesProps) {
 		super(props);
 
 		this.state = {
-			scale: 1,
-			currentTime: 0,
 			rightClickPositionX: null,
 		};
 	}
@@ -48,7 +51,10 @@ export class CinematicEditorTimelines extends Component<ICinematicEditorTimeline
 			<div
 				ref={(r) => (this._divRef = r)}
 				onMouseDown={(ev) => this._handlePointerDown(ev)}
-				className="relative flex flex-col flex-1 w-full min-h-fit h-full overflow-x-auto overflow-y-hidden"
+				className={`
+					relative flex flex-col flex-1 w-full min-h-fit h-full overflow-x-auto overflow-y-hidden
+					${this.props.cinematicEditor.state.editType !== "keyframes" ? "hidden pointer-events-none" : ""}
+				`}
 			>
 				<div
 					style={{
@@ -57,9 +63,11 @@ export class CinematicEditorTimelines extends Component<ICinematicEditorTimeline
 					className="relative min-w-full h-10 mx-2 py-2"
 				/>
 
-				{cinematic.tracks.map((track, index) => {
-					return this._getTrack(track, width, index === 0);
-				})}
+				{cinematic.tracks
+					.filter((track) => isTrackInFilter(track, this.props.tracksFilter))
+					.map((track, index) => {
+						return this._getTrack(track, width, index === 0);
+					})}
 
 				<div
 					style={{
@@ -68,21 +76,7 @@ export class CinematicEditorTimelines extends Component<ICinematicEditorTimeline
 					className="fixed h-10 bg-background pointer-events-none"
 				/>
 
-				<div
-					style={{
-						left: `${this.state.currentTime * this.state.scale}px`,
-					}}
-					className="absolute w-[1px] ml-2 mt-10 bg-muted h-full pointer-events-none"
-				>
-					<div
-						className={`
-                            absolute w-7 h-7 rotate-45 -translate-x-1/2 -translate-y-8 bg-muted
-                        `}
-						style={{
-							mask: "linear-gradient(135deg, transparent 0%, transparent 50%, black 50%, black 100%)",
-						}}
-					/>
-				</div>
+				<CinematicEditorTracker ref={(r) => (this.tracker = r!)} scale={this.props.scale} currentTime={this.props.currentTime} />
 			</div>
 		);
 	}
@@ -100,7 +94,8 @@ export class CinematicEditorTimelines extends Component<ICinematicEditorTimeline
                             border-b border-b-border/50
                             border-r border-r-border/50
                             border-l border-l-border/50
-                            ${this.props.cinematicEditor.state.hoverTrack === track ? "bg-primary-foreground" : ""}
+                            ${this.props.cinematicEditor.state.hoverTrack === track ? "bg-primary-foreground/35" : ""}
+                            ${this.props.cinematicEditor.state.selectedTrack === track ? "bg-primary-foreground" : ""}
                             transition-all duration-300 ease-in-out
                         `}
 						style={{
@@ -115,7 +110,7 @@ export class CinematicEditorTimelines extends Component<ICinematicEditorTimeline
 								key={index}
 								track={track}
 								cinematicKey={keyframe}
-								scale={this.state.scale}
+								scale={this.props.scale}
 								cinematicEditor={this.props.cinematicEditor}
 								onRemoved={() => removeAnimationKey(this.props.cinematicEditor, track, keyframe)}
 							/>
@@ -126,7 +121,7 @@ export class CinematicEditorTimelines extends Component<ICinematicEditorTimeline
 								key={index}
 								track={track}
 								cinematicKey={sound}
-								scale={this.state.scale}
+								scale={this.props.scale}
 								cinematicEditor={this.props.cinematicEditor}
 								onRemoved={() => removeSoundKey(this.props.cinematicEditor, track, sound)}
 							/>
@@ -137,7 +132,7 @@ export class CinematicEditorTimelines extends Component<ICinematicEditorTimeline
 								key={index}
 								track={track}
 								cinematicKey={event}
-								scale={this.state.scale}
+								scale={this.props.scale}
 								cinematicEditor={this.props.cinematicEditor}
 								onRemoved={() => removeEventKey(this.props.cinematicEditor, track, event)}
 							/>
@@ -147,7 +142,7 @@ export class CinematicEditorTimelines extends Component<ICinematicEditorTimeline
 							<CinematicEditorKeyBase
 								key={index}
 								track={track}
-								scale={this.state.scale}
+								scale={this.props.scale}
 								cinematicKey={animationGroup}
 								cinematicEditor={this.props.cinematicEditor}
 								onRemoved={() => removeAnimationGroupKey(this.props.cinematicEditor, track, animationGroup)}
@@ -159,25 +154,31 @@ export class CinematicEditorTimelines extends Component<ICinematicEditorTimeline
 				<ContextMenuContent>
 					{track.keyFrameAnimations && (
 						<>
-							<ContextMenuItem className="flex items-center gap-2" onClick={() => addAnimationKey(this.props.cinematicEditor, "key", track)}>
+							<ContextMenuItem
+								className="flex items-center gap-2"
+								onClick={() => addAnimationKey(this.props.cinematicEditor, "key", track, this.state.rightClickPositionX)}
+							>
 								<div className="w-4 h-4 rotate-45 border-[2px] bg-muted-foreground" />
 								Add Key Here
 							</ContextMenuItem>
-							<ContextMenuItem className="flex items-center gap-2" onClick={() => addAnimationKey(this.props.cinematicEditor, "cut", track)}>
+							<ContextMenuItem
+								className="flex items-center gap-2"
+								onClick={() => addAnimationKey(this.props.cinematicEditor, "cut", track, this.state.rightClickPositionX)}
+							>
 								<div className="w-4 h-4 rotate-45 border-[2px] border-orange-500 bg-muted" />
 								Add Key Cut Here
 							</ContextMenuItem>
 							<ContextMenuSeparator />
 							<ContextMenuItem
 								className="flex items-center gap-2"
-								onClick={() => addAnimationKey(this.props.cinematicEditor, "key", track, this.state.currentTime * this.state.scale)}
+								onClick={() => addAnimationKey(this.props.cinematicEditor, "key", track, this.props.currentTime * this.props.scale)}
 							>
 								<div className="w-4 h-4 rotate-45 border-[2px] bg-muted-foreground" />
 								Add Key at Tracker Position
 							</ContextMenuItem>
 							<ContextMenuItem
 								className="flex items-center gap-2"
-								onClick={() => addAnimationKey(this.props.cinematicEditor, "cut", track, this.state.currentTime * this.state.scale)}
+								onClick={() => addAnimationKey(this.props.cinematicEditor, "cut", track, this.props.currentTime * this.props.scale)}
 							>
 								<div className="w-4 h-4 rotate-45 border-[2px] border-orange-500 bg-muted" />
 								Add Key Cut at Tracker Position
@@ -192,7 +193,7 @@ export class CinematicEditorTimelines extends Component<ICinematicEditorTimeline
 							</ContextMenuItem>
 							<ContextMenuItem
 								className="flex items-center gap-2"
-								onClick={() => addSoundKey(this.props.cinematicEditor, track, this.state.currentTime * this.state.scale)}
+								onClick={() => addSoundKey(this.props.cinematicEditor, track, this.props.currentTime * this.props.scale)}
 							>
 								<AiOutlinePlus className="w-5 h-5" /> Add Sound at Tracker Position
 							</ContextMenuItem>
@@ -206,7 +207,7 @@ export class CinematicEditorTimelines extends Component<ICinematicEditorTimeline
 							</ContextMenuItem>
 							<ContextMenuItem
 								className="flex items-center gap-2"
-								onClick={() => addEventKey(this.props.cinematicEditor, track, this.state.currentTime * this.state.scale)}
+								onClick={() => addEventKey(this.props.cinematicEditor, track, this.props.currentTime * this.props.scale)}
 							>
 								<AiOutlinePlus className="w-5 h-5" /> Add Event At Tracker Position
 							</ContextMenuItem>
@@ -220,7 +221,7 @@ export class CinematicEditorTimelines extends Component<ICinematicEditorTimeline
 							</ContextMenuItem>
 							<ContextMenuItem
 								className="flex items-center gap-2"
-								onClick={() => addAnimationGroupKey(this.props.cinematicEditor, track, this.state.currentTime * this.state.scale)}
+								onClick={() => addAnimationGroupKey(this.props.cinematicEditor, track, this.props.currentTime * this.props.scale)}
 							>
 								<AiOutlinePlus className="w-5 h-5" /> Add Group at Tracker Position
 							</ContextMenuItem>
@@ -232,7 +233,7 @@ export class CinematicEditorTimelines extends Component<ICinematicEditorTimeline
 	}
 
 	public getMaxWidthForTimelines(): number {
-		return this.getMaxFrameForTimelines() * this.state.scale;
+		return this.getMaxFrameForTimelines() * this.props.scale;
 	}
 
 	public getMaxFrameForTimelines(): number {
@@ -262,33 +263,26 @@ export class CinematicEditorTimelines extends Component<ICinematicEditorTimeline
 		return frame;
 	}
 
-	public setCurrentTime(time: number): void {
-		this.props.cinematicEditor.stop();
-
-		const group = this.props.cinematicEditor.createTemporaryAnimationGroup();
-		group.start(false);
-		group.goToFrame(time);
-		group.pause();
-
-		this.props.cinematicEditor.editor.layout.preview.scene.lights.forEach((light) => {
-			updateLightShadowMapRefreshRate(light);
-		});
-
-		this.setState({
-			currentTime: time,
-		});
-	}
-
-	public updateTracksAtCurrentTime(): void {
-		this.setCurrentTime(this.state.currentTime);
-	}
-
 	/**
 	 * Sorts all the keys in the track based on their frame value.
 	 */
 	public sortAnimationsKeys(): void {
 		this.props.cinematicEditor.cinematic.tracks.forEach((track) => {
 			track.keyFrameAnimations?.sort((a, b) => {
+				const frameA = isCinematicKeyCut(a) ? a.key1.frame : a.frame;
+				const frameB = isCinematicKeyCut(b) ? b.key1.frame : b.frame;
+
+				return frameA - frameB;
+			});
+
+			track.animationGroupWeight?.sort((a, b) => {
+				const frameA = isCinematicKeyCut(a) ? a.key1.frame : a.frame;
+				const frameB = isCinematicKeyCut(b) ? b.key1.frame : b.frame;
+
+				return frameA - frameB;
+			});
+
+			track.soundVolume?.sort((a, b) => {
 				const frameA = isCinematicKeyCut(a) ? a.key1.frame : a.frame;
 				const frameB = isCinematicKeyCut(b) ? b.key1.frame : b.frame;
 
@@ -324,10 +318,10 @@ export class CinematicEditorTimelines extends Component<ICinematicEditorTimeline
 		let moving = false;
 		let clientX: number | null = null;
 
-		const startPosition = ev.nativeEvent.offsetX / this.state.scale;
+		const startPosition = ev.nativeEvent.offsetX / this.props.scale;
 
 		this.props.cinematicEditor.createTemporaryAnimationGroup();
-		this.setCurrentTime(startPosition);
+		this.props.cinematicEditor.setCurrentTime(startPosition);
 
 		document.body.addEventListener(
 			"mousemove",
@@ -343,9 +337,9 @@ export class CinematicEditorTimelines extends Component<ICinematicEditorTimeline
 					return;
 				}
 
-				const currentTime = Math.round(Math.max(0, startPosition - delta / this.state.scale));
+				const currentTime = Math.round(Math.max(0, startPosition - delta / this.props.scale));
 
-				this.setCurrentTime(currentTime);
+				this.props.cinematicEditor.setCurrentTime(currentTime);
 			})
 		);
 

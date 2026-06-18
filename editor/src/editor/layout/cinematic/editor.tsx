@@ -33,6 +33,7 @@ import { getDefaultRenderingPipeline } from "../../rendering/default-pipeline";
 import { serializeCinematic } from "./serialization/serialize";
 
 import { restoreSceneState, saveSceneState } from "./tools/state";
+import { syncAnimationGroupsToFrame, syncSoundsToFrame } from "./tools/sync";
 
 import { CinematicEditorTimelineOptions } from "./timelines/options";
 
@@ -41,6 +42,7 @@ import { CinematicEditorRenderer } from "./render/renderer";
 import { CinematicEditorRenderDialog } from "./render/dialog";
 
 import { CinematicEditorTracks } from "./tracks";
+import { CinematicEditorCurves } from "./curves";
 import { CinematicEditorToolbar } from "./toolbar";
 import { CinematicEditorTimelines } from "./timelines";
 import { CinematicEditorInspector } from "./inspector";
@@ -52,9 +54,19 @@ export interface ICinematicEditorProps {
 }
 
 export interface ICinematicEditorState {
-	playing: boolean;
-	hoverTrack: ICinematicTrack | null;
+	timelinesScale: number;
+	curvesZoom: number;
 
+	currentTime: number;
+
+	editType: "keyframes" | "curves";
+
+	tracksFilter: string;
+
+	hoverTrack: ICinematicTrack | null;
+	selectedTrack: ICinematicTrack | null;
+
+	playing: boolean;
 	renderType: RenderType;
 }
 
@@ -67,6 +79,10 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 	 * Defines the reference to the timelines panel used to display and edit the cinematic timelines.
 	 */
 	public timelines: CinematicEditorTimelines;
+	/**
+	 * Defines the reference to the curves panel used to edit animation curves in selected track.
+	 */
+	public curves: CinematicEditorCurves;
 	/**
 	 * Defines the reference to the inspector used to display and edit the cinematic properties.
 	 */
@@ -104,9 +120,18 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 		this.cinematic = props.cinematic;
 
 		this.state = {
-			playing: false,
-			hoverTrack: null,
+			curvesZoom: 1,
+			timelinesScale: 1,
+			currentTime: 0,
 
+			tracksFilter: "",
+
+			hoverTrack: null,
+			selectedTrack: null,
+
+			editType: "keyframes",
+
+			playing: false,
 			renderType: "1080p",
 		};
 	}
@@ -129,11 +154,24 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 							</div>
 						</div>
 
-						<div className="flex flex-1 overflow-y-auto">
+						<div className={`flex flex-1 ${this.state.editType === "keyframes" ? "overflow-y-auto" : "overflow-hidden"}`}>
 							<TooltipProvider>
-								<CinematicEditorTracks cinematicEditor={this} ref={(ref) => (this.tracks = ref!)} />
+								<CinematicEditorTracks ref={(ref) => (this.tracks = ref!)} cinematicEditor={this} tracksFilter={this.state.tracksFilter} />
 
-								<CinematicEditorTimelines cinematicEditor={this} ref={(ref) => (this.timelines = ref!)} />
+								<CinematicEditorTimelines
+									ref={(ref) => (this.timelines = ref!)}
+									cinematicEditor={this}
+									scale={this.state.timelinesScale}
+									currentTime={this.state.currentTime}
+									tracksFilter={this.state.tracksFilter}
+								/>
+								<CinematicEditorCurves
+									ref={(ref) => (this.curves = ref!)}
+									cinematicEditor={this}
+									scale={this.state.curvesZoom}
+									currentTime={this.state.currentTime}
+									selectedTrack={this.state.selectedTrack}
+								/>
 							</TooltipProvider>
 						</div>
 					</div>
@@ -188,6 +226,34 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 		super.forceUpdate();
 		this.tracks.forceUpdate();
 		this.timelines.forceUpdate();
+		this.curves.forceUpdate();
+	}
+
+	public setCurrentTime(time: number): void {
+		this.stop();
+
+		const group = this.createTemporaryAnimationGroup();
+		group.start(false);
+		group.goToFrame(time);
+		group.pause();
+
+		syncAnimationGroupsToFrame(time, this.cinematic, {
+			pauseAfterSync: true,
+		});
+
+		this.editor.layout.preview.scene.lights.forEach((light) => {
+			updateLightShadowMapRefreshRate(light);
+		});
+
+		if (time !== this.state.currentTime) {
+			this.setState({
+				currentTime: time,
+			});
+		}
+	}
+
+	public updateTracksAtCurrentTime(): void {
+		this.setCurrentTime(this.state.currentTime);
 	}
 
 	public prepareTemporaryAnimationGroup(): void {
@@ -201,7 +267,16 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 	public createTemporaryAnimationGroup(): AnimationGroup {
 		this.prepareTemporaryAnimationGroup();
 
-		this._temporaryAnimationGroup ??= generateCinematicAnimationGroup(this.cinematic, this.props.editor.layout.preview.scene as any) as any;
+		const scene = this.props.editor.layout.preview.scene;
+
+		this._temporaryAnimationGroup ??= generateCinematicAnimationGroup(this.cinematic, scene as any) as any;
+
+		if (this._temporaryAnimationGroup) {
+			const index = scene.animationGroups.indexOf(this._temporaryAnimationGroup);
+			if (index !== -1) {
+				scene.animationGroups.splice(index, 1);
+			}
+		}
 
 		return this._temporaryAnimationGroup!;
 	}
@@ -225,10 +300,10 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 			playing: true,
 		});
 
-		this._currentTimeBeforePlay = this.timelines.state.currentTime;
+		this._currentTimeBeforePlay = this.state.currentTime;
 
-		const currentTime = this.timelines.state.currentTime;
-		const maxFrame = this.timelines.getMaxWidthForTimelines();
+		const currentTime = this.state.currentTime;
+		const maxFrame = this.timelines.getMaxWidthForTimelines() / this.state.timelinesScale;
 
 		this._playAnimation ??= new Animation("editor-currentTime", "_animatedCurrentTime", 60, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CYCLE);
 		this._playAnimation.setKeys([
@@ -241,24 +316,14 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 		const group = this.createTemporaryAnimationGroup();
 		group.start(false, 1.0, frame);
 
-		// Start all sounds that were created before the current frame
-		this.cinematic.tracks.forEach((track) => {
-			track.sounds?.forEach((sound) => {
-				const endFrame = sound.frame + (sound.endFrame - sound.startFrame);
-				if (sound.frame > frame || endFrame < frame) {
-					return;
-				}
-
-				const frameDiff = frame - sound.frame;
-
-				if (frameDiff > 0) {
-					const offset = frameDiff / this.cinematic.framesPerSecond;
-					track.sound?.play(0, offset);
-				}
-			});
+		syncSoundsToFrame(frame, this.cinematic);
+		syncAnimationGroupsToFrame(frame, this.cinematic, {
+			pauseAfterSync: false,
 		});
 
 		scene.beginDirectAnimation(this, [this._playAnimation], currentTime, maxFrame, false, 1.0);
+
+		engine.maxFPS = this.cinematic.outputFramesPerSecond;
 
 		if (this._playRenderLoop) {
 			engine.stopRenderLoop(this._playRenderLoop);
@@ -266,13 +331,8 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 
 		engine.runRenderLoop(
 			(this._playRenderLoop = () => {
-				this.timelines.setState({
-					currentTime: this._animatedCurrentTime,
-				});
-
-				scene.lights.forEach((light) => {
-					updateLightShadowMapRefreshRate(light);
-				});
+				this.curves.tracker.setForcedCurrentTime(this._animatedCurrentTime);
+				this.timelines.tracker.setForcedCurrentTime(this._animatedCurrentTime);
 			})
 		);
 	}
@@ -282,11 +342,15 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 			return;
 		}
 
+		this.curves.tracker.setForcedCurrentTime(null);
+		this.timelines.tracker.setForcedCurrentTime(null);
+
 		this.setState({
 			playing: false,
 		});
 
 		const engine = this.props.editor.layout.preview.engine;
+		engine.maxFPS = undefined;
 
 		if (this._playRenderLoop) {
 			engine.stopRenderLoop(this._playRenderLoop);
@@ -304,7 +368,7 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 			const time = this._currentTimeBeforePlay;
 
 			this._currentTimeBeforePlay = null;
-			this.timelines.setCurrentTime(time);
+			this.setCurrentTime(time);
 		}
 
 		this.disposeTemporaryAnimationGroup();

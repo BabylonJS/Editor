@@ -3,8 +3,10 @@ import { execSync } from "node:child_process";
 import { access, rename, rm, mkdir, copyFile } from "node:fs/promises";
 
 import nextjsTemplatePackageJson from "./templates/nextjs/package.json" with { type: "json" };
+import nuxtjsTemplatePackageJson from "./templates/nuxtjs/package.json" with { type: "json" };
 import solidjsTemplatePackageJson from "./templates/solidjs/package.json" with { type: "json" };
 import vanillajsTemplatePackageJson from "./templates/vanillajs/package.json" with { type: "json" };
+import electronTemplatePackageJson from "./templates/electron/package.json" with { type: "json" };
 
 const rootNodeModules = join(process.cwd(), "./node_modules/@babylonjs/core");
 const editorNodeModules = join(process.cwd(), "./editor/node_modules/@babylonjs/core");
@@ -15,12 +17,20 @@ const templates = [
 		packageJson: nextjsTemplatePackageJson,
 	},
 	{
+		name: "nuxtjs",
+		packageJson: nuxtjsTemplatePackageJson,
+	},
+	{
 		name: "solidjs",
 		packageJson: solidjsTemplatePackageJson,
 	},
 	{
 		name: "vanillajs",
 		packageJson: vanillajsTemplatePackageJson,
+	},
+	{
+		name: "electron",
+		packageJson: electronTemplatePackageJson,
 	},
 ];
 

@@ -1,6 +1,6 @@
 import { join, dirname } from "path/posix";
 
-import { GetClass, Matrix, Node, Scene, SerializationHelper, serialize, Tools, TransformNode } from "babylonjs";
+import { GetClass, Matrix, Node, Scene, SerializationHelper, serialize, Tools, TransformNode, Tags } from "babylonjs";
 
 import { UniqueNumber } from "../../tools/tools";
 
@@ -63,6 +63,10 @@ export class SceneLinkNode extends TransformNode {
 		this._lastLoadResult?.lights.forEach((light) => !light.parent && (light.parent = this));
 		this._lastLoadResult?.cameras.forEach((camera) => !camera.parent && (camera.parent = this));
 		this._lastLoadResult?.transformNodes.forEach((transformNode) => !transformNode.parent && (transformNode.parent = this));
+
+		this._lastLoadResult.animationGroups.forEach((animationGroup) => {
+			Tags.AddTagsTo(animationGroup, "from-scene-link");
+		});
 
 		return this._lastLoadResult;
 	}

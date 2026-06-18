@@ -1,21 +1,22 @@
+import { extname } from "path/posix";
+
 import { Component, DragEvent, ReactNode } from "react";
 import { Button, Tree, TreeNodeInfo } from "@blueprintjs/core";
 
 import { FaLink } from "react-icons/fa6";
 import { IoMdCube } from "react-icons/io";
-import { BsSoundwave } from "react-icons/bs";
 import { AiOutlinePlus } from "react-icons/ai";
 import { HiSpeakerWave } from "react-icons/hi2";
-import { TbGhost2Filled } from "react-icons/tb";
+import { SiBabylondotjs } from "react-icons/si";
 import { MdOutlineQuestionMark } from "react-icons/md";
 import { GiBrickWall, GiSparkles } from "react-icons/gi";
 import { HiOutlineCubeTransparent } from "react-icons/hi";
 import { IoCheckmark, IoSparklesSharp } from "react-icons/io5";
-import { FaCamera, FaImage, FaLightbulb } from "react-icons/fa";
-import { SiAdobeindesign, SiBabylondotjs } from "react-icons/si";
+import { TbGhost2Filled, TbServerSpark, TbBrandAdobeIndesign } from "react-icons/tb";
+import { FaCamera, FaImage, FaLightbulb, FaBone, FaRegLightbulb } from "react-icons/fa";
 
 import { AdvancedDynamicTexture } from "babylonjs-gui";
-import { BaseTexture, Node, Scene, Sound, Tools, IParticleSystem, ParticleSystem, Sprite } from "babylonjs";
+import { BaseTexture, Node, Scene, Tools, IParticleSystem, Sprite, Skeleton, TransformNode, AbstractMesh } from "babylonjs";
 
 import { Editor } from "../main";
 
@@ -31,24 +32,29 @@ import {
 	ContextMenuSubTrigger,
 } from "../../ui/shadcn/ui/context-menu";
 
-import { isSound } from "../../tools/guards/sound";
 import { cloneNode } from "../../tools/node/clone";
+import { isSoundNode } from "../../tools/guards/sound";
 import { registerUndoRedo } from "../../tools/undoredo";
 import { isDomTextInputFocused } from "../../tools/dom";
 import { isSceneLinkNode } from "../../tools/guards/scene";
 import { updateAllLights } from "../../tools/light/shadows";
+import { isClusteredLight } from "../../tools/light/cluster";
 import { getCollisionMeshFor } from "../../tools/mesh/collision";
 import { isNodeVisibleInGraph } from "../../tools/node/metadata";
 import { isAdvancedDynamicTexture } from "../../tools/guards/texture";
 import { updateIblShadowsRenderPipeline } from "../../tools/light/ibl";
 import { UniqueNumber, waitNextAnimationFrame } from "../../tools/tools";
 import { getSpriteManagerNodeFromSprite } from "../../tools/sprite/tools";
+import { isParticleSystemVisibleInGraph } from "../../tools/particles/metadata";
+import { applyTransformNodeParentingConfiguration } from "../../tools/node/parenting";
 import { isSprite, isSpriteManagerNode, isSpriteMapNode } from "../../tools/guards/sprites";
-import { isAnyParticleSystem, isGPUParticleSystem, isParticleSystem } from "../../tools/guards/particles";
+import { parsePhysicsAggregate, serializePhysicsAggregate } from "../../tools/physics/serialization/aggregate";
+import { isAnyParticleSystem, isGPUParticleSystem, isNodeParticleSystemSetMesh, isParticleSystem } from "../../tools/guards/particles";
 import {
 	isAbstractMesh,
 	isAnyTransformNode,
 	isCamera,
+	isClusteredLightContainer,
 	isCollisionInstancedMesh,
 	isCollisionMesh,
 	isEditorCamera,
@@ -63,6 +69,7 @@ import {
 	onNodesAddedObservable,
 	onParticleSystemAddedObservable,
 	onParticleSystemModifiedObservable,
+	onSkeletonModifiedObservable,
 	onSpriteModifiedObservable,
 	onTextureModifiedObservable,
 } from "../../tools/observables";
@@ -73,10 +80,14 @@ import { getLightCommands } from "../dialogs/command-palette/light";
 import { getCameraCommands } from "../dialogs/command-palette/camera";
 import { getSpriteCommands } from "../dialogs/command-palette/sprite";
 
+import { addSoundNode } from "../../project/add/sound";
 import { onProjectConfigurationChangedObservable } from "../../project/configuration";
 
+import { applySoundAsset } from "./preview/import/sound";
+
 import { EditorGraphLabel } from "./graph/label";
-import { EditorGraphContextMenu } from "./graph/graph";
+import { EditorGraphContextMenu } from "./graph/context-menu";
+import { setNewParentForGraphSelectedNodes } from "./graph/move";
 
 export interface IEditorGraphProps {
 	/**
@@ -116,8 +127,8 @@ export interface IEditorGraphState {
 }
 
 export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState> {
-	private _soundsList: Sound[] = [];
-	private _objectsToCopy: TreeNodeInfo<unknown>[] = [];
+	public _nodeToCopyTransform: Node | null = null;
+	public _objectsToCopy: TreeNodeInfo<unknown>[] = [];
 
 	public constructor(props: IEditorGraphProps) {
 		super(props);
@@ -139,6 +150,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		onNodeModifiedObservable.add((node) => this._handleObjectModified(node));
 		onSpriteModifiedObservable.add((node) => this._handleObjectModified(node));
 		onTextureModifiedObservable.add((texture) => this._handleObjectModified(texture));
+		onSkeletonModifiedObservable.add((skeleton) => this._handleObjectModified(skeleton));
 		onParticleSystemModifiedObservable.add((particleSystem) => this._handleObjectModified(particleSystem));
 
 		document.addEventListener("copy", () => !isDomTextInputFocused() && this.copySelectedNodes());
@@ -254,6 +266,8 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 										);
 									})}
 									<ContextMenuSeparator />
+									<ContextMenuItem onClick={() => addSoundNode(this.props.editor)}>Sound Node</ContextMenuItem>
+									<ContextMenuSeparator />
 									{getSpriteCommands(this.props.editor).map((command) => {
 										return (
 											<ContextMenuItem key={command.key} disabled={command.disabled} onClick={command.action}>
@@ -281,14 +295,13 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 	 */
 	public refresh(): Promise<void> {
 		const scene = this.props.editor.layout.preview.scene;
-
-		this._soundsList = scene.soundTracks?.map((st) => st.soundCollection).flat() ?? [];
+		const clusteredLightContainer = this.props.editor.layout.preview.clusteredLightContainer;
 
 		let nodes: (TreeNodeInfo | null)[] = [];
 
 		if (this.state.showOnlyLights || this.state.showOnlyDecals) {
 			if (this.state.showOnlyLights) {
-				nodes.push(...scene.lights.map((light) => this._parseSceneNode(light, true)));
+				nodes.push(...scene.lights.concat(clusteredLightContainer.lights).map((light) => this._parseSceneNode(light, true)));
 			}
 
 			if (this.state.showOnlyDecals) {
@@ -303,9 +316,9 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			nodes.splice(0, 0, guiNode);
 		}
 
-		const soundNode = this._parseSoundNode(scene);
-		if (soundNode) {
-			nodes.splice(0, 0, soundNode);
+		const skeletonNode = this._parseSkeletonNode(scene);
+		if (skeletonNode) {
+			nodes.splice(0, 0, skeletonNode);
 		}
 
 		nodes.splice(0, 0, {
@@ -327,8 +340,8 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 	 * become unselected to have only the given node selected. All parents are expanded.
 	 * @param node defines the reference tot the node to select in the graph.
 	 */
-	public setSelectedNode(node: Node | Sound | IParticleSystem | Sprite): void {
-		let source = isSound(node) ? node["_connectedTransformNode"] : isAnyParticleSystem(node) ? node.emitter : node;
+	public setSelectedNode(node: Node | IParticleSystem | Sprite): void {
+		let source = (isAnyParticleSystem(node) ? (node.emitter as AbstractMesh) : node) as Node | null;
 
 		if (!source) {
 			return;
@@ -336,6 +349,10 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 
 		if (isSprite(source)) {
 			source = getSpriteManagerNodeFromSprite(source);
+		}
+
+		if (isLight(source) && this.props.editor.layout.preview.clusteredLightContainer.lights.includes(source)) {
+			source = this.props.editor.layout.preview.clusteredLightContainer;
 		}
 
 		const idsToExpand: string[] = [];
@@ -368,7 +385,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 	 * Sets the given node selected in the graph. All other selected nodes remain selected.
 	 * @param node defines the reference to the node to select in the graph.
 	 */
-	public addToSelectedNodes(node: Node): void {
+	public addToSelectedNodes(node: Node | IParticleSystem | Sprite): void {
 		this._forEachNode(this.state.nodes, (n) => {
 			if (n.nodeData === node) {
 				n.isSelected = true;
@@ -392,17 +409,18 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 	 */
 	public copySelectedNodes(): void {
 		this._objectsToCopy = this.props.editor.layout.graph.getSelectedNodes();
+		this.refresh();
 	}
 
 	/**
 	 * Pastes the previously copied nodes.
 	 */
-	public pasteSelectedNodes(parent?: Node): void {
+	public pasteSelectedNodes(parent?: Node, shift?: boolean): void {
 		if (!this._objectsToCopy.length) {
 			return;
 		}
 
-		const newNodes: (Node | ParticleSystem | Sprite)[] = [];
+		const newNodes: (Node | IParticleSystem | Sprite)[] = [];
 		const nodesToCopy = this._objectsToCopy.map((n) => n.nodeData);
 
 		registerUndoRedo({
@@ -431,67 +449,160 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 				newNodes.splice(0, newNodes.length);
 			},
 			redo: () => {
-				nodesToCopy.forEach((object) => {
-					let node: Node | ParticleSystem | Sprite | null = null;
+				const tempTransfromNode = new TransformNode("tempParent", this.props.editor.layout.preview.scene);
 
-					defer: {
-						if (isAbstractMesh(object)) {
+				try {
+					nodesToCopy.forEach((object) => {
+						let node: Node | IParticleSystem | Sprite | null = null;
+
+						if (isAbstractMesh(object) && !isNodeParticleSystemSetMesh(object)) {
 							const suffix = "(Instanced Mesh)";
 							const name = isInstancedMesh(object) ? object.name : `${object.name.replace(` ${suffix}`, "")} ${suffix}`;
 
 							const instance = (node = object.createInstance(name));
+							instance.isPickable = object.isPickable;
 							instance.position.copyFrom(object.position);
 							instance.rotation.copyFrom(object.rotation);
 							instance.scaling.copyFrom(object.scaling);
 							instance.rotationQuaternion = object.rotationQuaternion?.clone() ?? null;
 							instance.parent = object.parent;
 
+							if (object.physicsAggregate) {
+								instance.physicsAggregate = parsePhysicsAggregate(instance, serializePhysicsAggregate(object.physicsAggregate));
+								instance.physicsAggregate.body.disableSync = true;
+							}
+
 							const collisionMesh = getCollisionMeshFor(instance.sourceMesh);
 							collisionMesh?.updateInstances(instance.sourceMesh);
-
-							break defer;
-						}
-
-						if (isParticleSystem(object) && isAbstractMesh(parent)) {
+						} else if (isParticleSystem(object) && isAbstractMesh(parent)) {
 							const suffix = "(Clone)";
 							const name = `${object.name.replace(` ${suffix}`, "")} ${suffix}`;
 
 							node = object.clone(name, parent, false);
-
-							break defer;
-						}
-
-						if (isNode(object) || isSprite(object)) {
+						} else if (isNode(object) || isSprite(object)) {
 							node = cloneNode(this.props.editor, object);
-							break defer;
-						}
-					}
-
-					if (node) {
-						if (!isSprite(node)) {
-							node.id = Tools.RandomId();
 						}
 
-						node.uniqueId = UniqueNumber.Get();
+						if (node) {
+							if (!isSprite(node)) {
+								node.id = Tools.RandomId();
+							}
 
-						if (parent && isNode(node)) {
-							node.parent = parent;
+							node.uniqueId = UniqueNumber.Get();
+
+							if (parent && isNode(node)) {
+								if (shift && isNode(object)) {
+									node.parent = object.parent;
+									applyTransformNodeParentingConfiguration(node, parent, tempTransfromNode);
+								} else {
+									node.parent = parent;
+								}
+							}
+
+							if (isAbstractMesh(node)) {
+								this.props.editor.layout.preview.scene.lights
+									.map((light) => light.getShadowGenerator())
+									.forEach((generator) => generator?.getShadowMap()?.renderList?.push(node));
+							}
+
+							newNodes.push(node);
 						}
+					});
+				} catch (e) {
+					console.error(e);
+				}
 
-						if (isAbstractMesh(node)) {
-							this.props.editor.layout.preview.scene.lights
-								.map((light) => light.getShadowGenerator())
-								.forEach((generator) => generator?.getShadowMap()?.renderList?.push(node));
-						}
-
-						newNodes.push(node);
-					}
-				});
+				tempTransfromNode.dispose(false, true);
 			},
 		});
 	}
 
-	private _handleSearch(search: string) {
+	public copySelectedNodeTransform(node: Node): void {
+		this._nodeToCopyTransform = node;
+		this.refresh();
+	}
+
+	public pasteSelectedNodeTransform(node: Node): void {
+		if (!this._nodeToCopyTransform) {
+			return;
+		}
+
+		const sourcePosition = (this._nodeToCopyTransform as any)["position"];
+		const sourceRotation = (this._nodeToCopyTransform as any)["rotation"];
+		const sourceScaling = (this._nodeToCopyTransform as any)["scaling"];
+		const sourceRotationQuaternion = (this._nodeToCopyTransform as any)["rotationQuaternion"];
+		const sourceDirection = (this._nodeToCopyTransform as any)["direction"];
+
+		const targetPosition = (node as any)["position"];
+		const targetRotation = (node as any)["rotation"];
+		const targetScaling = (node as any)["scaling"];
+		const targetRotationQuaternion = (node as any)["rotationQuaternion"];
+		const targetDirection = (node as any)["direction"];
+
+		const savedTargetPosition = targetPosition?.clone();
+		const savedTargetRotation = targetRotation?.clone();
+		const savedTargetScaling = targetScaling?.clone();
+		const savedTargetRotationQuaternion = targetRotationQuaternion?.clone();
+		const savedTargetDirection = targetDirection?.clone();
+
+		registerUndoRedo({
+			executeRedo: true,
+			undo: () => {
+				if (savedTargetPosition && targetPosition) {
+					targetPosition.copyFrom(savedTargetPosition);
+				}
+
+				if (savedTargetRotation && targetRotation) {
+					targetRotation.copyFrom(savedTargetRotation);
+				}
+
+				if (savedTargetScaling && targetScaling) {
+					targetScaling.copyFrom(savedTargetScaling);
+				}
+
+				if (targetRotationQuaternion) {
+					if (!savedTargetRotationQuaternion) {
+						(node as any)["rotationQuaternion"] = null;
+					} else {
+						targetRotationQuaternion.copyFrom(savedTargetRotationQuaternion);
+					}
+				}
+
+				if (savedTargetDirection && targetDirection) {
+					targetDirection.copyFrom(savedTargetDirection);
+				}
+			},
+			redo: () => {
+				if (sourcePosition && targetPosition) {
+					targetPosition.copyFrom(sourcePosition);
+				}
+
+				if (sourceRotation && targetRotation) {
+					targetRotation.copyFrom(sourceRotation);
+				}
+
+				if (sourceScaling && targetScaling) {
+					targetScaling.copyFrom(sourceScaling);
+				}
+
+				if (sourceRotationQuaternion) {
+					if (targetRotationQuaternion) {
+						targetRotationQuaternion.copyFrom(sourceRotationQuaternion);
+					} else {
+						(node as any)["rotationQuaternion"] = sourceRotationQuaternion.clone();
+					}
+				}
+
+				if (sourceDirection && targetDirection) {
+					targetDirection.copyFrom(sourceDirection);
+				}
+			},
+		});
+
+		this.props.editor.layout.inspector.forceUpdate();
+	}
+
+	private _handleSearch(search: string): void {
 		this.setState({ search }, () => {
 			this.refresh();
 		});
@@ -583,7 +694,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		this.setState({ nodes: this.state.nodes });
 	}
 
-	public _forEachNode(nodes: TreeNodeInfo[] | undefined, callback: (node: TreeNodeInfo, index: number) => void) {
+	public _forEachNode(nodes: TreeNodeInfo[] | undefined, callback: (node: TreeNodeInfo, index: number) => void): void {
 		if (nodes === undefined) {
 			return;
 		}
@@ -596,60 +707,50 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		}
 	}
 
-	private _parseSoundNode(scene: Scene): TreeNodeInfo | null {
-		const soundTracks = scene.soundTracks;
-		if (!soundTracks?.length) {
+	private _parseSkeletonNode(scene: Scene): TreeNodeInfo | null {
+		if (!scene.skeletons.length) {
 			return null;
 		}
 
 		const childNodes: TreeNodeInfo[] = [];
 
-		this._soundsList.forEach((sound) => {
-			if (sound.spatialSound) {
+		scene.skeletons.forEach((skeleton) => {
+			if (!skeleton.name.toLowerCase().includes(this.state.search.toLowerCase())) {
 				return;
 			}
 
-			if (!sound.name.toLowerCase().includes(this.state.search.toLowerCase())) {
-				return;
-			}
-
-			childNodes.push(this._getSoundNode(sound));
+			childNodes.push(this._getSkeletonNode(skeleton));
 		});
 
-		if (!childNodes.length) {
-			return null;
-		}
-
-		const rootSoundNode = {
+		const rootSkeletonNode = {
 			childNodes,
 			nodeData: scene,
-			id: "__editor__sounds__",
-			icon: <BsSoundwave className="w-4 h-4" />,
-			label: this._getNodeLabelComponent(scene, "Sounds", false),
+			id: "__editor__skeletons__",
+			icon: <FaBone className="w-4 h-4" />,
+			label: this._getNodeLabelComponent(scene, "Skeletons", false),
 		} as TreeNodeInfo;
 
 		this._forEachNode(this.state.nodes, (n) => {
-			if (n.id === rootSoundNode.id) {
-				rootSoundNode.isSelected = n.isSelected;
-				rootSoundNode.isExpanded = n.isExpanded;
+			if (n.id === rootSkeletonNode.id) {
+				rootSkeletonNode.isSelected = n.isSelected;
+				rootSkeletonNode.isExpanded = n.isExpanded;
 			}
 		});
 
-		return rootSoundNode;
+		return rootSkeletonNode;
 	}
 
-	private _getSoundNode(sound: Sound): TreeNodeInfo {
+	private _getSkeletonNode(skeleton: Skeleton): TreeNodeInfo {
 		const info = {
-			nodeData: sound,
-			id: sound.id,
-			icon: this._getIcon(sound),
-			label: this._getNodeLabelComponent(sound, sound.name, false),
+			nodeData: skeleton,
+			id: skeleton.id,
+			icon: <FaBone className="w-4 h-4" />,
+			label: this._getNodeLabelComponent(skeleton, skeleton.name, false),
 		} as TreeNodeInfo;
 
 		this._forEachNode(this.state.nodes, (n) => {
 			if (n.id === info.id) {
 				info.isSelected = n.isSelected;
-				info.isExpanded = n.isExpanded;
 			}
 		});
 
@@ -730,7 +831,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			childNodes,
 			nodeData: scene,
 			id: "__editor__gui__",
-			icon: <SiAdobeindesign className="w-4 h-4" />,
+			icon: <TbBrandAdobeIndesign className="w-4 h-4" />,
 			label: this._getNodeLabelComponent(scene, "Gui", false),
 		} as TreeNodeInfo;
 
@@ -762,11 +863,15 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			return null;
 		}
 
-		if (isLight(node) && !node._scene.lights.includes(node)) {
+		if (isLight(node) && !node._scene.lights.includes(node) && !isClusteredLight(node, this.props.editor)) {
 			return null;
 		}
 
 		if (isCamera(node) && !node._scene.cameras.includes(node)) {
+			return null;
+		}
+
+		if (isClusteredLightContainer(node) && (this.state.showOnlyLights || this.state.showOnlyDecals)) {
 			return null;
 		}
 
@@ -783,27 +888,23 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		} as TreeNodeInfo;
 
 		if (!isSceneLinkNode(node) && !noChildren) {
-			const children = node.getDescendants(true);
+			const children = isClusteredLightContainer(node)
+				? node.getDescendants(true)
+				: node.getDescendants(true, (n) => !(isLight(n) && isClusteredLight(n, this.props.editor)));
+
 			if (children.length) {
 				info.childNodes = children.map((c) => this._parseSceneNode(c)).filter((c) => c !== null) as TreeNodeInfo[];
-			}
-
-			// Handle sounds
-			if (isTransformNode(node) || isMesh(node) || isInstancedMesh(node)) {
-				const sounds = this._soundsList.filter((s) => s["_connectedTransformNode"] === node);
-
-				sounds?.forEach((sound) => {
-					if (sound.name.toLowerCase().includes(this.state.search.toLowerCase())) {
-						info.childNodes?.push(this._getSoundNode(sound));
-					}
-				});
 			}
 
 			// Handle particle systems
 			if (isAbstractMesh(node) && !noChildren) {
 				const particleSystems = this.props.editor.layout.preview.scene.particleSystems.filter((ps) => ps.emitter === node);
 				particleSystems.forEach((particleSystem) => {
-					if (particleSystem.name.toLowerCase().includes(this.state.search.toLowerCase())) {
+					if (
+						(isParticleSystem(particleSystem) || isGPUParticleSystem(particleSystem)) &&
+						isParticleSystemVisibleInGraph(particleSystem) &&
+						particleSystem.name.toLowerCase().includes(this.state.search.toLowerCase())
+					) {
 						info.childNodes?.push(this._getParticleSystemNode(particleSystem));
 					}
 				});
@@ -813,6 +914,16 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			if (isSpriteManagerNode(node) && !noChildren) {
 				node.spriteManager?.sprites.forEach((sprite) => {
 					info.childNodes?.push(this._getSpriteNode(sprite));
+				});
+			}
+
+			// Handle clustered lights
+			if (isClusteredLightContainer(node) && !noChildren) {
+				node.lights.forEach((light) => {
+					const clusteredLightNode = this._parseSceneNode(light, false);
+					if (clusteredLightNode) {
+						info.childNodes?.push(clusteredLightNode);
+					}
 				});
 			}
 
@@ -849,7 +960,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 					}
 
 					selectedNodeData.forEach((node) => {
-						if (isNode(node)) {
+						if (isNode(node) || isClusteredLightContainer(node)) {
 							node.setEnabled(enabled);
 						}
 					});
@@ -892,12 +1003,20 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			return <HiOutlineCubeTransparent className="w-4 h-4" />;
 		}
 
+		if (isNodeParticleSystemSetMesh(object)) {
+			return <TbServerSpark className="w-4 h-4" />;
+		}
+
 		if (isAbstractMesh(object)) {
 			return <IoMdCube className="w-4 h-4" />;
 		}
 
 		if (isLight(object)) {
 			return <FaLightbulb className="w-4 h-4" />;
+		}
+
+		if (isClusteredLightContainer(object)) {
+			return <FaRegLightbulb className="w-4 h-4" />;
 		}
 
 		if (isCamera(object)) {
@@ -909,10 +1028,10 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		}
 
 		if (isAdvancedDynamicTexture(object)) {
-			return <SiAdobeindesign className="w-4 h-4" />;
+			return <TbBrandAdobeIndesign className="w-4 h-4" />;
 		}
 
-		if (isSound(object)) {
+		if (isSoundNode(object)) {
 			return <HiSpeakerWave className="w-4 h-4" />;
 		}
 
@@ -953,7 +1072,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		);
 	}
 
-	private _handleObjectModified(node: Node | BaseTexture | IParticleSystem | Sprite): void {
+	private _handleObjectModified(node: Node | BaseTexture | IParticleSystem | Sprite | Skeleton): void {
 		this._forEachNode(this.state.nodes, (n) => {
 			if (n.nodeData === node) {
 				n.label = this._getNodeLabelComponent(node, node.name);
@@ -965,19 +1084,28 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 
 	private _handleDropEmpty(ev: DragEvent<HTMLDivElement>): void {
 		const node = ev.dataTransfer.getData("graph/node");
-		if (!node) {
-			return;
+		if (node) {
+			setNewParentForGraphSelectedNodes(this.props.editor, this.props.editor.layout.preview.scene, ev.shiftKey);
 		}
 
-		const nodesToMove: TreeNodeInfo[] = [];
-		this._forEachNode(this.state.nodes, (n) => n.isSelected && nodesToMove.push(n));
+		const asset = ev.dataTransfer.getData("assets");
+		if (asset) {
+			const absolutePaths = this.props.editor.layout.assets.state.selectedKeys;
 
-		nodesToMove.forEach((n) => {
-			if (n.nodeData && isNode(n.nodeData)) {
-				n.nodeData.parent = null;
-			}
-		});
+			absolutePaths.forEach((absolutePath) => {
+				const extension = extname(absolutePath).toLowerCase();
 
-		this.refresh();
+				switch (extension) {
+					case ".mp3":
+					case ".ogg":
+					case ".wav":
+					case ".wave":
+						applySoundAsset(this.props.editor, this.props.editor.layout.preview.scene, absolutePath).then(() => {
+							this.props.editor.layout.graph.refresh();
+						});
+						break;
+				}
+			});
+		}
 	}
 }

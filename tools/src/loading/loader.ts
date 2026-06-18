@@ -3,23 +3,32 @@ import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { Constants } from "@babylonjs/core/Engines/constants";
 import { AppendSceneAsync } from "@babylonjs/core/Loading/sceneLoader";
 import { SceneLoaderFlags } from "@babylonjs/core/Loading/sceneLoaderFlags";
+import { ClusteredLightContainer } from "@babylonjs/core/Lights/Clustered/clusteredLightContainer";
 
 import { isMesh } from "../tools/guards";
+import { applyMeshesLODQuality, configureMeshDistanceOrScreenCoverage } from "../tools/mesh";
 import { configureShadowMapRefreshRate, configureShadowMapRenderListPredicate } from "../tools/light";
 
 import { IScript } from "../script";
 
-import { applyRenderingConfigurationForCamera } from "../rendering/tools";
+import { applyRenderingConfigurationForCamera, IApplyRenderingConfigurationOptions } from "../rendering/tools";
 
 import { configurePhysicsAggregate } from "./physics";
 import { applyRenderingConfigurations } from "./rendering";
-import { _applyScriptsForObject, _preloadScriptsAssets } from "./script";
 
-import "./sound";
-import "./texture";
-import "./shadows";
-import "./sprite-map";
-import "./sprite-manager";
+import { _applyScriptsForObject } from "./script/apply";
+import { _preloadScriptsAssets } from "./script/preload";
+
+import { registerAudioParser } from "./sound";
+import { registerTextureParser } from "./texture";
+import { registerShadowGeneratorParser } from "./shadows";
+import { registerMorphTargetManagerParser } from "./morph-target-manager";
+
+import { configureLights } from "./light";
+import { registerSpriteMapParser } from "./sprite-map";
+import { configureTransformNodes } from "./transform-node";
+import { registerSpriteManagerParser } from "./sprite-manager";
+import { registerNodeParticleSystemSetParser } from "./node-particle-system-set";
 
 /**
  * Defines the possible output type of a script.
@@ -61,11 +70,31 @@ export type SceneLoaderOptions = {
 	 * Same as "quality" but only applied to shadows. If set, this has priority over "quality".
 	 */
 	shadowsQuality?: SceneLoaderQualitySelector;
+	/**
+	 * Sames as "quality" but only applied to LODs. If set, this has priority over "quality".
+	 * This will affect the screen coverage or distance used to switch between LODs. The "very-low" quality level is even more aggressive with LODs.
+	 */
+	lodsQuality?: SceneLoaderQualitySelector;
+
+	/**
+	 * Defines the optional configuration to apply when applying the rendering configuration for a camera.
+	 * This allows to selectively disable some post-processes when applying the rendering configuration for a camera.
+	 * This is particularly useful for when your game provides options to enable/disable post-processes.
+	 */
+	postProcessConfiguration?: IApplyRenderingConfigurationOptions;
 
 	/**
 	 * Defines the function called to notify the loading progress in interval [0, 1]
 	 */
 	onProgress?: (value: number) => void;
+
+	/**
+	 * Defines whether to skip the preloading of assets linked to scripts.
+	 * To ensure all resources are loaded before resolving loadScene promise, all resources linked to scripts are preloaded after the scene is loaded.
+	 * To bypass this behavior, you can set this flag to true.
+	 * @default false
+	 */
+	skipAssetsPreload?: boolean;
 };
 
 declare module "@babylonjs/core/scene" {
@@ -74,31 +103,20 @@ declare module "@babylonjs/core/scene" {
 		loadingQuality: SceneLoaderQualitySelector;
 		loadingTexturesQuality: SceneLoaderQualitySelector;
 		loadingShadowsQuality: SceneLoaderQualitySelector;
+		loadingLodsQuality: SceneLoaderQualitySelector;
 	}
 }
 
-export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scene, scriptsMap: ScriptMap, options?: SceneLoaderOptions) {
-	scene.loadingQuality = options?.quality ?? "high";
-
-	scene.loadingTexturesQuality = options?.texturesQuality ?? scene.loadingQuality;
-	scene.loadingShadowsQuality = options?.shadowsQuality ?? scene.loadingQuality;
-
-	await AppendSceneAsync(`${rootUrl}${sceneFilename}`, scene, {
-		pluginExtension: ".babylon",
-		onProgress: (event) => {
-			const progress = Math.min((event.loaded / event.total) * 0.5);
-			options?.onProgress?.(progress);
-		},
-	});
-
-	// Ensure all meshes perform their delay state check
-	if (SceneLoaderFlags.ForceFullSceneLoadingForIncremental) {
-		scene.meshes.forEach((m) => isMesh(m) && m._checkDelayState());
+const sceneConfigurationMap: Map<
+	Scene,
+	{
+		clusteredLightContainer?: ClusteredLightContainer;
 	}
+> = new Map();
 
+async function waitForWaitingItems(scene: Scene, onProgress: (value: number) => void) {
 	const waitingItemsCount = scene.getWaitingItemsCount();
 
-	// Wait until scene is ready.
 	while (!scene.isDisposed && (!scene.isReady() || scene.getWaitingItemsCount() > 0)) {
 		await new Promise<void>((resolve) => setTimeout(resolve, 150));
 
@@ -112,12 +130,74 @@ export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scen
 			});
 		}
 
-		options?.onProgress?.(0.5 + (loadedItemsCount / waitingItemsCount) * 0.5);
+		onProgress(loadedItemsCount / waitingItemsCount);
+	}
+}
+
+export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scene, scriptsMap: ScriptMap, options?: SceneLoaderOptions) {
+	scene.loadingQuality = options?.quality ?? "high";
+
+	scene.loadingTexturesQuality = options?.texturesQuality ?? scene.loadingQuality;
+	scene.loadingShadowsQuality = options?.shadowsQuality ?? scene.loadingQuality;
+	scene.loadingLodsQuality = options?.lodsQuality ?? scene.loadingQuality;
+
+	registerAudioParser();
+	registerTextureParser();
+	registerShadowGeneratorParser();
+
+	registerMorphTargetManagerParser();
+
+	registerSpriteMapParser();
+	registerSpriteManagerParser();
+
+	registerNodeParticleSystemSetParser();
+
+	// Check configuration
+	const configuration = sceneConfigurationMap.get(scene) ?? {};
+	sceneConfigurationMap.set(scene, configuration);
+
+	// Append to the given scene
+	await AppendSceneAsync(`${rootUrl}${sceneFilename}`, scene, {
+		pluginExtension: ".babylon",
+		onProgress: (event) => {
+			const progress = Math.min((event.loaded / event.total) * 0.5);
+			options?.onProgress?.(progress);
+		},
+	});
+
+	// Wait until scene is ready.
+	await waitForWaitingItems(scene, (progress) => {
+		options?.onProgress?.(0.5 + progress * 0.25);
+	});
+
+	if (!options?.skipAssetsPreload) {
+		// Loop until all assets are loaded.
+		// This is required as some assets can be linked to scripts that are themselves linked to .scene files
+		// that are not loaded at the time of the first call to _preloadScriptsAssets.
+		let loadedAssetsCount = 0;
+		do {
+			loadedAssetsCount = await _preloadScriptsAssets(rootUrl, scene, scriptsMap);
+		} while (loadedAssetsCount !== 0 && !scene.isDisposed);
 	}
 
-	await _preloadScriptsAssets(scene, rootUrl);
+	// Ensure all meshes perform their delay state check
+	if (SceneLoaderFlags.ForceFullSceneLoadingForIncremental) {
+		scene.meshes.forEach((m) => isMesh(m) && m._checkDelayState());
+	}
+
+	// Configure clustered lights
+	const clusteredLightContainer = configureLights(scene, configuration.clusteredLightContainer);
+	configuration.clusteredLightContainer = clusteredLightContainer;
+
+	// Wait until scene is ready.
+	await waitForWaitingItems(scene, (progress) => {
+		options?.onProgress?.(0.75 + progress * 0.25);
+	});
 
 	options?.onProgress?.(1);
+
+	configureMeshDistanceOrScreenCoverage(scene);
+	applyMeshesLODQuality(scene.loadingLodsQuality, scene);
 
 	configureShadowMapRenderListPredicate(scene);
 	configureShadowMapRefreshRate(scene);
@@ -126,7 +206,7 @@ export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scen
 		applyRenderingConfigurations(scene, scene.metadata.rendering);
 
 		if (scene.activeCamera) {
-			applyRenderingConfigurationForCamera(scene.activeCamera, rootUrl);
+			applyRenderingConfigurationForCamera(scene.activeCamera, rootUrl, options?.postProcessConfiguration);
 		}
 	}
 
@@ -158,4 +238,6 @@ export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scen
 			_applyScriptsForObject(scene, sprite, scriptsMap, rootUrl);
 		});
 	});
+
+	configureTransformNodes(scene);
 }

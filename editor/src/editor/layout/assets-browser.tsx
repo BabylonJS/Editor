@@ -5,9 +5,10 @@ import { copyFile, copy, mkdir, move, pathExists, readdir, stat, writeFile, writ
 import filenamify from "filenamify";
 
 import { AdvancedDynamicTexture } from "babylonjs-gui";
-import { Material, NodeMaterial, Tools, NodeParticleSystemSet } from "babylonjs";
+import { INavMeshParametersV2 } from "babylonjs-addons/navigation/types";
+import { Material, NodeMaterial, Tools, NodeParticleSystemSet, RegisterSceneLoaderPlugin } from "babylonjs";
 
-import { ICinematic } from "babylonjs-editor-tools";
+import { ICinematic, IRagDollConfiguration } from "babylonjs-editor-tools";
 
 import { Fade } from "react-awesome-reveal";
 import { Grid } from "react-loader-spinner";
@@ -17,21 +18,25 @@ import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 
 import { IoIosOptions } from "react-icons/io";
 import { AiOutlinePlus } from "react-icons/ai";
+import { MdOutlineRefresh } from "react-icons/md";
 import { FaMagnifyingGlass } from "react-icons/fa6";
-import { IoRefresh, IoCheckmark } from "react-icons/io5";
-import { FaFolder, FaFolderOpen, FaRegFolderOpen } from "react-icons/fa";
+import { IoRefresh, IoCheckmark, IoArrowDownCircleOutline } from "react-icons/io5";
+import { FaArrowLeft, FaArrowRight, FaFolder, FaFolderOpen, FaRegFolderOpen } from "react-icons/fa";
 
-import { Button, Tree, TreeNodeInfo } from "@blueprintjs/core";
+import { toast } from "sonner";
+
+import { Tree, TreeNodeInfo } from "@blueprintjs/core";
 
 import { Editor } from "../main";
 
-import { UniqueNumber } from "../../tools/tools";
 import { execNodePty } from "../../tools/node-pty";
 import { clearUndoRedo } from "../../tools/undoredo";
 import { isTexture } from "../../tools/guards/texture";
 import { renameScene } from "../../tools/scene/rename";
+import { isSoundNode } from "../../tools/guards/sound";
+import { openMultipleFilesDialog } from "../../tools/dialog";
 import { onSelectedAssetChanged } from "../../tools/observables";
-import { openMultipleFilesAndFoldersDialog } from "../../tools/dialog";
+import { sortAlphabetically, UniqueNumber } from "../../tools/tools";
 import { findAvailableFilename, normalizedGlob } from "../../tools/fs";
 import { loadSavedThumbnailsCache } from "../../tools/assets/thumbnail";
 import { assetsCache, saveAssetsCache } from "../../tools/assets/cache";
@@ -43,8 +48,9 @@ import { getMaterialCommands, getMaterialsLibraryCommands } from "../dialogs/com
 
 import { loadScene } from "../../project/load/scene";
 import { saveProject, saveProjectConfiguration } from "../../project/save/save";
-import { onProjectConfigurationChangedObservable, projectConfiguration } from "../../project/configuration";
+import { getProjectAssetsRootUrl, onProjectConfigurationChangedObservable, projectConfiguration } from "../../project/configuration";
 
+import { Button } from "../../ui/shadcn/ui/button";
 import { showAlert, showConfirm, showPrompt } from "../../ui/dialog";
 
 import { Input } from "../../ui/shadcn/ui/input";
@@ -61,16 +67,23 @@ import {
 	ContextMenuSubContent,
 } from "../../ui/shadcn/ui/context-menu";
 
+import { exportNodeToPath } from "./graph/export";
+
 import { FileInspectorObject } from "./inspector/file";
+
+import { INavMeshConfiguration } from "./navmesh/types";
 
 import { AssetBrowserGUIItem } from "./assets-browser/items/gui-item";
 import { AssetBrowserHDRItem } from "./assets-browser/items/hdr-item";
 import { AssetBrowserJsonItem } from "./assets-browser/items/json-item";
 import { AssetBrowserMeshItem } from "./assets-browser/items/mesh-item";
+import { AssetBrowserRagdollItem } from "./assets-browser/items/ragdoll";
 import { AssetBrowserSceneItem } from "./assets-browser/items/scene-item";
 import { AssetBrowserImageItem } from "./assets-browser/items/image-item";
+import { AssetBrowserNavmeshItem } from "./assets-browser/items/navmesh-item";
 import { AssetBrowserMaterialItem } from "./assets-browser/items/material-item";
 import { AssetBrowserCinematicItem } from "./assets-browser/items/cinematic-item";
+import { AssetBrowserJavaScriptItem } from "./assets-browser/items/javascript-item";
 import { AssetsBrowserItem, IAssetsBrowserItemProps } from "./assets-browser/items/item";
 import { AssetBrowserParticleSystemItem } from "./assets-browser/items/particle-system-item";
 
@@ -84,9 +97,11 @@ import { openModelViewer } from "./assets-browser/viewers/model-viewer";
 
 import { EditorAssetsTreeLabel } from "./assets-browser/label";
 
+import { EditorAssetsBrowserRenameProgressComponent } from "./assets-browser/rename-progress";
+
 import "babylonjs-loaders";
 
-import "../../loader/assimpjs";
+import { AssimpJSLoader } from "../../loader/assimpjs";
 
 const HDRSelectable = createSelectable(AssetBrowserHDRItem);
 const GuiSelectable = createSelectable(AssetBrowserGUIItem);
@@ -95,9 +110,16 @@ const DefaultSelectable = createSelectable(AssetsBrowserItem);
 const MeshSelectable = createSelectable(AssetBrowserMeshItem);
 const ImageSelectable = createSelectable(AssetBrowserImageItem);
 const SceneSelectable = createSelectable(AssetBrowserSceneItem);
+const NavmeshSelectable = createSelectable(AssetBrowserNavmeshItem);
+const RagdollSelectable = createSelectable(AssetBrowserRagdollItem);
 const MaterialSelectable = createSelectable(AssetBrowserMaterialItem);
 const CinematicSelectable = createSelectable(AssetBrowserCinematicItem);
+const JavascriptSelectable = createSelectable(AssetBrowserJavaScriptItem);
 const ParticleSystemSelectable = createSelectable(AssetBrowserParticleSystemItem);
+
+const directoryPackagesExtensions = [".scene", ".navmesh"];
+
+RegisterSceneLoaderPlugin(new AssimpJSLoader(true, true));
 
 export interface IEditorAssetsBrowserProps {
 	/**
@@ -214,7 +236,9 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 		document.addEventListener("keydown", (ev) => {
 			if (this._isMouseOver && ev.key.toLowerCase() === "a" && (ev.ctrlKey || ev.metaKey)) {
 				ev.preventDefault();
-				this.setState({ selectedKeys: this.state.files.map((f) => join(this.state.browsedPath!, f)) });
+				this.setState({
+					selectedKeys: this.state.files.map((f) => join(this.state.browsedPath!, f)),
+				});
 			}
 		});
 
@@ -247,10 +271,12 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 	private async _refreshFilesTreeNodes(path: string): Promise<void> {
 		const files = await normalizedGlob(join(dirname(path), "**"), {
 			ignore: {
-				childrenIgnored: (p) => extname(p.name).toLocaleLowerCase() === ".scene",
-				ignored: (p) => !p.isDirectory() || extname(p.name).toLocaleLowerCase() === ".scene",
+				childrenIgnored: (p) => directoryPackagesExtensions.includes(extname(p.name).toLowerCase()),
+				ignored: (p) => !p.isDirectory() || directoryPackagesExtensions.includes(extname(p.name).toLowerCase()),
 			},
 		});
+
+		sortAlphabetically(files);
 
 		const allNodes: TreeNodeInfo[] = [];
 		const filesTreeNodes: TreeNodeInfo[] = [];
@@ -347,6 +373,10 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 	 * Refreshes the assets browser. This will refresh the files and the files tree nodes.
 	 */
 	public refresh(): void {
+		this.setState({
+			files: [],
+		});
+
 		this.setBrowsePath(this.state.browsedPath!);
 
 		if (projectConfiguration.path) {
@@ -391,53 +421,62 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 	 *  Handles the file renamed event. This will update the file paths in the editor.
 	 */
 	public async handleFileRenamed(oldAbsolutePath: string, newAbsolutePath: string): Promise<void> {
-		if (!this.props.editor.state.projectPath) {
+		const toastId = toast(<EditorAssetsBrowserRenameProgressComponent />, {
+			duration: Infinity,
+			dismissible: false,
+		});
+
+		const rootUrl = getProjectAssetsRootUrl();
+
+		if (!rootUrl || !this.props.editor.state.projectPath) {
 			return;
 		}
 
+		const oldRelativePath = oldAbsolutePath.replace(join(rootUrl, "/"), "");
+		const newRelativePath = newAbsolutePath.replace(join(rootUrl, "/"), "");
+
 		// Scene
 		if (oldAbsolutePath === this.props.editor.state.lastOpenedScenePath) {
-			renameScene(oldAbsolutePath, newAbsolutePath);
+			await renameScene(oldAbsolutePath, newAbsolutePath);
+
+			this._handleFileRenamed(oldRelativePath, newRelativePath);
 
 			return this.props.editor.setState({ lastOpenedScenePath: newAbsolutePath }, () => {
 				saveProjectConfiguration(this.props.editor);
 			});
 		}
 
-		const oldRelativePath = oldAbsolutePath.replace(join(dirname(this.props.editor.state.projectPath), "/"), "");
-		const newRelativePath = newAbsolutePath.replace(join(dirname(this.props.editor.state.projectPath), "/"), "");
-
 		const fStat = await stat(newAbsolutePath);
 		if (fStat.isDirectory()) {
 			const extension = extname(newAbsolutePath).toLowerCase();
 			if (extension === ".scene") {
-				renameScene(oldAbsolutePath, newAbsolutePath);
+				await renameScene(oldAbsolutePath, newAbsolutePath);
 			}
 
-			const files = await normalizedGlob(join(newAbsolutePath, "**"), {
+			const files = (await normalizedGlob(join(newAbsolutePath, "**"), {
 				ignore: {
 					ignored: (p) => p.isDirectory() && extname(p.name).toLowerCase() !== ".scene",
 				},
-			});
+			})) as string[];
 
-			files.forEach((file) => {
-				const newFileRelativePath = file.replace(join(dirname(this.props.editor.state.projectPath!), "/"), "");
+			for (const file of files) {
+				const newFileRelativePath = file.replace(join(rootUrl, "/"), "");
 				const oldFileRelativePath = newFileRelativePath.replace(newRelativePath, oldRelativePath);
 
 				const extension = extname(oldFileRelativePath).toLowerCase();
 				if (extension === ".scene") {
-					const oldSceneRelativePath = join(oldAbsolutePath, basename(oldFileRelativePath));
-					renameScene(oldSceneRelativePath, file);
+					const oldSceneAbsolutePath = join(rootUrl, oldFileRelativePath);
+					await renameScene(oldSceneAbsolutePath, file);
 
-					if (oldSceneRelativePath === this.props.editor.state.lastOpenedScenePath) {
+					if (oldSceneAbsolutePath === this.props.editor.state.lastOpenedScenePath) {
 						this.props.editor.setState({ lastOpenedScenePath: file }, () => {
 							saveProjectConfiguration(this.props.editor);
 						});
 					}
-				} else {
-					this._handleFileRenamed(oldFileRelativePath, newFileRelativePath);
 				}
-			});
+
+				this._handleFileRenamed(oldFileRelativePath, newFileRelativePath);
+			}
 		} else {
 			this._handleFileRenamed(oldRelativePath, newRelativePath);
 		}
@@ -446,6 +485,9 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 		this.props.editor.layout.inspector.forceUpdate();
 
 		await saveAssetsCache();
+
+		toast.dismiss(toastId);
+		toast.success("Assets updated successfully");
 	}
 
 	private _handleFileRenamed(oldRelativePath: string, newRelativePath: string): void {
@@ -462,13 +504,10 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 		});
 
 		// Sounds
-		scene.soundTracks?.forEach((soundtrack) => {
-			soundtrack.soundCollection.forEach((sound) => {
-				if (sound.name === oldRelativePath) {
-					sound.name = newRelativePath;
-					sound["_url"] = newRelativePath;
-				}
-			});
+		scene.transformNodes.forEach((node) => {
+			if (isSoundNode(node) && node.soundRelativePath === oldRelativePath) {
+				node.soundRelativePath = newRelativePath;
+			}
 		});
 
 		// Scripts
@@ -504,9 +543,11 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 			}
 		});
 
-		assetsCache[oldRelativePath] = {
-			newRelativePath,
-		};
+		if (!oldRelativePath.includes(".scene") || oldRelativePath.endsWith(".scene")) {
+			assetsCache[oldRelativePath] = {
+				newRelativePath,
+			};
+		}
 	}
 
 	/**
@@ -583,25 +624,27 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 	private _getFilesGridComponent(): ReactNode {
 		return (
 			<div className="flex flex-col w-full h-full">
-				<div className="flex gap-2 justify-between w-full h-10 min-h-10 bg-primary-foreground">
-					<div className="flex gap-2 h-full">
+				<div className="flex gap-2 justify-between px-2 w-full h-10 min-h-10 bg-primary-foreground">
+					<div className="flex gap-2 items-center h-full">
 						<Button
+							variant="ghost"
 							disabled={this._isBrowsingProjectRootPath()}
-							minimal
-							icon="arrow-left"
-							className="transition-all duration-300"
+							className="w-8 h-8 p-0.5"
+							title="Go to previous directory"
 							onClick={() => this.setBrowsePath(dirname(this.state.browsedPath!))}
-						/>
-						<Button minimal icon="arrow-right" className="transition-all duration-300" />
-						<Button
-							minimal
-							icon="refresh"
-							className="transition-all duration-300"
-							disabled={!this.state.browsedPath}
-							onClick={() => this._refreshItems(this.state.browsedPath!)}
-						/>
+						>
+							<FaArrowLeft className="w-4 h-4" />
+						</Button>
+						<Button variant="ghost" className="w-8 h-8 p-0.5" title="Go to previous directory">
+							<FaArrowRight className="w-4 h-4" />
+						</Button>
+						<Button variant="ghost" className="w-8 h-8 p-0.5" disabled={!this.state.browsedPath} title="Refresh" onClick={() => this.refresh()}>
+							<MdOutlineRefresh className="w-5 h-5" />
+						</Button>
 
-						<Button minimal icon="import" text="Import" onClick={() => this._handleImportFiles()} />
+						<Button variant="ghost" className="gap-2 w-24 h-8 p-0.5" title="Import existing assets to current directory" onClick={() => this._handleImportFiles()}>
+							<IoArrowDownCircleOutline className="w-5 h-5" /> Import
+						</Button>
 					</div>
 
 					<div className="flex gap-2 items-center">
@@ -622,13 +665,9 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 
 						<DropdownMenu onOpenChange={(o) => o && this.forceUpdate()}>
 							<DropdownMenuTrigger asChild>
-								<Button
-									minimal
-									icon={<IoIosOptions className="w-6 h-6" strokeWidth={1} />}
-									className="transition-all duration-300"
-									disabled={!this.state.browsedPath}
-									onClick={() => this._refreshItems(this.state.browsedPath!)}
-								/>
+								<Button variant="ghost" className="w-8 h-8 p-0.5" disabled={!this.state.browsedPath} onClick={() => this._refreshItems(this.state.browsedPath!)}>
+									<IoIosOptions className="w-6 h-6" strokeWidth={1} />
+								</Button>
 							</DropdownMenuTrigger>
 							<DropdownMenuContent>
 								<DropdownMenuItem
@@ -799,21 +838,22 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 					</ContextMenuSubContent>
 				</ContextMenuSub>
 
-				{this.props.editor.state.enableExperimentalFeatures && (
-					<>
-						<ContextMenuSeparator />
-						<ContextMenuItem onClick={() => this._handleAddNodeParticleSystem()}>Node Particle System</ContextMenuItem>
-						<ContextMenuSeparator />
-						<ContextMenuItem onClick={() => this._handleAddCinematic()}>Cinematic</ContextMenuItem>
-					</>
-				)}
+				<ContextMenuSeparator />
+				<ContextMenuItem onClick={() => this._handleAddNodeParticleSystem()}>Node Particle System</ContextMenuItem>
 
 				{this.props.editor.state.enableExperimentalFeatures && (
 					<>
 						<ContextMenuSeparator />
-						<ContextMenuItem onClick={() => this._handleAddFullScreenGUI()}>Full Screen GUI</ContextMenuItem>
+						<ContextMenuItem onClick={() => this._handleAddCinematic()}>Cinematic</ContextMenuItem>
+						<ContextMenuSeparator />
+						<ContextMenuItem onClick={() => this._handleAddNavmesh()}>Navmesh</ContextMenuItem>
+						<ContextMenuSeparator />
+						<ContextMenuItem onClick={() => this._handleAddRagdoll()}>Ragdoll</ContextMenuItem>
 					</>
 				)}
+
+				<ContextMenuSeparator />
+				<ContextMenuItem onClick={() => this._handleAddFullScreenGUI()}>Fullscreen GUI</ContextMenuItem>
 			</>
 		);
 	}
@@ -855,7 +895,6 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 			case ".lwo":
 			case ".gltf":
 			case ".ms3d":
-			case ".blend":
 			case ".babylon":
 				return <MeshSelectable {...props} />;
 
@@ -886,6 +925,15 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 			case ".npss":
 				return <ParticleSystemSelectable {...props} />;
 
+			case ".navmesh":
+				return <NavmeshSelectable {...props} />;
+
+			case ".ragdoll":
+				return <RagdollSelectable {...props} />;
+
+			case ".js":
+				return <JavascriptSelectable {...props} />;
+
 			default:
 				return <DefaultSelectable {...props} />;
 		}
@@ -893,8 +941,12 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 
 	private _handleDragOver(event: DragEvent<HTMLDivElement>): void {
 		event.preventDefault();
+
+		const isGraphNode = event.dataTransfer.types.includes("graph/node");
+		const isFiles = event.dataTransfer.types.length === 1 && event.dataTransfer.types[0] === "Files";
+
 		this.setState({
-			dragAndDroppingFiles: event.dataTransfer.types.length === 1 && event.dataTransfer.types[0] === "Files",
+			dragAndDroppingFiles: isFiles || isGraphNode,
 		});
 	}
 
@@ -910,6 +962,17 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 			return;
 		}
 
+		// Nodes from graph?
+		try {
+			const data = JSON.parse(event.dataTransfer.getData("graph/node")) as string[];
+			if (data?.length) {
+				return this._handleDroppedNodesFromGraph(data);
+			}
+		} catch (e) {
+			// Catch silently.
+		}
+
+		// Those are files.
 		let assetFileNotInAssetsFolder = false;
 
 		const filesToCopy: Record<string, string> = {};
@@ -963,6 +1026,34 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 		this.refresh();
 	}
 
+	private async _handleDroppedNodesFromGraph(nodeIds: string[]): Promise<void> {
+		if (!this.state.browsedPath || !this.props.editor.state.enableExperimentalFeatures) {
+			return;
+		}
+
+		if (!this.isAssetsFolder()) {
+			showAlert("Warning", <div>You can only export nodes to at least in the root "assets" folder.</div>, true);
+			return;
+		}
+
+		for (const nodeId of nodeIds) {
+			const node = this.props.editor.layout.preview.scene.getNodeById(nodeId);
+			if (node) {
+				const scenePath = join(this.state.browsedPath, `${filenamify(node.name)}.babylon`);
+				if (await pathExists(scenePath)) {
+					const overwrite = await showConfirm("Overwrite Scene?", `A scene named "${node.name}" already exists at this location. Do you want to overwrite it?`);
+					if (!overwrite) {
+						continue;
+					}
+				}
+
+				await exportNodeToPath(this.props.editor, node, join(this.state.browsedPath, `${filenamify(node.name)}.babylon`));
+			}
+		}
+
+		return this.refresh();
+	}
+
 	private async _handleCreateDirectory(): Promise<void> {
 		if (!this.state.browsedPath) {
 			return;
@@ -982,7 +1073,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 			return;
 		}
 
-		const files = openMultipleFilesAndFoldersDialog({
+		const files = openMultipleFilesDialog({
 			title: "Import Files & Folders",
 		});
 
@@ -1177,6 +1268,59 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 		return this._refreshItems(this.state.browsedPath);
 	}
 
+	private async _handleAddNavmesh(): Promise<void> {
+		if (!this.state.browsedPath) {
+			return;
+		}
+
+		const cellSize = 10;
+		const walkableRadius = 10;
+		const walkableHeight = 10;
+		const navmeshParameters = {
+			ch: 1,
+			cs: cellSize,
+			walkableHeight: Math.round(walkableHeight / cellSize),
+			walkableRadius: Math.round(walkableRadius / cellSize),
+			keepIntermediates: true,
+		} as INavMeshParametersV2;
+
+		const configuration: INavMeshConfiguration = {
+			navMeshParameters: navmeshParameters,
+			staticMeshes: [],
+			obstacleMeshes: [],
+		};
+
+		const name = await findAvailableFilename(this.state.browsedPath, "New NavMesh", ".navmesh");
+
+		await mkdir(join(this.state.browsedPath, name));
+		await writeJSON(join(this.state.browsedPath, name, "config.json"), configuration, {
+			spaces: "\t",
+			encoding: "utf-8",
+		});
+
+		return this._refreshItems(this.state.browsedPath);
+	}
+
+	private async _handleAddRagdoll(): Promise<void> {
+		if (!this.state.browsedPath) {
+			return;
+		}
+
+		const configuration: IRagDollConfiguration = {
+			rootNodeId: "",
+			scalingFactor: 100,
+			runtimeConfiguration: [],
+		};
+
+		const name = await findAvailableFilename(this.state.browsedPath, "New Ragdoll", ".ragdoll");
+		await writeJSON(join(this.state.browsedPath, name), configuration, {
+			spaces: "\t",
+			encoding: "utf-8",
+		});
+
+		return this._refreshItems(this.state.browsedPath);
+	}
+
 	private async _handleAddFullScreenGUI(): Promise<void> {
 		if (!this.state.browsedPath) {
 			return;
@@ -1306,7 +1450,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 			const extension = extname(item.props.absolutePath).toLowerCase();
 			if (extension === ".scene") {
 				this._handleLoadScene(item.props.absolutePath);
-			} else {
+			} else if (!directoryPackagesExtensions.includes(extension)) {
 				this.setBrowsePath(item.props.absolutePath);
 			}
 
@@ -1333,6 +1477,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 				return openModelViewer(this.props.editor, item.props.absolutePath);
 
 			case ".env":
+			case ".hdr":
 				return openEnvViewer(item.props.absolutePath);
 
 			case ".ts":
@@ -1419,7 +1564,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 		this.setState({ filesTreeNodes: this.state.filesTreeNodes });
 	}
 
-	private _forEachNode(nodes: TreeNodeInfo[] | undefined, callback: (node: TreeNodeInfo, index: number) => void) {
+	private _forEachNode(nodes: TreeNodeInfo[] | undefined, callback: (node: TreeNodeInfo, index: number) => void): void {
 		if (nodes === undefined) {
 			return;
 		}

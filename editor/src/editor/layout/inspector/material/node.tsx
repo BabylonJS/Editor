@@ -91,24 +91,24 @@ export class EditorNodeMaterialInspector extends Component<IEditorNodeMaterialIn
 			nodir: true,
 		});
 
-		await Promise.all(
-			materialFiles.map(async (filePath) => {
-				try {
-					const data = await readJSON(filePath, {
-						encoding: "utf-8",
+		for (const filePath of materialFiles) {
+			try {
+				const data = await readJSON(filePath as string, {
+					encoding: "utf-8",
+				});
+
+				if (data.customType === "BABYLON.NodeMaterial" && data.uniqueId === this.props.material.uniqueId) {
+					ipcRenderer.send("window:open", "build/src/editor/windows/nme", {
+						filePath,
+						rootUrl: getProjectAssetsRootUrl() ?? undefined,
 					});
 
-					if (data.customType === "BABYLON.NodeMaterial" && data.uniqueId === this.props.material.uniqueId) {
-						ipcRenderer.send("window:open", "build/src/editor/windows/nme", {
-							filePath,
-							rootUrl: getProjectAssetsRootUrl() ?? undefined,
-						});
-					}
-				} catch (e) {
-					// Catch silently
+					break;
 				}
-			})
-		);
+			} catch (e) {
+				// Catch silently
+			}
+		}
 
 		this.setState({
 			searchingToEdit: false,

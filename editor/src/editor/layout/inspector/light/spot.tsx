@@ -17,8 +17,11 @@ import { EditorInspectorSectionField } from "../fields/section";
 // import { EditorInspectorTextureField } from "../fields/texture";
 
 import { ScriptInspectorComponent } from "../script/script";
+import { CustomMetadataInspector } from "../metadata/custom-metadata";
 
-import { EditorLightShadowsInspector } from "./shadows";
+import { EditorLightPBRInspector } from "./components/pbr";
+import { EditorLightClusterInspector } from "./components/cluster";
+import { EditorLightShadowsInspector } from "./components/shadows";
 
 export class EditorSpotLightInspector extends Component<IEditorInspectorImplementationProps<SpotLight>> {
 	/**
@@ -90,6 +93,14 @@ export class EditorSpotLightInspector extends Component<IEditorInspectorImplemen
 					<Divider />
 
 					<EditorInspectorNumberField label="Intensity" object={this.props.object} property="intensity" />
+
+					<Divider />
+
+					<EditorLightPBRInspector object={this.props.object} />
+					<EditorLightClusterInspector light={this.props.object} editor={this.props.editor} />
+
+					<Divider />
+
 					<EditorInspectorNumberField asDegrees label="Angle" object={this.props.object} property="angle" min={0} max={Math.PI} step={0.1} />
 					<EditorInspectorNumberField label="Exponent" object={this.props.object} property="exponent" />
 				</EditorInspectorSectionField>
@@ -100,9 +111,11 @@ export class EditorSpotLightInspector extends Component<IEditorInspectorImplemen
 
 				<ScriptInspectorComponent editor={this.props.editor} object={this.props.object} />
 
-				<EditorLightShadowsInspector light={this.props.object}>
+				<EditorLightShadowsInspector editor={this.props.editor} light={this.props.object} onShadowGeneratorChanged={() => this.forceUpdate()}>
 					<EditorInspectorNumberField label="Angle" object={this.props.object} property="shadowAngleScale" min={0} max={Math.PI * 2} />
 				</EditorLightShadowsInspector>
+
+				<CustomMetadataInspector object={this.props.object} />
 			</>
 		);
 	}

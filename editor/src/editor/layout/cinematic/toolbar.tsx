@@ -1,5 +1,5 @@
-import { ReactNode } from "react";
-
+import { SlGraph } from "react-icons/sl";
+import { FaDiamond } from "react-icons/fa6";
 import { IoPlay, IoStop } from "react-icons/io5";
 
 import { Slider } from "../../../ui/shadcn/ui/slider";
@@ -13,9 +13,10 @@ export interface ICinematicEditorToolbarProps {
 	playing: boolean;
 }
 
-export function CinematicEditorToolbar(props: ICinematicEditorToolbarProps): ReactNode {
+export function CinematicEditorToolbar(props: ICinematicEditorToolbarProps) {
 	return (
-		<div className="flex justify-between items-center w-full h-10 bg-primary-foreground">
+		<div className="relative flex justify-between items-center w-full h-10 bg-primary-foreground">
+			{/* Left */}
 			<Menubar className="border-none rounded-none pl-3 my-auto bg-primary-foreground h-10">
 				{/* File */}
 				<MenubarMenu>
@@ -41,18 +42,42 @@ export function CinematicEditorToolbar(props: ICinematicEditorToolbarProps): Rea
 				</MenubarMenu>
 			</Menubar>
 
-			{/* Buttons */}
+			{/* Center */}
+			<div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex gap-2 items-center pr-2">
+				<div className="flex items-center gap-2 px-5">
+					<Button
+						className="flex items-center gap-2 w-32 h-8 py-0.5"
+						onClick={() => props.cinematicEditor.setState({ editType: "keyframes" })}
+						variant={props.cinematicEditor.state.editType === "keyframes" ? "secondary" : "ghost"}
+					>
+						<FaDiamond className="w-4 h-4" /> Keys
+					</Button>
+					<Button
+						className="flex items-center gap-2 w-32 h-8 py-0.5"
+						variant={props.cinematicEditor.state.editType === "curves" ? "secondary" : "ghost"}
+						onClick={() => {
+							props.cinematicEditor.setState({ editType: "curves" }, () => {
+								props.cinematicEditor.forceUpdate();
+							});
+						}}
+					>
+						<SlGraph className="w-6 h-6" /> Curves
+					</Button>
+				</div>
+			</div>
+
+			{/* Right */}
 			<div className="flex gap-2 items-center pr-2">
 				<Slider
 					min={0.1}
 					max={5}
 					step={0.01}
 					className="w-32"
-					value={[props.cinematicEditor.timelines?.state.scale]}
+					value={[props.cinematicEditor.state.timelinesScale]}
 					onValueChange={(v) => {
-						props.cinematicEditor.timelines?.setState(
+						props.cinematicEditor.setState(
 							{
-								scale: v[0],
+								timelinesScale: v[0],
 							},
 							() => {
 								props.cinematicEditor.forceUpdate();

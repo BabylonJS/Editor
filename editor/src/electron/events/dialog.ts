@@ -1,9 +1,10 @@
 import { ipcMain, dialog } from "electron";
 
-ipcMain.on("editor:open-single-file-dialog", async (ev, title, filters) => {
+ipcMain.on("editor:open-single-file-dialog", async (ev, title, filters, defaultPath) => {
 	const result = await dialog.showOpenDialog({
 		title,
 		filters,
+		defaultPath,
 		properties: ["openFile"],
 	});
 
@@ -15,16 +16,6 @@ ipcMain.on("editor:open-multiple-files-dialog", async (ev, title, filters) => {
 		title,
 		filters,
 		properties: ["openFile", "multiSelections"],
-	});
-
-	ev.returnValue = result.filePaths.map((file) => file.replace(/\\/g, "/"));
-});
-
-ipcMain.on("editor:open-multiple-files-and-folders-dialog", async (ev, title, filters) => {
-	const result = await dialog.showOpenDialog({
-		title,
-		filters,
-		properties: ["openFile", "openDirectory", "multiSelections"],
 	});
 
 	ev.returnValue = result.filePaths.map((file) => file.replace(/\\/g, "/"));

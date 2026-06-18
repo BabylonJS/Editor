@@ -85,6 +85,15 @@ export function sortAlphabetically(array: any[], property?: string): any[] {
 }
 
 /**
+ * Splits the given array into chunks of a specified size.
+ * @param array The array to split into chunks.
+ * @param chunkSize The size of each chunk.
+ */
+export function splitArrayIntoChunks<T>(array: T[], chunkSize: number): T[][] {
+	return Array.from({ length: Math.ceil(array.length / chunkSize) }, (_, i) => array.slice(i * chunkSize, i * chunkSize + chunkSize));
+}
+
+/**
  * Returns the current call stack as a string.
  * This is mainly used to check if the current call is from outside of the editor.
  * @example

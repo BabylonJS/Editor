@@ -39,7 +39,7 @@ export function EditorInspectorSliderField(props: IEditorInspectorSliderFieldPro
 								<TooltipTrigger>
 									<MdOutlineInfo size={24} />
 								</TooltipTrigger>
-								<TooltipContent className="bg-muted text-muted-foreground text-sm p-2">{props.tooltip}</TooltipContent>
+								<TooltipContent className="bg-background text-muted-foreground text-sm p-2">{props.tooltip}</TooltipContent>
 							</Tooltip>
 						</TooltipProvider>
 					)}

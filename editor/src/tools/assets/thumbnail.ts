@@ -35,6 +35,10 @@ export interface IComputeThumbnailOptions {
 	 * Defines the absolute path to the asset to compute its thumbnail (.material, .glb, etc.).
 	 */
 	absolutePath: string;
+	/**
+	 * Defines the absolute path to the override material to render the mesh with.
+	 */
+	overrideMaterialAbsolutePath?: string;
 }
 
 /**
@@ -61,15 +65,28 @@ export async function computeOrGetThumbnail(editor: Editor, options: IComputeThu
 
 	++requestedPreviewCount;
 
-	if (previewCount > 0) {
-		await waitUntil(() => previewCount === 0);
+	if (previewCount === 4) {
+		await waitUntil(() => previewCount < 4);
 	}
 
 	++previewCount;
 
+	let serializedOverrideMaterial: any = null;
+	if (options.overrideMaterialAbsolutePath && (await pathExists(options.overrideMaterialAbsolutePath))) {
+		try {
+			serializedOverrideMaterial = await readJSON(options.overrideMaterialAbsolutePath, {
+				encoding: "utf-8",
+			});
+		} catch (e) {
+			// Catch silently.
+		}
+	}
+
 	const thumbnail = await getAssetThumbnailBase64(options.absolutePath, {
 		rootUrl,
+		serializedOverrideMaterial,
 		type: options.type,
+		appPath: editor.path,
 		serializedEnvironmentTexture: editor.layout.preview.scene.environmentTexture?.serialize(),
 	});
 
@@ -97,26 +114,19 @@ export async function computeOrGetThumbnail(editor: Editor, options: IComputeThu
 	return thumbnail;
 }
 
-let worker: Worker | null = null;
-
 /**
  * Creates or gets the current worker used to compute thumbnails.
  * Worker is null by default and can be terminated in case the asset takes too much time to compute its thumbnail.
  */
 export function createOrGetThumbnailWorker() {
-	if (!worker) {
-		worker = loadWorker("workers/thumbnail/main.js");
-	}
-
-	return worker;
+	return loadWorker("workers/thumbnail/main.js");
 }
 
 /**
  * Terminates the current thumbnail worker if any.
  */
-export function terminateWorker() {
-	worker?.terminate();
-	worker = null;
+export function terminateWorker(worker: Worker) {
+	worker.terminate();
 }
 
 export interface IThumbnailOptions {
@@ -129,9 +139,17 @@ export interface IThumbnailOptions {
 	 */
 	rootUrl: string;
 	/**
+	 * Defines the optional app path to help locate dependencies such as AssimpJS.
+	 */
+	appPath: string | null;
+	/**
 	 * The serialized environment texture for the thumbnail to help rendering materials such as PBR.
 	 */
 	serializedEnvironmentTexture?: any;
+	/**
+	 * The serialized override material for the thumbnail to help rendering meshes with a specific material.
+	 */
+	serializedOverrideMaterial?: any;
 }
 
 /**
@@ -142,18 +160,21 @@ export interface IThumbnailOptions {
  */
 export async function getAssetThumbnailBase64(absolutePath: string, options: IThumbnailOptions) {
 	const result = await new Promise<{ preview: string }>(async (resolve) => {
+		const worker = createOrGetThumbnailWorker();
+
 		const timeoutId = setTimeout(() => {
-			terminateWorker();
+			terminateWorker(worker);
 			resolve({ preview: "" });
 		}, 10_000);
 
-		const r = await executeSimpleWorker<{ preview: string }>(createOrGetThumbnailWorker(), {
+		const r = await executeSimpleWorker<{ preview: string }>(worker, {
 			absolutePath,
 			...options,
 			id: Tools.RandomId(),
 		});
 
 		clearTimeout(timeoutId);
+		terminateWorker(worker);
 
 		if (r) {
 			resolve(r);

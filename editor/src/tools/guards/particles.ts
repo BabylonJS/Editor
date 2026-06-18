@@ -1,5 +1,7 @@
 import { ParticleSystem, GPUParticleSystem, IParticleSystem } from "babylonjs";
 
+import { NodeParticleSystemSetMesh } from "../../editor/nodes/node-particle-system";
+
 /**
  * Returns wether or not the given object is a ParticleSystem.
  * @param object defines the reference to the object to test its class name.
@@ -14,6 +16,14 @@ export function isParticleSystem(object: any): object is ParticleSystem {
  */
 export function isGPUParticleSystem(object: any): object is GPUParticleSystem {
 	return object.getClassName?.() === "GPUParticleSystem";
+}
+
+/**
+ * Returns wether or not the given object is a NodeParticleSystemMesh.
+ * @param object defines the reference to the object to test its class name.
+ */
+export function isNodeParticleSystemSetMesh(object: any): object is NodeParticleSystemSetMesh {
+	return object.getClassName?.() === "NodeParticleSystemSetMesh";
 }
 
 /**

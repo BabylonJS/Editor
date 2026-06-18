@@ -1,0 +1,9 @@
+{
+	"servers": {
+		"babylonjs-editor-mcp-server": {
+			"type": "stdio",
+			"command": "node",
+			"args": ["mcp/build/src/index.mjs"]
+		}
+	}
+}

@@ -1,3 +1,5 @@
+import { describe, beforeEach, test, expect } from "vitest";
+
 import { soundFromScene } from "../../src/decorators/sound";
 import { ISceneDecoratorData } from "../../src/decorators/apply";
 

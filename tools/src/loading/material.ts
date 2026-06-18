@@ -2,6 +2,7 @@ import { Scene } from "@babylonjs/core/scene";
 import { Tools } from "@babylonjs/core/Misc/tools";
 import { Material } from "@babylonjs/core/Materials/material";
 
+import { loadJsonFile } from "../tools/request";
 import { isInstancedMesh } from "../tools/guards";
 
 /**
@@ -13,8 +14,7 @@ import { isInstancedMesh } from "../tools/guards";
  * @example await loadMaterialFromFile<PBRMaterial>("/scene/", "assets/floor.material", scene);
  */
 export async function loadMaterialFromFile<T extends Material>(rootUrl: string, relativePath: string, scene: Scene): Promise<T> {
-	const response = await fetch(rootUrl + relativePath);
-	const data = await response.json();
+	const data = await loadJsonFile<any>(rootUrl + relativePath);
 
 	const ctor = Tools.Instantiate(data.customType);
 	const material = ctor.Parse(data, scene, rootUrl);

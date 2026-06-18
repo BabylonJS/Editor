@@ -1,4 +1,4 @@
-import { join, dirname } from "path/posix";
+import { dirname } from "path/posix";
 
 import { Grid } from "react-loader-spinner";
 import { Component, ReactNode } from "react";
@@ -13,6 +13,7 @@ import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFoo
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../../../../ui/shadcn/ui/dropdown-menu";
 
 import { execNodePty } from "../../../../tools/node-pty";
+import { requirePlugin } from "../../../../tools/plugins/require";
 import { openSingleFolderDialog } from "../../../../tools/dialog";
 
 import { projectConfiguration } from "../../../../project/configuration";
@@ -128,11 +129,10 @@ export class EditorEditProjectPluginComponent extends Component<IEditorEditProje
 
 			await p.wait();
 
-			const pluginBaseDir = join(projectDir, "node_modules", name);
-
-			require(join(pluginBaseDir, "package.json"));
-			const result = require(pluginBaseDir);
-			result.main(this.props.editor);
+			await requirePlugin(this.props.editor, {
+				pluginNameOrPath: name,
+				projectPath: projectConfiguration.path,
+			});
 
 			this.props.editor.setState({
 				plugins: [...this.props.editor.state.plugins, name],
@@ -147,13 +147,18 @@ export class EditorEditProjectPluginComponent extends Component<IEditorEditProje
 		this.setState({ installing: false });
 	}
 
-	private _handleAddPluginFromLocalDisk(): void {
+	private async _handleAddPluginFromLocalDisk(): Promise<void> {
+		if (!projectConfiguration.path) {
+			return;
+		}
+
 		const directory = openSingleFolderDialog("Select plugin's directory.");
 
 		try {
-			require(join(directory, "package.json"));
-			const result = require(directory);
-			result.main(this.props.editor);
+			await requirePlugin(this.props.editor, {
+				pluginNameOrPath: directory,
+				projectPath: projectConfiguration.path,
+			});
 
 			this.props.editor.setState({
 				plugins: [...this.props.editor.state.plugins, directory],

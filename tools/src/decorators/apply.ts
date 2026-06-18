@@ -14,13 +14,14 @@ import { NodeParticleSystemSet } from "@babylonjs/core/Particles/Node/nodePartic
 
 import { AdvancedDynamicTexture } from "@babylonjs/gui/2D/advancedDynamicTexture";
 
-import type { AudioSceneComponent as _AudioSceneComponent } from "@babylonjs/core/Audio/audioSceneComponent";
-
-import { getSoundById } from "../tools/sound";
+import { loadJsonFile } from "../tools/request";
+import { getNodeById, getNodeByName } from "../tools/scene";
+import { copyAndParseRagdollConfiguration } from "../tools/ragdoll";
 import { ISpriteAnimation, SpriteManagerNode } from "../tools/sprite";
-import { isAbstractMesh, isNode, isSprite, isTransformNode } from "../tools/guards";
+import { isAbstractMesh, isNode, isSoundNode, isSprite, isTransformNode } from "../tools/guards";
 
-import { scriptAssetsCache } from "../loading/script";
+import { scriptAssetsCache } from "../loading/script/preload";
+import { getScriptByClassForObject } from "../loading/script/apply";
 
 import { IPointerEventDecoratorOptions } from "./events";
 import { VisibleInInspectorDecoratorConfiguration, VisibleInInspectorDecoratorEntityConfiguration, VisibleInspectorDecoratorAssetConfiguration } from "./inspector";
@@ -29,6 +30,12 @@ export interface ISceneDecoratorData {
 	// @nodeFromScene
 	_NodesFromScene?: {
 		nodeName: string;
+		propertyKey: string | Symbol;
+	}[];
+
+	// @componentFromScene
+	_ComponentsFromScene?: {
+		componentConstructor: new (...args: any) => any;
 		propertyKey: string | Symbol;
 	}[];
 
@@ -72,6 +79,12 @@ export interface ISceneDecoratorData {
 		configuration: VisibleInInspectorDecoratorConfiguration;
 	}[];
 
+	// @sceneAsset
+	_SceneAssets?: {
+		sceneName: string;
+		propertyKey: string | Symbol;
+	}[];
+
 	// @onPointerEvent
 	_PointerEvents?: {
 		eventTypes: number[];
@@ -106,8 +119,33 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 
 	// @nodeFromScene
 	ctor._NodesFromScene?.forEach((params) => {
-		instance[params.propertyKey.toString()] = scene.getNodeByName(params.nodeName);
+		instance[params.propertyKey.toString()] = getNodeByName(params.nodeName, scene);
 	});
+
+	// @componentFromScene
+	if (ctor._ComponentsFromScene?.length) {
+		scene.getEngine().onBeginFrameObservable.addOnce(() => {
+			ctor._ComponentsFromScene?.forEach((params) => {
+				const components: any[] = [];
+
+				const nodes = [scene, ...scene.transformNodes, ...scene.meshes, ...scene.lights, ...scene.cameras];
+				nodes.forEach((node) => {
+					const component = getScriptByClassForObject(node, params.componentConstructor);
+					if (component) {
+						components.push(component);
+					}
+				});
+
+				if (components.length > 1) {
+					throw new Error(
+						`Multiple components of type ${ctor._ComponentsFromScene![0].componentConstructor.name} found in scene for property "${ctor._ComponentsFromScene![0].propertyKey.toString()}".`
+					);
+				}
+
+				instance[params.propertyKey.toString()] = components[0] ?? null;
+			});
+		});
+	}
 
 	// @nodeFromDescendants
 	ctor._NodesFromDescendants?.forEach((params) => {
@@ -122,17 +160,18 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 
 	// @soundFromScene
 	ctor._SoundsFromScene?.forEach((params) => {
-		const sound = scene.getSoundByName?.(params.soundName);
-		instance[params.propertyKey.toString()] = sound ?? null;
+		const sound = getNodeByName(params.soundName, scene);
+		if (sound && isSoundNode(sound)) {
+			instance[params.propertyKey.toString()] = sound ?? null;
+		}
 	});
 
-	// @guiFromAsset
+	// @guiFromAsset, deprecated
 	(ctor._GuiFromAsset ?? []).map(async (params) => {
 		const guiUrl = `${rootUrl}assets/${params.pathInAssets}`;
 
 		try {
-			const response = await fetch(guiUrl);
-			const data = await response.json();
+			const data = await loadJsonFile<any>(guiUrl);
 
 			const gui = AdvancedDynamicTexture.CreateFullscreenUI(data.name, true, scene);
 			gui.parseSerializedObject(data.content, false);
@@ -159,9 +198,13 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 	});
 
 	// @visibleAsNumber, @visibleAsBoolean etc.
-	(ctor._VisibleInInspector ?? []).map(async (params) => {
+	(ctor._VisibleInInspector ?? []).forEach((params) => {
 		const propertyKey = params.propertyKey.toString();
 		const attachedScripts = script.values;
+
+		if (!attachedScripts) {
+			throw new Error(`No values found for script with key "${script.key}".`);
+		}
 
 		if (attachedScripts.hasOwnProperty(propertyKey) && attachedScripts[propertyKey].hasOwnProperty("value")) {
 			const value = attachedScripts[propertyKey].value;
@@ -192,13 +235,11 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 					const entityType = (params.configuration as VisibleInInspectorDecoratorEntityConfiguration).entityType;
 					switch (entityType) {
 						case "node":
-							instance[propertyKey] = scene.getNodeById(value) ?? null;
+						case "sound":
+							instance[propertyKey] = getNodeById(value, scene) ?? null;
 							break;
 						case "animationGroup":
 							instance[propertyKey] = scene.getAnimationGroupByName(value) ?? null;
-							break;
-						case "sound":
-							instance[propertyKey] = getSoundById(value, scene);
 							break;
 						case "particleSystem":
 							instance[propertyKey] = scene.particleSystems?.find((ps) => ps.id === value) ?? null;
@@ -219,7 +260,15 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 
 						switch (assetType) {
 							case "json":
+							case "gui":
+							case "scene":
+							case "navmesh":
+							case "cinematic":
 								instance[propertyKey] = data;
+								break;
+
+							case "ragdoll":
+								instance[propertyKey] = copyAndParseRagdollConfiguration(data);
 								break;
 
 							case "nodeParticleSystemSet":
@@ -346,6 +395,11 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 			}
 		});
 	}
+
+	// @sceneAsset
+	ctor._SceneAssets?.forEach((params) => {
+		instance[params.propertyKey.toString()] = scriptAssetsCache.get(params.sceneName);
+	});
 
 	return {
 		observers: {

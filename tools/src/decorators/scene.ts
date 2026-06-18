@@ -17,6 +17,22 @@ export function nodeFromScene(nodeName: string) {
 }
 
 /**
+ * Makes the decorated property linked to the instantiated component of the given constructor type.
+ * Once the script is instantiated, the reference to the component is retrieved from the scene
+ * and assigned to the property. Components link cant' be used in constructor.
+ * This can be used only by scripts using Classes.
+ * @param componentConstructor defines the class of the type to retrieve.
+ */
+export function componentFromScene<T extends new (...args: any) => any>(componentConstructor: T) {
+	return function (target: any, propertyKey: string | Symbol) {
+		const ctor = target.constructor as ISceneDecoratorData;
+
+		ctor._ComponentsFromScene ??= [];
+		ctor._ComponentsFromScene.push({ propertyKey, componentConstructor });
+	};
+}
+
+/**
  * Makes the decorated property linked to the node that has the given name.
  * Once the script is instantiated, the reference to the node is retrieved from the descendants
  * of the current node and assigned to the property. Node link cant' be used in constructor.
@@ -46,5 +62,25 @@ export function animationGroupFromScene(animationGroupName: string) {
 
 		ctor._AnimationGroups ??= [];
 		ctor._AnimationGroups.push({ animationGroupName, propertyKey });
+	};
+}
+
+/**
+ * Makes the decorated property linked to a scene that has the given name.
+ * Once the script is instantiated, the reference to the scene is retrieved as a
+ * `AdvancedAssetContainer` and assigned to the property. Scene link cant' be used in constructor.
+ * This can be used only by scripts using Classes.
+ * @param sceneName defines the name of the scene to retrieve.
+ * @example \@sceneAsset("blaster.babylon") public myBlasterScene: AdvancedAssetContainer;
+ */
+export function sceneAsset(sceneName: string) {
+	return function (target: any, propertyKey: string | Symbol) {
+		const ctor = target.constructor as ISceneDecoratorData;
+
+		ctor._SceneAssets ??= [];
+		ctor._SceneAssets.push({
+			sceneName,
+			propertyKey,
+		});
 	};
 }

@@ -2,6 +2,8 @@ import { readJSON } from "fs-extra";
 import { ipcRenderer, shell } from "electron";
 import { basename, dirname } from "path/posix";
 
+import stripAnsi from "strip-ansi";
+
 import { useEffect, useState } from "react";
 import { Grid } from "react-loader-spinner";
 
@@ -27,7 +29,7 @@ import { DashboardProgressComponent } from "./progress";
 export interface IDashboardProjectItemProps {
 	isOpened: boolean;
 	project: ProjectType;
-
+	closeDashboardOnProjectOpen: boolean;
 	onRemove: () => void;
 }
 
@@ -104,8 +106,9 @@ export function DashboardProjectItem(props: IDashboardProjectItemProps) {
 		progressRef?.setState({ message: `Running project...` });
 
 		const observable = runProcess.onGetDataObservable.add((data) => {
-			const localhostRegex = /http:\/\/localhost:(\d+)/;
-			const match = data.match(localhostRegex);
+			const clean = stripAnsi(data);
+			const localhostRegex = /\bhttp:\/\/localhost:(\d+)\b/;
+			const match = clean.match(localhostRegex);
 			if (match) {
 				runProcess.onGetDataObservable.remove(observable);
 
@@ -114,6 +117,10 @@ export function DashboardProjectItem(props: IDashboardProjectItemProps) {
 				setLaunching(false);
 				setPlayingAddress(`http://localhost:${match[1]}`);
 			}
+		});
+
+		runProcess.onKillObservable.add(() => {
+			toast.dismiss(toastId);
 		});
 
 		setNodePtyInstance(runProcess);
@@ -127,6 +134,10 @@ export function DashboardProjectItem(props: IDashboardProjectItemProps) {
 		setPlayingAddress("");
 	}
 
+	function handleLoadProject() {
+		ipcRenderer.send("dashboard:open-project", props.project.absolutePath, props.closeDashboardOnProjectOpen);
+	}
+
 	function handleOpenInVisualStudioCode() {
 		execNodePty(`code "${dirname(props.project.absolutePath)}"`);
 	}
@@ -135,7 +146,7 @@ export function DashboardProjectItem(props: IDashboardProjectItemProps) {
 		<ContextMenu onOpenChange={(o) => setContextMenuOpen(o)}>
 			<ContextMenuTrigger>
 				<div
-					onDoubleClick={() => ipcRenderer.send("dashboard:open-project", props.project.absolutePath)}
+					onDoubleClick={handleLoadProject}
 					className={`
                         group
                         flex flex-col w-full rounded-lg cursor-pointer select-none
@@ -156,7 +167,7 @@ export function DashboardProjectItem(props: IDashboardProjectItemProps) {
 
 							<div className="flex items-center gap-2">
 								<DropdownMenu>
-									<DropdownMenuTrigger>
+									<DropdownMenuTrigger asChild>
 										<Button
 											variant="ghost"
 											className={`
@@ -169,7 +180,7 @@ export function DashboardProjectItem(props: IDashboardProjectItemProps) {
 										</Button>
 									</DropdownMenuTrigger>
 									<DropdownMenuContent>
-										<DropdownMenuItem onClick={() => ipcRenderer.send("dashboard:open-project", props.project.absolutePath)}>Open</DropdownMenuItem>
+										<DropdownMenuItem onClick={handleLoadProject}>Open</DropdownMenuItem>
 										<DropdownMenuItem className="flex items-center gap-2" onClick={() => ipcRenderer.send("editor:show-item", props.project.absolutePath)}>
 											{`Show in ${isDarwin() ? "Finder" : "Explorer"}`}
 										</DropdownMenuItem>
@@ -186,13 +197,20 @@ export function DashboardProjectItem(props: IDashboardProjectItemProps) {
 
 								<Button
 									variant="ghost"
-									onClick={() => (playingAddress ? handleStopProject() : handleLaunchProject())}
+									onClick={() => {
+										if (nodePtyInstance) {
+											handleStopProject();
+										} else if (!launching) {
+											handleLaunchProject();
+										}
+									}}
+									disabled={launching && !nodePtyInstance}
 									className={`
-                                    w-10 h-10 aspect-square p-0
-                                    ${launching || playingAddress ? "" : "opacity-0 group-hover:opacity-100"}
-                                    ${launching ? "bg-muted/50" : playingAddress ? "!bg-red-500/35" : "hover:!bg-green-500/35"}
-                                    transition-all duration-300 ease-in-out
-                                `}
+										w-10 h-10 aspect-square p-0
+										${launching || playingAddress ? "" : "opacity-0 group-hover:opacity-100"}
+										${launching ? "bg-muted/50" : playingAddress ? "!bg-red-500/35" : "hover:!bg-green-500/35"}
+										transition-all duration-300 ease-in-out
+									`}
 								>
 									{launching ? (
 										<Grid width={24} height={24} color="#ffffff" />
@@ -214,7 +232,7 @@ export function DashboardProjectItem(props: IDashboardProjectItemProps) {
 				</div>
 			</ContextMenuTrigger>
 			<ContextMenuContent>
-				<ContextMenuItem onClick={() => ipcRenderer.send("dashboard:open-project", props.project.absolutePath)}>Open</ContextMenuItem>
+				<ContextMenuItem onClick={handleLoadProject}>Open</ContextMenuItem>
 				<ContextMenuItem className="flex items-center gap-2" onClick={() => ipcRenderer.send("editor:show-item", props.project.absolutePath)}>
 					{`Show in ${isDarwin() ? "Finder" : "Explorer"}`}
 				</ContextMenuItem>

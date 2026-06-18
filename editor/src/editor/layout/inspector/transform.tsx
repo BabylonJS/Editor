@@ -11,10 +11,12 @@ import { EditorInspectorVectorField } from "./fields/vector";
 import { EditorInspectorSectionField } from "./fields/section";
 
 import { ScriptInspectorComponent } from "./script/script";
+import { CustomMetadataInspector } from "./metadata/custom-metadata";
 
-import { onGizmoNodeChangedObservable } from "../preview/gizmo";
+import { onGizmoNodeChangedObservable } from "../preview/gizmo/gizmo";
 
 import { IEditorInspectorImplementationProps } from "./inspector";
+import { EditorInspectorSwitchField } from "./fields/switch";
 
 export class EditorTransformNodeInspector extends Component<IEditorInspectorImplementationProps<AbstractMesh>> {
 	/**
@@ -24,6 +26,12 @@ export class EditorTransformNodeInspector extends Component<IEditorInspectorImpl
 	 */
 	public static IsSupported(object: unknown): boolean {
 		return isTransformNode(object) || isSceneLinkNode(object);
+	}
+
+	public constructor(props: IEditorInspectorImplementationProps<AbstractMesh>) {
+		super(props);
+
+		props.object.metadata ??= {};
 	}
 
 	public render(): ReactNode {
@@ -42,9 +50,24 @@ export class EditorTransformNodeInspector extends Component<IEditorInspectorImpl
 					<EditorInspectorVectorField label={<div className="w-14">Position</div>} object={this.props.object} property="position" />
 					{EditorTransformNodeInspector.GetRotationInspector(this.props.object)}
 					<EditorInspectorVectorField label={<div className="w-14">Scaling</div>} object={this.props.object} property="scaling" />
+
+					<EditorInspectorSwitchField
+						object={this.props.object.metadata}
+						property="isStaticGroup"
+						label="Is Static Group"
+						tooltip={
+							<>
+								When checked, all descendants will be considered as static and their transforms will be frozen by default at runtime.
+								<br />
+								This is useful for optimization purposes when you know that a group of objects will not move during the game.
+							</>
+						}
+					/>
 				</EditorInspectorSectionField>
 
 				<ScriptInspectorComponent editor={this.props.editor} object={this.props.object} />
+
+				<CustomMetadataInspector object={this.props.object} />
 			</>
 		);
 	}

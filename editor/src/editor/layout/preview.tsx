@@ -16,7 +16,6 @@ import {
 	AbstractMesh,
 	Animation,
 	Camera,
-	Color3,
 	CubicEase,
 	EasingFunction,
 	Engine,
@@ -34,60 +33,68 @@ import {
 	Sprite,
 	Color4,
 	BoundingBox,
+	SelectionOutlineLayer,
+	ClusteredLightContainer,
+	Tools,
+	_GetAudioEngine,
 } from "babylonjs";
+
+import { SpinnerUIComponent } from "../../ui/spinner";
 
 import { Button } from "../../ui/shadcn/ui/button";
 import { Toggle } from "../../ui/shadcn/ui/toggle";
 import { Progress } from "../../ui/shadcn/ui/progress";
+import { Separator } from "../../ui/shadcn/ui/separator";
 import { ToolbarRadioGroup, ToolbarRadioGroupItem } from "../../ui/shadcn/ui/toolbar-radio-group";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../ui/shadcn/ui/tooltip";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/shadcn/ui/select";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../../ui/shadcn/ui/dropdown-menu";
 
 import { Editor } from "../main";
 
-import { isSound } from "../../tools/guards/sound";
 import { isVector3 } from "../../tools/guards/math";
 import { isDomTextInputFocused } from "../../tools/dom";
 import { isNodeLocked } from "../../tools/node/metadata";
 import { registerUndoRedo } from "../../tools/undoredo";
 import { initializeHavok } from "../../tools/physics/init";
+import { initializeRecast } from "../../tools/recast/init";
 import { isAnyParticleSystem } from "../../tools/guards/particles";
+import { saveSceneScreenshot } from "../../tools/scene/screenshot";
 import { onTextureAddedObservable } from "../../tools/observables";
 import { getCameraFocusPositionFor } from "../../tools/camera/focus";
 import { ITweenConfiguration, Tween } from "../../tools/animation/tween";
-import { checkProjectCachedCompressedTextures } from "../../tools/assets/ktx";
+import { checkProjectCachedCompressedTextures, initializeKtx2Decoder } from "../../tools/assets/ktx";
 import { createSceneLink, getRootSceneLink } from "../../tools/scene/scene-link";
 import { UniqueNumber, waitNextAnimationFrame, waitUntil } from "../../tools/tools";
 import { isSprite, isSpriteManagerNode, isSpriteMapNode } from "../../tools/guards/sprites";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../../ui/shadcn/ui/dropdown-menu";
-import { isAbstractMesh, isAnyTransformNode, isCamera, isCollisionInstancedMesh, isCollisionMesh, isInstancedMesh, isLight, isMesh, isNode } from "../../tools/guards/nodes";
+import { defaultGizmoSnapPreferences, IGizmoSnapPreferences, roundGizmoSnapSteps } from "../../tools/scene/gizmo";
+import { isAbstractMesh, isAnyTransformNode, isCamera, isCollisionInstancedMesh, isCollisionMesh, isLight, isNode } from "../../tools/guards/nodes";
 
 import { EditorCamera } from "../nodes/camera";
 
-import { SpinnerUIComponent } from "../../ui/spinner";
-import { Separator } from "../../ui/shadcn/ui/separator";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../ui/shadcn/ui/tooltip";
-
 import { saveRenderingConfigurationForCamera } from "../rendering/tools";
 import { disposeVLSPostProcess, parseVLSPostProcess, vlsPostProcessCameraConfigurations } from "../rendering/vls";
+import { disposeTAARenderingPipeline, parseTAARenderingPipeline, taaPipelineCameraConfigurations } from "../rendering/taa";
 import { disposeSSRRenderingPipeline, parseSSRRenderingPipeline, ssrRenderingPipelineCameraConfigurations } from "../rendering/ssr";
 import { disposeSSAO2RenderingPipeline, parseSSAO2RenderingPipeline, ssaoRenderingPipelineCameraConfigurations } from "../rendering/ssao";
 import { disposeMotionBlurPostProcess, motionBlurPostProcessCameraConfigurations, parseMotionBlurPostProcess } from "../rendering/motion-blur";
 import { defaultPipelineCameraConfigurations, disposeDefaultRenderingPipeline, parseDefaultRenderingPipeline } from "../rendering/default-pipeline";
 
-import { EditorGraphContextMenu } from "./graph/graph";
+import { EditorGraphContextMenu } from "./graph/context-menu";
 
-import { EditorPreviewGizmo } from "./preview/gizmo";
 import { EditorPreviewIcons } from "./preview/icons";
 import { EditorPreviewCamera } from "./preview/camera";
 import { EditorPreviewAxisHelper } from "./preview/axis";
 import { EditorPreviewPlayComponent } from "./preview/play";
+
+import { EditorPreviewGizmo } from "./preview/gizmo/gizmo";
+import { EditorPreviewGizmoSettings } from "./preview/gizmo/settings";
 
 import { Stats } from "./preview/stats/stats";
 import { StatRow } from "./preview/stats/row";
 import { StatsValuesType } from "./preview/stats/types";
 
 import { applySoundAsset } from "./preview/import/sound";
-import { applyImportedGuiFile } from "./preview/import/gui";
 import { applyTextureAssetToObject } from "./preview/import/texture";
 import { applyMaterialAssetToObject } from "./preview/import/material";
 import { EditorPreviewConvertProgress } from "./preview/import/progress";
@@ -117,6 +124,7 @@ export interface IEditorPreviewState {
 	playEnabled: boolean;
 	playSceneLoadingProgress: number;
 
+	gizmoSnap: IGizmoSnapPreferences;
 	activeGizmo: "position" | "rotation" | "scaling" | "none";
 
 	/**
@@ -130,50 +138,70 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	/**
 	 * The engine of the preview.
 	 */
-	public engine: AbstractEngine;
+	public engine!: AbstractEngine;
 	/**
 	 * The scene of the preview.
 	 */
-	public scene: Scene;
+	public scene!: Scene;
 	/**
 	 * The camera of the preview.
 	 */
-	public camera: EditorCamera;
+	public camera!: EditorCamera;
 
 	/**
 	 * The gizmo manager of the preview
 	 */
-	public gizmo: EditorPreviewGizmo;
+	public gizmo!: EditorPreviewGizmo;
 	/**
 	 * The helper drawn over the scene to help visualizing and selecting nodes like lights, cameras, particle systems, etc.
 	 */
-	public icons: EditorPreviewIcons;
+	public icons!: EditorPreviewIcons;
 	/**
 	 * The helper drawn over the scene to help visualizing the axis according to the current camera view.
 	 */
-	public axis: EditorPreviewAxisHelper;
+	public axis!: EditorPreviewAxisHelper;
 
 	/**
 	 * The play component of the preview.
 	 */
-	public play: EditorPreviewPlayComponent;
+	public play!: EditorPreviewPlayComponent;
 
 	/**
 	 * The current statistics of the preview.
 	 * This is used to display the FPS and other values.
 	 */
-	public statistics: Stats;
+	public statistics!: Stats;
+
+	/**
+	 * Defines the reference to the canvas drawn in the preview.
+	 */
+	public canvas: HTMLCanvasElement | null = null;
+
+	/**
+	 * Defines the reference to the last picking info processed in the preview.
+	 */
+	public lastPickingInfo: PickingInfo | null = null;
+
+	/**
+	 * Defines the reference to the selection outline layer used to highlight a mesh when, for example, the pointer is over it.
+	 */
+	public selectionOutlineLayer!: SelectionOutlineLayer;
+	/**
+	 * Defines the reference to the clustered lighting container.
+	 */
+	public clusteredLightContainer!: ClusteredLightContainer;
 
 	private _renderScene: boolean = true;
 	private _mouseDownPosition: Vector2 = Vector2.Zero();
 
-	private _objectUnderPointer: AbstractMesh | Sprite | null;
+	private _lastPickedDecal: AbstractMesh | null = null;
+	private _objectUnderPointer: AbstractMesh | Sprite | null = null;
 
 	private _workingCanvas: HTMLCanvasElement | null = null;
-	private _mainCanvas: HTMLCanvasElement | null = null;
 	private _mainView: EngineView | null = null;
 
-	private _previewCamera: Camera | null = null;
+	/** @internal */
+	public _previewCamera: Camera | null = null;
 
 	public constructor(props: IEditorPreviewProps) {
 		super(props);
@@ -189,6 +217,8 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
 			playEnabled: false,
 			playSceneLoadingProgress: 0,
+
+			gizmoSnap: { ...defaultGizmoSnapPreferences },
 		};
 
 		ipcRenderer.on("gizmo:position", () => this.setActiveGizmo("position"));
@@ -197,6 +227,8 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
 		ipcRenderer.on("preview:focus", () => !isDomTextInputFocused() && this.focusObject());
 		ipcRenderer.on("preview:edit-camera", () => this.props.editor.layout.inspector.setEditedObject(this.props.editor.layout.preview.scene.activeCamera));
+
+		ipcRenderer.on("preview:screenshot", (_, size) => saveSceneScreenshot(this.props.editor.layout.preview.scene, size));
 
 		onTextureAddedObservable.add(() => checkProjectCachedCompressedTextures(props.editor));
 	}
@@ -211,10 +243,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 						<canvas
 							ref={(r) => this._onGotCanvasRef(r!)}
 							onDrop={(ev) => this._handleDrop(ev)}
-							onDragOver={(ev) => {
-								ev.preventDefault();
-								this._handleMouseMove(ev.nativeEvent.offsetX, ev.nativeEvent.offsetY);
-							}}
+							onDragOver={(ev) => ev.preventDefault()}
 							onBlur={() => this.setState({ isFocused: false })}
 							onFocus={() => this.setState({ isFocused: true })}
 							onPointerUp={(ev) => this._handleMouseUp(ev)}
@@ -246,7 +275,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 					<EditorPreviewIcons ref={(r) => this._onGotIconsRef(r!)} editor={this.props.editor} />
 				</EditorGraphContextMenu>
 
-				{this._previewCamera && (
+				{this._previewCamera && this.scene?.cameras.includes(this._previewCamera) && (
 					<EditorPreviewCamera hidden={this.play?.state.playing} key={this._previewCamera.id} editor={this.props.editor} camera={this._previewCamera} />
 				)}
 
@@ -274,6 +303,10 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		this._renderScene = render;
 	}
 
+	public get renderScene(): boolean {
+		return this._renderScene;
+	}
+
 	/**
 	 * Resizes the engine.
 	 */
@@ -287,7 +320,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	 * Resets the preview component by re-creating the engine and an empty scene.
 	 */
 	public async reset(): Promise<void> {
-		if (!this._mainCanvas) {
+		if (!this.canvas) {
 			return;
 		}
 
@@ -298,6 +331,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		disposeMotionBlurPostProcess();
 		disposeSSAO2RenderingPipeline();
 		disposeDefaultRenderingPipeline();
+		disposeTAARenderingPipeline();
 
 		this.scene?.dispose();
 
@@ -320,7 +354,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
 		this._previewCamera = null;
 
-		return this._onGotCanvasRef(this._mainCanvas);
+		return this._onGotCanvasRef(this.canvas);
 	}
 
 	/**
@@ -332,7 +366,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 			fixedDimensions,
 		});
 
-		if (!this.engine || !this._mainView || !this._mainCanvas) {
+		if (!this.engine || !this._mainView || !this.canvas) {
 			return;
 		}
 
@@ -340,24 +374,24 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
 		switch (fixedDimensions) {
 			case "720p":
-				this._mainCanvas!.width = 1280;
-				this._mainCanvas!.height = 720;
+				this.canvas!.width = 1280;
+				this.canvas!.height = 720;
 
 				this._mainView!.customResize = () => {
 					this.engine.setSize(1280, 720);
 				};
 				break;
 			case "1080p":
-				this._mainCanvas!.width = 1920;
-				this._mainCanvas!.height = 1080;
+				this.canvas!.width = 1920;
+				this.canvas!.height = 1080;
 
 				this._mainView!.customResize = () => {
 					this.engine.setSize(1920, 1080);
 				};
 				break;
 			case "4k":
-				this._mainCanvas!.width = 3840;
-				this._mainCanvas!.height = 2160;
+				this.canvas!.width = 3840;
+				this.canvas!.height = 2160;
 
 				this._mainView!.customResize = () => {
 					this.engine.setSize(3840, 2160);
@@ -397,8 +431,8 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
 			position = getCameraFocusPositionFor(center, camera, {
 				distance: 2,
-				minimum: bb.boundingBox.minimumWorld,
-				maximum: bb.boundingBox.maximumWorld,
+				minimum: selectedNode.geometry ? bb.boundingBox.minimumWorld : new Vector3(-75, -75, -75),
+				maximum: selectedNode.geometry ? bb.boundingBox.maximumWorld : new Vector3(75, 75, 75),
 			});
 			target = bb.boundingBox.centerWorld;
 		} else if (isLight(selectedNode) || isAnyTransformNode(selectedNode)) {
@@ -408,14 +442,6 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 				target = selectedNode.emitter.getAbsolutePosition();
 			} else if (isVector3(selectedNode.emitter)) {
 				target = selectedNode.emitter;
-			}
-		} else if (isSound(selectedNode)) {
-			const soundPosition = selectedNode["_position"] as Vector3;
-
-			if (selectedNode["_connectedTransformNode"]) {
-				target = selectedNode["_connectedTransformNode"].getAbsolutePosition();
-			} else if (!soundPosition.equalsToFloats(0, 0, 0)) {
-				target = selectedNode["_position"]();
 			}
 		} else if (isSprite(selectedNode)) {
 			const bb = new BoundingBox(new Vector3(-selectedNode.width * 0.5, -selectedNode.height * 0.5, 0), new Vector3(selectedNode.width * 0.5, selectedNode.height * 0.5, 0));
@@ -451,7 +477,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	 * @param camera the camera to activate the preview
 	 */
 	public setCameraPreviewActive(camera: Camera | null): void {
-		if (this._previewCamera === camera) {
+		if (this._previewCamera === camera || camera === this.scene.activeCamera) {
 			return;
 		}
 
@@ -475,11 +501,13 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 			return;
 		}
 
-		this._mainCanvas ??= canvas;
+		this.canvas ??= canvas;
 		this._workingCanvas ??= document.createElement("canvas");
 
 		await waitUntil(() => this.props.editor.path);
-		await initializeHavok(this.props.editor.path!);
+
+		initializeKtx2Decoder(this.props.editor.path!);
+		await Promise.all([await initializeRecast(this.props.editor), await initializeHavok(this.props.editor.path!)]);
 
 		SceneLoaderFlags.ShowLoadingScreen = false;
 
@@ -506,7 +534,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		}
 
 		this.engine.disableContextMenu = false;
-		this.engine.inputElement = this._mainCanvas;
+		this.engine.inputElement = this.canvas;
 
 		this.scene = new Scene(this.engine);
 		this.scene.autoClear = true;
@@ -514,25 +542,33 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		this.scene.skipPointerDownPicking = true;
 		this.scene.skipPointerMovePicking = true;
 
-		if (!this.scene.soundTracks && this.scene.mainSoundTrack) {
-			this.scene.soundTracks = [this.scene.mainSoundTrack];
-		}
-
 		this.camera = new EditorCamera("camera", Vector3.Zero(), this.scene);
 		this.camera.attachControl(true);
 
+		_GetAudioEngine(null).listener.attach(this.camera);
+
 		this.gizmo = new EditorPreviewGizmo(this.scene);
+		this.gizmo.setSnapPreferences(this.state.gizmoSnap);
+
+		this.selectionOutlineLayer = new SelectionOutlineLayer("selectionOutline", this.scene);
+		this.selectionOutlineLayer.outlineThickness = 4;
+
+		this.clusteredLightContainer = new ClusteredLightContainer("Clustered Light Container", [], this.scene);
+		this.clusteredLightContainer.id = Tools.RandomId();
+		this.clusteredLightContainer.uniqueId = UniqueNumber.Get();
 
 		this.engine.hideLoadingUI();
-		this._mainView = this.engine.registerView(this._mainCanvas);
+		this._mainView = this.engine.registerView(this.canvas);
 
 		this.engine.runRenderLoop(() => {
 			if (this._renderScene && !this.play.state.playing) {
-				// TODO: remove this once fixed
-				// Bug report on forum: https://forum.babylonjs.com/t/multi-canvas-and-post-processes/59616/23
-				const ppRenderer = this.scene.prePassRenderer;
-				if (ppRenderer) {
-					ppRenderer.markAsDirty();
+				if (this._previewCamera) {
+					// TODO: remove this once fixed
+					// Bug report on forum: https://forum.babylonjs.com/t/multi-canvas-and-post-processes/59616/23
+					const ppRenderer = this.scene.prePassRenderer;
+					if (ppRenderer) {
+						ppRenderer.markAsDirty();
+					}
 				}
 
 				this.scene.render();
@@ -608,12 +644,15 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	/** @internal */
 	public _handleMouseLeave(): void {
 		this._restoreCurrentMeshUnderPointer();
+		this.lastPickingInfo = null;
 		this._objectUnderPointer = null;
 	}
 
 	private _mouseMoveTimeoutId: number = -1;
 
 	private _handleMouseMove(x: number, y: number): void {
+		this.lastPickingInfo = null;
+
 		if (!this.state.pickingEnabled) {
 			return;
 		}
@@ -644,6 +683,8 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	}
 
 	private _handleMouseDown(event: MouseEvent<HTMLCanvasElement, globalThis.MouseEvent>): void {
+		this.lastPickingInfo = null;
+
 		if (!this.state.pickingEnabled) {
 			return;
 		}
@@ -667,6 +708,8 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	}
 
 	private _handleDoubleClick(_event: MouseEvent<HTMLCanvasElement, globalThis.MouseEvent>): void {
+		this.lastPickingInfo = null;
+
 		if (!this.state.pickingEnabled || this.axis._axisMeshUnderPointer) {
 			return;
 		}
@@ -678,6 +721,8 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	}
 
 	private _handleMouseUp(event: MouseEvent<HTMLCanvasElement, globalThis.MouseEvent>): void {
+		this.lastPickingInfo = null;
+
 		if (!this.state.pickingEnabled) {
 			return;
 		}
@@ -691,6 +736,15 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		if (distance > 2) {
 			return;
 		}
+
+		this.scene.meshes.forEach((mesh) => {
+			if (mesh.geometry) {
+				mesh.refreshBoundingInfo({
+					applyMorph: true,
+					applySkeleton: true,
+				});
+			}
+		});
 
 		const pickingInfo = this._getPickingInfo(this.scene.pointerX, this.scene.pointerY);
 
@@ -706,42 +760,52 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 			}
 		}
 
+		this.lastPickingInfo = pickingInfo;
+
 		if (effectivePickedObject) {
+			if (event.shiftKey) {
+				this.props.editor.layout.graph.addToSelectedNodes(effectivePickedObject);
+			} else {
+				this.props.editor.layout.graph.setSelectedNode(effectivePickedObject);
+			}
+
 			this.gizmo.setAttachedObject(effectivePickedObject);
-			this.props.editor.layout.graph.setSelectedNode(effectivePickedObject);
 			this.props.editor.layout.inspector.setEditedObject(effectivePickedObject);
 			this.props.editor.layout.animations.setEditedObject(effectivePickedObject);
 		}
 	}
 
+	public _pickingDecalMeshPredicate(m: AbstractMesh): boolean {
+		if (!m.isVisible || !m.isEnabled() || !m.metadata?.decal) {
+			return false;
+		}
+
+		if (this._lastPickedDecal) {
+			return m !== this._lastPickedDecal;
+		}
+
+		return true;
+	}
+
+	public _pickingMeshPredicate(m: AbstractMesh): boolean {
+		return !m._masterMesh && !isCollisionMesh(m) && !isCollisionInstancedMesh(m) && m.isVisible && m.isEnabled();
+	}
+
 	private _getPickingInfo(x: number, y: number): PickingInfo {
-		const decalPick = this.scene.pick(
-			x,
-			y,
-			(m) => {
-				return m.metadata?.decal && m.isVisible && m.isEnabled();
-			},
-			false
-		);
-
-		const meshPick = this.scene.pick(
-			x,
-			y,
-			(m) => {
-				return !m._masterMesh && !isCollisionMesh(m) && !isCollisionInstancedMesh(m) && m.isVisible && m.isEnabled();
-			},
-			false
-		);
-
+		const decalPick = this.scene.pick(x, y, (m) => this._pickingDecalMeshPredicate(m), false);
+		const meshPick = this.scene.pick(x, y, (m) => this._pickingMeshPredicate(m), false);
 		const spritePick = this.scene.pickSprite(x, y, (s) => isSprite(s), false);
+
+		this._lastPickedDecal = null;
 
 		let pickingInfo = meshPick;
 		if (decalPick?.pickedPoint && meshPick?.pickedPoint) {
 			const distance = Vector3.Distance(decalPick.pickedPoint, meshPick.pickedPoint);
 			const zOffset = decalPick.pickedMesh?.material?.zOffset ?? 0;
 
-			if (distance <= zOffset + 0.01) {
+			if (distance <= zOffset + 1) {
 				pickingInfo = decalPick;
+				this._lastPickedDecal = decalPick.pickedMesh;
 			}
 		}
 
@@ -772,32 +836,8 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	}
 
 	private _highlightCurrentMeshUnderPointer(pickedObject: AbstractMesh | Sprite): void {
-		Tween.killTweensOf(pickedObject);
-
-		if (isAbstractMesh(pickedObject)) {
-			const effectiveMesh = isInstancedMesh(pickedObject) ? pickedObject.sourceMesh : pickedObject;
-			const meshes = [effectiveMesh];
-
-			if (isMesh(effectiveMesh)) {
-				effectiveMesh.getLODLevels().forEach((lod) => {
-					if (lod.mesh) {
-						meshes.push(lod.mesh);
-					}
-				});
-			}
-
-			meshes.forEach((mesh) => {
-				Tween.create(mesh, 0.1, {
-					overlayAlpha: 0.5,
-					overlayColor: Color3.Black(),
-					onStart: () => (mesh!.renderOverlay = true),
-				});
-			});
-		}
-
 		if (isSprite(pickedObject)) {
 			pickedObject.overrideColor ??= new Color4(1, 1, 1, 1);
-
 			Tween.create(pickedObject, 0.1, {
 				overrideColor: new Color4(0.5, 0.5, 0.5, 1.0),
 			});
@@ -808,35 +848,8 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		const objectUnderPointer = this._objectUnderPointer;
 
 		if (objectUnderPointer) {
-			if (isAbstractMesh(objectUnderPointer)) {
-				const effectiveMesh = isInstancedMesh(objectUnderPointer) ? objectUnderPointer.sourceMesh : objectUnderPointer;
-				const meshes = [effectiveMesh];
-
-				if (isMesh(effectiveMesh)) {
-					effectiveMesh.getLODLevels().forEach((lod) => {
-						if (lod.mesh) {
-							meshes.push(lod.mesh);
-						}
-					});
-				}
-
-				meshes.forEach((mesh) => {
-					Tween.killTweensOf(mesh);
-
-					mesh.overlayAlpha ??= 0;
-					mesh.overlayColor ??= Color3.Black();
-
-					Tween.create(mesh, 0.1, {
-						overlayAlpha: 0,
-						overlayColor: Color3.Black(),
-						onStart: () => (mesh.renderOverlay = true),
-					});
-				});
-			}
-
 			if (isSprite(objectUnderPointer)) {
 				Tween.killTweensOf(objectUnderPointer);
-
 				Tween.create(objectUnderPointer, 0.1, {
 					overrideColor: new Color4(1.0, 1.0, 1.0, 1.0),
 				});
@@ -867,11 +880,19 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		);
 	}
 
+	public updateGizmoSnapPreferences(prefs: IGizmoSnapPreferences): void {
+		const normalized = roundGizmoSnapSteps(prefs);
+		this.gizmo?.setSnapPreferences(normalized);
+		this.setState({
+			gizmoSnap: normalized,
+		});
+	}
+
 	private _getEditToolbar(): ReactNode {
 		return (
-			<div className="flex gap-2 items-center h-10">
+			<div className="flex flex-wrap gap-2 items-center h-10">
 				<TooltipProvider>
-					<Select value={this.scene?.activeCamera?.id} onOpenChange={(o) => o && this.forceUpdate()} onValueChange={(v) => this._switchToCamera(v)}>
+					<Select value={this.scene?.activeCamera?.id} onOpenChange={(o) => o && this.forceUpdate()} onValueChange={(v) => this._switchToCameraById(v)}>
 						<SelectTrigger className="w-36 border-none bg-muted/50">
 							<SelectValue placeholder="Select Value..." />
 						</SelectTrigger>
@@ -932,6 +953,10 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
 					<Separator orientation="vertical" className="mx-1 h-[24px]" />
 
+					<EditorPreviewGizmoSettings editor={this.props.editor} />
+
+					<Separator orientation="vertical" className="mx-1 h-[24px]" />
+
 					<Tooltip>
 						<TooltipTrigger asChild>
 							<Toggle
@@ -975,7 +1000,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 							</Button>
 						</DropdownMenuTrigger>
 						<DropdownMenuContent onClick={() => this.forceUpdate()}>
-							<DropdownMenuLabel>Render options</DropdownMenuLabel>
+							<DropdownMenuLabel className="text-center text-lg">Options</DropdownMenuLabel>
 							<DropdownMenuSeparator />
 							<DropdownMenuItem className="flex gap-2 items-center" onClick={() => (this.axis.enabled ? this.axis.stop() : this.axis.start())}>
 								{this.axis?.enabled && <FaCheck className="w-4 h-4" />} Axis Helper
@@ -1006,7 +1031,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 								{this.scene?.particlesEnabled && <FaCheck className="w-4 h-4" />} Particles enabled
 							</DropdownMenuItem>
 							<DropdownMenuSeparator />
-							<DropdownMenuLabel>Renderer dimensions</DropdownMenuLabel>
+							<DropdownMenuLabel className="text-center text-lg">Dimensions</DropdownMenuLabel>
 							<DropdownMenuSeparator />
 							<DropdownMenuItem className="flex gap-2 items-center" onClick={() => this.setFixedDimensions("720p")}>
 								{this.state.fixedDimensions === "720p" && <FaCheck className="w-4 h-4" />} 720p
@@ -1019,6 +1044,22 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 							</DropdownMenuItem>
 							<DropdownMenuItem className="flex gap-2 items-center" onClick={() => this.setFixedDimensions("fit")}>
 								{this.state.fixedDimensions === "fit" && <FaCheck className="w-4 h-4" />} Fit
+							</DropdownMenuItem>
+							<DropdownMenuSeparator />
+							<DropdownMenuLabel className="text-center text-lg">Scaling</DropdownMenuLabel>
+							<DropdownMenuSeparator />
+							<DropdownMenuItem className="flex gap-2 items-center" onClick={() => this.engine?.setHardwareScalingLevel(2)}>
+								{this.engine?.getHardwareScalingLevel() === 2 && <FaCheck className="w-4 h-4" />} 50%
+							</DropdownMenuItem>
+							<DropdownMenuItem className="flex gap-2 items-center" onClick={() => this.engine?.setHardwareScalingLevel(1)}>
+								{this.engine?.getHardwareScalingLevel() === 1 && <FaCheck className="w-4 h-4" />} 100%
+							</DropdownMenuItem>
+							<DropdownMenuItem className="flex gap-2 items-center" onClick={() => this.engine?.setHardwareScalingLevel(0.5)}>
+								{this.engine?.getHardwareScalingLevel() === 0.5 && <FaCheck className="w-4 h-4" />} 200%
+							</DropdownMenuItem>
+							<DropdownMenuItem className="flex gap-2 items-center" onClick={() => this.engine?.setHardwareScalingLevel(1 / devicePixelRatio)}>
+								{this.engine?.getHardwareScalingLevel() === 1 / devicePixelRatio && <FaCheck className="w-4 h-4" />} Default ({(devicePixelRatio * 100).toFixed(0)}
+								%)
 							</DropdownMenuItem>
 						</DropdownMenuContent>
 					</DropdownMenu>
@@ -1060,7 +1101,17 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		);
 	}
 
-	private _switchToCamera(id: string): void {
+	/**
+	 * Makes the given camera the editor's active camera, saving the rendering configurations of the
+	 * previously active camera and restoring those associated to the new one. This is the supported way
+	 * to switch cameras so that per-camera post-processes are set up correctly (and exported for runtime).
+	 * @param camera defines the reference to the camera to activate.
+	 */
+	public switchToCamera(camera: Camera): void {
+		this._switchToCameraById(camera.id);
+	}
+
+	private _switchToCameraById(id: string): void {
 		const camera = this.scene.cameras.find((c) => c.id === id);
 		if (!camera) {
 			return;
@@ -1073,13 +1124,18 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		this.scene.activeCamera?.detachControl();
 
 		this.scene.activeCamera = camera;
-		this.scene.activeCamera?.attachControl(true);
+		if (!isNodeLocked(camera)) {
+			this.scene.activeCamera?.attachControl(true);
+		}
+
+		_GetAudioEngine(null).listener.attach(camera);
 
 		disposeSSAO2RenderingPipeline();
 		disposeVLSPostProcess(this.props.editor);
 		disposeSSRRenderingPipeline();
 		disposeMotionBlurPostProcess();
 		disposeDefaultRenderingPipeline();
+		disposeTAARenderingPipeline();
 
 		const ssao2Pipeline = ssaoRenderingPipelineCameraConfigurations.get(camera);
 		if (ssao2Pipeline) {
@@ -1106,6 +1162,11 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 			parseDefaultRenderingPipeline(this.props.editor, defaultRenderingPipeline);
 		}
 
+		const taaRenderingPipeline = taaPipelineCameraConfigurations.get(camera);
+		if (taaRenderingPipeline) {
+			parseTAARenderingPipeline(this.props.editor, taaRenderingPipeline);
+		}
+
 		this.scene.lights.forEach((light) => {
 			light.getShadowGenerators()?.forEach((shadowGenerator) => {
 				const shadowMap = shadowGenerator.getShadowMap();
@@ -1116,6 +1177,10 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		});
 
 		this.props.editor.layout.inspector.forceUpdate();
+
+		if (this._previewCamera === camera) {
+			this.setCameraPreviewActive(null);
+		}
 	}
 
 	/**
@@ -1264,6 +1329,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
 		absolutePaths.forEach(async (absolutePath) => {
 			await waitNextAnimationFrame();
+
 			const pick = this.scene.pick(ev.nativeEvent.offsetX, ev.nativeEvent.offsetY, (m) => !m._masterMesh && !isCollisionMesh(m) && !isCollisionInstancedMesh(m), false);
 			const mesh = pick.pickedMesh?._masterMesh ?? pick.pickedMesh;
 
@@ -1314,13 +1380,13 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 					});
 					break;
 
-				case ".gui":
-					if (this.props.editor.state.enableExperimentalFeatures) {
-						applyImportedGuiFile(this.props.editor, absolutePath).then(() => {
-							this.props.editor.layout.graph.refresh();
-						});
-					}
-					break;
+				// case ".gui":
+				// 	if (this.props.editor.state.enableExperimentalFeatures) {
+				// 		applyImportedGuiFile(this.props.editor, absolutePath).then(() => {
+				// 			this.props.editor.layout.graph.refresh();
+				// 		});
+				// 	}
+				// 	break;
 
 				case ".mp3":
 				case ".ogg":

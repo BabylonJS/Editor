@@ -28,7 +28,7 @@ export function CinematicEditorAnimationGroupKeyInspector(props: ICinematicEdito
 				step={1}
 				onChange={() => {
 					props.cinematicEditor.timelines.sortAnimationsKeys();
-					props.cinematicEditor.timelines.updateTracksAtCurrentTime();
+					props.cinematicEditor.updateTracksAtCurrentTime();
 				}}
 			/>
 
@@ -37,10 +37,9 @@ export function CinematicEditorAnimationGroupKeyInspector(props: ICinematicEdito
 				property="speed"
 				label="Speed"
 				step={0.01}
-				min={0.1}
 				onChange={() => {
 					props.cinematicEditor.timelines.sortAnimationsKeys();
-					props.cinematicEditor.timelines.updateTracksAtCurrentTime();
+					props.cinematicEditor.updateTracksAtCurrentTime();
 				}}
 			/>
 
@@ -53,7 +52,7 @@ export function CinematicEditorAnimationGroupKeyInspector(props: ICinematicEdito
 				max={props.cinematicKey.endFrame}
 				onChange={() => {
 					props.cinematicEditor.inspector.forceUpdate();
-					props.cinematicEditor.timelines.updateTracksAtCurrentTime();
+					props.cinematicEditor.updateTracksAtCurrentTime();
 				}}
 			/>
 
@@ -66,7 +65,19 @@ export function CinematicEditorAnimationGroupKeyInspector(props: ICinematicEdito
 				max={animationGroup.to}
 				onChange={() => {
 					props.cinematicEditor.inspector.forceUpdate();
-					props.cinematicEditor.timelines.updateTracksAtCurrentTime();
+					props.cinematicEditor.updateTracksAtCurrentTime();
+				}}
+			/>
+
+			<EditorInspectorNumberField
+				object={props.cinematicKey}
+				property="repeatCount"
+				label="Repeat Count"
+				step={1}
+				min={0}
+				onChange={() => {
+					props.cinematicEditor.inspector.forceUpdate();
+					props.cinematicEditor.updateTracksAtCurrentTime();
 				}}
 			/>
 		</EditorInspectorSectionField>

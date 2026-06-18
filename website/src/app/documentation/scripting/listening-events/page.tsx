@@ -12,9 +12,7 @@ import {
 	onPointerEventDescendantsExample,
 	onKeyboardEventBasicExample,
 	onKeyboardEventArrayBasicExample,
-} from "./pointer-event";
-
-import { NextChapterComponent } from "../../components/next-chapter";
+} from "./code";
 
 export default function DocumentationRunningProjectPage() {
 	return (
@@ -124,8 +122,6 @@ export default function DocumentationRunningProjectPage() {
 						<div>As well as for pointer events, multiple event types can be listened at the same time by providing an array of event types to the decorator:</div>
 
 						<CodeBlock code={onKeyboardEventArrayBasicExample} />
-
-						<NextChapterComponent href="/documentation/sprites/using-sprite-manager" title="Using Sprite Manager" />
 					</div>
 				</Fade>
 			</div>

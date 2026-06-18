@@ -16,10 +16,12 @@ import { checkNodeJSAvailable, checkVisualStudioCodeAvailable, nodeJSAvailable, 
 import { saveProject } from "../project/save/save";
 import { onProjectConfigurationChangedObservable, projectConfiguration } from "../project/configuration";
 
+// import { initializeMcpServer } from "../mcp/mcp";
+
 import { loadProject } from "../project/load/load";
 import { startProjectDevProcess } from "../project/run";
 import { exportProject } from "../project/export/export";
-import { EditorProjectPackageManager } from "../project/typings";
+import { EditorProjectCompressedTextureQuality, EditorProjectCompressedTextureSoftware, EditorProjectPackageManager } from "../project/typings";
 
 import { disposeVLSPostProcess } from "./rendering/vls";
 import { disposeSSRRenderingPipeline } from "./rendering/ssr";
@@ -28,6 +30,7 @@ import { disposeMotionBlurPostProcess } from "./rendering/motion-blur";
 import { disposeDefaultRenderingPipeline } from "./rendering/default-pipeline";
 
 import { CommandPalette } from "./dialogs/command-palette/command-palette";
+import { EditorGenerateProjectComponent } from "./dialogs/generate/generate-project";
 import { EditorEditProjectComponent } from "./dialogs/edit-project/edit-project";
 import { EditorEditPreferencesComponent } from "./dialogs/edit-preferences/edit-preferences";
 
@@ -88,6 +91,10 @@ export interface IEditorState {
 	packageManager?: EditorProjectPackageManager;
 
 	/**
+	 * Defines the software used for compressing textures.
+	 */
+	compressedTextureSoftware?: EditorProjectCompressedTextureSoftware;
+	/**
 	 * Defines wether or not compressed textures are enabled.
 	 */
 	compressedTexturesEnabled: boolean;
@@ -95,11 +102,27 @@ export interface IEditorState {
 	 * Defines wether or not compressed textures are enabled in the preview.
 	 */
 	compressedTexturesEnabledInPreview: boolean;
+	/**
+	 * Defines wether or not ETC2 compressed textures are enabled.
+	 */
+	compressedEtc2Enabled: boolean;
+	/**
+	 * Defines wether or not PVRTC compressed textures are enabled.
+	 */
+	compressedPvrtcEnabled: boolean;
+	/**
+	 * Defines the quality of the compressed textures.
+	 */
+	compressedTextureQuality?: EditorProjectCompressedTextureQuality;
 
 	/**
 	 * Defines wether or not experimental features are enabled.
 	 */
 	enableExperimentalFeatures: boolean;
+	/**
+	 * Defines the list of tabs that are currently opened in the layout.
+	 */
+	openedTabs: string[];
 
 	/**
 	 * Defines if the project is being edited.
@@ -109,6 +132,10 @@ export interface IEditorState {
 	 * Defines if the preferences are being edited.
 	 */
 	editPreferences: boolean;
+	/**
+	 * Defines if the project generator dialog is opened.
+	 */
+	generateProject: boolean;
 
 	/**
 	 * Defines wether or not NodeJS is available.
@@ -144,12 +171,19 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 			lastOpenedScenePath: null,
 			projectPath: props.projectPath,
 
+			compressedTextureSoftware: "PVRTexTool",
 			compressedTexturesEnabled: false,
 			compressedTexturesEnabledInPreview: false,
+			compressedEtc2Enabled: false,
+			compressedPvrtcEnabled: false,
+			compressedTextureQuality: "very-fast",
+
 			enableExperimentalFeatures: tryGetExperimentalFeaturesEnabledFromLocalStorage(),
+			openedTabs: [],
 
 			editProject: false,
 			editPreferences: false,
+			generateProject: false,
 
 			nodeJSAvailable: false,
 			visualStudioCodeAvailable: false,
@@ -190,8 +224,8 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 				</HotkeysTarget2>
 
 				<EditorEditProjectComponent editor={this} open={this.state.editProject} onClose={() => this.setState({ editProject: false })} />
-
 				<EditorEditPreferencesComponent editor={this} open={this.state.editPreferences} onClose={() => this.setState({ editPreferences: false })} />
+				<EditorGenerateProjectComponent editor={this} open={this.state.generateProject} onClose={() => this.setState({ generateProject: false })} />
 
 				<CommandPalette ref={(r) => (this.commandPalette = r!)} editor={this} />
 				<Toaster />
@@ -201,10 +235,11 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 
 	public async componentDidMount(): Promise<void> {
 		ipcRenderer.on("save", () => saveProject(this));
-		ipcRenderer.on("generate", () => exportProject(this, { optimize: true }));
+		ipcRenderer.on("generate", () => exportProject(this, { optimize: false }));
 
 		ipcRenderer.on("editor:edit-project", () => this.setState({ editProject: true }));
 		ipcRenderer.on("editor:edit-preferences", () => this.setState({ editPreferences: true }));
+		ipcRenderer.on("editor:generate-project", () => this.setState({ generateProject: true }));
 
 		ipcRenderer.on("editor:open", (_, path) => this.openProject(join(path)));
 
@@ -240,6 +275,16 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 
 		// Ready
 		ipcRenderer.send("editor:ready");
+		ipcRenderer.send("editor:setup-menu", {
+			enableExperimentalFeatures: this.state.enableExperimentalFeatures,
+			openedTabs: this.state.openedTabs,
+		});
+
+		// Start the MCP server once the layout/preview scene is ready.
+		await waitUntil(() => this.layout?.preview?.scene);
+
+		// Initialize the MCP server to allow communication between the editor and AI agents
+		// initializeMcpServer(this);
 	}
 
 	/**

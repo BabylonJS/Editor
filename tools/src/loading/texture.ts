@@ -3,73 +3,43 @@ import { Nullable } from "@babylonjs/core/types";
 import { BaseTexture } from "@babylonjs/core/Materials/Textures/baseTexture";
 import { SerializationHelper } from "@babylonjs/core/Misc/decorators.serialization";
 
-import { getPowerOfTwoUntil } from "../tools/scalar";
+import { _getKtx2TextureName, getTextureUrl, isUsingKtx2CompressedTextures } from "../tools/texture";
 
-/**
- * Defines the reference to the original texture parser function.
- */
-const textureParser = SerializationHelper._TextureParser;
+let registered = false;
 
-SerializationHelper._TextureParser = (sourceProperty: any, scene: Scene, rootUrl: string): Nullable<BaseTexture> => {
-	if (scene.loadingTexturesQuality === "high" || !sourceProperty.metadata?.baseSize) {
-		return textureParser(sourceProperty, scene, rootUrl);
+export function registerTextureParser() {
+	if (registered) {
+		return;
 	}
 
-	const width = sourceProperty.metadata.baseSize.width;
-	const height = sourceProperty.metadata.baseSize.height;
+	registered = true;
 
-	const isPowerOfTwo = width === getPowerOfTwoUntil(width) || height === getPowerOfTwoUntil(height);
+	const textureParser = SerializationHelper._TextureParser;
 
-	let suffix = "";
-
-	switch (scene.loadingTexturesQuality) {
-		case "medium":
-			let midWidth = (width * 0.66) >> 0;
-			let midHeight = (height * 0.66) >> 0;
-
-			if (isPowerOfTwo) {
-				midWidth = getPowerOfTwoUntil(midWidth);
-				midHeight = getPowerOfTwoUntil(midHeight);
+	SerializationHelper._TextureParser = (sourceProperty: any, scene: Scene, rootUrl: string): Nullable<BaseTexture> => {
+		if (isUsingKtx2CompressedTextures()) {
+			if (sourceProperty.name) {
+				sourceProperty.name = _getKtx2TextureName(sourceProperty.name);
 			}
 
-			suffix = `_${midWidth}_${midHeight}`;
-			break;
-
-		case "low":
-		case "very-low":
-			let lowWidth = (width * 0.33) >> 0;
-			let lowHeight = (height * 0.33) >> 0;
-
-			if (isPowerOfTwo) {
-				lowWidth = getPowerOfTwoUntil(lowWidth);
-				lowHeight = getPowerOfTwoUntil(lowHeight);
+			if (sourceProperty.url) {
+				sourceProperty.url = _getKtx2TextureName(sourceProperty.url);
 			}
+		}
 
-			suffix = `_${lowWidth}_${lowHeight}`;
-			break;
-	}
+		const suffix = getTextureUrl(sourceProperty, scene);
+		if (!suffix) {
+			return textureParser(sourceProperty, scene, rootUrl);
+		}
 
-	const name = sourceProperty.name as string;
+		const originalName = sourceProperty.name;
+		sourceProperty.name = suffix;
 
-	if (!name || !suffix) {
-		return textureParser(sourceProperty, scene, rootUrl);
-	}
+		const texture = textureParser(sourceProperty, scene, rootUrl);
+		if (texture) {
+			texture.name = originalName;
+		}
 
-	const finalUrl = name.split("/");
-
-	const filename = finalUrl.pop();
-	if (!filename) {
-		return textureParser(sourceProperty, scene, rootUrl);
-	}
-
-	const extension = filename.split(".").pop();
-	const baseFilename = filename.replace(`.${extension}`, "");
-
-	const newFilename = `${baseFilename}${suffix}.${extension}`;
-
-	finalUrl.push(newFilename);
-
-	sourceProperty.name = finalUrl.join("/");
-
-	return textureParser(sourceProperty, scene, rootUrl);
-};
+		return texture;
+	};
+}
