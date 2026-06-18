@@ -13,7 +13,10 @@ import { tryGetTerminalFromLocalStorage } from "./local-storage";
  * @param options The options to pass to the pty process.
  * @returns A promise that resolves with the node-pty instance.
  */
-export async function execNodePty(command: string, options: IPtyForkOptions | IWindowsPtyForkOptions = {}): Promise<NodePtyInstance> {
+export async function execNodePty(
+	command: string,
+	options: IPtyForkOptions | IWindowsPtyForkOptions | (IPtyForkOptions & { interactive?: boolean }) | (IWindowsPtyForkOptions & { interactive?: boolean }) = {}
+): Promise<NodePtyInstance> {
 	const id = randomUUID();
 
 	let forcedShell: string | null = null;
