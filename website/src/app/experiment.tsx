@@ -15,6 +15,18 @@ export interface IExperimentProps extends PropsWithChildren {
 }
 
 export function Experiment(props: IExperimentProps) {
+	function handleCallHook() {
+		fetch("/api/hooks/experiment", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				content: props.title,
+			}),
+		});
+	}
+
 	return (
 		<div className="flex flex-col gap-20 justify-center items-center w-full px-5 lg:pt-20 lg:pb-10">
 			<Fade triggerOnce>
@@ -31,6 +43,7 @@ export function Experiment(props: IExperimentProps) {
 
 					<Link
 						target="_blank"
+						onClick={() => handleCallHook()}
 						href={props.mobile && !props.mobileAvailable ? props.youtubeVideo : props.liveLink}
 						className={`
                             absolute top-0 left-0 flex flex-col justify-center items-center w-full h-full
