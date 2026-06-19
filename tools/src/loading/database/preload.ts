@@ -21,6 +21,12 @@ export interface IPreloadAssetsToDatabaseOptions {
 	 */
 	disableImages?: boolean;
 	/**
+	 * Defines a list of scene names to filter the scenes to preload. If not defined, all scenes will be preloaded.
+	 * Using this filter can be useful to reduce the amount of assets to preload when only a subset of scenes is needed.
+	 * @example ["menu.babylon", "map1.babylon"]
+	 */
+	scenesFilter?: string[];
+	/**
 	 * A callback function that is called with the progress of the asset loading process, as a value between 0 and 1.
 	 * @param progress defines the progress of the asset loading process, as a value between 0 and 1.
 	 */
@@ -38,6 +44,12 @@ export interface IPreloadAssetsToDatabaseOptions {
 export async function preloadAssetsToDatabase(databaseName: string, rootUrl: string, options?: IPreloadAssetsToDatabaseOptions) {
 	const promises: Promise<void>[] = [];
 	const scenesUsedFiles = await loadJsonFile<ScenesUsedFilesType>(`${rootUrl}scenes-used-files.json`);
+
+	for (const [sceneName, _] of Object.entries(scenesUsedFiles)) {
+		if (options?.scenesFilter && !options.scenesFilter.includes(sceneName)) {
+			delete scenesUsedFiles[sceneName];
+		}
+	}
 
 	let loadedCount = 0;
 
