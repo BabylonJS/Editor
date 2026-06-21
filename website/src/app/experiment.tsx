@@ -1,14 +1,18 @@
 import Link from "next/link";
-import { PropsWithChildren } from "react";
+
+import { PropsWithChildren, ReactNode } from "react";
+
 import { Fade } from "react-awesome-reveal";
-import { FaCirclePlay, FaYoutube } from "react-icons/fa6";
 import { IoMdPlayCircle } from "react-icons/io";
+import { FaCirclePlay, FaYoutube } from "react-icons/fa6";
 
 export interface IExperimentProps extends PropsWithChildren {
-	title: string;
+	title: ReactNode;
 	coverVideo: string;
 	youtubeVideo: string;
 	liveLink: string;
+
+	runLabel?: string;
 
 	mobile: boolean;
 	mobileAvailable: boolean;
@@ -59,7 +63,7 @@ export function Experiment(props: IExperimentProps) {
 			</Fade>
 
 			<Fade triggerOnce delay={300}>
-				<div className="leading-6 drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">{props.children}</div>
+				<div className="leading-6 drop-shadow-[0_1px_1px_rgba(0,0,0,1)] lg:max-w-[55vw]">{props.children}</div>
 			</Fade>
 
 			<div className="flex flex-col sm:flex-row items-center gap-5">
@@ -68,7 +72,7 @@ export function Experiment(props: IExperimentProps) {
 						<Link target="_blank" href={props.liveLink}>
 							<button className="flex items-center gap-2 text-black bg-neutral-50 rounded-full px-5 py-2">
 								<FaCirclePlay className="w-6 h-6" />
-								Run experiment
+								{props.runLabel ?? "Run experiment"}
 							</button>
 						</Link>
 					</Fade>
