@@ -37,7 +37,7 @@
 		"postcss-import": "16.1.0",
 		"tailwindcss": "3.4.4",
 		"typescript": "5.9.3",
-		"vitest": "4.0.17"
+		"vitest": "4.1.0"
 	},
 	"dependencies": {
 		"@babylonjs/addons": "9.12.1",
@@ -98,7 +98,7 @@
 		"dotenv": "17.2.3",
 		"dunder-proto": "1.0.1",
 		"electron-updater": "6.6.2",
-		"esbuild": "0.27.2",
+		"esbuild": "0.28.1",
 		"filenamify": "4.3.0",
 		"flexlayout-react": "0.7.15",
 		"fluent-ffmpeg": "^2.1.3",

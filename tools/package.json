@@ -29,9 +29,9 @@
 		"@babylonjs/core": "9.12.1",
 		"@babylonjs/gui": "9.12.1",
 		"@vitest/coverage-v8": "4.0.17",
-		"esbuild": "0.27.2",
+		"esbuild": "0.28.1",
 		"typescript": "5.9.3",
-		"vitest": "4.0.17"
+		"vitest": "4.1.0"
 	},
 	"dependencies": {}
 }
