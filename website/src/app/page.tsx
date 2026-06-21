@@ -17,15 +17,18 @@ import isMobile from "is-mobile";
 import { AppleIcon } from "@/components/icons/apple";
 import { LinuxIcon } from "@/components/icons/linux";
 import { WindowsIcon } from "@/components/icons/windows";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 
 import { Experiment } from "./experiment";
 import { LandingRendererComponent } from "./renderer";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "../components/ui/carousel";
+
+import "./landing.css";
 
 export default function HomePage() {
 	const section1Ref = useRef<HTMLDivElement>(null);
 	const section2Ref = useRef<HTMLDivElement>(null);
 	const section3Ref = useRef<HTMLDivElement>(null);
+	const section4Ref = useRef<HTMLDivElement>(null);
 
 	const [scrollRatio, setScrollRatio] = useState(0);
 
@@ -33,6 +36,7 @@ export default function HomePage() {
 
 	const [section2Visible, setSection2Visible] = useState(false);
 	const [section3Visible, setSection3Visible] = useState(false);
+	const [section4Visible, setSection4Visible] = useState(false);
 
 	const [mobile, setMobile] = useState(true);
 
@@ -42,16 +46,19 @@ export default function HomePage() {
 	}, []);
 
 	useEventListener("scroll", () => {
-		if (section2Ref.current) {
-			const bb = section2Ref.current.getBoundingClientRect();
+		if (section2Ref.current && section3Ref.current) {
+			const bb2 = section2Ref.current.getBoundingClientRect();
+			setSection2Visible(bb2.top <= 0 && bb2.bottom > 0);
 
-			setSection2Visible(bb.top <= 0 && bb.bottom > 0);
-			setFeaturesVisible(bb.top < screen.height * 0.5 && bb.bottom > 0);
+			const bb3 = section3Ref.current.getBoundingClientRect();
+			setSection3Visible(bb3.top <= 0 && bb3.bottom > 0);
+
+			setFeaturesVisible((bb2.top < screen.height * 0.5 && bb2.bottom > 0) || (bb3.top < screen.height * 0.5 && bb3.bottom > 0));
 		}
 
-		if (section3Ref.current) {
-			const bb = section3Ref.current.getBoundingClientRect();
-			setSection3Visible(bb.top <= 0 && bb.bottom > 0);
+		if (section4Ref.current) {
+			const bb = section4Ref.current.getBoundingClientRect();
+			setSection4Visible(bb.top <= 0 && bb.bottom > 0);
 		}
 
 		updateScrollRatio();
@@ -70,7 +77,7 @@ export default function HomePage() {
 					}}
 					className="fixed top-0 left-0 w-screen h-screen z-0 transition-all duration-1000 ease-in-out"
 				>
-					<LandingRendererComponent scrollRatio={scrollRatio} postProcessVisible={!section3Visible} />
+					<LandingRendererComponent scrollRatio={scrollRatio} postProcessVisible={!section4Visible} />
 				</div>
 
 				<div className="absolute 2xl:fixed top-0 left-0 w-full px-5 z-50">
@@ -131,7 +138,40 @@ export default function HomePage() {
 				</div>
 
 				{/* Page 2 */}
-				<div className="flex flex-col justify-center pt-10 lg:pt-24 w-screen min-h-screen mx-auto" ref={section2Ref}>
+				<div className="min-h-screen" ref={section2Ref}>
+					<Experiment
+						mobile={mobile}
+						mobileAvailable={false}
+						title={
+							<div className="flex flex-col items-center">
+								<div className="text-lg md:text-2xl lg:text-3xl xl:text-4xl tracking-tighter">Presenting</div>
+								<div className="font-[o4b] py-10 text-white drop-shadow-[0_0_25px_rgba(220,38,38,0.8)]">Out 4 Blood</div>
+								<div className="text-lg md:text-xl lg:text-2xl xl:text-3xl tracking-tighter">A game achieved using Babylon.js Editor</div>
+							</div>
+						}
+						runLabel="Run game"
+						coverVideo="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/experiments/horde/cover.mp4"
+						youtubeVideo="https://www.youtube.com/watch?v=Fz4fvaGhO68"
+						liveLink="https://cesharpe.com/o4b"
+					>
+						<>
+							<b>Out 4 Blood</b> is a hardcore multiplayer zombie wave-survival shooter built for relentless co-op action and intense last-stand gameplay.
+							<br />
+							From scene assembly and lighting to gameplay scripting, the entire game was created <b>100% with the Babylon.js Editor</b>, showcasing a complete
+							end-to-end production pipeline inside the engine.
+							<br />
+							The game features high-quality 3D assets sourced from Quixel, Sketchfab, Fab, and Mixamo, while its real-time multiplayer experience is powered by{" "}
+							<Link href="https://colyseus.io/" target="_blank" className="underline underline-offset-4">
+								Colyseus
+							</Link>
+							<br />
+							The entire user interface was built exclusively with React, delivering a modern, responsive UI layer on top of the gameplay experience.
+						</>
+					</Experiment>
+				</div>
+
+				{/* Page 3 */}
+				<div className="flex flex-col justify-center pt-10 lg:pt-24 w-screen min-h-screen mx-auto" ref={section3Ref}>
 					<div
 						className={`flex flex-col lg:flex-row w-full py-10 lg:py-24 ${featuresVisible ? "bg-neutral-950" : "transparent"} z-0 px-5 transition-all duration-3000 ease-in-out`}
 					>
@@ -292,9 +332,7 @@ export default function HomePage() {
 											<Link href="https://editor.babylonjs.com/documentation/plugins/fab" target="_blank" className="underline underline-offset-4">
 												Babylon.js Editor Fab Plugin
 											</Link>
-											.
-											<br />
-											The characters were created with Mixamo and animated using Mixamo’s animation library.
+											. The characters were created with Mixamo and animated using Mixamo’s animation library.
 											<br />
 											Blender was used to merge, retarget, and unify all animations into a single, reusable character model.
 										</>
