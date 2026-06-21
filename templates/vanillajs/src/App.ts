@@ -9,6 +9,7 @@ import HavokPhysics from "@babylonjs/havok";
 import "@babylonjs/core/Loading/loadingScreen";
 import "@babylonjs/core/Loading/Plugins/babylonFileLoader";
 
+import "@babylonjs/core/Cameras/camera";
 import "@babylonjs/core/Cameras/universalCamera";
 
 import "@babylonjs/core/Meshes/groundMesh";
@@ -18,11 +19,14 @@ import "@babylonjs/core/Lights/Shadows/shadowGeneratorSceneComponent";
 
 import "@babylonjs/core/Materials/PBR/pbrMaterial";
 import "@babylonjs/core/Materials/standardMaterial";
+import "@babylonjs/core/Materials/imageProcessingConfiguration";
+
 import "@babylonjs/core/XR/features/WebXRDepthSensing";
 
 import "@babylonjs/core/Rendering/depthRendererSceneComponent";
 import "@babylonjs/core/Rendering/prePassRendererSceneComponent";
 
+import "@babylonjs/core/Materials/Textures/cubeTexture";
 import "@babylonjs/core/Materials/Textures/Loaders/envTextureLoader";
 
 import "@babylonjs/core/Physics";
