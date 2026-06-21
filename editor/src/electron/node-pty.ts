@@ -51,8 +51,8 @@ ipcMain.on("editor:create-node-pty", (ev, command, id, options, forcedShell) => 
 		name: "xterm-color",
 		encoding: "utf-8",
 		useConpty: false,
-		cwd: (options as any)?.cwd ?? process.cwd(),
-		env: (options as any)?.env ?? process.env,
+		cwd: options?.cwd ?? process.cwd(),
+		env: options?.env ?? process.env,
 		...options,
 	});
 
@@ -76,7 +76,7 @@ ipcMain.on("editor:create-node-pty", (ev, command, id, options, forcedShell) => 
 
 	ev.sender.send(`editor:create-node-pty-${id}`);
 
-	const interactive: boolean = Boolean((options as any)?.interactive);
+	const interactive: boolean = Boolean(options?.interactive);
 	if (!interactive) {
 		const hasBackSlashes = shell!.toLowerCase() === process.env["COMSPEC"]?.toLowerCase();
 		if (hasBackSlashes) {
