@@ -407,6 +407,37 @@ export class EditorPBRMaterialInspector extends Component<IEditorPBRMaterialInsp
 	private _getMaterialTexturesOptimizations(): ReactNode {
 		const optimizations: ReactNode[] = [];
 
+		// Check specular roughness
+		const reflectivityTexture = this.props.material.reflectivityTexture;
+		const microSurfaceTexture = this.props.material.microSurfaceTexture;
+
+		const specularRoughnessTextures = [reflectivityTexture, microSurfaceTexture].filter((texture) => {
+			return isTexture(texture) && (texture ?? null) !== null;
+		});
+
+		if (specularRoughnessTextures.length > 1) {
+			optimizations.push(
+				<div key="optimization-specular-roughness" className="flex flex-col gap-2 p-2 bg-background rounded-lg">
+					<div>Textures can be combined into a single Specular Roughness texture to optimize performance and resource consumption. Mergable textures are:</div>
+					<ul className="list-disc list-inside">
+						{reflectivityTexture && <li>Reflectivity Texture</li>}
+						{microSurfaceTexture && <li>Micro Surface Texture</li>}
+					</ul>
+
+					<Button
+						onClick={(ev) => {
+							ev.currentTarget.disabled = true;
+							this._createAndAssignSpecularGlossinessTexture(reflectivityTexture as Texture, microSurfaceTexture as Texture).catch(() => {
+								ev.currentTarget.disabled = false;
+							});
+						}}
+					>
+						Create and assign Specular Roughness texture
+					</Button>
+				</div>
+			);
+		}
+
 		// Check for ORM
 		const ambientTexture = this.props.material.ambientTexture;
 		const metallicTexture = this.props.material.metallicTexture;
@@ -429,7 +460,7 @@ export class EditorPBRMaterialInspector extends Component<IEditorPBRMaterialInsp
 					<Button
 						onClick={(ev) => {
 							ev.currentTarget.disabled = true;
-							this._createAndAssignORMTexture(metallicTexture as Texture, metallicReflectanceTexture as Texture, ambientTexture as Texture).then(() => {
+							this._createAndAssignORMTexture(metallicTexture as Texture, metallicReflectanceTexture as Texture, ambientTexture as Texture).catch(() => {
 								ev.currentTarget.disabled = false;
 							});
 						}}
@@ -512,7 +543,7 @@ export class EditorPBRMaterialInspector extends Component<IEditorPBRMaterialInsp
 		this.props.material.ambientTexture = null;
 		this.props.material.metallicReflectanceTexture = null;
 
-		const invertY = (metallicTexture?.invertY ?? true) && (metallicReflectanceTexture?.invertY ?? true) && (ambientTexture?.invertY ?? true);
+		const invertY = this._areTexturesInvertedY([metallicTexture, metallicReflectanceTexture, ambientTexture]);
 
 		const texture = new Texture(ormPath, this.props.material.getScene(), false, invertY);
 		this.props.material.metallicTexture = texture;
@@ -521,12 +552,96 @@ export class EditorPBRMaterialInspector extends Component<IEditorPBRMaterialInsp
 		this.props.material.useMetallnessFromMetallicTextureBlue = reflectance !== null;
 		this.props.material.useAmbientOcclusionFromMetallicTextureRed = occlusion !== null;
 
-		const invertVScale = (metallicTexture?.vScale ?? -1) === -1 && (metallicReflectanceTexture?.vScale ?? -1) === -1 && (ambientTexture?.vScale ?? -1) === -1;
+		const invertVScale = this._areTexturesInvertedVScale([metallicTexture, metallicReflectanceTexture, ambientTexture]);
 		texture.vScale = invertVScale ? -1 : 1;
 
 		configureImportedTexture(texture, false);
 		checkProjectCachedCompressedTextures(this.props.editor);
 
 		this.props.editor.layout.inspector.forceUpdate();
+	}
+
+	private async _createAndAssignSpecularGlossinessTexture(reflectivityTexture: Texture, microSurfaceTexture: Texture): Promise<void> {
+		const rootUrl = getProjectAssetsRootUrl()!;
+
+		const reflectivity = reflectivityTexture ? sharp(join(rootUrl, reflectivityTexture.name)) : null;
+		const microsurface = microSurfaceTexture ? sharp(join(rootUrl, microSurfaceTexture.name)) : null;
+
+		// Check dimensions of the textures
+		const dimensions = [reflectivity, microsurface].map((texture) => {
+			return texture?.metadata() ?? null;
+		});
+
+		const metadata = await Promise.all(dimensions);
+
+		const width = metadata[0]?.width ?? metadata[1]?.width ?? 0;
+		const height = metadata[0]?.height ?? metadata[1]?.height ?? 0;
+
+		if (metadata.some((meta) => meta && (meta.width !== width || meta.height !== height))) {
+			showAlert("Can't merge textures", "Textures must have the same dimensions to be combined into a specular-glossiness texture.");
+			return;
+		}
+
+		const [reflectivityBuffer, microsurfaceBuffer] = await Promise.all([
+			reflectivity?.ensureAlpha().raw().toBuffer(),
+			microsurface?.ensureAlpha().removeAlpha().toColorspace("b-w").raw().toBuffer(),
+		]);
+
+		const ormBuffer = Buffer.alloc(width * height * 4);
+
+		for (let i = 0; i < width * height; ++i) {
+			ormBuffer[i * 4 + 0] = reflectivityBuffer?.[i * 4 + 0] ?? 255;
+			ormBuffer[i * 4 + 1] = reflectivityBuffer?.[i * 4 + 1] ?? 255;
+			ormBuffer[i * 4 + 2] = reflectivityBuffer?.[i * 4 + 2] ?? 255;
+			ormBuffer[i * 4 + 3] = microsurfaceBuffer?.[i] ?? 255;
+		}
+
+		const specularGlossinessPath = saveSingleFileDialog({
+			title: "Save Specular-glossiness Texture",
+			filters: [{ name: "PNG Image", extensions: ["png"] }],
+			defaultPath: join(rootUrl, dirname(reflectivityTexture?.name ?? microSurfaceTexture?.name!)),
+		});
+
+		if (!specularGlossinessPath) {
+			return;
+		}
+
+		const instance = sharp(ormBuffer, {
+			raw: {
+				width,
+				height,
+				channels: 4,
+			},
+		}).png();
+
+		await instance.toFile(specularGlossinessPath);
+
+		this.props.material.microSurfaceTexture = null;
+
+		const invertY = this._areTexturesInvertedY([reflectivityTexture, microSurfaceTexture]);
+
+		const texture = new Texture(specularGlossinessPath, this.props.material.getScene(), false, invertY);
+		this.props.material.reflectivityTexture = texture;
+		this.props.material.useMicroSurfaceFromReflectivityMapAlpha = true;
+
+		const invertVScale = this._areTexturesInvertedVScale([reflectivityTexture, microSurfaceTexture]);
+		texture.vScale = invertVScale ? -1 : 1;
+
+		configureImportedTexture(texture, false);
+		checkProjectCachedCompressedTextures(this.props.editor);
+
+		this.props.editor.layout.inspector.forceUpdate();
+	}
+
+	private _areTexturesInvertedY(textures: (Texture | null)[]): boolean {
+		return textures.every((texture) => {
+			return texture?.invertY ?? true;
+		});
+	}
+
+	private _areTexturesInvertedVScale(textures: (Texture | null)[]): boolean {
+		return textures.every((texture) => {
+			return texture?.vScale === -1;
+		});
 	}
 }
