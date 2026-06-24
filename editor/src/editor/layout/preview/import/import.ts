@@ -72,6 +72,14 @@ export async function loadImportedSceneFile(scene: Scene, absolutePath: string) 
 	try {
 		result = await ImportMeshAsync(basename(absolutePath), scene, {
 			rootUrl: join(dirname(absolutePath), "/"),
+			// Keep Gaussian splatting data in RAM. Otherwise the splat buffer is freed right after being
+			// uploaded to the GPU, and `GaussianSplattingMesh.serialize()` (used when saving/exporting) would
+			// have nothing to write, producing an empty splat on reload. Ignored by non-splat loaders.
+			pluginOptions: {
+				splat: {
+					keepInRam: true,
+				},
+			},
 		});
 		// result = await SceneLoader.ImportMeshAsync("", join(dirname(absolutePath), "/"), basename(absolutePath), scene);
 	} catch (e) {
@@ -98,7 +106,9 @@ export async function loadImportedSceneFile(scene: Scene, absolutePath: string) 
 	result.meshes.forEach((mesh) => {
 		configureImportedNodeIds(mesh);
 
-		mesh.receiveShadows = true;
+		// Gaussian splatting meshes render through thin instances with a custom splat buffer and cannot be
+		// drawn by the standard shadow/depth passes, so they must not participate in shadows.
+		mesh.receiveShadows = !isGaussianSplattingMesh(mesh);
 
 		if (mesh.skeleton) {
 			mesh.skeleton.id = Tools.RandomId();
@@ -133,6 +143,11 @@ export async function loadImportedSceneFile(scene: Scene, absolutePath: string) 
 		}
 
 		result.meshes.forEach((mesh) => {
+			// Gaussian splatting meshes can't be rendered into shadow maps (see above).
+			if (isGaussianSplattingMesh(mesh)) {
+				return;
+			}
+
 			shadowMap.renderList!.push(mesh);
 		});
 	});
