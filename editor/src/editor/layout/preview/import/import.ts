@@ -88,15 +88,9 @@ export async function loadImportedSceneFile(scene: Scene, absolutePath: string) 
 		return null;
 	}
 
-	// Gaussian splatting assets (.ply/.splat/.spz) are authored in metric space and don't follow the
-	// glTF "1 unit = 1 meter" convention, so we must not apply the x100 centimeters scaling to them.
-	const isGaussianSplatting = result.meshes.some((m) => isGaussianSplattingMesh(m));
-
 	const root = result.meshes.find((m) => m.name === "__root__");
 	if (root) {
-		if (!isGaussianSplatting) {
-			root.scaling.scaleInPlace(100);
-		}
+		root.scaling.scaleInPlace(100);
 		root.name = basename(absolutePath);
 
 		// TODO: try cleaning the gltf to remove useless transform nodes. Also, does it make sens to clean the gltf for the user?
@@ -111,10 +105,11 @@ export async function loadImportedSceneFile(scene: Scene, absolutePath: string) 
 		mesh.receiveShadows = !isGaussianSplattingMesh(mesh);
 
 		if (isGaussianSplattingMesh(mesh)) {
-			// The SPLAT loader bakes a `scaling.y *= -1` onto the mesh to convert from the common Y-down
-			// splat convention. Plain .splat/.ply/.spz files carry no up-axis/chirality metadata, so in the
-			// editor's left-handed scene this leaves them upside down. Flip Y back so they import upright.
-			mesh.scaling.y *= -1;
+			// Gaussian splatting assets have no `__root__`, so apply the editor's centimeters convention (the
+			// same x100 scaling that glTF receives through its root) directly to the splat mesh. The SPLAT
+			// loader already orients the splat (it bakes `scaling.y = -1` to convert from the Y-down splat
+			// convention), so we only scale here and keep that orientation untouched.
+			mesh.scaling.scaleInPlace(100);
 		}
 
 		if (mesh.skeleton) {
