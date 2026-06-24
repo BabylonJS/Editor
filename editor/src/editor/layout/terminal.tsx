@@ -25,7 +25,7 @@ export class EditorTerminal extends Component<IEditorTerminalProps, IEditorTermi
 	private _projectPath: string | null = null;
 	private _resizeObserver: ResizeObserver | null = null;
 
-	constructor(props: IEditorTerminalProps) {
+	public constructor(props: IEditorTerminalProps) {
 		super(props);
 		this.state = {
 			hasProject: projectConfiguration.path !== null,
