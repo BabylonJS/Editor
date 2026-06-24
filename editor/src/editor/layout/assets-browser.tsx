@@ -896,6 +896,9 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 			case ".gltf":
 			case ".ms3d":
 			case ".babylon":
+			case ".ply":
+			case ".splat":
+			case ".spz":
 				return <MeshSelectable {...props} />;
 
 			case ".material":

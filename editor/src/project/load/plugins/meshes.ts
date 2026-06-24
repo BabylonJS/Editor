@@ -6,7 +6,7 @@ import { Scene, Constants, Matrix, Mesh, SceneLoader, MultiMaterial, Geometry } 
 import { ISceneLoaderPluginOptions } from "../scene";
 
 import { wait } from "../../../tools/tools";
-import { isCollisionMesh, isMesh } from "../../../tools/guards/nodes";
+import { isCollisionMesh, isGaussianSplattingMesh, isMesh } from "../../../tools/guards/nodes";
 import { isMultiMaterial, isNodeMaterial } from "../../../tools/guards/material";
 import { parsePhysicsAggregate } from "../../../tools/physics/serialization/aggregate";
 import { configureSimultaneousLightsForMaterial, normalizeNodeMaterialUniqueIds } from "../../../tools/material/material";
@@ -40,7 +40,7 @@ export async function loadMeshes(meshesFiles: string[], scene: Scene, options: I
 					}
 
 					result.meshes.forEach((m) => {
-						if (!isMesh(m)) {
+						if (!isMesh(m) && !isGaussianSplattingMesh(m)) {
 							return;
 						}
 
@@ -109,7 +109,9 @@ export async function loadMeshes(meshesFiles: string[], scene: Scene, options: I
 
 						options.loadResult.meshes.push(m);
 
-						if (m.material) {
+						// Gaussian splatting meshes manage their own internal material recreated at parse time,
+						// so the regular material reconciliation below does not apply to them.
+						if (m.material && !isGaussianSplattingMesh(m)) {
 							const material = isMultiMaterial(m.material)
 								? data.multiMaterials?.find((d) => d.id === m.material!.id)
 								: data.materials?.find((d) => d.id === m.material!.id);

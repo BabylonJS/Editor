@@ -23,7 +23,7 @@ import {
 } from "babylonjs";
 
 import { UniqueNumber } from "../../../../tools/tools";
-import { isMesh } from "../../../../tools/guards/nodes";
+import { isGaussianSplattingMesh, isMesh } from "../../../../tools/guards/nodes";
 import { isSprite } from "../../../../tools/guards/sprites";
 import { isTexture } from "../../../../tools/guards/texture";
 import { executeSimpleWorker } from "../../../../tools/worker";
@@ -80,9 +80,15 @@ export async function loadImportedSceneFile(scene: Scene, absolutePath: string) 
 		return null;
 	}
 
+	// Gaussian splatting assets (.ply/.splat/.spz) are authored in metric space and don't follow the
+	// glTF "1 unit = 1 meter" convention, so we must not apply the x100 centimeters scaling to them.
+	const isGaussianSplatting = result.meshes.some((m) => isGaussianSplattingMesh(m));
+
 	const root = result.meshes.find((m) => m.name === "__root__");
 	if (root) {
-		root.scaling.scaleInPlace(100);
+		if (!isGaussianSplatting) {
+			root.scaling.scaleInPlace(100);
+		}
 		root.name = basename(absolutePath);
 
 		// TODO: try cleaning the gltf to remove useless transform nodes. Also, does it make sens to clean the gltf for the user?

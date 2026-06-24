@@ -11,7 +11,7 @@ import { getCollisionMeshFor } from "../../tools/mesh/collision";
 import { storeTexturesBaseSize } from "../../tools/material/texture";
 import { extractNodeMaterialTextures } from "../../tools/material/extract";
 import { createDirectoryIfNotExist, normalizedGlob } from "../../tools/fs";
-import { isCollisionMesh, isEditorCamera, isMesh } from "../../tools/guards/nodes";
+import { isCollisionMesh, isEditorCamera, isGaussianSplattingMesh, isMesh } from "../../tools/guards/nodes";
 import { extractNodeParticleSystemSetTextures, extractParticleSystemTextures } from "../../tools/particles/extract";
 
 import { taaPipelineCameraConfigurations } from "../../editor/rendering/taa";
@@ -219,6 +219,24 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 						instance.checkCollisions = true;
 					});
 				}
+			}
+
+			// Gaussian splatting meshes embed their splat data inline and rebuild their own quad geometry at
+			// parse time (the loader skips importing geometry for them), so they must not go through the
+			// geometry externalization/delay-loading pipeline.
+			if (instantiatedMesh && isGaussianSplattingMesh(instantiatedMesh)) {
+				let geometryIndex = -1;
+				do {
+					geometryIndex = data.geometries?.vertexData?.findIndex((g) => g.id === mesh.geometryId) ?? -1;
+					if (geometryIndex !== -1) {
+						data.geometries!.vertexData!.splice(geometryIndex, 1);
+					}
+				} while (geometryIndex !== -1);
+
+				delete mesh.geometryId;
+				delete mesh.geometryUniqueId;
+				delete mesh.delayLoadingFile;
+				return;
 			}
 
 			const geometry = data.geometries?.vertexData?.find((v) => v.id === mesh.geometryId);
