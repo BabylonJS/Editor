@@ -29,7 +29,7 @@ import { registerUndoRedo } from "../../../../tools/undoredo";
 import { waitNextAnimationFrame } from "../../../../tools/tools";
 import { onNodeModifiedObservable } from "../../../../tools/observables";
 import { updateIblShadowsRenderPipeline } from "../../../../tools/light/ibl";
-import { isAbstractMesh, isInstancedMesh, isMesh } from "../../../../tools/guards/nodes";
+import { isAbstractMesh, isGaussianSplattingMesh, isInstancedMesh, isMesh } from "../../../../tools/guards/nodes";
 import { updateAllLights, updateLightShadowMapRefreshRate, updatePointLightShadowMapRenderListPredicate } from "../../../../tools/light/shadows";
 
 import { applyMaterialAssetToObject } from "../../preview/import/material";
@@ -100,6 +100,10 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 	}
 
 	public render(): ReactNode {
+		// Gaussian splatting meshes have a quad geometry but no standard material/shadow/collision semantics,
+		// so the geometry-derived sections below are hidden for them.
+		const isGaussianSplatting = isGaussianSplattingMesh(this.props.object);
+
 		return (
 			<>
 				<EditorInspectorSectionField title="Common">
@@ -159,14 +163,14 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 					/>
 				</EditorInspectorSectionField>
 
-				{this.props.object.geometry && (
+				{this.props.object.geometry && !isGaussianSplatting && (
 					<>
 						<EditorMeshCollisionInspector {...this.props} />
 						<EditorMeshPhysicsInspector mesh={this.props.object} />
 					</>
 				)}
 
-				{this.props.editor.layout.preview.scene.lights.length > 0 && this.props.object.geometry && (
+				{this.props.editor.layout.preview.scene.lights.length > 0 && this.props.object.geometry && !isGaussianSplatting && (
 					<EditorInspectorSectionField title="Shadows">
 						<EditorInspectorSwitchField
 							label="Cast Shadows"
@@ -214,7 +218,11 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 			}
 		});
 
-		this.props.editor.layout.preview.selectionOutlineLayer.addSelection(this.props.object);
+		// The selection outline draws the mesh through a depth/outline pass that can't handle the thin-instance
+		// splat layout, so Gaussian splatting meshes are not added to it.
+		if (!isGaussianSplattingMesh(this.props.object)) {
+			this.props.editor.layout.preview.selectionOutlineLayer.addSelection(this.props.object);
+		}
 	}
 
 	public componentWillUnmount(): void {
@@ -236,7 +244,8 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 	}
 
 	private _getMaterialComponent(): ReactNode {
-		if (!this.props.object.geometry) {
+		// Gaussian splatting meshes manage their own internal material; there is nothing user-editable here.
+		if (!this.props.object.geometry || isGaussianSplattingMesh(this.props.object)) {
 			return;
 		}
 

@@ -5,6 +5,8 @@ import { Scene, ShadowGenerator, CascadedShadowGenerator, RenderTargetTexture } 
 
 import { Editor } from "../../../editor/main";
 
+import { isGaussianSplattingMesh } from "../../../tools/guards/nodes";
+
 import { ISceneLoaderPluginOptions } from "../scene";
 
 export async function loadShadowGenerators(editor: Editor, shadowGeneratorFiles: string[], scene: Scene, options: ISceneLoaderPluginOptions) {
@@ -33,6 +35,12 @@ export async function loadShadowGenerators(editor: Editor, shadowGeneratorFiles:
 				const shadowMap = shadowGenerator.getShadowMap();
 				if (shadowMap) {
 					shadowMap.refreshRate = data.refreshRate ?? RenderTargetTexture.REFRESHRATE_RENDER_ONEVERYFRAME;
+
+					// Gaussian splatting meshes can't be rendered into shadow maps (their thin-instance splat
+					// layout breaks the depth pass), so drop any that an older project persisted in the render list.
+					if (shadowMap.renderList) {
+						shadowMap.renderList = shadowMap.renderList.filter((mesh) => !isGaussianSplattingMesh(mesh));
+					}
 				}
 			} catch (e) {
 				editor.layout.console.error(`Failed to load shadow generator file "${file}": ${e.message}`);

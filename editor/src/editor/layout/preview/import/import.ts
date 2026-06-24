@@ -110,6 +110,13 @@ export async function loadImportedSceneFile(scene: Scene, absolutePath: string) 
 		// drawn by the standard shadow/depth passes, so they must not participate in shadows.
 		mesh.receiveShadows = !isGaussianSplattingMesh(mesh);
 
+		if (isGaussianSplattingMesh(mesh)) {
+			// The SPLAT loader bakes a `scaling.y *= -1` onto the mesh to convert from the common Y-down
+			// splat convention. Plain .splat/.ply/.spz files carry no up-axis/chirality metadata, so in the
+			// editor's left-handed scene this leaves them upside down. Flip Y back so they import upright.
+			mesh.scaling.y *= -1;
+		}
+
 		if (mesh.skeleton) {
 			mesh.skeleton.id = Tools.RandomId();
 			mesh.skeleton["_uniqueId"] = UniqueNumber.Get();
