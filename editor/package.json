@@ -73,6 +73,7 @@
 		"@recast-navigation/core": "0.43.0",
 		"@recast-navigation/generators": "0.43.0",
 		"@xterm/addon-fit": "0.11.0",
+		"@xterm/addon-webgl": "0.20.0-beta.286",
 		"@xterm/xterm": "6.1.0-beta.22",
 		"assimpjs": "0.0.10",
 		"axios": "1.16.1",
