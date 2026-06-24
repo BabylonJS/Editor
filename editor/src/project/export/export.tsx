@@ -113,7 +113,9 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 
 	storeTexturesBaseSize(scene);
 
-	scene.meshes.forEach((mesh) => (mesh.doNotSerialize = mesh.metadata?.doNotSerialize ?? false));
+	// Keep internal hidden meshes (e.g. the GaussianSplattingMesh per-camera render proxies, which already
+	// set doNotSerialize) out of the export so they are not written as standalone meshes.
+	scene.meshes.forEach((mesh) => (mesh.doNotSerialize = mesh.reservedDataStore?.hidden || (mesh.metadata?.doNotSerialize ?? false)));
 	scene.lights.forEach((light) => (light.doNotSerialize = light.metadata?.doNotSerialize ?? false));
 	scene.cameras.forEach((camera) => (camera.doNotSerialize = camera.metadata?.doNotSerialize ?? false));
 	scene.transformNodes.forEach((transformNode) => (transformNode.doNotSerialize = transformNode.metadata?.doNotSerialize ?? false));
