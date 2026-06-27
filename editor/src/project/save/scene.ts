@@ -19,7 +19,7 @@ import { isSpriteManagerNode, isSpriteMapNode } from "../../tools/guards/sprites
 import { serializePhysicsAggregate } from "../../tools/physics/serialization/aggregate";
 import { isAnimationGroupFromSceneLink, isFromSceneLink } from "../../tools/scene/scene-link";
 import { isGPUParticleSystem, isNodeParticleSystemSetMesh, isParticleSystem } from "../../tools/guards/particles";
-import { isAnyTransformNode, isClusteredLightContainer, isCollisionMesh, isEditorCamera, isMesh, isTransformNode } from "../../tools/guards/nodes";
+import { isAnyTransformNode, isClusteredLightContainer, isCollisionMesh, isEditorCamera, isGaussianSplattingMesh, isMesh, isTransformNode } from "../../tools/guards/nodes";
 
 import { taaPipelineCameraConfigurations } from "../../editor/rendering/taa";
 import { vlsPostProcessCameraConfigurations } from "../../editor/rendering/vls";
@@ -73,7 +73,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 
 	const scene = editor.layout.preview.scene;
 	const meshesToSave = scene.meshes.filter((mesh) => {
-		if ((!isMesh(mesh) && !isCollisionMesh(mesh)) || mesh._masterMesh || isFromSceneLink(mesh) || !isNodeVisibleInGraph(mesh)) {
+		if ((!isMesh(mesh) && !isCollisionMesh(mesh) && !isGaussianSplattingMesh(mesh)) || mesh._masterMesh || isFromSceneLink(mesh) || !isNodeVisibleInGraph(mesh)) {
 			return false;
 		}
 
@@ -99,7 +99,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 	// Write geometries and meshes
 	await Promise.all(
 		meshesToSave.map(async (mesh) => {
-			if ((!isMesh(mesh) && !isCollisionMesh(mesh)) || mesh._masterMesh || isFromSceneLink(mesh) || !isNodeVisibleInGraph(mesh)) {
+			if ((!isMesh(mesh) && !isCollisionMesh(mesh) && !isGaussianSplattingMesh(mesh)) || mesh._masterMesh || isFromSceneLink(mesh) || !isNodeVisibleInGraph(mesh)) {
 				return;
 			}
 
@@ -130,6 +130,21 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 
 					data.metadata = meshToSerialize.metadata;
 					data.basePoseMatrix = meshToSerialize.getPoseMatrix().asArray();
+
+					// Gaussian splatting meshes embed their splat data inline in the serialized JSON and recreate
+					// their own material and quad geometry when parsed (the loader skips importing geometry for
+					// them). So the serialized material and geometry references are unused: dropping them avoids
+					// writing/delay-loading a useless `.babylonbinarymeshdata` file for the splatting quad.
+					if (isGaussianSplattingMesh(meshToSerialize)) {
+						delete data.materials;
+						delete data.geometries;
+
+						data.meshes?.forEach((m) => {
+							delete m.geometryId;
+							delete m.geometryUniqueId;
+							delete m.delayLoadingFile;
+						});
+					}
 
 					// Handle case where the mesh is a collision mesh
 					if (isCollisionMesh(meshToSerialize)) {

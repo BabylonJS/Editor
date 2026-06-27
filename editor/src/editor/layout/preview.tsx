@@ -1349,6 +1349,9 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 				case ".ms3d":
 				case ".blend":
 				case ".babylon":
+				case ".ply":
+				case ".splat":
+				case ".spz":
 					this.importSceneFile(absolutePath, ev.shiftKey).then((result) => {
 						if (pick.pickedPoint) {
 							result?.meshes.forEach((m) => !m.parent && m.position.addInPlace(pick.pickedPoint!));

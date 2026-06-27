@@ -1,3 +1,7 @@
+// Registers the GaussianSplattingMesh parser (Mesh._GaussianSplattingMeshParser) so the .babylon scene
+// loader can reconstruct Gaussian splatting meshes serialized inline by the editor.
+import "@babylonjs/core/Meshes/GaussianSplatting/gaussianSplattingMesh";
+
 import { Scene } from "@babylonjs/core/scene";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { Constants } from "@babylonjs/core/Engines/constants";
