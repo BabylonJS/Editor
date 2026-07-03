@@ -5,13 +5,36 @@ import { loadJsonFile } from "../../tools/request";
 import { createAndOpenDatabase } from "./database";
 import { isUsingKtx2CompressedTextures } from "../../tools/texture";
 
+const supportedSoundExtensions = ["mp3", "wav"];
+const supportedGeometryExtensions = ["babylonbinarymeshdata"];
+const supportedTextureExtensions = ["ktx", "ktx2", "jpg", "jpeg", "png", "bmp", "webp"];
+
 const supportedJsonExtensions = ["babylon", "json"];
 const supportedImageExtensions = ["jpg", "jpeg", "png", "bmp", "webp"];
-const supportedBinaryExtensions = ["bin", "babylonbinarymeshdata", "mp3", "wav", "ktx", "ktx2"];
+const supportedBinaryExtensions = ["bin", "ktx", "ktx2", ...supportedGeometryExtensions, ...supportedSoundExtensions];
 
 const allSupportedExtensions = [...supportedJsonExtensions, ...supportedImageExtensions, ...supportedBinaryExtensions];
 
 type ScenesUsedFilesType = Record<string, string[]>;
+
+export interface IPreloadAssetsFilterOptions {
+	/**
+	 * Defines the name of the scene (ie. "menu.scene") to filter the assets to preload. This is used to match the scene name in the scenes-used-files.json file.
+	 */
+	sceneName: string;
+	/**
+	 * Defines wether to disable loading and saving sounds to the database for the preload.
+	 */
+	disableSounds?: boolean;
+	/**
+	 * Defines wether to disable loading and saving textures to the database for the preload.
+	 */
+	disableTextures?: boolean;
+	/**
+	 * Defines wether to disable loading and saving geometries to the database for the preload (aka. babylonbinarymeshdata files).
+	 */
+	disableGeometries?: boolean;
+}
 
 export interface IPreloadAssetsToDatabaseOptions {
 	engine?: AbstractEngine;
@@ -25,7 +48,7 @@ export interface IPreloadAssetsToDatabaseOptions {
 	 * Using this filter can be useful to reduce the amount of assets to preload when only a subset of scenes is needed.
 	 * @example ["menu.babylon", "map1.babylon"]
 	 */
-	scenesFilter?: string[];
+	scenesFilter?: (string | IPreloadAssetsFilterOptions)[];
 	/**
 	 * A callback function that is called with the progress of the asset loading process, as a value between 0 and 1.
 	 * @param progress defines the progress of the asset loading process, as a value between 0 and 1.
@@ -45,9 +68,27 @@ export async function preloadAssetsToDatabase(databaseName: string, rootUrl: str
 	const promises: Promise<void>[] = [];
 	const scenesUsedFiles = await loadJsonFile<ScenesUsedFilesType>(`${rootUrl}scenes-used-files.json`);
 
-	for (const [sceneName, _] of Object.entries(scenesUsedFiles)) {
-		if (options?.scenesFilter && !options.scenesFilter.includes(sceneName)) {
-			delete scenesUsedFiles[sceneName];
+	// Create filters
+	let filters: IPreloadAssetsFilterOptions[] = [];
+
+	if (options?.scenesFilter) {
+		filters = options.scenesFilter.map((filter) => {
+			if (typeof filter === "string") {
+				return {
+					sceneName: filter,
+					disableSounds: false,
+					disableTextures: false,
+					disableGeometries: false,
+				};
+			}
+
+			return filter;
+		});
+
+		for (const [sceneName, _] of Object.entries(scenesUsedFiles)) {
+			if (!filters.find((filter) => filter.sceneName === sceneName)) {
+				delete scenesUsedFiles[sceneName];
+			}
 		}
 	}
 
@@ -70,6 +111,8 @@ export async function preloadAssetsToDatabase(databaseName: string, rootUrl: str
 			continue;
 		}
 
+		const filter = filters.find((filter) => filter.sceneName === sceneName);
+
 		for (let i = 0, len = files.length; i < len; ++i) {
 			const file = files[i];
 			const extension = file.split(".").pop()?.toLowerCase();
@@ -78,6 +121,27 @@ export async function preloadAssetsToDatabase(databaseName: string, rootUrl: str
 				continue;
 			}
 
+			if (supportedGeometryExtensions.includes(extension) && filter?.disableGeometries) {
+				notifyProgress();
+				continue;
+			}
+
+			if (supportedTextureExtensions.includes(extension) && filter?.disableTextures) {
+				notifyProgress();
+				continue;
+			}
+
+			if (supportedSoundExtensions.includes(extension) && filter?.disableSounds) {
+				notifyProgress();
+				continue;
+			}
+
+			if (supportedImageExtensions.includes(extension) && filter?.disableTextures) {
+				notifyProgress();
+				continue;
+			}
+
+			// For KTX textures, check that format is supported else ignore the file.
 			if (extension === "ktx") {
 				if (!supportedKtxFormat) {
 					notifyProgress();
@@ -88,6 +152,7 @@ export async function preloadAssetsToDatabase(databaseName: string, rootUrl: str
 				}
 			}
 
+			// For KTX2 textures, just check that the engine is configured to use those KTX2 textures, else ignore the file.
 			if (extension === "ktx2" && !isUsingKtx2CompressedTextures()) {
 				notifyProgress();
 				continue;
