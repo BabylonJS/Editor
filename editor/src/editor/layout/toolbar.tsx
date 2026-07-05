@@ -245,16 +245,14 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 					</MenubarMenu>
 
 					{/* View */}
-					{this.props.editor.state.enableExperimentalFeatures && (
-						<MenubarMenu>
-							<MenubarTrigger>Views</MenubarTrigger>
-							<MenubarContent className="border-black/50">
-								<MenubarCheckboxItem checked={this.props.editor.state.openedTabs.includes("marketplace")} onClick={() => this._handleToggleMarketplace()}>
-									Marketplace
-								</MenubarCheckboxItem>
-							</MenubarContent>
-						</MenubarMenu>
-					)}
+					<MenubarMenu>
+						<MenubarTrigger>Views</MenubarTrigger>
+						<MenubarContent className="border-black/50">
+							<MenubarCheckboxItem checked={this.props.editor.state.openedTabs.includes("marketplace")} onClick={() => this._handleToggleMarketplace()}>
+								Marketplace
+							</MenubarCheckboxItem>
+						</MenubarContent>
+					</MenubarMenu>
 
 					{/* Window */}
 					<MenubarMenu>

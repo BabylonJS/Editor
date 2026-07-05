@@ -86,6 +86,14 @@
 								"component": "terminal",
 								"enableClose": false,
 								"enableRenderOnDemand": false
+							},
+							{
+								"type": "tab",
+								"id": "marketplace",
+								"name": "Marketplace",
+								"component": "marketplace",
+								"enableClose": true,
+								"enableRenderOnDemand": false
 							}
 						]
 					}
