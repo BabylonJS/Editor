@@ -101,6 +101,8 @@ function AssetBrowserModelViewer(props: IAssetBrowserModelViewerProps) {
 		camera.angularSensibilityX = 500;
 		camera.angularSensibilityY = 500;
 
+		scene.animationGroups[0]?.play(true);
+
 		setLoading(false);
 
 		scene.getEngine().runRenderLoop(() => {
