@@ -220,7 +220,7 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 						},
 					]}
 				>
-					<EditorLayout editor={this} ref={(ref) => (this.layout = ref!)} />
+					<EditorLayout editor={this} ref={(ref) => ref && (this.layout = ref!)} />
 				</HotkeysTarget2>
 
 				<EditorEditProjectComponent editor={this} open={this.state.editProject} onClose={() => this.setState({ editProject: false })} />
