@@ -93,13 +93,14 @@ export async function preloadAssetsToDatabase(databaseName: string, rootUrl: str
 	}
 
 	let loadedCount = 0;
+	let processedFilesCount = 0;
 
 	const supportedKtxFormat = options?.engine?.textureFormatInUse ? options?.engine?.texturesSupported[0] : null;
 	const totalLength = Object.values(scenesUsedFiles).reduce((sum, files) => sum + files.length, 0);
 
 	function notifyProgress(resolve?: () => void) {
-		++loadedCount;
-		options?.onProgress?.(loadedCount / totalLength);
+		++processedFilesCount;
+		options?.onProgress?.(processedFilesCount / totalLength);
 		resolve?.();
 	}
 
@@ -181,11 +182,14 @@ export async function preloadAssetsToDatabase(databaseName: string, rootUrl: str
 							if (supportedImageExtensions.includes(extension)) {
 								if (!options?.disableImages) {
 									await database.saveImage(assetUrl);
+									++loadedCount;
 								}
 							} else if (supportedBinaryExtensions.includes(extension)) {
 								await database.saveFile(assetUrl, true);
+								++loadedCount;
 							} else if (supportedJsonExtensions.includes(extension)) {
 								await database.saveFile(assetUrl, false);
+								++loadedCount;
 							}
 						} catch (e) {
 							// Catch silently.
@@ -202,4 +206,9 @@ export async function preloadAssetsToDatabase(databaseName: string, rootUrl: str
 	}
 
 	await Promise.all(promises);
+
+	return {
+		loadedCount,
+		processedFilesCount,
+	};
 }
