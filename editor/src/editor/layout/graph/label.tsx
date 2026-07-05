@@ -10,8 +10,9 @@ import { Input } from "../../../ui/shadcn/ui/input";
 import { isDarwin } from "../../../tools/os";
 import { isScene } from "../../../tools/guards/scene";
 import { registerUndoRedo } from "../../../tools/undoredo";
+import { isClusteredLight } from "../../../tools/light/cluster";
 import { isNodeSerializable, isNodeLocked } from "../../../tools/node/metadata";
-import { isClusteredLightContainer, isInstancedMesh, isMesh, isNode, isTransformNode } from "../../../tools/guards/nodes";
+import { isClusteredLightContainer, isInstancedMesh, isLight, isMesh, isNode, isTransformNode } from "../../../tools/guards/nodes";
 
 import { applySoundAsset } from "../preview/import/sound";
 import { applyTextureAssetToObject } from "../preview/import/texture";
@@ -189,11 +190,14 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
 			);
 		}
 
+		const isClusteredLightNode = isLight(props.object) && isClusteredLight(props.object, props.editor);
+
 		const label = (
 			<div
 				className={`
 					${!isNodeSerializable(props.object) ? "line-through" : ""}
 					${!isNodeSerializable(props.object) || isNodeLocked(props.object) ? "text-foreground/35" : ""}
+					${isClusteredLightNode ? "opacity-50 italic" : ""}
 					transition-all duration-300 ease-in-out
 				`}
 			>

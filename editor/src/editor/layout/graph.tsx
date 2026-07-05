@@ -341,8 +341,9 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 	 * @param node defines the reference tot the node to select in the graph.
 	 */
 	public setSelectedNode(node: Node | IParticleSystem | Sprite): void {
-		let source = (isAnyParticleSystem(node) ? (node.emitter as AbstractMesh) : node) as Node | null;
+		const originalSource = (isAnyParticleSystem(node) ? (node.emitter as AbstractMesh) : node) as Node | null;
 
+		let source = originalSource;
 		if (!source) {
 			return;
 		}
@@ -351,15 +352,20 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			source = getSpriteManagerNodeFromSprite(source);
 		}
 
-		if (isLight(source) && this.props.editor.layout.preview.clusteredLightContainer.lights.includes(source)) {
-			source = this.props.editor.layout.preview.clusteredLightContainer;
-		}
-
 		const idsToExpand: string[] = [];
 
 		while (source) {
 			idsToExpand.push(source.id);
 			source = source.parent;
+		}
+
+		if (isLight(originalSource) && this.props.editor.layout.preview.clusteredLightContainer.lights.includes(originalSource)) {
+			source = this.props.editor.layout.preview.clusteredLightContainer;
+
+			while (source) {
+				idsToExpand.push(source.id);
+				source = source.parent;
+			}
 		}
 
 		this._forEachNode(this.state.nodes, (n) => {
@@ -370,7 +376,9 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			n.isSelected = n.nodeData === node;
 		});
 
-		this.setState({ nodes: this.state.nodes });
+		this.setState({
+			nodes: this.state.nodes,
+		});
 	}
 
 	/**
@@ -392,7 +400,9 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			}
 		});
 
-		this.setState({ nodes: this.state.nodes });
+		this.setState({
+			nodes: this.state.nodes,
+		});
 	}
 
 	/**
@@ -888,9 +898,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		} as TreeNodeInfo;
 
 		if (!isSceneLinkNode(node) && !noChildren) {
-			const children = isClusteredLightContainer(node)
-				? node.getDescendants(true)
-				: node.getDescendants(true, (n) => !(isLight(n) && isClusteredLight(n, this.props.editor)));
+			const children = node.getDescendants(true);
 
 			if (children.length) {
 				info.childNodes = children.map((c) => this._parseSceneNode(c)).filter((c) => c !== null) as TreeNodeInfo[];
