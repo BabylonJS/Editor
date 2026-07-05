@@ -248,21 +248,17 @@ export function setupEditorMenu(options: { enableExperimentalFeatures: boolean; 
 					})),
 				],
 			},
-			...(options.enableExperimentalFeatures
-				? [
-						{
-							label: "Views",
-							submenu: [
-								{
-									label: "Marketplace",
-									type: "checkbox" as MenuItem["type"],
-									checked: options.openedTabs?.includes("marketplace"),
-									click: () => BrowserWindow.getFocusedWindow()?.webContents.send("editor:toggle-marketplace"),
-								},
-							],
-						},
-					]
-				: []),
+			{
+				label: "Views",
+				submenu: [
+					{
+						label: "Marketplace",
+						type: "checkbox" as MenuItem["type"],
+						checked: options.openedTabs?.includes("marketplace"),
+						click: () => BrowserWindow.getFocusedWindow()?.webContents.send("editor:toggle-marketplace"),
+					},
+				],
+			},
 			{
 				label: "Window",
 				submenu: [
