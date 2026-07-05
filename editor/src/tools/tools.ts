@@ -57,8 +57,12 @@ export class UniqueNumber {
  * Returns a new array composed of distinct elements.
  * @param array defines the reference to the source array.
  */
-export function unique<T>(array: T[]): T[] {
+export function unique<T>(array: T[], property?: string): T[] {
 	const unique = (value: T, index: number, self: T[]) => {
+		if (property) {
+			return self.findIndex((v) => v[property] === (value as any)[property]) === index;
+		}
+
 		return self.indexOf(value) === index;
 	};
 

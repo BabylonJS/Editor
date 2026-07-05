@@ -1,5 +1,6 @@
 import { TransformNode, AbstractMesh, Node } from "babylonjs";
 
+import { unique } from "../../../tools/tools";
 import { isScene } from "../../../tools/guards/scene";
 import { registerUndoRedo } from "../../../tools/undoredo";
 import { isClusteredLight } from "../../../tools/light/cluster";
@@ -10,8 +11,8 @@ import { applyNodeParentingConfiguration, applyTransformNodeParentingConfigurati
 import { Editor } from "../../main";
 
 export function setNewParentForGraphSelectedNodes(editor: Editor, newParent: any, shift: boolean) {
-	const nodesToMove = editor.layout.graph.getSelectedNodes();
 	const oldHierarchyMap = new Map<unknown, unknown>();
+	const nodesToMove = unique(editor.layout.graph.getSelectedNodes(), "id");
 	const clusteredLightContainer = editor.layout.preview.clusteredLightContainer;
 
 	nodesToMove.forEach((n) => {
