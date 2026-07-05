@@ -118,7 +118,7 @@ export class EditorTerminal extends Component<IEditorTerminalProps, IEditorTermi
 
 	private async _initializeTerminal(ref: HTMLDivElement): Promise<void> {
 		this._terminal = new Terminal({
-			fontSize: 15,
+			fontSize: 14,
 			lineHeight: 1.2,
 			letterSpacing: 0,
 			fontWeight: "400",
