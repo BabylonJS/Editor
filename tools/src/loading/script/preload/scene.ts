@@ -7,7 +7,8 @@ import { isMesh } from "../../../tools/guards";
 import { configureTransformNodes } from "../../transform-node";
 
 export async function preloadSceneScriptAsset(key: string, rootUrl: string, scene: Scene) {
-	const iblIntensity = scene.environmentIntensity;
+	const iblIntensity = scene.iblIntensity;
+	const environmentIntensity = scene.environmentIntensity;
 
 	const filename = key.split("/").pop()!;
 	const sceneFilename = filename.replace(".scene", ".babylon");
@@ -26,6 +27,7 @@ export async function preloadSceneScriptAsset(key: string, rootUrl: string, scen
 	container.addAllToScene();
 
 	scene.iblIntensity = iblIntensity;
+	scene.environmentIntensity = environmentIntensity;
 
 	configureTransformNodes(scene);
 

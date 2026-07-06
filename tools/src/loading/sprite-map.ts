@@ -65,6 +65,8 @@ export function registerSpriteMapParser() {
 					scene
 				);
 
+				transformNode.getClassName = () => "SpriteMapNode";
+
 				transformNode.tiles.forEach((tile: any) => {
 					for (let x = 0, lenX = tile.repeatCount.x + 1; x < lenX; ++x) {
 						for (let y = 0, lenY = tile.repeatCount.y + 1; y < lenY; ++y) {

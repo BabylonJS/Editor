@@ -81,6 +81,7 @@ export function registerSpriteManagerParser() {
 
 					const spriteManager = new SpriteManager(instance.name, imagePath, 1000, 64, scene, undefined, undefined, true, atlasJson);
 					instance.spriteManager = spriteManager;
+					instance.getClassName = () => "SpriteManagerNode";
 
 					if (transformNode.spriteManager) {
 						parseSerializedSpriteManager(spriteManager, transformNode.spriteManager);
@@ -106,6 +107,7 @@ export function registerSpriteManagerParser() {
 				);
 
 				instance.spriteManager = spriteManager;
+				instance.getClassName = () => "SpriteManagerNode";
 
 				if (transformNode.spriteManager) {
 					parseSerializedSpriteManager(spriteManager, transformNode.spriteManager);

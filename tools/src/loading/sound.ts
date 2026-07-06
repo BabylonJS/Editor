@@ -1,8 +1,10 @@
+import { Node } from "@babylonjs/core/node";
 import { Scene } from "@babylonjs/core/scene";
-import { Observer } from "@babylonjs/core/Misc/observable";
+import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { Database } from "@babylonjs/core/Offline/database";
 import { SoundState } from "@babylonjs/core/AudioV2/soundState";
 import { AssetContainer } from "@babylonjs/core/assetContainer";
+import { Observable, Observer } from "@babylonjs/core/Misc/observable";
 import { _WebAudioEngine } from "@babylonjs/core/AudioV2/webAudio/webAudioEngine";
 import { AddParser } from "@babylonjs/core/Loading/Plugins/babylonFileParser.function";
 import { _WebAudioStaticSound } from "@babylonjs/core/AudioV2/webAudio/webAudioStaticSound";
@@ -30,10 +32,22 @@ function registerUpdateSoundsObserver(scene: Scene) {
 		return;
 	}
 
+	const listenerPosition = Vector3.Zero();
+
 	registeredUpdateObserver = scene.onBeforeRenderObservable.add(() => {
+		const listener = _GetAudioEngine(null).listener.attachedNode;
+		if (!listener) {
+			return;
+		}
+
+		listener.getWorldMatrix().getTranslationToRef(listenerPosition);
+
 		soundInstances.forEach((instance) => {
 			if (instance.isEnabled(false) && instance.autoUpdateSpatial && instance.sound?._isSpatial && instance.isPlaying() && scene.activeCamera) {
-				instance.sound.spatial.update();
+				const distance = Vector3.Distance(listenerPosition, instance.getAbsolutePosition());
+				if (distance <= instance.sound!.spatial.maxDistance) {
+					instance.sound.spatial.update();
+				}
 			}
 		});
 	});
@@ -81,13 +95,15 @@ export function configureSourceNodeFrom(source: SoundNode, target: SoundNode) {
 		return;
 	}
 
+	target.onSoundLoadedObservable = new Observable<SoundNode>();
+
 	const sound = createSoundInstance(source.soundRelativePath, {
 		spatialAutoUpdate: false,
 	});
 
 	sound
-		._initAsync(source.sound.buffer!, {
-			spatialAutoUpdate: false,
+		._initAsync(source.sound.buffer, {
+			spatialAutoUpdate: true,
 		})
 		.then(() => {
 			sound.volume = source.volume;
@@ -101,12 +117,13 @@ export function configureSourceNodeFrom(source: SoundNode, target: SoundNode) {
 			}
 
 			target.sound = sound;
-			target.isSoundNode = true;
 			target.soundRelativePath = source.soundRelativePath;
 			target.autoUpdateSpatial = source.autoUpdateSpatial;
 
 			soundInstances.push(target);
 			registerUpdateSoundsObserver(target.getScene());
+
+			target.onSoundLoadedObservable.notifyObservers(target);
 		});
 
 	registerSoundNodeEvents(target);
@@ -143,7 +160,30 @@ export function configureSoundNodePrototype(instance: SoundNode, sound: StaticSo
 
 	instance.setVolume = (volume, options) => sound.setVolume(volume, options);
 
-	instance.attachTo = (node, useBoundingBox, attachmentType) => sound.spatial.attach(node, useBoundingBox, attachmentType);
+	instance.getClassName = () => "SoundNode";
+
+	instance.setSoundSpatial = (spatial: boolean) => {
+		return new Promise<void>((resolve) => {
+			sound._isSpatial = spatial;
+			setTimeout(() => {
+				if (spatial) {
+					sound.spatial.attach(instance);
+				}
+				resolve();
+			});
+		});
+	};
+
+	instance.cloneAsync = async (name: string, newParent: Node | null, doNotCloneChildren?: boolean) => {
+		return new Promise<SoundNode>((resolve) => {
+			const clone = instance.clone(name, newParent, doNotCloneChildren) as SoundNode;
+			configureSourceNodeFrom(instance, clone);
+
+			clone.onSoundLoadedObservable.addOnce(() => {
+				setTimeout(() => resolve(clone));
+			});
+		});
+	};
 }
 
 export function registerAudioParser() {
@@ -196,7 +236,6 @@ export function registerAudioParser() {
 						}
 
 						instance.sound = sound;
-						instance.isSoundNode = true;
 						instance.soundRelativePath = transformNode.soundRelativePath;
 						instance.autoUpdateSpatial = transformNode.autoUpdateSpatial;
 

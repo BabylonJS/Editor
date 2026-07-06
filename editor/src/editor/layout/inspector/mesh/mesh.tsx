@@ -94,7 +94,7 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 			dragOver: false,
 		};
 
-		this._castShadows = props.editor.layout.preview.scene.lights.some((light) => {
+		this._castShadows = props.object.getScene().lights.some((light) => {
 			return light.getShadowGenerator()?.getShadowMap()?.renderList?.includes(props.object);
 		});
 	}
@@ -137,7 +137,7 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 								label="Visible"
 								object={this.props.object}
 								property="isVisible"
-								onChange={() => updateAllLights(this.props.editor.layout.preview.scene)}
+								onChange={() => updateAllLights(this.props.object.getScene())}
 							/>
 						</>
 					)}
@@ -166,7 +166,7 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 					</>
 				)}
 
-				{this.props.editor.layout.preview.scene.lights.length > 0 && this.props.object.geometry && (
+				{this.props.object.getScene().lights.length > 0 && this.props.object.geometry && (
 					<EditorInspectorSectionField title="Shadows">
 						<EditorInspectorSwitchField
 							label="Cast Shadows"
@@ -434,7 +434,7 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 	}
 
 	private _handleCastShadowsChanged(enabled: boolean): void {
-		const lightsWithShadows = this.props.editor.layout.preview.scene.lights.filter((light) => {
+		const lightsWithShadows = this.props.object.getScene().lights.filter((light) => {
 			return light.getShadowGenerator()?.getShadowMap()?.renderList;
 		});
 

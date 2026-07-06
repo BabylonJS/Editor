@@ -11,7 +11,7 @@ import { SiBabylondotjs } from "react-icons/si";
 import { MdOutlineQuestionMark } from "react-icons/md";
 import { GiBrickWall, GiSparkles } from "react-icons/gi";
 import { HiOutlineCubeTransparent } from "react-icons/hi";
-import { IoCheckmark, IoSparklesSharp } from "react-icons/io5";
+import { IoCheckmark, IoPlay, IoSparklesSharp } from "react-icons/io5";
 import { TbGhost2Filled, TbServerSpark, TbBrandAdobeIndesign } from "react-icons/tb";
 import { FaCamera, FaImage, FaLightbulb, FaBone, FaRegLightbulb } from "react-icons/fa";
 
@@ -20,6 +20,8 @@ import { BaseTexture, Node, Scene, Tools, IParticleSystem, Sprite, Skeleton, Tra
 
 import { Editor } from "../main";
 
+import { Badge } from "../../ui/shadcn/ui/badge";
+import { SpinnerUIComponent } from "../../ui/spinner";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "../../ui/shadcn/ui/dropdown-menu";
 import {
 	ContextMenu,
@@ -43,9 +45,9 @@ import { getCollisionMeshFor } from "../../tools/mesh/collision";
 import { isNodeVisibleInGraph } from "../../tools/node/metadata";
 import { isAdvancedDynamicTexture } from "../../tools/guards/texture";
 import { updateIblShadowsRenderPipeline } from "../../tools/light/ibl";
-import { UniqueNumber, waitNextAnimationFrame } from "../../tools/tools";
 import { getSpriteManagerNodeFromSprite } from "../../tools/sprite/tools";
 import { isParticleSystemVisibleInGraph } from "../../tools/particles/metadata";
+import { unique, UniqueNumber, waitNextAnimationFrame } from "../../tools/tools";
 import { applyTransformNodeParentingConfiguration } from "../../tools/node/parenting";
 import { isSprite, isSpriteManagerNode, isSpriteMapNode } from "../../tools/guards/sprites";
 import { parsePhysicsAggregate, serializePhysicsAggregate } from "../../tools/physics/serialization/aggregate";
@@ -124,11 +126,22 @@ export interface IEditorGraphState {
 	 * Defines wether or not instanced meshes should be hidden from the graph.
 	 */
 	hideInstancedMeshes: boolean;
+
+	/**
+	 * Defines wheter or not a spinner should be shown in the graph to indicate that the player scene is loading.
+	 */
+	isLoading: boolean;
+	/**
+	 * Defines the reference to the play scene if the player is running, null otherwise.
+	 */
+	playScene: Scene | null;
 }
 
 export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState> {
 	public _nodeToCopyTransform: Node | null = null;
 	public _objectsToCopy: TreeNodeInfo<unknown>[] = [];
+
+	private _playRefreshIntervalId: number | null = null;
 
 	public constructor(props: IEditorGraphProps) {
 		super(props);
@@ -142,6 +155,9 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			showOnlyDecals: false,
 
 			hideInstancedMeshes: false,
+
+			playScene: null,
+			isLoading: false,
 		};
 
 		onNodesAddedObservable.add(() => this.refresh());
@@ -164,7 +180,19 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 				onClick={() => this.setState({ isFocused: true })}
 				onMouseLeave={() => this.setState({ isFocused: false })}
 			>
-				<div className="flex justify-between gap-2 w-full p-2">
+				{this.state.playScene && (
+					<div className="px-2 pt-2 w-full">
+						<Badge variant="secondary" className="flex justify-between items-center gap-2 w-full">
+							<div className="flex items-center gap-2">
+								<IoPlay className="w-6 h-6" />
+								Runtime scene. Changes are not saved.
+							</div>
+							<div className="w-4 h-4 p-2 rounded-full bg-red-500 animate-pulse" />
+						</Badge>
+					</div>
+				)}
+
+				<div className="flex justify-between items-center gap-2 w-full p-2">
 					<input
 						type="text"
 						placeholder="Search..."
@@ -280,6 +308,12 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 						</ContextMenuContent>
 					</ContextMenu>
 				</div>
+
+				{this.state.isLoading && (
+					<div className="absolute top-0 left-0 flex justify-center items-center w-full h-full bg-black/50">
+						<SpinnerUIComponent />
+					</div>
+				)}
 			</div>
 		);
 	}
@@ -290,12 +324,69 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		});
 	}
 
+	private _lastGizmoNode: any = null;
+	private _lastInspectorNode: any = null;
+	private _lastAnimationsNode: any = null;
+
+	private _lastSelectedNodes: TreeNodeInfo<unknown>[] = [];
+
+	public async setPlayScene(playScene: Scene | null): Promise<void> {
+		if (!playScene && this._playRefreshIntervalId !== null) {
+			clearInterval(this._playRefreshIntervalId);
+			this._playRefreshIntervalId = null;
+		}
+
+		this.setState({ playScene }, async () => {
+			if (playScene) {
+				this._lastSelectedNodes = this.getSelectedNodes();
+				this._lastInspectorNode = this.props.editor.layout.inspector.state.editedObject;
+				this._lastAnimationsNode = this.props.editor.layout.animations.state.animatable;
+				this._lastGizmoNode = this.props.editor.layout.preview.gizmo.attachedNode ?? this.props.editor.layout.preview.gizmo.attachedSprite;
+			}
+
+			await this.refresh();
+
+			if (playScene) {
+				this._forEachNode(this.state.nodes, (n) => {
+					n.isSelected = false;
+				});
+
+				this.state.nodes[0]!.isSelected = true;
+
+				this._playRefreshIntervalId = window.setInterval(() => {
+					this.refresh();
+				}, 1000);
+			} else {
+				this._forEachNode(this.state.nodes, (n) => {
+					if (this._lastSelectedNodes.find((s) => s.nodeData === n.nodeData)) {
+						n.isSelected = true;
+					} else {
+						n.isSelected = false;
+					}
+				});
+
+				const last = this._lastSelectedNodes[this._lastSelectedNodes.length - 1];
+				if (last?.nodeData) {
+					this.props.editor.layout.inspector.setEditedObject(this._lastInspectorNode);
+					this.props.editor.layout.animations.setEditedObject(this._lastAnimationsNode);
+					this.props.editor.layout.preview.gizmo.setAttachedObject(this._lastGizmoNode);
+				}
+
+				this._lastSelectedNodes = [];
+			}
+
+			this.setState({
+				nodes: this.state.nodes,
+			});
+		});
+	}
+
 	/**
 	 * Refreshes the graph.
 	 */
 	public refresh(): Promise<void> {
-		const scene = this.props.editor.layout.preview.scene;
-		const clusteredLightContainer = this.props.editor.layout.preview.clusteredLightContainer;
+		const scene = this.state.playScene ?? this.props.editor.layout.preview.scene;
+		const clusteredLightContainer = scene.lights.find((light) => isClusteredLightContainer(light)) ?? this.props.editor.layout.preview.clusteredLightContainer;
 
 		let nodes: (TreeNodeInfo | null)[] = [];
 
@@ -327,6 +418,8 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			icon: <SiBabylondotjs className="w-4 h-4" />,
 			label: this._getNodeLabelComponent(scene, "Scene", false),
 		});
+
+		nodes[0]!.isSelected = this.state.nodes[0]?.isSelected ?? false;
 
 		this.setState({
 			nodes: nodes.filter((n) => n !== null) as TreeNodeInfo[],
@@ -411,7 +504,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 	public getSelectedNodes(): TreeNodeInfo<unknown>[] {
 		const result: any[] = [];
 		this._forEachNode(this.state.nodes, (n) => n.isSelected && result.push(n));
-		return result;
+		return unique(result, "nodeData");
 	}
 
 	/**
@@ -873,7 +966,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			return null;
 		}
 
-		if (isLight(node) && !node._scene.lights.includes(node) && !isClusteredLight(node, this.props.editor)) {
+		if (isLight(node) && !this.state.playScene && !node._scene.lights.includes(node) && !isClusteredLight(node, this.props.editor)) {
 			return null;
 		}
 
@@ -906,7 +999,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 
 			// Handle particle systems
 			if (isAbstractMesh(node) && !noChildren) {
-				const particleSystems = this.props.editor.layout.preview.scene.particleSystems.filter((ps) => ps.emitter === node);
+				const particleSystems = node._scene.particleSystems.filter((ps) => ps.emitter === node);
 				particleSystems.forEach((particleSystem) => {
 					if (
 						(isParticleSystem(particleSystem) || isGPUParticleSystem(particleSystem)) &&

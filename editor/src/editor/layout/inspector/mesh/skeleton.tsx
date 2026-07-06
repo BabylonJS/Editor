@@ -72,16 +72,16 @@ export class EditorSkeletonInspector extends Component<IEditorInspectorImplement
 										object={range}
 										property="from"
 										onChange={() => {
-											this.props.editor.layout.preview.scene.stopAnimation(this.props.object);
-											this.props.editor.layout.preview.scene.beginAnimation(this.props.object, range!.from, range!.from, true, 1.0);
+											this.props.object.getScene().stopAnimation(this.props.object);
+											this.props.object.getScene().beginAnimation(this.props.object, range!.from, range!.from, true, 1.0);
 										}}
 									/>
 									<EditorInspectorNumberField
 										object={range}
 										property="to"
 										onChange={() => {
-											this.props.editor.layout.preview.scene.stopAnimation(this.props.object);
-											this.props.editor.layout.preview.scene.beginAnimation(this.props.object, range!.to, range!.to, true, 1.0);
+											this.props.object.getScene().stopAnimation(this.props.object);
+											this.props.object.getScene().beginAnimation(this.props.object, range!.to, range!.to, true, 1.0);
 										}}
 									/>
 
@@ -130,8 +130,9 @@ export class EditorSkeletonInspector extends Component<IEditorInspectorImplement
 				</EditorInspectorSectionField>
 
 				<EditorInspectorSectionField title="Binded Meshes">
-					{this.props.editor.layout.preview.scene.meshes
-						.filter((mesh) => mesh.skeleton === this.props.object)
+					{this.props.object
+						.getScene()
+						.meshes.filter((mesh) => mesh.skeleton === this.props.object)
 						.map((mesh) => (
 							<div
 								key={mesh.id}

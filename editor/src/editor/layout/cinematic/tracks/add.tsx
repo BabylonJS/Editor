@@ -12,6 +12,8 @@ import {
 	DropdownMenuTrigger,
 } from "../../../../ui/shadcn/ui/dropdown-menu";
 
+import { getVLSPostProcess } from "../../../rendering/vls";
+
 import { CinematicEditor } from "../editor";
 
 export interface ICinematicEditorTrackAddProps {
@@ -66,6 +68,31 @@ export function CinematicEditorTrackAdd(props: ICinematicEditorTrackAddProps) {
 						</DropdownMenuItem>
 						<DropdownMenuSeparator />
 						<DropdownMenuItem onClick={() => props.cinematicEditor.tracks.addPropertyTrack({ defaultRenderingPipeline: true })}>Custom</DropdownMenuItem>
+					</DropdownMenuSubContent>
+				</DropdownMenuSub>
+
+				<DropdownMenuSub>
+					<DropdownMenuSubTrigger>Volumetric Light Scattering</DropdownMenuSubTrigger>
+					<DropdownMenuSubContent>
+						<DropdownMenuItem onClick={() => props.cinematicEditor.tracks.addPropertyTrack({ volumetricLightScattering: true, propertyPath: "exposure" })}>
+							Exposure
+						</DropdownMenuItem>
+						<DropdownMenuItem onClick={() => props.cinematicEditor.tracks.addPropertyTrack({ volumetricLightScattering: true, propertyPath: "weight" })}>
+							Weight
+						</DropdownMenuItem>
+						<DropdownMenuItem onClick={() => props.cinematicEditor.tracks.addPropertyTrack({ volumetricLightScattering: true, propertyPath: "decay" })}>
+							Decay
+						</DropdownMenuItem>
+						<DropdownMenuItem onClick={() => props.cinematicEditor.tracks.addPropertyTrack({ volumetricLightScattering: true, propertyPath: "density" })}>
+							Density
+						</DropdownMenuItem>
+						{getVLSPostProcess()?.useCustomMeshPosition && (
+							<DropdownMenuItem
+								onClick={() => props.cinematicEditor.tracks.addPropertyTrack({ volumetricLightScattering: true, propertyPath: "customMeshPosition" })}
+							>
+								Custom Mesh Position
+							</DropdownMenuItem>
+						)}
 					</DropdownMenuSubContent>
 				</DropdownMenuSub>
 			</DropdownMenuContent>
