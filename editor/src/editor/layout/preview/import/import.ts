@@ -23,7 +23,7 @@ import {
 } from "babylonjs";
 
 import { UniqueNumber } from "../../../../tools/tools";
-import { isMesh } from "../../../../tools/guards/nodes";
+import { isGaussianSplattingMesh, isMesh } from "../../../../tools/guards/nodes";
 import { isSprite } from "../../../../tools/guards/sprites";
 import { isTexture } from "../../../../tools/guards/texture";
 import { executeSimpleWorker } from "../../../../tools/worker";
@@ -72,6 +72,14 @@ export async function loadImportedSceneFile(scene: Scene, absolutePath: string) 
 	try {
 		result = await ImportMeshAsync(basename(absolutePath), scene, {
 			rootUrl: join(dirname(absolutePath), "/"),
+			// Keep Gaussian splatting data in RAM. Otherwise the splat buffer is freed right after being
+			// uploaded to the GPU, and `GaussianSplattingMesh.serialize()` (used when saving/exporting) would
+			// have nothing to write, producing an empty splat on reload. Ignored by non-splat loaders.
+			pluginOptions: {
+				splat: {
+					keepInRam: true,
+				},
+			},
 		});
 		// result = await SceneLoader.ImportMeshAsync("", join(dirname(absolutePath), "/"), basename(absolutePath), scene);
 	} catch (e) {
@@ -92,7 +100,17 @@ export async function loadImportedSceneFile(scene: Scene, absolutePath: string) 
 	result.meshes.forEach((mesh) => {
 		configureImportedNodeIds(mesh);
 
-		mesh.receiveShadows = true;
+		// Gaussian splatting meshes render through thin instances with a custom splat buffer and cannot be
+		// drawn by the standard shadow/depth passes, so they must not participate in shadows.
+		mesh.receiveShadows = !isGaussianSplattingMesh(mesh);
+
+		if (isGaussianSplattingMesh(mesh)) {
+			// Gaussian splatting assets have no `__root__`, so apply the editor's centimeters convention (the
+			// same x100 scaling that glTF receives through its root) directly to the splat mesh. The SPLAT
+			// loader already orients the splat (it bakes `scaling.y = -1` to convert from the Y-down splat
+			// convention), so we only scale here and keep that orientation untouched.
+			mesh.scaling.scaleInPlace(100);
+		}
 
 		if (mesh.skeleton) {
 			mesh.skeleton.id = Tools.RandomId();
@@ -127,6 +145,11 @@ export async function loadImportedSceneFile(scene: Scene, absolutePath: string) 
 		}
 
 		result.meshes.forEach((mesh) => {
+			// Gaussian splatting meshes can't be rendered into shadow maps (see above).
+			if (isGaussianSplattingMesh(mesh)) {
+				return;
+			}
+
 			shadowMap.renderList!.push(mesh);
 		});
 	});

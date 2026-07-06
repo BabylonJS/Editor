@@ -15,6 +15,7 @@ import {
 	HemisphericLight,
 	Skeleton,
 	ClusteredLightContainer,
+	GaussianSplattingMesh,
 } from "babylonjs";
 
 import { EditorCamera } from "../../editor/nodes/camera";
@@ -35,10 +36,19 @@ export function isAbstractMesh(object: any): object is Mesh {
 		case "GroundMesh":
 		case "InstancedMesh":
 		case "NodeParticleSystemSetMesh":
+		case "GaussianSplattingMesh":
 			return true;
 	}
 
 	return false;
+}
+
+/**
+ * Returns wether or not the given object is a GaussianSplattingMesh.
+ * @param object defines the reference to the object to test its class name.
+ */
+export function isGaussianSplattingMesh(object: any): object is GaussianSplattingMesh {
+	return object.getClassName?.() === "GaussianSplattingMesh";
 }
 
 /**

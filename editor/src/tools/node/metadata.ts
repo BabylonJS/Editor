@@ -66,6 +66,13 @@ export function setNodeSerializable(node: Node, value: boolean): void {
  * @param node defines the reference to the node to check.
  */
 export function isNodeVisibleInGraph(node: Node): boolean {
+	// Internal nodes flagged hidden through Babylon's reservedDataStore convention (e.g. the per-camera
+	// proxy meshes a GaussianSplattingMesh creates at render time) are implementation details and must
+	// never show in the graph nor be saved.
+	if (node.reservedDataStore?.hidden) {
+		return false;
+	}
+
 	const value = ensureNodeMetadata(node).notVisibleInGraph;
 	return value === undefined ? true : !value;
 }

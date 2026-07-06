@@ -58,6 +58,7 @@ import {
 	isCollisionInstancedMesh,
 	isCollisionMesh,
 	isEditorCamera,
+	isGaussianSplattingMesh,
 	isInstancedMesh,
 	isLight,
 	isMesh,
@@ -509,7 +510,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 								}
 							}
 
-							if (isAbstractMesh(node)) {
+							if (isAbstractMesh(node) && !isGaussianSplattingMesh(node)) {
 								this.props.editor.layout.preview.scene.lights
 									.map((light) => light.getShadowGenerator())
 									.forEach((generator) => generator?.getShadowMap()?.renderList?.push(node));
