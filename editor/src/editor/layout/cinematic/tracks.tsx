@@ -10,6 +10,7 @@ import { Input } from "../../../ui/shadcn/ui/input";
 import { registerUndoRedo } from "../../../tools/undoredo";
 import { getInspectorPropertyValue } from "../../../tools/property";
 
+import { getVLSPostProcess } from "../../rendering/vls";
 import { getDefaultRenderingPipeline } from "../../rendering/default-pipeline";
 
 import { CinematicEditor } from "./editor";
@@ -129,14 +130,29 @@ export class CinematicEditorTracks extends Component<ICinematicEditorTracksProps
 	}
 
 	public addPropertyTrack(options: Partial<ICinematicTrack> = {}): void {
+		let node: any = null;
+		if (options.defaultRenderingPipeline) {
+			node = getDefaultRenderingPipeline();
+		} else if (options.volumetricLightScattering) {
+			node = getVLSPostProcess();
+		}
+
 		const track = {
+			node,
 			keyFrameAnimations: [],
-			node: options.defaultRenderingPipeline ? getDefaultRenderingPipeline() : null,
 			...options,
 		} as ICinematicTrack;
 
-		if (track.defaultRenderingPipeline && track.propertyPath) {
-			const value = getInspectorPropertyValue(getDefaultRenderingPipeline(), track.propertyPath);
+		if ((track.defaultRenderingPipeline || track.volumetricLightScattering) && track.propertyPath) {
+			let pipeline: any = null;
+
+			if (track.defaultRenderingPipeline) {
+				pipeline = getDefaultRenderingPipeline();
+			} else if (track.volumetricLightScattering) {
+				pipeline = getVLSPostProcess();
+			}
+
+			const value = getInspectorPropertyValue(pipeline, track.propertyPath);
 			if (value !== null && value !== undefined) {
 				track.keyFrameAnimations = [
 					{ type: "key", frame: 0, value: value.clone?.() ?? value },

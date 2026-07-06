@@ -318,17 +318,17 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 
 	// Configure LODs
 	scene.meshes.forEach((mesh) => {
-		if (!mesh._waitingData.lods || !isMesh(mesh)) {
+		if (!mesh._waitingLod || !isMesh(mesh)) {
 			return;
 		}
 
-		const masterMesh = scene.getMeshById(mesh._waitingData.lods.masterMeshId);
+		const masterMesh = scene.getMeshById(mesh._waitingLod.masterMeshId);
 		if (masterMesh && isMesh(masterMesh)) {
 			mesh.material = masterMesh.material;
-			masterMesh.addLODLevel(mesh._waitingData.lods.distanceOrScreenCoverage, mesh);
+			masterMesh.addLODLevel(mesh._waitingLod.distanceOrScreenCoverage, mesh);
 		}
 
-		mesh._waitingData.lods = null;
+		mesh._waitingLod = null;
 	});
 
 	// Scene animations

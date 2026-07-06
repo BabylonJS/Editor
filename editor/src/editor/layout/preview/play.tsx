@@ -11,10 +11,19 @@ import { Grid } from "react-loader-spinner";
 import { IoPlay, IoStop, IoRefresh } from "react-icons/io5";
 
 import { Scene, Vector3, HavokPlugin } from "babylonjs";
+import {
+	setDefaultRenderingPipelineRef,
+	setMotionBlurPostProcessRef,
+	setSSAO2RenderingPipelineRef,
+	setSSRRenderingPipelineRef,
+	setTAARenderingPipelineRef,
+	setVLSPostProcessRef,
+} from "babylonjs-editor-tools";
 
 import { ensureTemporaryDirectoryExists } from "../../../tools/project";
 
 import { compileScript } from "../../../tools/compile";
+import { setUndoRedoEnabled } from "../../../tools/undoredo";
 import { wait, waitNextAnimationFrame } from "../../../tools/tools";
 import { forceCompileAllSceneMaterials } from "../../../tools/scene/materials";
 import { applyOverrides, restorePlayOverrides } from "../../../tools/scene/play/override";
@@ -205,11 +214,17 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 	 * It will dispose the scene and reset the state.
 	 */
 	public stop(): void {
+		setUndoRedoEnabled(true);
+
 		this.scene?.dispose();
 		this.scene = null;
 
 		restorePlayOverrides(this.props.editor);
 
+		this.props.editor.layout.graph.setState({
+			isLoading: false,
+		});
+		this.props.editor.layout.graph.setPlayScene(null);
 		this.props.editor.layout.preview.engine.wipeCaches(true);
 
 		this.setState({
@@ -334,6 +349,9 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 		scene.enablePhysics(new Vector3(0, -981, 0), new HavokPlugin());
 
 		this.scene = scene;
+		this.props.editor.layout.graph.setState({
+			isLoading: true,
+		});
 
 		const projectDir = dirname(projectConfiguration.path!);
 		const rootUrl = join(projectDir, "public", "scene", "/");
@@ -348,6 +366,13 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 						playSceneLoadingProgress: progress,
 					}),
 			});
+
+			setVLSPostProcessRef(this._compiledScriptExports.getVLSPostProcess());
+			setSSRRenderingPipelineRef(this._compiledScriptExports.getSSRRenderingPipeline());
+			setTAARenderingPipelineRef(this._compiledScriptExports.getTAARenderingPipeline());
+			setMotionBlurPostProcessRef(this._compiledScriptExports.getMotionBlurPostProcess());
+			setSSAO2RenderingPipelineRef(this._compiledScriptExports.getSSAO2RenderingPipeline());
+			setDefaultRenderingPipelineRef(this._compiledScriptExports.getDefaultRenderingPipeline());
 		} catch (e) {
 			if (!scene.isDisposed) {
 				this.props.editor.layout.selectTab("console");
@@ -363,6 +388,16 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 		scene.activeCamera?.attachControl(true);
 
 		await forceCompileAllSceneMaterials(scene);
+
+		setUndoRedoEnabled(false);
+
+		this.props.editor.layout.graph.setState({
+			isLoading: false,
+		});
+
+		this.props.editor.layout.graph.setPlayScene(scene);
+		this.props.editor.layout.inspector.setEditedObject(scene);
+		this.props.editor.layout.animations.setEditedObject(scene);
 
 		this.setState({
 			loading: false,

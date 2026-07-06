@@ -3,6 +3,14 @@ import { Component, DragEvent, ReactNode } from "react";
 import { IoMdCube } from "react-icons/io";
 import { Divider } from "@blueprintjs/core";
 
+import {
+	getVLSPostProcess as externalGetVLSPostProcess,
+	getTAARenderingPipeline as externalGetTAARenderingPipeline,
+	getSSRRenderingPipeline as externalGetSSRRenderingPipeline,
+	getMotionBlurPostProcess as externalGetMotionBlurPostProcess,
+	getSSAO2RenderingPipeline as externalGetSSAO2RenderingPipeline,
+	getDefaultRenderingPipeline as externalGetDefaultRenderingPipeline,
+} from "babylonjs-editor-tools";
 import { DepthOfFieldEffectBlurLevel, Scene, TonemappingOperator, AnimationGroup, VolumetricLightScatteringPostProcess } from "babylonjs";
 
 import { Button } from "../../../../ui/shadcn/ui/button";
@@ -160,8 +168,16 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 		);
 	}
 
+	public get scene(): Scene {
+		return this.props.editor.layout.preview.play.scene ?? this.props.editor.layout.preview.scene;
+	}
+
+	public get isPlaying(): boolean {
+		return (this.props.editor.layout.preview.play.scene ?? null) !== null;
+	}
+
 	private _getPhysicsComponent(): ReactNode {
-		const physicsEngine = this.props.editor.layout.preview.scene.getPhysicsEngine();
+		const physicsEngine = this.scene.getPhysicsEngine();
 		if (!physicsEngine) {
 			return null;
 		}
@@ -198,7 +214,7 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 	}
 
 	private _getDefaultRenderingPipelineComponent(): ReactNode {
-		const defaultRenderingPipeline = getDefaultRenderingPipeline();
+		const defaultRenderingPipeline = this.isPlaying ? externalGetDefaultRenderingPipeline() : getDefaultRenderingPipeline();
 
 		const config = {
 			enabled: defaultRenderingPipeline ? true : false,
@@ -211,6 +227,7 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 						object={config}
 						property="enabled"
 						label="Enabled"
+						disabled={this.isPlaying}
 						noUndoRedo
 						onChange={() => {
 							const pipeline = defaultRenderingPipeline;
@@ -302,7 +319,7 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 												accept3dlTexture
 												title="Texture"
 												property="colorGradingTexture"
-												scene={this.props.editor.layout.preview.scene}
+												scene={this.scene}
 												object={defaultRenderingPipeline.imageProcessing}
 											>
 												<EditorInspectorSwitchField
@@ -522,8 +539,8 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 										label="Focus Distance"
 										property="focusDistance"
 										object={defaultRenderingPipeline.depthOfField}
-										step={(this.props.editor.layout.preview.scene.activeCamera?.maxZ ?? 0) / 1000}
-										max={(this.props.editor.layout.preview.scene.activeCamera?.maxZ ?? 0) * 1000}
+										step={(this.scene.activeCamera?.maxZ ?? 0) / 1000}
+										max={(this.scene.activeCamera?.maxZ ?? 0) * 1000}
 									/>
 									<EditorInspectorNumberField object={defaultRenderingPipeline.depthOfField} property="focalLength" label="Focal Length" step={0.01} min={0} />
 								</>
@@ -609,7 +626,7 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 	}
 
 	private _getTAARenderingPipelineComponent(): ReactNode {
-		const taaRenderingPipeline = getTAARenderingPipeline();
+		const taaRenderingPipeline = this.isPlaying ? externalGetTAARenderingPipeline() : getTAARenderingPipeline();
 
 		const config = {
 			enabled: taaRenderingPipeline ? true : false,
@@ -621,6 +638,7 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 					object={config}
 					property="enabled"
 					label="Enabled"
+					disabled={this.isPlaying}
 					noUndoRedo
 					onChange={() => {
 						const pipeline = taaRenderingPipeline;
@@ -663,7 +681,7 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 	}
 
 	private _getSSAO2RenderingPipelineComponent(): ReactNode {
-		const ssao2RenderingPipeline = getSSAO2RenderingPipeline();
+		const ssao2RenderingPipeline = this.isPlaying ? externalGetSSAO2RenderingPipeline() : getSSAO2RenderingPipeline();
 
 		const config = {
 			enabled: ssao2RenderingPipeline ? true : false,
@@ -675,6 +693,7 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 					object={config}
 					property="enabled"
 					label="Enabled"
+					disabled={this.isPlaying}
 					noUndoRedo
 					onChange={() => {
 						const pipeline = ssao2RenderingPipeline;
@@ -729,7 +748,7 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 	}
 
 	private _getMotionBlurPostProcessComponent(): ReactNode {
-		const motionBlurPostProcess = getMotionBlurPostProcess();
+		const motionBlurPostProcess = this.isPlaying ? externalGetMotionBlurPostProcess() : getMotionBlurPostProcess();
 
 		const config = {
 			enabled: motionBlurPostProcess ? true : false,
@@ -741,6 +760,7 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 					object={config}
 					property="enabled"
 					label="Enabled"
+					disabled={this.isPlaying}
 					noUndoRedo
 					onChange={() => {
 						const pipeline = motionBlurPostProcess;
@@ -782,7 +802,7 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 	}
 
 	private _getSSRPipelineComponent(): ReactNode {
-		const ssrRenderingPipeline = getSSRRenderingPipeline();
+		const ssrRenderingPipeline = this.isPlaying ? externalGetSSRRenderingPipeline() : getSSRRenderingPipeline();
 
 		const config = {
 			enabled: ssrRenderingPipeline ? true : false,
@@ -794,6 +814,7 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 					object={config}
 					property="enabled"
 					label="Enabled"
+					disabled={this.isPlaying}
 					noUndoRedo
 					onChange={() => {
 						const pipeline = ssrRenderingPipeline;
@@ -874,7 +895,7 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 	}
 
 	private _getVLSComponent(): ReactNode {
-		const vlsPostProcess = getVLSPostProcess();
+		const vlsPostProcess = this.isPlaying ? externalGetVLSPostProcess() : getVLSPostProcess();
 
 		const config = {
 			enabled: vlsPostProcess ? true : false,
@@ -886,6 +907,7 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 					object={config}
 					property="enabled"
 					label="Enabled"
+					disabled={this.isPlaying}
 					noUndoRedo
 					onChange={() => {
 						const pipeline = vlsPostProcess;
@@ -931,7 +953,7 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 						)}
 
 						<div
-							onDrop={(ev) => this._handleDropVlsMesh(ev, vlsPostProcess)}
+							onDrop={(ev) => this._handleDropVlsMesh(ev, vlsPostProcess as any)}
 							onDragOver={(ev) => this._handleDragOverVlsMesh(ev)}
 							onDragLeave={() => this.setState({ dragOverVlsMesh: false })}
 							className={`flex flex-col justify-center items-center w-full h-[64px] rounded-lg border-[1px] border-secondary-foreground/35 border-dashed ${this.state.dragOverVlsMesh ? "bg-secondary-foreground/35" : ""} transition-all duration-300 ease-in-out`}
@@ -1019,7 +1041,7 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 						registerUndoRedo({
 							executeRedo: true,
 							action: () => {
-								updateAllLights(this.props.editor.layout.preview.scene);
+								updateAllLights(this.scene);
 							},
 							undo: () => {
 								if (!pipeline) {
@@ -1050,7 +1072,7 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 						<EditorInspectorNumberField object={iblShadowsRenderPipeline} property="resolutionExp" label="Resolution Exponent" step={1} min={1} max={14} />
 						<EditorInspectorNumberField object={iblShadowsRenderPipeline} property="sampleDirections" label="Sample Directions" step={1} min={1} max={4} />
 
-						<Button variant="ghost" size="sm" onClick={() => updateIblShadowsRenderPipeline(this.props.editor.layout.preview.scene, true)}>
+						<Button variant="ghost" size="sm" onClick={() => updateIblShadowsRenderPipeline(this.scene, true)}>
 							Update voxelization
 						</Button>
 					</>

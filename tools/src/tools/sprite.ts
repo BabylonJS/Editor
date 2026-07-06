@@ -36,6 +36,7 @@ export interface ISpriteMapTile {
 export interface SpriteMapNode extends TransformNode {
 	isSpriteMap?: boolean;
 	spriteMap?: SpriteMap | null;
+	getClassName(): string;
 }
 
 /**
@@ -45,6 +46,7 @@ export interface SpriteMapNode extends TransformNode {
 export interface SpriteManagerNode extends TransformNode {
 	isSpriteManager?: boolean;
 	spriteManager?: SpriteManager | null;
+	getClassName(): string;
 }
 
 export function normalizeAtlasJson(data: any) {

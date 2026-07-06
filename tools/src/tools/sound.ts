@@ -1,7 +1,7 @@
 import { Node } from "@babylonjs/core/node";
+import { Observable } from "@babylonjs/core/Misc/observable";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { IAudioParameterRampOptions } from "@babylonjs/core/AudioV2/audioParameter";
-import { SpatialAudioAttachmentType } from "@babylonjs/core/AudioV2/spatialAudioAttachmentType";
 import { IStaticSoundPlayOptions, IStaticSoundStopOptions, StaticSound } from "@babylonjs/core/AudioV2/abstractAudio/staticSound";
 
 /**
@@ -9,10 +9,10 @@ import { IStaticSoundPlayOptions, IStaticSoundStopOptions, StaticSound } from "@
  */
 // eslint-disable-next-line @typescript-eslint/naming-convention
 export interface SoundNode extends TransformNode {
-	isSoundNode?: boolean;
 	soundRelativePath?: string;
 
 	sound?: StaticSound;
+	onSoundLoadedObservable: Observable<SoundNode>;
 
 	autoUpdateSpatial: boolean;
 
@@ -32,5 +32,10 @@ export interface SoundNode extends TransformNode {
 	resume(): void;
 	stop(options?: Partial<IStaticSoundStopOptions>): void;
 	play(options?: Partial<IStaticSoundPlayOptions>): void;
-	attachTo(sceneNode: Node | null, useBoundingBox?: boolean, attachmentType?: SpatialAudioAttachmentType): void;
+
+	setSoundSpatial(spatial: boolean): Promise<void>;
+
+	getClassName(): string;
+
+	cloneAsync(name: string, newParent?: Node | null, doNotCloneChildren?: boolean): Promise<SoundNode>;
 }

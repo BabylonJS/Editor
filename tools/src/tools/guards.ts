@@ -255,5 +255,5 @@ export function isSprite(object: any): object is Sprite {
  * @param object defines the reference to the object to test its class name.
  */
 export function isSoundNode(object: any): object is SoundNode {
-	return isTransformNode(object) && (object as SoundNode).isSoundNode === true;
+	return object.getClassName?.() === "SoundNode";
 }

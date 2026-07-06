@@ -171,7 +171,7 @@ export async function loadMeshes(meshesFiles: string[], scene: Scene, options: I
 						// const data = await readJSON(join(projectPath, filename), "utf-8");
 
 						if (data.masterMeshId && data.distanceOrScreenCoverage !== undefined) {
-							meshes[0]._waitingData.lods = {
+							meshes[0]._waitingLod = {
 								masterMeshId: data.masterMeshId,
 								distanceOrScreenCoverage: data.distanceOrScreenCoverage,
 							};

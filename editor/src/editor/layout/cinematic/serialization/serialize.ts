@@ -3,6 +3,7 @@ import { ICinematic, ICinematicKey, ICinematicKeyCut, isCinematicKey, getAnimati
 
 import { getInspectorPropertyValue } from "../../../../tools/property";
 
+import { getVLSPostProcess } from "../../../rendering/vls";
 import { getDefaultRenderingPipeline } from "../../../rendering/default-pipeline";
 
 export function serializeCinematic(cinematic: ICinematic): ICinematic {
@@ -13,7 +14,12 @@ export function serializeCinematic(cinematic: ICinematic): ICinematic {
 		tracks: cinematic.tracks.map((track) => {
 			let animationType: number | null = null;
 
-			const node = track.defaultRenderingPipeline ? getDefaultRenderingPipeline() : track.node;
+			let node = track.node;
+			if (track.defaultRenderingPipeline) {
+				node = getDefaultRenderingPipeline();
+			} else if (track.volumetricLightScattering) {
+				node = getVLSPostProcess();
+			}
 
 			if (node && track.propertyPath) {
 				const value = getInspectorPropertyValue(node, track.propertyPath);
@@ -29,6 +35,7 @@ export function serializeCinematic(cinematic: ICinematic): ICinematic {
 				animationGroupWeight: serializeKeyFrameAnimations(track.animationGroupWeight ?? [], Animation.ANIMATIONTYPE_FLOAT),
 
 				defaultRenderingPipeline: track.defaultRenderingPipeline,
+				volumetricLightScattering: track.volumetricLightScattering,
 
 				sound: track.sound?.id,
 				sounds: track.sounds,

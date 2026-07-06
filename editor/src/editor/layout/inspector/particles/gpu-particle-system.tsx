@@ -279,8 +279,13 @@ export class EditorGPUParticleSystemInspector extends Component<IEditorInspector
 		this._randomTextureSize = this.props.object._randomTexture.getSize().width ?? 1024;
 
 		const onRandomTextureSizeChanged = (value: number) => {
-			const texture1 = createGpuParticleSystemRandomTexture(value, this.props.editor.layout.preview.scene);
-			const texture2 = createGpuParticleSystemRandomTexture(value, this.props.editor.layout.preview.scene);
+			const scene = this.props.object.getScene();
+			if (!scene) {
+				return;
+			}
+
+			const texture1 = createGpuParticleSystemRandomTexture(value, scene);
+			const texture2 = createGpuParticleSystemRandomTexture(value, scene);
 
 			texture1.name = this.props.object._randomTexture.name;
 			texture2.name = this.props.object._randomTexture2.name;

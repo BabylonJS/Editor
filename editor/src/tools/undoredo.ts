@@ -31,6 +31,12 @@ export const stack: UndoRedoStackItem[] = [];
 export const onUndoObservable: Observable<void> = new Observable<void>();
 export const onRedoObservable: Observable<void> = new Observable<void>();
 
+let enabled = true;
+
+export function setUndoRedoEnabled(value: boolean) {
+	enabled = value;
+}
+
 let index = -1;
 
 export function clearUndoRedo() {
@@ -43,6 +49,10 @@ export function clearUndoRedo() {
 }
 
 export function registerUndoRedo(configuration: UndoRedoStackItem) {
+	if (!enabled) {
+		return;
+	}
+
 	const deleted = stack.splice(index + 1, stack.length);
 	deleted.forEach((item) => {
 		item.onLost?.();
@@ -65,6 +75,10 @@ export function registerUndoRedo(configuration: UndoRedoStackItem) {
 }
 
 export function registerSimpleUndoRedo(configuration: SimpleUndoRedoStackItem) {
+	if (!enabled) {
+		return;
+	}
+
 	registerUndoRedo({
 		undo: () => {
 			setInspectorEffectivePropertyValue(configuration.object, configuration.property, configuration.oldValue);
@@ -78,6 +92,10 @@ export function registerSimpleUndoRedo(configuration: SimpleUndoRedoStackItem) {
 }
 
 export function undo() {
+	if (!enabled) {
+		return shell.beep();
+	}
+
 	if (index < 0) {
 		return shell.beep();
 	}
@@ -91,6 +109,10 @@ export function undo() {
 }
 
 export function redo() {
+	if (!enabled) {
+		return shell.beep();
+	}
+
 	if (index >= stack.length - 1) {
 		return shell.beep();
 	}

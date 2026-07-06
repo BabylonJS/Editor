@@ -3,6 +3,7 @@ import { ICinematic, ICinematicKey, ICinematicKeyCut, ICinematicTrack, parseCine
 
 import { getInspectorPropertyValue } from "../../../../tools/property";
 
+import { getVLSPostProcess } from "../../../rendering/vls";
 import { getDefaultRenderingPipeline } from "../../../rendering/default-pipeline";
 
 import { SoundNode } from "../../../nodes/sound";
@@ -31,6 +32,8 @@ export function parseCinematicTrack(track: ICinematicTrack, scene: Scene) {
 		}
 	} else if (track.defaultRenderingPipeline) {
 		node = getDefaultRenderingPipeline();
+	} else if (track.volumetricLightScattering) {
+		node = getVLSPostProcess();
 	}
 
 	if (track.propertyPath) {
@@ -52,6 +55,7 @@ export function parseCinematicTrack(track: ICinematicTrack, scene: Scene) {
 		sound,
 		propertyPath: track.propertyPath,
 		defaultRenderingPipeline: track.defaultRenderingPipeline,
+		volumetricLightScattering: track.volumetricLightScattering,
 
 		animationGroup: track.animationGroup ? scene.getAnimationGroupByName(track.animationGroup) : null,
 		animationGroups: track.animationGroups,

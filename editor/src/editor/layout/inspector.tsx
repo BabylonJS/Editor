@@ -132,12 +132,19 @@ export class EditorInspector extends Component<IEditorInspectorProps, IEditorIns
 						<HoverCard openDelay={150} closeDelay={150}>
 							<HoverCardTrigger className="w-full">
 								<Badge variant="secondary" className="flex items-center gap-2 w-full">
-									<FaInfoCircle className="w-6 h-6" />
+									<FaInfoCircle className="w-5 h-5" />
 									Object is locked and cannot be edited.
 								</Badge>
 							</HoverCardTrigger>
 							<HoverCardContent>The object is locked, meaning it cannot be modified in the inspector. You can unlock it in the scene graph.</HoverCardContent>
 						</HoverCard>
+					)}
+
+					{this.props.editor.layout.preview?.play?.state.playing && (
+						<Badge variant="secondary" className="flex items-center gap-2 w-full">
+							<FaInfoCircle className="w-5 h-5" />
+							Runtime object — changes are not saved and will be lost on stop.
+						</Badge>
 					)}
 
 					<input

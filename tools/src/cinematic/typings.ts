@@ -17,6 +17,7 @@ export interface ICinematicTrack {
 
 	node?: any;
 	defaultRenderingPipeline?: boolean;
+	volumetricLightScattering?: boolean;
 
 	sound?: any;
 	sounds?: ICinematicSound[];

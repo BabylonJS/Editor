@@ -3,6 +3,7 @@ import { Animation } from "@babylonjs/core/Animations/animation";
 import { Color3, Color4 } from "@babylonjs/core/Maths/math.color";
 import { Quaternion, Vector2, Vector3, Matrix } from "@babylonjs/core/Maths/math.vector";
 
+import { getVLSPostProcess } from "../rendering/vls";
 import { getDefaultRenderingPipeline } from "../rendering/default-pipeline";
 
 import { SoundNode } from "../tools/sound";
@@ -33,6 +34,8 @@ export function parseCinematic(data: ICinematic, scene: Scene): ICinematic {
 				}
 			} else if (track.defaultRenderingPipeline) {
 				node = getDefaultRenderingPipeline();
+			} else if (track.volumetricLightScattering) {
+				node = getVLSPostProcess();
 			}
 
 			if (track.propertyPath) {
@@ -50,6 +53,8 @@ export function parseCinematic(data: ICinematic, scene: Scene): ICinematic {
 				sound,
 				propertyPath: track.propertyPath,
 				defaultRenderingPipeline: track.defaultRenderingPipeline,
+				volumetricLightScattering: track.volumetricLightScattering,
+				animationGroupWeight: track.animationGroupWeight,
 				animationGroup: track.animationGroup ? scene.getAnimationGroupByName(track.animationGroup) : null,
 				animationGroups: track.animationGroups,
 
