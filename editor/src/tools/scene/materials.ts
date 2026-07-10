@@ -8,7 +8,7 @@ import { isInstancedMesh } from "../guards/nodes";
  * @param scene The scene to force compile all materials
  */
 export function forceCompileAllSceneMaterials(scene: Scene) {
-	return Promise.all(
+	const compilation = Promise.all(
 		scene.materials.map(async (material) => {
 			const meshes = material.getBindedMeshes();
 
@@ -25,5 +25,14 @@ export function forceCompileAllSceneMaterials(scene: Scene) {
 				})
 			);
 		})
-	);
+	).catch(() => {
+		// Compilation is a best-effort warm-up: materials of a scene disposed mid-compilation may fail to compile.
+	});
+
+	// Pending compilations of a disposed scene may never settle: resolve on dispose so callers never hang.
+	const disposed = new Promise<void>((resolve) => {
+		scene.onDisposeObservable.addOnce(() => resolve());
+	});
+
+	return Promise.race([compilation, disposed]);
 }

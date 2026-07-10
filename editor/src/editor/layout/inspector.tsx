@@ -14,6 +14,7 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from "../../ui/shadcn/u
 
 import { isNode } from "../../tools/guards/nodes";
 import { isNodeLocked } from "../../tools/node/metadata";
+import { isPlaySceneObject } from "../../tools/scene/play/runtime";
 
 import { setInspectorSearch } from "./inspector/fields/field";
 import { IEditorInspectorImplementationProps } from "./inspector/inspector";
@@ -114,6 +115,7 @@ export class EditorInspector extends Component<IEditorInspectorProps, IEditorIns
 
 	public render(): ReactNode {
 		const disabled = (this.state.editedObject && isNode(this.state.editedObject) && isNodeLocked(this.state.editedObject)) ?? false;
+		const isRuntimeObject = isPlaySceneObject(this.props.editor, this.state.editedObject);
 
 		return (
 			<div className="flex flex-col gap-2 w-full h-full p-2 text-foreground overflow-hidden">
@@ -138,6 +140,13 @@ export class EditorInspector extends Component<IEditorInspectorProps, IEditorIns
 							</HoverCardTrigger>
 							<HoverCardContent>The object is locked, meaning it cannot be modified in the inspector. You can unlock it in the scene graph.</HoverCardContent>
 						</HoverCard>
+					)}
+
+					{isRuntimeObject && (
+						<Badge variant="secondary" className="flex items-center gap-2 w-full">
+							<FaInfoCircle className="w-6 h-6" />
+							Runtime object — changes are not saved and will be lost on stop.
+						</Badge>
 					)}
 
 					<input

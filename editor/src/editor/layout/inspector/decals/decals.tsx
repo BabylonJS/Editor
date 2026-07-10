@@ -351,6 +351,7 @@ export class EditorDecalsInspector extends Component<IEditorDecalsInspectorProps
 			setNodeVisibleInGraph(decalMesh, true);
 
 			registerUndoRedo({
+				object: decalMesh,
 				executeRedo: false,
 				undo: () => scene.removeMesh(decalMesh),
 				redo: () => scene.addMesh(decalMesh),

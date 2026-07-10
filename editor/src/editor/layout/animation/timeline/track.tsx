@@ -118,6 +118,7 @@ export class EditorAnimationTimelineItem extends Component<IEditorAnimationTimel
 		}
 
 		registerUndoRedo({
+			object: this.props.animatable,
 			executeRedo: true,
 			undo: () => {
 				const index = this.props.animation.getKeys().indexOf(key);
@@ -138,6 +139,7 @@ export class EditorAnimationTimelineItem extends Component<IEditorAnimationTimel
 		});
 
 		registerUndoRedo({
+			object: this.props.animatable,
 			executeRedo: true,
 			undo: () => {
 				animationsKeyConfigurationsToMove.forEach((configurations) => {
@@ -172,6 +174,7 @@ export class EditorAnimationTimelineItem extends Component<IEditorAnimationTimel
 		}
 
 		registerUndoRedo({
+			object: this.props.animatable,
 			executeRedo: true,
 			undo: () => keys.splice(index, 0, key),
 			redo: () => keys.splice(index, 1),

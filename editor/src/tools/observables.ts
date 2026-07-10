@@ -1,9 +1,16 @@
-import { BaseTexture, Node, Observable, IParticleSystem, Sprite, Skeleton } from "babylonjs";
+import { BaseTexture, Node, Observable, IParticleSystem, Sprite, Skeleton, Scene } from "babylonjs";
 
 /**
  * Observable for when the project has been saved.
  */
 export const onProjectSavedObservable = new Observable<void>();
+
+/**
+ * Observable for when the scene being played in the editor has changed.
+ * The observers receive the new play scene once it is fully loaded, or `null` when the
+ * play mode has been stopped (or is being restarted) and the editor is back to the edited scene.
+ */
+export const onPlaySceneChangedObservable = new Observable<Scene | null>();
 
 /**
  * Observable for when new nodes have been added to the scene.

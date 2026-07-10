@@ -8,6 +8,7 @@ import { isClusteredLight } from "../../../tools/light/cluster";
 import { isAnyParticleSystem } from "../../../tools/guards/particles";
 import { isAdvancedDynamicTexture } from "../../../tools/guards/texture";
 import { getLinkedAnimationGroupsFor } from "../../../tools/animation/group";
+import { isPlaySceneObject } from "../../../tools/scene/play/runtime";
 import { isNode, isMesh, isAbstractMesh, isInstancedMesh, isCollisionInstancedMesh, isLight, isCamera, isAnyTransformNode, isSkeleton } from "../../../tools/guards/nodes";
 
 import { Editor } from "../../main";
@@ -33,6 +34,10 @@ export function removeNodes(editor: Editor) {
 		.getSelectedNodes()
 		.filter((n) => n.nodeData)
 		.map((n) => n.nodeData);
+
+	if (allData.some((n) => isPlaySceneObject(editor, n))) {
+		return;
+	}
 
 	const nodes = allData
 		.filter((n) => isNode(n))
@@ -83,6 +88,7 @@ export function removeNodes(editor: Editor) {
 	const animationGroups = getLinkedAnimationGroupsFor([...particleSystems, ...advancedGuiTextures, ...nodes.map((d) => d.node)], scene);
 
 	registerUndoRedo({
+		object: allData[0],
 		executeRedo: true,
 		action: () => {
 			editor.layout.graph.refresh();

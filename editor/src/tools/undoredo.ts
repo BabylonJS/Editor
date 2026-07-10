@@ -17,6 +17,8 @@ export type SimpleUndoRedoStackItem = {
 };
 
 export type UndoRedoStackItem = {
+	object?: any;
+
 	undo: () => void;
 	redo: () => void;
 
@@ -42,7 +44,29 @@ export function clearUndoRedo() {
 	stack.splice(0, stack.length);
 }
 
+export type UndoRedoVolatilePredicate = (item: UndoRedoStackItem) => boolean;
+
+let volatilePredicate: UndoRedoVolatilePredicate | null = null;
+
+/**
+ * Sets the predicate used to detect volatile undo/redo items while the game / application is playing.
+ * Volatile items (edits made on play scene objects) are executed but not recorded in the stack:
+ * they are lost on stop by design. Edits made on the edited scene keep being recorded as usual.
+ * @param predicate defines the predicate to use, or null to record all items again.
+ */
+export function setUndoRedoVolatilePredicate(predicate: UndoRedoVolatilePredicate | null): void {
+	volatilePredicate = predicate;
+}
+
 export function registerUndoRedo(configuration: UndoRedoStackItem) {
+	if (volatilePredicate?.(configuration)) {
+		if (configuration.executeRedo) {
+			configuration.redo();
+			configuration.action?.();
+		}
+		return;
+	}
+
 	const deleted = stack.splice(index + 1, stack.length);
 	deleted.forEach((item) => {
 		item.onLost?.();
@@ -66,6 +90,7 @@ export function registerUndoRedo(configuration: UndoRedoStackItem) {
 
 export function registerSimpleUndoRedo(configuration: SimpleUndoRedoStackItem) {
 	registerUndoRedo({
+		object: configuration.object,
 		undo: () => {
 			setInspectorEffectivePropertyValue(configuration.object, configuration.property, configuration.oldValue);
 		},

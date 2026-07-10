@@ -105,6 +105,7 @@ export function CinematicEditorPropertyTrack(props: ICinematicEditorPropertyTrac
 			const oldKeyFrameAnimations = props.track.keyFrameAnimations;
 
 			registerUndoRedo({
+				object: props.cinematicEditor.editor.layout.preview.scene,
 				executeRedo: true,
 				undo: () => {
 					props.track.node = oldNode;
@@ -155,6 +156,7 @@ export function CinematicEditorPropertyTrack(props: ICinematicEditorPropertyTrac
 		const oldKeyFrameAnimations = props.track.keyFrameAnimations;
 
 		registerUndoRedo({
+			object: props.cinematicEditor.editor.layout.preview.scene,
 			executeRedo: true,
 			undo: () => {
 				props.track.propertyPath = oldPropertyPath;

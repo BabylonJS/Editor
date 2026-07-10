@@ -14,6 +14,7 @@ export function removeAnimationKey(cinematicEditor: CinematicEditor, track: ICin
 	}
 
 	registerUndoRedo({
+		object: cinematicEditor.editor.layout.preview.scene,
 		executeRedo: true,
 		undo: () => {
 			if (keyFrameAnimationsIndex !== -1) {
@@ -53,6 +54,7 @@ export function removeSoundKey(cinematicEditor: CinematicEditor, track: ICinemat
 	}
 
 	registerUndoRedo({
+		object: cinematicEditor.editor.layout.preview.scene,
 		executeRedo: true,
 		undo: () => track.sounds!.splice(index, 0, soundKey),
 		redo: () => track.sounds!.splice(index, 1),
@@ -68,6 +70,7 @@ export function removeEventKey(cinematicEditor: CinematicEditor, track: ICinemat
 	}
 
 	registerUndoRedo({
+		object: cinematicEditor.editor.layout.preview.scene,
 		executeRedo: true,
 		undo: () => track.keyFrameEvents!.splice(index, 0, eventKey),
 		redo: () => track.keyFrameEvents!.splice(index, 1),
@@ -83,6 +86,7 @@ export function removeAnimationGroupKey(cinematicEditor: CinematicEditor, track:
 	}
 
 	registerUndoRedo({
+		object: cinematicEditor.editor.layout.preview.scene,
 		executeRedo: true,
 		undo: () => track.animationGroups!.splice(index, 0, animationGroup),
 		redo: () => track.animationGroups!.splice(index, 1),

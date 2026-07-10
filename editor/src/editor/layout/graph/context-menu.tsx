@@ -31,6 +31,7 @@ import { getSpriteCommands } from "../../dialogs/command-palette/sprite";
 
 import { registerUndoRedo } from "../../../tools/undoredo";
 import { waitNextAnimationFrame } from "../../../tools/tools";
+import { isPlaySceneObject } from "../../../tools/scene/play/runtime";
 import { isClusteredLight } from "../../../tools/light/cluster";
 import { createMeshInstance } from "../../../tools/mesh/instance";
 import { onNodesAddedObservable } from "../../../tools/observables";
@@ -77,6 +78,10 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
 	}
 
 	public render(): ReactNode {
+		if (isPlaySceneObject(this.props.editor, this.props.object)) {
+			return this.props.children;
+		}
+
 		const parent = this.props.object && isScene(this.props.object) ? undefined : this.props.object;
 
 		return (
@@ -377,6 +382,7 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
 		let instance: InstancedMesh | null = null;
 
 		registerUndoRedo({
+			object: mesh,
 			executeRedo: true,
 			action: () => {
 				this.props.editor.layout.graph.refresh();
@@ -455,6 +461,7 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
 		}
 
 		registerUndoRedo({
+			object: node,
 			executeRedo: true,
 			action: () => {
 				this.props.editor.layout.graph.refresh();

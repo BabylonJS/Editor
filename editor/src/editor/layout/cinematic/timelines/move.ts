@@ -176,6 +176,7 @@ export function registerKeysMovedUndoRedo(cinematicEditor: CinematicEditor, anim
 	});
 
 	registerUndoRedo({
+		object: cinematicEditor.editor.layout.preview.scene,
 		executeRedo: true,
 		undo: () => {
 			animationsKeyConfigurationsToMove.forEach((trackConfiguration) => {

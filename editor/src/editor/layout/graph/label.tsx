@@ -10,6 +10,7 @@ import { Input } from "../../../ui/shadcn/ui/input";
 import { isDarwin } from "../../../tools/os";
 import { isScene } from "../../../tools/guards/scene";
 import { registerUndoRedo } from "../../../tools/undoredo";
+import { isPlaySceneObject } from "../../../tools/scene/play/runtime";
 import { isClusteredLight } from "../../../tools/light/cluster";
 import { isNodeSerializable, isNodeLocked } from "../../../tools/node/metadata";
 import { isClusteredLightContainer, isInstancedMesh, isLight, isMesh, isNode, isTransformNode } from "../../../tools/guards/nodes";
@@ -72,6 +73,10 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
 	});
 
 	function handleDragStart(ev: DragEvent<HTMLDivElement>) {
+		if (isPlaySceneObject(props.editor, props.object)) {
+			return ev.preventDefault();
+		}
+
 		const selectedNodes = props.editor.layout.graph.getSelectedNodes();
 		const alreadySelected = selectedNodes.find((n) => n.nodeData === props.object);
 
@@ -107,6 +112,10 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
 		ev.stopPropagation();
 
 		setOver(false);
+
+		if (isPlaySceneObject(props.editor, props.object)) {
+			return;
+		}
 
 		if (!isNode(props.object) && !isScene(props.object) && !isClusteredLightContainer(props.object)) {
 			return;
@@ -158,6 +167,10 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
 	}
 
 	function handleRenameObject() {
+		if (isPlaySceneObject(props.editor, props.object)) {
+			return;
+		}
+
 		if (props.object.name) {
 			setRenaming(!renaming);
 		}
@@ -165,6 +178,7 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
 
 	function handleInputNameBlurred() {
 		registerUndoRedo({
+			object: props.object,
 			executeRedo: true,
 			undo: () => (props.object.name = props.name),
 			redo: () => (props.object.name = name),

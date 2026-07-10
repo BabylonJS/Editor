@@ -28,6 +28,7 @@ export function CinematicEditorBaseEventKeyInspector(props: ICinematicEditorBase
 		const oldData = props.cinematicKey.data;
 
 		registerUndoRedo({
+			object: props.cinematicEditor.editor.layout.preview.scene,
 			executeRedo: true,
 			undo: () => (props.cinematicKey.data = oldData),
 			redo: () => {

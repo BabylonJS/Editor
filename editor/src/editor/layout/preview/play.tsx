@@ -15,8 +15,11 @@ import { Scene, Vector3, HavokPlugin } from "babylonjs";
 import { ensureTemporaryDirectoryExists } from "../../../tools/project";
 
 import { compileScript } from "../../../tools/compile";
+import { setUndoRedoVolatilePredicate } from "../../../tools/undoredo";
 import { wait, waitNextAnimationFrame } from "../../../tools/tools";
+import { onPlaySceneChangedObservable } from "../../../tools/observables";
 import { forceCompileAllSceneMaterials } from "../../../tools/scene/materials";
+import { getObjectScene, isPlaySceneObject } from "../../../tools/scene/play/runtime";
 import { applyOverrides, restorePlayOverrides } from "../../../tools/scene/play/override";
 
 import { exportProject } from "../../../project/export/export";
@@ -146,6 +149,10 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 		if (prevState !== this.state) {
 			this.props.editor.layout.preview.forceUpdate();
 			this.props.editor.layout.preview.gizmo._gizmosLayer.pickingEnabled = this.scene ? false : true;
+
+			// The graph renders its Scene | Runtime tabs from this state: force a re-render once
+			// the state is committed, as its fiber may have been processed before this one.
+			this.props.editor.layout.graph.forceUpdate();
 		}
 	}
 
@@ -174,12 +181,20 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 	 * This will just clean the current scene instance (event receivers, etc.) and reload the same scene.
 	 */
 	public async restart(): Promise<void> {
-		if (!this.state.playing) {
+		// Restarting is possible only once the scene is fully loaded: this guards against
+		// re-entrance (double restart, src watcher events, ipc triggers while preparing).
+		if (!this.canPlayScene) {
 			return;
 		}
 
-		this.scene?.dispose();
+		const scene = this.scene;
 		this.scene = null;
+
+		// Notify before disposing so the observers (graph, inspector, etc.) release their
+		// references to the play scene before the dispose events storm.
+		onPlaySceneChangedObservable.notifyObservers(null);
+
+		scene?.dispose();
 
 		restorePlayOverrides(this.props.editor);
 
@@ -197,6 +212,10 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 		// Try it: play scene, restart it and then stop it. The edited scene in "edit mode" will be full of glitches.
 		await wait(150);
 
+		if (!this.state.playing) {
+			return; // In case the user stopped the play while restarting
+		}
+
 		await this._createAndLoadScene();
 	}
 
@@ -205,8 +224,16 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 	 * It will dispose the scene and reset the state.
 	 */
 	public stop(): void {
-		this.scene?.dispose();
+		const scene = this.scene;
 		this.scene = null;
+
+		// Notify before disposing so the observers (graph, inspector, etc.) release their
+		// references to the play scene before the dispose events storm.
+		onPlaySceneChangedObservable.notifyObservers(null);
+
+		scene?.dispose();
+
+		setUndoRedoVolatilePredicate(null);
 
 		restorePlayOverrides(this.props.editor);
 
@@ -244,6 +271,17 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 		this.setState({
 			playing: true,
 			preparingPlay: true,
+		});
+
+		setUndoRedoVolatilePredicate((item) => {
+			const objectScene = item.object !== undefined && item.object !== null ? getObjectScene(item.object) : null;
+			if (objectScene) {
+				return objectScene === (this.scene ?? null);
+			}
+
+			// Items without a determinable scene (color curves, script parameters, proxies, etc.) come
+			// from the inspector: volatile if and only if the inspector is editing a runtime object.
+			return isPlaySceneObject(this.props.editor, this.props.editor.layout.inspector.state.editedObject);
 		});
 
 		this.props.editor.layout.preview.setState({
@@ -364,9 +402,21 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 
 		await forceCompileAllSceneMaterials(scene);
 
-		this.setState({
-			loading: false,
-		});
+		if (scene.isDisposed || this.scene !== scene || !this.state.playing) {
+			return; // the user stopped or restarted the play while compiling the materials
+		}
+
+		this.setState(
+			{
+				loading: false,
+			},
+			() => {
+				// Notify once the play scene is fully loaded and ready (canPlayScene === true).
+				if (this.scene === scene) {
+					onPlaySceneChangedObservable.notifyObservers(scene);
+				}
+			}
+		);
 	}
 
 	private _requireCompiledScripts(): void {
@@ -396,7 +446,10 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 			if (this.canPlayScene) {
 				this.props.editor.layout.console.log(`Detected change in ${path}, restarting play...`);
 				await this._compileScripts();
-				await this.restart();
+
+				if (this.canPlayScene) {
+					await this.restart();
+				}
 			}
 		});
 	}

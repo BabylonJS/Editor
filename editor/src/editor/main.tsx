@@ -210,7 +210,7 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 							preventDefault: true,
 							label: "Delete Selected Objects",
 							onKeyDown: () => {
-								if (!isDomTextInputFocused()) {
+								if (!isDomTextInputFocused() && !this.layout.graph.isRuntimeTabActive()) {
 									const selectedNodes = this.layout.graph.getSelectedNodes();
 									if (selectedNodes.length > 0) {
 										removeNodes(this);

@@ -38,6 +38,7 @@ export function CinematicEditorKeyCutInspector(props: ICinematicEditorKeyCutInsp
 		newValue = newValue.clone?.() ?? newValue;
 
 		registerUndoRedo({
+			object: props.cinematicEditor.editor.layout.preview.scene,
 			executeRedo: false,
 			action: () => {
 				props.cinematicEditor.updateTracksAtCurrentTime();

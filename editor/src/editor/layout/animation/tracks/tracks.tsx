@@ -112,6 +112,7 @@ export class EditorAnimationTracksPanel extends Component<IEditorAnimationTracks
 		]);
 
 		registerUndoRedo({
+			object: animatable,
 			undo: () => {
 				const index = animatable.animations?.indexOf(animation) ?? -1;
 				if (index !== -1) {
@@ -139,6 +140,7 @@ export class EditorAnimationTracksPanel extends Component<IEditorAnimationTracks
 		}
 
 		registerUndoRedo({
+			object: animatable,
 			executeRedo: true,
 			undo: () => {
 				animatable.animations?.splice(index, 0, animation);

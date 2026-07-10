@@ -39,6 +39,7 @@ export function applyMaterialToObject(editor: Editor, object: any, material: Mat
 	const oldMaterial = object.material;
 
 	registerUndoRedo({
+		object,
 		executeRedo: true,
 		undo: () => {
 			object.material = oldMaterial;

@@ -13,6 +13,7 @@ import { isScene } from "../../../../tools/guards/scene";
 import { registerUndoRedo } from "../../../../tools/undoredo";
 import { updateAllLights } from "../../../../tools/light/shadows";
 import { updateIblShadowsRenderPipeline } from "../../../../tools/light/ibl";
+import { isPlaySceneObject } from "../../../../tools/scene/play/runtime";
 
 import { createVLSPostProcess, disposeVLSPostProcess, getVLSPostProcess, parseVLSPostProcess, serializeVLSPostProcess } from "../../../rendering/vls";
 import { createSSRRenderingPipeline, disposeSSRRenderingPipeline, getSSRRenderingPipeline, parseSSRRenderingPipeline, serializeSSRRenderingPipeline } from "../../../rendering/ssr";
@@ -144,14 +145,19 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 
 				<ScriptInspectorComponent editor={this.props.editor} object={this.props.object} />
 
-				{this._getPhysicsComponent()}
+				{/* Physics and rendering pipelines are global to the edited scene: don't expose them for the play scene. */}
+				{!isPlaySceneObject(this.props.editor, this.props.object) && (
+					<>
+						{this._getPhysicsComponent()}
 
-				{this._getDefaultRenderingPipelineComponent()}
-				{this._getTAARenderingPipelineComponent()}
-				{this._getSSAO2RenderingPipelineComponent()}
-				{this._getMotionBlurPostProcessComponent()}
-				{this._getSSRPipelineComponent()}
-				{this._getVLSComponent()}
+						{this._getDefaultRenderingPipelineComponent()}
+						{this._getTAARenderingPipelineComponent()}
+						{this._getSSAO2RenderingPipelineComponent()}
+						{this._getMotionBlurPostProcessComponent()}
+						{this._getSSRPipelineComponent()}
+						{this._getVLSComponent()}
+					</>
+				)}
 
 				{/* {this.props.editor.state.enableExperimentalFeatures && this._getIblShadowsRenderingPipelineComponent()} */}
 

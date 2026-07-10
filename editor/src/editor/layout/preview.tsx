@@ -1269,6 +1269,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		});
 
 		registerUndoRedo({
+			object: nodesToMove[0]?.nodeData,
 			executeRedo: true,
 			undo: () => {
 				nodesToMove.forEach((n) => {

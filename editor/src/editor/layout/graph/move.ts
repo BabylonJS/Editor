@@ -4,6 +4,7 @@ import { unique } from "../../../tools/tools";
 import { isScene } from "../../../tools/guards/scene";
 import { registerUndoRedo } from "../../../tools/undoredo";
 import { isClusteredLight } from "../../../tools/light/cluster";
+import { isPlaySceneObject } from "../../../tools/scene/play/runtime";
 import { isAnyParticleSystem } from "../../../tools/guards/particles";
 import { isAbstractMesh, isClusteredLightContainer, isLight, isNode } from "../../../tools/guards/nodes";
 import { applyNodeParentingConfiguration, applyTransformNodeParentingConfiguration, IOldNodeHierarchyConfiguration } from "../../../tools/node/parenting";
@@ -14,6 +15,10 @@ export function setNewParentForGraphSelectedNodes(editor: Editor, newParent: any
 	const oldHierarchyMap = new Map<unknown, unknown>();
 	const nodesToMove = unique(editor.layout.graph.getSelectedNodes(), "id");
 	const clusteredLightContainer = editor.layout.preview.clusteredLightContainer;
+
+	if (isPlaySceneObject(editor, newParent) || nodesToMove.some((n) => isPlaySceneObject(editor, n.nodeData))) {
+		return;
+	}
 
 	nodesToMove.forEach((n) => {
 		if (n.nodeData && n.nodeData !== newParent) {
@@ -55,6 +60,7 @@ export function setNewParentForGraphSelectedNodes(editor: Editor, newParent: any
 	}
 
 	registerUndoRedo({
+		object: nodesToMove[0]?.nodeData,
 		executeRedo: true,
 		undo: () => {
 			nodesToMove.forEach((n) => {

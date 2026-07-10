@@ -112,6 +112,7 @@ export function CinematicEditorPropertyPoint(props: ICinematicEditorPropertyPoin
 					const newValue = getEditablePropertyValue(props.editableProperty);
 
 					registerUndoRedo({
+						object: props.cinematicEditor.editor.layout.preview.scene,
 						executeRedo: true,
 						action: () => {
 							props.cinematicEditor.cinematic.tracks.forEach((track) => {

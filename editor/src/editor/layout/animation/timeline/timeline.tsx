@@ -221,6 +221,7 @@ export class EditorAnimationTimelinePanel extends Component<IEditorAnimationTime
 		});
 
 		registerUndoRedo({
+			object: this.props.animatable,
 			executeRedo: true,
 			undo: () => {
 				tracks.forEach((track, index) => {

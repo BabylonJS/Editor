@@ -50,6 +50,7 @@ export function transformKeyAs(cinematicEditor: CinematicEditor, cinematicKey: I
 	}
 
 	registerUndoRedo({
+		object: cinematicEditor.editor.layout.preview.scene,
 		executeRedo: true,
 		undo: () => {
 			Object.keys(cinematicKey).forEach((key) => {

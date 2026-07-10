@@ -25,6 +25,7 @@ export function CinematicEditorAnimationGroupTrack(props: ICinematicEditorAnimat
 		const oldAnimationGroup = props.track.animationGroup;
 
 		registerUndoRedo({
+			object: props.cinematicEditor.editor.layout.preview.scene,
 			executeRedo: true,
 			undo: () => (props.track.animationGroup = oldAnimationGroup),
 			redo: () => (props.track.animationGroup = animationGroup),

@@ -49,6 +49,7 @@ export function CinematicEditorSoundTrack(props: ICinematicEditorSoundTrackProps
 			const oldSounds = props.track.sounds;
 
 			registerUndoRedo({
+				object: props.cinematicEditor.editor.layout.preview.scene,
 				executeRedo: true,
 				undo: () => {
 					props.track.sound = oldSound;

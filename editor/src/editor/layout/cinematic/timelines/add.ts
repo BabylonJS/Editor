@@ -86,6 +86,7 @@ export function addAnimationKey(
 				} as ICinematicKeyCut);
 
 	registerUndoRedo({
+		object: cinematicEditor.editor.layout.preview.scene,
 		executeRedo: true,
 		undo: () => {
 			const index = keyFrameAnimations.indexOf(key);
@@ -139,6 +140,7 @@ export function addSoundKey(cinematicEditor: CinematicEditor, track: ICinematicT
 	} as ICinematicSound;
 
 	registerUndoRedo({
+		object: cinematicEditor.editor.layout.preview.scene,
 		executeRedo: true,
 		undo: () => {
 			const index = track.sounds!.indexOf(key);
@@ -179,6 +181,7 @@ export function addEventKey(cinematicEditor: CinematicEditor, track: ICinematicT
 	} as ICinematicKeyEvent;
 
 	registerUndoRedo({
+		object: cinematicEditor.editor.layout.preview.scene,
 		executeRedo: true,
 		undo: () => {
 			const index = track.keyFrameEvents!.indexOf(key);
@@ -221,6 +224,7 @@ export function addAnimationGroupKey(cinematicEditor: CinematicEditor, track: IC
 	} as ICinematicAnimationGroup;
 
 	registerUndoRedo({
+		object: cinematicEditor.editor.layout.preview.scene,
 		executeRedo: true,
 		undo: () => {
 			const index = track.animationGroups!.indexOf(key);

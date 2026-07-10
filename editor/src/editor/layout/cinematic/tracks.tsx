@@ -176,6 +176,7 @@ export class CinematicEditorTracks extends Component<ICinematicEditorTracksProps
 		const cinematic = this.props.cinematicEditor.cinematic;
 
 		registerUndoRedo({
+			object: this.props.cinematicEditor.editor.layout.preview.scene,
 			executeRedo: true,
 			undo: () => {
 				const index = cinematic.tracks.indexOf(track);
@@ -198,6 +199,7 @@ export class CinematicEditorTracks extends Component<ICinematicEditorTracksProps
 		}
 
 		registerUndoRedo({
+			object: this.props.cinematicEditor.editor.layout.preview.scene,
 			executeRedo: true,
 			undo: () => {
 				cinematic.tracks.splice(index, 0, track);

@@ -56,6 +56,7 @@ export function EditorInspectorColorField(props: IEditorInspectorColorFieldProps
 			const newColor = color.clone();
 
 			registerUndoRedo({
+				object: props.object,
 				undo: () => color.set(oldValue.r, oldValue.g, oldValue.b, (oldValue as any).a),
 				redo: () => color.set(newColor.r, newColor.g, newColor.b, (newColor as any).a),
 			});

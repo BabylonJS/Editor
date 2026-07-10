@@ -3,7 +3,7 @@ import { extname } from "path/posix";
 import { Component, DragEvent, ReactNode } from "react";
 import { Button, Tree, TreeNodeInfo } from "@blueprintjs/core";
 
-import { FaLink } from "react-icons/fa6";
+import { FaCube, FaLink } from "react-icons/fa6";
 import { IoMdCube } from "react-icons/io";
 import { AiOutlinePlus } from "react-icons/ai";
 import { HiSpeakerWave } from "react-icons/hi2";
@@ -11,15 +11,17 @@ import { SiBabylondotjs } from "react-icons/si";
 import { MdOutlineQuestionMark } from "react-icons/md";
 import { GiBrickWall, GiSparkles } from "react-icons/gi";
 import { HiOutlineCubeTransparent } from "react-icons/hi";
-import { IoCheckmark, IoSparklesSharp } from "react-icons/io5";
+import { IoCheckmark, IoPlayCircle, IoSparklesSharp } from "react-icons/io5";
 import { TbGhost2Filled, TbServerSpark, TbBrandAdobeIndesign } from "react-icons/tb";
 import { FaCamera, FaImage, FaLightbulb, FaBone, FaRegLightbulb } from "react-icons/fa";
 
 import { AdvancedDynamicTexture } from "babylonjs-gui";
-import { BaseTexture, Node, Scene, Tools, IParticleSystem, Sprite, Skeleton, TransformNode, AbstractMesh } from "babylonjs";
+import { BaseTexture, Node, Observable, Scene, Tools, IParticleSystem, Sprite, Skeleton, TransformNode, AbstractMesh } from "babylonjs";
 
 import { Editor } from "../main";
 
+import { Badge } from "../../ui/shadcn/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../ui/shadcn/ui/tabs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "../../ui/shadcn/ui/dropdown-menu";
 import {
 	ContextMenu,
@@ -69,10 +71,12 @@ import {
 	onNodesAddedObservable,
 	onParticleSystemAddedObservable,
 	onParticleSystemModifiedObservable,
+	onPlaySceneChangedObservable,
 	onSkeletonModifiedObservable,
 	onSpriteModifiedObservable,
 	onTextureModifiedObservable,
 } from "../../tools/observables";
+import { getObjectScene, isPlaySceneObject, isScenePlaying } from "../../tools/scene/play/runtime";
 
 import { getNodeCommands } from "../dialogs/command-palette/node";
 import { getMeshCommands } from "../dialogs/command-palette/mesh";
@@ -105,6 +109,10 @@ export interface IEditorGraphState {
 	 * The nodes of the graph.
 	 */
 	nodes: TreeNodeInfo[];
+	/**
+	 * The nodes of the play scene graph. Empty when the game / application is not playing.
+	 */
+	runtimeNodes: TreeNodeInfo[];
 
 	/**
 	 * Defines wether or not the preview is focused.
@@ -126,15 +134,24 @@ export interface IEditorGraphState {
 	hideInstancedMeshes: boolean;
 }
 
+type GraphTreeKind = "scene" | "runtime";
+
 export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState> {
 	public _nodeToCopyTransform: Node | null = null;
 	public _objectsToCopy: TreeNodeInfo<unknown>[] = [];
+
+	private _playSceneObserverRemovers: (() => void)[] = [];
+	private _playSceneRefreshTimeout: number | null = null;
+
+	private _previousTreeNodes: Map<TreeNodeInfo["id"], TreeNodeInfo> = new Map();
+	private _activeTab: GraphTreeKind = "runtime";
 
 	public constructor(props: IEditorGraphProps) {
 		super(props);
 
 		this.state = {
 			nodes: [],
+			runtimeNodes: [],
 			search: "",
 			isFocused: false,
 
@@ -147,17 +164,25 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		onNodesAddedObservable.add(() => this.refresh());
 		onParticleSystemAddedObservable.add(() => this.refresh());
 
+		onPlaySceneChangedObservable.add((scene) => this._handlePlaySceneChanged(scene));
+
 		onNodeModifiedObservable.add((node) => this._handleObjectModified(node));
 		onSpriteModifiedObservable.add((node) => this._handleObjectModified(node));
 		onTextureModifiedObservable.add((texture) => this._handleObjectModified(texture));
 		onSkeletonModifiedObservable.add((skeleton) => this._handleObjectModified(skeleton));
 		onParticleSystemModifiedObservable.add((particleSystem) => this._handleObjectModified(particleSystem));
 
-		document.addEventListener("copy", () => !isDomTextInputFocused() && this.copySelectedNodes());
-		document.addEventListener("paste", () => !isDomTextInputFocused() && this.pasteSelectedNodes());
+		document.addEventListener("copy", () => !isDomTextInputFocused() && !this.isRuntimeTabActive() && this.copySelectedNodes());
+		document.addEventListener("paste", () => !isDomTextInputFocused() && !this.isRuntimeTabActive() && this.pasteSelectedNodes());
 	}
 
 	public render(): ReactNode {
+		const playing = isScenePlaying(this.props.editor);
+		if (!playing) {
+			// Tabs are unmounted: reset so the next Play starts on the "Runtime" tab (onValueChange doesn't fire on mount).
+			this._activeTab = "runtime";
+		}
+
 		return (
 			<div
 				className="flex flex-col w-full h-full text-foreground"
@@ -207,13 +232,47 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 					</DropdownMenu>
 				</div>
 
+				{!playing && this._getSceneTreeComponent()}
+
+				{playing && (
+					<Tabs
+						defaultValue="runtime"
+						onValueChange={(value) => this._handleTabChanged(value as GraphTreeKind)}
+						className="flex flex-col gap-2 w-full h-full px-2 overflow-hidden"
+					>
+						<TabsList className="w-full">
+							<TabsTrigger value="scene" className="flex gap-2 items-center w-full">
+								<FaCube className="w-4 h-4" /> Scene
+							</TabsTrigger>
+
+							<TabsTrigger value="runtime" className="flex gap-2 items-center w-full">
+								<IoPlayCircle className="w-4 h-4" /> Runtime
+							</TabsTrigger>
+						</TabsList>
+
+						<TabsContent value="scene" className="w-full h-full overflow-auto">
+							{this._getSceneTreeComponent()}
+						</TabsContent>
+
+						<TabsContent value="runtime" className="w-full h-full overflow-auto">
+							{this._getRuntimeTreeComponent()}
+						</TabsContent>
+					</Tabs>
+				)}
+			</div>
+		);
+	}
+
+	private _getSceneTreeComponent(): ReactNode {
+		return (
+			<>
 				<Tree
 					contents={this.state.nodes}
-					onNodeExpand={(n) => this._handleNodeExpanded(n)}
-					onNodeCollapse={(n) => this._handleNodeCollapsed(n)}
-					onNodeClick={(n, _, ev) => this._handleNodeClicked(n, ev)}
-					onNodeContextMenu={(n, _, ev) => this._handleNodeContextMenu(n, ev)}
-					onNodeDoubleClick={(n, _, ev) => this._handleNodeDoubleClicked(n, ev)}
+					onNodeExpand={(n) => this._handleNodeExpanded(n, "scene")}
+					onNodeCollapse={(n) => this._handleNodeCollapsed(n, "scene")}
+					onNodeClick={(n, _, ev) => this._handleNodeClicked(n, ev, "scene")}
+					onNodeContextMenu={(n, _, ev) => this._handleNodeContextMenu(n, ev, "scene")}
+					onNodeDoubleClick={(n, _, ev) => this._handleNodeDoubleClicked(n, ev, "scene")}
 				/>
 
 				<div className="w-full h-full min-h-20" onDragOver={(ev) => ev.preventDefault()} onDrop={(ev) => this._handleDropEmpty(ev)}>
@@ -280,8 +339,54 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 						</ContextMenuContent>
 					</ContextMenu>
 				</div>
+			</>
+		);
+	}
+
+	private _getRuntimeTreeComponent(): ReactNode {
+		return (
+			<div className="flex flex-col gap-2 w-full h-full">
+				<Badge variant="secondary" className="flex items-center gap-2 w-full">
+					<IoPlayCircle className="w-6 h-6" />
+					Runtime scene — structure is read-only, changes are not saved.
+				</Badge>
+
+				<Tree
+					contents={this.state.runtimeNodes}
+					onNodeExpand={(n) => this._handleNodeExpanded(n, "runtime")}
+					onNodeCollapse={(n) => this._handleNodeCollapsed(n, "runtime")}
+					onNodeClick={(n, _, ev) => this._handleNodeClicked(n, ev, "runtime")}
+					onNodeContextMenu={(n, _, ev) => this._handleNodeContextMenu(n, ev, "runtime")}
+					onNodeDoubleClick={(n, _, ev) => this._handleNodeDoubleClicked(n, ev, "runtime")}
+				/>
 			</div>
 		);
+	}
+
+	private _handleTabChanged(tab: GraphTreeKind): void {
+		this._activeTab = tab;
+
+		let selected: any = null;
+		this._forEachNode(this._getTreeNodes(tab), (n) => (selected ??= n.isSelected ? n.nodeData : null));
+
+		if (tab === "scene") {
+			this.props.editor.layout.inspector.setEditedObject(selected ?? this.props.editor.layout.preview.scene);
+			this.props.editor.layout.animations.setEditedObject(selected ?? null);
+
+			if (selected && !isPlaySceneObject(this.props.editor, selected) && (isNode(selected) || isSprite(selected))) {
+				this.props.editor.layout.preview.gizmo.setAttachedObject(selected);
+			}
+		} else {
+			this.props.editor.layout.inspector.setEditedObject(selected ?? this.props.editor.layout.preview.play?.scene ?? null);
+			this.props.editor.layout.animations.setEditedObject(selected ?? null);
+		}
+	}
+
+	/**
+	 * Returns wether or not the "Runtime" tab of the graph is active while the game / application is playing.
+	 */
+	public isRuntimeTabActive(): boolean {
+		return isScenePlaying(this.props.editor) && this._activeTab === "runtime";
 	}
 
 	public componentDidMount(): void {
@@ -291,17 +396,134 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 	}
 
 	/**
+	 * Called on the play scene changed (play started, stopped or restarted).
+	 * Subscribes to the play scene events to keep the graph live while playing, and cleans
+	 * all the references to the play scene before it gets disposed.
+	 */
+	private _handlePlaySceneChanged(scene: Scene | null): void {
+		this._playSceneObserverRemovers.forEach((remove) => remove());
+		this._playSceneObserverRemovers = [];
+
+		if (this._playSceneRefreshTimeout !== null) {
+			window.clearTimeout(this._playSceneRefreshTimeout);
+			this._playSceneRefreshTimeout = null;
+		}
+
+		if (scene) {
+			const track = <T,>(observable: Observable<T>): void => {
+				const observer = observable.add(() => this._schedulePlaySceneRefresh());
+				this._playSceneObserverRemovers.push(() => observable.remove(observer));
+			};
+
+			track(scene.onNewMeshAddedObservable);
+			track(scene.onMeshRemovedObservable);
+			track(scene.onNewTransformNodeAddedObservable);
+			track(scene.onTransformNodeRemovedObservable);
+			track(scene.onNewLightAddedObservable);
+			track(scene.onLightRemovedObservable);
+			track(scene.onNewCameraAddedObservable);
+			track(scene.onCameraRemovedObservable);
+		} else {
+			this.setState({ runtimeNodes: [] });
+
+			const previewScene = this.props.editor.layout.preview.scene;
+
+			let selected: any = null;
+			this._forEachNode(this.state.nodes, (n) => (selected ??= n.isSelected ? n.nodeData : null));
+
+			// The play scene is already null here: compare against the edited scene to know
+			// wether or not the inspector was showing a runtime object.
+			const editedObject = this.props.editor.layout.inspector.state.editedObject;
+			const editedObjectScene = getObjectScene(editedObject);
+
+			if (editedObject && editedObjectScene && editedObjectScene !== previewScene) {
+				this.props.editor.layout.inspector.setEditedObject(selected ?? previewScene);
+			}
+
+			// The animations panel tracks its own object: it may retain a disposed animatable even
+			// when the inspector was re-pointed elsewhere during the play (ex. using "Edit Camera").
+			const animatable = this.props.editor.layout.animations.state.animatable;
+			const animatableScene = getObjectScene(animatable);
+
+			if (animatable && animatableScene && animatableScene !== previewScene) {
+				this.props.editor.layout.animations.setEditedObject(null);
+
+				if (selected) {
+					this.props.editor.layout.animations.setEditedObject(selected);
+				}
+			}
+		}
+
+		this.refresh();
+	}
+
+	/**
+	 * Schedules a debounced refresh of the graph while the play scene is running.
+	 * Scripts may add/remove lots of nodes per frame: a debounce avoids refreshing the graph for each one.
+	 */
+	private _schedulePlaySceneRefresh(): void {
+		if (this._playSceneRefreshTimeout !== null) {
+			return;
+		}
+
+		this._playSceneRefreshTimeout = window.setTimeout(() => {
+			this._playSceneRefreshTimeout = null;
+
+			if (this.props.editor.layout.preview.play?.canPlayScene) {
+				this._refreshRuntimeNodes();
+			}
+		}, 300);
+	}
+
+	/**
 	 * Refreshes the graph.
 	 */
 	public refresh(): Promise<void> {
-		const scene = this.props.editor.layout.preview.scene;
-		const clusteredLightContainer = this.props.editor.layout.preview.clusteredLightContainer;
+		this._refreshSceneNodes();
 
+		if (this.props.editor.layout.preview.play?.canPlayScene) {
+			this._refreshRuntimeNodes();
+		} else if (this.state.runtimeNodes.length) {
+			this.setState({ runtimeNodes: [] });
+		}
+
+		return waitNextAnimationFrame();
+	}
+
+	private _refreshSceneNodes(): void {
+		this._previousTreeNodes = this._getTreeNodesIndex(this.state.nodes);
+		this.setState({ nodes: this._buildTreeNodes(this.props.editor.layout.preview.scene, true) });
+	}
+
+	private _refreshRuntimeNodes(): void {
+		const scene = this.props.editor.layout.preview.play?.scene;
+		if (!scene) {
+			return;
+		}
+
+		this._previousTreeNodes = this._getTreeNodesIndex(this.state.runtimeNodes);
+		this.setState({ runtimeNodes: this._buildTreeNodes(scene, false) });
+	}
+
+	/**
+	 * Returns the given tree nodes indexed by id, used to preserve the selection and expansion
+	 * states across refreshes in constant time (runtime scenes may contain tens of thousands of nodes).
+	 */
+	private _getTreeNodesIndex(nodes: TreeNodeInfo[]): Map<TreeNodeInfo["id"], TreeNodeInfo> {
+		const index = new Map<TreeNodeInfo["id"], TreeNodeInfo>();
+		this._forEachNode(nodes, (n) => index.set(n.id, n));
+
+		return index;
+	}
+
+	private _buildTreeNodes(scene: Scene, isEditedScene: boolean): TreeNodeInfo[] {
 		let nodes: (TreeNodeInfo | null)[] = [];
 
 		if (this.state.showOnlyLights || this.state.showOnlyDecals) {
 			if (this.state.showOnlyLights) {
-				nodes.push(...scene.lights.concat(clusteredLightContainer.lights).map((light) => this._parseSceneNode(light, true)));
+				// The clustered light container belongs to the edited scene: don't mix its lights when playing.
+				const lights = isEditedScene ? scene.lights.concat(this.props.editor.layout.preview.clusteredLightContainer.lights) : scene.lights.slice();
+				nodes.push(...lights.map((light) => this._parseSceneNode(light, true)));
 			}
 
 			if (this.state.showOnlyDecals) {
@@ -328,19 +550,20 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			label: this._getNodeLabelComponent(scene, "Scene", false),
 		});
 
-		this.setState({
-			nodes: nodes.filter((n) => n !== null) as TreeNodeInfo[],
-		});
-
-		return waitNextAnimationFrame();
+		return nodes.filter((n) => n !== null) as TreeNodeInfo[];
 	}
 
 	/**
 	 * Sets the given node selected in the graph. All other selected nodes
 	 * become unselected to have only the given node selected. All parents are expanded.
+	 * Nodes belonging to the play scene are ignored: the selection only tracks the edited scene.
 	 * @param node defines the reference tot the node to select in the graph.
 	 */
 	public setSelectedNode(node: Node | IParticleSystem | Sprite): void {
+		if (isPlaySceneObject(this.props.editor, node)) {
+			return;
+		}
+
 		const originalSource = (isAnyParticleSystem(node) ? (node.emitter as AbstractMesh) : node) as Node | null;
 
 		let source = originalSource;
@@ -434,6 +657,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		const nodesToCopy = this._objectsToCopy.map((n) => n.nodeData);
 
 		registerUndoRedo({
+			object: nodesToCopy[0],
 			executeRedo: true,
 			action: () => {
 				this.refresh();
@@ -556,6 +780,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		const savedTargetDirection = targetDirection?.clone();
 
 		registerUndoRedo({
+			object: node,
 			executeRedo: true,
 			undo: () => {
 				if (savedTargetPosition && targetPosition) {
@@ -618,34 +843,53 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		});
 	}
 
-	private _handleNodeClicked(node: TreeNodeInfo, ev: React.MouseEvent<HTMLElement>): void {
+	private _getTreeNodes(tree: GraphTreeKind): TreeNodeInfo[] {
+		return tree === "scene" ? this.state.nodes : this.state.runtimeNodes;
+	}
+
+	private _commitTreeNodes(tree: GraphTreeKind): void {
+		if (tree === "scene") {
+			this.setState({ nodes: this.state.nodes });
+		} else {
+			this.setState({ runtimeNodes: this.state.runtimeNodes });
+		}
+	}
+
+	private _handleNodeClicked(node: TreeNodeInfo, ev: React.MouseEvent<HTMLElement>, tree: GraphTreeKind): void {
 		this.props.editor.layout.inspector.setEditedObject(node.nodeData);
 		this.props.editor.layout.animations.setEditedObject(node.nodeData);
 
-		if (isNode(node.nodeData) || isSprite(node.nodeData)) {
-			this.props.editor.layout.preview.gizmo.setAttachedObject(node.nodeData);
+		// Gizmos and camera preview belong to the edited scene: don't attach them to play scene objects.
+		if (!isPlaySceneObject(this.props.editor, node.nodeData)) {
+			if (isNode(node.nodeData) || isSprite(node.nodeData)) {
+				this.props.editor.layout.preview.gizmo.setAttachedObject(node.nodeData);
+			}
+
+			if (isCamera(node.nodeData)) {
+				this.props.editor.layout.preview.setCameraPreviewActive(node.nodeData);
+			}
 		}
 
-		if (isCamera(node.nodeData)) {
-			this.props.editor.layout.preview.setCameraPreviewActive(node.nodeData);
-		}
+		const nodes = this._getTreeNodes(tree);
 
 		if (ev.ctrlKey || ev.metaKey) {
-			this._forEachNode(this.state.nodes, (n) => n.id === node.id && (n.isSelected = !n.isSelected));
+			this._forEachNode(nodes, (n) => n.id === node.id && (n.isSelected = !n.isSelected));
 		} else if (ev.shiftKey) {
-			this._handleShiftSelect(node);
+			this._handleShiftSelect(node, tree);
 		} else {
-			this._forEachNode(this.state.nodes, (n) => (n.isSelected = n.id === node.id));
+			this._forEachNode(nodes, (n) => (n.isSelected = n.id === node.id));
 		}
 
-		this.setState({ nodes: this.state.nodes });
+		this._commitTreeNodes(tree);
 	}
 
-	private _handleShiftSelect(node: TreeNodeInfo): void {
+	private _handleShiftSelect(node: TreeNodeInfo, tree: GraphTreeKind): void {
 		let lastSelected!: TreeNodeInfo;
 		let firstSelected!: TreeNodeInfo;
 
-		this._forEachNode(this.state.nodes, (n) => {
+		const nodes = this._getTreeNodes(tree);
+
+		this._forEachNode(nodes, (n) => {
 			if (n.id === node.id) {
 				if (!firstSelected) {
 					firstSelected = n;
@@ -666,7 +910,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		}
 
 		let select = false;
-		this._forEachNode(this.state.nodes, (n) => {
+		this._forEachNode(nodes, (n) => {
 			if (n.id === firstSelected.id) {
 				select = true;
 			}
@@ -681,27 +925,27 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		});
 	}
 
-	private _handleNodeContextMenu(node: TreeNodeInfo, ev: React.MouseEvent<HTMLElement>): void {
+	private _handleNodeContextMenu(node: TreeNodeInfo, ev: React.MouseEvent<HTMLElement>, tree: GraphTreeKind): void {
 		if (!node.isSelected) {
-			this._handleNodeClicked(node, ev);
+			this._handleNodeClicked(node, ev, tree);
 		}
 	}
 
-	private _handleNodeExpanded(node: TreeNodeInfo): void {
-		this._forEachNode(this.state.nodes, (n) => n.id === node.id && (n.isExpanded = true));
-		this.setState({ nodes: this.state.nodes });
+	private _handleNodeExpanded(node: TreeNodeInfo, tree: GraphTreeKind): void {
+		this._forEachNode(this._getTreeNodes(tree), (n) => n.id === node.id && (n.isExpanded = true));
+		this._commitTreeNodes(tree);
 	}
 
-	private _handleNodeCollapsed(node: TreeNodeInfo): void {
-		this._forEachNode(this.state.nodes, (n) => n.id === node.id && (n.isExpanded = false));
-		this.setState({ nodes: this.state.nodes });
+	private _handleNodeCollapsed(node: TreeNodeInfo, tree: GraphTreeKind): void {
+		this._forEachNode(this._getTreeNodes(tree), (n) => n.id === node.id && (n.isExpanded = false));
+		this._commitTreeNodes(tree);
 	}
 
-	private _handleNodeDoubleClicked(node: TreeNodeInfo, ev: React.MouseEvent<HTMLElement>): void {
-		this._forEachNode(this.state.nodes, (n) => n.id === node.id && (n.isExpanded = !n.isExpanded));
+	private _handleNodeDoubleClicked(node: TreeNodeInfo, ev: React.MouseEvent<HTMLElement>, tree: GraphTreeKind): void {
+		this._forEachNode(this._getTreeNodes(tree), (n) => n.id === node.id && (n.isExpanded = !n.isExpanded));
 
-		this._handleNodeClicked(node, ev);
-		this.setState({ nodes: this.state.nodes });
+		this._handleNodeClicked(node, ev, tree);
+		this._commitTreeNodes(tree);
 	}
 
 	public _forEachNode(nodes: TreeNodeInfo[] | undefined, callback: (node: TreeNodeInfo, index: number) => void): void {
@@ -740,12 +984,11 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			label: this._getNodeLabelComponent(scene, "Skeletons", false),
 		} as TreeNodeInfo;
 
-		this._forEachNode(this.state.nodes, (n) => {
-			if (n.id === rootSkeletonNode.id) {
-				rootSkeletonNode.isSelected = n.isSelected;
-				rootSkeletonNode.isExpanded = n.isExpanded;
-			}
-		});
+		const previousSkeletonNode = this._previousTreeNodes.get(rootSkeletonNode.id);
+		if (previousSkeletonNode) {
+			rootSkeletonNode.isSelected = previousSkeletonNode.isSelected;
+			rootSkeletonNode.isExpanded = previousSkeletonNode.isExpanded;
+		}
 
 		return rootSkeletonNode;
 	}
@@ -758,11 +1001,10 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			label: this._getNodeLabelComponent(skeleton, skeleton.name, false),
 		} as TreeNodeInfo;
 
-		this._forEachNode(this.state.nodes, (n) => {
-			if (n.id === info.id) {
-				info.isSelected = n.isSelected;
-			}
-		});
+		const previousNode = this._previousTreeNodes.get(info.id);
+		if (previousNode) {
+			info.isSelected = previousNode.isSelected;
+		}
 
 		return info;
 	}
@@ -775,12 +1017,11 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			label: this._getNodeLabelComponent(particleSystem, particleSystem.name, false),
 		} as TreeNodeInfo;
 
-		this._forEachNode(this.state.nodes, (n) => {
-			if (n.id === info.id) {
-				info.isSelected = n.isSelected;
-				info.isExpanded = n.isExpanded;
-			}
-		});
+		const previousNode = this._previousTreeNodes.get(info.id);
+		if (previousNode) {
+			info.isSelected = previousNode.isSelected;
+			info.isExpanded = previousNode.isExpanded;
+		}
 
 		return info;
 	}
@@ -793,12 +1034,11 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			label: this._getNodeLabelComponent(sprite, sprite.name, false),
 		} as TreeNodeInfo;
 
-		this._forEachNode(this.state.nodes, (n) => {
-			if (n.id === info.id) {
-				info.isSelected = n.isSelected;
-				info.isExpanded = n.isExpanded;
-			}
-		});
+		const previousNode = this._previousTreeNodes.get(info.id);
+		if (previousNode) {
+			info.isSelected = previousNode.isSelected;
+			info.isExpanded = previousNode.isExpanded;
+		}
 
 		return info;
 	}
@@ -823,12 +1063,11 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 				label: this._getNodeLabelComponent(texture, texture.name, false),
 			} as TreeNodeInfo;
 
-			this._forEachNode(this.state.nodes, (n) => {
-				if (n.id === info.id) {
-					info.isSelected = n.isSelected;
-					info.isExpanded = n.isExpanded;
-				}
-			});
+			const previousNode = this._previousTreeNodes.get(info.id);
+			if (previousNode) {
+				info.isSelected = previousNode.isSelected;
+				info.isExpanded = previousNode.isExpanded;
+			}
 
 			childNodes.push(info);
 		});
@@ -845,12 +1084,11 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			label: this._getNodeLabelComponent(scene, "Gui", false),
 		} as TreeNodeInfo;
 
-		this._forEachNode(this.state.nodes, (n) => {
-			if (n.id === rootGuiNode.id) {
-				rootGuiNode.isSelected = n.isSelected;
-				rootGuiNode.isExpanded = n.isExpanded;
-			}
-		});
+		const previousGuiNode = this._previousTreeNodes.get(rootGuiNode.id);
+		if (previousGuiNode) {
+			rootGuiNode.isSelected = previousGuiNode.isSelected;
+			rootGuiNode.isExpanded = previousGuiNode.isExpanded;
+		}
 
 		return rootGuiNode;
 	}
@@ -906,7 +1144,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 
 			// Handle particle systems
 			if (isAbstractMesh(node) && !noChildren) {
-				const particleSystems = this.props.editor.layout.preview.scene.particleSystems.filter((ps) => ps.emitter === node);
+				const particleSystems = node.getScene().particleSystems.filter((ps) => ps.emitter === node);
 				particleSystems.forEach((particleSystem) => {
 					if (
 						(isParticleSystem(particleSystem) || isGPUParticleSystem(particleSystem)) &&
@@ -946,12 +1184,11 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			return null;
 		}
 
-		this._forEachNode(this.state.nodes, (n) => {
-			if (n.id === info.id) {
-				info.isSelected = n.isSelected;
-				info.isExpanded = n.isExpanded;
-			}
-		});
+		const previousNode = this._previousTreeNodes.get(info.id);
+		if (previousNode) {
+			info.isSelected = previousNode.isSelected;
+			info.isExpanded = previousNode.isExpanded;
+		}
 
 		return info;
 	}
@@ -960,6 +1197,10 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		return (
 			<div
 				onClick={(ev) => {
+					if (isPlaySceneObject(this.props.editor, node)) {
+						return;
+					}
+
 					const enabled = !node.isEnabled();
 
 					let selectedNodeData = this.getSelectedNodes().map((n) => n.nodeData);
@@ -987,7 +1228,11 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 	}
 
 	private _getAdvancedTextureIconComponent(texture: AdvancedDynamicTexture): ReactNode {
-		const layer = this.props.editor.layout.preview.scene.layers.find((l) => l.texture === texture);
+		if (isPlaySceneObject(this.props.editor, texture)) {
+			return this._getIcon(texture);
+		}
+
+		const layer = getObjectScene(texture)?.layers.find((l) => l.texture === texture);
 		if (!layer) {
 			return null;
 		}
@@ -1081,13 +1326,15 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 	}
 
 	private _handleObjectModified(node: Node | BaseTexture | IParticleSystem | Sprite | Skeleton): void {
-		this._forEachNode(this.state.nodes, (n) => {
-			if (n.nodeData === node) {
-				n.label = this._getNodeLabelComponent(node, node.name);
-			}
+		[this.state.nodes, this.state.runtimeNodes].forEach((nodes) => {
+			this._forEachNode(nodes, (n) => {
+				if (n.nodeData === node) {
+					n.label = this._getNodeLabelComponent(node, node.name);
+				}
+			});
 		});
 
-		this.setState({ nodes: this.state.nodes });
+		this.setState({ nodes: this.state.nodes, runtimeNodes: this.state.runtimeNodes });
 	}
 
 	private _handleDropEmpty(ev: DragEvent<HTMLDivElement>): void {

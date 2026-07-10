@@ -30,6 +30,7 @@ import { waitNextAnimationFrame } from "../../../../tools/tools";
 import { onNodeModifiedObservable } from "../../../../tools/observables";
 import { updateIblShadowsRenderPipeline } from "../../../../tools/light/ibl";
 import { isAbstractMesh, isInstancedMesh, isMesh } from "../../../../tools/guards/nodes";
+import { isPlaySceneObject } from "../../../../tools/scene/play/runtime";
 import { updateAllLights, updateLightShadowMapRefreshRate, updatePointLightShadowMapRenderListPredicate } from "../../../../tools/light/shadows";
 
 import { applyMaterialAssetToObject } from "../../preview/import/material";
@@ -114,7 +115,12 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 									variant="ghost"
 									onClick={() => {
 										const instance = this.props.object as InstancedMesh;
-										this.props.editor.layout.preview.gizmo.setAttachedObject(instance.sourceMesh);
+
+										// Gizmos belong to the edited scene: don't attach them to play scene meshes.
+										if (!isPlaySceneObject(this.props.editor, instance.sourceMesh)) {
+											this.props.editor.layout.preview.gizmo.setAttachedObject(instance.sourceMesh);
+										}
+
 										this.props.editor.layout.graph.setSelectedNode(instance.sourceMesh);
 										this.props.editor.layout.inspector.setEditedObject(instance.sourceMesh);
 									}}
@@ -214,7 +220,10 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 			}
 		});
 
-		this.props.editor.layout.preview.selectionOutlineLayer.addSelection(this.props.object);
+		// The selection outline layer belongs to the edited scene: don't use it on play scene objects.
+		if (!isPlaySceneObject(this.props.editor, this.props.object)) {
+			this.props.editor.layout.preview.selectionOutlineLayer.addSelection(this.props.object);
+		}
 	}
 
 	public componentWillUnmount(): void {

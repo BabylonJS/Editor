@@ -174,6 +174,7 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 
 							if (!this.props.noUndoRedo) {
 								registerUndoRedo({
+									object: this.props.object,
 									executeRedo: true,
 									undo: () => {
 										this.props.object[this.props.property] = oldTexture;
@@ -648,6 +649,7 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 
 					if (!this.props.noUndoRedo) {
 						registerUndoRedo({
+							object: this.props.object,
 							executeRedo: true,
 							undo: () => (this.props.object[this.props.property] = oldTexture),
 							redo: () => (this.props.object[this.props.property] = newTexture),
@@ -674,6 +676,7 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 
 						if (!this.props.noUndoRedo) {
 							registerUndoRedo({
+								object: this.props.object,
 								executeRedo: true,
 								undo: () => (this.props.object[this.props.property] = oldTexture),
 								redo: () => (this.props.object[this.props.property] = newTexture),
@@ -713,6 +716,7 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 
 					if (oldTexture !== newTexture && !this.props.noUndoRedo) {
 						registerUndoRedo({
+							object: this.props.object,
 							executeRedo: true,
 							undo: () => {
 								this.props.object[this.props.property] = oldTexture;

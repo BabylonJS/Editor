@@ -129,6 +129,7 @@ export function CinematicEditorCurveHandle(props: ICinematicEditorCurveHandlePro
 					const newInTangent = props.nextEditableTangentProperty ? getEditablePropertyValue(props.nextEditableTangentProperty) : null;
 
 					registerUndoRedo({
+						object: props.cinematicEditor.editor.layout.preview.scene,
 						executeRedo: true,
 						undo: () => {
 							if (oldOutTangent !== null && props.editableTangentProperty) {
