@@ -76,7 +76,7 @@
 		"@xterm/addon-webgl": "0.20.0-beta.286",
 		"@xterm/xterm": "6.1.0-beta.22",
 		"assimpjs": "0.0.10",
-		"axios": "1.16.1",
+		"axios": "1.18.0",
 		"babylonjs": "9.12.1",
 		"babylonjs-addons": "9.12.1",
 		"babylonjs-editor-cli": "latest",
