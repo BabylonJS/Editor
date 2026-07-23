@@ -121,7 +121,7 @@
 		"react-loader-spinner": "6.1.6",
 		"react-resizable-panels": "^2.1.2",
 		"react-selectable": "^2.1.1",
-		"sharp": "0.34.3",
+		"sharp": "0.35.0",
 		"sonner": "^1.4.41",
 		"strip-ansi": "7.2.0",
 		"tailwind-merge": "^2.2.1",
