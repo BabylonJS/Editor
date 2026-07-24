@@ -152,7 +152,7 @@ export async function getAssetPreview(_scene: Scene, data: any): Promise<any> {
 export async function instantiateMeshAsset(scene: Scene, data: any, options: IMCPActionOptions): Promise<any> {
 	const absolutePath = resolveProjectPath(data.path);
 
-	const result = await loadImportedSceneFile(scene, absolutePath);
+	const result = await loadImportedSceneFile(scene, absolutePath, options.editor.path);
 	if (!result) {
 		throw new Error(`Failed to load mesh asset: ${data.path}`);
 	}

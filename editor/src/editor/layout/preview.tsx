@@ -1224,7 +1224,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		}
 
 		this.setState({ informationMessage: `Importing scene "${basename(absolutePath)}"...` });
-		const result = await loadImportedSceneFile(this.scene, absolutePath);
+		const result = await loadImportedSceneFile(this.scene, absolutePath, this.props.editor.path);
 		this.setState({ informationMessage: "" });
 
 		return result;
@@ -1347,7 +1347,10 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 				case ".obj":
 				case ".3ds":
 				case ".ms3d":
-				case ".blend":
+				case ".ply":
+				case ".sog":
+				case ".spz":
+				case ".splat":
 				case ".babylon":
 					this.importSceneFile(absolutePath, ev.shiftKey).then((result) => {
 						if (pick.pickedPoint) {
