@@ -1,5 +1,5 @@
 import { isAbsolute } from "path";
-import { join, dirname, basename } from "path/posix";
+import { join, dirname, basename, extname } from "path/posix";
 import { pathExists, readFile, readJSON, writeFile } from "fs-extra";
 
 import axios from "axios";
@@ -20,15 +20,19 @@ import {
 	Sprite,
 	IParticleSystem,
 	HDRCubeTexture,
+	GaussianSplattingMesh,
 } from "babylonjs";
 
+import * as fflate from "fflate";
+
 import { UniqueNumber } from "../../../../tools/tools";
-import { isMesh } from "../../../../tools/guards/nodes";
 import { isSprite } from "../../../../tools/guards/sprites";
 import { isTexture } from "../../../../tools/guards/texture";
 import { executeSimpleWorker } from "../../../../tools/worker";
 import { isMultiMaterial } from "../../../../tools/guards/material";
+import { isGaussianSplattingMesh, isMesh } from "../../../../tools/guards/nodes";
 import { configureSimultaneousLightsForMaterial } from "../../../../tools/material/material";
+import { removeGaussianSplattingCameraMeshes } from "../../../../tools/mesh/gaussian-splatting";
 import { onNodesAddedObservable, onTextureAddedObservable } from "../../../../tools/observables";
 
 import { projectConfiguration } from "../../../../project/configuration";
@@ -62,7 +66,7 @@ export async function tryConvertSceneFile(absolutePath: string, progress?: (perc
 	}
 }
 
-export async function loadImportedSceneFile(scene: Scene, absolutePath: string) {
+export async function loadImportedSceneFile(scene: Scene, absolutePath: string, appPath: string | null) {
 	if (!projectConfiguration.path) {
 		return null;
 	}
@@ -70,8 +74,17 @@ export async function loadImportedSceneFile(scene: Scene, absolutePath: string) 
 	let result: ISceneLoaderAsyncResult;
 
 	try {
+		const nodeModules = process.env.DEBUG ? "../node_modules" : "node_modules";
+
 		result = await ImportMeshAsync(basename(absolutePath), scene, {
 			rootUrl: join(dirname(absolutePath), "/"),
+			pluginOptions: {
+				splat: {
+					fflate,
+					spzLibraryUrl: join(appPath ?? "", nodeModules, "@adobe/spz/dist/spz.js"),
+					gaussianSplattingMesh: new GaussianSplattingMesh(basename(absolutePath), null, scene, true),
+				},
+			},
 		});
 		// result = await SceneLoader.ImportMeshAsync("", join(dirname(absolutePath), "/"), basename(absolutePath), scene);
 	} catch (e) {
@@ -92,7 +105,20 @@ export async function loadImportedSceneFile(scene: Scene, absolutePath: string) 
 	result.meshes.forEach((mesh) => {
 		configureImportedNodeIds(mesh);
 
-		mesh.receiveShadows = true;
+		if (isGaussianSplattingMesh(mesh)) {
+			mesh.scaling.scaleInPlace(100);
+
+			removeGaussianSplattingCameraMeshes(mesh);
+
+			switch (extname(absolutePath).toLowerCase()) {
+				case ".sog":
+				case ".spz":
+					mesh.rotation.x = Math.PI;
+					break;
+			}
+		} else {
+			mesh.receiveShadows = true;
+		}
 
 		if (mesh.skeleton) {
 			mesh.skeleton.id = Tools.RandomId();
@@ -127,7 +153,9 @@ export async function loadImportedSceneFile(scene: Scene, absolutePath: string) 
 		}
 
 		result.meshes.forEach((mesh) => {
-			shadowMap.renderList!.push(mesh);
+			if (!isGaussianSplattingMesh(mesh)) {
+				shadowMap.renderList!.push(mesh);
+			}
 		});
 	});
 

@@ -52,7 +52,7 @@ export async function getPreview(
 		});
 	}
 
-	return new Promise<string>((resolve) => {
+	return new Promise<string>(async (resolve) => {
 		scene.executeWhenReady(async () => {
 			scene.createDefaultCameraOrLight(true, true, true);
 			scene.createDefaultEnvironment({

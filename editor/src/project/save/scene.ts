@@ -19,7 +19,7 @@ import { isSpriteManagerNode, isSpriteMapNode } from "../../tools/guards/sprites
 import { serializePhysicsAggregate } from "../../tools/physics/serialization/aggregate";
 import { isAnimationGroupFromSceneLink, isFromSceneLink } from "../../tools/scene/scene-link";
 import { isGPUParticleSystem, isNodeParticleSystemSetMesh, isParticleSystem } from "../../tools/guards/particles";
-import { isAnyTransformNode, isClusteredLightContainer, isCollisionMesh, isEditorCamera, isMesh, isTransformNode } from "../../tools/guards/nodes";
+import { isAnyTransformNode, isClusteredLightContainer, isCollisionMesh, isEditorCamera, isGaussianSplattingMesh, isMesh, isTransformNode } from "../../tools/guards/nodes";
 
 import { taaPipelineCameraConfigurations } from "../../editor/rendering/taa";
 import { vlsPostProcessCameraConfigurations } from "../../editor/rendering/vls";
@@ -56,6 +56,7 @@ export function ensureSceneFolders(scenePath: string) {
 		createDirectoryIfNotExist(join(scenePath, "sprite-maps")),
 		createDirectoryIfNotExist(join(scenePath, "sprite-managers")),
 		createDirectoryIfNotExist(join(scenePath, "nodeParticleSystemSets")),
+		createDirectoryIfNotExist(join(scenePath, "splats")),
 	]);
 }
 
@@ -99,7 +100,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 	// Write geometries and meshes
 	await Promise.all(
 		meshesToSave.map(async (mesh) => {
-			if ((!isMesh(mesh) && !isCollisionMesh(mesh)) || mesh._masterMesh || isFromSceneLink(mesh) || !isNodeVisibleInGraph(mesh)) {
+			if ((!isMesh(mesh) && !isCollisionMesh(mesh)) || mesh._masterMesh || isFromSceneLink(mesh) || !isNodeVisibleInGraph(mesh) || isGaussianSplattingMesh(mesh)) {
 				return;
 			}
 
@@ -286,6 +287,40 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 						}
 					})
 			);
+
+			dialog.step(progressStep);
+		})
+	);
+
+	// Write gaussian splatting meshes
+	await Promise.all(
+		scene.meshes.map(async (mesh) => {
+			if (!isGaussianSplattingMesh(mesh) || isFromSceneLink(mesh)) {
+				return;
+			}
+
+			const meshPath = join(scenePath, "meshes", `${mesh.id}.json`);
+			const splatPath = join(scenePath, "splats", `${mesh.id}.babylonbinarysplatdata`);
+
+			try {
+				const data = mesh.serialize(
+					{
+						splatDataPath: join(relativeScenePath, `splats/${mesh.id}.babylonbinarysplatdata`),
+					},
+					"binary"
+				);
+
+				await writeFile(splatPath, Buffer.from(data.splatsData));
+				delete data.splatsData;
+
+				await writeJSON(meshPath, data, {
+					spaces: 4,
+				});
+			} catch (e) {
+				editor.layout.console.error(`Failed to write gaussian splatting mesh ${mesh.name}`);
+			} finally {
+				savedFiles.push(meshPath, splatPath);
+			}
 
 			dialog.step(progressStep);
 		})

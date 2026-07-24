@@ -1,7 +1,7 @@
 import { join } from "path/posix";
-import { readJSON } from "fs-extra";
+import { readFile, readJSON } from "fs-extra";
 
-import { Scene, Constants, Matrix, Mesh, SceneLoader, MultiMaterial, Geometry } from "babylonjs";
+import { Scene, Constants, Matrix, Mesh, SceneLoader, MultiMaterial, Geometry, GaussianSplattingMesh } from "babylonjs";
 
 import { ISceneLoaderPluginOptions } from "../scene";
 
@@ -10,6 +10,7 @@ import { isCollisionMesh, isMesh } from "../../../tools/guards/nodes";
 import { isMultiMaterial, isNodeMaterial } from "../../../tools/guards/material";
 import { parsePhysicsAggregate } from "../../../tools/physics/serialization/aggregate";
 import { configureSimultaneousLightsForMaterial, normalizeNodeMaterialUniqueIds } from "../../../tools/material/material";
+import { configureGaussianSplattingMeshFromData, removeGaussianSplattingCameraMeshes } from "../../../tools/mesh/gaussian-splatting";
 
 import { CollisionMesh } from "../../../editor/nodes/collision";
 
@@ -24,6 +25,18 @@ export async function loadMeshes(meshesFiles: string[], scene: Scene, options: I
 
 			if (options?.asLink && initialData.metadata?.doNotSerialize) {
 				return;
+			}
+
+			if (initialData.type === "GaussianSplattingMesh") {
+				const splatBuffer = await readFile(join(options.projectPath, initialData.splatDataPath));
+				initialData.splatsData = splatBuffer.buffer;
+
+				const parsedMesh = GaussianSplattingMesh.Parse(initialData, scene);
+
+				configureGaussianSplattingMeshFromData(parsedMesh, initialData);
+				removeGaussianSplattingCameraMeshes(parsedMesh);
+
+				return [parsedMesh];
 			}
 
 			const filesToLoad = [join(options.relativeScenePath, "meshes", file), ...(initialData.lods?.map((file) => join(options.relativeScenePath, "lods", file)) ?? [])];

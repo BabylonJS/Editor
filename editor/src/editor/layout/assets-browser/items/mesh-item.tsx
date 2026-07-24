@@ -93,7 +93,7 @@ export class AssetBrowserMeshItem extends AssetsBrowserItem {
 				this.props.onRefresh();
 
 				const scene = new Scene(this.props.editor.layout.preview.engine);
-				await loadImportedSceneFile(scene, file);
+				await loadImportedSceneFile(scene, file, this.props.editor.path);
 
 				const data = await SceneSerializer.SerializeAsync(scene);
 				await writeJSON(`${file}.babylon`, data, "utf-8");

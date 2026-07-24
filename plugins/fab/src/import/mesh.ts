@@ -16,7 +16,7 @@ export async function importMesh(editor: Editor, parameters: IImportMeshParamete
 	const dest = join(parameters.finalAssetsFolder, basename(parameters.json.file));
 
 	const rootNodes: Node[] = [];
-	const result = await loadImportedSceneFile(editor.layout.preview.scene, dest);
+	const result = await loadImportedSceneFile(editor.layout.preview.scene, dest, editor.path);
 
 	result?.meshes.forEach((mesh) => {
 		mesh.material = parameters.materialsMap.get(parameters.json.material_index) ?? mesh.material;

@@ -7,6 +7,7 @@ import { GroundMesh } from "@babylonjs/core/Meshes/groundMesh";
 import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { InstancedMesh } from "@babylonjs/core/Meshes/instancedMesh";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
+import { GaussianSplattingMesh } from "@babylonjs/core/Meshes/GaussianSplatting/gaussianSplattingMesh";
 
 import { Texture } from "@babylonjs/core/Materials/Textures/texture";
 
@@ -256,4 +257,12 @@ export function isSprite(object: any): object is Sprite {
  */
 export function isSoundNode(object: any): object is SoundNode {
 	return object.getClassName?.() === "SoundNode";
+}
+
+/**
+ * Returns wether or not the given object is a GaussianSplattingMesh.
+ * @param object defines the reference to the object to test its class name.
+ */
+export function isGaussianSplattingMesh(object: any): object is GaussianSplattingMesh {
+	return object.getClassName?.() === "GaussianSplattingMesh";
 }
