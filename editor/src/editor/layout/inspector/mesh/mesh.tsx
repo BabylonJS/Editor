@@ -29,7 +29,7 @@ import { registerUndoRedo } from "../../../../tools/undoredo";
 import { waitNextAnimationFrame } from "../../../../tools/tools";
 import { onNodeModifiedObservable } from "../../../../tools/observables";
 import { updateIblShadowsRenderPipeline } from "../../../../tools/light/ibl";
-import { isAbstractMesh, isInstancedMesh, isMesh } from "../../../../tools/guards/nodes";
+import { isAbstractMesh, isGaussianSplattingMesh, isInstancedMesh, isMesh } from "../../../../tools/guards/nodes";
 import { updateAllLights, updateLightShadowMapRefreshRate, updatePointLightShadowMapRenderListPredicate } from "../../../../tools/light/shadows";
 
 import { applyMaterialAssetToObject } from "../../preview/import/material";
@@ -162,11 +162,11 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 				{this.props.object.geometry && (
 					<>
 						<EditorMeshCollisionInspector {...this.props} />
-						<EditorMeshPhysicsInspector mesh={this.props.object} />
+						{!isGaussianSplattingMesh(this.props.object) && <EditorMeshPhysicsInspector mesh={this.props.object} />}
 					</>
 				)}
 
-				{this.props.object.getScene().lights.length > 0 && this.props.object.geometry && (
+				{this.props.object.getScene().lights.length > 0 && this.props.object.geometry && !isGaussianSplattingMesh(this.props.object) && (
 					<EditorInspectorSectionField title="Shadows">
 						<EditorInspectorSwitchField
 							label="Cast Shadows"
@@ -447,7 +447,7 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 						if (index !== undefined && index !== -1) {
 							light.getShadowGenerator()?.getShadowMap()?.renderList?.splice(index, 1);
 						}
-					} else {
+					} else if (!isGaussianSplattingMesh(this.props.object)) {
 						light.getShadowGenerator()?.getShadowMap()?.renderList?.push(this.props.object);
 					}
 
@@ -457,7 +457,7 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 			},
 			redo: () => {
 				lightsWithShadows.forEach((light) => {
-					if (enabled) {
+					if (enabled && !isGaussianSplattingMesh(this.props.object)) {
 						light.getShadowGenerator()?.getShadowMap()?.renderList?.push(this.props.object);
 					} else {
 						const index = light.getShadowGenerator()?.getShadowMap()?.renderList?.indexOf(this.props.object);
