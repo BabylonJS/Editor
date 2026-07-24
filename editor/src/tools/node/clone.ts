@@ -18,6 +18,7 @@ import { isClusteredLight } from "../light/cluster";
 import { parsePhysicsAggregate, serializePhysicsAggregate } from "../physics/serialization/aggregate";
 
 import { isTexture } from "../guards/texture";
+import { isSoundNode } from "../guards/sound";
 import { isSprite, isSpriteManagerNode, isSpriteMapNode } from "../guards/sprites";
 import { isAnyParticleSystem, isNodeParticleSystemSetMesh } from "../guards/particles";
 import { isCamera, isInstancedMesh, isLight, isMesh, isNode, isTransformNode } from "../guards/nodes";
@@ -61,6 +62,8 @@ export function cloneNode(editor: Editor, node: Node | Sprite | ParticleSystem |
 		clone = node.clone(name, node.parent, false);
 	} else if (isSprite(node)) {
 		clone = cloneSprite(node);
+	} else if (isSoundNode(node)) {
+		clone = node.clone(name);
 	} else if (isSpriteManagerNode(node)) {
 		const serializationData = node.serialize();
 
