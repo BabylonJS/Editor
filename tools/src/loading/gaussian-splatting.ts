@@ -20,7 +20,7 @@ export function registerGaussianSplattingParser() {
 				return;
 			}
 
-			const instantiatedMesh = scene.getMeshById(mesh.id) as GaussianSplattingMesh;
+			const instantiatedMesh = container.meshes.find((m) => m.id === mesh.id) as GaussianSplattingMesh;
 			if (!instantiatedMesh) {
 				return;
 			}

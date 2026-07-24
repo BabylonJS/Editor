@@ -88,6 +88,22 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 	const meshesResult = await Promise.all(
 		options.directories.meshesFiles.map(async (file) => {
 			const data = await fs.readJSON(join(options.sceneFile, "meshes", file));
+
+			if (data.type === "GaussianSplattingMesh") {
+				data.splatDataPath = join(options.sceneName, basename(data.splatDataPath));
+
+				const splatDataDestination = join(options.publicDir, data.splatDataPath);
+				await fs.copyFile(join(options.sceneFile, "splats", basename(data.splatDataPath)), splatDataDestination);
+
+				options.exportedAssets.push(splatDataDestination);
+
+				return {
+					mesh: data,
+					lodMeshes: [],
+					effectiveMaterials: [],
+				};
+			}
+
 			const mesh = data.meshes[0];
 
 			if (mesh.metadata?.doNotSerialize) {

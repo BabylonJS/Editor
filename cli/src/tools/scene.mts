@@ -24,6 +24,7 @@ export async function ensureSceneDirectories(scenePath: string) {
 		fs.ensureDir(join(scenePath, "sprite-maps")),
 		fs.ensureDir(join(scenePath, "sprite-managers")),
 		fs.ensureDir(join(scenePath, "nodeParticleSystemSets")),
+		fs.ensureDir(join(scenePath, "splats")),
 	]);
 }
 
@@ -48,6 +49,7 @@ export async function readSceneDirectories(scenePath: string) {
 		spriteManagerFiles,
 		geometryFiles,
 		nodeParticleSystemSetFiles,
+		gaussianSplattingFiles,
 	] = await Promise.all([
 		readdir(join(scenePath, "nodes")),
 		readdir(join(scenePath, "meshes")),
@@ -68,6 +70,7 @@ export async function readSceneDirectories(scenePath: string) {
 		readdir(join(scenePath, "sprite-managers")),
 		readdir(join(scenePath, "geometries")),
 		readdir(join(scenePath, "nodeParticleSystemSets")),
+		readdir(join(scenePath, "splats")),
 	]);
 
 	return {
@@ -90,5 +93,6 @@ export async function readSceneDirectories(scenePath: string) {
 		spriteManagerFiles,
 		geometryFiles,
 		nodeParticleSystemSetFiles,
+		gaussianSplattingFiles,
 	};
 }
