@@ -1,6 +1,6 @@
 import { Light, RenderTargetTexture, Scene, Vector3 } from "babylonjs";
 
-import { isPointLight, isSpotLight } from "../guards/nodes";
+import { isGaussianSplattingMesh, isPointLight, isSpotLight } from "../guards/nodes";
 
 /**
  * Updates the shadow map render list predicate of the given point light.
@@ -19,6 +19,10 @@ export function updatePointLightShadowMapRenderListPredicate(light: Light): void
 	}
 
 	shadowMap.renderListPredicate = (mesh) => {
+		if (isGaussianSplattingMesh(mesh)) {
+			return false;
+		}
+
 		const distance = Vector3.Distance(mesh.getAbsolutePosition(), light.getAbsolutePosition());
 		return distance <= light.range;
 	};

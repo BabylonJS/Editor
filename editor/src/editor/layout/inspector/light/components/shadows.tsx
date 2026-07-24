@@ -5,8 +5,8 @@ import { CascadedShadowGenerator, DirectionalLight, IShadowGenerator, IShadowLig
 
 import { waitNextAnimationFrame } from "../../../../../tools/tools";
 import { getPowerOfTwoSizesUntil } from "../../../../../tools/maths/scalar";
-import { isDirectionalLight, isPointLight } from "../../../../../tools/guards/nodes";
 import { isCascadedShadowGenerator, isShadowGenerator } from "../../../../../tools/guards/shadows";
+import { isDirectionalLight, isGaussianSplattingMesh, isPointLight } from "../../../../../tools/guards/nodes";
 import { updateLightShadowMapRefreshRate, updatePointLightShadowMapRenderListPredicate } from "../../../../../tools/light/shadows";
 
 import { Editor } from "../../../../main";
@@ -131,7 +131,11 @@ export class EditorLightShadowsInspector extends Component<IEditorLightShadowsIn
 		if (renderList) {
 			generator.getShadowMap()?.renderList?.push(...renderList);
 		} else {
-			generator.getShadowMap()?.renderList?.push(...generator.getLight().getScene().meshes);
+			const meshes = generator
+				.getLight()
+				.getScene()
+				.meshes.filter((m) => !isGaussianSplattingMesh(m));
+			generator.getShadowMap()?.renderList?.push(...meshes);
 		}
 
 		this._refreshShadowGenerator();

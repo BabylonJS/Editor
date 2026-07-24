@@ -60,6 +60,7 @@ import {
 	isCollisionInstancedMesh,
 	isCollisionMesh,
 	isEditorCamera,
+	isGaussianSplattingMesh,
 	isInstancedMesh,
 	isLight,
 	isMesh,
@@ -524,7 +525,10 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		}
 
 		const newNodes: (Node | IParticleSystem | Sprite)[] = [];
-		const nodesToCopy = this._objectsToCopy.map((n) => n.nodeData);
+		const nodesToCopy = this._objectsToCopy.map((n) => n.nodeData).filter((n) => !isGaussianSplattingMesh(n));
+		if (!nodesToCopy.length) {
+			return;
+		}
 
 		registerUndoRedo({
 			executeRedo: true,
@@ -558,7 +562,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 					nodesToCopy.forEach((object) => {
 						let node: Node | IParticleSystem | Sprite | null = null;
 
-						if (isAbstractMesh(object) && !isNodeParticleSystemSetMesh(object)) {
+						if (isAbstractMesh(object) && !isNodeParticleSystemSetMesh(object) && !isGaussianSplattingMesh(object)) {
 							const suffix = "(Instanced Mesh)";
 							const name = isInstancedMesh(object) ? object.name : `${object.name.replace(` ${suffix}`, "")} ${suffix}`;
 
@@ -582,6 +586,8 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 							const name = `${object.name.replace(` ${suffix}`, "")} ${suffix}`;
 
 							node = object.clone(name, parent, false);
+						} else if (isGaussianSplattingMesh(object)) {
+							// TODO
 						} else if (isNode(object) || isSprite(object)) {
 							node = cloneNode(this.props.editor, object);
 						}
@@ -602,7 +608,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 								}
 							}
 
-							if (isAbstractMesh(node)) {
+							if (isAbstractMesh(node) && !isGaussianSplattingMesh(node)) {
 								this.props.editor.layout.preview.scene.lights
 									.map((light) => light.getShadowGenerator())
 									.forEach((generator) => generator?.getShadowMap()?.renderList?.push(node));

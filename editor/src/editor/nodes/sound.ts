@@ -187,6 +187,10 @@ export class SoundNode extends TransformNode {
 		super.dispose(false, true);
 	}
 
+	public clone(name: string): SoundNode {
+		return SerializationHelper.Clone(() => new SoundNode(name, this.getScene()), this);
+	}
+
 	/**
 	 * Gets the current object class name.
 	 * @return the class name
