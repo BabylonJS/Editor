@@ -5,6 +5,7 @@ import { RenderTargetTexture } from "@babylonjs/core/Materials/Textures/renderTa
 import { SceneLoaderQualitySelector } from "../loading/loader";
 
 import { getPowerOfTwoUntil } from "./scalar";
+import { isGaussianSplattingMesh } from "./guards";
 
 declare module "@babylonjs/core/Lights/Shadows/shadowGenerator" {
 	export interface IShadowGenerator {
@@ -20,6 +21,10 @@ export function configureShadowMapRenderListPredicate(scene: Scene) {
 		}
 
 		shadowMap.renderListPredicate = (mesh) => {
+			if (isGaussianSplattingMesh(mesh)) {
+				return false;
+			}
+
 			const distance = Vector3.Distance(mesh.getAbsolutePosition(), light.getAbsolutePosition());
 			return distance <= light.range;
 		};

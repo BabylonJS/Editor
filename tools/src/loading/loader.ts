@@ -22,13 +22,14 @@ import { _preloadScriptsAssets } from "./script/preload";
 import { registerAudioParser } from "./sound";
 import { registerTextureParser } from "./texture";
 import { registerShadowGeneratorParser } from "./shadows";
+import { registerSpriteManagerParser } from "./sprite-manager";
+import { registerGaussianSplattingParser } from "./gaussian-splatting";
 import { registerMorphTargetManagerParser } from "./morph-target-manager";
+import { registerNodeParticleSystemSetParser } from "./node-particle-system-set";
 
 import { configureLights } from "./light";
 import { registerSpriteMapParser } from "./sprite-map";
 import { configureTransformNodes } from "./transform-node";
-import { registerSpriteManagerParser } from "./sprite-manager";
-import { registerNodeParticleSystemSetParser } from "./node-particle-system-set";
 
 /**
  * Defines the possible output type of a script.
@@ -151,6 +152,8 @@ export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scen
 	registerSpriteManagerParser();
 
 	registerNodeParticleSystemSetParser();
+
+	registerGaussianSplattingParser();
 
 	// Check configuration
 	const configuration = sceneConfigurationMap.get(scene) ?? {};
