@@ -4,7 +4,7 @@ import { getIblShadowsRenderingPipeline } from "../../editor/rendering/ibl-shado
 
 import { unique } from "../tools";
 
-import { isMesh } from "../guards/nodes";
+import { isGaussianSplattingMesh, isMesh } from "../guards/nodes";
 
 export function updateIblShadowsRenderPipeline(scene: Scene, updateVoxelization?: boolean) {
 	const iblShadowRenderPipeline = getIblShadowsRenderingPipeline();
@@ -23,7 +23,7 @@ export function updateIblShadowsRenderPipeline(scene: Scene, updateVoxelization?
 	const shadowGenerators = scene.lights.map((l) => l.getShadowGenerator());
 	shadowGenerators.forEach((shadowGenerator) => {
 		shadowGenerator?.getShadowMap()?.renderList?.forEach((mesh) => {
-			if (isMesh(mesh)) {
+			if (isMesh(mesh) && !isGaussianSplattingMesh(mesh)) {
 				meshes.push(mesh);
 			}
 		});
