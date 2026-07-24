@@ -895,6 +895,10 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 			case ".lwo":
 			case ".gltf":
 			case ".ms3d":
+			case ".ply":
+			case ".sog":
+			case ".spz":
+			case ".splat":
 			case ".babylon":
 				return <MeshSelectable {...props} />;
 
@@ -1474,6 +1478,10 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 			case ".gltf":
 			case ".babylon":
 			case ".fbx":
+			case ".ply":
+			case ".sog":
+			case ".spz":
+			case ".splat":
 				return openModelViewer(this.props.editor, item.props.absolutePath);
 
 			case ".env":
