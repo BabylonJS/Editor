@@ -1,5 +1,5 @@
 import { join, dirname, basename, extname } from "path/posix";
-import { readJSON, readdir, remove, writeJSON } from "fs-extra";
+import { readJSON, readdir, remove, writeFile, writeJSON } from "fs-extra";
 
 import { RenderTargetTexture, SceneSerializer } from "babylonjs";
 
@@ -11,7 +11,7 @@ import { getCollisionMeshFor } from "../../tools/mesh/collision";
 import { storeTexturesBaseSize } from "../../tools/material/texture";
 import { extractNodeMaterialTextures } from "../../tools/material/extract";
 import { createDirectoryIfNotExist, normalizedGlob } from "../../tools/fs";
-import { isCollisionMesh, isEditorCamera, isMesh } from "../../tools/guards/nodes";
+import { isCollisionMesh, isEditorCamera, isGaussianSplattingMesh, isMesh } from "../../tools/guards/nodes";
 import { extractNodeParticleSystemSetTextures, extractParticleSystemTextures } from "../../tools/particles/extract";
 
 import { taaPipelineCameraConfigurations } from "../../editor/rendering/taa";
@@ -221,7 +221,26 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 				}
 			}
 
-			const geometry = data.geometries?.vertexData?.find((v) => v.id === mesh.geometryId);
+			let geometry: any = null;
+
+			if (isGaussianSplattingMesh(instantiatedMesh)) {
+				if (instantiatedMesh.splatsData) {
+					const splatPath = join(scenePath, sceneName, `${instantiatedMesh.id}.babylonbinarysplatdata`);
+
+					try {
+						await writeFile(splatPath, Buffer.from(instantiatedMesh.splatsData));
+
+						mesh.splatDataPath = `${sceneName}/${instantiatedMesh.id}.babylonbinarysplatdata`;
+						delete mesh.splatsData;
+
+						savedGeometries.push(`${instantiatedMesh.id}.babylonbinarysplatdata`);
+					} catch (e) {
+						editor.layout.console.error(`Export: Failed to write gaussian splatting data for mesh ${mesh.name}`);
+					}
+				}
+			} else {
+				geometry = data.geometries?.vertexData?.find((v) => v.id === mesh.geometryId);
+			}
 
 			if (geometry) {
 				const geometryFileName = `${geometry.id}.babylonbinarymeshdata`;

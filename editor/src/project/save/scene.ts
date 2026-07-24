@@ -311,6 +311,8 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 				);
 
 				await writeFile(splatPath, Buffer.from(data.splatsData));
+
+				delete data.shData;
 				delete data.splatsData;
 
 				await writeJSON(meshPath, data, {
