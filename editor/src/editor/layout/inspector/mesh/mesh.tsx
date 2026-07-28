@@ -181,7 +181,7 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 
 				<ScriptInspectorComponent editor={this.props.editor} object={this.props.object} />
 
-				{isMesh(this.props.object) && (
+				{isMesh(this.props.object) && !isGaussianSplattingMesh(this.props.object) && (
 					<>
 						<MeshGeometryInspector object={this.props.object} editor={this.props.editor} />
 						<MeshDecalInspector object={this.props.object} />
