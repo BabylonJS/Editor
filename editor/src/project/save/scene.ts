@@ -306,10 +306,14 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 				const data = mesh.serialize(
 					{
 						metadata: mesh.metadata,
+						isEnabled: mesh.isEnabled(false),
 						splatDataPath: join(relativeScenePath, `splats/${mesh.id}.babylonbinarysplatdata`),
 					},
 					"binary"
 				);
+
+				data.metadata ??= {};
+				data.metadata.parentId = mesh.parent?.uniqueId;
 
 				await writeFile(splatPath, Buffer.from(data.splatsData));
 
