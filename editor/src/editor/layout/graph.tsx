@@ -984,6 +984,10 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			return null;
 		}
 
+		if (this.state.playScene && node.reservedDataStore?.hidden) {
+			return null;
+		}
+
 		node.id ??= Tools.RandomId();
 
 		const info = {

@@ -33,6 +33,9 @@ export function registerGaussianSplattingParser() {
 					flipY: mesh._flipY,
 				});
 
+				instantiatedMesh.metadata = mesh.metadata ?? {};
+				instantiatedMesh.setEnabled(mesh.isEnabled ?? true);
+
 				scene.removePendingData(splatDataUrl);
 			});
 		});
