@@ -7,6 +7,8 @@ export function configureGaussianSplattingMeshFromData(gaussianSplattingMesh: Ga
 	gaussianSplattingMesh.id = data.id;
 	gaussianSplattingMesh.uniqueId = data.uniqueId;
 
+	gaussianSplattingMesh.metadata = data.metadata ?? {};
+
 	if (data.position) {
 		gaussianSplattingMesh.position.copyFromFloats(data.position[0], data.position[1], data.position[2]);
 	}
