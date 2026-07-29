@@ -60,7 +60,7 @@ import {
 	isCollisionInstancedMesh,
 	isCollisionMesh,
 	isEditorCamera,
-	isGaussianSplattingMesh,
+	isGaussianSplattingPartProxyMesh,
 	isInstancedMesh,
 	isLight,
 	isMesh,
@@ -91,6 +91,7 @@ import { applySoundAsset } from "./preview/import/sound";
 import { EditorGraphLabel } from "./graph/label";
 import { EditorGraphContextMenu } from "./graph/context-menu";
 import { setNewParentForGraphSelectedNodes } from "./graph/move";
+import { addGaussianSplattingMeshPartProxyMesh } from "../../tools/mesh/gaussian-splatting";
 
 export interface IEditorGraphProps {
 	/**
@@ -525,7 +526,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		}
 
 		const newNodes: (Node | IParticleSystem | Sprite)[] = [];
-		const nodesToCopy = this._objectsToCopy.map((n) => n.nodeData).filter((n) => !isGaussianSplattingMesh(n));
+		const nodesToCopy = this._objectsToCopy.map((n) => n.nodeData);
 		if (!nodesToCopy.length) {
 			return;
 		}
@@ -559,10 +560,10 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 				const tempTransfromNode = new TransformNode("tempParent", this.props.editor.layout.preview.scene);
 
 				try {
-					nodesToCopy.forEach((object) => {
+					nodesToCopy.forEach(async (object) => {
 						let node: Node | IParticleSystem | Sprite | null = null;
 
-						if (isAbstractMesh(object) && !isNodeParticleSystemSetMesh(object) && !isGaussianSplattingMesh(object)) {
+						if (isAbstractMesh(object) && !isNodeParticleSystemSetMesh(object) && !isGaussianSplattingPartProxyMesh(object)) {
 							const suffix = "(Instanced Mesh)";
 							const name = isInstancedMesh(object) ? object.name : `${object.name.replace(` ${suffix}`, "")} ${suffix}`;
 
@@ -586,8 +587,21 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 							const name = `${object.name.replace(` ${suffix}`, "")} ${suffix}`;
 
 							node = object.clone(name, parent, false);
-						} else if (isGaussianSplattingMesh(object)) {
-							// TODO
+						} else if (isGaussianSplattingPartProxyMesh(object) && object.baseGaussianSplattingMesh) {
+							const proxyMesh = addGaussianSplattingMeshPartProxyMesh(object.baseGaussianSplattingMesh, this.props.editor);
+							if (proxyMesh) {
+								node = proxyMesh;
+
+								const suffix = "(Proxy Mesh)";
+								const name = `${object.name.replace(` ${suffix}`, "")} ${suffix}`;
+
+								proxyMesh.name = name;
+								proxyMesh.position.copyFrom(object.position);
+								proxyMesh.rotation.copyFrom(object.rotation);
+								proxyMesh.scaling.copyFrom(object.scaling);
+								proxyMesh.rotationQuaternion = object.rotationQuaternion?.clone() ?? null;
+								proxyMesh.parent = object.parent;
+							}
 						} else if (isNode(object) || isSprite(object)) {
 							node = cloneNode(this.props.editor, object);
 						}
@@ -608,7 +622,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 								}
 							}
 
-							if (isAbstractMesh(node) && !isGaussianSplattingMesh(node)) {
+							if (isAbstractMesh(node) && !isGaussianSplattingPartProxyMesh(node)) {
 								this.props.editor.layout.preview.scene.lights
 									.map((light) => light.getShadowGenerator())
 									.forEach((generator) => generator?.getShadowMap()?.renderList?.push(node));
@@ -984,7 +998,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			return null;
 		}
 
-		if (this.state.playScene && node.reservedDataStore?.hidden) {
+		if (node.reservedDataStore?.hidden) {
 			return null;
 		}
 

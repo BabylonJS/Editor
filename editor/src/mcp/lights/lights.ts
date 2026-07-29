@@ -1,6 +1,6 @@
 import { Scene, Node, Light, ShadowGenerator, CascadedShadowGenerator, IShadowLight, DirectionalLight, SpotLight, PointLight } from "babylonjs";
 
-import { isGaussianSplattingMesh, isLight } from "../../tools/guards/nodes";
+import { isGaussianSplattingMesh, isGaussianSplattingPartProxyMesh, isLight } from "../../tools/guards/nodes";
 
 import { addPointLight, addDirectionalLight, addSpotLight, addHemisphericLight } from "../../project/add/light";
 
@@ -133,7 +133,7 @@ export function setLightShadows(scene: Scene, data: any, options: IMCPActionOpti
 			generator.setDarkness(data.darkness);
 		}
 
-		generator.getShadowMap()?.renderList?.push(...scene.meshes.filter((m) => !isGaussianSplattingMesh(m)));
+		generator.getShadowMap()?.renderList?.push(...scene.meshes.filter((m) => !isGaussianSplattingPartProxyMesh(m) && !isGaussianSplattingMesh(m)));
 	}
 
 	options.editor.layout.inspector.setEditedObject(node);

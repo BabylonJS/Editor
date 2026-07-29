@@ -287,7 +287,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 
 	await loadTransformNodes(editor, nodesFiles, scene, pluginLoadOptions);
 	await loadSkeletons(editor, skeletonFiles, scene, pluginLoadOptions);
-	await loadMeshes(meshesFiles, scene, pluginLoadOptions);
+	await loadMeshes(editor, meshesFiles, scene, pluginLoadOptions);
 	await loadMorphTargetManagers(editor, morphTargetManagerFiles, scene, pluginLoadOptions);
 	await loadLights(editor, lightsFiles, scene, pluginLoadOptions);
 	await loadCameras(editor, cameraFiles, scene, pluginLoadOptions);

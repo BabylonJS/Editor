@@ -1,7 +1,7 @@
 import { join, dirname, basename, extname } from "path/posix";
 import { readJSON, readdir, remove, writeFile, writeJSON } from "fs-extra";
 
-import { RenderTargetTexture, SceneSerializer } from "babylonjs";
+import { RenderTargetTexture, SceneSerializer, GaussianSplattingMesh } from "babylonjs";
 
 import { toast } from "sonner";
 
@@ -11,8 +11,8 @@ import { getCollisionMeshFor } from "../../tools/mesh/collision";
 import { storeTexturesBaseSize } from "../../tools/material/texture";
 import { extractNodeMaterialTextures } from "../../tools/material/extract";
 import { createDirectoryIfNotExist, normalizedGlob } from "../../tools/fs";
-import { isCollisionMesh, isEditorCamera, isGaussianSplattingMesh, isMesh } from "../../tools/guards/nodes";
 import { extractNodeParticleSystemSetTextures, extractParticleSystemTextures } from "../../tools/particles/extract";
+import { isCollisionMesh, isEditorCamera, isGaussianSplattingPartProxyMesh, isMesh } from "../../tools/guards/nodes";
 
 import { taaPipelineCameraConfigurations } from "../../editor/rendering/taa";
 import { vlsPostProcessCameraConfigurations } from "../../editor/rendering/vls";
@@ -113,7 +113,7 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 
 	storeTexturesBaseSize(scene);
 
-	scene.meshes.forEach((mesh) => (mesh.doNotSerialize = mesh.metadata?.doNotSerialize ?? false));
+	scene.meshes.forEach((mesh) => (mesh.doNotSerialize = ((mesh.metadata?.doNotSerialize ?? false) || mesh.reservedDataStore?.hidden) ?? false));
 	scene.lights.forEach((light) => (light.doNotSerialize = light.metadata?.doNotSerialize ?? false));
 	scene.cameras.forEach((camera) => (camera.doNotSerialize = camera.metadata?.doNotSerialize ?? false));
 	scene.transformNodes.forEach((transformNode) => (transformNode.doNotSerialize = transformNode.metadata?.doNotSerialize ?? false));
@@ -221,26 +221,7 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 				}
 			}
 
-			let geometry: any = null;
-
-			if (isGaussianSplattingMesh(instantiatedMesh)) {
-				if (instantiatedMesh.splatsData) {
-					const splatPath = join(scenePath, sceneName, `${instantiatedMesh.id}.babylonbinarysplatdata`);
-
-					try {
-						await writeFile(splatPath, Buffer.from(instantiatedMesh.splatsData));
-
-						mesh.splatDataPath = `${sceneName}/${instantiatedMesh.id}.babylonbinarysplatdata`;
-						delete mesh.splatsData;
-
-						savedGeometries.push(`${instantiatedMesh.id}.babylonbinarysplatdata`);
-					} catch (e) {
-						editor.layout.console.error(`Export: Failed to write gaussian splatting data for mesh ${mesh.name}`);
-					}
-				}
-			} else {
-				geometry = data.geometries?.vertexData?.find((v) => v.id === mesh.geometryId);
-			}
+			const geometry = data.geometries?.vertexData?.find((v) => v.id === mesh.geometryId);
 
 			if (geometry) {
 				const geometryFileName = `${geometry.id}.babylonbinarymeshdata`;
@@ -278,6 +259,52 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 				} catch (e) {
 					editor.layout.console.error(`Export: Failed to write geometry for mesh ${mesh.name}`);
 				}
+			}
+		})
+	);
+
+	// Add gaussian splatting meshes to the list
+	const computedGaussianSplattingMeshes: GaussianSplattingMesh[] = [];
+
+	await Promise.all(
+		scene.meshes.map(async (mesh) => {
+			if (!isGaussianSplattingPartProxyMesh(mesh) || !mesh.baseGaussianSplattingMesh?.splatsData) {
+				return;
+			}
+
+			if (computedGaussianSplattingMeshes.includes(mesh.baseGaussianSplattingMesh)) {
+				return;
+			}
+
+			computedGaussianSplattingMeshes.push(mesh.baseGaussianSplattingMesh);
+
+			const splatDataPath = join(scenePath, sceneName, `${mesh.baseGaussianSplattingMesh.id}.babylonbinarysplatdata`);
+
+			try {
+				await writeFile(splatDataPath, Buffer.from(mesh.baseGaussianSplattingMesh.splatsData));
+
+				const gaussianSplatData = mesh.baseGaussianSplattingMesh.serialize(
+					{
+						proxies: [],
+						metadata: mesh.metadata,
+						isEnabled: mesh.isEnabled(false),
+						splatDataPath: `${sceneName}/${mesh.baseGaussianSplattingMesh.id}.babylonbinarysplatdata`,
+					},
+					"binary"
+				);
+
+				const allMeshProxies = scene.meshes.filter((m) => isGaussianSplattingPartProxyMesh(m) && m.baseGaussianSplattingMesh === mesh.baseGaussianSplattingMesh);
+				allMeshProxies.forEach((proxy) => {
+					const proxyData = proxy.serialize();
+					proxyData.parentId = proxy.parent?.id;
+					delete proxyData.compoundSplatMeshId;
+					gaussianSplatData.proxies.push(proxyData);
+				});
+
+				data.meshes?.push(gaussianSplatData);
+				savedGeometries.push(`${mesh.baseGaussianSplattingMesh.id}.babylonbinarysplatdata`);
+			} catch (e) {
+				editor.layout.console.error(`Export: Failed to write gaussian splatting data for mesh ${mesh.name}`);
 			}
 		})
 	);

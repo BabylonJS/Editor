@@ -3,7 +3,7 @@ import { pathExists, readJSON, remove, stat, writeFile, writeJSON } from "fs-ext
 
 import filenamify from "filenamify";
 
-import { RenderTargetTexture, SceneSerializer } from "babylonjs";
+import { RenderTargetTexture, SceneSerializer, GaussianSplattingMesh } from "babylonjs";
 
 import { Editor } from "../../editor/main";
 
@@ -19,7 +19,16 @@ import { isSpriteManagerNode, isSpriteMapNode } from "../../tools/guards/sprites
 import { serializePhysicsAggregate } from "../../tools/physics/serialization/aggregate";
 import { isAnimationGroupFromSceneLink, isFromSceneLink } from "../../tools/scene/scene-link";
 import { isGPUParticleSystem, isNodeParticleSystemSetMesh, isParticleSystem } from "../../tools/guards/particles";
-import { isAnyTransformNode, isClusteredLightContainer, isCollisionMesh, isEditorCamera, isGaussianSplattingMesh, isMesh, isTransformNode } from "../../tools/guards/nodes";
+import {
+	isAnyTransformNode,
+	isClusteredLightContainer,
+	isCollisionMesh,
+	isEditorCamera,
+	isGaussianSplattingMesh,
+	isGaussianSplattingPartProxyMesh,
+	isMesh,
+	isTransformNode,
+} from "../../tools/guards/nodes";
 
 import { taaPipelineCameraConfigurations } from "../../editor/rendering/taa";
 import { vlsPostProcessCameraConfigurations } from "../../editor/rendering/vls";
@@ -100,7 +109,16 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 	// Write geometries and meshes
 	await Promise.all(
 		meshesToSave.map(async (mesh) => {
-			if ((!isMesh(mesh) && !isCollisionMesh(mesh)) || mesh._masterMesh || isFromSceneLink(mesh) || !isNodeVisibleInGraph(mesh) || isGaussianSplattingMesh(mesh)) {
+			if (
+				(!isMesh(mesh) && !isCollisionMesh(mesh)) ||
+				mesh._masterMesh ||
+				isFromSceneLink(mesh) ||
+				!isNodeVisibleInGraph(mesh) ||
+				isGaussianSplattingPartProxyMesh(mesh) ||
+				isGaussianSplattingMesh(mesh) ||
+				mesh === editor.layout.preview.gaussianSplattingCompoundMesh ||
+				mesh.reservedDataStore?.hidden
+			) {
 				return;
 			}
 
@@ -293,18 +311,27 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 	);
 
 	// Write gaussian splatting meshes
+	const computedGaussianSplattingMeshes: GaussianSplattingMesh[] = [];
+
 	await Promise.all(
 		scene.meshes.map(async (mesh) => {
-			if (!isGaussianSplattingMesh(mesh) || isFromSceneLink(mesh)) {
+			if (!isGaussianSplattingPartProxyMesh(mesh) || isFromSceneLink(mesh) || !mesh.baseGaussianSplattingMesh) {
 				return;
 			}
+
+			if (computedGaussianSplattingMeshes.includes(mesh.baseGaussianSplattingMesh)) {
+				return;
+			}
+
+			computedGaussianSplattingMeshes.push(mesh.baseGaussianSplattingMesh);
 
 			const meshPath = join(scenePath, "meshes", `${mesh.id}.json`);
 			const splatPath = join(scenePath, "splats", `${mesh.id}.babylonbinarysplatdata`);
 
 			try {
-				const data = mesh.serialize(
+				const data = mesh.baseGaussianSplattingMesh.serialize(
 					{
+						proxies: [],
 						metadata: mesh.metadata,
 						isEnabled: mesh.isEnabled(false),
 						splatDataPath: join(relativeScenePath, `splats/${mesh.id}.babylonbinarysplatdata`),
@@ -312,8 +339,16 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 					"binary"
 				);
 
-				data.metadata ??= {};
-				data.metadata.parentId = mesh.parent?.uniqueId;
+				const allMeshProxies = scene.meshes.filter((m) => isGaussianSplattingPartProxyMesh(m) && m.baseGaussianSplattingMesh === mesh.baseGaussianSplattingMesh);
+				allMeshProxies.forEach((proxy) => {
+					const proxyData = proxy.serialize();
+					proxyData.metadata ??= {};
+					proxyData.metadata.parentId = proxy.parent?.uniqueId;
+
+					delete proxyData.compoundSplatMeshId;
+
+					data.proxies.push(proxyData);
+				});
 
 				await writeFile(splatPath, Buffer.from(data.splatsData));
 
