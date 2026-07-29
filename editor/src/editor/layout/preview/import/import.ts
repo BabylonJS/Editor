@@ -30,12 +30,14 @@ import { isSprite } from "../../../../tools/guards/sprites";
 import { isTexture } from "../../../../tools/guards/texture";
 import { executeSimpleWorker } from "../../../../tools/worker";
 import { isMultiMaterial } from "../../../../tools/guards/material";
-import { isGaussianSplattingMesh, isMesh } from "../../../../tools/guards/nodes";
 import { configureSimultaneousLightsForMaterial } from "../../../../tools/material/material";
-import { removeGaussianSplattingCameraMeshes } from "../../../../tools/mesh/gaussian-splatting";
 import { onNodesAddedObservable, onTextureAddedObservable } from "../../../../tools/observables";
+import { addGaussianSplattingMeshPartProxyMesh } from "../../../../tools/mesh/gaussian-splatting";
+import { isGaussianSplattingMesh, isGaussianSplattingPartProxyMesh, isMesh } from "../../../../tools/guards/nodes";
 
 import { projectConfiguration } from "../../../../project/configuration";
+
+import { Editor } from "../../../main";
 
 export async function tryConvertSceneFile(absolutePath: string, progress?: (percent: number) => void) {
 	const toolsUrl = process.env.EDITOR_TOOLS_URL ?? "https://editor.babylonjs.com";
@@ -66,7 +68,7 @@ export async function tryConvertSceneFile(absolutePath: string, progress?: (perc
 	}
 }
 
-export async function loadImportedSceneFile(scene: Scene, absolutePath: string, appPath: string | null) {
+export async function loadImportedSceneFile(scene: Scene, absolutePath: string, editor: Editor) {
 	if (!projectConfiguration.path) {
 		return null;
 	}
@@ -81,7 +83,7 @@ export async function loadImportedSceneFile(scene: Scene, absolutePath: string, 
 			pluginOptions: {
 				splat: {
 					fflate,
-					spzLibraryUrl: join(appPath ?? "", nodeModules, "@adobe/spz/dist/spz.js"),
+					spzLibraryUrl: join(editor.path ?? "", nodeModules, "@adobe/spz/dist/spz.js"),
 					gaussianSplattingMesh: new GaussianSplattingMesh(basename(absolutePath), null, scene, true),
 				},
 			},
@@ -102,19 +104,30 @@ export async function loadImportedSceneFile(scene: Scene, absolutePath: string, 
 		// cleanImportedGltf(result);
 	}
 
-	result.meshes.forEach((mesh) => {
+	for (const mesh of result.meshes) {
 		configureImportedNodeIds(mesh);
 
 		if (isGaussianSplattingMesh(mesh)) {
-			mesh.scaling.scaleInPlace(100);
+			const meshIndex = result.meshes.indexOf(mesh);
+			if (meshIndex !== -1) {
+				result.meshes.splice(meshIndex, 1);
+			}
 
-			removeGaussianSplattingCameraMeshes(mesh);
+			scene.removeMesh(mesh);
 
-			switch (extname(absolutePath).toLowerCase()) {
-				case ".sog":
-				case ".spz":
-					mesh.rotation.x = Math.PI;
-					break;
+			const proxyMesh = addGaussianSplattingMeshPartProxyMesh(mesh, editor);
+			if (proxyMesh) {
+				proxyMesh.scaling.scaleInPlace(100);
+
+				switch (extname(absolutePath).toLowerCase()) {
+					case ".sog":
+					case ".spz":
+						proxyMesh.rotation.x = Math.PI;
+						break;
+				}
+
+				configureImportedNodeIds(proxyMesh);
+				result.meshes.push(proxyMesh);
 			}
 		} else {
 			mesh.receiveShadows = true;
@@ -140,7 +153,7 @@ export async function loadImportedSceneFile(scene: Scene, absolutePath: string, 
 				target.name = `${mesh.name}_${target.name}`;
 			}
 		}
-	});
+	}
 
 	result.lights.forEach((light) => configureImportedNodeIds(light));
 	result.transformNodes.forEach((transformNode) => configureImportedNodeIds(transformNode));
@@ -153,7 +166,7 @@ export async function loadImportedSceneFile(scene: Scene, absolutePath: string, 
 		}
 
 		result.meshes.forEach((mesh) => {
-			if (!isGaussianSplattingMesh(mesh)) {
+			if (!isGaussianSplattingPartProxyMesh(mesh) && !isGaussianSplattingMesh(mesh)) {
 				shadowMap.renderList!.push(mesh);
 			}
 		});

@@ -1,8 +1,11 @@
-import { GaussianSplattingMesh } from "babylonjs";
+import { GaussianSplattingMesh, GetGaussianSplattingMaxPartCount, GaussianSplattingCompoundMesh, GaussianSplattingPartProxyMesh } from "babylonjs";
 
-import { isGaussianSplattingMesh } from "../guards/nodes";
+import { Editor } from "../../editor/main";
+import { configureImportedNodeIds } from "../../editor/layout/preview/import/import";
 
-export function configureGaussianSplattingMeshFromData(gaussianSplattingMesh: GaussianSplattingMesh, data: any) {
+import { setNodeSerializable, setNodeVisibleInGraph } from "../node/metadata";
+
+export function configureGaussianSplattingMeshFromData(gaussianSplattingMesh: GaussianSplattingPartProxyMesh, data: any) {
 	gaussianSplattingMesh.name = data.name;
 	gaussianSplattingMesh.id = data.id;
 	gaussianSplattingMesh.uniqueId = data.uniqueId;
@@ -26,10 +29,25 @@ export function configureGaussianSplattingMeshFromData(gaussianSplattingMesh: Ga
 	}
 }
 
-export function removeGaussianSplattingCameraMeshes(gaussianSplattingMesh: GaussianSplattingMesh) {
-	gaussianSplattingMesh.material?.getBindedMeshes().forEach((gaussianMesh) => {
-		if (!isGaussianSplattingMesh(gaussianMesh)) {
-			gaussianSplattingMesh.getScene().removeMesh(gaussianMesh);
-		}
-	});
+export function addGaussianSplattingMeshPartProxyMesh(mesh: GaussianSplattingMesh, editor: Editor) {
+	const scene = editor.layout.preview.scene;
+	const maxGaussianSplattingPartCount = GetGaussianSplattingMaxPartCount(scene.getEngine());
+
+	let gaussianSplattingCompoundMesh = editor.layout.preview.gaussianSplattingCompoundMesh;
+	if (!gaussianSplattingCompoundMesh) {
+		gaussianSplattingCompoundMesh = new GaussianSplattingCompoundMesh("GaussianSplattingCompoundMesh", undefined, scene, true);
+		configureImportedNodeIds(gaussianSplattingCompoundMesh);
+
+		setNodeSerializable(gaussianSplattingCompoundMesh, false);
+		setNodeVisibleInGraph(gaussianSplattingCompoundMesh, false);
+
+		editor.layout.preview.gaussianSplattingCompoundMesh = gaussianSplattingCompoundMesh;
+	}
+
+	if (gaussianSplattingCompoundMesh.partCount < maxGaussianSplattingPartCount) {
+		const proxyMesh = gaussianSplattingCompoundMesh.addPart(mesh);
+		proxyMesh.baseGaussianSplattingMesh = mesh;
+
+		return proxyMesh;
+	}
 }
