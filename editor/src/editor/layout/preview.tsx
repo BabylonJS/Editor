@@ -37,6 +37,7 @@ import {
 	ClusteredLightContainer,
 	Tools,
 	_GetAudioEngine,
+	GaussianSplattingCompoundMesh,
 } from "babylonjs";
 
 import { SpinnerUIComponent } from "../../ui/spinner";
@@ -190,6 +191,11 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	 * Defines the reference to the clustered lighting container.
 	 */
 	public clusteredLightContainer!: ClusteredLightContainer;
+
+	/**
+	 * Defines the reference to the gaussian splatting compound mesh used to support z ordering of gaussian splatting meshes in the scene.
+	 */
+	public gaussianSplattingCompoundMesh: GaussianSplattingCompoundMesh | null = null;
 
 	private _renderScene: boolean = true;
 	private _mouseDownPosition: Vector2 = Vector2.Zero();
@@ -1224,7 +1230,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		}
 
 		this.setState({ informationMessage: `Importing scene "${basename(absolutePath)}"...` });
-		const result = await loadImportedSceneFile(this.scene, absolutePath, this.props.editor.path);
+		const result = await loadImportedSceneFile(this.scene, absolutePath, this.props.editor);
 		this.setState({ informationMessage: "" });
 
 		return result;

@@ -1,7 +1,7 @@
 import { join } from "path/posix";
 import { readFile, readJSON } from "fs-extra";
 
-import { Scene, Constants, Matrix, Mesh, SceneLoader, MultiMaterial, Geometry, GaussianSplattingMesh } from "babylonjs";
+import { Scene, Constants, Matrix, Mesh, SceneLoader, MultiMaterial, Geometry, GaussianSplattingMesh, GaussianSplattingPartProxyMesh } from "babylonjs";
 
 import { ISceneLoaderPluginOptions } from "../scene";
 
@@ -10,11 +10,13 @@ import { isCollisionMesh, isMesh } from "../../../tools/guards/nodes";
 import { isMultiMaterial, isNodeMaterial } from "../../../tools/guards/material";
 import { parsePhysicsAggregate } from "../../../tools/physics/serialization/aggregate";
 import { configureSimultaneousLightsForMaterial, normalizeNodeMaterialUniqueIds } from "../../../tools/material/material";
-import { configureGaussianSplattingMeshFromData, removeGaussianSplattingCameraMeshes } from "../../../tools/mesh/gaussian-splatting";
+import { addGaussianSplattingMeshPartProxyMesh, configureGaussianSplattingMeshFromData } from "../../../tools/mesh/gaussian-splatting";
 
 import { CollisionMesh } from "../../../editor/nodes/collision";
 
-export async function loadMeshes(meshesFiles: string[], scene: Scene, options: ISceneLoaderPluginOptions) {
+import { Editor } from "../../../editor/main";
+
+export async function loadMeshes(editor: Editor, meshesFiles: string[], scene: Scene, options: ISceneLoaderPluginOptions) {
 	const loadedMeshes = await Promise.all(
 		meshesFiles.map(async (file) => {
 			if (file.startsWith(".")) {
@@ -32,11 +34,22 @@ export async function loadMeshes(meshesFiles: string[], scene: Scene, options: I
 				initialData.splatsData = splatBuffer.buffer;
 
 				const parsedMesh = GaussianSplattingMesh.Parse(initialData, scene);
+				parsedMesh.id = initialData.id;
+				parsedMesh.uniqueId = initialData.uniqueId;
 
-				configureGaussianSplattingMeshFromData(parsedMesh, initialData);
-				removeGaussianSplattingCameraMeshes(parsedMesh);
+				scene.removeMesh(parsedMesh);
 
-				return [parsedMesh];
+				const proxyMeshes: GaussianSplattingPartProxyMesh[] = [];
+
+				initialData.proxies?.forEach((proxy) => {
+					const proxyMesh = addGaussianSplattingMeshPartProxyMesh(parsedMesh, editor);
+					if (proxyMesh) {
+						configureGaussianSplattingMeshFromData(proxyMesh, proxy);
+						proxyMeshes.push(proxyMesh);
+					}
+				});
+
+				return proxyMeshes;
 			}
 
 			const filesToLoad = [join(options.relativeScenePath, "meshes", file), ...(initialData.lods?.map((file) => join(options.relativeScenePath, "lods", file)) ?? [])];

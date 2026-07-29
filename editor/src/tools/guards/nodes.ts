@@ -16,6 +16,7 @@ import {
 	Skeleton,
 	ClusteredLightContainer,
 	GaussianSplattingMesh,
+	GaussianSplattingPartProxyMesh,
 } from "babylonjs";
 
 import { EditorCamera } from "../../editor/nodes/camera";
@@ -38,6 +39,7 @@ export function isAbstractMesh(object: any): object is Mesh {
 		case "NodeParticleSystemSetMesh":
 		case "GaussianSplattingMesh":
 		case "GaussianSplattingMeshBase":
+		case "GaussianSplattingPartProxyMesh":
 			return true;
 	}
 
@@ -243,4 +245,20 @@ export function isNode(object: any): object is Node {
  */
 export function isGaussianSplattingMesh(object: any): object is GaussianSplattingMesh {
 	return object.getClassName?.() === "GaussianSplattingMesh";
+}
+
+/**
+ * Returns wether or not the given object is a GaussianSplattingPartProxyMesh.
+ * @param object defines the reference to the object to test its class name.
+ */
+export function isGaussianSplattingPartProxyMesh(object: any): object is GaussianSplattingPartProxyMesh {
+	return object.getClassName?.() === "GaussianSplattingPartProxyMesh";
+}
+
+/**
+ * Returns wether or not the given object is a GaussianSplattingMesh or a GaussianSplattingPartProxyMesh.
+ * @param object defines the reference to the object to test its class name.
+ */
+export function isAnyGaussianSplattingMesh(object: any): object is GaussianSplattingMesh | GaussianSplattingPartProxyMesh {
+	return isGaussianSplattingMesh(object) || isGaussianSplattingPartProxyMesh(object);
 }
