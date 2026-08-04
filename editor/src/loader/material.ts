@@ -19,6 +19,7 @@ export function parseMaterial(runtime: AssimpJSRuntime, data: IAssimpJSMaterialD
 
 			// Textures
 			case "$raw.Bump|file":
+			case "$raw.NormalMap|file":
 			case "$raw.DiffuseColor|file":
 			case "$raw.AmbientColor|file":
 			case "$raw.SpecularColor|file":
