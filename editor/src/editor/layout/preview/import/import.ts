@@ -78,17 +78,26 @@ export async function loadImportedSceneFile(scene: Scene, absolutePath: string, 
 	try {
 		const nodeModules = process.env.DEBUG ? "../node_modules" : "node_modules";
 
+		let gaussianSplattingMesh: GaussianSplattingMesh | undefined = undefined;
+
+		switch (extname(absolutePath).toLowerCase()) {
+			case ".sog":
+			case ".spz":
+			case ".splat":
+				gaussianSplattingMesh = new GaussianSplattingMesh(basename(absolutePath), null, scene, true);
+				break;
+		}
+
 		result = await ImportMeshAsync(basename(absolutePath), scene, {
 			rootUrl: join(dirname(absolutePath), "/"),
 			pluginOptions: {
 				splat: {
 					fflate,
+					gaussianSplattingMesh,
 					spzLibraryUrl: join(editor.path ?? "", nodeModules, "@adobe/spz/dist/spz.js"),
-					gaussianSplattingMesh: new GaussianSplattingMesh(basename(absolutePath), null, scene, true),
 				},
 			},
 		});
-		// result = await SceneLoader.ImportMeshAsync("", join(dirname(absolutePath), "/"), basename(absolutePath), scene);
 	} catch (e) {
 		console.error(e);
 		toast.error("Failed to load the scene file.");
