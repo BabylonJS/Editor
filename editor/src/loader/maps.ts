@@ -6,4 +6,5 @@ export const materialPropertyMap: Record<string, string> = {
 	"$raw.SpecularColor|file": "reflectivityTexture",
 	"$raw.AmbientColor|file": "ambientTexture",
 	"$raw.Bump|file": "bumpTexture",
+	"$raw.NormalMap|file": "bumpTexture",
 };
