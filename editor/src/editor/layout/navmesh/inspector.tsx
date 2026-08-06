@@ -32,8 +32,8 @@ export function NavMeshEditorInspector(props: INavMeshEditorInspectorProps) {
 	}
 
 	return (
-		<div className="flex flex-col gap-2 w-80 h-full p-2">
-			<div className="flex justify-center items-center">Inspector</div>
+		<div className="flex flex-col gap-2 w-full p-2">
+			{/* <div className="flex justify-center items-center">Inspector</div> */}
 
 			<EditorInspectorSectionField title="Parameters">
 				<EditorInspectorNumberField object={parameters} property="cs" label="Cell Size" min={10} step={0.1} />

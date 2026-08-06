@@ -841,12 +841,13 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 				<ContextMenuSeparator />
 				<ContextMenuItem onClick={() => this._handleAddNodeParticleSystem()}>Node Particle System</ContextMenuItem>
 
+				<ContextMenuSeparator />
+				<ContextMenuItem onClick={() => this._handleAddNavmesh()}>Navmesh</ContextMenuItem>
+
 				{this.props.editor.state.enableExperimentalFeatures && (
 					<>
 						<ContextMenuSeparator />
 						<ContextMenuItem onClick={() => this._handleAddCinematic()}>Cinematic</ContextMenuItem>
-						<ContextMenuSeparator />
-						<ContextMenuItem onClick={() => this._handleAddNavmesh()}>Navmesh</ContextMenuItem>
 						<ContextMenuSeparator />
 						<ContextMenuItem onClick={() => this._handleAddRagdoll()}>Ragdoll</ContextMenuItem>
 					</>

@@ -5,7 +5,7 @@ import { Engine, Scene, Mesh, StandardMaterial, Color3, Vector3, ArcRotateCamera
 
 export interface INavMeshEditorPreviewProps {
 	mesh: Mesh | null;
-	plugin: RecastNavigationJSPluginV2;
+	plugin: RecastNavigationJSPluginV2 | null;
 }
 
 export function NavMeshEditorPreview(props: INavMeshEditorPreviewProps) {
@@ -64,7 +64,10 @@ export function NavMeshEditorPreview(props: INavMeshEditorPreviewProps) {
 
 	useEffect(() => {
 		if (scene && props.mesh) {
-			const mesh = props.plugin.createDebugNavMesh(scene);
+			const mesh = props.plugin?.createDebugNavMesh(scene);
+			if (!mesh) {
+				return;
+			}
 
 			const debugMaterial = new StandardMaterial("navmesh-debug-material", scene);
 			debugMaterial.emissiveColor = Color3.Magenta();
