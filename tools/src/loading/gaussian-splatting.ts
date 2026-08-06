@@ -31,23 +31,31 @@ export function registerGaussianSplattingParser() {
 				return;
 			}
 
+			instantiatedMesh.dispose(true);
+
 			const splatDataUrl = rootUrl + mesh.splatDataPath;
+			const shDataUrls = mesh.shDataPaths?.map((shData) => rootUrl + shData);
+
 			scene.addPendingData(splatDataUrl);
+			shDataUrls?.forEach((shDataUrl) => {
+				scene.addPendingData(shDataUrl);
+			});
 
 			const promises = [loadFile(splatDataUrl, "arraybuffer")];
 
-			mesh.shDataPaths?.forEach((shData) => {
-				promises.push(loadFile(rootUrl + shData, "arraybuffer"));
+			shDataUrls?.forEach((shDataUrl) => {
+				promises.push(loadFile(shDataUrl, "arraybuffer"));
 			});
 
 			Promise.all(promises).then(([splatData, ...shDataArray]) => {
-				instantiatedMesh.updateData(
-					splatData,
-					shDataArray.map((shData) => new Uint8Array(shData)),
-					{
-						flipY: mesh._flipY,
-					}
-				);
+				mesh.splatsData = splatData;
+				mesh.shData = shDataArray?.map((buffer) => new Uint8Array(buffer));
+
+				const parsedMesh = GaussianSplattingMesh.Parse(mesh, scene);
+				parsedMesh.id = mesh.id;
+				parsedMesh.uniqueId = mesh.uniqueId;
+
+				scene.removeMesh(parsedMesh);
 
 				mesh.proxies.forEach((proxy) => {
 					compountMesh ??= new GaussianSplattingCompoundMesh("GaussianSplattingCompoundMesh", undefined, scene);
@@ -56,7 +64,7 @@ export function registerGaussianSplattingParser() {
 						return;
 					}
 
-					const proxyMesh = compountMesh.addPart(instantiatedMesh, false);
+					const proxyMesh = compountMesh.addPart(parsedMesh, false);
 
 					proxyMesh.name = proxy.name;
 					proxyMesh.id = proxy.id;
@@ -70,9 +78,11 @@ export function registerGaussianSplattingParser() {
 					if (proxy.position) {
 						proxyMesh.position.copyFromFloats(proxy.position[0], proxy.position[1], proxy.position[2]);
 					}
+
 					if (proxy.rotation) {
 						proxyMesh.rotation.copyFromFloats(proxy.rotation[0], proxy.rotation[1], proxy.rotation[2]);
 					}
+
 					if (proxy.rotationQuaternion) {
 						proxyMesh.rotationQuaternion?.copyFromFloats(
 							proxy.rotationQuaternion[0],
@@ -95,8 +105,10 @@ export function registerGaussianSplattingParser() {
 					}
 				});
 
-				scene.removeMesh(instantiatedMesh);
 				scene.removePendingData(splatDataUrl);
+				shDataUrls?.forEach((shDataUrl) => {
+					scene.removePendingData(shDataUrl);
+				});
 			});
 		});
 	});
