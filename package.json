@@ -84,7 +84,7 @@
 		"@babylonjs/gui": "9.12.1",
 		"@babylonjs/materials": "9.12.1",
 		"braces": "3.0.3",
-		"node-abi": "4.14.0",
+		"node-abi": "^3.3.0",
 		"wrap-ansi": "7.0.0",
 		"babylonjs": "9.12.1",
 		"babylonjs-addons": "9.12.1",
