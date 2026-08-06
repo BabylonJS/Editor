@@ -124,13 +124,15 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 							)}
 						</div>
 					</div>
+
 					<EditorInspectorStringField
 						label="Name"
 						object={this.props.object}
 						property="name"
 						onChange={() => onNodeModifiedObservable.notifyObservers(this.props.object)}
 					/>
-					{this.props.object.geometry && (
+
+					{(this.props.object.geometry || isGaussianSplattingPartProxyMesh(this.props.object)) && (
 						<>
 							<EditorInspectorSwitchField label="Pickable" object={this.props.object} property="isPickable" />
 							<EditorInspectorSwitchField

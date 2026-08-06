@@ -8,7 +8,19 @@ import { isClusteredLight } from "../../../tools/light/cluster";
 import { isAnyParticleSystem } from "../../../tools/guards/particles";
 import { isAdvancedDynamicTexture } from "../../../tools/guards/texture";
 import { getLinkedAnimationGroupsFor } from "../../../tools/animation/group";
-import { isNode, isMesh, isAbstractMesh, isInstancedMesh, isCollisionInstancedMesh, isLight, isCamera, isAnyTransformNode, isSkeleton } from "../../../tools/guards/nodes";
+import {
+	isNode,
+	isMesh,
+	isAbstractMesh,
+	isInstancedMesh,
+	isCollisionInstancedMesh,
+	isLight,
+	isCamera,
+	isAnyTransformNode,
+	isSkeleton,
+	isGaussianSplattingPartProxyMesh,
+} from "../../../tools/guards/nodes";
+import { addGaussianSplattingMeshPartProxyMesh, configureGaussianSplattingMeshFromData } from "../../../tools/mesh/gaussian-splatting";
 
 import { Editor } from "../../main";
 
@@ -20,6 +32,8 @@ type _RemoveNodeData = {
 	lights: Light[];
 	skeletons: Skeleton[];
 	particleSystems: IParticleSystem[];
+
+	metadata: any;
 };
 
 /**
@@ -44,6 +58,7 @@ export function removeNodes(editor: Editor) {
 				.map((descendant) => {
 					return {
 						node: descendant,
+						metadata: descendant.metadata,
 						parent: descendant.parent,
 						skeletons: scene.skeletons.filter((skeleton) => isAbstractMesh(descendant) && descendant.skeleton === skeleton),
 						particleSystems: scene.particleSystems.filter((ps) => ps.emitter === descendant),
@@ -93,7 +108,10 @@ export function removeNodes(editor: Editor) {
 		},
 		undo: () => {
 			nodes.forEach((d) => {
-				restoreNodeData(editor, d, scene);
+				const newNode = restoreNodeData(editor, d, scene);
+				if (newNode) {
+					d.node = newNode;
+				}
 			});
 
 			particleSystems.forEach((particleSystem) => {
@@ -181,7 +199,19 @@ function restoreNodeData(editor: Editor, data: _RemoveNodeData, scene: Scene) {
 			node.sourceMesh.addInstance(node);
 		}
 
-		scene.addMesh(node);
+		if (isGaussianSplattingPartProxyMesh(node)) {
+			if (node.baseGaussianSplattingMesh) {
+				const newPart = addGaussianSplattingMeshPartProxyMesh(node.baseGaussianSplattingMesh, editor);
+				if (newPart) {
+					configureGaussianSplattingMeshFromData(newPart, node.serialize());
+					newPart.parent = data.parent;
+					newPart.metadata = data.metadata;
+					return newPart;
+				}
+			}
+		} else {
+			scene.addMesh(node);
+		}
 
 		data.lights.forEach((light) => {
 			light.getShadowGenerator()?.getShadowMap()?.renderList?.push(node);
@@ -213,7 +243,11 @@ function removeNodeData(editor: Editor, data: _RemoveNodeData, scene: Scene) {
 			node.sourceMesh.removeInstance(node);
 		}
 
-		scene.removeMesh(node);
+		if (isGaussianSplattingPartProxyMesh(node)) {
+			editor.layout.preview.gaussianSplattingCompoundMesh?.removePart(node.partIndex);
+		} else {
+			scene.removeMesh(node);
+		}
 
 		data.lights.forEach((light) => {
 			const renderList = light.getShadowGenerator()?.getShadowMap()?.renderList;
