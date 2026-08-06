@@ -1,7 +1,7 @@
 import { platform } from "os";
 
 import { Component, ReactNode } from "react";
-import { Actions, IJsonModel, Layout, Model, TabNode, TabSetNode } from "flexlayout-react";
+import { Actions, ICloseType, IJsonModel, Layout, Model, TabNode, TabSetNode } from "flexlayout-react";
 
 import { Observable, Tools } from "babylonjs";
 import { ipcRenderer } from "electron";
@@ -204,7 +204,7 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
 	 * @param component defines the reference to the React component to draw in.
 	 * @param options defines the options of the tab such as the title etc.
 	 */
-	public addLayoutTab(component: ReactNode, options: IEditorLayoutTabOptions): void {
+	public addLayoutTab(component: ReactNode, options: IEditorLayoutTabOptions): string {
 		options.id ??= Tools.RandomId();
 
 		const activeTabId = this._layoutRef?.props.model.getActiveTabset()?.getSelectedNode()?.getId();
@@ -238,11 +238,14 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
 			type: "tab",
 			component: options.id,
 			enableClose: options.enableClose,
+			closeType: ICloseType.Visible,
 		});
 
 		if (activeTabId && !options.setAsActiveTab) {
 			this._layoutRef?.props.model.doAction(Actions.selectTab(activeTabId));
 		}
+
+		return options.id;
 	}
 
 	/**

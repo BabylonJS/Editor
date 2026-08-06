@@ -17,9 +17,9 @@ export function NavMeshEditorObstacles(props: INavMeshEditorObstaclesProps) {
 	const [search, setSearch] = useState("");
 
 	return (
-		<div className="flex flex-col gap-2 w-80 h-full p-2">
+		<div className="flex flex-col gap-2 w-full min-h-96 h-96 p-2">
 			<div className="flex justify-between items-center h-10">
-				<div>Obstacle meshes</div>
+				<div className="font-semibold text-lg">Obstacle meshes</div>
 				<NavMeshEditorSearchComponent search={search} setSearch={setSearch} />
 			</div>
 
