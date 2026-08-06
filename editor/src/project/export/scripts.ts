@@ -26,6 +26,10 @@ import {
 	getVLSPostProcess,
 } from "babylonjs-editor-tools";
 
+// Request all plugins
+import "babylonjs-editor-tools/loading/gaussian-splatting";
+import "babylonjs-editor-tools/loading/script/preload/plugins/navmesh";
+
 {{imports}}
 
 export const scriptsMap = {
