@@ -39,7 +39,7 @@ export async function loadMeshes(editor: Editor, meshesFiles: string[], scene: S
 				const [splatBuffer, ...shData] = await Promise.all(promises);
 
 				initialData.splatsData = splatBuffer.buffer;
-				initialData.shData = shData?.map((buffer) => buffer.buffer);
+				initialData.shData = shData?.map((buffer) => new Uint8Array(buffer.buffer));
 
 				const parsedMesh = GaussianSplattingMesh.Parse(initialData, scene);
 				parsedMesh.id = initialData.id;
