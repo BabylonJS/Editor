@@ -81,6 +81,7 @@ export async function loadImportedSceneFile(scene: Scene, absolutePath: string, 
 		let gaussianSplattingMesh: GaussianSplattingMesh | undefined = undefined;
 
 		switch (extname(absolutePath).toLowerCase()) {
+			case ".ply":
 			case ".sog":
 			case ".spz":
 			case ".splat":
