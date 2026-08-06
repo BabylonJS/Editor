@@ -70,16 +70,15 @@ export function registerGaussianSplattingParser() {
 						proxyMesh.scaling.copyFromFloats(proxy.scaling[0], proxy.scaling[1], proxy.scaling[2]);
 					}
 
-					const parent = container.getNodes().find((n) => n.id === proxy.parentId);
-					if (parent) {
-						proxyMesh.parent = parent;
-					} else {
-						proxyMesh._waitingParentId = proxy.parentId;
+					if (proxy.parentId) {
+						const parent = container.getNodes().find((n) => n.id === proxy.parentId);
+						if (parent) {
+							proxyMesh.parent = parent;
+						} else {
+							proxyMesh._waitingParentId = proxy.parentId;
+						}
 					}
 				});
-
-				// instantiatedMesh.metadata = mesh.metadata ?? {};
-				// instantiatedMesh.setEnabled(mesh.isEnabled ?? true);
 
 				scene.removePendingData(splatDataUrl);
 			});
