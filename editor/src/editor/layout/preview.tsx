@@ -594,6 +594,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 					}
 					console.error(e);
 					this.play.stop();
+					toast.error("Error while playing the scene. Check the console for more information.");
 				}
 			}
 		});
