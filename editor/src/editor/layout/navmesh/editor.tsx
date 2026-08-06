@@ -19,7 +19,7 @@ import { Editor } from "../../main";
 
 import { INavMeshConfiguration } from "./types";
 import { NavMeshEditorToolbar } from "./toolbar";
-import { NavMeshEditorPreview } from "./preview";
+// import { NavMeshEditorPreview } from "./preview";
 import { NavMeshEditorMeshesList } from "./meshes";
 import { NavMeshEditorObstacles } from "./obstacles";
 import { NavMeshEditorInspector } from "./inspector";
@@ -30,6 +30,8 @@ export interface INavmeshEditorProps {
 	configuration: INavMeshConfiguration;
 
 	absolutePath: string;
+
+	onClose: () => void;
 }
 
 export interface INavmeshEditorState {
@@ -38,7 +40,7 @@ export interface INavmeshEditorState {
 
 export class NavMeshEditor extends Component<INavmeshEditorProps, INavmeshEditorState> {
 	public configuration: INavMeshConfiguration;
-	public plugin: RecastNavigationJSPluginV2;
+	public plugin: RecastNavigationJSPluginV2 | null = null;
 
 	public result: CreateNavMeshResult | null = null;
 
@@ -64,13 +66,21 @@ export class NavMeshEditor extends Component<INavmeshEditorProps, INavmeshEditor
 			<div className="flex flex-col w-full h-full overflow-hidden">
 				<NavMeshEditorToolbar navMeshEditor={this} />
 
-				<div className="flex flex-1 h-full pb-10">
+				<div className="text-center text-3xl py-2">Navmesh Editor</div>
+
+				<div className="flex flex-col w-full overflow-y-auto">
+					<NavMeshEditorMeshesList editor={this.props.editor} navMeshEditor={this} />
+					<NavMeshEditorObstacles editor={this.props.editor} navMeshEditor={this} />
+					<NavMeshEditorInspector editor={this.props.editor} navMeshEditor={this} />
+				</div>
+
+				{/* <div className="flex flex-1 h-full pb-10">
 					<NavMeshEditorPreview mesh={this._debugNavMesh} plugin={this.plugin} />
 
 					<NavMeshEditorMeshesList editor={this.props.editor} navMeshEditor={this} />
 					<NavMeshEditorObstacles editor={this.props.editor} navMeshEditor={this} />
 					<NavMeshEditorInspector editor={this.props.editor} navMeshEditor={this} />
-				</div>
+				</div> */}
 			</div>
 		);
 	}
@@ -78,11 +88,23 @@ export class NavMeshEditor extends Component<INavmeshEditorProps, INavmeshEditor
 	public async componentDidMount(): Promise<void> {
 		await this._createPlugin();
 
+		// Clean data
+		this.props.configuration.staticMeshes = this.props.configuration.staticMeshes.filter((mesh) => {
+			const sceneMesh = this.props.editor.layout.preview.scene.getMeshById(mesh.id);
+			return sceneMesh !== null;
+		});
+
+		this.props.configuration.obstacleMeshes = this.props.configuration.obstacleMeshes.filter((mesh) => {
+			const sceneMesh = this.props.editor.layout.preview.scene.getMeshById(mesh.id);
+			return sceneMesh !== null;
+		});
+
+		// Build navmesh from data if exists
 		const navMeshBinPath = join(this.props.absolutePath, "navmesh.bin");
 		const tilecacheBinPath = join(this.props.absolutePath, "tilecache.bin");
 		if ((await pathExists(navMeshBinPath)) && (await pathExists(tilecacheBinPath))) {
-			this.plugin.buildFromNavmeshData(await readFile(navMeshBinPath));
-			this.plugin.buildFromTileCacheData(await readFile(tilecacheBinPath));
+			this.plugin!.buildFromNavmeshData(await readFile(navMeshBinPath));
+			this.plugin!.buildFromTileCacheData(await readFile(tilecacheBinPath));
 			this._createDebugNavMesh();
 			this.createDebugObstacles();
 		}
@@ -96,6 +118,8 @@ export class NavMeshEditor extends Component<INavmeshEditorProps, INavmeshEditor
 		this._disposeDebugNavMesh();
 		this._disposeDebugObstacles();
 		this._disposePlugin();
+
+		this.props.onClose();
 	}
 
 	public async refreshAll(): Promise<void> {}
@@ -110,7 +134,7 @@ export class NavMeshEditor extends Component<INavmeshEditorProps, INavmeshEditor
 			const meshes = getStaticMeshes(this.props.editor.layout.preview.scene, this.configuration.staticMeshes);
 
 			try {
-				this.result = await this.plugin.createNavMeshAsync(meshes.effectiveStaticMeshes, this.configuration.navMeshParameters);
+				this.result = await this.plugin!.createNavMeshAsync(meshes.effectiveStaticMeshes, this.configuration.navMeshParameters);
 				if (this.result) {
 					WaitForFullTileCacheUpdate(this.result.navMesh, this.result.tileCache);
 				}
@@ -164,7 +188,7 @@ export class NavMeshEditor extends Component<INavmeshEditorProps, INavmeshEditor
 						entry.config.extent = boundingBox.extendSizeWorld.asArray();
 						entry.config.angle = 0;
 
-						obstacle = this.plugin.addBoxObstacle(entry.clone.position, boundingBox.extendSizeWorld, 0, false);
+						obstacle = this.plugin!.addBoxObstacle(entry.clone.position, boundingBox.extendSizeWorld, 0, false);
 						break;
 
 					case "cylinder":
@@ -172,7 +196,7 @@ export class NavMeshEditor extends Component<INavmeshEditorProps, INavmeshEditor
 						entry.config.radius = boundingBox.extendSizeWorld.x;
 						entry.config.height = boundingBox.extendSizeWorld.y;
 
-						obstacle = this.plugin.addCylinderObstacle(
+						obstacle = this.plugin!.addCylinderObstacle(
 							entry.clone.position,
 							entry.clone.getBoundingInfo().boundingBox.extendSizeWorld.x,
 							entry.clone.getBoundingInfo().boundingBox.extendSizeWorld.y,
@@ -208,14 +232,21 @@ export class NavMeshEditor extends Component<INavmeshEditorProps, INavmeshEditor
 
 	public async save(): Promise<void> {
 		try {
-			await Promise?.all([
+			const promises = [
 				writeJSON(join(this.props.absolutePath, "config.json"), this.configuration, {
 					spaces: "\t",
 					encoding: "utf-8",
 				}),
-				writeFile(join(this.props.absolutePath, "navmesh.bin"), Buffer.from(this.plugin.getNavmeshData())),
-				writeFile(join(this.props.absolutePath, "tilecache.bin"), Buffer.from(this.plugin.getTileCacheData())),
-			]);
+			];
+
+			if (this.plugin) {
+				promises.push(
+					writeFile(join(this.props.absolutePath, "navmesh.bin"), Buffer.from(this.plugin.getNavmeshData())),
+					writeFile(join(this.props.absolutePath, "tilecache.bin"), Buffer.from(this.plugin.getTileCacheData()))
+				);
+			}
+
+			await Promise.all(promises);
 
 			toast.success("NavMesh saved successfully.");
 		} catch (e) {
@@ -237,6 +268,7 @@ export class NavMeshEditor extends Component<INavmeshEditorProps, INavmeshEditor
 
 	private _disposePlugin(): void {
 		this.plugin?.dispose();
+		this.plugin = null;
 	}
 
 	private _createDebugNavMesh(): void {
@@ -244,7 +276,7 @@ export class NavMeshEditor extends Component<INavmeshEditorProps, INavmeshEditor
 
 		const scene = this.props.editor.layout.preview.scene;
 
-		this._debugNavMesh = this.plugin.createDebugNavMesh(scene);
+		this._debugNavMesh = this.plugin!.createDebugNavMesh(scene);
 		setNodeSerializable(this._debugNavMesh, false);
 		setNodeVisibleInGraph(this._debugNavMesh, false);
 
@@ -261,6 +293,7 @@ export class NavMeshEditor extends Component<INavmeshEditorProps, INavmeshEditor
 
 	private _disposeDebugNavMesh(): void {
 		this._debugNavMesh?.dispose(false, true);
+		this._debugNavMesh = null;
 	}
 
 	private _getLoadingScreen(): ReactNode {
