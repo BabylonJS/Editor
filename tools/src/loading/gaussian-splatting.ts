@@ -3,6 +3,7 @@ import { AssetContainer } from "@babylonjs/core/assetContainer";
 import { AddParser } from "@babylonjs/core/Loading/Plugins/babylonFileParser.function";
 import { GaussianSplattingMesh } from "@babylonjs/core/Meshes/GaussianSplatting/gaussianSplattingMesh";
 import { GaussianSplattingCompoundMesh } from "@babylonjs/core/Meshes/GaussianSplatting/gaussianSplattingCompoundMesh";
+import { GetGaussianSplattingMaxPartCount } from "@babylonjs/core/Materials/GaussianSplatting/gaussianSplattingMaterial";
 
 import { loadFile } from "../tools/request";
 
@@ -18,6 +19,8 @@ export function registerGaussianSplattingParser() {
 	let compountMesh: GaussianSplattingCompoundMesh | null = null;
 
 	AddParser("GaussianSplattingMeshEditorPlugin", (parsedData: any, scene: Scene, container: AssetContainer, rootUrl: string) => {
+		const maxGaussianSplattingPartCount = GetGaussianSplattingMaxPartCount(scene.getEngine());
+
 		parsedData.meshes?.forEach((mesh) => {
 			if (mesh.type !== "GaussianSplattingMesh" || !mesh.splatDataPath) {
 				return;
@@ -31,15 +34,27 @@ export function registerGaussianSplattingParser() {
 			const splatDataUrl = rootUrl + mesh.splatDataPath;
 			scene.addPendingData(splatDataUrl);
 
-			loadFile(splatDataUrl, "arraybuffer").then(async (data) => {
-				instantiatedMesh.updateData(data, undefined, {
-					flipY: mesh._flipY,
-				});
+			const promises = [loadFile(splatDataUrl, "arraybuffer")];
 
-				scene.removeMesh(instantiatedMesh);
+			mesh.shDataPaths?.forEach((shData) => {
+				promises.push(loadFile(rootUrl + shData, "arraybuffer"));
+			});
+
+			Promise.all(promises).then(([splatData, ...shDataArray]) => {
+				instantiatedMesh.updateData(
+					splatData,
+					shDataArray.map((shData) => new Uint8Array(shData)),
+					{
+						flipY: mesh._flipY,
+					}
+				);
 
 				mesh.proxies.forEach((proxy) => {
 					compountMesh ??= new GaussianSplattingCompoundMesh("GaussianSplattingCompoundMesh", undefined, scene);
+
+					if (compountMesh.partCount >= maxGaussianSplattingPartCount) {
+						return;
+					}
 
 					const proxyMesh = compountMesh.addPart(instantiatedMesh, false);
 
@@ -80,8 +95,11 @@ export function registerGaussianSplattingParser() {
 					}
 				});
 
+				scene.removeMesh(instantiatedMesh);
 				scene.removePendingData(splatDataUrl);
 			});
 		});
 	});
 }
+
+registerGaussianSplattingParser();

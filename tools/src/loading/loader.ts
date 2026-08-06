@@ -23,7 +23,6 @@ import { registerAudioParser } from "./sound";
 import { registerTextureParser } from "./texture";
 import { registerShadowGeneratorParser } from "./shadows";
 import { registerSpriteManagerParser } from "./sprite-manager";
-import { registerGaussianSplattingParser } from "./gaussian-splatting";
 import { registerMorphTargetManagerParser } from "./morph-target-manager";
 import { registerNodeParticleSystemSetParser } from "./node-particle-system-set";
 
@@ -152,8 +151,6 @@ export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scen
 	registerSpriteManagerParser();
 
 	registerNodeParticleSystemSetParser();
-
-	registerGaussianSplattingParser();
 
 	// Check configuration
 	const configuration = sceneConfigurationMap.get(scene) ?? {};

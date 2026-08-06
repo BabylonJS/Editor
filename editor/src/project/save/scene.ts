@@ -327,6 +327,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 
 			const meshPath = join(scenePath, "meshes", `${mesh.id}.json`);
 			const splatPath = join(scenePath, "splats", `${mesh.id}.babylonbinarysplatdata`);
+			const shPaths = mesh.baseGaussianSplattingMesh.shData?.map((_, index) => join(scenePath, "splats", `${mesh.id}-sh${index}.babylonbinarysplatshdata`)) ?? [];
 
 			try {
 				const data = mesh.baseGaussianSplattingMesh.serialize(
@@ -335,6 +336,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 						metadata: mesh.metadata,
 						isEnabled: mesh.isEnabled(false),
 						splatDataPath: join(relativeScenePath, `splats/${mesh.id}.babylonbinarysplatdata`),
+						shDataPaths: mesh.baseGaussianSplattingMesh.shData?.map((_, index) => join(relativeScenePath, `splats/${mesh.id}-sh${index}.babylonbinarysplatshdata`)),
 					},
 					"binary"
 				);
@@ -350,7 +352,13 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 					data.proxies.push(proxyData);
 				});
 
-				await writeFile(splatPath, Buffer.from(data.splatsData));
+				const promises = [writeFile(splatPath, Buffer.from(data.splatsData))];
+
+				data.shData?.forEach((shData, index) => {
+					promises.push(writeFile(shPaths[index], Buffer.from(shData)));
+				});
+
+				await Promise.all(promises);
 
 				delete data.shData;
 				delete data.splatsData;
@@ -361,7 +369,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 			} catch (e) {
 				editor.layout.console.error(`Failed to write gaussian splatting mesh ${mesh.name}`);
 			} finally {
-				savedFiles.push(meshPath, splatPath);
+				savedFiles.push(meshPath, splatPath, ...shPaths);
 			}
 
 			dialog.step(progressStep);

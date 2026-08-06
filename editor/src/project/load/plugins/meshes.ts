@@ -30,8 +30,16 @@ export async function loadMeshes(editor: Editor, meshesFiles: string[], scene: S
 			}
 
 			if (initialData.type === "GaussianSplattingMesh") {
-				const splatBuffer = await readFile(join(options.projectPath, initialData.splatDataPath));
+				const promises = [readFile(join(options.projectPath, initialData.splatDataPath))];
+
+				initialData.shDataPaths?.forEach((shDataPath) => {
+					promises.push(readFile(join(options.projectPath, shDataPath)));
+				});
+
+				const [splatBuffer, ...shData] = await Promise.all(promises);
+
 				initialData.splatsData = splatBuffer.buffer;
+				initialData.shData = shData?.map((buffer) => buffer.buffer);
 
 				const parsedMesh = GaussianSplattingMesh.Parse(initialData, scene);
 				parsedMesh.id = initialData.id;
