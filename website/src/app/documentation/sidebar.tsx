@@ -43,9 +43,10 @@ export function DocumentationSidebar() {
 				<DocumentationSidebarItem title="Listening events" href="/documentation/scripting/listening-events" />
 				<DocumentationSidebarItem title="Linking assets" href="/documentation/scripting/linking-assets" />
 
-				<div className="font-semibold text-xl text-neutral-500 my-3">Sprites</div>
+				<div className="font-semibold text-xl text-neutral-500 my-3">Assets</div>
 
-				<DocumentationSidebarItem title="Using Sprite Manager" href="/documentation/sprites/using-sprite-manager" />
+				<DocumentationSidebarItem title="Using Sprite Manager" href="/documentation/assets/using-sprite-manager" />
+				<DocumentationSidebarItem title="Using Gaussian Splatting" href="/documentation/assets/using-gaussian-splatting" />
 
 				<div className="font-semibold text-xl text-neutral-500 my-3">Deploying</div>
 
