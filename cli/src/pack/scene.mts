@@ -92,10 +92,24 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 			if (data.type === "GaussianSplattingMesh") {
 				data.splatDataPath = join(options.sceneName, basename(data.splatDataPath));
 
+				data.shDataPaths?.forEach((shDataPath: string, index: number) => {
+					data.shDataPaths[index] = join(options.sceneName, basename(shDataPath));
+				});
+
 				const splatDataDestination = join(options.publicDir, data.splatDataPath);
-				await fs.copyFile(join(options.sceneFile, "splats", basename(data.splatDataPath)), splatDataDestination);
+				const shDataDestinations = data.shDataPaths?.map((shDataPath: string) => join(options.publicDir, shDataPath));
+
+				const promises = [fs.copyFile(join(options.sceneFile, "splats", basename(data.splatDataPath)), splatDataDestination)];
+				shDataDestinations?.forEach((shDataDestination: string, index: number) => {
+					promises.push(fs.copyFile(join(options.sceneFile, "splats", basename(data.shDataPaths[index])), shDataDestination));
+				});
+
+				await Promise.all(promises);
 
 				options.exportedAssets.push(splatDataDestination);
+				shDataDestinations?.forEach((shDataDestination: string) => {
+					options.exportedAssets.push(shDataDestination);
+				});
 
 				return {
 					mesh: data,
