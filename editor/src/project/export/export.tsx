@@ -279,9 +279,18 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 			computedGaussianSplattingMeshes.push(mesh.baseGaussianSplattingMesh);
 
 			const splatDataPath = join(scenePath, sceneName, `${mesh.baseGaussianSplattingMesh.id}.babylonbinarysplatdata`);
+			const shPaths = mesh.baseGaussianSplattingMesh.shData?.map((_, index) =>
+				join(scenePath, sceneName, `${mesh.baseGaussianSplattingMesh!.id}-sh${index}.babylonbinarysplatshdata`)
+			);
 
 			try {
-				await writeFile(splatDataPath, Buffer.from(mesh.baseGaussianSplattingMesh.splatsData));
+				const promises = [writeFile(splatDataPath, Buffer.from(mesh.baseGaussianSplattingMesh.splatsData))];
+
+				mesh.baseGaussianSplattingMesh.shData?.forEach((shData, index) => {
+					promises.push(writeFile(shPaths![index], Buffer.from(shData)));
+				});
+
+				await Promise.all(promises);
 
 				const gaussianSplatData = mesh.baseGaussianSplattingMesh.serialize(
 					{
@@ -289,9 +298,15 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 						metadata: mesh.metadata,
 						isEnabled: mesh.isEnabled(false),
 						splatDataPath: `${sceneName}/${mesh.baseGaussianSplattingMesh.id}.babylonbinarysplatdata`,
+						shDataPaths: mesh.baseGaussianSplattingMesh.shData?.map(
+							(_, index) => `${sceneName}/${mesh.baseGaussianSplattingMesh!.id}-sh${index}.babylonbinarysplatshdata`
+						),
 					},
 					"binary"
 				);
+
+				delete gaussianSplatData.shData;
+				delete gaussianSplatData.splatsData;
 
 				const allMeshProxies = scene.meshes.filter((m) => isGaussianSplattingPartProxyMesh(m) && m.baseGaussianSplattingMesh === mesh.baseGaussianSplattingMesh);
 				allMeshProxies.forEach((proxy) => {
@@ -302,7 +317,12 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 				});
 
 				data.meshes?.push(gaussianSplatData);
+
 				savedGeometries.push(`${mesh.baseGaussianSplattingMesh.id}.babylonbinarysplatdata`);
+
+				mesh.baseGaussianSplattingMesh.shData?.forEach((_, index) => {
+					savedGeometries.push(`${mesh.baseGaussianSplattingMesh!.id}-sh${index}.babylonbinarysplatshdata`);
+				});
 			} catch (e) {
 				editor.layout.console.error(`Export: Failed to write gaussian splatting data for mesh ${mesh.name}`);
 			}
