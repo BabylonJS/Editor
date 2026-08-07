@@ -1,17 +1,17 @@
 import { extname } from "path/posix";
 
 import { Component, DragEvent, ReactNode } from "react";
-import { Button, Tree, TreeNodeInfo } from "@blueprintjs/core";
+import { Button as BPButton, Tree, TreeNodeInfo } from "@blueprintjs/core";
 
 import { FaLink } from "react-icons/fa6";
 import { IoMdCube } from "react-icons/io";
 import { AiOutlinePlus } from "react-icons/ai";
 import { HiSpeakerWave } from "react-icons/hi2";
 import { SiBabylondotjs } from "react-icons/si";
-import { MdOutlineQuestionMark } from "react-icons/md";
 import { GiBrickWall, GiSparkles } from "react-icons/gi";
 import { HiOutlineCubeTransparent } from "react-icons/hi";
 import { IoCheckmark, IoPlay, IoSparklesSharp } from "react-icons/io5";
+import { MdOutlineQuestionMark, MdOutlineRefresh } from "react-icons/md";
 import { TbGhost2Filled, TbServerSpark, TbBrandAdobeIndesign } from "react-icons/tb";
 import { FaCamera, FaImage, FaLightbulb, FaBone, FaRegLightbulb } from "react-icons/fa";
 
@@ -21,6 +21,7 @@ import { BaseTexture, Node, Scene, Tools, IParticleSystem, Sprite, Skeleton, Tra
 import { Editor } from "../main";
 
 import { Badge } from "../../ui/shadcn/ui/badge";
+import { Button } from "../../ui/shadcn/ui/button";
 import { SpinnerUIComponent } from "../../ui/spinner";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "../../ui/shadcn/ui/dropdown-menu";
 import {
@@ -137,6 +138,11 @@ export interface IEditorGraphState {
 	 * Defines the reference to the play scene if the player is running, null otherwise.
 	 */
 	playScene: Scene | null;
+	/**
+	 * Defines wether or not the graph should automatically refresh when the play scene is running. This is useful to see changes in the graph when the play scene is running.
+	 * But in case of performance issues, this can be disabled to improve performance in-game.
+	 */
+	autoRefreshPlayScene: boolean;
 }
 
 export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState> {
@@ -160,6 +166,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 
 			playScene: null,
 			isLoading: false,
+			autoRefreshPlayScene: true,
 		};
 
 		onNodesAddedObservable.add(() => this.refresh());
@@ -189,7 +196,17 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 								<IoPlay className="w-6 h-6" />
 								Runtime scene. Changes are not saved.
 							</div>
-							<div className="w-4 h-4 p-2 rounded-full bg-red-500 animate-pulse" />
+
+							<div className="flex items-center gap-2">
+								{!this.state.autoRefreshPlayScene && (
+									<Button variant="ghost" size="icon" className="p-0.5" onClick={() => this.refresh()}>
+										<MdOutlineRefresh className="w-5 h-5" />
+									</Button>
+								)}
+								<Button variant="ghost" size="icon" className="p-0.5" onClick={() => this.setState({ autoRefreshPlayScene: !this.state.autoRefreshPlayScene })}>
+									<div className={`w-4 h-4 p-2 rounded-full ${this.state.autoRefreshPlayScene ? "bg-red-500 animate-pulse" : "bg-gray-500"}`} />
+								</Button>
+							</div>
 						</Badge>
 					</div>
 				)}
@@ -205,7 +222,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
-							<Button minimal icon="settings" className="transition-all duration-300" />
+							<BPButton minimal icon="settings" className="transition-all duration-300" />
 						</DropdownMenuTrigger>
 						<DropdownMenuContent>
 							<DropdownMenuItem
@@ -356,7 +373,9 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 				this.state.nodes[0]!.isSelected = true;
 
 				this._playRefreshIntervalId = window.setInterval(() => {
-					this.refresh();
+					if (this.state.autoRefreshPlayScene) {
+						this.refresh();
+					}
 				}, 1000);
 			} else {
 				this._forEachNode(this.state.nodes, (n) => {
