@@ -106,6 +106,10 @@ export async function createScriptsFile(projectDir: string): Promise<void> {
 	const promises: Promise<void>[] = [];
 	availableMetadata.forEach((configuration) => {
 		configuration.metadata.scripts?.forEach((script) => {
+			if (!script.enabled) {
+				return;
+			}
+
 			promises.push(
 				new Promise<void>(async (resolve) => {
 					const path = join(projectDir, "src", script.key);
