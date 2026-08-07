@@ -9,6 +9,7 @@ import { showAlert } from "../../../../ui/dialog";
 import { Progress } from "../../../../ui/shadcn/ui/progress";
 
 import { isMesh } from "../../../../tools/guards/nodes";
+import { getLoaderPluginOptions } from "../../../../tools/assets/loader";
 
 import { projectConfiguration } from "../../../../project/configuration";
 
@@ -73,6 +74,7 @@ function AssetBrowserModelViewer(props: IAssetBrowserModelViewerProps) {
 		await AppendSceneAsync(source, scene, {
 			rootUrl,
 			onProgress: (ev) => setProgress((ev.loaded / ev.total) * 100),
+			pluginOptions: getLoaderPluginOptions(props.editor.path ?? ""),
 		});
 
 		if (props.options?.overrideMaterialAbsolutePath) {
