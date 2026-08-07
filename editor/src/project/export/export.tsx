@@ -38,6 +38,7 @@ import { ExportSceneProgressComponent, showExportSceneProgressDialog } from "./d
 
 export type IExportProjectOptions = {
 	optimize: boolean;
+	debugMode: boolean;
 	noDialog?: boolean;
 	noProgress?: boolean;
 };
@@ -415,7 +416,7 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 	});
 
 	// Export scripts
-	await handleExportScripts(editor);
+	await handleExportScripts(editor, options.debugMode);
 
 	// Export assets
 	const promises: Promise<void>[] = [];

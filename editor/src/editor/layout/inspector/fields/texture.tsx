@@ -84,7 +84,7 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 				onDragLeave={(ev) => this._handleDragLeave(ev)}
 				className={`flex flex-col w-full p-5 rounded-lg ${this.state.dragOver ? "bg-muted-foreground/75 dark:bg-muted-foreground/20" : "bg-muted-foreground/10 dark:bg-muted-foreground/5"} transition-all duration-300 ease-in-out`}
 			>
-				<div className="flex gap-4 w-full">
+				<div className="flex items-start gap-4 w-full">
 					{this._getPreviewComponent(textureUrl)}
 
 					<div className="flex flex-col justify-center w-full">
@@ -166,7 +166,7 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 						)}
 					</div>
 
-					{textureUrl && !texture.loadingError && (
+					{textureUrl && (
 						<div
 							onClick={() => {
 								const oldTexture = this.props.object[this.props.property];
