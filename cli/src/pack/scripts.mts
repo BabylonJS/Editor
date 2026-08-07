@@ -106,7 +106,7 @@ export async function createScriptsFile(projectDir: string): Promise<void> {
 	const promises: Promise<void>[] = [];
 	availableMetadata.forEach((configuration) => {
 		configuration.metadata.scripts?.forEach((script) => {
-			if (!script.enabled) {
+			if (!script.enabled || script.debugOnly) {
 				return;
 			}
 

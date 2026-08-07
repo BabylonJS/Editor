@@ -197,7 +197,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 								Runtime scene. Changes are not saved.
 							</div>
 
-							<div className="flex items-center gap-2">
+							<div className="flex items-center gap-1">
 								{!this.state.autoRefreshPlayScene && (
 									<Button variant="ghost" size="icon" className="p-0.5" onClick={() => this.refresh()}>
 										<MdOutlineRefresh className="w-5 h-5" />
@@ -386,10 +386,15 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 					}
 				});
 
-				const last = this._lastSelectedNodes[this._lastSelectedNodes.length - 1];
-				if (last?.nodeData) {
+				if (this._lastInspectorNode) {
 					this.props.editor.layout.inspector.setEditedObject(this._lastInspectorNode);
+				}
+
+				if (this._lastAnimationsNode) {
 					this.props.editor.layout.animations.setEditedObject(this._lastAnimationsNode);
+				}
+
+				if (this._lastGizmoNode) {
 					this.props.editor.layout.preview.gizmo.setAttachedObject(this._lastGizmoNode);
 				}
 

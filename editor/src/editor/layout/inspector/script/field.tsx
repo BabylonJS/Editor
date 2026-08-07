@@ -6,6 +6,7 @@ import { pathExists, stat } from "fs-extra";
 import { useEffect, useState } from "react";
 
 import { FaCopy } from "react-icons/fa";
+import { VscDebug } from "react-icons/vsc";
 import { SiTypescript } from "react-icons/si";
 
 import { XMarkIcon } from "@heroicons/react/20/solid";
@@ -73,7 +74,10 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 	}
 
 	const [exists, setExists] = useState<boolean | null>(null);
+
 	const [enabled, setEnabled] = useState(props.script.enabled);
+	const [debugOnly, setDebugOnly] = useState(props.script.debugOnly ?? false);
+
 	const [output, setOutput] = useState<VisibleInInspectorDecoratorObject[] | null>(null);
 
 	const [watcher, setWatcher] = useState<FSWatcher | null>(null);
@@ -95,6 +99,10 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 			textures.splice(0, textures.length);
 		};
 	}, []);
+
+	useEffect(() => {
+		props.script.debugOnly = debugOnly;
+	}, [debugOnly]);
 
 	useEffect(() => {
 		return () => {
@@ -269,12 +277,12 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 	}
 
 	return (
-		<div className="flex flex-col gap-2 bg-muted-foreground/35 dark:bg-muted-foreground/5 rounded-lg px-5 pb-2.5">
-			<div className="flex gap-[10px]">
+		<div className="flex flex-col gap-2 bg-muted-foreground/35 dark:bg-muted-foreground/5 rounded-lg px-2 pb-2.5">
+			<div className="flex gap-2">
 				<SiTypescript size="80px" className={`${enabled ? "opacity-100" : "opacity-15"} transition-all duration-300 ease-in-out`} />
 
 				<div className="flex flex-col gap-1 w-full py-2.5">
-					<div className="flex items-center">
+					<div className="flex items-center gap-2">
 						<div
 							onClick={() => srcAbsolutePath && exists && execNodePty(`code "${srcAbsolutePath}"`)}
 							className={`font-bold px-2 hover:underline transition-all duration-300 ease-in-out cursor-pointer ${exists !== false ? "" : "text-red-400"}`}
@@ -285,12 +293,16 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 						<Button disabled={!exists} variant="ghost" className="w-6 h-6 p-1" onClick={() => handleCopyName()}>
 							<FaCopy className="w-4 h-4" />
 						</Button>
+
+						<Button disabled={!exists} variant="secondary" size="icon" className="w-6 h-6 p-1" onClick={() => setDebugOnly(!debugOnly)}>
+							<VscDebug className={`w-5 h-5 ${debugOnly ? "opacity-100 fill-green-500" : "opacity-35"} transition-all duration-300 ease-in-out`} />
+						</Button>
 					</div>
 
 					<EditorInspectorSwitchField object={props.script} property="enabled" label="Enabled" onChange={(v) => setEnabled(v)} />
 				</div>
 
-				<div className="flex justify-center items-center w-10 h-10 p-1 hover:bg-secondary rounded-lg my-auto transition-all duration-300" onClick={() => props.onRemove()}>
+				<div className="flex justify-center items-center w-10 h-10 hover:bg-secondary rounded-lg mt-1 transition-all duration-300" onClick={() => props.onRemove()}>
 					<XMarkIcon className="w-6 h-6" />
 				</div>
 			</div>

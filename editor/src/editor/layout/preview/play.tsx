@@ -274,6 +274,7 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 			// Export first as src/scripts.ts may change during the export.
 			await exportProject(this.props.editor, {
 				optimize: false,
+				debugMode: true,
 				noProgress: true,
 			});
 		}

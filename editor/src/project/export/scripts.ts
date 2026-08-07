@@ -66,7 +66,7 @@ interface ICollectedMetadata {
 	metadata: any;
 }
 
-export async function handleExportScripts(editor: Editor): Promise<void> {
+export async function handleExportScripts(editor: Editor, debugMode: boolean): Promise<void> {
 	if (!editor.state.projectPath) {
 		return;
 	}
@@ -78,12 +78,15 @@ export async function handleExportScripts(editor: Editor): Promise<void> {
 	});
 
 	const scriptsMap: Record<string, string> = {};
-
 	const availableMetadata: ICollectedMetadata[] = [];
 
 	// Check on all scenes in assets
 	await Promise.all(
 		sceneFolders.map(async (file) => {
+			if (file === editor.state.lastOpenedScenePath) {
+				return;
+			}
+
 			try {
 				const config = await readJSON(join(file, "config.json"));
 				if (config.metadata) {
@@ -145,6 +148,13 @@ export async function handleExportScripts(editor: Editor): Promise<void> {
 	);
 
 	// Check on all nodes in current scene
+	if (editor.layout.preview.scene.metadata) {
+		availableMetadata.push({
+			entityName: "currentScene",
+			metadata: editor.layout.preview.scene.metadata,
+		});
+	}
+
 	const entities = [
 		...editor.layout.preview.scene.meshes,
 		...editor.layout.preview.scene.lights,
@@ -169,7 +179,7 @@ export async function handleExportScripts(editor: Editor): Promise<void> {
 	const promises: Promise<void>[] = [];
 	availableMetadata.forEach((configuration) => {
 		configuration.metadata.scripts?.forEach((script) => {
-			if (!script.enabled) {
+			if (!script.enabled || (!debugMode && script.debugOnly)) {
 				return;
 			}
 
