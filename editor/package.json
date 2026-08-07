@@ -99,7 +99,7 @@
 		"decompress-targz": "^4.1.1",
 		"dotenv": "17.2.3",
 		"dunder-proto": "1.0.1",
-		"electron-updater": "6.6.2",
+		"electron-updater": "6.8.9",
 		"esbuild": "0.28.1",
 		"fflate": "0.8.3",
 		"filenamify": "4.3.0",
