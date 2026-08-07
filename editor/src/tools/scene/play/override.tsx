@@ -3,7 +3,7 @@ import { join, dirname } from "path/posix";
 
 import { Engine, WebRequest, Observable, Observer, ExitPointerlock, ExitFullscreen, SerializationHelper } from "babylonjs";
 
-import { getCurrentCallStack } from "../../tools";
+import { getCurrentCallStack, isValidUrl } from "../../tools";
 
 import { Editor } from "../../../editor/main";
 
@@ -188,6 +188,10 @@ export function applyOverrides(editor: Editor) {
 
 	// Fetch
 	window.fetch = async (input: string | URL | Request, init?: RequestInit) => {
+		if (isValidUrl(input.toString())) {
+			return savedWindowMethods.fetch.call(window, input, init);
+		}
+
 		if (!isAbsolute(input.toString())) {
 			input = normalizeUrl(input.toString());
 			input = join(publicDir, input.toString());

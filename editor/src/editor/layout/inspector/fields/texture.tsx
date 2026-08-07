@@ -87,9 +87,9 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 				<div className="flex gap-4 w-full">
 					{this._getPreviewComponent(textureUrl)}
 
-					<div className="flex flex-col w-full">
+					<div className="flex flex-col justify-center w-full">
 						<div className="flex flex-col px-2">
-							<div>{this.props.title}</div>
+							<div className="font-semibold text-lg">{this.props.title}</div>
 							{this.state.previewError && textureUrl && (
 								<div className="text-red-500 text-sm cursor-pointer" onClick={() => this._copyMissingTexture(textureUrl)}>
 									...{textureUrl.substring(Math.max(0, textureUrl.length - 30))}
@@ -165,32 +165,35 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 							</div>
 						)}
 					</div>
-					<div
-						onClick={() => {
-							const oldTexture = this.props.object[this.props.property];
 
-							this.props.object[this.props.property] = null;
-							this.props.onChange?.(null);
+					{textureUrl && !texture.loadingError && (
+						<div
+							onClick={() => {
+								const oldTexture = this.props.object[this.props.property];
 
-							if (!this.props.noUndoRedo) {
-								registerUndoRedo({
-									executeRedo: true,
-									undo: () => {
-										this.props.object[this.props.property] = oldTexture;
-										this._computeTemporaryPreview();
-									},
-									redo: () => {
-										this.props.object[this.props.property] = null;
-									},
-								});
-							}
+								this.props.object[this.props.property] = null;
+								this.props.onChange?.(null);
 
-							this.forceUpdate();
-						}}
-						className="flex justify-center items-center w-24 h-full hover:bg-muted-foreground rounded-lg transition-all duration-300"
-					>
-						{texture && <XMarkIcon className="w-6 h-6" />}
-					</div>
+								if (!this.props.noUndoRedo) {
+									registerUndoRedo({
+										executeRedo: true,
+										undo: () => {
+											this.props.object[this.props.property] = oldTexture;
+											this._computeTemporaryPreview();
+										},
+										redo: () => {
+											this.props.object[this.props.property] = null;
+										},
+									});
+								}
+
+								this.forceUpdate();
+							}}
+							className="flex justify-center items-center w-24 h-full hover:bg-muted-foreground rounded-lg transition-all duration-300"
+						>
+							{texture && <XMarkIcon className="w-6 h-6" />}
+						</div>
+					)}
 				</div>
 
 				{texture && <div className="flex flex-col gap-2">{this.props.children}</div>}
@@ -270,7 +273,11 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 					</Popover>
 				)}
 
-				{!textureUrl && <MdOutlineQuestionMark className="w-8 h-8" />}
+				{!textureUrl && (
+					<div className="p-2 bg-background rounded-lg opacity-50">
+						<MdOutlineQuestionMark className="w-8 h-8" />
+					</div>
+				)}
 			</div>
 		);
 	}
