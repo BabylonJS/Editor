@@ -23,13 +23,12 @@ import {
 	GaussianSplattingMesh,
 } from "babylonjs";
 
-import * as fflate from "fflate";
-
 import { UniqueNumber } from "../../../../tools/tools";
 import { isSprite } from "../../../../tools/guards/sprites";
 import { isTexture } from "../../../../tools/guards/texture";
 import { executeSimpleWorker } from "../../../../tools/worker";
 import { isMultiMaterial } from "../../../../tools/guards/material";
+import { getLoaderPluginOptions } from "../../../../tools/assets/loader";
 import { configureSimultaneousLightsForMaterial } from "../../../../tools/material/material";
 import { onNodesAddedObservable, onTextureAddedObservable } from "../../../../tools/observables";
 import { addGaussianSplattingMeshPartProxyMesh } from "../../../../tools/mesh/gaussian-splatting";
@@ -76,8 +75,6 @@ export async function loadImportedSceneFile(scene: Scene, absolutePath: string, 
 	let result: ISceneLoaderAsyncResult;
 
 	try {
-		const nodeModules = process.env.DEBUG ? "../node_modules" : "node_modules";
-
 		let gaussianSplattingMesh: GaussianSplattingMesh | undefined = undefined;
 
 		switch (extname(absolutePath).toLowerCase()) {
@@ -89,13 +86,15 @@ export async function loadImportedSceneFile(scene: Scene, absolutePath: string, 
 				break;
 		}
 
+		const pluginOptions = getLoaderPluginOptions(editor.path ?? "");
+
 		result = await ImportMeshAsync(basename(absolutePath), scene, {
 			rootUrl: join(dirname(absolutePath), "/"),
 			pluginOptions: {
+				...pluginOptions,
 				splat: {
-					fflate,
 					gaussianSplattingMesh,
-					spzLibraryUrl: join(editor.path ?? "", nodeModules, "@adobe/spz/dist/spz.js"),
+					...pluginOptions.splat,
 				},
 			},
 		});
