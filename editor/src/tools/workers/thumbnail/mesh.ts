@@ -5,6 +5,8 @@ import { AssimpJSLoader } from "../../../loader/assimpjs";
 
 import { readBlobAsDataUrl } from "../../tools";
 
+import { getLoaderPluginOptions } from "../../assets/loader";
+
 import { forceCompileAllSceneMaterials } from "../../scene/materials";
 
 const assimpLoader = new AssimpJSLoader(false, false);
@@ -42,7 +44,9 @@ export async function getPreview(
 		scene.environmentTexture = environmentTexture;
 	}
 
-	const container = await LoadAssetContainerAsync(absolutePath, scene);
+	const container = await LoadAssetContainerAsync(absolutePath, scene, {
+		pluginOptions: getLoaderPluginOptions(appPath ?? ""),
+	});
 	container.addAllToScene();
 
 	if (serializedOverrideMaterial) {
@@ -53,18 +57,18 @@ export async function getPreview(
 	}
 
 	return new Promise<string>(async (resolve) => {
+		scene.createDefaultCameraOrLight(true, true, true);
+		scene.createDefaultEnvironment({
+			createSkybox: true,
+			enableGroundShadow: true,
+			enableGroundMirror: true,
+		});
+
+		const camera = scene.activeCamera as ArcRotateCamera;
+		camera.alpha = -Math.PI * 0.666;
+		camera.beta = Math.PI * 0.35;
+
 		scene.executeWhenReady(async () => {
-			scene.createDefaultCameraOrLight(true, true, true);
-			scene.createDefaultEnvironment({
-				createSkybox: true,
-				enableGroundShadow: true,
-				enableGroundMirror: true,
-			});
-
-			const camera = scene.activeCamera as ArcRotateCamera;
-			camera.alpha = -Math.PI * 0.666;
-			camera.beta = Math.PI * 0.35;
-
 			await forceCompileAllSceneMaterials(scene);
 
 			scene.render();
