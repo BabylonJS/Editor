@@ -1,17 +1,17 @@
 import { extname } from "path/posix";
 
 import { Component, DragEvent, ReactNode } from "react";
-import { Button, Tree, TreeNodeInfo } from "@blueprintjs/core";
+import { Button as BPButton, Tree, TreeNodeInfo } from "@blueprintjs/core";
 
 import { FaLink } from "react-icons/fa6";
 import { IoMdCube } from "react-icons/io";
 import { AiOutlinePlus } from "react-icons/ai";
 import { HiSpeakerWave } from "react-icons/hi2";
 import { SiBabylondotjs } from "react-icons/si";
-import { MdOutlineQuestionMark } from "react-icons/md";
 import { GiBrickWall, GiSparkles } from "react-icons/gi";
 import { HiOutlineCubeTransparent } from "react-icons/hi";
 import { IoCheckmark, IoPlay, IoSparklesSharp } from "react-icons/io5";
+import { MdOutlineQuestionMark, MdOutlineRefresh } from "react-icons/md";
 import { TbGhost2Filled, TbServerSpark, TbBrandAdobeIndesign } from "react-icons/tb";
 import { FaCamera, FaImage, FaLightbulb, FaBone, FaRegLightbulb } from "react-icons/fa";
 
@@ -21,6 +21,7 @@ import { BaseTexture, Node, Scene, Tools, IParticleSystem, Sprite, Skeleton, Tra
 import { Editor } from "../main";
 
 import { Badge } from "../../ui/shadcn/ui/badge";
+import { Button } from "../../ui/shadcn/ui/button";
 import { SpinnerUIComponent } from "../../ui/spinner";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "../../ui/shadcn/ui/dropdown-menu";
 import {
@@ -60,6 +61,7 @@ import {
 	isCollisionInstancedMesh,
 	isCollisionMesh,
 	isEditorCamera,
+	isGaussianSplattingPartProxyMesh,
 	isInstancedMesh,
 	isLight,
 	isMesh,
@@ -90,6 +92,7 @@ import { applySoundAsset } from "./preview/import/sound";
 import { EditorGraphLabel } from "./graph/label";
 import { EditorGraphContextMenu } from "./graph/context-menu";
 import { setNewParentForGraphSelectedNodes } from "./graph/move";
+import { addGaussianSplattingMeshPartProxyMesh } from "../../tools/mesh/gaussian-splatting";
 
 export interface IEditorGraphProps {
 	/**
@@ -135,6 +138,11 @@ export interface IEditorGraphState {
 	 * Defines the reference to the play scene if the player is running, null otherwise.
 	 */
 	playScene: Scene | null;
+	/**
+	 * Defines wether or not the graph should automatically refresh when the play scene is running. This is useful to see changes in the graph when the play scene is running.
+	 * But in case of performance issues, this can be disabled to improve performance in-game.
+	 */
+	autoRefreshPlayScene: boolean;
 }
 
 export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState> {
@@ -158,6 +166,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 
 			playScene: null,
 			isLoading: false,
+			autoRefreshPlayScene: true,
 		};
 
 		onNodesAddedObservable.add(() => this.refresh());
@@ -187,7 +196,17 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 								<IoPlay className="w-6 h-6" />
 								Runtime scene. Changes are not saved.
 							</div>
-							<div className="w-4 h-4 p-2 rounded-full bg-red-500 animate-pulse" />
+
+							<div className="flex items-center gap-1">
+								{!this.state.autoRefreshPlayScene && (
+									<Button variant="ghost" size="icon" className="p-0.5" onClick={() => this.refresh()}>
+										<MdOutlineRefresh className="w-5 h-5" />
+									</Button>
+								)}
+								<Button variant="ghost" size="icon" className="p-0.5" onClick={() => this.setState({ autoRefreshPlayScene: !this.state.autoRefreshPlayScene })}>
+									<div className={`w-4 h-4 p-2 rounded-full ${this.state.autoRefreshPlayScene ? "bg-red-500 animate-pulse" : "bg-gray-500"}`} />
+								</Button>
+							</div>
 						</Badge>
 					</div>
 				)}
@@ -203,7 +222,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
-							<Button minimal icon="settings" className="transition-all duration-300" />
+							<BPButton minimal icon="settings" className="transition-all duration-300" />
 						</DropdownMenuTrigger>
 						<DropdownMenuContent>
 							<DropdownMenuItem
@@ -354,7 +373,9 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 				this.state.nodes[0]!.isSelected = true;
 
 				this._playRefreshIntervalId = window.setInterval(() => {
-					this.refresh();
+					if (this.state.autoRefreshPlayScene) {
+						this.refresh();
+					}
 				}, 1000);
 			} else {
 				this._forEachNode(this.state.nodes, (n) => {
@@ -365,10 +386,15 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 					}
 				});
 
-				const last = this._lastSelectedNodes[this._lastSelectedNodes.length - 1];
-				if (last?.nodeData) {
+				if (this._lastInspectorNode) {
 					this.props.editor.layout.inspector.setEditedObject(this._lastInspectorNode);
+				}
+
+				if (this._lastAnimationsNode) {
 					this.props.editor.layout.animations.setEditedObject(this._lastAnimationsNode);
+				}
+
+				if (this._lastGizmoNode) {
 					this.props.editor.layout.preview.gizmo.setAttachedObject(this._lastGizmoNode);
 				}
 
@@ -525,6 +551,9 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 
 		const newNodes: (Node | IParticleSystem | Sprite)[] = [];
 		const nodesToCopy = this._objectsToCopy.map((n) => n.nodeData);
+		if (!nodesToCopy.length) {
+			return;
+		}
 
 		registerUndoRedo({
 			executeRedo: true,
@@ -555,10 +584,10 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 				const tempTransfromNode = new TransformNode("tempParent", this.props.editor.layout.preview.scene);
 
 				try {
-					nodesToCopy.forEach((object) => {
+					nodesToCopy.forEach(async (object) => {
 						let node: Node | IParticleSystem | Sprite | null = null;
 
-						if (isAbstractMesh(object) && !isNodeParticleSystemSetMesh(object)) {
+						if (isAbstractMesh(object) && !isNodeParticleSystemSetMesh(object) && !isGaussianSplattingPartProxyMesh(object)) {
 							const suffix = "(Instanced Mesh)";
 							const name = isInstancedMesh(object) ? object.name : `${object.name.replace(` ${suffix}`, "")} ${suffix}`;
 
@@ -582,6 +611,21 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 							const name = `${object.name.replace(` ${suffix}`, "")} ${suffix}`;
 
 							node = object.clone(name, parent, false);
+						} else if (isGaussianSplattingPartProxyMesh(object) && object.baseGaussianSplattingMesh) {
+							const proxyMesh = addGaussianSplattingMeshPartProxyMesh(object.baseGaussianSplattingMesh, this.props.editor);
+							if (proxyMesh) {
+								node = proxyMesh;
+
+								const suffix = "(Proxy Mesh)";
+								const name = `${object.name.replace(` ${suffix}`, "")} ${suffix}`;
+
+								proxyMesh.name = name;
+								proxyMesh.position.copyFrom(object.position);
+								proxyMesh.rotation.copyFrom(object.rotation);
+								proxyMesh.scaling.copyFrom(object.scaling);
+								proxyMesh.rotationQuaternion = object.rotationQuaternion?.clone() ?? null;
+								proxyMesh.parent = object.parent;
+							}
 						} else if (isNode(object) || isSprite(object)) {
 							node = cloneNode(this.props.editor, object);
 						}
@@ -602,7 +646,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 								}
 							}
 
-							if (isAbstractMesh(node)) {
+							if (isAbstractMesh(node) && !isGaussianSplattingPartProxyMesh(node)) {
 								this.props.editor.layout.preview.scene.lights
 									.map((light) => light.getShadowGenerator())
 									.forEach((generator) => generator?.getShadowMap()?.renderList?.push(node));
@@ -975,6 +1019,10 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		}
 
 		if (isClusteredLightContainer(node) && (this.state.showOnlyLights || this.state.showOnlyDecals)) {
+			return null;
+		}
+
+		if (node.reservedDataStore?.hidden) {
 			return null;
 		}
 

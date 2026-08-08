@@ -6,6 +6,7 @@ import { basename, dirname, join } from "path/posix";
 import { Button } from "@blueprintjs/core";
 import { Component, ReactNode } from "react";
 
+import { toast } from "sonner";
 import { Grid } from "react-loader-spinner";
 
 import { IoPlay, IoStop, IoRefresh } from "react-icons/io5";
@@ -273,6 +274,7 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 			// Export first as src/scripts.ts may change during the export.
 			await exportProject(this.props.editor, {
 				optimize: false,
+				debugMode: true,
 				noProgress: true,
 			});
 		}
@@ -374,6 +376,9 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 			setSSAO2RenderingPipelineRef(this._compiledScriptExports.getSSAO2RenderingPipeline());
 			setDefaultRenderingPipelineRef(this._compiledScriptExports.getDefaultRenderingPipeline());
 		} catch (e) {
+			console.error(e);
+			toast.error("Failed to load scene. Check the console for more information.");
+
 			if (!scene.isDisposed) {
 				this.props.editor.layout.selectTab("console");
 				this.props.editor.layout.console.error(`Failed to load scene: ${(e as Error).message}`);

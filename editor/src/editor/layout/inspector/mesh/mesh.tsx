@@ -29,7 +29,7 @@ import { registerUndoRedo } from "../../../../tools/undoredo";
 import { waitNextAnimationFrame } from "../../../../tools/tools";
 import { onNodeModifiedObservable } from "../../../../tools/observables";
 import { updateIblShadowsRenderPipeline } from "../../../../tools/light/ibl";
-import { isAbstractMesh, isInstancedMesh, isMesh } from "../../../../tools/guards/nodes";
+import { isAbstractMesh, isGaussianSplattingPartProxyMesh, isInstancedMesh, isMesh } from "../../../../tools/guards/nodes";
 import { updateAllLights, updateLightShadowMapRefreshRate, updatePointLightShadowMapRenderListPredicate } from "../../../../tools/light/shadows";
 
 import { applyMaterialAssetToObject } from "../../preview/import/material";
@@ -124,13 +124,15 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 							)}
 						</div>
 					</div>
+
 					<EditorInspectorStringField
 						label="Name"
 						object={this.props.object}
 						property="name"
 						onChange={() => onNodeModifiedObservable.notifyObservers(this.props.object)}
 					/>
-					{this.props.object.geometry && (
+
+					{(this.props.object.geometry || isGaussianSplattingPartProxyMesh(this.props.object)) && (
 						<>
 							<EditorInspectorSwitchField label="Pickable" object={this.props.object} property="isPickable" />
 							<EditorInspectorSwitchField
@@ -162,11 +164,11 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 				{this.props.object.geometry && (
 					<>
 						<EditorMeshCollisionInspector {...this.props} />
-						<EditorMeshPhysicsInspector mesh={this.props.object} />
+						{!isGaussianSplattingPartProxyMesh(this.props.object) && <EditorMeshPhysicsInspector mesh={this.props.object} />}
 					</>
 				)}
 
-				{this.props.object.getScene().lights.length > 0 && this.props.object.geometry && (
+				{this.props.object.getScene().lights.length > 0 && this.props.object.geometry && !isGaussianSplattingPartProxyMesh(this.props.object) && (
 					<EditorInspectorSectionField title="Shadows">
 						<EditorInspectorSwitchField
 							label="Cast Shadows"
@@ -181,7 +183,7 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 
 				<ScriptInspectorComponent editor={this.props.editor} object={this.props.object} />
 
-				{isMesh(this.props.object) && (
+				{isMesh(this.props.object) && !isGaussianSplattingPartProxyMesh(this.props.object) && (
 					<>
 						<MeshGeometryInspector object={this.props.object} editor={this.props.editor} />
 						<MeshDecalInspector object={this.props.object} />
@@ -447,7 +449,7 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 						if (index !== undefined && index !== -1) {
 							light.getShadowGenerator()?.getShadowMap()?.renderList?.splice(index, 1);
 						}
-					} else {
+					} else if (!isGaussianSplattingPartProxyMesh(this.props.object)) {
 						light.getShadowGenerator()?.getShadowMap()?.renderList?.push(this.props.object);
 					}
 
@@ -457,7 +459,7 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 			},
 			redo: () => {
 				lightsWithShadows.forEach((light) => {
-					if (enabled) {
+					if (enabled && !isGaussianSplattingPartProxyMesh(this.props.object)) {
 						light.getShadowGenerator()?.getShadowMap()?.renderList?.push(this.props.object);
 					} else {
 						const index = light.getShadowGenerator()?.getShadowMap()?.renderList?.indexOf(this.props.object);

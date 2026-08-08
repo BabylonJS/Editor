@@ -22,13 +22,13 @@ import { _preloadScriptsAssets } from "./script/preload";
 import { registerAudioParser } from "./sound";
 import { registerTextureParser } from "./texture";
 import { registerShadowGeneratorParser } from "./shadows";
+import { registerSpriteManagerParser } from "./sprite-manager";
 import { registerMorphTargetManagerParser } from "./morph-target-manager";
+import { registerNodeParticleSystemSetParser } from "./node-particle-system-set";
 
 import { configureLights } from "./light";
 import { registerSpriteMapParser } from "./sprite-map";
 import { configureTransformNodes } from "./transform-node";
-import { registerSpriteManagerParser } from "./sprite-manager";
-import { registerNodeParticleSystemSetParser } from "./node-particle-system-set";
 
 /**
  * Defines the possible output type of a script.

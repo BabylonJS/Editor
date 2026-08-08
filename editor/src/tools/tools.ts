@@ -136,3 +136,16 @@ export function readBlobAsDataUrl(blob: Blob): Promise<string> {
 export function cloneJSObject<T>(source: T): T {
 	return JSON.parse(JSON.stringify(source));
 }
+
+/**
+ * Returns whether or not the given string is a valid URL.
+ * @param url defines the string to check if it is a valid URL.
+ */
+export function isValidUrl(url: string): boolean {
+	try {
+		new URL(url);
+		return true;
+	} catch {
+		return false;
+	}
+}
