@@ -9,6 +9,7 @@ import { Editor } from "../../main";
 
 import { isSoundNode } from "../../../tools/guards/sound";
 import { isNodeLocked } from "../../../tools/node/metadata";
+import { isTriangleFacingCamera } from "../../../tools/maths/triangle";
 import { projectVectorOnScreen } from "../../../tools/maths/projection";
 import { isCamera, isEditorCamera, isLight, isNode } from "../../../tools/guards/nodes";
 
@@ -216,7 +217,12 @@ export class EditorPreviewIcons extends Component<IEditorPreviewIconsProps, IEdi
 
 		if (performPick) {
 			const ray = Ray.CreateNewFromTo(scene.activeCamera.globalPosition, absolutePosition);
-			const pickInfo = scene.pickWithRay(ray, (mesh) => scene.activeCamera!.isInFrustum(mesh) && this.props.editor.layout.preview._pickingMeshPredicate(mesh), false);
+			const pickInfo = scene.pickWithRay(
+				ray,
+				(mesh) => scene.activeCamera!.isInFrustum(mesh) && this.props.editor.layout.preview._pickingMeshPredicate(mesh),
+				false,
+				isTriangleFacingCamera
+			);
 
 			if (pickInfo?.pickedPoint) {
 				const distance = Vector3.Distance(scene.activeCamera!.globalPosition, absolutePosition);
