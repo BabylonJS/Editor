@@ -62,12 +62,13 @@ import { initializeRecast } from "../../tools/recast/init";
 import { isAnyParticleSystem } from "../../tools/guards/particles";
 import { saveSceneScreenshot } from "../../tools/scene/screenshot";
 import { onTextureAddedObservable } from "../../tools/observables";
+import { isTriangleFacingCamera } from "../../tools/maths/triangle";
 import { getCameraFocusPositionFor } from "../../tools/camera/focus";
 import { ITweenConfiguration, Tween } from "../../tools/animation/tween";
-import { checkProjectCachedCompressedTextures, initializeKtx2Decoder } from "../../tools/assets/ktx";
 import { createSceneLink, getRootSceneLink } from "../../tools/scene/scene-link";
 import { UniqueNumber, waitNextAnimationFrame, waitUntil } from "../../tools/tools";
 import { isSprite, isSpriteManagerNode, isSpriteMapNode } from "../../tools/guards/sprites";
+import { checkProjectCachedCompressedTextures, initializeKtx2Decoder } from "../../tools/assets/ktx";
 import { defaultGizmoSnapPreferences, IGizmoSnapPreferences, roundGizmoSnapSteps } from "../../tools/scene/gizmo";
 import { isAbstractMesh, isAnyTransformNode, isCamera, isCollisionInstancedMesh, isCollisionMesh, isLight, isNode } from "../../tools/guards/nodes";
 
@@ -800,7 +801,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
 	private _getPickingInfo(x: number, y: number): PickingInfo {
 		const decalPick = this.scene.pick(x, y, (m) => this._pickingDecalMeshPredicate(m), false);
-		const meshPick = this.scene.pick(x, y, (m) => this._pickingMeshPredicate(m), false);
+		const meshPick = this.scene.pick(x, y, (m) => this._pickingMeshPredicate(m), false, null, isTriangleFacingCamera);
 		const spritePick = this.scene.pickSprite(x, y, (s) => isSprite(s), false);
 
 		this._lastPickedDecal = null;
