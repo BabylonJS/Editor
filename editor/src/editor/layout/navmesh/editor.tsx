@@ -152,6 +152,10 @@ export class NavMeshEditor extends Component<INavmeshEditorProps, INavmeshEditor
 				}
 			}
 
+			meshes.clonedGeometries.forEach((geometry) => {
+				geometry.dispose();
+			});
+
 			meshes.clonedMeshes.forEach((mesh) => {
 				mesh.dispose(false, false);
 			});
