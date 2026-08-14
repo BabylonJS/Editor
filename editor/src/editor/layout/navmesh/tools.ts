@@ -9,6 +9,8 @@ export function getStaticMeshes(scene: Scene, configurations: INavMeshStaticMesh
 	const clonedMeshes: AbstractMesh[] = [];
 	const clonedGeometries: Geometry[] = [];
 
+	const computedGeometries: Geometry[] = [];
+
 	const staticMeshes = configurations
 		.filter((config) => config.enabled)
 		.map((config) => {
@@ -30,24 +32,29 @@ export function getStaticMeshes(scene: Scene, configurations: INavMeshStaticMesh
 			}
 
 			if (mesh.getWorldMatrix().determinant() < 0) {
-				clone?.dispose(true, false);
+				const oldClone = clone;
 				clone = effectiveMesh.clone("mergedClone", null, true, false);
+				oldClone?.dispose(true, false);
 
-				const clonedGeometry = clone.geometry?.copy(Tools.RandomId());
-				clonedGeometry?.applyToMesh(clone);
-				if (clonedGeometry) {
-					const indices = clonedGeometry.getIndices();
-					if (indices) {
-						for (let i = 0; i < indices.length; i += 3) {
-							const tmp = indices[i + 1];
-							indices[i + 1] = indices[i + 2];
-							indices[i + 2] = tmp;
+				if (clone.geometry && !computedGeometries.includes(clone.geometry!)) {
+					const clonedGeometry = clone.geometry.copy(Tools.RandomId());
+					clonedGeometry.applyToMesh(clone);
+
+					if (clonedGeometry) {
+						const indices = clonedGeometry.getIndices()?.slice();
+						if (indices) {
+							for (let i = 0; i < indices.length; i += 3) {
+								const tmp = indices[i + 1];
+								indices[i + 1] = indices[i + 2];
+								indices[i + 2] = tmp;
+							}
+
+							clonedGeometry.setIndices(indices);
+							computedGeometries.push(clone.geometry);
 						}
 
-						clonedGeometry.setIndices(indices);
+						clonedGeometries.push(clonedGeometry);
 					}
-
-					clonedGeometries.push(clonedGeometry);
 				}
 			}
 
