@@ -129,9 +129,9 @@ export default function HomePage() {
 							</div>
 
 							<div className="w-full h-full object-contain">
-								<img alt="" src="/screenshots/large.png" className="max-h-[65dvh] object-contain z-50 mx-auto hidden sm:hidden md:hidden lg:hidden xl:block" />
-								<img alt="" src="/screenshots/medium.png" className="max-h-[75dvh] object-contain z-50 mx-auto hidden sm:hidden md:hidden lg:block xl:hidden" />
-								<img alt="" src="/screenshots/small.png" className="max-h-[75dvh] object-contain z-50 mx-auto lg:hidden" />
+								<img alt="" src="/screenshots/large.webp" className="max-h-[65dvh] object-contain z-50 mx-auto hidden sm:hidden md:hidden lg:hidden xl:block" />
+								<img alt="" src="/screenshots/medium.webp" className="max-h-[75dvh] object-contain z-50 mx-auto hidden sm:hidden md:hidden lg:block xl:hidden" />
+								<img alt="" src="/screenshots/small.webp" className="max-h-[75dvh] object-contain z-50 mx-auto lg:hidden" />
 							</div>
 						</Fade>
 					</div>
