@@ -160,15 +160,9 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 						>
 							<div className="relative w-full aspect-square">
 								{/* Loading */}
-								<Grid
-									width={50}
-									height={50}
-									color="#ffffff"
-									wrapperStyle={{
-										opacity: this.state.isLoading ? "1" : "0",
-									}}
-									wrapperClass="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 transition-all duration-300 pointer-events-none"
-								/>
+								{this.state.isLoading && (
+									<Grid width={50} height={50} color="#ffffff" wrapperClass="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 pointer-events-none" />
+								)}
 
 								{/* Icon */}
 								<div className="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 flex justify-center items-center w-full h-full">
