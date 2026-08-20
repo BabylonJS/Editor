@@ -82,16 +82,14 @@ export function setupEditorMenu(options: { enableExperimentalFeatures: boolean; 
 						label: "Undo",
 						accelerator: "CommandOrControl+Z",
 						click: () => {
-							// BrowserWindow.getFocusedWindow()?.webContents.undo();
-							BrowserWindow.getFocusedWindow()?.webContents.send("undo");
+							// BrowserWindow.getFocusedWindow()?.webContents.send("undo");
 						},
 					},
 					{
 						label: "Redo",
 						accelerator: platform() === "darwin" ? "CommandOrControl+Shift+Z" : "Control+Y",
 						click: () => {
-							// BrowserWindow.getFocusedWindow()?.webContents.redo();
-							BrowserWindow.getFocusedWindow()?.webContents.send("redo");
+							// BrowserWindow.getFocusedWindow()?.webContents.send("redo");
 						},
 					},
 					{

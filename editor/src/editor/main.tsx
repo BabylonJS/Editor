@@ -7,6 +7,7 @@ import { createRoot } from "react-dom/client";
 
 import { HotkeysTarget2 } from "@blueprintjs/core";
 
+import { isDarwin } from "../tools/os";
 import { waitUntil } from "../tools/tools";
 import { isDomTextInputFocused } from "../tools/dom";
 import { onRedoObservable, onUndoObservable, redo, undo } from "../tools/undoredo";
@@ -250,10 +251,6 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 
 		ipcRenderer.on("editor:run-project", () => startProjectDevProcess(this));
 
-		// Undo-redo
-		ipcRenderer.on("undo", () => undo());
-		ipcRenderer.on("redo", () => redo());
-
 		onUndoObservable.add(() => {
 			this.layout.graph.refresh();
 			this.layout.inspector.forceUpdate();
@@ -285,6 +282,24 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 
 		// Initialize the MCP server to allow communication between the editor and AI agents
 		// initializeMcpServer(this);
+
+		// Undo/redo
+		document.addEventListener("keydown", (ev) => {
+			const key = ev.key.toLowerCase();
+
+			if (!isDomTextInputFocused()) {
+				const isUndo = isDarwin() ? ev.metaKey && key === "z" : ev.ctrlKey && key === "z";
+				const isRedo = isDarwin() ? ev.metaKey && ev.shiftKey && key === "z" : ev.ctrlKey && key === "y";
+
+				if (isUndo) {
+					undo();
+					ev.preventDefault();
+				} else if (isRedo) {
+					redo();
+					ev.preventDefault();
+				}
+			}
+		});
 	}
 
 	/**
