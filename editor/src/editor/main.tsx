@@ -284,22 +284,27 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 		// initializeMcpServer(this);
 
 		// Undo/redo
-		document.addEventListener("keydown", (ev) => {
-			const key = ev.key.toLowerCase();
+		if (isDarwin()) {
+			ipcRenderer.on("undo", () => undo());
+			ipcRenderer.on("redo", () => redo());
+		} else {
+			document.addEventListener("keydown", (ev) => {
+				const key = ev.key.toLowerCase();
 
-			if (!isDomTextInputFocused()) {
-				const isUndo = isDarwin() ? ev.metaKey && key === "z" : ev.ctrlKey && key === "z";
-				const isRedo = isDarwin() ? ev.metaKey && ev.shiftKey && key === "z" : ev.ctrlKey && key === "y";
+				if (!isDomTextInputFocused()) {
+					const isUndo = ev.ctrlKey && key === "z";
+					const isRedo = ev.ctrlKey && key === "y";
 
-				if (isUndo) {
-					undo();
-					ev.preventDefault();
-				} else if (isRedo) {
-					redo();
-					ev.preventDefault();
+					if (isUndo) {
+						undo();
+						ev.preventDefault();
+					} else if (isRedo) {
+						redo();
+						ev.preventDefault();
+					}
 				}
-			}
-		});
+			});
+		}
 	}
 
 	/**
