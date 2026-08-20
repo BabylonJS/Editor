@@ -9,11 +9,11 @@ const magnetismDistanceRatio = 0.02;
 const magnetismCenterSizeRatio = 4;
 const magnetismMarkerRatio = 0.0075;
 
-let _magnetismMarker: Mesh | null = null;
-let _magnetismMeshes: AbstractMesh[] | null = null;
-let _magnetismAnchors: Map<AbstractMesh, Vector3[]> = new Map();
-let _magnetismFreePosition: Vector3 | null = null;
-let _magnetismAppliedPosition: Vector3 | null = null;
+let magnetismMarker: Mesh | null = null;
+let magnetismMeshes: AbstractMesh[] | null = null;
+let magnetismAnchors: Map<AbstractMesh, Vector3[]> = new Map();
+let magnetismFreePosition: Vector3 | null = null;
+let magnetismAppliedPosition: Vector3 | null = null;
 
 /**
  * While the shift key is down, tries to snap the currently dragged mesh on the surrounding meshes.
@@ -37,15 +37,15 @@ export function checkMagnetism(gizmo: EditorPreviewGizmo, mesh: AbstractMesh) {
 	// Track the position the mesh would have without magnetism. Applying the snap offset on top of that
 	// position instead of on top of the previously snapped one prevents the offset from accumulating and
 	// makes the mesh naturally "unstick" from its anchor once the drag goes further than the search radius.
-	if (!_magnetismFreePosition || !_magnetismAppliedPosition) {
-		_magnetismFreePosition = mesh.position.clone();
-		_magnetismAppliedPosition = mesh.position.clone();
+	if (!magnetismFreePosition || !magnetismAppliedPosition) {
+		magnetismFreePosition = mesh.position.clone();
+		magnetismAppliedPosition = mesh.position.clone();
 	} else {
-		mesh.position.subtractToRef(_magnetismAppliedPosition, TmpVectors.Vector3[0]);
-		_magnetismFreePosition.addInPlace(TmpVectors.Vector3[0]);
+		mesh.position.subtractToRef(magnetismAppliedPosition, TmpVectors.Vector3[0]);
+		magnetismFreePosition.addInPlace(TmpVectors.Vector3[0]);
 	}
 
-	mesh.position.copyFrom(_magnetismFreePosition);
+	mesh.position.copyFrom(magnetismFreePosition);
 	mesh.computeWorldMatrix(true);
 
 	const boundingBox = mesh.getBoundingInfo().boundingBox;
@@ -66,7 +66,7 @@ export function checkMagnetism(gizmo: EditorPreviewGizmo, mesh: AbstractMesh) {
 	if (radius > 0) {
 		const sourceAnchors = computeMagnetismAnchors(mesh);
 
-		_magnetismMeshes ??= gizmo._gizmosLayer.originalScene.meshes.filter((m) => {
+		magnetismMeshes ??= gizmo._gizmosLayer.originalScene.meshes.filter((m) => {
 			return (
 				m !== mesh &&
 				!m._masterMesh &&
@@ -80,7 +80,7 @@ export function checkMagnetism(gizmo: EditorPreviewGizmo, mesh: AbstractMesh) {
 			);
 		});
 
-		for (const targetMesh of _magnetismMeshes) {
+		for (const targetMesh of magnetismMeshes) {
 			const targetBoundingBox = targetMesh.getBoundingInfo().boundingBox;
 
 			if (!areBoundingBoxesClose(boundingBox, targetBoundingBox, radius)) {
@@ -97,10 +97,10 @@ export function checkMagnetism(gizmo: EditorPreviewGizmo, mesh: AbstractMesh) {
 			}
 
 			// Nearby meshes do not move while dragging, their anchors are computed only once per drag.
-			let targetAnchors = _magnetismAnchors.get(targetMesh);
+			let targetAnchors = magnetismAnchors.get(targetMesh);
 			if (!targetAnchors) {
 				targetAnchors = computeMagnetismAnchors(targetMesh);
-				_magnetismAnchors.set(targetMesh, targetAnchors);
+				magnetismAnchors.set(targetMesh, targetAnchors);
 			}
 
 			for (const sourceAnchor of sourceAnchors) {
@@ -137,7 +137,7 @@ export function checkMagnetism(gizmo: EditorPreviewGizmo, mesh: AbstractMesh) {
 		mesh.computeWorldMatrix(true);
 	}
 
-	_magnetismAppliedPosition.copyFrom(mesh.position);
+	magnetismAppliedPosition.copyFrom(mesh.position);
 	updateMagnetismMarker(gizmo, bestTarget);
 }
 
@@ -191,36 +191,36 @@ export function areBoundingBoxesClose(a: BoundingBox, b: BoundingBox, distance: 
  */
 export function updateMagnetismMarker(gizmo: EditorPreviewGizmo, position: Vector3 | null) {
 	if (!position) {
-		_magnetismMarker?.setEnabled(false);
+		magnetismMarker?.setEnabled(false);
 		return;
 	}
 
-	if (!_magnetismMarker) {
+	if (!magnetismMarker) {
 		const material = new StandardMaterial("gizmoMagnetismMarkerMaterial", gizmo._gizmosLayer.utilityLayerScene);
 		material.disableLighting = true;
 		material.emissiveColor = new Color3(1, 0.75, 0.1);
 
-		_magnetismMarker = MeshBuilder.CreateSphere("gizmoMagnetismMarker", { diameter: 1, segments: 12 }, gizmo._gizmosLayer.utilityLayerScene);
-		_magnetismMarker.isPickable = false;
-		_magnetismMarker.material = material;
+		magnetismMarker = MeshBuilder.CreateSphere("gizmoMagnetismMarker", { diameter: 1, segments: 12 }, gizmo._gizmosLayer.utilityLayerScene);
+		magnetismMarker.isPickable = false;
+		magnetismMarker.material = material;
 	}
 
 	const camera = gizmo._gizmosLayer.originalScene.activeCamera;
 	const size = camera ? Vector3.Distance(camera.globalPosition, position) * magnetismMarkerRatio : 1;
 
-	_magnetismMarker.setEnabled(true);
-	_magnetismMarker.position.copyFrom(position);
-	_magnetismMarker.scaling.setAll(size);
+	magnetismMarker.setEnabled(true);
+	magnetismMarker.position.copyFrom(position);
+	magnetismMarker.scaling.setAll(size);
 }
 
 /**
  * Clears the state computed by magnetism for the current drag. The mesh keeps the position it was snapped to.
  */
 export function resetMagnetism() {
-	_magnetismMeshes = null;
-	_magnetismFreePosition = null;
-	_magnetismAppliedPosition = null;
-	_magnetismAnchors.clear();
+	magnetismMeshes = null;
+	magnetismFreePosition = null;
+	magnetismAppliedPosition = null;
+	magnetismAnchors.clear();
 
-	_magnetismMarker?.setEnabled(false);
+	magnetismMarker?.setEnabled(false);
 }
