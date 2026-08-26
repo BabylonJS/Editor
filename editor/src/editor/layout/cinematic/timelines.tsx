@@ -31,7 +31,7 @@ export interface ICinematicEditorTimelinesState {
 }
 
 export class CinematicEditorTimelines extends Component<ICinematicEditorTimelinesProps, ICinematicEditorTimelinesState> {
-	public tracker: CinematicEditorTracker;
+	public tracker!: CinematicEditorTracker;
 
 	private _divRef: HTMLDivElement | null = null;
 

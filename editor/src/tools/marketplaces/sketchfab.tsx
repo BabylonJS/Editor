@@ -238,7 +238,7 @@ export class SketchfabProvider extends MarketplaceProvider {
 					};
 				}
 			} catch (e) {
-				console.warn(`Failed to fetch download links for Sketchfab asset ${id}: ${e.message}`);
+				console.warn(`Failed to fetch download links for Sketchfab asset ${id}: ${(e as Error).message}`);
 			}
 		}
 

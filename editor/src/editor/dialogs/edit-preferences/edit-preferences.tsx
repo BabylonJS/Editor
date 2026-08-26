@@ -197,8 +197,8 @@ export class EditorEditPreferencesComponent extends Component<IEditorEditPrefere
 			);
 		} catch (e) {
 			this.props.editor.layout.console.error("Failed to write editor's camera controls configuration.");
-			if (e.message) {
-				this.props.editor.layout.console.error(e.message);
+			if ((e as Error).message) {
+				this.props.editor.layout.console.error((e as Error).message);
 			}
 		}
 	}

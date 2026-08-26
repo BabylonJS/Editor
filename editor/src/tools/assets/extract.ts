@@ -85,7 +85,7 @@ export async function extractTextureAssetFromUrl(editor: Editor, options: IExtra
 			assetsDirectory: options.assetsDirectory,
 		});
 	} catch (e) {
-		editor.layout.console.error(`Failed to extract texture from url "${options.url}": ${e.message}`);
+		editor.layout.console.error(`Failed to extract texture from url "${options.url}": ${(e as Error).message}`);
 	}
 
 	return null;

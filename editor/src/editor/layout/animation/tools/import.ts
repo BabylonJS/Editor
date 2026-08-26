@@ -19,7 +19,7 @@ export async function importAnimationsFrom(animationEditor: EditorAnimation, ani
 	}
 
 	const data = await readJSON(filePath);
-	data.forEach((animation) => {
+	data.forEach((animation: any) => {
 		animatable?.animations?.push(Animation.Parse(animation));
 	});
 

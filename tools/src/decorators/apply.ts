@@ -8,8 +8,6 @@ import { KeyboardInfo } from "@babylonjs/core/Events/keyboardEvents";
 import { PickingInfo } from "@babylonjs/core/Collisions/pickingInfo";
 import { Texture } from "@babylonjs/core/Materials/Textures/texture";
 import { Vector2, Vector3 } from "@babylonjs/core/Maths/math.vector";
-import { ParticleSystem } from "@babylonjs/core/Particles/particleSystem";
-import { GPUParticleSystem } from "@babylonjs/core/Particles/gpuParticleSystem";
 import { NodeParticleSystemSet } from "@babylonjs/core/Particles/Node/nodeParticleSystemSet";
 
 import { AdvancedDynamicTexture } from "@babylonjs/gui/2D/advancedDynamicTexture";
@@ -186,7 +184,7 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 
 	// @fromParticleSystems
 	ctor._ParticleSystemsFromScene?.forEach((params) => {
-		const particleSystem = scene.particleSystems?.find((particleSystem: ParticleSystem | GPUParticleSystem) => {
+		const particleSystem = scene.particleSystems?.find((particleSystem) => {
 			if (particleSystem.name !== params.particleSystemName) {
 				return false;
 			}

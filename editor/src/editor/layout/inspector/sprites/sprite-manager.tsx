@@ -3,7 +3,7 @@ import { extname, join } from "path/posix";
 import { VscJson } from "react-icons/vsc";
 import { Component, ReactNode } from "react";
 
-import { Observer, Node, Constants, Texture } from "babylonjs";
+import { Observer, Node, Constants, Texture, Sprite } from "babylonjs";
 
 import { SpriteManagerNode } from "../../../nodes/sprite-manager";
 
@@ -92,7 +92,7 @@ export class EditorSpriteManagerNodeInspector extends Component<IEditorInspector
 		);
 	}
 
-	private _gizmoObserver: Observer<Node> | null = null;
+	private _gizmoObserver: Observer<Node | Sprite> | null = null;
 
 	public async componentDidMount(): Promise<void> {
 		this._gizmoObserver = onGizmoNodeChangedObservable.add((node) => {

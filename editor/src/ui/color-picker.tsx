@@ -36,8 +36,8 @@ export class ColorPicker extends Component<IColorPickerProps> {
 			},
 			color: this.props.color,
 			alpha: this.props.alpha,
-			onChange: ({ color }) => this.props.onChange?.(color),
-			onFinish: ({ color }) => this.props.onFinish?.(color),
+			onChange: ({ color }: any) => this.props.onChange?.(color),
+			onFinish: ({ color }: any) => this.props.onFinish?.(color),
 		});
 
 		div.append(this._colorXplr.element);

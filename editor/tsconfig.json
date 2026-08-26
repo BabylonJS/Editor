@@ -1,20 +1,18 @@
 {
 	"compilerOptions": {
 		"target": "ESNext",
-		"module": "CommonJS",
-		"moduleResolution": "node",
+		"module": "commonjs",
 		"sourceMap": true,
 		"declaration": true,
 		"outDir": "./build",
 		"declarationDir": "./declaration",
-		"jsx": "react-jsx",
 		"strictNullChecks": true,
 		"noUnusedLocals": true,
+		"jsx": "react-jsx",
 		"noUnusedParameters": true,
 		"allowSyntheticDefaultImports": true,
 		"resolveJsonModule": true,
 		"esModuleInterop": true,
-		"downlevelIteration": true,
 		"experimentalDecorators": true,
 		"skipLibCheck": true
 	},

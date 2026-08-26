@@ -4,9 +4,9 @@ import { FreeCamera, ICameraInput, Scene, Vector3 } from "babylonjs";
  * FreeCamera input to pan the camera using Alt + Left Mouse Button.
  */
 export class EditorFreeCameraPanInput implements ICameraInput<FreeCamera> {
-	public camera: FreeCamera;
+	public camera!: FreeCamera;
 
-	private _scene: Scene;
+	private _scene!: Scene;
 	private _canvas: HTMLCanvasElement | null = null;
 
 	private _isPanning: boolean = false;

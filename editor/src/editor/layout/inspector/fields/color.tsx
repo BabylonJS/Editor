@@ -41,6 +41,10 @@ export function EditorInspectorColorField(props: IEditorInspectorColorFieldProps
 				alpha={color instanceof Color4}
 				onFinish={(color) => handleColorPickerChange(color)}
 				onChange={(newColor) => {
+					if (typeof newColor === "string") {
+						return console.error("ColorPicker returned a string instead of a Color object. This should not happen.");
+					}
+
 					color.set(newColor.r, newColor.g, newColor.b, newColor.a);
 					props.onChange?.(color);
 				}}
@@ -49,6 +53,10 @@ export function EditorInspectorColorField(props: IEditorInspectorColorFieldProps
 	}
 
 	function handleColorPickerChange(newColor: Color) {
+		if (typeof newColor === "string") {
+			return console.error("ColorPicker returned a string instead of a Color object. This should not happen.");
+		}
+
 		color.set(newColor.r, newColor.g, newColor.b, newColor.a);
 		setValue(color.clone());
 
@@ -67,7 +75,7 @@ export function EditorInspectorColorField(props: IEditorInspectorColorFieldProps
 	}
 
 	function handleChanelChange(value: number, channel: "r" | "g" | "b" | "a") {
-		color[channel] = value;
+		(color as any)[channel] = value;
 		setValue(color.clone());
 
 		props.onChange?.(color);

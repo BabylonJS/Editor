@@ -13,7 +13,6 @@
 		"allowSyntheticDefaultImports": true,
 		"resolveJsonModule": true,
 		"esModuleInterop": true,
-		"downlevelIteration": true,
 		"experimentalDecorators": true,
 		"skipLibCheck": true
 	},

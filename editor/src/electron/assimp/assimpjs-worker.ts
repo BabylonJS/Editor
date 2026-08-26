@@ -3,7 +3,7 @@ import { workerData, parentPort } from "worker_threads";
 
 const assimpjs = require("assimpjs")();
 
-assimpjs.then((ajs) => {
+assimpjs.then((ajs: any) => {
 	const fileList = new ajs.FileList();
 	fileList.AddFile(basename(workerData.absolutePath), new Uint8Array(workerData.content));
 

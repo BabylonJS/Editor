@@ -24,5 +24,5 @@ export async function initializeHavok(appPath: string) {
 		},
 	});
 
-	globalThis.HK = havok;
+	(globalThis as any).HK = havok;
 }

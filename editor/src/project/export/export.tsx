@@ -59,9 +59,9 @@ export async function exportProject(editor: Editor, options: IExportProjectOptio
 	try {
 		await _exportProject(editor, options);
 	} catch (e) {
-		console.log(e);
+		console.error(e);
 
-		editor.layout.console.error(`Error exporting project:\n ${e.message}`);
+		editor.layout.console.error(`Error exporting project:\n ${(e as Error).message}`);
 		toast.error("Error exporting project");
 	} finally {
 		exporting = false;
@@ -128,12 +128,12 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 	scene.transformNodes.forEach((transformNode) => (transformNode.doNotSerialize = false));
 	clusteredLightContainer.lights.forEach((light) => (light.doNotSerialize = false));
 
-	const editorCameraIndex = data.cameras?.findIndex((camera) => camera.id === editorCamera?.id);
+	const editorCameraIndex = data.cameras?.findIndex((camera: any) => camera.id === editorCamera?.id);
 	if (editorCameraIndex !== -1) {
 		data.cameras?.splice(editorCameraIndex, 1);
 	}
 
-	const clusteredLightContainerIndex = data.lights?.findIndex((light) => light.id === clusteredLightContainer.id);
+	const clusteredLightContainerIndex = data.lights?.findIndex((light: any) => light.id === clusteredLightContainer.id);
 	if (clusteredLightContainerIndex !== -1) {
 		data.lights?.splice(clusteredLightContainerIndex, 1);
 	}
@@ -197,7 +197,7 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 						mesh.isPickable = false;
 						mesh.checkCollisions = false;
 
-						mesh.instances?.forEach((instance) => {
+						mesh.instances?.forEach((instance: any) => {
 							instance.isPickable = false;
 							instance.checkCollisions = false;
 						});
@@ -216,13 +216,13 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 					}
 
 					mesh.checkCollisions = true;
-					mesh.instances?.forEach((instance) => {
+					mesh.instances?.forEach((instance: any) => {
 						instance.checkCollisions = true;
 					});
 				}
 			}
 
-			const geometry = data.geometries?.vertexData?.find((v) => v.id === mesh.geometryId);
+			const geometry = data.geometries?.vertexData?.find((v: any) => v.id === mesh.geometryId);
 
 			if (geometry) {
 				const geometryFileName = `${geometry.id}.babylonbinarymeshdata`;
@@ -250,7 +250,7 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 
 					let geometryIndex = -1;
 					do {
-						geometryIndex = data.geometries!.vertexData!.findIndex((g) => g.id === mesh.geometryId);
+						geometryIndex = data.geometries!.vertexData!.findIndex((g: any) => g.id === mesh.geometryId);
 						if (geometryIndex !== -1) {
 							data.geometries!.vertexData!.splice(geometryIndex, 1);
 						}
@@ -331,11 +331,11 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 	);
 
 	// Configure lights
-	data.shadowGenerators?.forEach((shadowGenerator) => {
+	data.shadowGenerators?.forEach((shadowGenerator: any) => {
 		const instantiatedLight = scene.getLightById(shadowGenerator.lightId);
 		const instantiatedShadowGenerator = instantiatedLight?.getShadowGenerator();
 
-		const light = data.lights?.find((light) => light.id === shadowGenerator.lightId);
+		const light = data.lights?.find((light: any) => light.id === shadowGenerator.lightId);
 		if (light && instantiatedShadowGenerator) {
 			light.metadata ??= {};
 			light.metadata.refreshRate = instantiatedShadowGenerator?.getShadowMap()?.refreshRate ?? RenderTargetTexture.REFRESHRATE_RENDER_ONEVERYFRAME;
@@ -356,14 +356,14 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 	);
 
 	// Extract textures from node materials.
-	const nodeMaterials = data.materials?.filter((materialData) => {
+	const nodeMaterials = data.materials?.filter((materialData: any) => {
 		const existingMaterial = scene.getMaterialById(materialData.id);
 		return existingMaterial && isNodeMaterial(existingMaterial);
 	});
 
 	if (nodeMaterials.length) {
 		await Promise.all(
-			nodeMaterials.map(async (materialData) => {
+			nodeMaterials.map(async (materialData: any) => {
 				const relativePaths = await extractNodeMaterialTextures(editor, {
 					materialData,
 					assetsDirectory: extractedTexturesOutputPath,
@@ -375,13 +375,13 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 	}
 
 	// Extract texture from node particle systems.
-	const nodeParticleSystems = data.meshes?.filter((meshData) => {
+	const nodeParticleSystems = data.meshes?.filter((meshData: any) => {
 		return meshData.isNodeParticleSystemMesh && meshData.nodeParticleSystemSet;
 	});
 
 	if (nodeParticleSystems.length) {
 		await Promise.all(
-			nodeParticleSystems.map(async (meshData) => {
+			nodeParticleSystems.map(async (meshData: any) => {
 				const relativePaths = await extractNodeParticleSystemSetTextures(editor, {
 					assetsDirectory: extractedTexturesOutputPath,
 					particlesData: meshData.nodeParticleSystemSet,

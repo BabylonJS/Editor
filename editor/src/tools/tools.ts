@@ -60,7 +60,7 @@ export class UniqueNumber {
 export function unique<T>(array: T[], property?: string): T[] {
 	const unique = (value: T, index: number, self: T[]) => {
 		if (property) {
-			return self.findIndex((v) => v[property] === (value as any)[property]) === index;
+			return self.findIndex((v) => (v as any)[property] === (value as any)[property]) === index;
 		}
 
 		return self.indexOf(value) === index;

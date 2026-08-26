@@ -14,14 +14,14 @@ export async function createDirectoryIfNotExist(absolutePath: string) {
 /**
  * Normalizes the paths of the files returned by glob.
  */
-export async function normalizedGlob(...args: Parameters<typeof glob>): ReturnType<typeof glob> {
+export async function normalizedGlob(...args: Parameters<typeof glob>): Promise<string[]> {
 	const result = await glob(...args);
 
 	result.forEach((_: unknown, index: number) => {
 		result[index] = result[index].toString().replace(/\\/g, "/");
 	});
 
-	return result;
+	return result as string[];
 }
 
 /**

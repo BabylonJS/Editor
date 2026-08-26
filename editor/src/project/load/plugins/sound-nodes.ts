@@ -32,7 +32,7 @@ export async function loadSoundNodes(editor: Editor, soundNodeFiles: string[], s
 
 				return node;
 			} catch (e) {
-				editor.layout.console.error(`Failed to load sound node file "${file}": ${e.message}`);
+				editor.layout.console.error(`Failed to load sound node file "${file}": ${(e as Error).message}`);
 			}
 
 			options.progress.step(options.progressStep);

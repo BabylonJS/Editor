@@ -2,7 +2,7 @@
 	"compilerOptions": {
 		"target": "ESNext",
 		"module": "ESNext",
-		"moduleResolution": "bundler",
+		"rootDir": ".",
 		"allowSyntheticDefaultImports": true,
 		"esModuleInterop": true,
 		"types": ["vite/client"],

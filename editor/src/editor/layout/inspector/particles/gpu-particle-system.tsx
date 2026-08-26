@@ -17,6 +17,7 @@ import {
 	HemisphericParticleEmitter,
 	MeshParticleEmitter,
 	Observer,
+	IParticleSystem,
 } from "babylonjs";
 
 import { Button } from "../../../../ui/shadcn/ui/button";
@@ -62,7 +63,7 @@ export class EditorGPUParticleSystemInspector extends Component<IEditorInspector
 			}) as IEditorInspectorListFieldItem
 	);
 
-	private _stoppedObserver: Observer<ParticleSystem> | null = null;
+	private _stoppedObserver: Observer<IParticleSystem> | null = null;
 
 	public constructor(props: IEditorInspectorImplementationProps<GPUParticleSystem>) {
 		super(props);

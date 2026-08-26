@@ -30,7 +30,7 @@ export async function loadTransformNodes(editor: Editor, nodesFiles: string[], s
 
 				return transformNode;
 			} catch (e) {
-				editor.layout.console.error(`Failed to load transform node file "${file}": ${e.message}`);
+				editor.layout.console.error(`Failed to load transform node file "${file}": ${(e as Error).message}`);
 			}
 
 			options.progress.step(options.progressStep);

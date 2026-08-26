@@ -7,13 +7,13 @@
 		"build": "tsc -p .",
 		"watch": "tsc -p . --watch"
 	},
-	"main": "build/index.js",
-	"typings": "declaration/index.d.ts",
+	"main": "build/src/index.js",
+	"typings": "declaration/src/index.d.ts",
 	"license": "(Apache-2.0)",
 	"devDependencies": {
 		"@types/node": "^22",
 		"babylonjs-editor": "latest",
-		"typescript": "5.9.3"
+		"typescript": "6.0.3"
 	},
 	"dependencies": {
 		"babylonjs": "9.12.1",

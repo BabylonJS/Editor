@@ -10,7 +10,7 @@
 		"watch-test": "vitest --watch",
 		"coverage": "vitest run --coverage"
 	},
-	"main": "build/index.js",
+	"main": "build/src/index.js",
 	"exports": {
 		".": {
 			"types": "./declaration/src/index.d.ts",
@@ -30,7 +30,7 @@
 		"@babylonjs/gui": "9.12.1",
 		"@vitest/coverage-v8": "4.0.17",
 		"esbuild": "0.28.1",
-		"typescript": "5.9.3",
+		"typescript": "6.0.3",
 		"vitest": "4.1.0"
 	},
 	"dependencies": {}

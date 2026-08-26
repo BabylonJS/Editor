@@ -109,7 +109,7 @@ export function restorePlayOverrides(editor: Editor) {
 	WebRequest.prototype.open = savedWebRequestMethods.open;
 
 	editor.layout.preview.engine.stopRenderLoop();
-	savedEngineMethods.activeRenderLoops.forEach((loop) => {
+	savedEngineMethods.activeRenderLoops.forEach((loop: any) => {
 		editor.layout.preview.engine.runRenderLoop(loop);
 	});
 
@@ -155,7 +155,7 @@ export function applyOverrides(editor: Editor) {
 	// Console
 	const consoleMethodsList = ["log", "warn", "error", "info"];
 	consoleMethodsList.forEach((method) => {
-		console[method] = (...args: any[]) => {
+		(console as any)[method] = (...args: any[]) => {
 			const node = (
 				<div className="text-inherit">
 					<b className="font-bold text-[#2d72d2]">[{method.toUpperCase()}] </b>
@@ -217,10 +217,12 @@ export function applyOverrides(editor: Editor) {
 		return id;
 	}) as any;
 
-	window.clearTimeout = (id: number) => {
-		const index = savedTimeoutIds.indexOf(id);
-		if (index !== -1) {
-			savedTimeoutIds.splice(index, 1);
+	window.clearTimeout = (id) => {
+		if (typeof id === "number") {
+			const index = savedTimeoutIds.indexOf(id);
+			if (index !== -1) {
+				savedTimeoutIds.splice(index, 1);
+			}
 		}
 
 		return savedWindowMethods.clearTimeout.call(window, id);
@@ -232,10 +234,12 @@ export function applyOverrides(editor: Editor) {
 		return id;
 	};
 
-	window.clearInterval = (id: number) => {
-		const index = savedIntervalIds.indexOf(id);
-		if (index !== -1) {
-			savedIntervalIds.splice(index, 1);
+	window.clearInterval = (id) => {
+		if (typeof id === "number") {
+			const index = savedIntervalIds.indexOf(id);
+			if (index !== -1) {
+				savedIntervalIds.splice(index, 1);
+			}
 		}
 
 		return savedWindowMethods.clearInterval.call(window, id);

@@ -5,7 +5,7 @@ import { Component, ReactNode } from "react";
 import { FaLink } from "react-icons/fa6";
 import { AiOutlinePlus } from "react-icons/ai";
 
-import { AbstractMesh, InstancedMesh, Material, MorphTarget, MultiMaterial, Node, Observer, PBRMaterial, StandardMaterial, NodeMaterial } from "babylonjs";
+import { AbstractMesh, InstancedMesh, Material, MorphTarget, MultiMaterial, Node, Observer, PBRMaterial, StandardMaterial, NodeMaterial, Sprite } from "babylonjs";
 import { SkyMaterial, GridMaterial, NormalMaterial, WaterMaterial, LavaMaterial, TriPlanarMaterial, CellMaterial, FireMaterial, GradientMaterial } from "babylonjs-materials";
 
 import { CollisionMesh } from "../../../nodes/collision";
@@ -207,7 +207,7 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 		);
 	}
 
-	private _gizmoObserver: Observer<Node> | null = null;
+	private _gizmoObserver: Observer<Node | Sprite> | null = null;
 
 	public componentDidMount(): void {
 		this._gizmoObserver = onGizmoNodeChangedObservable.add((node) => {

@@ -21,7 +21,7 @@ export function registerGaussianSplattingParser() {
 	AddParser("GaussianSplattingMeshEditorPlugin", (parsedData: any, scene: Scene, container: AssetContainer, rootUrl: string) => {
 		const maxGaussianSplattingPartCount = GetGaussianSplattingMaxPartCount(scene.getEngine());
 
-		parsedData.meshes?.forEach((mesh) => {
+		parsedData.meshes?.forEach((mesh: any) => {
 			if (mesh.type !== "GaussianSplattingMesh" || !mesh.splatDataPath) {
 				return;
 			}
@@ -34,16 +34,16 @@ export function registerGaussianSplattingParser() {
 			instantiatedMesh.dispose(true);
 
 			const splatDataUrl = rootUrl + mesh.splatDataPath;
-			const shDataUrls = mesh.shDataPaths?.map((shData) => rootUrl + shData);
+			const shDataUrls = mesh.shDataPaths?.map((shData: any) => rootUrl + shData);
 
 			scene.addPendingData(splatDataUrl);
-			shDataUrls?.forEach((shDataUrl) => {
+			shDataUrls?.forEach((shDataUrl: any) => {
 				scene.addPendingData(shDataUrl);
 			});
 
 			const promises = [loadFile(splatDataUrl, "arraybuffer")];
 
-			shDataUrls?.forEach((shDataUrl) => {
+			shDataUrls?.forEach((shDataUrl: any) => {
 				promises.push(loadFile(shDataUrl, "arraybuffer"));
 			});
 
@@ -57,7 +57,7 @@ export function registerGaussianSplattingParser() {
 
 				scene.removeMesh(parsedMesh);
 
-				mesh.proxies.forEach((proxy) => {
+				mesh.proxies.forEach((proxy: any) => {
 					compountMesh ??= new GaussianSplattingCompoundMesh("GaussianSplattingCompoundMesh", undefined, scene);
 
 					if (compountMesh.partCount >= maxGaussianSplattingPartCount) {
@@ -106,7 +106,7 @@ export function registerGaussianSplattingParser() {
 				});
 
 				scene.removePendingData(splatDataUrl);
-				shDataUrls?.forEach((shDataUrl) => {
+				shDataUrls?.forEach((shDataUrl: any) => {
 					scene.removePendingData(shDataUrl);
 				});
 			});

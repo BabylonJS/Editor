@@ -14,7 +14,7 @@
 	},
 	"exports": {
 		".": {
-			"types": "./declaration/src/export.d.ts",
+			"types": "./declaration/src/export.d.mts",
 			"import": "./build/src/export.mjs",
 			"require": "./build/index.node.js"
 		}
