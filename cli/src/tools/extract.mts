@@ -67,7 +67,7 @@ export async function extractTextureAssetFromUrl(url: string, options: IExtractT
 			...options,
 		});
 	} catch (e) {
-		console.error(`Failed to extract texture from url "${url}": ${e.message}`);
+		console.error(`Failed to extract texture from url "${url}": ${(e as Error).message}`);
 	}
 
 	return null;

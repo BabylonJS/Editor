@@ -90,7 +90,7 @@ export async function createScriptsFile(projectDir: string): Promise<void> {
 					.map((file) => join("sprite-managers", file))
 					.map(async (f) => {
 						const data = await fs.readJSON(join(file, f), "utf-8");
-						data.spriteManager?.sprites.forEach((sprite) => {
+						data.spriteManager?.sprites.forEach((sprite: any) => {
 							if (sprite.metadata) {
 								availableMetadata.push({
 									metadata: sprite.metadata,
@@ -105,7 +105,7 @@ export async function createScriptsFile(projectDir: string): Promise<void> {
 
 	const promises: Promise<void>[] = [];
 	availableMetadata.forEach((configuration) => {
-		configuration.metadata.scripts?.forEach((script) => {
+		configuration.metadata.scripts?.forEach((script: any) => {
 			if (!script.enabled || script.debugOnly) {
 				return;
 			}

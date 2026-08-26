@@ -45,7 +45,7 @@ export async function notifyAndGetResultFromEditor(endpoint: string, data?: any)
 		isError = !response.ok;
 	} catch (e) {
 		isError = true;
-		text = e.message;
+		text = (e as Error).message;
 	}
 
 	return {

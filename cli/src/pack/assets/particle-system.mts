@@ -76,7 +76,7 @@ export async function extractParticleSystemTextures(particleSystemData: any, opt
 }
 
 export async function extractNodeParticleSystemSetTextures(particleSystemData: any, options: IExtractParticleSystemTexturesOptions) {
-	const blocks = particleSystemData.blocks.filter((block) => block.customType === "BABYLON.ParticleTextureSourceBlock");
+	const blocks = particleSystemData.blocks.filter((block: any) => block.customType === "BABYLON.ParticleTextureSourceBlock");
 
 	const relativePaths: string[] = [];
 
