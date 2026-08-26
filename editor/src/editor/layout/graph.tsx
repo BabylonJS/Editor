@@ -124,6 +124,10 @@ export interface IEditorGraphState {
 	 * Defines wether or not only decals should be shown in the graph.
 	 */
 	showOnlyDecals: boolean;
+	/**
+	 * Defines whether or not only nodes with scripts attached should be shown in the graph.
+	 */
+	showOnlyScriptAttached: boolean;
 
 	/**
 	 * Defines wether or not instanced meshes should be hidden from the graph.
@@ -161,6 +165,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 
 			showOnlyLights: false,
 			showOnlyDecals: false,
+			showOnlyScriptAttached: false,
 
 			hideInstancedMeshes: false,
 
@@ -227,28 +232,28 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 						<DropdownMenuContent>
 							<DropdownMenuItem
 								className="flex gap-1 items-center"
-								onClick={() => {
-									this.setState({ hideInstancedMeshes: !this.state.hideInstancedMeshes }, () => this.refresh());
-								}}
+								onClick={() => this.setState({ hideInstancedMeshes: !this.state.hideInstancedMeshes }, () => this.refresh())}
 							>
 								{this.state.hideInstancedMeshes ? <IoCheckmark /> : ""} Hide Instanced Meshes
 							</DropdownMenuItem>
 							<DropdownMenuSeparator />
 							<DropdownMenuItem
 								className="flex gap-1 items-center"
-								onClick={() => {
-									this.setState({ showOnlyLights: !this.state.showOnlyLights }, () => this.refresh());
-								}}
+								onClick={() => this.setState({ showOnlyLights: !this.state.showOnlyLights }, () => this.refresh())}
 							>
 								{this.state.showOnlyLights ? <IoCheckmark /> : ""} Show Only Lights
 							</DropdownMenuItem>
 							<DropdownMenuItem
 								className="flex gap-1 items-center"
-								onClick={() => {
-									this.setState({ showOnlyDecals: !this.state.showOnlyDecals }, () => this.refresh());
-								}}
+								onClick={() => this.setState({ showOnlyDecals: !this.state.showOnlyDecals }, () => this.refresh())}
 							>
 								{this.state.showOnlyDecals ? <IoCheckmark /> : ""} Show Only Decals
+							</DropdownMenuItem>
+							<DropdownMenuItem
+								className="flex gap-1 items-center"
+								onClick={() => this.setState({ showOnlyScriptAttached: !this.state.showOnlyScriptAttached }, () => this.refresh())}
+							>
+								{this.state.showOnlyScriptAttached ? <IoCheckmark /> : ""} Show Only Script Attached
 							</DropdownMenuItem>
 						</DropdownMenuContent>
 					</DropdownMenu>
@@ -416,13 +421,18 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 
 		let nodes: (TreeNodeInfo | null)[] = [];
 
-		if (this.state.showOnlyLights || this.state.showOnlyDecals) {
+		if (this.state.showOnlyLights || this.state.showOnlyDecals || this.state.showOnlyScriptAttached) {
 			if (this.state.showOnlyLights) {
 				nodes.push(...scene.lights.concat(clusteredLightContainer.lights).map((light) => this._parseSceneNode(light, true)));
 			}
 
 			if (this.state.showOnlyDecals) {
 				nodes.push(...scene.meshes.filter((mesh) => mesh.metadata?.decal).map((mesh) => this._parseSceneNode(mesh, true)));
+			}
+
+			if (this.state.showOnlyScriptAttached) {
+				const allNodes = [...scene.transformNodes, ...scene.meshes, ...scene.lights, ...scene.cameras];
+				nodes.push(...allNodes.filter((node) => node.metadata?.scripts?.length).map((node) => this._parseSceneNode(node, true)));
 			}
 		} else {
 			nodes = scene.rootNodes.filter((n) => !isEditorCamera(n)).map((n) => this._parseSceneNode(n));
