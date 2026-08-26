@@ -3,7 +3,6 @@
 	"compilerOptions": {
 		"module": "esnext",
 		"outDir": "dist",
-		"moduleResolution": "node",
 		"noEmit": false,
 		"preserveWatchOutput": true
 	},

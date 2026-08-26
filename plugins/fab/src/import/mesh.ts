@@ -40,7 +40,7 @@ export async function importMesh(editor: Editor, parameters: IImportMeshParamete
 
 	if (parameters.position) {
 		rootNodes.forEach((node) => {
-			node["position"]?.addInPlace(parameters.position!);
+			(node as any)["position"]?.addInPlace(parameters.position!);
 		});
 	}
 

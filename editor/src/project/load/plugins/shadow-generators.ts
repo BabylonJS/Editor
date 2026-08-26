@@ -35,7 +35,7 @@ export async function loadShadowGenerators(editor: Editor, shadowGeneratorFiles:
 					shadowMap.refreshRate = data.refreshRate ?? RenderTargetTexture.REFRESHRATE_RENDER_ONEVERYFRAME;
 				}
 			} catch (e) {
-				editor.layout.console.error(`Failed to load shadow generator file "${file}": ${e.message}`);
+				editor.layout.console.error(`Failed to load shadow generator file "${file}": ${(e as Error).message}`);
 			}
 
 			options.progress.step(options.progressStep);

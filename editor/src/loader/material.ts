@@ -28,7 +28,7 @@ export function parseMaterial(runtime: AssimpJSRuntime, data: IAssimpJSMaterialD
 					const texturePath = join(runtime.rootUrl, p.value.replace(/\\/g, "/"));
 
 					if (map && pathExistsSync(texturePath)) {
-						material[map] = new Texture(texturePath, runtime.scene);
+						(material as any)[map] = new Texture(texturePath, runtime.scene);
 					}
 				}
 				break;

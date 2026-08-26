@@ -41,12 +41,12 @@ export class RagdollEditorPreview extends Component<IRagdollEditorPreviewProps, 
 	public engine!: Engine;
 	public scene!: Scene;
 	public camera!: ArcRotateCamera;
-	public ground: GroundMesh;
-	public scalingNode: TransformNode;
+	public ground!: GroundMesh;
+	public scalingNode!: TransformNode;
 
 	public ragdoll: Ragdoll | null = null;
 
-	private _light: DirectionalLight;
+	private _light!: DirectionalLight;
 
 	private _viewer: PhysicsViewer | null = null;
 

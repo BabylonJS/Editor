@@ -152,7 +152,7 @@ export function cloneNode(editor: Editor, node: Node | Sprite | ParticleSystem |
 			try {
 				descendant.metadata = JSON.parse(JSON.stringify(descendant.metadata));
 			} catch (e) {
-				editor.layout.console.warn(`Failed to clone metadata for the mesh being cloned ${descendant.name}: ${e.message}`);
+				editor.layout.console.warn(`Failed to clone metadata for the mesh being cloned ${descendant.name}: ${(e as Error).message}`);
 			}
 		}
 	});

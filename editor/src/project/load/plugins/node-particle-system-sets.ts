@@ -32,7 +32,7 @@ export async function loadNodeParticleSystemSets(editor: Editor, nodeParticleSys
 
 				return node;
 			} catch (e) {
-				editor.layout.console.error(`Failed to load node particle system set file "${file}": ${e.message}`);
+				editor.layout.console.error(`Failed to load node particle system set file "${file}": ${(e as Error).message}`);
 			}
 
 			options.progress.step(options.progressStep);

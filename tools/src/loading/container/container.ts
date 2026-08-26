@@ -180,7 +180,7 @@ export class AdvancedAssetContainer {
 			newNode.metadata.originalId = originalId;
 
 			newDescendants.forEach((node) => {
-				node.metadata.scripts?.forEach((script) => {
+				node.metadata.scripts?.forEach((script: any) => {
 					const valueKeys = Object.keys(script.values || {});
 					valueKeys.forEach((key) => {
 						const obj = script.values[key];

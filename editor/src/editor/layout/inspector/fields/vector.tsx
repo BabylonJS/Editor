@@ -58,8 +58,8 @@ export function EditorInspectorVectorField(props: IEditorInspectorVectorFieldPro
 					noUndoRedo={props.noUndoRedo}
 					asDegrees={props.asDegrees}
 					step={props.step}
-					min={props.min?.[0] ?? props.min}
-					max={props.max?.[0] ?? props.max}
+					min={(props.min as number[])?.[0] ?? props.min}
+					max={(props.max as number[])?.[0] ?? props.max}
 					onChange={() => props.onChange?.()}
 					onFinishChange={() => props.onFinishChange?.()}
 				/>
@@ -70,8 +70,8 @@ export function EditorInspectorVectorField(props: IEditorInspectorVectorFieldPro
 					noUndoRedo={props.noUndoRedo}
 					asDegrees={props.asDegrees}
 					step={props.step}
-					min={props.min?.[1] ?? props.min}
-					max={props.max?.[1] ?? props.max}
+					min={(props.min as number[])?.[1] ?? props.min}
+					max={(props.max as number[])?.[1] ?? props.max}
 					onChange={() => props.onChange?.()}
 					onFinishChange={() => props.onFinishChange?.()}
 				/>
@@ -83,8 +83,8 @@ export function EditorInspectorVectorField(props: IEditorInspectorVectorFieldPro
 						noUndoRedo={props.noUndoRedo}
 						asDegrees={props.asDegrees}
 						step={props.step}
-						min={props.min?.[2] ?? props.min}
-						max={props.max?.[2] ?? props.max}
+						min={(props.min as number[])?.[2] ?? props.min}
+						max={(props.max as number[])?.[2] ?? props.max}
 						onChange={() => props.onChange?.()}
 						onFinishChange={() => props.onFinishChange?.()}
 					/>
@@ -97,8 +97,8 @@ export function EditorInspectorVectorField(props: IEditorInspectorVectorFieldPro
 						noUndoRedo={props.noUndoRedo}
 						asDegrees={props.asDegrees}
 						step={props.step}
-						min={props.min?.[3] ?? props.min}
-						max={props.max?.[3] ?? props.max}
+						min={(props.min as number[])?.[3] ?? props.min}
+						max={(props.max as number[])?.[3] ?? props.max}
 						onChange={() => props.onChange?.()}
 						onFinishChange={() => props.onFinishChange?.()}
 					/>

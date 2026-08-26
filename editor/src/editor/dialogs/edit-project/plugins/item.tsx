@@ -73,7 +73,7 @@ export function EditorEditProjectPluginItemComponent(props: IEditorEditProjectPl
 			await result.close?.(props.editor);
 		} catch (e) {
 			console.error("Failed to remove plugin", e);
-			props.editor.layout.console.error(`Failed to remove plugin: ${e.message}`);
+			props.editor.layout.console.error(`Failed to remove plugin: ${(e as Error).message}`);
 		} finally {
 			props.onRemoved();
 		}
@@ -98,8 +98,8 @@ export function EditorEditProjectPluginItemComponent(props: IEditorEditProjectPl
 			result.close?.();
 		} catch (e) {
 			props.editor.layout.console.error("Invalid plugin. Failed to close plugin before upgrading.");
-			if (e.message) {
-				props.editor.layout.console.error(e.message);
+			if ((e as Error).message) {
+				props.editor.layout.console.error((e as Error).message);
 			}
 		}
 
@@ -130,8 +130,8 @@ export function EditorEditProjectPluginItemComponent(props: IEditorEditProjectPl
 			result.main(props.editor);
 		} catch (e) {
 			props.editor.layout.console.error("Invalid plugin.");
-			if (e.message) {
-				props.editor.layout.console.error(e.message);
+			if ((e as Error).message) {
+				props.editor.layout.console.error((e as Error).message);
 			}
 		}
 

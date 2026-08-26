@@ -45,7 +45,7 @@ export class EditorAnimation extends Component<IEditorAnimationProps, IEditorAni
 	private _playing: boolean = false;
 	private _currentTimeBeforePlay: number | null = null;
 
-	private _onKeyUpListener: (event: KeyboardEvent) => void;
+	private _onKeyUpListener!: (event: KeyboardEvent) => void;
 
 	public constructor(props: IEditorAnimationProps) {
 		super(props);

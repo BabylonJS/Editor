@@ -4,7 +4,7 @@ import { LuRefreshCcw } from "react-icons/lu";
 import { IoPlay, IoStop } from "react-icons/io5";
 import { AiOutlineMinus, AiOutlinePlus } from "react-icons/ai";
 
-import { Sprite, Observer } from "babylonjs";
+import { Sprite, Observer, Node } from "babylonjs";
 import { ISpriteAnimation } from "babylonjs-editor-tools";
 
 import { Button } from "../../../../ui/shadcn/ui/button";
@@ -140,7 +140,7 @@ export class EditorSpriteInspector extends Component<IEditorInspectorImplementat
 		);
 	}
 
-	private _gizmoObserver: Observer<Sprite> | null = null;
+	private _gizmoObserver: Observer<Node | Sprite> | null = null;
 
 	public async componentDidMount(): Promise<void> {
 		this._gizmoObserver = onGizmoNodeChangedObservable.add((sprite) => {

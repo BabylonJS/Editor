@@ -570,7 +570,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 		this.setState({ selectedKeys: [absolutePath] });
 	}
 
-	private async _handleDropInTree(ev: React.DragEvent<HTMLDivElement>, relativePath): Promise<void> {
+	private async _handleDropInTree(ev: React.DragEvent<HTMLDivElement>, relativePath: string): Promise<void> {
 		ev.preventDefault();
 		ev.stopPropagation();
 

@@ -10,7 +10,7 @@ import { UniqueNumber } from "../../tools/tools";
 
 import { configureImportedTexture } from "../../editor/layout/preview/import/import";
 
-import { BaseTexture, EnvironmentTextureTools, EXRCubeTexture, HDRCubeTexture, Observable, Texture, Tools, PBRMaterial } from "babylonjs";
+import { BaseTexture, EnvironmentTextureTools, EXRCubeTexture, HDRCubeTexture, Observable, Texture, Tools, PBRMaterial, EnvCubeTexture } from "babylonjs";
 
 import { Editor } from "../../editor/main";
 
@@ -64,7 +64,7 @@ export abstract class MarketplaceProvider {
 	private _activeDownloadIds: IMarketplaceDownloadItem[] = [];
 	private _downloadListeners: ((id: string, progress: IMarketplaceProgress) => void)[] = [];
 
-	protected _settings: IMarketplaceSettings;
+	protected _settings: IMarketplaceSettings | null = null;
 	private _settingsListeners: ((id: string, value: any) => void)[] = [];
 
 	public onSettingsChanged(listener: (id: string, value: any) => void): void {
@@ -284,7 +284,7 @@ export abstract class MarketplaceProvider {
 		}
 	}
 
-	private async _convertTextureToEnv(filePath: string, texture: BaseTexture, onLoadObservable: Observable<BaseTexture>): Promise<boolean> {
+	private async _convertTextureToEnv(filePath: string, texture: BaseTexture, onLoadObservable: Observable<EnvCubeTexture>): Promise<boolean> {
 		return new Promise((resolve, reject) => {
 			onLoadObservable.addOnce(async () => {
 				try {

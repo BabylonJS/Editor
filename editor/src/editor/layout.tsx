@@ -42,35 +42,35 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
 	/**
 	 * The preview of the editor.
 	 */
-	public preview: EditorPreview;
+	public preview!: EditorPreview;
 	/**
 	 * The console of the editor.
 	 */
-	public console: EditorConsole;
+	public console!: EditorConsole;
 	/**
 	 * The inspector of the editor.
 	 */
-	public inspector: EditorInspector;
+	public inspector!: EditorInspector;
 	/**
 	 * The graph of the editor.
 	 */
-	public graph: EditorGraph;
+	public graph!: EditorGraph;
 	/**
 	 * The assets browser of the editor.
 	 */
-	public assets: EditorAssetsBrowser;
+	public assets!: EditorAssetsBrowser;
 	/**
 	 * The animation editor of the editor.
 	 */
-	public animations: EditorAnimation;
+	public animations!: EditorAnimation;
 	/**
 	 * The terminal of the editor.
 	 */
-	public terminal: EditorTerminal;
+	public terminal!: EditorTerminal;
 	/**
 	 * The marketplace browser of the editor.
 	 */
-	public marketplace: EditorMarketplaceBrowser | null;
+	public marketplace: EditorMarketplaceBrowser | null = null;
 
 	/**
 	 * Observable for when the layout has changed.

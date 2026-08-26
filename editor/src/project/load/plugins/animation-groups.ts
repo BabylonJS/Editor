@@ -27,7 +27,7 @@ export async function loadAnimationGroups(editor: Editor, animationGroupFiles: s
 					return animationGroup;
 				}
 			} catch (e) {
-				editor.layout.console.error(`Failed to load animation group file "${file}": ${e.message}`);
+				editor.layout.console.error(`Failed to load animation group file "${file}": ${(e as Error).message}`);
 			}
 
 			options.progress.step(options.progressStep);

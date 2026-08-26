@@ -152,11 +152,11 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 	/**
 	 * The layout of the editor.
 	 */
-	public layout: EditorLayout;
+	public layout!: EditorLayout;
 	/**
 	 * The command palette of the editor.
 	 */
-	public commandPalette: CommandPalette;
+	public commandPalette!: CommandPalette;
 
 	/**
 	 * Defines the path to the editor application.

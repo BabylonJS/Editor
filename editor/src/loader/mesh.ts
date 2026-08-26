@@ -30,9 +30,10 @@ export function buildMeshGeometry(runtime: AssimpJSRuntime, meshNode: IAssimpMes
 	meshes.forEach((m) => {
 		const textureCoordsLength = m.texturecoords?.length ?? 0;
 		for (let i = 0; i < textureCoordsLength; ++i) {
-			const uvs = i > 0 ? `uvs${i + 1}` : "uvs";
+			const uvs = (i > 0 ? `uvs${i + 1}` : "uvs") as "uvs" | "uvs2" | "uvs3" | "uvs4" | "uvs5" | "uvs6";
 			if (vertexData[uvs]) {
-				vertexData[uvs] = vertexData[uvs].concat(m.texturecoords![i]);
+				vertexData.uvs;
+				vertexData[uvs] = (vertexData[uvs] as number[]).concat(m.texturecoords![i]);
 			} else {
 				vertexData[uvs] = m.texturecoords![i];
 			}

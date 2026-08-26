@@ -363,7 +363,7 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 		try {
 			await this._compiledScriptExports.loadScene(rootUrl, `${sceneName}.babylon`, scene, this._compiledScriptExports.scriptsMap, {
 				quality: "high",
-				onProgress: (progress) =>
+				onProgress: (progress: number) =>
 					this.props.editor.layout.preview.setState({
 						playSceneLoadingProgress: progress,
 					}),

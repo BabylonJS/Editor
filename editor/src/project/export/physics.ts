@@ -24,7 +24,7 @@ export function configureMeshesPhysics(data: any, scene: Scene) {
 			m.metadata.physicsAggregate = serializePhysicsAggregate(mesh.physicsAggregate);
 		}
 
-		m.instances?.forEach((instance) => {
+		m.instances?.forEach((instance: any) => {
 			const instancedMesh = mesh.instances.find((i) => i.id === instance.id);
 			if (instancedMesh?.physicsAggregate) {
 				instance.metadata ??= {};

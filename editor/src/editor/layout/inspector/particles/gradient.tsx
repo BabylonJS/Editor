@@ -28,14 +28,14 @@ export function GradientField(props: IGradientFieldProps) {
 	return (
 		<EditorInspectorBlockField onPointerOver={() => setPointerOver(true)} onPointerLeave={() => setPointerOver(false)}>
 			<div className="flex gap-2 w-full">
-				{typeof props.gradient["factor1"] === "number" && (
+				{typeof (props.gradient as any)["factor1"] === "number" && (
 					<div className="flex flex-1">
 						<EditorInspectorNumberField object={props.gradient} property="factor1" step={0.01} />
 						<EditorInspectorNumberField object={props.gradient} property="factor2" step={0.01} />
 					</div>
 				)}
 
-				{props.gradient["color1"] && (
+				{(props.gradient as any)["color1"] && (
 					<div className="flex flex-col gap-2 flex-1">
 						<EditorInspectorColorField object={props.gradient} property="color1" label="Color 1" />
 						<EditorInspectorColorField object={props.gradient} property="color2" label="Color 2" />

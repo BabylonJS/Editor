@@ -32,7 +32,7 @@ export async function loadLights(editor: Editor, lightsFiles: string[], scene: S
 					return light;
 				}
 			} catch (e) {
-				editor.layout.console.error(`Failed to load light file "${file}": ${e.message}`);
+				editor.layout.console.error(`Failed to load light file "${file}": ${(e as Error).message}`);
 			}
 
 			options.progress.step(options.progressStep);

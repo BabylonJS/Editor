@@ -105,7 +105,7 @@ export async function computeOrGetThumbnail(editor: Editor, options: IComputeThu
 			await saveAssetsThumbnailCache();
 		} catch (e) {
 			editor.layout.console.error("Failed to save assets thumbnail cache");
-			editor.layout.console.error(e.message?.toString());
+			editor.layout.console.error((e as Error).message?.toString());
 		}
 	}
 

@@ -31,7 +31,7 @@ export async function loadCameras(editor: Editor, cameraFiles: string[], scene: 
 
 				return camera;
 			} catch (e) {
-				editor.layout.console.error(`Failed to load camera file "${file}": ${e.message}`);
+				editor.layout.console.error(`Failed to load camera file "${file}": ${(e as Error).message}`);
 			}
 
 			options.progress.step(options.progressStep);

@@ -174,19 +174,20 @@ export class SpriteManagerNode extends TransformNode {
 		const spriteRenderer = this.spriteManager.spriteRenderer;
 
 		const _appendSpriteVertex = spriteRenderer["_appendSpriteVertex"];
-		spriteRenderer["_appendSpriteVertex"] = function (index, sprite, ...args: any[]) {
+		spriteRenderer["_appendSpriteVertex"] = function (index: number, sprite: Sprite, ...args: any[]) {
+			const anyThis = this as any;
 			_appendSpriteVertex.call(this, index, sprite, ...args);
 
-			let arrayOffset = index * this._vertexBufferSize;
-			if (this._useInstancing) {
+			let arrayOffset = index * anyThis._vertexBufferSize;
+			if (anyThis._useInstancing) {
 				arrayOffset -= 2;
 			}
 
 			if (sprite.overrideColor) {
-				this._vertexData[arrayOffset + 14] *= sprite.overrideColor.r;
-				this._vertexData[arrayOffset + 15] *= sprite.overrideColor.g;
-				this._vertexData[arrayOffset + 16] *= sprite.overrideColor.b;
-				this._vertexData[arrayOffset + 17] *= sprite.overrideColor.a;
+				anyThis._vertexData[arrayOffset + 14] *= sprite.overrideColor.r;
+				anyThis._vertexData[arrayOffset + 15] *= sprite.overrideColor.g;
+				anyThis._vertexData[arrayOffset + 16] *= sprite.overrideColor.b;
+				anyThis._vertexData[arrayOffset + 17] *= sprite.overrideColor.a;
 			}
 		};
 	}
@@ -223,7 +224,7 @@ export class SpriteManagerNode extends TransformNode {
 	public serialize(): any {
 		const spriteManager = this.spriteManager?.serialize() ?? null;
 		if (spriteManager) {
-			spriteManager.sprites.forEach((sprite, index) => {
+			spriteManager.sprites.forEach((sprite: Sprite, index: number) => {
 				sprite.uniqueId = this.spriteManager!.sprites[index].uniqueId;
 				sprite.metadata = this.spriteManager!.sprites[index].metadata;
 			});

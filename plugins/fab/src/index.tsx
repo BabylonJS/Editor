@@ -12,7 +12,7 @@ const tabId = "babylonjs-editor-fab-plugin-tab";
 
 const styles = document.createElement("link");
 styles.rel = "stylesheet";
-styles.href = `file://${__dirname}/index.css`;
+styles.href = `file://${__dirname}/../index.css`;
 
 export function main(editor: Editor): void {
 	if (!editor.state.projectPath) {

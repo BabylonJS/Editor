@@ -142,13 +142,13 @@ export class NavMeshEditor extends Component<INavmeshEditorProps, INavmeshEditor
 				this._createDebugNavMesh();
 			} catch (e) {
 				toast.error("Failed to create NavMesh");
-				this.props.editor.layout.console.error(`Failed to create NavMesh: ${e.message}`);
+				this.props.editor.layout.console.error(`Failed to create NavMesh: ${(e as Error).message}`);
 
 				try {
 					await RecastCore.init();
 				} catch (e) {
 					toast.error("Failed to re-initialize RecastCore");
-					this.props.editor.layout.console.error(`Failed to re-initialize RecastCore: ${e.message}`);
+					this.props.editor.layout.console.error(`Failed to re-initialize RecastCore: ${(e as Error).message}`);
 				}
 			}
 
@@ -254,7 +254,7 @@ export class NavMeshEditor extends Component<INavmeshEditorProps, INavmeshEditor
 
 			toast.success("NavMesh saved successfully.");
 		} catch (e) {
-			toast.error(`Failed to save NavMesh: ${e.message}`);
+			toast.error(`Failed to save NavMesh: ${(e as Error).message}`);
 		}
 	}
 

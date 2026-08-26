@@ -124,7 +124,7 @@ export class ScriptInspectorComponent extends Component<IScriptInspectorComponen
 				return;
 			}
 
-			if (this.props.object.metadata.scripts.find((script) => script.key === relativePath)) {
+			if (this.props.object.metadata.scripts.find((script: any) => script.key === relativePath)) {
 				return toast.warning(`Script '${relativePath}' is already attached to the object.`);
 			}
 

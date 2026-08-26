@@ -30,8 +30,8 @@ export interface IIRagdollEditorPropsState {
 }
 
 export class RagdollEditor extends Component<IRagdollEditorProps, IIRagdollEditorPropsState> {
-	public preview: RagdollEditorPreview;
-	public inspector: RagdollEditorInspector;
+	public preview!: RagdollEditorPreview;
+	public inspector!: RagdollEditorInspector;
 
 	public constructor(props: IRagdollEditorProps) {
 		super(props);
@@ -103,7 +103,7 @@ export class RagdollEditor extends Component<IRagdollEditorProps, IIRagdollEdito
 
 			toast.success("Ragdoll saved successfully.");
 		} catch (e) {
-			toast.error(`Failed to save Ragdoll: ${e.message}`);
+			toast.error(`Failed to save Ragdoll: ${(e as Error).message}`);
 		}
 	}
 
@@ -120,7 +120,7 @@ export class RagdollEditor extends Component<IRagdollEditorProps, IIRagdollEdito
 				selectedRootNode: (this.preview.scene.getNodeById(this.props.configuration.rootNodeId) as Mesh | TransformNode) ?? this.preview.scene.meshes[1],
 			});
 		} catch (e) {
-			showAlert(`Failed to load asset`, `An error occurred while loading the asset: ${e.message}`);
+			showAlert(`Failed to load asset`, `An error occurred while loading the asset: ${(e as Error).message}`);
 		}
 
 		this.setState({

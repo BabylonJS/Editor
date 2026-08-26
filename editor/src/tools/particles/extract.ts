@@ -34,7 +34,7 @@ export interface IExtractNodeParticleSystemSetTexturesOptions extends IExtractPa
 }
 
 export async function extractNodeParticleSystemSetTextures(editor: Editor, options: IExtractNodeParticleSystemSetTexturesOptions) {
-	const blocks = options.particlesData.blocks.filter((block) => block.customType === "BABYLON.ParticleTextureSourceBlock");
+	const blocks = options.particlesData.blocks.filter((block: any) => block.customType === "BABYLON.ParticleTextureSourceBlock");
 
 	const relativePaths: string[] = [];
 

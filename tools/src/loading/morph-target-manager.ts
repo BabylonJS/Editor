@@ -23,14 +23,14 @@ export function registerMorphTargetManagerParser() {
 				return;
 			}
 
-			const shouldExit = morphTargetManagerData.targets.find((target) => !target.delayLoadingFile);
+			const shouldExit = morphTargetManagerData.targets.find((target: any) => !target.delayLoadingFile);
 			if (shouldExit) {
 				return;
 			}
 
 			const promises: Promise<ArrayBuffer | null>[] = [];
 
-			morphTargetManagerData.targets.forEach((target) => {
+			morphTargetManagerData.targets.forEach((target: any) => {
 				if (!target.delayLoadingFile) {
 					return promises.push(Promise.resolve(null));
 				}

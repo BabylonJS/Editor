@@ -23,7 +23,7 @@ export async function loadGuis(editor: Editor, guiFiles: string[], options: ISce
 					return gui;
 				}
 			} catch (e) {
-				editor.layout.console.error(`Failed to load GUI file "${file}": ${e.message}`);
+				editor.layout.console.error(`Failed to load GUI file "${file}": ${(e as Error).message}`);
 			}
 
 			options.progress.step(options.progressStep);

@@ -1,6 +1,6 @@
 import { Component, ReactNode } from "react";
 
-import { AbstractMesh, Node, Observer, TransformNode } from "babylonjs";
+import { AbstractMesh, Node, Observer, TransformNode, Sprite } from "babylonjs";
 
 import { isTransformNode } from "../../../tools/guards/nodes";
 import { isSceneLinkNode } from "../../../tools/guards/scene";
@@ -72,7 +72,7 @@ export class EditorTransformNodeInspector extends Component<IEditorInspectorImpl
 		);
 	}
 
-	private _gizmoObserver: Observer<Node> | null = null;
+	private _gizmoObserver: Observer<Node | Sprite> | null = null;
 
 	public componentDidMount(): void {
 		this._gizmoObserver = onGizmoNodeChangedObservable.add((node) => {
@@ -94,10 +94,10 @@ export class EditorTransformNodeInspector extends Component<IEditorInspectorImpl
 
 			const proxy = new Proxy(valueRef, {
 				get(target, prop) {
-					return target[prop];
+					return (target as any)[prop];
 				},
 				set(obj, prop, value) {
-					obj[prop] = value;
+					(obj as any)[prop] = value;
 					object.rotationQuaternion?.copyFrom(obj.toQuaternion());
 
 					return true;

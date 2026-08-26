@@ -162,7 +162,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 						delete data.materials;
 					}
 
-					data.meshes?.forEach((mesh) => {
+					data.meshes?.forEach((mesh: any) => {
 						if (mesh.renderOverlay) {
 							mesh.renderOverlay = false;
 						}
@@ -212,7 +212,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 						}
 					});
 
-					data.materials = data.materials?.filter((material) => {
+					data.materials = data.materials?.filter((material: any) => {
 						const instantiatedMaterial = scene.getMaterialById(material.id);
 						if (instantiatedMaterial && instantiatedMaterial !== scene.defaultMaterial) {
 							return true;
@@ -228,9 +228,9 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 					}
 
 					await Promise.all(
-						data.meshes?.map(async (mesh) => {
+						data.meshes?.map(async (mesh: any) => {
 							const instantiatedMesh = scene.getMeshById(mesh.id);
-							const geometry = data.geometries?.vertexData?.find((v) => v.id === mesh.geometryId);
+							const geometry = data.geometries?.vertexData?.find((v: any) => v.id === mesh.geometryId);
 
 							if (geometry) {
 								const geometryFileName = `${geometry.id}.babylonbinarymeshdata`;
@@ -258,7 +258,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 
 									let geometryIndex = -1;
 									do {
-										geometryIndex = data.geometries!.vertexData!.findIndex((g) => g.id === mesh.geometryId);
+										geometryIndex = data.geometries!.vertexData!.findIndex((g: any) => g.id === mesh.geometryId);
 										if (geometryIndex !== -1) {
 											data.geometries!.vertexData!.splice(geometryIndex, 1);
 										}
@@ -354,7 +354,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 
 				const promises = [writeFile(splatPath, Buffer.from(data.splatsData))];
 
-				data.shData?.forEach((shData, index) => {
+				data.shData?.forEach((shData: any, index: number) => {
 					promises.push(writeFile(shPaths[index], Buffer.from(shData)));
 				});
 
@@ -415,7 +415,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 				data.uniqueId = mesh.morphTargetManager.uniqueId;
 
 				await Promise.all(
-					data.targets.map(async (target, targetIndex) => {
+					data.targets.map(async (target: any, targetIndex: number) => {
 						const effectiveTarget = mesh.morphTargetManager!.getTarget(targetIndex);
 						if (effectiveTarget) {
 							target.uniqueId = effectiveTarget.uniqueId;

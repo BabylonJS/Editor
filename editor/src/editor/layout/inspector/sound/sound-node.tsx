@@ -3,7 +3,7 @@ import { extname, join } from "path/posix";
 import { Component, ReactNode } from "react";
 import { HiSpeakerWave } from "react-icons/hi2";
 
-import { Observer, Node, SoundState } from "babylonjs";
+import { Observer, Node, SoundState, Sprite } from "babylonjs";
 
 import { Button } from "../../../../ui/shadcn/ui/button";
 
@@ -53,7 +53,7 @@ export class EditorSoundNodeInspector extends Component<IEditorInspectorImplemen
 		};
 	}
 
-	private _gizmoObserver: Observer<Node> | null = null;
+	private _gizmoObserver: Observer<Node | Sprite> | null = null;
 
 	public componentDidMount(): void {
 		this._gizmoObserver = onGizmoNodeChangedObservable.add((node) => {

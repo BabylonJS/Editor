@@ -2,7 +2,6 @@
 	"compilerOptions": {
 		"target": "ESNext",
 		"module": "ESNext",
-		"moduleResolution": "node",
 		"sourceMap": true,
 		"declaration": true,
 		"outDir": "./build",
@@ -13,7 +12,6 @@
 		"allowSyntheticDefaultImports": true,
 		"resolveJsonModule": true,
 		"esModuleInterop": true,
-		"downlevelIteration": true,
 		"experimentalDecorators": true,
 		"skipLibCheck": true
 	},
