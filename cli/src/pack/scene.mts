@@ -62,7 +62,7 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 		});
 
 		await Promise.all(
-			mergedDecals.map(async (mesh) => {
+			mergedDecals.map(async (mesh: any) => {
 				if (mesh.delayLoadingFile) {
 					collectedGeometries.push({
 						mesh,
@@ -81,7 +81,7 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 			})
 		);
 
-		mergedDecalsIds = mergedDecals.map((m) => m.metadata?.mergedMeshesIds ?? []).flat();
+		mergedDecalsIds = mergedDecals.map((m: any) => m.metadata?.mergedMeshesIds ?? []).flat();
 	}
 
 	// Meshes
@@ -146,13 +146,13 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 				mesh.parentId = mesh.metadata.parentId;
 			}
 
-			mesh.instances?.forEach((instance) => {
+			mesh.instances?.forEach((instance: any) => {
 				if (instance.metadata?.parentId) {
 					instance.parentId = instance.metadata.parentId;
 				}
 			});
 
-			mesh.instances = mesh.instances?.filter((instance) => {
+			mesh.instances = mesh.instances?.filter((instance: any) => {
 				if (instance.metadata?.doNotSerialize) {
 					return null;
 				}
@@ -166,14 +166,14 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 
 			let effectiveMaterials: any[] = [];
 
-			data.materials?.forEach((material) => {
+			data.materials?.forEach((material: any) => {
 				const existingMaterial = materials.find((m) => m.id === material.id) ?? effectiveMaterials.find((m) => m.id === material.id);
 				if (!existingMaterial) {
 					effectiveMaterials.push(material);
 				}
 			});
 
-			data.multiMaterials?.forEach((multiMaterial) => {
+			data.multiMaterials?.forEach((multiMaterial: any) => {
 				delete multiMaterial.materialsUniqueIds;
 
 				const existingMultiMaterial = multiMaterials.find((mm) => mm.id === multiMaterial.id);
@@ -189,7 +189,7 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 				mesh.lodDistances = [];
 
 				const lodsResult = await Promise.all(
-					data.lods?.map(async (lodFile) => {
+					data.lods?.map(async (lodFile: any) => {
 						const lodData = await fs.readJSON(join(options.sceneFile, "lods", lodFile));
 						const lodMesh = lodData.meshes[0];
 
@@ -267,14 +267,14 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 			const data = await fs.readJSON(join(options.sceneFile, "morphTargetManagers", file));
 
 			if (options.babylonjsEditorToolsVersion >= "5.2.6") {
-				data.targets.forEach((target) => {
+				data.targets.forEach((target: any) => {
 					if (target.delayLoadingFile) {
 						target.delayLoadingFile = join(options.sceneName, "morphTargets", basename(target.delayLoadingFile));
 					}
 				});
 			} else {
 				await Promise.all(
-					data.targets.map(async (target) => {
+					data.targets.map(async (target: any) => {
 						const binaryFileData = join(options.sceneFile, "morphTargets", basename(target.delayLoadingFile));
 						const buffer = (await fs.readFile(binaryFileData)).buffer;
 
@@ -682,16 +682,16 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 
 	// Remove debug-only scripts for scene
 	if (scene.metadata?.scripts?.length) {
-		scene.metadata.scripts = scene.metadata.scripts.filter((script) => !script.debugOnly);
+		scene.metadata.scripts = scene.metadata.scripts.filter((script: any) => !script.debugOnly);
 	}
 
-	const allNodes = [...scene.meshes, ...scene.cameras, ...scene.lights, ...scene.transformNodes, ...scene.meshes.map((m) => m.instances ?? []).flat()];
+	const allNodes = [...scene.meshes, ...scene.cameras, ...scene.lights, ...scene.transformNodes, ...scene.meshes.map((m: any) => m.instances ?? []).flat()];
 
 	allNodes.forEach((node) => {
 		// Resolve parenting for mesh instances.
 		if (node.parentId !== undefined && node.parentInstanceIndex !== undefined) {
-			const effectiveMesh = scene.meshes.find((mesh) => {
-				return mesh.instances?.find((instance) => instance.uniqueId === node.parentId);
+			const effectiveMesh = scene.meshes.find((mesh: any) => {
+				return mesh.instances?.find((instance: any) => instance.uniqueId === node.parentId);
 			});
 
 			if (effectiveMesh) {
@@ -701,7 +701,7 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 
 		// Remove debug-only scripts
 		if (node.metadata?.scripts?.length) {
-			node.metadata.scripts = node.metadata.scripts.filter((script) => !script.debugOnly);
+			node.metadata.scripts = node.metadata.scripts.filter((script: any) => !script.debugOnly);
 		}
 	});
 

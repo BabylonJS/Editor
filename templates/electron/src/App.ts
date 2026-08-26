@@ -16,6 +16,7 @@ import "@babylonjs/core/Meshes/groundMesh";
 
 import "@babylonjs/core/Lights/directionalLight";
 import "@babylonjs/core/Lights/Shadows/shadowGeneratorSceneComponent";
+import "@babylonjs/core/Lights/Shadows/cascadedShadowGenerator";
 
 import "@babylonjs/core/Materials/PBR/pbrMaterial";
 import "@babylonjs/core/Materials/standardMaterial";
