@@ -61,6 +61,7 @@ export class ScriptInspectorComponent extends Component<IScriptInspectorComponen
 
 		registerUndoRedo({
 			executeRedo: true,
+			action: () => this.props.editor.layout.graph.refresh(),
 			undo: () => this.props.object.metadata?.scripts?.splice(index, 0, script),
 			redo: () => this.props.object.metadata?.scripts?.splice(index, 1),
 		});
@@ -129,6 +130,7 @@ export class ScriptInspectorComponent extends Component<IScriptInspectorComponen
 
 			registerUndoRedo({
 				executeRedo: true,
+				action: () => this.props.editor.layout.graph.refresh(),
 				undo: () => this.props.object.metadata.scripts.pop(),
 				redo: () => {
 					this.props.object.metadata.scripts.push({
