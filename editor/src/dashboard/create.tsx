@@ -92,6 +92,8 @@ export function DashboardCreateProjectDialog(props: IDashboardCreateProjectDialo
 		await pack(destination, {
 			optimize: false,
 		});
+
+		ipcRenderer.send("editor:project-hook", `${template} project created - ${packageManager} package manager`);
 	}
 
 	async function handleCreateProject() {
