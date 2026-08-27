@@ -25,6 +25,8 @@ import { LandingRendererComponent } from "./renderer";
 import "./landing.css";
 
 export default function HomePage() {
+	const videoRef = useRef<HTMLVideoElement>(null);
+
 	const section1Ref = useRef<HTMLDivElement>(null);
 	const section2Ref = useRef<HTMLDivElement>(null);
 	const section3Ref = useRef<HTMLDivElement>(null);
@@ -128,11 +130,42 @@ export default function HomePage() {
 								</div>
 							</div>
 
-							<div className="w-full h-full object-contain">
-								<img alt="" src="/screenshots/large.webp" className="max-h-[65dvh] object-contain z-50 mx-auto hidden sm:hidden md:hidden lg:hidden xl:block" />
-								<img alt="" src="/screenshots/medium.webp" className="max-h-[75dvh] object-contain z-50 mx-auto hidden sm:hidden md:hidden lg:block xl:hidden" />
-								<img alt="" src="/screenshots/small.webp" className="max-h-[75dvh] object-contain z-50 mx-auto lg:hidden" />
-							</div>
+							{mobile && (
+								<div className="w-full h-full object-contain">
+									<img alt="" src="/screenshots/large.webp" className="max-h-[65dvh] object-contain z-50 mx-auto hidden sm:hidden md:hidden lg:hidden xl:block" />
+									<img
+										alt=""
+										src="/screenshots/medium.webp"
+										className="max-h-[75dvh] object-contain z-50 mx-auto hidden sm:hidden md:hidden lg:block xl:hidden"
+									/>
+									<img alt="" src="/screenshots/small.webp" className="max-h-[75dvh] object-contain z-50 mx-auto lg:hidden" />
+								</div>
+							)}
+
+							{!mobile && (
+								<Fade
+									triggerOnce
+									duration={1000}
+									className="w-full h-full object-contain drop-shadow-[0_0px_10px_rgba(0,0,0,1)]"
+									onVisibilityChange={(visible) => {
+										videoRef.current!.style.filter = `blur(${visible ? "0px" : "8px"}) brightness(1.05) contrast(1.1)`;
+									}}
+								>
+									<video
+										loop
+										muted
+										autoPlay
+										ref={videoRef}
+										className="object-contain z-50 mx-auto [image-rendering:pixelated] transition-all duration-3000 ease-in-out"
+										style={{
+											filter: "blur(8px)",
+											clipPath: "rect(34px 93.2% 95.2% 88px round 10px)",
+										}}
+									>
+										<source src="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/landing.mp4" type="video/mp4" />
+									</video>
+								</Fade>
+							)}
 						</Fade>
 					</div>
 				</div>
