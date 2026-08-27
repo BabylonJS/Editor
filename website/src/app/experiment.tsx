@@ -11,6 +11,7 @@ export interface IExperimentProps extends PropsWithChildren {
 	coverVideo: string;
 	youtubeVideo: string;
 	liveLink: string;
+	direction: "up" | "right";
 
 	runLabel?: string;
 
@@ -33,13 +34,13 @@ export function Experiment(props: IExperimentProps) {
 
 	return (
 		<div className="flex flex-col gap-20 justify-center items-center w-full px-5 lg:pt-20 lg:pb-10">
-			<Fade triggerOnce>
+			<Fade damping={0.1} cascade triggerOnce direction={props.direction}>
 				<div className="text-5xl md:text-7xl lg:text-8xl xl:text-9xl font-semibold font-sans drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)] tracking-tighter text-center px-5">
 					{props.title}
 				</div>
 			</Fade>
 
-			<Fade triggerOnce delay={150}>
+			<Fade damping={0.1} cascade triggerOnce direction={props.direction} delay={150}>
 				<div className="group relative w-full lg:max-w-[50vw] border-[10px] border-black/80 rounded-lg select-none cursor-pointer">
 					<video loop muted autoPlay playsInline className="w-full h-full object-cover">
 						<source src={props.coverVideo} type="video/mp4" />
