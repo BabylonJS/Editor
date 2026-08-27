@@ -14,7 +14,7 @@ const esbuild = require("esbuild");
 const replaceImportMetaDirname = {
 	name: "replaceImportMetaDirname",
 	setup(build: any) {
-		build.onLoad({ filter: /.*/ }, async (args: any) => {
+		build.onLoad({ filter: /.*/ }, async (args) => {
 			const source = await require("fs").promises.readFile(args.path, "utf8");
 
 			const transformedSource = source.replace(/import\.meta\.dirname/g, "__dirname");
@@ -71,12 +71,12 @@ function extract(outputAbsolutePath: string) {
 				return new Proxy(function () {}, {
 					get(_target, prop) {
 						if (!(prop in recorder)) {
-							(recorder as any)[prop] = createMock({});
+							recorder[prop] = createMock({});
 						}
-						return (recorder as any)[prop];
+						return recorder[prop];
 					},
 					set(_target, prop, value) {
-						(recorder as any)[prop] = value;
+						recorder[prop] = value;
 						return true;
 					},
 					apply() {
@@ -91,7 +91,7 @@ function extract(outputAbsolutePath: string) {
 			const mock = createMock();
 			const instance = new output.default(mock);
 
-			inspectorProperties?.forEach((value: any) => {
+			inspectorProperties?.forEach((value) => {
 				const defaultValue = instance[value.propertyKey];
 				value.defaultValue = defaultValue?.asArray?.() ?? defaultValue;
 			});

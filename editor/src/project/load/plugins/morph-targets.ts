@@ -18,7 +18,7 @@ export async function loadMorphTargetManagers(editor: Editor, morphTargetManager
 				const data = await readJSON(join(options.scenePath, "morphTargetManagers", file), "utf-8");
 
 				await Promise.all(
-					data.targets.map(async (target: any) => {
+					data.targets.map(async (target) => {
 						const binaryFileData = join(options.scenePath, "morphTargets", basename(target.delayLoadingFile));
 						const buffer = (await readFile(binaryFileData)).buffer;
 

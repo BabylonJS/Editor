@@ -42,7 +42,7 @@ export class AmbientCGProvider extends MarketplaceProvider {
 
 		const data = response.data;
 		const hasMore = data.assets.length === limit;
-		const assets: IMarketplaceAsset[] = data.assets.map((asset: any) => {
+		const assets: IMarketplaceAsset[] = data.assets.map((asset) => {
 			this._assetCache.set(asset.id, asset.data);
 
 			return {
@@ -69,7 +69,7 @@ export class AmbientCGProvider extends MarketplaceProvider {
 			const response = await axios.get(`${this._baseUrl}/asset_list`, {
 				params: { q: id },
 			});
-			const found = response.data.assets?.find((a: any) => a.id === id);
+			const found = response.data.assets?.find((a) => a.id === id);
 			if (found) {
 				assetData = found.data;
 				this._assetCache.set(id, assetData);
@@ -90,9 +90,9 @@ export class AmbientCGProvider extends MarketplaceProvider {
 			downloadOptions: {},
 		};
 
-		const attributeParam = assetData.implementation_list_query.parameters.find((p: any) => p.id === "attribute");
+		const attributeParam = assetData.implementation_list_query.parameters.find((p) => p.id === "attribute");
 		if (attributeParam && attributeParam.choices) {
-			const fetchPromises = attributeParam.choices.map(async (choice: any) => {
+			const fetchPromises = attributeParam.choices.map(async (choice) => {
 				const attr = choice.value;
 				const implResponse = await axios.get(`${this._baseUrl}/implementation_list`, {
 					params: {
@@ -112,7 +112,7 @@ export class AmbientCGProvider extends MarketplaceProvider {
 					quality = attr;
 				}
 
-				const impl = implResponse.data.implementations.find((i: any) => i.id.endsWith("_LOOSE") || i.id.includes("ZIP") || i.id.includes("EXR") || i.id.includes("USDZ"));
+				const impl = implResponse.data.implementations.find((i) => i.id.endsWith("_LOOSE") || i.id.includes("ZIP") || i.id.includes("EXR") || i.id.includes("USDZ"));
 
 				if (impl && impl.components && impl.components[0]) {
 					const component = impl.components[0];

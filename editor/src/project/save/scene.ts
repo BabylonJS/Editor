@@ -155,14 +155,14 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 						data.isCollisionMesh = true;
 						data.collisionMeshType = meshToSerialize.type;
 
-						data.meshes?.forEach((meshData: any) => {
+						data.meshes?.forEach((meshData) => {
 							meshData.type = "Mesh";
 						});
 
 						delete data.materials;
 					}
 
-					data.meshes?.forEach((mesh: any) => {
+					data.meshes?.forEach((mesh) => {
 						if (mesh.renderOverlay) {
 							mesh.renderOverlay = false;
 						}
@@ -187,7 +187,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 							delete mesh.materialUniqueId;
 						}
 
-						mesh.instances?.forEach((instanceData: any) => {
+						mesh.instances?.forEach((instanceData) => {
 							const instance = meshToSerialize.instances.find((instance) => instance.id === instanceData.id);
 							if (instance) {
 								if (instance.parent) {
@@ -212,7 +212,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 						}
 					});
 
-					data.materials = data.materials?.filter((material: any) => {
+					data.materials = data.materials?.filter((material) => {
 						const instantiatedMaterial = scene.getMaterialById(material.id);
 						if (instantiatedMaterial && instantiatedMaterial !== scene.defaultMaterial) {
 							return true;
@@ -228,9 +228,9 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 					}
 
 					await Promise.all(
-						data.meshes?.map(async (mesh: any) => {
+						data.meshes?.map(async (mesh) => {
 							const instantiatedMesh = scene.getMeshById(mesh.id);
-							const geometry = data.geometries?.vertexData?.find((v: any) => v.id === mesh.geometryId);
+							const geometry = data.geometries?.vertexData?.find((v) => v.id === mesh.geometryId);
 
 							if (geometry) {
 								const geometryFileName = `${geometry.id}.babylonbinarymeshdata`;
@@ -258,7 +258,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 
 									let geometryIndex = -1;
 									do {
-										geometryIndex = data.geometries!.vertexData!.findIndex((g: any) => g.id === mesh.geometryId);
+										geometryIndex = data.geometries!.vertexData!.findIndex((g) => g.id === mesh.geometryId);
 										if (geometryIndex !== -1) {
 											data.geometries!.vertexData!.splice(geometryIndex, 1);
 										}

@@ -13,7 +13,7 @@ export function configureLights(scene: Scene, clusteredLightContainer?: Clustere
 			clusteredLightContainer.maxRange = clusteredLight.maxRange;
 		}
 
-		clusteredLight.lights.forEach((lightId: any) => {
+		clusteredLight.lights.forEach((lightId) => {
 			const light = scene.getLightById(lightId);
 			if (light) {
 				clusteredLightContainer?.addLight(light);

@@ -15,7 +15,8 @@
 		"resolveJsonModule": true,
 		"esModuleInterop": true,
 		"experimentalDecorators": true,
-		"skipLibCheck": true
+		"skipLibCheck": true,
+		"noImplicitAny": false
 	},
 	"exclude": ["node_modules", "build", "declaration"]
 }

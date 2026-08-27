@@ -134,7 +134,7 @@ export async function handleExportScripts(editor: Editor, debugMode: boolean): P
 					.map((file) => join("sprite-managers", file))
 					.map(async (f) => {
 						const data = await readJSON(join(file, f), "utf-8");
-						data.spriteManager?.sprites.forEach((sprite: any) => {
+						data.spriteManager?.sprites.forEach((sprite) => {
 							if (sprite.metadata) {
 								availableMetadata.push({
 									metadata: sprite.metadata,
@@ -178,7 +178,7 @@ export async function handleExportScripts(editor: Editor, debugMode: boolean): P
 
 	const promises: Promise<void>[] = [];
 	availableMetadata.forEach((configuration) => {
-		configuration.metadata.scripts?.forEach((script: any) => {
+		configuration.metadata.scripts?.forEach((script) => {
 			if (!script.enabled || (!debugMode && script.debugOnly)) {
 				return;
 			}

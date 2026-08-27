@@ -143,7 +143,7 @@ export class EditorFreeCameraPanInput implements ICameraInput<FreeCamera> {
 		} catch {}
 
 		// Detach default mouse rotation input while panning
-		const attached: any = (this.camera.inputs as any).attached;
+		const attached = (this.camera.inputs as any).attached;
 		this._detachedMouseInput = attached?.mouse ?? attached?.pointers ?? null;
 		try {
 			this._detachedMouseInput?.detachControl?.();

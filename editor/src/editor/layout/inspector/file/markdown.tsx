@@ -47,7 +47,7 @@ export function EditorInspectorMarkdownComponent(props: IEditorInspectorMarkdown
 						if (node.type === Markdown.RuleType.link) {
 							return (
 								<a key={state.key} className="parent text-blue-400" onClick={() => shell.openExternal(node.target)}>
-									{node.children.map((c) => (c as any)["text"]).join(" ")}
+									{node.children.map((c) => c["text"]).join(" ")}
 								</a>
 							);
 						}

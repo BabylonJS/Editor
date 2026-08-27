@@ -311,7 +311,7 @@ export class EditorSpriteMapNodeInspector extends Component<IEditorInspectorImpl
 						value: index,
 						icon: (
 							<div className="flex justify-center items-center w-[24px] h-[24px] bg-secondary rounded-sm">
-								<img src={(f as any)["_preview"]} className="w-full h-full object-contain" />
+								<img src={f["_preview"]} className="w-full h-full object-contain" />
 							</div>
 						),
 					}))}

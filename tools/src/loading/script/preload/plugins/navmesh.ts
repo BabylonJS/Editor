@@ -33,7 +33,7 @@ export async function preloadNavMeshScriptAsset(parameters: IScriptAssetParserPa
 		createdObstacles.forEach((obstacle) => recast.removeObstacle(obstacle));
 		createdObstacles.splice(0, createdObstacles.length);
 
-		config.obstacleMeshes.forEach((obstacle: any) => {
+		config.obstacleMeshes.forEach((obstacle) => {
 			const node = getNodeById(obstacle.id, parameters.scene);
 			if (!isAbstractMesh(node)) {
 				return;

@@ -2,12 +2,12 @@ import { Module } from "module";
 import { join } from "path/posix";
 import childProcess from "child_process";
 
-const originalLoad = (Module as any)["_load"];
-const resolveFilename = (Module as any)["_resolveFilename"];
+const originalLoad = Module["_load"];
+const resolveFilename = Module["_resolveFilename"];
 
 const originalSpawn = childProcess.spawn as any;
 
-(Module as any)["_load"] = function (request: string, parent: typeof Module, isMain: boolean) {
+Module["_load"] = function (request: string, parent: typeof Module, isMain: boolean) {
 	if (request.startsWith("babylonjs-editor-tools")) {
 		return originalLoad(resolveFilename("babylonjs-editor-tools", module, false), parent, isMain);
 	}
@@ -69,7 +69,7 @@ const originalSpawn = childProcess.spawn as any;
 
 // This method is overriden to ensure that internal packages like "esbuild" that are unpacked from the
 // asar archive are properly loaded when running the editor in production mode.
-(childProcess as any).spawn = function (path: string, ...args: any[]) {
+childProcess.spawn = function (path: string, ...args: any[]) {
 	if (path?.includes("app.asar")) {
 		path = path.replace("app.asar", "app.asar.unpacked");
 	}

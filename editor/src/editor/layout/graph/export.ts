@@ -136,7 +136,7 @@ function restoreSceneState(
 
 	// Restore particle systems
 	scene.particleSystems.length = 0;
-	exportData.originalParticleSystems.forEach((ps: any) => scene.particleSystems.push(ps));
+	exportData.originalParticleSystems.forEach((ps) => scene.particleSystems.push(ps));
 
 	// Restore soundtracks
 	scene.soundTracks = exportData.originalSoundTracks;
@@ -234,14 +234,14 @@ function exportParticleSystems(scene: Scene, nodesToInclude: Set<Node>): Array<a
 	const originalParticleSystems = scene.particleSystems.slice();
 
 	// Filter particle systems to only include those attached to our nodes
-	const particlesToKeep = originalParticleSystems.filter((ps: any) => {
+	const particlesToKeep = originalParticleSystems.filter((ps) => {
 		const emitter = ps.emitter;
 		return emitter && nodesToInclude.has(emitter as Node);
 	});
 
 	// Replace the scene's particle systems with only those we want to include
 	scene.particleSystems.length = 0;
-	particlesToKeep.forEach((ps: any) => {
+	particlesToKeep.forEach((ps) => {
 		scene.particleSystems.push(ps);
 	});
 
@@ -264,9 +264,9 @@ function exportSounds(scene: Scene, nodesToInclude: Set<Node>): Array<any> {
 
 		// Filter each soundtrack to only include sounds attached to our nodes
 		const filteredSoundTracks = scene.soundTracks
-			.map((soundtrack: any) => {
+			.map((soundtrack) => {
 				// Create a new sound collection with only the sounds attached to our nodes
-				const filteredSoundCollection = soundtrack.soundCollection.filter((sound: any) => {
+				const filteredSoundCollection = soundtrack.soundCollection.filter((sound) => {
 					if (sound.spatialSound && sound.metadata && sound.metadata.connectedMeshName) {
 						// Check if the connected mesh name matches any of our nodes
 						for (const meshNode of nodesToInclude) {
@@ -282,7 +282,7 @@ function exportSounds(scene: Scene, nodesToInclude: Set<Node>): Array<any> {
 				soundtrack.soundCollection = filteredSoundCollection;
 				return soundtrack;
 			})
-			.filter((st: any) => st.soundCollection.length > 0); // Remove empty soundtracks
+			.filter((st) => st.soundCollection.length > 0); // Remove empty soundtracks
 
 		// Replace scene soundtracks with our filtered ones
 		scene.soundTracks = filteredSoundTracks;

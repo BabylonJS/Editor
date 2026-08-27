@@ -9,7 +9,7 @@ import { isMesh } from "../../tools/guards/nodes";
  */
 export function configureMeshesLODs(data: any, scene: Scene) {
 	// Remove LOD meshes for not-serialized meshes
-	data.meshes = data.meshes?.filter((m: any) => {
+	data.meshes = data.meshes?.filter((m) => {
 		if (!m) {
 			return false;
 		}
@@ -20,7 +20,7 @@ export function configureMeshesLODs(data: any, scene: Scene) {
 			return true;
 		}
 
-		const serializedMasterMesh = data.meshes!.find((m2: any) => m2.id === masterMeshId);
+		const serializedMasterMesh = data.meshes!.find((m2) => m2.id === masterMeshId);
 		if (serializedMasterMesh) {
 			return true;
 		}
@@ -29,7 +29,7 @@ export function configureMeshesLODs(data: any, scene: Scene) {
 	});
 
 	// Setup lod meshes
-	data.meshes?.forEach((m: any) => {
+	data.meshes?.forEach((m) => {
 		if (!m) {
 			return;
 		}

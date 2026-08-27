@@ -34,12 +34,12 @@ export interface IExtractNodeParticleSystemSetTexturesOptions extends IExtractPa
 }
 
 export async function extractNodeParticleSystemSetTextures(editor: Editor, options: IExtractNodeParticleSystemSetTexturesOptions) {
-	const blocks = options.particlesData.blocks.filter((block: any) => block.customType === "BABYLON.ParticleTextureSourceBlock");
+	const blocks = options.particlesData.blocks.filter((block) => block.customType === "BABYLON.ParticleTextureSourceBlock");
 
 	const relativePaths: string[] = [];
 
 	await Promise.all(
-		blocks.map(async (block: any) => {
+		blocks.map(async (block) => {
 			if (block.url?.startsWith("http://") || block.url?.startsWith("https://")) {
 				const result = await extractTextureAssetFromUrl(editor, {
 					url: block.url,

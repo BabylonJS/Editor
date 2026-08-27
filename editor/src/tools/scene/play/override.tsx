@@ -109,7 +109,7 @@ export function restorePlayOverrides(editor: Editor) {
 	WebRequest.prototype.open = savedWebRequestMethods.open;
 
 	editor.layout.preview.engine.stopRenderLoop();
-	savedEngineMethods.activeRenderLoops.forEach((loop: any) => {
+	savedEngineMethods.activeRenderLoops.forEach((loop) => {
 		editor.layout.preview.engine.runRenderLoop(loop);
 	});
 
@@ -155,7 +155,7 @@ export function applyOverrides(editor: Editor) {
 	// Console
 	const consoleMethodsList = ["log", "warn", "error", "info"];
 	consoleMethodsList.forEach((method) => {
-		(console as any)[method] = (...args: any[]) => {
+		console[method] = (...args: any[]) => {
 			const node = (
 				<div className="text-inherit">
 					<b className="font-bold text-[#2d72d2]">[{method.toUpperCase()}] </b>

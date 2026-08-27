@@ -194,7 +194,7 @@ export function registerAudioParser() {
 	registered = true;
 
 	AddParser("SoundNode", (parsedData: any, scene: Scene, container: AssetContainer, rootUrl: string) => {
-		parsedData.transformNodes?.forEach((transformNode: any) => {
+		parsedData.transformNodes?.forEach((transformNode) => {
 			if (!transformNode.isSoundNode) {
 				return;
 			}

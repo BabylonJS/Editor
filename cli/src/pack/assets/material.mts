@@ -53,14 +53,12 @@ export interface IExtractNodeMaterialTexturesOptions {
 }
 
 export async function extractNodeMaterialTextures(materialData: any, options: IExtractNodeMaterialTexturesOptions) {
-	const blocks = materialData.blocks.filter(
-		(block: any) => (block.customType === "BABYLON.TextureBlock" || block.customType === "BABYLON.ImageSourceBlock") && block.texture?.name
-	);
+	const blocks = materialData.blocks.filter((block) => (block.customType === "BABYLON.TextureBlock" || block.customType === "BABYLON.ImageSourceBlock") && block.texture?.name);
 
 	const relativePaths: string[] = [];
 
 	await Promise.all(
-		blocks.map(async (block: any) => {
+		blocks.map(async (block) => {
 			if (block.texture?.name?.startsWith("http://") || block.texture.name.startsWith("https://")) {
 				const relativePath = await extractTextureAssetFromUrl(block.texture.name, {
 					...options,

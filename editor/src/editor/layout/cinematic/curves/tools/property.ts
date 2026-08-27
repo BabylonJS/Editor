@@ -8,7 +8,7 @@ export interface ICinematicEditorEditableProperty {
 }
 
 export function getEditableProperties(key: IAnimationKey, property: string): ICinematicEditorEditableProperty[] {
-	if (((key as any)[property] ?? null) === null) {
+	if ((key[property] ?? null) === null) {
 		return [];
 	}
 
@@ -18,33 +18,33 @@ export function getEditableProperties(key: IAnimationKey, property: string): ICi
 
 	if (isVector2(key.value)) {
 		return [
-			{ rootObject: (key as any)[property], property: "x" },
-			{ rootObject: (key as any)[property], property: "y" },
+			{ rootObject: key[property], property: "x" },
+			{ rootObject: key[property], property: "y" },
 		];
 	}
 
 	if (isVector3(key.value)) {
 		return [
-			{ rootObject: (key as any)[property], property: "x" },
-			{ rootObject: (key as any)[property], property: "y" },
-			{ rootObject: (key as any)[property], property: "z" },
+			{ rootObject: key[property], property: "x" },
+			{ rootObject: key[property], property: "y" },
+			{ rootObject: key[property], property: "z" },
 		];
 	}
 
 	if (isColor3(key.value)) {
 		return [
-			{ rootObject: (key as any)[property], property: "r" },
-			{ rootObject: (key as any)[property], property: "g" },
-			{ rootObject: (key as any)[property], property: "b" },
+			{ rootObject: key[property], property: "r" },
+			{ rootObject: key[property], property: "g" },
+			{ rootObject: key[property], property: "b" },
 		];
 	}
 
 	if (isColor4(key.value)) {
 		return [
-			{ rootObject: (key as any)[property], property: "r" },
-			{ rootObject: (key as any)[property], property: "g" },
-			{ rootObject: (key as any)[property], property: "b" },
-			{ rootObject: (key as any)[property], property: "a" },
+			{ rootObject: key[property], property: "r" },
+			{ rootObject: key[property], property: "g" },
+			{ rootObject: key[property], property: "b" },
+			{ rootObject: key[property], property: "a" },
 		];
 	}
 

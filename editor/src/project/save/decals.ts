@@ -50,7 +50,7 @@ export async function saveMergedDecals(editor: Editor, options: ISavedMergedDeca
 				return null;
 			}
 
-			const existingMergedDecal = decalsJson?.find((d: any) => d.materialId === materialId);
+			const existingMergedDecal = decalsJson?.find((d) => d.materialId === materialId);
 
 			try {
 				const mergedMesh = (await Mesh.MergeMeshesAsync(array, false, true, undefined, false, undefined)) as Mesh;
@@ -68,7 +68,7 @@ export async function saveMergedDecals(editor: Editor, options: ISavedMergedDeca
 				const data = await SceneSerializer.SerializeMesh(mergedMesh, false, false);
 
 				const mesh = data.meshes[0];
-				const geometry = data.geometries?.vertexData?.find((v: any) => v.id === mesh.geometryId);
+				const geometry = data.geometries?.vertexData?.find((v) => v.id === mesh.geometryId);
 
 				if (!geometry) {
 					return editor.layout.console.warn(`Failed to merge decals "${array[0].name}": geometry not found.`);

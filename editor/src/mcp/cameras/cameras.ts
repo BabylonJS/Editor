@@ -43,8 +43,8 @@ export function createCamera(scene: Scene, data: any, options: IMCPActionOptions
 		camera.name = data.name;
 	}
 
-	if (data.position && (camera as any).position) {
-		(camera as any).position.copyFrom(toVector3(data.position));
+	if (data.position && camera.position) {
+		camera.position.copyFrom(toVector3(data.position));
 	}
 
 	if (data.target && (camera as any).setTarget) {
