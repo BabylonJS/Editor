@@ -100,7 +100,7 @@ export async function writeBinaryGeometry(options: IWriteBinaryGeometryOptions):
 
 	if (mesh.subMeshes?.length > 0) {
 		const subMeshesData: number[] = [];
-		mesh.subMeshes.forEach((sm: any) => {
+		mesh.subMeshes.forEach((sm) => {
 			subMeshesData.push(sm.materialIndex, sm.verticesStart, sm.verticesCount, sm.indexStart, sm.indexCount);
 		});
 

@@ -280,7 +280,7 @@ export class EditorPreviewGizmo {
 			temporaryNode = this._attachedNode;
 			temporarySprite = this._attachedSprite;
 
-			const value = (this._attachedNode as any)[property];
+			const value = this._attachedNode[property];
 			temporaryOldValue = isVector3(value) ? value.clone() : value;
 		});
 
@@ -312,12 +312,12 @@ export class EditorPreviewGizmo {
 			const sprite = temporarySprite;
 
 			const oldValue = temporaryOldValue?.clone();
-			const newValueRef = (temporaryNode as any)[property];
+			const newValueRef = temporaryNode[property];
 			const newValue = isVector3(newValueRef) ? newValueRef.clone() : null;
 
 			registerUndoRedo({
 				undo: () => {
-					const valueRef = (sprite as any)?.[property] ?? (node as any)[property];
+					const valueRef = sprite?.[property] ?? node[property];
 
 					if (sprite) {
 						if (property === "position") {
@@ -329,7 +329,7 @@ export class EditorPreviewGizmo {
 					} else if (isVector3(valueRef) && oldValue) {
 						valueRef.copyFrom(oldValue);
 					} else {
-						(node as any)[property] = oldValue?.clone() ?? null;
+						node[property] = oldValue?.clone() ?? null;
 					}
 
 					if (isLight(node)) {
@@ -344,7 +344,7 @@ export class EditorPreviewGizmo {
 					this.setAttachedObject(sprite ?? node);
 				},
 				redo: () => {
-					const valueRef = (sprite as any)?.[property] ?? (node as any)[property];
+					const valueRef = sprite?.[property] ?? node[property];
 
 					if (sprite) {
 						if (property === "position") {
@@ -356,7 +356,7 @@ export class EditorPreviewGizmo {
 					} else if (isVector3(valueRef) && newValue) {
 						valueRef.copyFrom(newValue);
 					} else {
-						(node as any)[property] = newValue?.clone() ?? null;
+						node[property] = newValue?.clone() ?? null;
 					}
 
 					if (isLight(node)) {
@@ -394,7 +394,7 @@ export class EditorPreviewGizmo {
 			temporaryNode = this._attachedNode;
 			temporarySprite = this._attachedSprite;
 
-			const value = (this._attachedNode as any)["rotationQuaternion"] ?? (this._attachedNode as any)["rotation"];
+			const value = this._attachedNode["rotationQuaternion"] ?? this._attachedNode["rotation"];
 			temporaryOldValue = isVector3(value) || isQuaternion(value) ? value.clone() : null;
 		});
 
@@ -418,12 +418,12 @@ export class EditorPreviewGizmo {
 			const sprite = temporarySprite;
 
 			const oldValue = temporaryOldValue?.clone();
-			const newValueRef = (temporaryNode as any)["rotationQuaternion"] ?? (temporaryNode as any)["rotation"];
+			const newValueRef = temporaryNode["rotationQuaternion"] ?? temporaryNode["rotation"];
 			const newValue = isVector3(newValueRef) || isQuaternion(newValueRef) ? newValueRef.clone() : null;
 
 			registerUndoRedo({
 				undo: () => {
-					const valueRef = (node as any)["rotationQuaternion"] ?? (node as any)["rotation"];
+					const valueRef = node["rotationQuaternion"] ?? node["rotation"];
 
 					if (sprite) {
 						sprite.angle = oldValue?.z ?? sprite.angle;
@@ -445,7 +445,7 @@ export class EditorPreviewGizmo {
 					this.setAttachedObject(sprite ?? node);
 				},
 				redo: () => {
-					const valueRef = (node as any)["rotationQuaternion"] ?? (node as any)["rotation"];
+					const valueRef = node["rotationQuaternion"] ?? node["rotation"];
 
 					if (sprite) {
 						sprite.angle = newValue?.z ?? sprite.angle;

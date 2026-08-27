@@ -47,7 +47,7 @@ export function registerSpriteManagerParser() {
 	registered = true;
 
 	AddParser("SpriteManagerNode", (parsedData: any, scene: Scene, container: AssetContainer, rootUrl: string) => {
-		parsedData.transformNodes?.forEach((transformNode: any) => {
+		parsedData.transformNodes?.forEach((transformNode) => {
 			if (!transformNode.isSpriteManager) {
 				return;
 			}

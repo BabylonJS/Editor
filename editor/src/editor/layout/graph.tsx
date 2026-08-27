@@ -684,17 +684,17 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			return;
 		}
 
-		const sourcePosition = (this._nodeToCopyTransform as any)["position"];
-		const sourceRotation = (this._nodeToCopyTransform as any)["rotation"];
-		const sourceScaling = (this._nodeToCopyTransform as any)["scaling"];
-		const sourceRotationQuaternion = (this._nodeToCopyTransform as any)["rotationQuaternion"];
-		const sourceDirection = (this._nodeToCopyTransform as any)["direction"];
+		const sourcePosition = this._nodeToCopyTransform["position"];
+		const sourceRotation = this._nodeToCopyTransform["rotation"];
+		const sourceScaling = this._nodeToCopyTransform["scaling"];
+		const sourceRotationQuaternion = this._nodeToCopyTransform["rotationQuaternion"];
+		const sourceDirection = this._nodeToCopyTransform["direction"];
 
-		const targetPosition = (node as any)["position"];
-		const targetRotation = (node as any)["rotation"];
-		const targetScaling = (node as any)["scaling"];
-		const targetRotationQuaternion = (node as any)["rotationQuaternion"];
-		const targetDirection = (node as any)["direction"];
+		const targetPosition = node["position"];
+		const targetRotation = node["rotation"];
+		const targetScaling = node["scaling"];
+		const targetRotationQuaternion = node["rotationQuaternion"];
+		const targetDirection = node["direction"];
 
 		const savedTargetPosition = targetPosition?.clone();
 		const savedTargetRotation = targetRotation?.clone();
@@ -719,7 +719,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 
 				if (targetRotationQuaternion) {
 					if (!savedTargetRotationQuaternion) {
-						(node as any)["rotationQuaternion"] = null;
+						node["rotationQuaternion"] = null;
 					} else {
 						targetRotationQuaternion.copyFrom(savedTargetRotationQuaternion);
 					}
@@ -746,7 +746,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 					if (targetRotationQuaternion) {
 						targetRotationQuaternion.copyFrom(sourceRotationQuaternion);
 					} else {
-						(node as any)["rotationQuaternion"] = sourceRotationQuaternion.clone();
+						node["rotationQuaternion"] = sourceRotationQuaternion.clone();
 					}
 				}
 

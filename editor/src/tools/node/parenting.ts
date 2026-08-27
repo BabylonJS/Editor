@@ -14,26 +14,26 @@ export interface IOldNodeHierarchyConfiguration {
 export function getNodeParentingConfiguration(node: Node) {
 	return {
 		parent: node.parent,
-		position: (node as any)["position"]?.clone(),
-		rotation: (node as any)["rotation"]?.clone(),
-		scaling: (node as any)["scaling"]?.clone(),
-		rotationQuaternion: (node as any)["rotationQuaternion"]?.clone(),
+		position: node["position"]?.clone(),
+		rotation: node["rotation"]?.clone(),
+		scaling: node["scaling"]?.clone(),
+		rotationQuaternion: node["rotationQuaternion"]?.clone(),
 	} as IOldNodeHierarchyConfiguration;
 }
 
 export function applyNodeParentingConfiguration(node: Node, config: IOldNodeHierarchyConfiguration) {
 	node.parent = config.parent;
 	if (config.position) {
-		(node as any)["position"]?.copyFrom(config.position);
+		node["position"]?.copyFrom(config.position);
 	}
 	if (config.rotation) {
-		(node as any)["rotation"]?.copyFrom(config.rotation);
+		node["rotation"]?.copyFrom(config.rotation);
 	}
 	if (config.scaling) {
-		(node as any)["scaling"]?.copyFrom(config.scaling);
+		node["scaling"]?.copyFrom(config.scaling);
 	}
 	if (config.rotationQuaternion) {
-		(node as any)["rotationQuaternion"]?.copyFrom(config.rotationQuaternion);
+		node["rotationQuaternion"]?.copyFrom(config.rotationQuaternion);
 	}
 }
 

@@ -394,7 +394,7 @@ export class EditorLightShadowsInspector extends Component<IEditorLightShadowsIn
 			this.state.generator.usePercentageCloserFiltering = false;
 			this.state.generator.useContactHardeningShadow = false;
 
-			(this.state.generator as any)[type] = true;
+			this.state.generator[type] = true;
 
 			this.forceUpdate();
 		}

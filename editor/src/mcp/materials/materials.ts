@@ -275,7 +275,7 @@ export function assignTextureToMaterial(scene: Scene, data: any, options: IMCPAc
 		texture = configureImportedTexture(new Texture(absolutePath, scene));
 	}
 
-	(material as any)[data.channel] = texture;
+	material[data.channel] = texture;
 
 	options.editor.layout.inspector.setEditedObject(material);
 	options.editor.layout.inspector.forceUpdate();

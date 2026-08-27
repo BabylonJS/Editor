@@ -31,7 +31,7 @@ export async function renameScene(oldAbsolutePath: string, newAbsolutePath: stri
 				const data = await readJSON(join(newAbsolutePath, "meshes", file));
 
 				try {
-					data.meshes.forEach((mesh: any) => {
+					data.meshes.forEach((mesh) => {
 						mesh.delayLoadingFile = mesh.delayLoadingFile.replace(oldRelativePath, newRelativePath);
 					});
 
@@ -48,7 +48,7 @@ export async function renameScene(oldAbsolutePath: string, newAbsolutePath: stri
 				const data = await readJSON(join(newAbsolutePath, "lods", file));
 
 				try {
-					data.meshes.forEach((mesh: any) => {
+					data.meshes.forEach((mesh) => {
 						mesh.delayLoadingFile = mesh.delayLoadingFile.replace(oldRelativePath, newRelativePath);
 					});
 

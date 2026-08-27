@@ -128,7 +128,7 @@ export function attachScript(scene: Scene, data: any, options: IMCPActionOptions
 	node.metadata ??= {};
 	node.metadata.scripts ??= [];
 
-	const existing = node.metadata.scripts.find((script: any) => script.key === key);
+	const existing = node.metadata.scripts.find((script) => script.key === key);
 	if (!existing) {
 		node.metadata.scripts.push({
 			_id: Tools.RandomId(),
@@ -149,7 +149,7 @@ export function attachScript(scene: Scene, data: any, options: IMCPActionOptions
 export function listAttachedScripts(scene: Scene, data: any): any {
 	const node = resolveNode({ scene, nodeId: data.nodeId, nodeName: data.nodeName });
 
-	const scripts = (node.metadata?.scripts ?? []).map((script: any) => ({
+	const scripts = (node.metadata?.scripts ?? []).map((script) => ({
 		path: join("src", script.key),
 		enabled: script.enabled,
 		exportedValues: script.values ?? {},
@@ -166,7 +166,7 @@ export function setScriptExportedValue(scene: Scene, data: any, options: IMCPAct
 	const absolutePath = resolveScriptPath(data.path);
 	const key = getScriptKey(absolutePath);
 
-	const script = node.metadata?.scripts?.find((s: any) => s.key === key);
+	const script = node.metadata?.scripts?.find((s) => s.key === key);
 	if (!script) {
 		throw new Error(`Script "${data.path}" is not attached to node "${node.name}".`);
 	}
@@ -194,7 +194,7 @@ export function detachScript(scene: Scene, data: any, options: IMCPActionOptions
 	const key = getScriptKey(absolutePath);
 
 	if (node.metadata?.scripts) {
-		const index = node.metadata.scripts.findIndex((s: any) => s.key === key);
+		const index = node.metadata.scripts.findIndex((s) => s.key === key);
 		if (index !== -1) {
 			node.metadata.scripts.splice(index, 1);
 		}

@@ -10,7 +10,7 @@ export function normalizeNodeParticleSystemSetUniqueIds(nodeParticleSystem: Node
 		const oldUniqueId = block.uniqueId;
 		const newUniqueId = nodeParticleSystemSetData.blocks[index].id;
 
-		nodeParticleSystem.editorData?.locations?.forEach((location: any) => {
+		nodeParticleSystem.editorData?.locations?.forEach((location) => {
 			if (location.blockId === oldUniqueId) {
 				location.blockId = newUniqueId;
 			}

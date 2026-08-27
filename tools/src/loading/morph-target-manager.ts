@@ -13,7 +13,7 @@ export function registerMorphTargetManagerParser() {
 	registered = true;
 
 	AddParser("MorphTargetManagerEditorPlugin", (parsedData: any, scene: Scene, container: AssetContainer, rootUrl: string) => {
-		parsedData.morphTargetManagers.forEach((morphTargetManagerData: any) => {
+		parsedData.morphTargetManagers.forEach((morphTargetManagerData) => {
 			const meshInstance = container.meshes.find((mesh) => {
 				return mesh.id === morphTargetManagerData.meshId;
 			});
@@ -23,14 +23,14 @@ export function registerMorphTargetManagerParser() {
 				return;
 			}
 
-			const shouldExit = morphTargetManagerData.targets.find((target: any) => !target.delayLoadingFile);
+			const shouldExit = morphTargetManagerData.targets.find((target) => !target.delayLoadingFile);
 			if (shouldExit) {
 				return;
 			}
 
 			const promises: Promise<ArrayBuffer | null>[] = [];
 
-			morphTargetManagerData.targets.forEach((target: any) => {
+			morphTargetManagerData.targets.forEach((target) => {
 				if (!target.delayLoadingFile) {
 					return promises.push(Promise.resolve(null));
 				}

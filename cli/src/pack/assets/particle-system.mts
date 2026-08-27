@@ -76,12 +76,12 @@ export async function extractParticleSystemTextures(particleSystemData: any, opt
 }
 
 export async function extractNodeParticleSystemSetTextures(particleSystemData: any, options: IExtractParticleSystemTexturesOptions) {
-	const blocks = particleSystemData.blocks.filter((block: any) => block.customType === "BABYLON.ParticleTextureSourceBlock");
+	const blocks = particleSystemData.blocks.filter((block) => block.customType === "BABYLON.ParticleTextureSourceBlock");
 
 	const relativePaths: string[] = [];
 
 	await Promise.all(
-		blocks.map(async (block: any) => {
+		blocks.map(async (block) => {
 			if (block.url?.startsWith("http://") || block.url?.startsWith("https://")) {
 				const relativePath = await extractTextureAssetFromUrl(block.url, {
 					...options,

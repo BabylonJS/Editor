@@ -22,7 +22,7 @@ export function normalizeNodeMaterialUniqueIds(material: NodeMaterial, materialD
 		const oldUniqueId = block.uniqueId;
 		const newUniqueId = materialData.blocks[index].id;
 
-		material.editorData?.locations?.forEach((location: any) => {
+		material.editorData?.locations?.forEach((location) => {
 			if (location.blockId === oldUniqueId) {
 				location.blockId = newUniqueId;
 			}

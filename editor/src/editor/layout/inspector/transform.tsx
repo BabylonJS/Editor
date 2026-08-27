@@ -94,10 +94,10 @@ export class EditorTransformNodeInspector extends Component<IEditorInspectorImpl
 
 			const proxy = new Proxy(valueRef, {
 				get(target, prop) {
-					return (target as any)[prop];
+					return target[prop];
 				},
 				set(obj, prop, value) {
-					(obj as any)[prop] = value;
+					obj[prop] = value;
 					object.rotationQuaternion?.copyFrom(obj.toQuaternion());
 
 					return true;

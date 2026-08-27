@@ -21,7 +21,7 @@ export function _applyScriptsForObject(scene: Scene, object: any, scriptsMap: Sc
 		return;
 	}
 
-	object.metadata.scripts?.forEach((script: any) => {
+	object.metadata.scripts?.forEach((script) => {
 		if (!script.enabled) {
 			return;
 		}

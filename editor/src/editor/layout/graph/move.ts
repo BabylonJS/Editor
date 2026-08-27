@@ -35,10 +35,10 @@ export function setNewParentForGraphSelectedNodes(editor: Editor, newParent: any
 
 					return oldHierarchyMap.set(n.nodeData, {
 						parent: n.nodeData.parent,
-						position: (n.nodeData as any)["position"]?.clone(),
-						rotation: (n.nodeData as any)["rotation"]?.clone(),
-						scaling: (n.nodeData as any)["scaling"]?.clone(),
-						rotationQuaternion: (n.nodeData as any)["rotationQuaternion"]?.clone(),
+						position: n.nodeData["position"]?.clone(),
+						rotation: n.nodeData["rotation"]?.clone(),
+						scaling: n.nodeData["scaling"]?.clone(),
+						rotationQuaternion: n.nodeData["rotationQuaternion"]?.clone(),
 					} as IOldNodeHierarchyConfiguration);
 				}
 			}

@@ -53,20 +53,20 @@ export function transformKeyAs(cinematicEditor: CinematicEditor, cinematicKey: I
 		executeRedo: true,
 		undo: () => {
 			Object.keys(cinematicKey).forEach((key) => {
-				delete (cinematicKey as any)[key];
+				delete cinematicKey[key];
 			});
 
 			Object.keys(oldKey).forEach((key) => {
-				(cinematicKey as any)[key] = (oldKey as any)[key];
+				cinematicKey[key] = oldKey[key];
 			});
 		},
 		redo: () => {
 			Object.keys(cinematicKey).forEach((key) => {
-				delete (cinematicKey as any)[key];
+				delete cinematicKey[key];
 			});
 
 			Object.keys(resultKey).forEach((key) => {
-				(cinematicKey as any)[key] = (resultKey as any)[key];
+				cinematicKey[key] = resultKey[key];
 			});
 		},
 	});

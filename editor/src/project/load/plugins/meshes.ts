@@ -32,7 +32,7 @@ export async function loadMeshes(editor: Editor, meshesFiles: string[], scene: S
 			if (initialData.type === "GaussianSplattingMesh") {
 				const promises = [readFile(join(options.projectPath, initialData.splatDataPath))];
 
-				initialData.shDataPaths?.forEach((shDataPath: any) => {
+				initialData.shDataPaths?.forEach((shDataPath) => {
 					promises.push(readFile(join(options.projectPath, shDataPath)));
 				});
 
@@ -49,7 +49,7 @@ export async function loadMeshes(editor: Editor, meshesFiles: string[], scene: S
 
 				const proxyMeshes: GaussianSplattingPartProxyMesh[] = [];
 
-				initialData.proxies?.forEach((proxy: any) => {
+				initialData.proxies?.forEach((proxy) => {
 					const proxyMesh = addGaussianSplattingMeshPartProxyMesh(parsedMesh, editor);
 					if (proxyMesh) {
 						configureGaussianSplattingMeshFromData(proxyMesh, proxy);
@@ -60,7 +60,7 @@ export async function loadMeshes(editor: Editor, meshesFiles: string[], scene: S
 				return proxyMeshes;
 			}
 
-			const filesToLoad = [join(options.relativeScenePath, "meshes", file), ...(initialData.lods?.map((file: any) => join(options.relativeScenePath, "lods", file)) ?? [])];
+			const filesToLoad = [join(options.relativeScenePath, "meshes", file), ...(initialData.lods?.map((file) => join(options.relativeScenePath, "lods", file)) ?? [])];
 
 			return await Promise.all(
 				filesToLoad.map(async (filename, index) => {
@@ -78,7 +78,7 @@ export async function loadMeshes(editor: Editor, meshesFiles: string[], scene: S
 							return;
 						}
 
-						const meshData = data.meshes?.find((d: any) => d.id === m.id);
+						const meshData = data.meshes?.find((d) => d.id === m.id);
 
 						if (data.basePoseMatrix) {
 							m.updatePoseMatrix(Matrix.FromArray(data.basePoseMatrix));
@@ -100,7 +100,7 @@ export async function loadMeshes(editor: Editor, meshesFiles: string[], scene: S
 						}
 
 						m.instances.forEach((instance) => {
-							const instanceData = meshData.instances?.find((d: any) => d.id === instance.id);
+							const instanceData = meshData.instances?.find((d) => d.id === instance.id);
 							if (instanceData) {
 								if ((instanceData?.uniqueId ?? null) !== null) {
 									instance.id = instanceData.id;
@@ -145,8 +145,8 @@ export async function loadMeshes(editor: Editor, meshesFiles: string[], scene: S
 
 						if (m.material) {
 							const material = isMultiMaterial(m.material)
-								? data.multiMaterials?.find((d: any) => d.id === m.material!.id)
-								: data.materials?.find((d: any) => d.id === m.material!.id);
+								? data.multiMaterials?.find((d) => d.id === m.material!.id)
+								: data.materials?.find((d) => d.id === m.material!.id);
 
 							if (material) {
 								m.material.uniqueId = material.uniqueId;
@@ -158,7 +158,7 @@ export async function loadMeshes(editor: Editor, meshesFiles: string[], scene: S
 										return;
 									}
 
-									const material = data.materials?.find((d: any) => d.id === subMaterial.id);
+									const material = data.materials?.find((d) => d.id === subMaterial.id);
 									if (material) {
 										subMaterial.uniqueId = material.uniqueId;
 									}

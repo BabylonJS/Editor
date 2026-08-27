@@ -92,7 +92,7 @@ export function applyTextureToObject(editor: Editor, object: any, texture: Textu
 						object: material,
 						newValue: texture,
 						executeRedo: true,
-						oldValue: (material as any)[props.property],
+						oldValue: material![props.property],
 						onLost: () => texture.dispose(),
 					});
 

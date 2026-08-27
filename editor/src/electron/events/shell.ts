@@ -3,10 +3,10 @@ import { ipcMain, shell } from "electron";
 
 ipcMain.on("editor:trash-items", async (ev, items) => {
 	const isWindows = platform() === "win32";
-	items = items.map((item: any) => (isWindows ? item.replace(/\//g, "\\") : item.replace(/\\/g, "/")));
+	items = items.map((item) => (isWindows ? item.replace(/\//g, "\\") : item.replace(/\\/g, "/")));
 
 	try {
-		await Promise.all(items.map((item: any) => shell.trashItem(item)));
+		await Promise.all(items.map((item) => shell.trashItem(item)));
 		ev.returnValue = true;
 	} catch (e) {
 		console.error(e);
