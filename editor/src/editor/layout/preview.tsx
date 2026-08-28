@@ -869,13 +869,9 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		return (
 			<div className="absolute top-0 left-0 w-full h-12 z-10">
 				<div className="flex justify-between items-center gap-4 h-full bg-background/95 w-full px-2 py-1">
-					{
-						this.play?.state.playing && <div /> // For justify between
-					}
-
 					{!this.play?.state.playing && this._getEditToolbar()}
 
-					<div className="flex gap-2 items-center h-10">
+					<div className={`flex gap-2 items-center h-10 ${this.play?.state.playing ? "w-full" : ""}`}>
 						<EditorPreviewPlayComponent
 							ref={(r) => (this.play = r!)}
 							editor={this.props.editor}
@@ -901,7 +897,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 			<div className="flex flex-wrap gap-2 items-center h-10">
 				<TooltipProvider>
 					<Select value={this.scene?.activeCamera?.id} onOpenChange={(o) => o && this.forceUpdate()} onValueChange={(v) => this._switchToCameraById(v)}>
-						<SelectTrigger className="w-36 border-none bg-muted/50">
+						<SelectTrigger className="w-36 h-9 border-none bg-muted/50">
 							<SelectValue placeholder="Select Value..." />
 						</SelectTrigger>
 						<SelectContent>
@@ -990,7 +986,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 							this.forceUpdate();
 						}}
 					>
-						<SelectTrigger className="w-32 border-none bg-muted/50">
+						<SelectTrigger className="w-32 h-9 border-none bg-muted/50">
 							<SelectValue placeholder="Select Value..." />
 						</SelectTrigger>
 						<SelectContent>

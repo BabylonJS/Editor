@@ -49,7 +49,12 @@ import { updateIblShadowsRenderPipeline } from "../../tools/light/ibl";
 import { getSpriteManagerNodeFromSprite } from "../../tools/sprite/tools";
 import { isParticleSystemVisibleInGraph } from "../../tools/particles/metadata";
 import { unique, UniqueNumber, waitNextAnimationFrame } from "../../tools/tools";
-import { applyTransformNodeParentingConfiguration } from "../../tools/node/parenting";
+import {
+	applyNodeParentingConfiguration,
+	applyTransformNodeParentingConfiguration,
+	getNodeParentingConfiguration,
+	IOldNodeHierarchyConfiguration,
+} from "../../tools/node/parenting";
 import { isSprite, isSpriteManagerNode, isSpriteMapNode } from "../../tools/guards/sprites";
 import { parsePhysicsAggregate, serializePhysicsAggregate } from "../../tools/physics/serialization/aggregate";
 import { isAnyParticleSystem, isGPUParticleSystem, isNodeParticleSystemSetMesh, isParticleSystem } from "../../tools/guards/particles";
@@ -151,6 +156,8 @@ export interface IEditorGraphState {
 
 export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState> {
 	public _nodeToCopyTransform: Node | null = null;
+
+	public _objectsToCut: TreeNodeInfo<unknown>[] = [];
 	public _objectsToCopy: TreeNodeInfo<unknown>[] = [];
 
 	private _playRefreshIntervalId: number | null = null;
@@ -183,6 +190,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		onSkeletonModifiedObservable.add((skeleton) => this._handleObjectModified(skeleton));
 		onParticleSystemModifiedObservable.add((particleSystem) => this._handleObjectModified(particleSystem));
 
+		document.addEventListener("cut", () => !isDomTextInputFocused() && this.cutSelectedNodes());
 		document.addEventListener("copy", () => !isDomTextInputFocused() && this.copySelectedNodes());
 		document.addEventListener("paste", () => !isDomTextInputFocused() && this.pasteSelectedNodes());
 	}
@@ -190,12 +198,12 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 	public render(): ReactNode {
 		return (
 			<div
-				className="flex flex-col w-full h-full text-foreground"
 				onClick={() => this.setState({ isFocused: true })}
 				onMouseLeave={() => this.setState({ isFocused: false })}
+				className="flex flex-col w-full h-full text-foreground overflow-hidden"
 			>
 				{this.state.playScene && (
-					<div className="px-2 pt-2 w-full">
+					<div className="flex px-2 pt-2 w-full">
 						<Badge variant="secondary" className="flex justify-between items-center gap-2 w-full">
 							<div className="flex items-center gap-2">
 								<IoPlay className="w-6 h-6" />
@@ -259,82 +267,84 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 					</DropdownMenu>
 				</div>
 
-				<Tree
-					contents={this.state.nodes}
-					onNodeExpand={(n) => this._handleNodeExpanded(n)}
-					onNodeCollapse={(n) => this._handleNodeCollapsed(n)}
-					onNodeClick={(n, _, ev) => this._handleNodeClicked(n, ev)}
-					onNodeContextMenu={(n, _, ev) => this._handleNodeContextMenu(n, ev)}
-					onNodeDoubleClick={(n, _, ev) => this._handleNodeDoubleClicked(n, ev)}
-				/>
+				<div className="flex flex-col w-full h-full overflow-y-auto">
+					<Tree
+						contents={this.state.nodes}
+						onNodeExpand={(n) => this._handleNodeExpanded(n)}
+						onNodeCollapse={(n) => this._handleNodeCollapsed(n)}
+						onNodeClick={(n, _, ev) => this._handleNodeClicked(n, ev)}
+						onNodeContextMenu={(n, _, ev) => this._handleNodeContextMenu(n, ev)}
+						onNodeDoubleClick={(n, _, ev) => this._handleNodeDoubleClicked(n, ev)}
+					/>
 
-				<div className="w-full h-full min-h-20" onDragOver={(ev) => ev.preventDefault()} onDrop={(ev) => this._handleDropEmpty(ev)}>
-					<ContextMenu>
-						<ContextMenuTrigger className="w-full h-full">
-							<div className="w-full h-full"></div>
-						</ContextMenuTrigger>
-						<ContextMenuContent>
-							<ContextMenuSub>
-								<ContextMenuSubTrigger className="flex items-center gap-2">
-									<AiOutlinePlus className="w-5 h-5" /> Add
-								</ContextMenuSubTrigger>
-								<ContextMenuSubContent>
-									{getLightCommands(this.props.editor).map((command) => {
-										return (
-											<ContextMenuItem key={command.key} disabled={command.disabled} onClick={command.action}>
-												{command.text}
-											</ContextMenuItem>
-										);
-									})}
-									<ContextMenuSeparator />
-									{getNodeCommands(this.props.editor).map((command) => {
-										return (
-											<ContextMenuItem key={command.key} disabled={command.disabled} onClick={command.action}>
-												{command.text}
-											</ContextMenuItem>
-										);
-									})}
-									<ContextMenuSeparator />
-									<ContextMenuSub>
-										<ContextMenuSubTrigger className="flex items-center gap-2">
-											<IoMdCube className="w-5 h-5" /> Meshes
-										</ContextMenuSubTrigger>
-										<ContextMenuSubContent>
-											{getMeshCommands(this.props.editor).map((command) => {
-												return (
-													<ContextMenuItem key={command.key} disabled={command.disabled} onClick={command.action}>
-														{command.text}
-													</ContextMenuItem>
-												);
-											})}
-										</ContextMenuSubContent>
-									</ContextMenuSub>
-									<ContextMenuSeparator />
-									{getCameraCommands(this.props.editor).map((command) => {
-										return (
-											<ContextMenuItem key={command.key} disabled={command.disabled} onClick={command.action}>
-												{command.text}
-											</ContextMenuItem>
-										);
-									})}
-									<ContextMenuSeparator />
-									<ContextMenuItem onClick={() => addSoundNode(this.props.editor)}>Sound Node</ContextMenuItem>
-									<ContextMenuSeparator />
-									{getSpriteCommands(this.props.editor).map((command) => {
-										return (
-											<ContextMenuItem key={command.key} disabled={command.disabled} onClick={command.action}>
-												{command.text}
-											</ContextMenuItem>
-										);
-									})}
-								</ContextMenuSubContent>
-							</ContextMenuSub>
-						</ContextMenuContent>
-					</ContextMenu>
+					<div className="flex flex-1 w-full h-20 min-h-20" onDragOver={(ev) => ev.preventDefault()} onDrop={(ev) => this._handleDropEmpty(ev)}>
+						<ContextMenu>
+							<ContextMenuTrigger className="w-full h-full">
+								<div className="w-full h-full"></div>
+							</ContextMenuTrigger>
+							<ContextMenuContent>
+								<ContextMenuSub>
+									<ContextMenuSubTrigger className="flex items-center gap-2">
+										<AiOutlinePlus className="w-5 h-5" /> Add
+									</ContextMenuSubTrigger>
+									<ContextMenuSubContent>
+										{getLightCommands(this.props.editor).map((command) => {
+											return (
+												<ContextMenuItem key={command.key} disabled={command.disabled} onClick={command.action}>
+													{command.text}
+												</ContextMenuItem>
+											);
+										})}
+										<ContextMenuSeparator />
+										{getNodeCommands(this.props.editor).map((command) => {
+											return (
+												<ContextMenuItem key={command.key} disabled={command.disabled} onClick={command.action}>
+													{command.text}
+												</ContextMenuItem>
+											);
+										})}
+										<ContextMenuSeparator />
+										<ContextMenuSub>
+											<ContextMenuSubTrigger className="flex items-center gap-2">
+												<IoMdCube className="w-5 h-5" /> Meshes
+											</ContextMenuSubTrigger>
+											<ContextMenuSubContent>
+												{getMeshCommands(this.props.editor).map((command) => {
+													return (
+														<ContextMenuItem key={command.key} disabled={command.disabled} onClick={command.action}>
+															{command.text}
+														</ContextMenuItem>
+													);
+												})}
+											</ContextMenuSubContent>
+										</ContextMenuSub>
+										<ContextMenuSeparator />
+										{getCameraCommands(this.props.editor).map((command) => {
+											return (
+												<ContextMenuItem key={command.key} disabled={command.disabled} onClick={command.action}>
+													{command.text}
+												</ContextMenuItem>
+											);
+										})}
+										<ContextMenuSeparator />
+										<ContextMenuItem onClick={() => addSoundNode(this.props.editor)}>Sound Node</ContextMenuItem>
+										<ContextMenuSeparator />
+										{getSpriteCommands(this.props.editor).map((command) => {
+											return (
+												<ContextMenuItem key={command.key} disabled={command.disabled} onClick={command.action}>
+													{command.text}
+												</ContextMenuItem>
+											);
+										})}
+									</ContextMenuSubContent>
+								</ContextMenuSub>
+							</ContextMenuContent>
+						</ContextMenu>
+					</div>
 				</div>
 
 				{this.state.isLoading && (
-					<div className="absolute top-0 left-0 flex justify-center items-center w-full h-full bg-black/50">
+					<div className="absolute top-1/2 left-0 transform -translate-y-1/2 flex justify-center items-center w-full h-full bg-black/50">
 						<SpinnerUIComponent />
 					</div>
 				)}
@@ -547,7 +557,14 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 	 * Copies the selected nodes from the graph.
 	 */
 	public copySelectedNodes(): void {
+		this._objectsToCut = [];
 		this._objectsToCopy = this.props.editor.layout.graph.getSelectedNodes();
+		this.refresh();
+	}
+
+	public cutSelectedNodes(): void {
+		this._objectsToCopy = [];
+		this._objectsToCut = this.props.editor.layout.graph.getSelectedNodes();
 		this.refresh();
 	}
 
@@ -555,10 +572,55 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 	 * Pastes the previously copied nodes.
 	 */
 	public pasteSelectedNodes(parent?: Node, shift?: boolean): void {
-		if (!this._objectsToCopy.length) {
+		if (!this._objectsToCopy.length && !this._objectsToCut.length) {
 			return;
 		}
 
+		if (this._objectsToCut.length) {
+			this._pasteCutSelectedNodes(parent, shift);
+		} else if (this._objectsToCopy.length) {
+			this._pasteCopiedSelectedNodes(parent, shift);
+		}
+	}
+
+	private _pasteCutSelectedNodes(newParent?: Node, shift?: boolean): void {
+		const nodesToPaste = this._objectsToCut.filter((n) => n.nodeData && isNode(n.nodeData)).map((n) => n.nodeData) as Node[];
+		if (!nodesToPaste.length) {
+			return;
+		}
+
+		const oldHierarchy = new Map<Node, IOldNodeHierarchyConfiguration>();
+		nodesToPaste.forEach((node) => oldHierarchy.set(node, getNodeParentingConfiguration(node)));
+
+		registerUndoRedo({
+			executeRedo: true,
+			action: () => this.refresh(),
+			undo: () => {
+				nodesToPaste.forEach((node) => {
+					applyNodeParentingConfiguration(node, oldHierarchy.get(node)!);
+				});
+			},
+			redo: () => {
+				const tempTransfromNode = new TransformNode("tempParent", this.props.editor.layout.preview.scene);
+
+				try {
+					nodesToPaste.forEach((node) => {
+						if (shift) {
+							applyTransformNodeParentingConfiguration(node, newParent ?? null, tempTransfromNode);
+						} else {
+							node.parent = newParent ?? null;
+						}
+					});
+				} catch (e) {
+					console.error(e);
+				}
+
+				tempTransfromNode.dispose(false, true);
+			},
+		});
+	}
+
+	private _pasteCopiedSelectedNodes(parent?: Node, shift?: boolean): void {
 		const newNodes: (Node | IParticleSystem | Sprite)[] = [];
 		const nodesToCopy = this._objectsToCopy.map((n) => n.nodeData);
 		if (!nodesToCopy.length) {
@@ -649,7 +711,6 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 
 							if (parent && isNode(node)) {
 								if (shift && isNode(object)) {
-									node.parent = object.parent;
 									applyTransformNodeParentingConfiguration(node, parent, tempTransfromNode);
 								} else {
 									node.parent = parent;
