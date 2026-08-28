@@ -48,7 +48,7 @@
 		"build-all-concurrently": "concurrently \"yarn build-tools\" \"yarn build-cli\" \"yarn build-mcp-server\" -c bgYellow.bold,bgBlue.bold,bgGreen.bold --names tools,cli,mcp-server && yarn build-editor && concurrently \"yarn workspace babylonjs-editor-plugins build-concurrently\" \"yarn workspace babylonjs-editor-templates build-concurrently\" \"yarn workspace babylonjs-editor-website build\" -c bgYellow.bold,bgBlue.bold,bgGreen.bold --names plugins,templates,website",
 		"start": "yarn workspace babylonjs-editor start",
 		"package": "yarn clean && yarn clean:node_modules && yarn && yarn lint && yarn build-all-concurrently && yarn test && node build.mjs",
-		"clean": "rimraf editor/build editor/declaration editor/electron-packages editor/coverage tools/build tools/declaration tools/coverage website/.next cli/build cli/declaration && yarn workspace babylonjs-editor-plugins clean && yarn workspace babylonjs-editor-templates clean",
+		"clean": "rimraf editor/build editor/declaration editor/electron-packages editor/coverage tools/build tools/declaration tools/coverage mcp/build mcp/declaration website/.next cli/build cli/declaration && yarn workspace babylonjs-editor-plugins clean && yarn workspace babylonjs-editor-templates clean",
 		"clean:node_modules": "rm -rf editor/node_modules tools/node_modules cli/node_modules mcp/node_modules plugins/**/node_modules templates/**/node_modules website/node_modules node_modules",
 		"test": "yarn workspace babylonjs-editor-tools test && yarn workspace babylonjs-editor test",
 		"coverage": "yarn workspace babylonjs-editor-tools coverage && yarn workspace babylonjs-editor coverage",

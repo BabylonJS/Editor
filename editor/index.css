@@ -189,7 +189,7 @@ input {
 
 /* BLUEPRINTJS */
 
-.bp5-tree-node.bp5-tree-node-selected > .bp5-tree-node-content {
+.bp5-tree-node.bp5-tree-node-selected>.bp5-tree-node-content {
 	@apply bg-indigo-700;
 }
 

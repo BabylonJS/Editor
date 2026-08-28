@@ -195,7 +195,8 @@ export function EditorGraphLabel(props: IEditorGraphLabelProps) {
 		const label = (
 			<div
 				className={`
-					${props.object?.metadata?.scripts?.length ? "text-purple-400 font-bold" : ""}
+					${isInstancedMesh(props.object) ? "italic opacity-50" : ""}
+					${props.object?.metadata?.scripts?.length ? "text-bjs-orange font-bold !opacity-100" : ""}
 					${!isNodeSerializable(props.object) ? "line-through" : ""}
 					${!isNodeSerializable(props.object) || isNodeLocked(props.object) ? "text-foreground/35" : ""}
 					${isClusteredLightNode ? "opacity-50 italic" : ""}
