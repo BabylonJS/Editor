@@ -21,7 +21,7 @@ export function registerSpriteMapParser() {
 	registered = true;
 
 	AddParser("SpriteMapNode", (parsedData: any, scene: Scene, container: AssetContainer, rootUrl: string) => {
-		parsedData.transformNodes?.forEach((transformNode: any) => {
+		parsedData.transformNodes?.forEach((transformNode) => {
 			if (!transformNode.isSpriteMap) {
 				return;
 			}
@@ -67,7 +67,7 @@ export function registerSpriteMapParser() {
 
 				transformNode.getClassName = () => "SpriteMapNode";
 
-				transformNode.tiles.forEach((tile: any) => {
+				transformNode.tiles.forEach((tile) => {
 					for (let x = 0, lenX = tile.repeatCount.x + 1; x < lenX; ++x) {
 						for (let y = 0, lenY = tile.repeatCount.y + 1; y < lenY; ++y) {
 							const offsetX = x * (tile.repeatOffset.x + 1);

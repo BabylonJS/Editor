@@ -13,7 +13,7 @@ const esbuild = require("esbuild");
 
 const replaceImportMetaDirname = {
 	name: "replaceImportMetaDirname",
-	setup(build) {
+	setup(build: any) {
 		build.onLoad({ filter: /.*/ }, async (args) => {
 			const source = await require("fs").promises.readFile(args.path, "utf8");
 
@@ -54,7 +54,7 @@ async function compile(srcAbsolutePath: string, outputAbsolutePath: string) {
 	} catch (e) {
 		postMessage({
 			success: false,
-			error: e.toString(),
+			error: (e as Error).toString(),
 		});
 	}
 }
@@ -67,7 +67,7 @@ function extract(outputAbsolutePath: string) {
 		inspectorProperties = output.default?._VisibleInInspector ?? null;
 
 		try {
-			function createMock(recorder = {}) {
+			function createMock(recorder = {}): any {
 				return new Proxy(function () {}, {
 					get(_target, prop) {
 						if (!(prop in recorder)) {

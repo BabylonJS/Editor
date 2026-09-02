@@ -26,7 +26,7 @@ describe("tools/node/clone", () => {
 		} as any;
 
 		editor.layout.preview.clusteredLightContainer.addLight = vi.fn(function (light) {
-			this._lights.push(light);
+			(editor.layout.preview.clusteredLightContainer as any)._lights.push(light);
 		});
 	});
 

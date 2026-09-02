@@ -74,19 +74,19 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 	/**
 	 * Defines the reference to the tracks panel used to display and edit the cinematic tracks.
 	 */
-	public tracks: CinematicEditorTracks;
+	public tracks!: CinematicEditorTracks;
 	/**
 	 * Defines the reference to the timelines panel used to display and edit the cinematic timelines.
 	 */
-	public timelines: CinematicEditorTimelines;
+	public timelines!: CinematicEditorTimelines;
 	/**
 	 * Defines the reference to the curves panel used to edit animation curves in selected track.
 	 */
-	public curves: CinematicEditorCurves;
+	public curves!: CinematicEditorCurves;
 	/**
 	 * Defines the reference to the inspector used to display and edit the cinematic properties.
 	 */
-	public inspector: CinematicEditorInspector;
+	public inspector!: CinematicEditorInspector;
 
 	/**
 	 * Defines the reference to the editor instance that owns this cinematic editor.
@@ -97,8 +97,8 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 	 */
 	public readonly cinematic: ICinematic;
 
-	private _renderer: CinematicEditorRenderer;
-	private _renderDialog: CinematicEditorRenderDialog;
+	private _renderer!: CinematicEditorRenderer;
+	private _renderDialog!: CinematicEditorRenderDialog;
 
 	private _undoObserver: Observer<void> | null = null;
 	private _redoObserver: Observer<void> | null = null;

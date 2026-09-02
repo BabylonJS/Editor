@@ -23,7 +23,7 @@ export function registerShadowGeneratorParser() {
 	AddParser("ShadowGeneratorEditorPlugin", (parsedData: any, scene: Scene, container: AssetContainer, rootUrl: string) => {
 		const savedShadowGenerators = new Map<string, number>();
 
-		parsedData.shadowGenerators?.forEach((shadowGenerator: any) => {
+		parsedData.shadowGenerators?.forEach((shadowGenerator) => {
 			savedShadowGenerators.set(shadowGenerator.id, shadowGenerator.mapSize);
 
 			if (scene.loadingShadowsQuality !== "high") {

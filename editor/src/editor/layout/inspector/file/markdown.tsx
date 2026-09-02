@@ -5,8 +5,8 @@ import { basename } from "path/posix";
 import { useEffect, useState } from "react";
 import { AiFillFileMarkdown } from "react-icons/ai";
 
+import Markdown from "markdown-to-jsx";
 import { Callout, Divider } from "@blueprintjs/core";
-import Markdown, { RuleType } from "markdown-to-jsx";
 
 import { FileInspectorObject } from "../file";
 
@@ -36,7 +36,7 @@ export function EditorInspectorMarkdownComponent(props: IEditorInspectorMarkdown
 				children={content ?? ""}
 				options={{
 					renderRule(next, node, _, state) {
-						if (node.type === RuleType.codeBlock) {
+						if (node.type === Markdown.RuleType.codeBlock) {
 							return (
 								<Callout key={state.key} className="w-full whitespace-break-spaces p-5 rounded-lg mb-3">
 									{node.text}
@@ -44,7 +44,7 @@ export function EditorInspectorMarkdownComponent(props: IEditorInspectorMarkdown
 							);
 						}
 
-						if (node.type === RuleType.link) {
+						if (node.type === Markdown.RuleType.link) {
 							return (
 								<a key={state.key} className="parent text-blue-400" onClick={() => shell.openExternal(node.target)}>
 									{node.children.map((c) => c["text"]).join(" ")}

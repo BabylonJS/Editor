@@ -60,7 +60,7 @@ export class UniqueNumber {
 export function unique<T>(array: T[], property?: string): T[] {
 	const unique = (value: T, index: number, self: T[]) => {
 		if (property) {
-			return self.findIndex((v) => v[property] === (value as any)[property]) === index;
+			return self.findIndex((v) => v[property] === value[property]) === index;
 		}
 
 		return self.indexOf(value) === index;
@@ -135,4 +135,17 @@ export function readBlobAsDataUrl(blob: Blob): Promise<string> {
  */
 export function cloneJSObject<T>(source: T): T {
 	return JSON.parse(JSON.stringify(source));
+}
+
+/**
+ * Returns whether or not the given string is a valid URL.
+ * @param url defines the string to check if it is a valid URL.
+ */
+export function isValidUrl(url: string): boolean {
+	try {
+		new URL(url);
+		return true;
+	} catch {
+		return false;
+	}
 }

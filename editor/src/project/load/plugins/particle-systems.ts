@@ -48,7 +48,7 @@ export async function loadParticleSystems(editor: Editor, particleSystemFiles: s
 
 				return particleSystem;
 			} catch (e) {
-				editor.layout.console.error(`Failed to particle system file "${file}": ${e.message}`);
+				editor.layout.console.error(`Failed to particle system file "${file}": ${(e as Error).message}`);
 			}
 
 			options.progress.step(options.progressStep);

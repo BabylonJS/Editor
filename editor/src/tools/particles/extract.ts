@@ -39,7 +39,7 @@ export async function extractNodeParticleSystemSetTextures(editor: Editor, optio
 	const relativePaths: string[] = [];
 
 	await Promise.all(
-		blocks.map(async (block: any) => {
+		blocks.map(async (block) => {
 			if (block.url?.startsWith("http://") || block.url?.startsWith("https://")) {
 				const result = await extractTextureAssetFromUrl(editor, {
 					url: block.url,

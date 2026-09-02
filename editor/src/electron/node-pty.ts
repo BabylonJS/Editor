@@ -22,7 +22,7 @@ export function closeAllNodePtyForWebContentsId(id: number) {
 				value.pty.kill();
 			} catch (error) {
 				// Process might already be killed, ignore the error
-				console.log("Process already killed:", error.message);
+				console.log("Process already killed:", (error as Error).message);
 			}
 			spawnsMap.delete(key);
 		}
@@ -103,7 +103,7 @@ ipcMain.on("editor:kill-node-pty", (_, id) => {
 			p.pty.kill();
 		} catch (error) {
 			// Process might already be killed, ignore the error
-			console.log("Process already killed:", error.message);
+			console.log("Process already killed:", (error as Error).message);
 		}
 		spawnsMap.delete(id);
 	}

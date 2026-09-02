@@ -139,8 +139,8 @@ export class EditorEditProjectPluginComponent extends Component<IEditorEditProje
 			});
 		} catch (e) {
 			this.props.editor.layout.console.error("Invalid plugin.");
-			if (e.message) {
-				this.props.editor.layout.console.error(e.message);
+			if ((e as Error).message) {
+				this.props.editor.layout.console.error((e as Error).message);
 			}
 		}
 
@@ -165,8 +165,8 @@ export class EditorEditProjectPluginComponent extends Component<IEditorEditProje
 			});
 		} catch (e) {
 			this.props.editor.layout.console.error("Invalid plugin.");
-			if (e.message) {
-				this.props.editor.layout.console.error(e.message);
+			if ((e as Error).message) {
+				this.props.editor.layout.console.error((e as Error).message);
 			}
 		}
 

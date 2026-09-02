@@ -3,9 +3,9 @@ import { join as nativeJoin } from "path";
 import { watch, FSWatcher } from "chokidar";
 import { basename, dirname, join } from "path/posix";
 
-import { Button } from "@blueprintjs/core";
 import { Component, ReactNode } from "react";
 
+import { toast } from "sonner";
 import { Grid } from "react-loader-spinner";
 
 import { IoPlay, IoStop, IoRefresh } from "react-icons/io5";
@@ -19,6 +19,9 @@ import {
 	setTAARenderingPipelineRef,
 	setVLSPostProcessRef,
 } from "babylonjs-editor-tools";
+
+import { Badge } from "../../../ui/shadcn/ui/badge";
+import { Button } from "../../../ui/shadcn/ui/button";
 
 import { ensureTemporaryDirectoryExists } from "../../../tools/project";
 
@@ -64,6 +67,10 @@ export interface IEditorPreviewPlayComponentState {
 	 * Defines wether or not the game / application is playing in the editor.
 	 */
 	playing: boolean;
+
+	currentFPS: number;
+	activeMeshes: number;
+	totalMeshes: number;
 }
 
 export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComponentProps, IEditorPreviewPlayComponentState> {
@@ -79,6 +86,8 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 
 	private _compiledScriptExports: any = null;
 
+	private _intervalId: number | null = null;
+
 	public constructor(props: IEditorPreviewPlayComponentProps) {
 		super(props);
 
@@ -86,53 +95,75 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 			playing: false,
 			loading: false,
 			preparingPlay: false,
+
+			currentFPS: 0,
+			activeMeshes: 0,
+			totalMeshes: 0,
 		};
 	}
 
 	public render(): ReactNode {
 		return (
 			<TooltipProvider>
-				{this.state.playing && !this.state.preparingPlay && (
-					<Tooltip>
-						<TooltipTrigger asChild>
-							<Button
-								minimal
-								onClick={() => this.props.onRestart()}
-								icon={<IoRefresh className="w-6 h-6" strokeWidth={1} color="red" />}
-								className="w-10 h-10 bg-muted/50 !rounded-lg transition-all duration-300 ease-in-out"
-							/>
-						</TooltipTrigger>
-						<TooltipContent>Restart the game / application</TooltipContent>
-					</Tooltip>
-				)}
+				<div className="flex justify-between items-center w-full">
+					<div className="flex gap-2 items-center">
+						{this.state.playing && (
+							<>
+								<Badge variant="default">FPS {this.state.currentFPS}</Badge>
+								<Badge variant="secondary">Active Meshes {this.state.activeMeshes}</Badge>
+								<Badge variant="secondary">Total Meshes {this.state.totalMeshes}</Badge>
+							</>
+						)}
+					</div>
 
-				<Tooltip>
-					<TooltipTrigger asChild>
-						<Button
-							minimal
-							active={this.state.playing}
-							disabled={this.state.preparingPlay || !this.props.enabled}
-							icon={
-								this.state.preparingPlay ? (
-									<Grid width={24} height={24} color="gray" />
-								) : this.state.playing ? (
-									<IoStop className="w-6 h-6" strokeWidth={1} color="red" />
-								) : (
-									<IoPlay className="w-6 h-6" strokeWidth={1} color="green" />
-								)
-							}
-							onClick={() => this.playOrStopApplication()}
-							className={`
-                                w-10 h-10 bg-muted/50 !rounded-lg
-                                ${this.state.preparingPlay || !this.props.enabled ? `bg-muted/50 ${!this.props.enabled && "opacity-35"}` : this.state.playing ? "!bg-red-500/35" : "hover:!bg-green-500/35"}
-                                transition-all duration-300 ease-in-out
-                            `}
-						/>
-					</TooltipTrigger>
-					<TooltipContent className="flex gap-2 items-center">
-						{this.props.enabled ? "Play the game / application" : "Can't play the game now. Dependencies are still installing..."}
-					</TooltipContent>
-				</Tooltip>
+					<div className="flex gap-2 items-center">
+						{this.state.playing && !this.state.preparingPlay && (
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<Button
+										variant="outline"
+										onClick={() => this.props.onRestart()}
+										className="h-9 py-0 px-2 aspect-square bg-background !rounded-lg transition-all duration-300 ease-in-out"
+									>
+										<IoRefresh className="w-6 h-6" strokeWidth={1} color="red" />
+									</Button>
+								</TooltipTrigger>
+								<TooltipContent>Restart the game / application</TooltipContent>
+							</Tooltip>
+						)}
+
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<Button
+									type="button"
+									variant="outline"
+									onClick={() => this.playOrStopApplication()}
+									disabled={this.state.preparingPlay || !this.props.enabled}
+									className={`
+										flex gap-2 items-center h-9 py-0 px-3 border-input bg-background shadow-sm
+										${this.state.preparingPlay || !this.props.enabled ? `bg-muted/50 ${!this.props.enabled && "opacity-35"}` : this.state.playing ? "hover:!bg-red-500/35" : "hover:!bg-green-500/35"}
+										transition-all duration-300 ease-in-out
+									`}
+								>
+									{this.state.preparingPlay ? (
+										<Grid width={24} height={24} color="gray" />
+									) : this.state.playing ? (
+										<>
+											<IoStop className="w-6 h-6 fill-red-500" strokeWidth={1} /> Stop
+										</>
+									) : (
+										<>
+											<IoPlay className="w-6 h-6 fill-green-500" strokeWidth={1} /> Play
+										</>
+									)}
+								</Button>
+							</TooltipTrigger>
+							<TooltipContent className="flex gap-2 items-center">
+								{this.props.enabled ? "Play the scene" : "Can't play the scene now. Dependencies are still installing..."}
+							</TooltipContent>
+						</Tooltip>
+					</div>
+				</div>
 			</TooltipProvider>
 		);
 	}
@@ -187,6 +218,8 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 			return;
 		}
 
+		this._clearInterval();
+
 		this.scene?.dispose();
 		this.scene = null;
 
@@ -215,6 +248,8 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 	 */
 	public stop(): void {
 		setUndoRedoEnabled(true);
+
+		this._clearInterval();
 
 		this.scene?.dispose();
 		this.scene = null;
@@ -273,6 +308,7 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 			// Export first as src/scripts.ts may change during the export.
 			await exportProject(this.props.editor, {
 				optimize: false,
+				debugMode: true,
 				noProgress: true,
 			});
 		}
@@ -361,7 +397,7 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 		try {
 			await this._compiledScriptExports.loadScene(rootUrl, `${sceneName}.babylon`, scene, this._compiledScriptExports.scriptsMap, {
 				quality: "high",
-				onProgress: (progress) =>
+				onProgress: (progress: number) =>
 					this.props.editor.layout.preview.setState({
 						playSceneLoadingProgress: progress,
 					}),
@@ -374,6 +410,9 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 			setSSAO2RenderingPipelineRef(this._compiledScriptExports.getSSAO2RenderingPipeline());
 			setDefaultRenderingPipelineRef(this._compiledScriptExports.getDefaultRenderingPipeline());
 		} catch (e) {
+			console.error(e);
+			toast.error("Failed to load scene. Check the console for more information.");
+
 			if (!scene.isDisposed) {
 				this.props.editor.layout.selectTab("console");
 				this.props.editor.layout.console.error(`Failed to load scene: ${(e as Error).message}`);
@@ -402,12 +441,27 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 		this.setState({
 			loading: false,
 		});
+
+		this._intervalId = window.setInterval(() => {
+			this.setState({
+				currentFPS: scene.getEngine().getFps() >> 0,
+				activeMeshes: scene.getActiveMeshes().length,
+				totalMeshes: scene.meshes.length,
+			});
+		}, 1000);
 	}
 
 	private _requireCompiledScripts(): void {
 		const scriptPath = join(this._temporaryDirectory!, "play/script.cjs");
 		this._compiledScriptExports = require(scriptPath);
 		delete require.cache[nativeJoin(scriptPath)];
+	}
+
+	private _clearInterval(): void {
+		if (this._intervalId !== null) {
+			clearInterval(this._intervalId);
+			this._intervalId = null;
+		}
 	}
 
 	/**

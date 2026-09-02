@@ -24,7 +24,7 @@ export interface ICinematicEditorCurvesState {
 }
 
 export class CinematicEditorCurves extends Component<ICinematicEditorCurvesProps, ICinematicEditorCurvesState> {
-	public tracker: CinematicEditorTracker;
+	public tracker!: CinematicEditorTracker;
 
 	private _divRef: HTMLDivElement | null = null;
 

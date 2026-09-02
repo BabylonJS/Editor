@@ -230,11 +230,11 @@ export class EditorMarketplaceAssetInspector extends Component<IEditorInspectorI
 			this.props.editor.layout.console.log(`Imported ${asset.name} from ${this.props.object.provider.title}`);
 			toast.success(`Successfully imported ${asset.name}`, { id: asset.id, duration: 3000 });
 		} catch (e) {
-			if (e.message === "Download aborted by user.") {
+			if ((e as Error).message === "Download aborted by user.") {
 				toast.error(`Import of ${asset.name} was cancelled and cleaned up.`, { id: asset.id, duration: 3000 });
 			} else {
-				this.props.editor.layout.console.error(`Import failed: ${e.message}`);
-				toast.error(`Failed to import ${asset.name}: ${e.message}`, { id: asset.id, duration: 5000 });
+				this.props.editor.layout.console.error(`Import failed: ${(e as Error).message}`);
+				toast.error(`Failed to import ${asset.name}: ${(e as Error).message}`, { id: asset.id, duration: 5000 });
 			}
 		} finally {
 			this.setState({

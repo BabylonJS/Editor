@@ -25,6 +25,8 @@ import { isAbstractMesh, isCamera, isLight, isNode } from "../../../../tools/gua
 import { defaultGizmoSnapPreferences, IGizmoSnapPreferences } from "../../../../tools/scene/gizmo";
 import { updateLightShadowMapRefreshRate, updatePointLightShadowMapRenderListPredicate } from "../../../../tools/light/shadows";
 
+import { checkMagnetism, resetMagnetism } from "./magnetism";
+
 export const onGizmoNodeChangedObservable = new Observable<Node | Sprite>();
 
 export class EditorPreviewGizmo {
@@ -33,9 +35,9 @@ export class EditorPreviewGizmo {
 	 */
 	public _gizmosLayer: UtilityLayerRenderer;
 
-	private _scalingGizmo: ScaleGizmo | null = null;
-	private _positionGizmo: PositionGizmo | null = null;
-	private _rotationGizmo: RotationGizmo | null = null;
+	public _scalingGizmo: ScaleGizmo | null = null;
+	public _positionGizmo: PositionGizmo | null = null;
+	public _rotationGizmo: RotationGizmo | null = null;
 
 	private _coordinatesMode: GizmoCoordinatesMode = GizmoCoordinatesMode.Local;
 
@@ -48,11 +50,34 @@ export class EditorPreviewGizmo {
 
 	private _snapPreferences: IGizmoSnapPreferences = { ...defaultGizmoSnapPreferences };
 
+	private _keyUpListener: (ev: KeyboardEvent) => void;
+	private _keyDownListener: (ev: KeyboardEvent) => void;
+
+	public _shiftDown: boolean = false;
+
 	public constructor(scene: Scene) {
 		this._gizmosLayer = new UtilityLayerRenderer(scene);
 		this._gizmosLayer.utilityLayerScene.postProcessesEnabled = false;
 
 		this._spriteTransformNode = new TransformNode("spriteGizmoTransformNode", this._gizmosLayer.utilityLayerScene);
+
+		window.addEventListener(
+			"keydown",
+			(this._keyDownListener = (ev) => {
+				this._shiftDown = ev.shiftKey;
+			})
+		);
+		window.addEventListener(
+			"keyup",
+			(this._keyUpListener = (ev) => {
+				this._shiftDown = ev.shiftKey;
+			})
+		);
+
+		scene.onDisposeObservable.addOnce(() => {
+			window.removeEventListener("keyup", this._keyUpListener);
+			window.removeEventListener("keydown", this._keyDownListener);
+		});
 	}
 
 	/**
@@ -95,14 +120,14 @@ export class EditorPreviewGizmo {
 
 			if (this._positionGizmo) {
 				// A bit of hacking.
-				this._positionGizmo.xPlaneGizmo["_coloredMaterial"].alpha = 0.3;
-				this._positionGizmo.xPlaneGizmo["_hoverMaterial"].alpha = 1;
+				this._positionGizmo.xPlaneGizmo.coloredMaterial.alpha = 0.3;
+				this._positionGizmo.xPlaneGizmo.hoverMaterial.alpha = 1;
 
-				this._positionGizmo.yPlaneGizmo["_coloredMaterial"].alpha = 0.3;
-				this._positionGizmo.yPlaneGizmo["_hoverMaterial"].alpha = 1;
+				this._positionGizmo.yPlaneGizmo.coloredMaterial.alpha = 0.3;
+				this._positionGizmo.yPlaneGizmo.hoverMaterial.alpha = 1;
 
-				this._positionGizmo.zPlaneGizmo["_coloredMaterial"].alpha = 0.3;
-				this._positionGizmo.zPlaneGizmo["_hoverMaterial"].alpha = 1;
+				this._positionGizmo.zPlaneGizmo.coloredMaterial.alpha = 0.3;
+				this._positionGizmo.zPlaneGizmo.hoverMaterial.alpha = 1;
 			}
 		}
 
@@ -246,6 +271,8 @@ export class EditorPreviewGizmo {
 		let temporaryOldValue: Vector3 | null = null;
 
 		gizmo.onDragStartObservable.add(() => {
+			resetMagnetism();
+
 			if (!this._attachedNode) {
 				return;
 			}
@@ -262,6 +289,7 @@ export class EditorPreviewGizmo {
 				updateLightShadowMapRefreshRate(temporaryNode);
 				updatePointLightShadowMapRenderListPredicate(temporaryNode);
 			} else if (isAbstractMesh(temporaryNode)) {
+				checkMagnetism(this, temporaryNode);
 				this._updateShadowMapsForMesh(temporaryNode);
 			} else if (temporarySprite) {
 				if (property === "scaling") {
@@ -274,6 +302,8 @@ export class EditorPreviewGizmo {
 		});
 
 		gizmo.onDragEndObservable.add(() => {
+			resetMagnetism();
+
 			if (!temporaryNode) {
 				return;
 			}

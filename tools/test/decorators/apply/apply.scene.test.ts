@@ -21,7 +21,7 @@ describe("decorators/apply", () => {
 
 		class Temp extends Node {
 			@nodeFromScene("MyNode")
-			public node: TransformNode;
+			public node!: TransformNode;
 		}
 
 		const instance = new Temp("Temp", scene);
@@ -38,13 +38,13 @@ describe("decorators/apply", () => {
 
 		class Temp extends Node {
 			@nodeFromDescendants("Descendant", true)
-			public node1: TransformNode;
+			public node1!: TransformNode;
 
 			@nodeFromDescendants("Descendant", false)
-			public node2: TransformNode;
+			public node2!: TransformNode;
 
 			@nodeFromDescendants("Descendant")
-			public node3: TransformNode;
+			public node3!: TransformNode;
 		}
 
 		const instance = new Temp("Temp", scene);

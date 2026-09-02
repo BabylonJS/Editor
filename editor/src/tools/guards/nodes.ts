@@ -15,6 +15,8 @@ import {
 	HemisphericLight,
 	Skeleton,
 	ClusteredLightContainer,
+	GaussianSplattingMesh,
+	GaussianSplattingPartProxyMesh,
 } from "babylonjs";
 
 import { EditorCamera } from "../../editor/nodes/camera";
@@ -35,6 +37,9 @@ export function isAbstractMesh(object: any): object is Mesh {
 		case "GroundMesh":
 		case "InstancedMesh":
 		case "NodeParticleSystemSetMesh":
+		case "GaussianSplattingMesh":
+		case "GaussianSplattingMeshBase":
+		case "GaussianSplattingPartProxyMesh":
 			return true;
 	}
 
@@ -49,6 +54,8 @@ export function isMesh(object: any): object is Mesh {
 	switch (object.getClassName?.()) {
 		case "Mesh":
 		case "GroundMesh":
+		case "GaussianSplattingMesh":
+		case "GaussianSplattingMeshBase":
 			return true;
 	}
 
@@ -230,4 +237,28 @@ export function isClusteredLightContainer(object: any): object is ClusteredLight
  */
 export function isNode(object: any): object is Node {
 	return isAbstractMesh(object) || isAnyTransformNode(object) || isLight(object) || isCamera(object);
+}
+
+/**
+ * Returns wether or not the given object is a GaussianSplattingMesh.
+ * @param object defines the reference to the object to test its class name.
+ */
+export function isGaussianSplattingMesh(object: any): object is GaussianSplattingMesh {
+	return object.getClassName?.() === "GaussianSplattingMesh";
+}
+
+/**
+ * Returns wether or not the given object is a GaussianSplattingPartProxyMesh.
+ * @param object defines the reference to the object to test its class name.
+ */
+export function isGaussianSplattingPartProxyMesh(object: any): object is GaussianSplattingPartProxyMesh {
+	return object.getClassName?.() === "GaussianSplattingPartProxyMesh";
+}
+
+/**
+ * Returns wether or not the given object is a GaussianSplattingMesh or a GaussianSplattingPartProxyMesh.
+ * @param object defines the reference to the object to test its class name.
+ */
+export function isAnyGaussianSplattingMesh(object: any): object is GaussianSplattingMesh | GaussianSplattingPartProxyMesh {
+	return isGaussianSplattingMesh(object) || isGaussianSplattingPartProxyMesh(object);
 }

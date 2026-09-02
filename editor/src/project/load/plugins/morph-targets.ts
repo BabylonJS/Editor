@@ -59,7 +59,7 @@ export async function loadMorphTargetManagers(editor: Editor, morphTargetManager
 					return morphTargetManager;
 				}
 			} catch (e) {
-				editor.layout.console.error(`Failed to load morph target manager file "${file}": ${e.message}`);
+				editor.layout.console.error(`Failed to load morph target manager file "${file}": ${(e as Error).message}`);
 			}
 
 			options.progress.step(options.progressStep);

@@ -9,13 +9,13 @@ export interface IExtractNodeMaterialTexturesOptions {
 
 export async function extractNodeMaterialTextures(editor: Editor, options: IExtractNodeMaterialTexturesOptions) {
 	const blocks = options.materialData.blocks.filter(
-		(block: any) => (block.customType === "BABYLON.TextureBlock" || block.customType === "BABYLON.ImageSourceBlock") && block.texture?.name
+		(block) => (block.customType === "BABYLON.TextureBlock" || block.customType === "BABYLON.ImageSourceBlock") && block.texture?.name
 	);
 
 	const relativePaths: string[] = [];
 
 	await Promise.all(
-		blocks.map(async (block: any) => {
+		blocks.map(async (block) => {
 			if (block.texture?.name?.startsWith("http://") || block.texture.name.startsWith("https://")) {
 				const result = await extractTextureAssetFromUrl(editor, {
 					url: block.texture.name,

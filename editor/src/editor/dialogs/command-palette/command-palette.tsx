@@ -222,7 +222,7 @@ export class CommandPalette extends Component<ICommandPaletteProps, ICommandPale
 				({
 					key: basename(file),
 					text: basename(file),
-					label: file.path,
+					label: file,
 					action: () => onSelectedAssetChanged.notifyObservers(file),
 				}) as ICommandPaletteType
 		);

@@ -3,7 +3,7 @@ import { pathExists, readJSON, remove, stat, writeFile, writeJSON } from "fs-ext
 
 import filenamify from "filenamify";
 
-import { RenderTargetTexture, SceneSerializer } from "babylonjs";
+import { RenderTargetTexture, SceneSerializer, GaussianSplattingMesh } from "babylonjs";
 
 import { Editor } from "../../editor/main";
 
@@ -19,7 +19,16 @@ import { isSpriteManagerNode, isSpriteMapNode } from "../../tools/guards/sprites
 import { serializePhysicsAggregate } from "../../tools/physics/serialization/aggregate";
 import { isAnimationGroupFromSceneLink, isFromSceneLink } from "../../tools/scene/scene-link";
 import { isGPUParticleSystem, isNodeParticleSystemSetMesh, isParticleSystem } from "../../tools/guards/particles";
-import { isAnyTransformNode, isClusteredLightContainer, isCollisionMesh, isEditorCamera, isMesh, isTransformNode } from "../../tools/guards/nodes";
+import {
+	isAnyTransformNode,
+	isClusteredLightContainer,
+	isCollisionMesh,
+	isEditorCamera,
+	isGaussianSplattingMesh,
+	isGaussianSplattingPartProxyMesh,
+	isMesh,
+	isTransformNode,
+} from "../../tools/guards/nodes";
 
 import { taaPipelineCameraConfigurations } from "../../editor/rendering/taa";
 import { vlsPostProcessCameraConfigurations } from "../../editor/rendering/vls";
@@ -56,6 +65,7 @@ export function ensureSceneFolders(scenePath: string) {
 		createDirectoryIfNotExist(join(scenePath, "sprite-maps")),
 		createDirectoryIfNotExist(join(scenePath, "sprite-managers")),
 		createDirectoryIfNotExist(join(scenePath, "nodeParticleSystemSets")),
+		createDirectoryIfNotExist(join(scenePath, "splats")),
 	]);
 }
 
@@ -99,7 +109,16 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 	// Write geometries and meshes
 	await Promise.all(
 		meshesToSave.map(async (mesh) => {
-			if ((!isMesh(mesh) && !isCollisionMesh(mesh)) || mesh._masterMesh || isFromSceneLink(mesh) || !isNodeVisibleInGraph(mesh)) {
+			if (
+				(!isMesh(mesh) && !isCollisionMesh(mesh)) ||
+				mesh._masterMesh ||
+				isFromSceneLink(mesh) ||
+				!isNodeVisibleInGraph(mesh) ||
+				isGaussianSplattingPartProxyMesh(mesh) ||
+				isGaussianSplattingMesh(mesh) ||
+				mesh === editor.layout.preview.gaussianSplattingCompoundMesh ||
+				mesh.reservedDataStore?.hidden
+			) {
 				return;
 			}
 
@@ -136,7 +155,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 						data.isCollisionMesh = true;
 						data.collisionMeshType = meshToSerialize.type;
 
-						data.meshes?.forEach((meshData: any) => {
+						data.meshes?.forEach((meshData) => {
 							meshData.type = "Mesh";
 						});
 
@@ -168,7 +187,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 							delete mesh.materialUniqueId;
 						}
 
-						mesh.instances?.forEach((instanceData: any) => {
+						mesh.instances?.forEach((instanceData) => {
 							const instance = meshToSerialize.instances.find((instance) => instance.id === instanceData.id);
 							if (instance) {
 								if (instance.parent) {
@@ -291,6 +310,72 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 		})
 	);
 
+	// Write gaussian splatting meshes
+	const computedGaussianSplattingMeshes: GaussianSplattingMesh[] = [];
+
+	await Promise.all(
+		scene.meshes.map(async (mesh) => {
+			if (!isGaussianSplattingPartProxyMesh(mesh) || isFromSceneLink(mesh) || !mesh.baseGaussianSplattingMesh) {
+				return;
+			}
+
+			if (computedGaussianSplattingMeshes.includes(mesh.baseGaussianSplattingMesh)) {
+				return;
+			}
+
+			computedGaussianSplattingMeshes.push(mesh.baseGaussianSplattingMesh);
+
+			const meshPath = join(scenePath, "meshes", `${mesh.id}.json`);
+			const splatPath = join(scenePath, "splats", `${mesh.id}.babylonbinarysplatdata`);
+			const shPaths = mesh.baseGaussianSplattingMesh.shData?.map((_, index) => join(scenePath, "splats", `${mesh.id}-sh${index}.babylonbinarysplatshdata`)) ?? [];
+
+			try {
+				const data = mesh.baseGaussianSplattingMesh.serialize(
+					{
+						proxies: [],
+						metadata: mesh.metadata,
+						isEnabled: mesh.isEnabled(false),
+						splatDataPath: join(relativeScenePath, `splats/${mesh.id}.babylonbinarysplatdata`),
+						shDataPaths: mesh.baseGaussianSplattingMesh.shData?.map((_, index) => join(relativeScenePath, `splats/${mesh.id}-sh${index}.babylonbinarysplatshdata`)),
+					},
+					"binary"
+				);
+
+				const allMeshProxies = scene.meshes.filter((m) => isGaussianSplattingPartProxyMesh(m) && m.baseGaussianSplattingMesh === mesh.baseGaussianSplattingMesh);
+				allMeshProxies.forEach((proxy) => {
+					const proxyData = proxy.serialize();
+					proxyData.metadata ??= {};
+					proxyData.metadata.parentId = proxy.parent?.uniqueId;
+
+					delete proxyData.compoundSplatMeshId;
+
+					data.proxies.push(proxyData);
+				});
+
+				const promises = [writeFile(splatPath, Buffer.from(data.splatsData))];
+
+				data.shData?.forEach((shData: any, index: number) => {
+					promises.push(writeFile(shPaths[index], Buffer.from(shData)));
+				});
+
+				await Promise.all(promises);
+
+				delete data.shData;
+				delete data.splatsData;
+
+				await writeJSON(meshPath, data, {
+					spaces: 4,
+				});
+			} catch (e) {
+				editor.layout.console.error(`Failed to write gaussian splatting mesh ${mesh.name}`);
+			} finally {
+				savedFiles.push(meshPath, splatPath, ...shPaths);
+			}
+
+			dialog.step(progressStep);
+		})
+	);
+
 	// Write skeletons
 	await Promise.all(
 		scene.skeletons.map(async (skeleton) => {
@@ -330,7 +415,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 				data.uniqueId = mesh.morphTargetManager.uniqueId;
 
 				await Promise.all(
-					data.targets.map(async (target, targetIndex) => {
+					data.targets.map(async (target: any, targetIndex: number) => {
 						const effectiveTarget = mesh.morphTargetManager!.getTarget(targetIndex);
 						if (effectiveTarget) {
 							target.uniqueId = effectiveTarget.uniqueId;

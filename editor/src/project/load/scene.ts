@@ -287,7 +287,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 
 	await loadTransformNodes(editor, nodesFiles, scene, pluginLoadOptions);
 	await loadSkeletons(editor, skeletonFiles, scene, pluginLoadOptions);
-	await loadMeshes(meshesFiles, scene, pluginLoadOptions);
+	await loadMeshes(editor, meshesFiles, scene, pluginLoadOptions);
 	await loadMorphTargetManagers(editor, morphTargetManagerFiles, scene, pluginLoadOptions);
 	await loadLights(editor, lightsFiles, scene, pluginLoadOptions);
 	await loadCameras(editor, cameraFiles, scene, pluginLoadOptions);
@@ -333,13 +333,13 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 
 	// Scene animations
 	scene.animations ??= [];
-	config.animations?.forEach((data: any) => {
+	config.animations?.forEach((data) => {
 		scene.animations.push(Animation.Parse(data));
 	});
 
 	// Scene animation groups
 	// TODO: legacy
-	config.animationGroups?.forEach((data: any) => {
+	config.animationGroups?.forEach((data) => {
 		const group = AnimationGroup.Parse(data, scene);
 		if (group.targetedAnimations.length === 0) {
 			group.dispose();
@@ -416,7 +416,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 
 	// Configure clustered lights
 	if (config.clusteredLight) {
-		config.clusteredLight.lights.forEach((lightId: any) => {
+		config.clusteredLight.lights.forEach((lightId) => {
 			const light = scene.getLightById(lightId);
 			if (light) {
 				editor.layout.preview.clusteredLightContainer.addLight(light);
@@ -443,7 +443,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 		// For each camera
 		const postProcessConfigurations = Array.isArray(config.rendering) ? config.rendering : [];
 
-		postProcessConfigurations.forEach((configuration: any) => {
+		postProcessConfigurations.forEach((configuration) => {
 			const camera = scene.getCameraById(configuration.cameraId);
 			if (!camera) {
 				return;

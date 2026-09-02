@@ -34,7 +34,7 @@ export class PolyHavenProvider extends MarketplaceProvider {
 		for (const id in data) {
 			if (Object.prototype.hasOwnProperty.call(data, id)) {
 				const assetData = data[id];
-				if (!query || assetData.name.toLowerCase().includes(lowerQuery) || (assetData.tags && assetData.tags.some((t) => t.toLowerCase().includes(lowerQuery)))) {
+				if (!query || assetData.name.toLowerCase().includes(lowerQuery) || (assetData.tags && assetData.tags.some((tag) => tag.toLowerCase().includes(lowerQuery)))) {
 					assets.push({
 						id,
 						name: assetData.name,

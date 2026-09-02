@@ -156,7 +156,7 @@ export class EditorTerminal extends Component<IEditorTerminalProps, IEditorTermi
 		requestAnimationFrame(() => this._fit());
 
 		const cwd = this._projectPath ? dirname(this._projectPath) : undefined;
-		this._pty = await execNodePty("", { interactive: true, cwd } as any);
+		this._pty = await execNodePty("", { interactive: true, cwd });
 
 		this._pty.onGetDataObservable.add((data) => {
 			this._terminal?.write(data);
@@ -204,7 +204,7 @@ export class EditorTerminal extends Component<IEditorTerminalProps, IEditorTermi
 
 		// Create new PTY with updated project path
 		const cwd = this._projectPath ? dirname(this._projectPath) : undefined;
-		this._pty = await execNodePty("", { interactive: true, cwd } as any);
+		this._pty = await execNodePty("", { interactive: true, cwd });
 
 		// Reconnect event handlers
 		this._pty.onGetDataObservable.add((data) => {

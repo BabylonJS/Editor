@@ -25,6 +25,8 @@ import { LandingRendererComponent } from "./renderer";
 import "./landing.css";
 
 export default function HomePage() {
+	const videoRef = useRef<HTMLVideoElement>(null);
+
 	const section1Ref = useRef<HTMLDivElement>(null);
 	const section2Ref = useRef<HTMLDivElement>(null);
 	const section3Ref = useRef<HTMLDivElement>(null);
@@ -128,11 +130,42 @@ export default function HomePage() {
 								</div>
 							</div>
 
-							<div className="w-full h-full object-contain">
-								<img alt="" src="/screenshots/large.webp" className="max-h-[65dvh] object-contain z-50 mx-auto hidden sm:hidden md:hidden lg:hidden xl:block" />
-								<img alt="" src="/screenshots/medium.webp" className="max-h-[75dvh] object-contain z-50 mx-auto hidden sm:hidden md:hidden lg:block xl:hidden" />
-								<img alt="" src="/screenshots/small.webp" className="max-h-[75dvh] object-contain z-50 mx-auto lg:hidden" />
-							</div>
+							{mobile && (
+								<div className="w-full h-full object-contain">
+									<img alt="" src="/screenshots/large.webp" className="max-h-[65dvh] object-contain z-50 mx-auto hidden sm:hidden md:hidden lg:hidden xl:block" />
+									<img
+										alt=""
+										src="/screenshots/medium.webp"
+										className="max-h-[75dvh] object-contain z-50 mx-auto hidden sm:hidden md:hidden lg:block xl:hidden"
+									/>
+									<img alt="" src="/screenshots/small.webp" className="max-h-[75dvh] object-contain z-50 mx-auto lg:hidden" />
+								</div>
+							)}
+
+							{!mobile && (
+								<Fade
+									triggerOnce
+									duration={1000}
+									className="w-full h-full object-contain drop-shadow-[0_0px_10px_rgba(0,0,0,1)]"
+									onVisibilityChange={(visible) => {
+										videoRef.current!.style.filter = `blur(${visible ? "0px" : "8px"}) brightness(1.05) contrast(1.1)`;
+									}}
+								>
+									<video
+										loop
+										muted
+										autoPlay
+										ref={videoRef}
+										className="object-contain z-50 mx-auto [image-rendering:pixelated] transition-all duration-3000 ease-in-out"
+										style={{
+											filter: "blur(8px)",
+											clipPath: "rect(34px 93.2% 95.2% 88px round 10px)",
+										}}
+									>
+										<source src="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/landing.mp4" type="video/mp4" />
+									</video>
+								</Fade>
+							)}
 						</Fade>
 					</div>
 				</div>
@@ -140,6 +173,7 @@ export default function HomePage() {
 				{/* Page 2 */}
 				<div className="min-h-screen" ref={section2Ref}>
 					<Experiment
+						direction="up"
 						mobile={mobile}
 						mobileAvailable={false}
 						title={
@@ -176,11 +210,11 @@ export default function HomePage() {
 						className={`flex flex-col lg:flex-row w-full py-10 lg:py-24 ${featuresVisible ? "bg-neutral-950" : "transparent"} z-0 px-5 transition-all duration-3000 ease-in-out`}
 					>
 						<div className="flex flex-col lg:flex-row max-w-7xl mx-auto">
-							<Fade triggerOnce className="hidden lg:block w-full">
+							<Fade className="hidden lg:block w-full" cascade damping={0.1} triggerOnce direction="right">
 								<IoSpeedometer size={128} className="mx-auto" />
 							</Fade>
 
-							<Fade triggerOnce className="w-full">
+							<Fade className="w-full" cascade damping={0.1} triggerOnce direction="right">
 								<div className="flex flex-col justify-center gap-2">
 									<div className="flex justify-between items-center text-3xl drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
 										Built-in Templates
@@ -216,7 +250,7 @@ export default function HomePage() {
 
 					<div className={`flex flex-col lg:flex-row w-full max-w-7xl mx-auto pt-10 py-10 lg:py-24 px-5`}>
 						<div className="flex justify-center items-center max-w-7xl mx-auto">
-							<Fade triggerOnce className="w-full">
+							<Fade className="w-full" cascade damping={0.1} triggerOnce direction="up">
 								<div className="flex flex-col justify-center gap-2">
 									<div className="flex justify-between items-center text-3xl drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
 										Open-Source
@@ -237,7 +271,7 @@ export default function HomePage() {
 								</div>
 							</Fade>
 
-							<Fade triggerOnce className="hidden lg:block w-full">
+							<Fade className="hidden lg:block w-full" cascade damping={0.1} triggerOnce direction="up">
 								<IoLogoGithub size={128} className="mx-auto" />
 							</Fade>
 						</div>
@@ -247,7 +281,7 @@ export default function HomePage() {
 						className={`flex flex-col lg:flex-row w-full py-10 lg:py-24 ${featuresVisible ? "bg-neutral-950" : "transparent"} z-0 px-5 transition-all duration-3000 ease-in-out`}
 					>
 						<div className="flex flex-col lg:flex-row max-w-7xl mx-auto">
-							<Fade triggerOnce className="w-full">
+							<Fade className="w-full" cascade damping={0.1} triggerOnce direction="left">
 								<div className="hidden lg:block relative w-44 h-44 mx-auto">
 									<div className="absolute top-1/2 left-1/2 -translate-x-[calc(50%+32px)] -translate-y-[calc(50%+42px)] scale-[2] lg:scale-[5]">
 										<WindowsIcon color="#fff" />
@@ -261,7 +295,7 @@ export default function HomePage() {
 								</div>
 							</Fade>
 
-							<Fade triggerOnce className="w-full">
+							<Fade className="w-full" cascade damping={0.1} triggerOnce direction="left">
 								<div className="flex flex-col justify-center gap-2">
 									<div className="flex justify-between items-center text-3xl drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
 										Cross-Platform
@@ -287,7 +321,7 @@ export default function HomePage() {
 
 					<div className={`flex flex-col lg:flex-row w-full max-w-7xl mx-auto py-10 lg:py-24 px-5`}>
 						<div className="flex justify-center items-center max-w-7xl mx-auto">
-							<Fade triggerOnce className="w-full">
+							<Fade className="w-full" cascade damping={0.1} triggerOnce direction="down">
 								<div className="flex flex-col justify-center gap-2">
 									<div className="flex justify-between items-center text-3xl drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
 										Integrated Tools
@@ -304,7 +338,7 @@ export default function HomePage() {
 								</div>
 							</Fade>
 
-							<Fade triggerOnce className="hidden lg:block w-full">
+							<Fade className="hidden lg:block w-full" cascade damping={0.1} triggerOnce direction="down">
 								<FaToolbox size={128} className="mx-auto" />
 							</Fade>
 						</div>
@@ -316,6 +350,7 @@ export default function HomePage() {
 							<CarouselContent>
 								<CarouselItem className="basis-full">
 									<Experiment
+										direction="right"
 										mobile={mobile}
 										mobileAvailable={true}
 										title="Hunter Experiment"
@@ -340,6 +375,7 @@ export default function HomePage() {
 								</CarouselItem>
 								<CarouselItem className="basis-full">
 									<Experiment
+										direction="right"
 										mobile={mobile}
 										mobileAvailable={false}
 										title="Mansion Experiment"
@@ -379,7 +415,7 @@ export default function HomePage() {
 
 					{/* Page 4 */}
 					<div className="relative flex flex-col w-screen min-h-screen bg-black">
-						<Fade triggerOnce className="flex justify-center items-center w-full p-10 lg:pt-20 lg:pb-0">
+						<Fade cascade damping={0.1} triggerOnce direction="up" className="flex justify-center items-center w-full p-10 lg:pt-20 lg:pb-0">
 							<div className="flex flex-col gap-10">
 								<div className="text-5xl md:text-7xl lg:text-8xl xl:text-9xl font-semibold font-sans drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)] tracking-tighter text-center px-5">
 									Documentation
@@ -401,7 +437,7 @@ export default function HomePage() {
 							</div>
 						</Fade>
 
-						<Fade triggerOnce className="flex justify-center items-center w-full max-w-[75vw] mx-auto bg-black">
+						<Fade cascade damping={0.1} triggerOnce direction="up" className="flex justify-center items-center w-full max-w-[75vw] mx-auto bg-black">
 							<video className="w-full h-full object-contain scale-[1.35] pt-2 lg:scale-100 lg:pt-0" autoPlay muted playsInline loop>
 								<source src="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/bjs_speedesign.mp4" type="video/mp4" />
 							</video>
@@ -435,7 +471,7 @@ export default function HomePage() {
 					</div>
 
 					<div className="flex flex-col justify-center items-center gap-4">
-						<Fade>
+						<Fade damping={0.1} triggerOnce direction="up">
 							<Link href="/download">
 								<button className="flex items-center gap-2 text-black bg-neutral-50 rounded-full px-5 py-2">
 									<IoArrowDownCircleSharp className="w-6 h-6 opacity-75" />

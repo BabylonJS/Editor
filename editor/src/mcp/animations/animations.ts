@@ -180,7 +180,7 @@ export function createAnimation(scene: Scene, data: any, options: IMCPActionOpti
 	const animation = new Animation(data.name, data.targetProperty, framesPerSecond, dataType, loopMode);
 
 	animation.setKeys(
-		(data.keys ?? []).map((key: any) => ({
+		(data.keys ?? []).map((key) => ({
 			frame: key.frame,
 			value: coerceKeyValue(key.value, currentValue, dataType),
 		}))

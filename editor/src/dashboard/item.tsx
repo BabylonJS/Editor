@@ -135,6 +135,7 @@ export function DashboardProjectItem(props: IDashboardProjectItemProps) {
 	}
 
 	function handleLoadProject() {
+		ipcRenderer.send("editor:project-hook", "Project opened");
 		ipcRenderer.send("dashboard:open-project", props.project.absolutePath, props.closeDashboardOnProjectOpen);
 	}
 

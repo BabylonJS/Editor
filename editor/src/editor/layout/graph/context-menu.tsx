@@ -104,10 +104,15 @@ export class EditorGraphContextMenu extends Component<IEditorGraphContextMenuPro
 											<ContextMenuItem onClick={() => this.props.editor.layout.graph.copySelectedNodes()}>
 												Copy <ContextMenuShortcut>{platform() === "darwin" ? "⌘+C" : "CTRL+C"}</ContextMenuShortcut>
 											</ContextMenuItem>
+											<ContextMenuItem onClick={() => this.props.editor.layout.graph.cutSelectedNodes()}>
+												Cut <ContextMenuShortcut>{platform() === "darwin" ? "⌘+X" : "CTRL+X"}</ContextMenuShortcut>
+											</ContextMenuItem>
 
 											{isNode(this.props.object) && (
 												<ContextMenuItem
-													disabled={this.props.editor.layout.graph._objectsToCopy.length === 0}
+													disabled={
+														this.props.editor.layout.graph._objectsToCopy.length === 0 && this.props.editor.layout.graph._objectsToCut.length === 0
+													}
 													onClick={(ev) => this.props.editor.layout.graph.pasteSelectedNodes(this.props.object, ev.shiftKey)}
 												>
 													Paste <ContextMenuShortcut>{platform() === "darwin" ? "⌘+V" : "CTRL+V"}</ContextMenuShortcut>

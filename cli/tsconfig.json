@@ -2,9 +2,9 @@
 	"compilerOptions": {
 		"target": "ESNext",
 		"module": "ESNext",
-		"moduleResolution": "node",
 		"sourceMap": true,
 		"declaration": true,
+		"rootDir": ".",
 		"outDir": "./build",
 		"declarationDir": "./declaration",
 		"strictNullChecks": true,
@@ -13,9 +13,9 @@
 		"allowSyntheticDefaultImports": true,
 		"resolveJsonModule": true,
 		"esModuleInterop": true,
-		"downlevelIteration": true,
 		"experimentalDecorators": true,
-		"skipLibCheck": true
+		"skipLibCheck": true,
+		"noImplicitAny": false
 	},
 	"exclude": ["node_modules", "build", "declaration", "vitest.config.ts"]
 }

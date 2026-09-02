@@ -97,7 +97,7 @@ export async function saveMergedDecals(editor: Editor, options: ISavedMergedDeca
 				return mesh;
 			} catch (e) {
 				editor.layout.console.error(`Failed to merge decals "${array[0].name}":`);
-				editor.layout.console.error(e.message);
+				editor.layout.console.error((e as Error).message);
 			}
 
 			return null;

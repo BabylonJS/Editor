@@ -7,7 +7,7 @@ import { AiOutlineMinus, AiOutlinePlus } from "react-icons/ai";
 
 import { Reorder } from "framer-motion";
 
-import { Observer, Node, Tools } from "babylonjs";
+import { Observer, Node, Tools, Sprite } from "babylonjs";
 import { ISpriteMapTile } from "babylonjs-editor-tools";
 
 import { Button } from "../../../../ui/shadcn/ui/button";
@@ -80,7 +80,7 @@ export class EditorSpriteMapNodeInspector extends Component<IEditorInspectorImpl
 		);
 	}
 
-	private _gizmoObserver: Observer<Node> | null = null;
+	private _gizmoObserver: Observer<Node | Sprite> | null = null;
 
 	public async componentDidMount(): Promise<void> {
 		this._gizmoObserver = onGizmoNodeChangedObservable.add((node) => {

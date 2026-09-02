@@ -164,8 +164,8 @@ export class SketchfabProvider extends MarketplaceProvider {
 
 		const data = response.data;
 		const offset = pageToken ? Number.parseInt(pageToken, 10) || 0 : 0;
-		const assets: IMarketplaceAsset[] = data.results.map((result: any) => {
-			const maxThumbnail = result.thumbnails.images.reduce((max: any, img: any) => (img.width > max.width ? img : max), {
+		const assets: IMarketplaceAsset[] = data.results.map((result) => {
+			const maxThumbnail = result.thumbnails.images.reduce((max, img) => (img.width > max.width ? img : max), {
 				width: 0,
 			});
 
@@ -176,7 +176,7 @@ export class SketchfabProvider extends MarketplaceProvider {
 				description: result.description,
 				author: result.user.displayName,
 				license: result.license?.label || "Unknown",
-				tags: result.tags?.map((t: any) => t.name) || [],
+				tags: result.tags?.map((t) => t.name) || [],
 				marketplaceUrl: result.viewerUrl,
 				marketplaceActionLabel: result.isDownloadable === false ? "View / Buy" : "Open In Marketplace",
 				isDownloadable: result.isDownloadable,
@@ -201,7 +201,7 @@ export class SketchfabProvider extends MarketplaceProvider {
 			description: result.description,
 			author: result.user.displayName,
 			license: result.license?.label || "Unknown",
-			tags: result.tags?.map((t: any) => t.name) || [],
+			tags: result.tags?.map((t) => t.name) || [],
 			marketplaceUrl: result.viewerUrl,
 			marketplaceActionLabel: result.isDownloadable === false ? "View / Buy" : "Open In Marketplace",
 			isDownloadable: result.isDownloadable,
@@ -238,7 +238,7 @@ export class SketchfabProvider extends MarketplaceProvider {
 					};
 				}
 			} catch (e) {
-				console.warn(`Failed to fetch download links for Sketchfab asset ${id}: ${e.message}`);
+				console.warn(`Failed to fetch download links for Sketchfab asset ${id}: ${(e as Error).message}`);
 			}
 		}
 

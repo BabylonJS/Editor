@@ -10,7 +10,7 @@ export function configureParticleSystems(data: any, scene: Scene) {
 		return;
 	}
 
-	data.particleSystems = data.particleSystems.filter((ps: any) => {
+	data.particleSystems = data.particleSystems.filter((ps) => {
 		const existing = scene.getParticleSystemById(ps.id);
 		if (existing?.isNodeGenerated) {
 			return false;

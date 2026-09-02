@@ -28,7 +28,7 @@ export async function loadSpriteMaps(editor: Editor, spriteMapFiles: string[], s
 
 				return node;
 			} catch (e) {
-				editor.layout.console.error(`Failed to load sprite map file "${file}": ${e.message}`);
+				editor.layout.console.error(`Failed to load sprite map file "${file}": ${(e as Error).message}`);
 			}
 
 			options.progress.step(options.progressStep);

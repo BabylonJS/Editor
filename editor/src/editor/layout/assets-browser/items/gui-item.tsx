@@ -8,7 +8,7 @@ import { CgIfDesign } from "react-icons/cg";
 import { AssetsBrowserItem } from "./item";
 
 export class AssetBrowserGUIItem extends AssetsBrowserItem {
-	private _base64Value: string | null;
+	private _base64Value: string | null = null;
 
 	public async componentDidMount(): Promise<void> {
 		try {

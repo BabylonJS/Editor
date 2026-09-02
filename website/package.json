@@ -43,8 +43,8 @@
 		"autoprefixer": "^10.0.1",
 		"eslint": "9.29.0",
 		"eslint-config-next": "16.2.6",
-		"postcss": "^8",
+		"postcss": "8.5.26",
 		"tailwindcss": "3.4.4",
-		"typescript": "5.9.3"
+		"typescript": "6.0.3"
 	}
 }

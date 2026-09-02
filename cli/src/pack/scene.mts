@@ -88,6 +88,36 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 	const meshesResult = await Promise.all(
 		options.directories.meshesFiles.map(async (file) => {
 			const data = await fs.readJSON(join(options.sceneFile, "meshes", file));
+
+			if (data.type === "GaussianSplattingMesh") {
+				data.splatDataPath = join(options.sceneName, basename(data.splatDataPath));
+
+				data.shDataPaths?.forEach((shDataPath: string, index: number) => {
+					data.shDataPaths[index] = join(options.sceneName, basename(shDataPath));
+				});
+
+				const splatDataDestination = join(options.publicDir, data.splatDataPath);
+				const shDataDestinations = data.shDataPaths?.map((shDataPath: string) => join(options.publicDir, shDataPath));
+
+				const promises = [fs.copyFile(join(options.sceneFile, "splats", basename(data.splatDataPath)), splatDataDestination)];
+				shDataDestinations?.forEach((shDataDestination: string, index: number) => {
+					promises.push(fs.copyFile(join(options.sceneFile, "splats", basename(data.shDataPaths[index])), shDataDestination));
+				});
+
+				await Promise.all(promises);
+
+				options.exportedAssets.push(splatDataDestination);
+				shDataDestinations?.forEach((shDataDestination: string) => {
+					options.exportedAssets.push(shDataDestination);
+				});
+
+				return {
+					mesh: data,
+					lodMeshes: [],
+					effectiveMaterials: [],
+				};
+			}
+
 			const mesh = data.meshes[0];
 
 			if (mesh.metadata?.doNotSerialize) {
@@ -650,10 +680,15 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 		reflectionProbes: [],
 	} as any;
 
-	// Resolve parenting for mesh instances.
+	// Remove debug-only scripts for scene
+	if (scene.metadata?.scripts?.length) {
+		scene.metadata.scripts = scene.metadata.scripts.filter((script) => !script.debugOnly);
+	}
+
 	const allNodes = [...scene.meshes, ...scene.cameras, ...scene.lights, ...scene.transformNodes, ...scene.meshes.map((m) => m.instances ?? []).flat()];
 
 	allNodes.forEach((node) => {
+		// Resolve parenting for mesh instances.
 		if (node.parentId !== undefined && node.parentInstanceIndex !== undefined) {
 			const effectiveMesh = scene.meshes.find((mesh) => {
 				return mesh.instances?.find((instance) => instance.uniqueId === node.parentId);
@@ -662,6 +697,11 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 			if (effectiveMesh) {
 				node.parentId = effectiveMesh.uniqueId;
 			}
+		}
+
+		// Remove debug-only scripts
+		if (node.metadata?.scripts?.length) {
+			node.metadata.scripts = node.metadata.scripts.filter((script) => !script.debugOnly);
 		}
 	});
 

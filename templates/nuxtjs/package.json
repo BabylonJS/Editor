@@ -24,6 +24,6 @@
 		"@types/node": "^22",
 		"babylonjs-editor-cli": "latest",
 		"raw-loader": "^4.0.2",
-		"typescript": "5.9.3"
+		"typescript": "7.0.2"
 	}
 }

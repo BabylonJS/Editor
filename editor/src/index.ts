@@ -19,6 +19,7 @@ import "./electron/events/shell";
 import "./electron/events/dialog";
 import "./electron/events/editor";
 import "./electron/events/window";
+import "./electron/events/hook";
 import "./electron/assimp/assimpjs";
 import "./electron/events/export";
 import "./electron/protocol";
@@ -63,15 +64,17 @@ app.addListener("ready", async () => {
 	autoUpdater.checkForUpdatesAndNotify();
 
 	try {
-		fetch("https://editor.babylonjs.com/api/hooks/launch", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				content: `${platform()} ${arch()}`,
-			}),
-		});
+		if (app.isPackaged) {
+			fetch("https://editor.babylonjs.com/api/hooks/launch", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					content: `${platform()} ${arch()}`,
+				}),
+			});
+		}
 	} catch (error) {
 		// Catch silently, as this is not critical for the app to function.
 	}

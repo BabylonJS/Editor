@@ -9,7 +9,7 @@ import { serializePhysicsAggregate } from "../../tools/physics/serialization/agg
  * @param scene defines the scene that contains the source meshes.
  */
 export function configureMeshesPhysics(data: any, scene: Scene) {
-	data.meshes?.forEach((m: any) => {
+	data.meshes?.forEach((m) => {
 		if (!m) {
 			return;
 		}

@@ -92,6 +92,8 @@ export function DashboardCreateProjectDialog(props: IDashboardCreateProjectDialo
 		await pack(destination, {
 			optimize: false,
 		});
+
+		ipcRenderer.send("editor:project-hook", `${template} project created - ${packageManager} package manager`);
 	}
 
 	async function handleCreateProject() {
@@ -115,7 +117,7 @@ export function DashboardCreateProjectDialog(props: IDashboardCreateProjectDialo
 				ipcRenderer.send("dashboard:open-project", projectAbsolutePath, props.closeDashboardOnProjectOpen);
 			}
 		} catch (e) {
-			showAlert("An unexpected error occured", e.message);
+			showAlert("An unexpected error occured", (e as Error).message);
 		}
 
 		setCreating(false);

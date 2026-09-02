@@ -16,7 +16,7 @@ import { ISceneDecoratorData } from "./apply";
  * 	@visibleAsAsset("gui", "GUI")
  * 	private _ui!: AdvancedDynamicTexture;
  */
-export function guiFromAsset<T>(pathInAssets: string, onGuiCreated?: (instance: T, gui: AdvancedDynamicTexture) => unknown) {
+export function guiFromAsset(pathInAssets: string, onGuiCreated?: (instance: unknown, gui: AdvancedDynamicTexture) => unknown) {
 	return function (target: any, propertyKey: string | Symbol) {
 		const ctor = target.constructor as ISceneDecoratorData;
 

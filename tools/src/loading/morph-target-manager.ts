@@ -13,7 +13,7 @@ export function registerMorphTargetManagerParser() {
 	registered = true;
 
 	AddParser("MorphTargetManagerEditorPlugin", (parsedData: any, scene: Scene, container: AssetContainer, rootUrl: string) => {
-		parsedData.morphTargetManagers.forEach((morphTargetManagerData: any) => {
+		parsedData.morphTargetManagers.forEach((morphTargetManagerData) => {
 			const meshInstance = container.meshes.find((mesh) => {
 				return mesh.id === morphTargetManagerData.meshId;
 			});

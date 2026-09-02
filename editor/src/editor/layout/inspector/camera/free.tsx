@@ -2,7 +2,7 @@ import { Component, ReactNode } from "react";
 
 import { Divider } from "@blueprintjs/core";
 
-import { FreeCamera, Node, Observer } from "babylonjs";
+import { FreeCamera, Node, Observer, Sprite } from "babylonjs";
 
 import { isFreeCamera } from "../../../../tools/guards/nodes";
 import { onNodeModifiedObservable } from "../../../../tools/observables";
@@ -87,7 +87,7 @@ export class EditorFreeCameraInspector extends Component<IEditorInspectorImpleme
 		);
 	}
 
-	private _gizmoObserver: Observer<Node> | null = null;
+	private _gizmoObserver: Observer<Node | Sprite> | null = null;
 
 	public componentDidMount(): void {
 		this._gizmoObserver = onGizmoNodeChangedObservable.add((node) => {

@@ -37,6 +37,7 @@ import {
 	ClusteredLightContainer,
 	Tools,
 	_GetAudioEngine,
+	GaussianSplattingCompoundMesh,
 } from "babylonjs";
 
 import { SpinnerUIComponent } from "../../ui/spinner";
@@ -61,12 +62,13 @@ import { initializeRecast } from "../../tools/recast/init";
 import { isAnyParticleSystem } from "../../tools/guards/particles";
 import { saveSceneScreenshot } from "../../tools/scene/screenshot";
 import { onTextureAddedObservable } from "../../tools/observables";
+import { isTriangleFacingCamera } from "../../tools/maths/triangle";
 import { getCameraFocusPositionFor } from "../../tools/camera/focus";
 import { ITweenConfiguration, Tween } from "../../tools/animation/tween";
-import { checkProjectCachedCompressedTextures, initializeKtx2Decoder } from "../../tools/assets/ktx";
 import { createSceneLink, getRootSceneLink } from "../../tools/scene/scene-link";
 import { UniqueNumber, waitNextAnimationFrame, waitUntil } from "../../tools/tools";
 import { isSprite, isSpriteManagerNode, isSpriteMapNode } from "../../tools/guards/sprites";
+import { checkProjectCachedCompressedTextures, initializeKtx2Decoder } from "../../tools/assets/ktx";
 import { defaultGizmoSnapPreferences, IGizmoSnapPreferences, roundGizmoSnapSteps } from "../../tools/scene/gizmo";
 import { isAbstractMesh, isAnyTransformNode, isCamera, isCollisionInstancedMesh, isCollisionMesh, isLight, isNode } from "../../tools/guards/nodes";
 
@@ -190,6 +192,11 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	 * Defines the reference to the clustered lighting container.
 	 */
 	public clusteredLightContainer!: ClusteredLightContainer;
+
+	/**
+	 * Defines the reference to the gaussian splatting compound mesh used to support z ordering of gaussian splatting meshes in the scene.
+	 */
+	public gaussianSplattingCompoundMesh: GaussianSplattingCompoundMesh | null = null;
 
 	private _renderScene: boolean = true;
 	private _mouseDownPosition: Vector2 = Vector2.Zero();
@@ -588,6 +595,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 					}
 					console.error(e);
 					this.play.stop();
+					toast.error("Error while playing the scene. Check the console for more information.");
 				}
 			}
 		});
@@ -793,7 +801,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
 	private _getPickingInfo(x: number, y: number): PickingInfo {
 		const decalPick = this.scene.pick(x, y, (m) => this._pickingDecalMeshPredicate(m), false);
-		const meshPick = this.scene.pick(x, y, (m) => this._pickingMeshPredicate(m), false);
+		const meshPick = this.scene.pick(x, y, (m) => this._pickingMeshPredicate(m), false, null, isTriangleFacingCamera);
 		const spritePick = this.scene.pickSprite(x, y, (s) => isSprite(s), false);
 
 		this._lastPickedDecal = null;
@@ -861,13 +869,9 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		return (
 			<div className="absolute top-0 left-0 w-full h-12 z-10">
 				<div className="flex justify-between items-center gap-4 h-full bg-background/95 w-full px-2 py-1">
-					{
-						this.play?.state.playing && <div /> // For justify between
-					}
-
 					{!this.play?.state.playing && this._getEditToolbar()}
 
-					<div className="flex gap-2 items-center h-10">
+					<div className={`flex gap-2 items-center h-10 ${this.play?.state.playing ? "w-full" : ""}`}>
 						<EditorPreviewPlayComponent
 							ref={(r) => (this.play = r!)}
 							editor={this.props.editor}
@@ -893,7 +897,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 			<div className="flex flex-wrap gap-2 items-center h-10">
 				<TooltipProvider>
 					<Select value={this.scene?.activeCamera?.id} onOpenChange={(o) => o && this.forceUpdate()} onValueChange={(v) => this._switchToCameraById(v)}>
-						<SelectTrigger className="w-36 border-none bg-muted/50">
+						<SelectTrigger className="w-36 h-9 border-none bg-muted/50">
 							<SelectValue placeholder="Select Value..." />
 						</SelectTrigger>
 						<SelectContent>
@@ -982,7 +986,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 							this.forceUpdate();
 						}}
 					>
-						<SelectTrigger className="w-32 border-none bg-muted/50">
+						<SelectTrigger className="w-32 h-9 border-none bg-muted/50">
 							<SelectValue placeholder="Select Value..." />
 						</SelectTrigger>
 						<SelectContent>
@@ -1224,7 +1228,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		}
 
 		this.setState({ informationMessage: `Importing scene "${basename(absolutePath)}"...` });
-		const result = await loadImportedSceneFile(this.scene, absolutePath);
+		const result = await loadImportedSceneFile(this.scene, absolutePath, this.props.editor);
 		this.setState({ informationMessage: "" });
 
 		return result;
@@ -1347,7 +1351,10 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 				case ".obj":
 				case ".3ds":
 				case ".ms3d":
-				case ".blend":
+				case ".ply":
+				case ".sog":
+				case ".spz":
+				case ".splat":
 				case ".babylon":
 					this.importSceneFile(absolutePath, ev.shiftKey).then((result) => {
 						if (pick.pickedPoint) {

@@ -1,4 +1,4 @@
-import { Scene, AbstractMesh, Vector3, Quaternion } from "babylonjs";
+import { Scene, AbstractMesh, Vector3, Quaternion, Mesh, InstancedMesh, Tools, Geometry } from "babylonjs";
 
 import { isInstancedMesh, isMesh } from "../../../tools/guards/nodes";
 import { setNodeSerializable, setNodeVisibleInGraph } from "../../../tools/node/metadata";
@@ -7,17 +7,58 @@ import { INavMeshObstacleConfiguration, INavMeshStaticMeshConfiguration } from "
 
 export function getStaticMeshes(scene: Scene, configurations: INavMeshStaticMeshConfiguration[]) {
 	const clonedMeshes: AbstractMesh[] = [];
+	const clonedGeometries: Geometry[] = [];
+
+	const computedGeometries: Geometry[] = [];
 
 	const staticMeshes = configurations
 		.filter((config) => config.enabled)
 		.map((config) => {
-			const mesh = scene.getNodeById(config.id);
-			if (!mesh || isMesh(mesh)) {
-				return mesh;
+			const mesh = scene.getNodeById(config.id) as Mesh | InstancedMesh | null;
+			if (!mesh) {
+				return null;
 			}
 
+			mesh.computeWorldMatrix(true);
+
+			let clone: Mesh | null = null;
+			let effectiveMesh: Mesh | null = null;
+
 			if (isInstancedMesh(mesh)) {
-				const clone = mesh.sourceMesh.clone("mergedClone", null, true, false);
+				clone = mesh.sourceMesh.clone("mergedClone", null, true, false);
+				effectiveMesh = clone;
+			} else {
+				effectiveMesh = mesh;
+			}
+
+			if (mesh.getWorldMatrix().determinant() < 0) {
+				const oldClone = clone;
+				clone = effectiveMesh.clone("mergedClone", null, true, false);
+				oldClone?.dispose(true, false);
+
+				if (clone.geometry && !computedGeometries.includes(clone.geometry!)) {
+					const clonedGeometry = clone.geometry.copy(Tools.RandomId());
+					clonedGeometry.applyToMesh(clone);
+
+					if (clonedGeometry) {
+						const indices = clonedGeometry.getIndices()?.slice();
+						if (indices) {
+							for (let i = 0; i < indices.length; i += 3) {
+								const tmp = indices[i + 1];
+								indices[i + 1] = indices[i + 2];
+								indices[i + 2] = tmp;
+							}
+
+							clonedGeometry.setIndices(indices);
+							computedGeometries.push(clone.geometry);
+						}
+
+						clonedGeometries.push(clonedGeometry);
+					}
+				}
+			}
+
+			if (clone) {
 				clone.metadata = null;
 				clone.position.copyFrom(mesh.position);
 				clone.rotation.copyFrom(mesh.rotation);
@@ -33,17 +74,16 @@ export function getStaticMeshes(scene: Scene, configurations: INavMeshStaticMesh
 				setNodeVisibleInGraph(clone, false);
 
 				clonedMeshes.push(clone);
-
-				return clone;
 			}
 
-			return null;
+			return clone ?? effectiveMesh;
 		});
 
 	const effectiveStaticMeshes = staticMeshes.filter((mesh) => mesh !== null);
 
 	return {
 		clonedMeshes,
+		clonedGeometries,
 		effectiveStaticMeshes,
 	};
 }

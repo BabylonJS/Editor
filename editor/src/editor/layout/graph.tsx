@@ -1,17 +1,17 @@
 import { extname } from "path/posix";
 
 import { Component, DragEvent, ReactNode } from "react";
-import { Button, Tree, TreeNodeInfo } from "@blueprintjs/core";
+import { Button as BPButton, Tree, TreeNodeInfo } from "@blueprintjs/core";
 
 import { FaLink } from "react-icons/fa6";
 import { IoMdCube } from "react-icons/io";
 import { AiOutlinePlus } from "react-icons/ai";
 import { HiSpeakerWave } from "react-icons/hi2";
 import { SiBabylondotjs } from "react-icons/si";
-import { MdOutlineQuestionMark } from "react-icons/md";
 import { GiBrickWall, GiSparkles } from "react-icons/gi";
 import { HiOutlineCubeTransparent } from "react-icons/hi";
 import { IoCheckmark, IoPlay, IoSparklesSharp } from "react-icons/io5";
+import { MdOutlineQuestionMark, MdOutlineRefresh } from "react-icons/md";
 import { TbGhost2Filled, TbServerSpark, TbBrandAdobeIndesign } from "react-icons/tb";
 import { FaCamera, FaImage, FaLightbulb, FaBone, FaRegLightbulb } from "react-icons/fa";
 
@@ -21,6 +21,7 @@ import { BaseTexture, Node, Scene, Tools, IParticleSystem, Sprite, Skeleton, Tra
 import { Editor } from "../main";
 
 import { Badge } from "../../ui/shadcn/ui/badge";
+import { Button } from "../../ui/shadcn/ui/button";
 import { SpinnerUIComponent } from "../../ui/spinner";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "../../ui/shadcn/ui/dropdown-menu";
 import {
@@ -48,7 +49,12 @@ import { updateIblShadowsRenderPipeline } from "../../tools/light/ibl";
 import { getSpriteManagerNodeFromSprite } from "../../tools/sprite/tools";
 import { isParticleSystemVisibleInGraph } from "../../tools/particles/metadata";
 import { unique, UniqueNumber, waitNextAnimationFrame } from "../../tools/tools";
-import { applyTransformNodeParentingConfiguration } from "../../tools/node/parenting";
+import {
+	applyNodeParentingConfiguration,
+	applyTransformNodeParentingConfiguration,
+	getNodeParentingConfiguration,
+	IOldNodeHierarchyConfiguration,
+} from "../../tools/node/parenting";
 import { isSprite, isSpriteManagerNode, isSpriteMapNode } from "../../tools/guards/sprites";
 import { parsePhysicsAggregate, serializePhysicsAggregate } from "../../tools/physics/serialization/aggregate";
 import { isAnyParticleSystem, isGPUParticleSystem, isNodeParticleSystemSetMesh, isParticleSystem } from "../../tools/guards/particles";
@@ -60,6 +66,7 @@ import {
 	isCollisionInstancedMesh,
 	isCollisionMesh,
 	isEditorCamera,
+	isGaussianSplattingPartProxyMesh,
 	isInstancedMesh,
 	isLight,
 	isMesh,
@@ -90,6 +97,7 @@ import { applySoundAsset } from "./preview/import/sound";
 import { EditorGraphLabel } from "./graph/label";
 import { EditorGraphContextMenu } from "./graph/context-menu";
 import { setNewParentForGraphSelectedNodes } from "./graph/move";
+import { addGaussianSplattingMeshPartProxyMesh } from "../../tools/mesh/gaussian-splatting";
 
 export interface IEditorGraphProps {
 	/**
@@ -121,6 +129,10 @@ export interface IEditorGraphState {
 	 * Defines wether or not only decals should be shown in the graph.
 	 */
 	showOnlyDecals: boolean;
+	/**
+	 * Defines whether or not only nodes with scripts attached should be shown in the graph.
+	 */
+	showOnlyScriptAttached: boolean;
 
 	/**
 	 * Defines wether or not instanced meshes should be hidden from the graph.
@@ -135,10 +147,17 @@ export interface IEditorGraphState {
 	 * Defines the reference to the play scene if the player is running, null otherwise.
 	 */
 	playScene: Scene | null;
+	/**
+	 * Defines wether or not the graph should automatically refresh when the play scene is running. This is useful to see changes in the graph when the play scene is running.
+	 * But in case of performance issues, this can be disabled to improve performance in-game.
+	 */
+	autoRefreshPlayScene: boolean;
 }
 
 export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState> {
 	public _nodeToCopyTransform: Node | null = null;
+
+	public _objectsToCut: TreeNodeInfo<unknown>[] = [];
 	public _objectsToCopy: TreeNodeInfo<unknown>[] = [];
 
 	private _playRefreshIntervalId: number | null = null;
@@ -153,11 +172,13 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 
 			showOnlyLights: false,
 			showOnlyDecals: false,
+			showOnlyScriptAttached: false,
 
 			hideInstancedMeshes: false,
 
 			playScene: null,
 			isLoading: false,
+			autoRefreshPlayScene: true,
 		};
 
 		onNodesAddedObservable.add(() => this.refresh());
@@ -169,6 +190,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		onSkeletonModifiedObservable.add((skeleton) => this._handleObjectModified(skeleton));
 		onParticleSystemModifiedObservable.add((particleSystem) => this._handleObjectModified(particleSystem));
 
+		document.addEventListener("cut", () => !isDomTextInputFocused() && this.cutSelectedNodes());
 		document.addEventListener("copy", () => !isDomTextInputFocused() && this.copySelectedNodes());
 		document.addEventListener("paste", () => !isDomTextInputFocused() && this.pasteSelectedNodes());
 	}
@@ -176,18 +198,28 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 	public render(): ReactNode {
 		return (
 			<div
-				className="flex flex-col w-full h-full text-foreground"
 				onClick={() => this.setState({ isFocused: true })}
 				onMouseLeave={() => this.setState({ isFocused: false })}
+				className="flex flex-col w-full h-full text-foreground overflow-hidden"
 			>
 				{this.state.playScene && (
-					<div className="px-2 pt-2 w-full">
+					<div className="flex px-2 pt-2 w-full">
 						<Badge variant="secondary" className="flex justify-between items-center gap-2 w-full">
 							<div className="flex items-center gap-2">
 								<IoPlay className="w-6 h-6" />
 								Runtime scene. Changes are not saved.
 							</div>
-							<div className="w-4 h-4 p-2 rounded-full bg-red-500 animate-pulse" />
+
+							<div className="flex items-center gap-1">
+								{!this.state.autoRefreshPlayScene && (
+									<Button variant="ghost" size="icon" className="p-0.5" onClick={() => this.refresh()}>
+										<MdOutlineRefresh className="w-5 h-5" />
+									</Button>
+								)}
+								<Button variant="ghost" size="icon" className="p-0.5" onClick={() => this.setState({ autoRefreshPlayScene: !this.state.autoRefreshPlayScene })}>
+									<div className={`w-4 h-4 p-2 rounded-full ${this.state.autoRefreshPlayScene ? "bg-red-500 animate-pulse" : "bg-gray-500"}`} />
+								</Button>
+							</div>
 						</Badge>
 					</div>
 				)}
@@ -203,114 +235,116 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
-							<Button minimal icon="settings" className="transition-all duration-300" />
+							<BPButton minimal icon="settings" className="transition-all duration-300" />
 						</DropdownMenuTrigger>
 						<DropdownMenuContent>
 							<DropdownMenuItem
 								className="flex gap-1 items-center"
-								onClick={() => {
-									this.setState({ hideInstancedMeshes: !this.state.hideInstancedMeshes }, () => this.refresh());
-								}}
+								onClick={() => this.setState({ hideInstancedMeshes: !this.state.hideInstancedMeshes }, () => this.refresh())}
 							>
 								{this.state.hideInstancedMeshes ? <IoCheckmark /> : ""} Hide Instanced Meshes
 							</DropdownMenuItem>
 							<DropdownMenuSeparator />
 							<DropdownMenuItem
 								className="flex gap-1 items-center"
-								onClick={() => {
-									this.setState({ showOnlyLights: !this.state.showOnlyLights }, () => this.refresh());
-								}}
+								onClick={() => this.setState({ showOnlyLights: !this.state.showOnlyLights }, () => this.refresh())}
 							>
 								{this.state.showOnlyLights ? <IoCheckmark /> : ""} Show Only Lights
 							</DropdownMenuItem>
 							<DropdownMenuItem
 								className="flex gap-1 items-center"
-								onClick={() => {
-									this.setState({ showOnlyDecals: !this.state.showOnlyDecals }, () => this.refresh());
-								}}
+								onClick={() => this.setState({ showOnlyDecals: !this.state.showOnlyDecals }, () => this.refresh())}
 							>
 								{this.state.showOnlyDecals ? <IoCheckmark /> : ""} Show Only Decals
+							</DropdownMenuItem>
+							<DropdownMenuItem
+								className="flex gap-1 items-center"
+								onClick={() => this.setState({ showOnlyScriptAttached: !this.state.showOnlyScriptAttached }, () => this.refresh())}
+							>
+								{this.state.showOnlyScriptAttached ? <IoCheckmark /> : ""} Show Only Script Attached
 							</DropdownMenuItem>
 						</DropdownMenuContent>
 					</DropdownMenu>
 				</div>
 
-				<Tree
-					contents={this.state.nodes}
-					onNodeExpand={(n) => this._handleNodeExpanded(n)}
-					onNodeCollapse={(n) => this._handleNodeCollapsed(n)}
-					onNodeClick={(n, _, ev) => this._handleNodeClicked(n, ev)}
-					onNodeContextMenu={(n, _, ev) => this._handleNodeContextMenu(n, ev)}
-					onNodeDoubleClick={(n, _, ev) => this._handleNodeDoubleClicked(n, ev)}
-				/>
+				<div className="flex flex-col w-full h-full overflow-y-auto">
+					<Tree
+						contents={this.state.nodes}
+						onNodeExpand={(n) => this._handleNodeExpanded(n)}
+						onNodeCollapse={(n) => this._handleNodeCollapsed(n)}
+						onNodeClick={(n, _, ev) => this._handleNodeClicked(n, ev)}
+						onNodeContextMenu={(n, _, ev) => this._handleNodeContextMenu(n, ev)}
+						onNodeDoubleClick={(n, _, ev) => this._handleNodeDoubleClicked(n, ev)}
+					/>
 
-				<div className="w-full h-full min-h-20" onDragOver={(ev) => ev.preventDefault()} onDrop={(ev) => this._handleDropEmpty(ev)}>
-					<ContextMenu>
-						<ContextMenuTrigger className="w-full h-full">
-							<div className="w-full h-full"></div>
-						</ContextMenuTrigger>
-						<ContextMenuContent>
-							<ContextMenuSub>
-								<ContextMenuSubTrigger className="flex items-center gap-2">
-									<AiOutlinePlus className="w-5 h-5" /> Add
-								</ContextMenuSubTrigger>
-								<ContextMenuSubContent>
-									{getLightCommands(this.props.editor).map((command) => {
-										return (
-											<ContextMenuItem key={command.key} disabled={command.disabled} onClick={command.action}>
-												{command.text}
-											</ContextMenuItem>
-										);
-									})}
-									<ContextMenuSeparator />
-									{getNodeCommands(this.props.editor).map((command) => {
-										return (
-											<ContextMenuItem key={command.key} disabled={command.disabled} onClick={command.action}>
-												{command.text}
-											</ContextMenuItem>
-										);
-									})}
-									<ContextMenuSeparator />
-									<ContextMenuSub>
-										<ContextMenuSubTrigger className="flex items-center gap-2">
-											<IoMdCube className="w-5 h-5" /> Meshes
-										</ContextMenuSubTrigger>
-										<ContextMenuSubContent>
-											{getMeshCommands(this.props.editor).map((command) => {
-												return (
-													<ContextMenuItem key={command.key} disabled={command.disabled} onClick={command.action}>
-														{command.text}
-													</ContextMenuItem>
-												);
-											})}
-										</ContextMenuSubContent>
-									</ContextMenuSub>
-									<ContextMenuSeparator />
-									{getCameraCommands(this.props.editor).map((command) => {
-										return (
-											<ContextMenuItem key={command.key} disabled={command.disabled} onClick={command.action}>
-												{command.text}
-											</ContextMenuItem>
-										);
-									})}
-									<ContextMenuSeparator />
-									<ContextMenuItem onClick={() => addSoundNode(this.props.editor)}>Sound Node</ContextMenuItem>
-									<ContextMenuSeparator />
-									{getSpriteCommands(this.props.editor).map((command) => {
-										return (
-											<ContextMenuItem key={command.key} disabled={command.disabled} onClick={command.action}>
-												{command.text}
-											</ContextMenuItem>
-										);
-									})}
-								</ContextMenuSubContent>
-							</ContextMenuSub>
-						</ContextMenuContent>
-					</ContextMenu>
+					<div className="flex flex-1 w-full h-20 min-h-20" onDragOver={(ev) => ev.preventDefault()} onDrop={(ev) => this._handleDropEmpty(ev)}>
+						<ContextMenu>
+							<ContextMenuTrigger className="w-full h-full">
+								<div className="w-full h-full"></div>
+							</ContextMenuTrigger>
+							<ContextMenuContent>
+								<ContextMenuSub>
+									<ContextMenuSubTrigger className="flex items-center gap-2">
+										<AiOutlinePlus className="w-5 h-5" /> Add
+									</ContextMenuSubTrigger>
+									<ContextMenuSubContent>
+										{getLightCommands(this.props.editor).map((command) => {
+											return (
+												<ContextMenuItem key={command.key} disabled={command.disabled} onClick={command.action}>
+													{command.text}
+												</ContextMenuItem>
+											);
+										})}
+										<ContextMenuSeparator />
+										{getNodeCommands(this.props.editor).map((command) => {
+											return (
+												<ContextMenuItem key={command.key} disabled={command.disabled} onClick={command.action}>
+													{command.text}
+												</ContextMenuItem>
+											);
+										})}
+										<ContextMenuSeparator />
+										<ContextMenuSub>
+											<ContextMenuSubTrigger className="flex items-center gap-2">
+												<IoMdCube className="w-5 h-5" /> Meshes
+											</ContextMenuSubTrigger>
+											<ContextMenuSubContent>
+												{getMeshCommands(this.props.editor).map((command) => {
+													return (
+														<ContextMenuItem key={command.key} disabled={command.disabled} onClick={command.action}>
+															{command.text}
+														</ContextMenuItem>
+													);
+												})}
+											</ContextMenuSubContent>
+										</ContextMenuSub>
+										<ContextMenuSeparator />
+										{getCameraCommands(this.props.editor).map((command) => {
+											return (
+												<ContextMenuItem key={command.key} disabled={command.disabled} onClick={command.action}>
+													{command.text}
+												</ContextMenuItem>
+											);
+										})}
+										<ContextMenuSeparator />
+										<ContextMenuItem onClick={() => addSoundNode(this.props.editor)}>Sound Node</ContextMenuItem>
+										<ContextMenuSeparator />
+										{getSpriteCommands(this.props.editor).map((command) => {
+											return (
+												<ContextMenuItem key={command.key} disabled={command.disabled} onClick={command.action}>
+													{command.text}
+												</ContextMenuItem>
+											);
+										})}
+									</ContextMenuSubContent>
+								</ContextMenuSub>
+							</ContextMenuContent>
+						</ContextMenu>
+					</div>
 				</div>
 
 				{this.state.isLoading && (
-					<div className="absolute top-0 left-0 flex justify-center items-center w-full h-full bg-black/50">
+					<div className="absolute top-1/2 left-0 transform -translate-y-1/2 flex justify-center items-center w-full h-full bg-black/50">
 						<SpinnerUIComponent />
 					</div>
 				)}
@@ -354,7 +388,9 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 				this.state.nodes[0]!.isSelected = true;
 
 				this._playRefreshIntervalId = window.setInterval(() => {
-					this.refresh();
+					if (this.state.autoRefreshPlayScene) {
+						this.refresh();
+					}
 				}, 1000);
 			} else {
 				this._forEachNode(this.state.nodes, (n) => {
@@ -365,10 +401,15 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 					}
 				});
 
-				const last = this._lastSelectedNodes[this._lastSelectedNodes.length - 1];
-				if (last?.nodeData) {
+				if (this._lastInspectorNode) {
 					this.props.editor.layout.inspector.setEditedObject(this._lastInspectorNode);
+				}
+
+				if (this._lastAnimationsNode) {
 					this.props.editor.layout.animations.setEditedObject(this._lastAnimationsNode);
+				}
+
+				if (this._lastGizmoNode) {
 					this.props.editor.layout.preview.gizmo.setAttachedObject(this._lastGizmoNode);
 				}
 
@@ -390,13 +431,18 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 
 		let nodes: (TreeNodeInfo | null)[] = [];
 
-		if (this.state.showOnlyLights || this.state.showOnlyDecals) {
+		if (this.state.showOnlyLights || this.state.showOnlyDecals || this.state.showOnlyScriptAttached) {
 			if (this.state.showOnlyLights) {
 				nodes.push(...scene.lights.concat(clusteredLightContainer.lights).map((light) => this._parseSceneNode(light, true)));
 			}
 
 			if (this.state.showOnlyDecals) {
 				nodes.push(...scene.meshes.filter((mesh) => mesh.metadata?.decal).map((mesh) => this._parseSceneNode(mesh, true)));
+			}
+
+			if (this.state.showOnlyScriptAttached) {
+				const allNodes = [...scene.transformNodes, ...scene.meshes, ...scene.lights, ...scene.cameras];
+				nodes.push(...allNodes.filter((node) => node.metadata?.scripts?.length).map((node) => this._parseSceneNode(node, true)));
 			}
 		} else {
 			nodes = scene.rootNodes.filter((n) => !isEditorCamera(n)).map((n) => this._parseSceneNode(n));
@@ -511,7 +557,14 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 	 * Copies the selected nodes from the graph.
 	 */
 	public copySelectedNodes(): void {
+		this._objectsToCut = [];
 		this._objectsToCopy = this.props.editor.layout.graph.getSelectedNodes();
+		this.refresh();
+	}
+
+	public cutSelectedNodes(): void {
+		this._objectsToCopy = [];
+		this._objectsToCut = this.props.editor.layout.graph.getSelectedNodes();
 		this.refresh();
 	}
 
@@ -519,12 +572,60 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 	 * Pastes the previously copied nodes.
 	 */
 	public pasteSelectedNodes(parent?: Node, shift?: boolean): void {
-		if (!this._objectsToCopy.length) {
+		if (!this._objectsToCopy.length && !this._objectsToCut.length) {
 			return;
 		}
 
+		if (this._objectsToCut.length) {
+			this._pasteCutSelectedNodes(parent, shift);
+		} else if (this._objectsToCopy.length) {
+			this._pasteCopiedSelectedNodes(parent, shift);
+		}
+	}
+
+	private _pasteCutSelectedNodes(newParent?: Node, shift?: boolean): void {
+		const nodesToPaste = this._objectsToCut.filter((n) => n.nodeData && isNode(n.nodeData)).map((n) => n.nodeData) as Node[];
+		if (!nodesToPaste.length) {
+			return;
+		}
+
+		const oldHierarchy = new Map<Node, IOldNodeHierarchyConfiguration>();
+		nodesToPaste.forEach((node) => oldHierarchy.set(node, getNodeParentingConfiguration(node)));
+
+		registerUndoRedo({
+			executeRedo: true,
+			action: () => this.refresh(),
+			undo: () => {
+				nodesToPaste.forEach((node) => {
+					applyNodeParentingConfiguration(node, oldHierarchy.get(node)!);
+				});
+			},
+			redo: () => {
+				const tempTransfromNode = new TransformNode("tempParent", this.props.editor.layout.preview.scene);
+
+				try {
+					nodesToPaste.forEach((node) => {
+						if (shift) {
+							applyTransformNodeParentingConfiguration(node, newParent ?? null, tempTransfromNode);
+						} else {
+							node.parent = newParent ?? null;
+						}
+					});
+				} catch (e) {
+					console.error(e);
+				}
+
+				tempTransfromNode.dispose(false, true);
+			},
+		});
+	}
+
+	private _pasteCopiedSelectedNodes(parent?: Node, shift?: boolean): void {
 		const newNodes: (Node | IParticleSystem | Sprite)[] = [];
 		const nodesToCopy = this._objectsToCopy.map((n) => n.nodeData);
+		if (!nodesToCopy.length) {
+			return;
+		}
 
 		registerUndoRedo({
 			executeRedo: true,
@@ -555,10 +656,10 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 				const tempTransfromNode = new TransformNode("tempParent", this.props.editor.layout.preview.scene);
 
 				try {
-					nodesToCopy.forEach((object) => {
+					nodesToCopy.forEach(async (object) => {
 						let node: Node | IParticleSystem | Sprite | null = null;
 
-						if (isAbstractMesh(object) && !isNodeParticleSystemSetMesh(object)) {
+						if (isAbstractMesh(object) && !isNodeParticleSystemSetMesh(object) && !isGaussianSplattingPartProxyMesh(object)) {
 							const suffix = "(Instanced Mesh)";
 							const name = isInstancedMesh(object) ? object.name : `${object.name.replace(` ${suffix}`, "")} ${suffix}`;
 
@@ -582,6 +683,21 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 							const name = `${object.name.replace(` ${suffix}`, "")} ${suffix}`;
 
 							node = object.clone(name, parent, false);
+						} else if (isGaussianSplattingPartProxyMesh(object) && object.baseGaussianSplattingMesh) {
+							const proxyMesh = addGaussianSplattingMeshPartProxyMesh(object.baseGaussianSplattingMesh, this.props.editor);
+							if (proxyMesh) {
+								node = proxyMesh;
+
+								const suffix = "(Proxy Mesh)";
+								const name = `${object.name.replace(` ${suffix}`, "")} ${suffix}`;
+
+								proxyMesh.name = name;
+								proxyMesh.position.copyFrom(object.position);
+								proxyMesh.rotation.copyFrom(object.rotation);
+								proxyMesh.scaling.copyFrom(object.scaling);
+								proxyMesh.rotationQuaternion = object.rotationQuaternion?.clone() ?? null;
+								proxyMesh.parent = object.parent;
+							}
 						} else if (isNode(object) || isSprite(object)) {
 							node = cloneNode(this.props.editor, object);
 						}
@@ -595,14 +711,13 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 
 							if (parent && isNode(node)) {
 								if (shift && isNode(object)) {
-									node.parent = object.parent;
 									applyTransformNodeParentingConfiguration(node, parent, tempTransfromNode);
 								} else {
 									node.parent = parent;
 								}
 							}
 
-							if (isAbstractMesh(node)) {
+							if (isAbstractMesh(node) && !isGaussianSplattingPartProxyMesh(node)) {
 								this.props.editor.layout.preview.scene.lights
 									.map((light) => light.getShadowGenerator())
 									.forEach((generator) => generator?.getShadowMap()?.renderList?.push(node));
@@ -630,17 +745,17 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			return;
 		}
 
-		const sourcePosition = (this._nodeToCopyTransform as any)["position"];
-		const sourceRotation = (this._nodeToCopyTransform as any)["rotation"];
-		const sourceScaling = (this._nodeToCopyTransform as any)["scaling"];
-		const sourceRotationQuaternion = (this._nodeToCopyTransform as any)["rotationQuaternion"];
-		const sourceDirection = (this._nodeToCopyTransform as any)["direction"];
+		const sourcePosition = this._nodeToCopyTransform["position"];
+		const sourceRotation = this._nodeToCopyTransform["rotation"];
+		const sourceScaling = this._nodeToCopyTransform["scaling"];
+		const sourceRotationQuaternion = this._nodeToCopyTransform["rotationQuaternion"];
+		const sourceDirection = this._nodeToCopyTransform["direction"];
 
-		const targetPosition = (node as any)["position"];
-		const targetRotation = (node as any)["rotation"];
-		const targetScaling = (node as any)["scaling"];
-		const targetRotationQuaternion = (node as any)["rotationQuaternion"];
-		const targetDirection = (node as any)["direction"];
+		const targetPosition = node["position"];
+		const targetRotation = node["rotation"];
+		const targetScaling = node["scaling"];
+		const targetRotationQuaternion = node["rotationQuaternion"];
+		const targetDirection = node["direction"];
 
 		const savedTargetPosition = targetPosition?.clone();
 		const savedTargetRotation = targetRotation?.clone();
@@ -665,7 +780,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 
 				if (targetRotationQuaternion) {
 					if (!savedTargetRotationQuaternion) {
-						(node as any)["rotationQuaternion"] = null;
+						node["rotationQuaternion"] = null;
 					} else {
 						targetRotationQuaternion.copyFrom(savedTargetRotationQuaternion);
 					}
@@ -692,7 +807,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 					if (targetRotationQuaternion) {
 						targetRotationQuaternion.copyFrom(sourceRotationQuaternion);
 					} else {
-						(node as any)["rotationQuaternion"] = sourceRotationQuaternion.clone();
+						node["rotationQuaternion"] = sourceRotationQuaternion.clone();
 					}
 				}
 
@@ -975,6 +1090,10 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 		}
 
 		if (isClusteredLightContainer(node) && (this.state.showOnlyLights || this.state.showOnlyDecals)) {
+			return null;
+		}
+
+		if (node.reservedDataStore?.hidden) {
 			return null;
 		}
 

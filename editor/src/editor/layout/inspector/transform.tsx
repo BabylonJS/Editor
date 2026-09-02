@@ -1,6 +1,6 @@
 import { Component, ReactNode } from "react";
 
-import { AbstractMesh, Node, Observer, TransformNode } from "babylonjs";
+import { AbstractMesh, Node, Observer, TransformNode, Sprite } from "babylonjs";
 
 import { isTransformNode } from "../../../tools/guards/nodes";
 import { isSceneLinkNode } from "../../../tools/guards/scene";
@@ -72,7 +72,7 @@ export class EditorTransformNodeInspector extends Component<IEditorInspectorImpl
 		);
 	}
 
-	private _gizmoObserver: Observer<Node> | null = null;
+	private _gizmoObserver: Observer<Node | Sprite> | null = null;
 
 	public componentDidMount(): void {
 		this._gizmoObserver = onGizmoNodeChangedObservable.add((node) => {

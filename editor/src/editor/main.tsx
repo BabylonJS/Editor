@@ -7,6 +7,7 @@ import { createRoot } from "react-dom/client";
 
 import { HotkeysTarget2 } from "@blueprintjs/core";
 
+import { isDarwin } from "../tools/os";
 import { waitUntil } from "../tools/tools";
 import { isDomTextInputFocused } from "../tools/dom";
 import { onRedoObservable, onUndoObservable, redo, undo } from "../tools/undoredo";
@@ -151,11 +152,11 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 	/**
 	 * The layout of the editor.
 	 */
-	public layout: EditorLayout;
+	public layout!: EditorLayout;
 	/**
 	 * The command palette of the editor.
 	 */
-	public commandPalette: CommandPalette;
+	public commandPalette!: CommandPalette;
 
 	/**
 	 * Defines the path to the editor application.
@@ -235,7 +236,7 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 
 	public async componentDidMount(): Promise<void> {
 		ipcRenderer.on("save", () => saveProject(this));
-		ipcRenderer.on("generate", () => exportProject(this, { optimize: false }));
+		ipcRenderer.on("generate", () => exportProject(this, { optimize: false, debugMode: false }));
 
 		ipcRenderer.on("editor:edit-project", () => this.setState({ editProject: true }));
 		ipcRenderer.on("editor:edit-preferences", () => this.setState({ editPreferences: true }));
@@ -249,10 +250,6 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 		ipcRenderer.on("editor:path", (_, path) => (this.path = path.replace(/\\/g, sep)));
 
 		ipcRenderer.on("editor:run-project", () => startProjectDevProcess(this));
-
-		// Undo-redo
-		ipcRenderer.on("undo", () => undo());
-		ipcRenderer.on("redo", () => redo());
 
 		onUndoObservable.add(() => {
 			this.layout.graph.refresh();
@@ -285,6 +282,29 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 
 		// Initialize the MCP server to allow communication between the editor and AI agents
 		// initializeMcpServer(this);
+
+		// Undo/redo
+		if (isDarwin()) {
+			ipcRenderer.on("undo", () => undo());
+			ipcRenderer.on("redo", () => redo());
+		} else {
+			document.addEventListener("keydown", (ev) => {
+				const key = ev.key.toLowerCase();
+
+				if (!isDomTextInputFocused()) {
+					const isUndo = ev.ctrlKey && key === "z";
+					const isRedo = ev.ctrlKey && key === "y";
+
+					if (isUndo) {
+						undo();
+						ev.preventDefault();
+					} else if (isRedo) {
+						redo();
+						ev.preventDefault();
+					}
+				}
+			});
+		}
 	}
 
 	/**

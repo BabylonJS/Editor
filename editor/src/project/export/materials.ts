@@ -12,7 +12,7 @@ export function configureMaterials(data: any) {
 		return;
 	}
 
-	data.materials = data.materials.filter((material: any) => {
+	data.materials = data.materials.filter((material) => {
 		if (material.customType === "BABYLON.ShaderMaterial") {
 			return false;
 		}

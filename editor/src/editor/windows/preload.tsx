@@ -14,7 +14,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
 	const div = document.getElementById("babylonjs-editor-main-div")!;
 
-	ipcRenderer.once("editor:window-launch-data", (_, indexPath, options) => {
+	ipcRenderer.once("editor:window-launch-data", (_: any, indexPath: string, options: any) => {
 		const result = require(indexPath) as any;
 
 		const root = createRoot(div);

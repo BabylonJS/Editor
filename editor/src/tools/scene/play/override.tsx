@@ -3,7 +3,7 @@ import { join, dirname } from "path/posix";
 
 import { Engine, WebRequest, Observable, Observer, ExitPointerlock, ExitFullscreen, SerializationHelper } from "babylonjs";
 
-import { getCurrentCallStack } from "../../tools";
+import { getCurrentCallStack, isValidUrl } from "../../tools";
 
 import { Editor } from "../../../editor/main";
 
@@ -29,6 +29,7 @@ const savedWebRequestMethods: Record<string, any> = {
 };
 
 const savedEngineMethods: Record<string, any> = {
+	activeRenderLoops: [],
 	createTexture: Engine.prototype.createTexture,
 	createCubeTexture: Engine.prototype.createCubeTexture,
 	createRawCubeTextureFromUrl: Engine.prototype.createRawCubeTextureFromUrl,
@@ -107,9 +108,15 @@ export function restorePlayOverrides(editor: Editor) {
 
 	WebRequest.prototype.open = savedWebRequestMethods.open;
 
+	editor.layout.preview.engine.stopRenderLoop();
+	savedEngineMethods.activeRenderLoops.forEach((loop) => {
+		editor.layout.preview.engine.runRenderLoop(loop);
+	});
+
 	Engine.prototype.createTexture = savedEngineMethods.createTexture;
 	Engine.prototype.createCubeTexture = savedEngineMethods.createCubeTexture;
 	Engine.prototype.createRawCubeTextureFromUrl = savedEngineMethods.createRawCubeTextureFromUrl;
+
 	SerializationHelper._TextureParser = savedTextureMethods.textureParser;
 
 	Observable.prototype.add = savedObservableMethods.add;
@@ -181,6 +188,10 @@ export function applyOverrides(editor: Editor) {
 
 	// Fetch
 	window.fetch = async (input: string | URL | Request, init?: RequestInit) => {
+		if (isValidUrl(input.toString())) {
+			return savedWindowMethods.fetch.call(window, input, init);
+		}
+
 		if (!isAbsolute(input.toString())) {
 			input = normalizeUrl(input.toString());
 			input = join(publicDir, input.toString());
@@ -206,10 +217,12 @@ export function applyOverrides(editor: Editor) {
 		return id;
 	}) as any;
 
-	window.clearTimeout = (id: number) => {
-		const index = savedTimeoutIds.indexOf(id);
-		if (index !== -1) {
-			savedTimeoutIds.splice(index, 1);
+	window.clearTimeout = (id) => {
+		if (typeof id === "number") {
+			const index = savedTimeoutIds.indexOf(id);
+			if (index !== -1) {
+				savedTimeoutIds.splice(index, 1);
+			}
 		}
 
 		return savedWindowMethods.clearTimeout.call(window, id);
@@ -221,10 +234,12 @@ export function applyOverrides(editor: Editor) {
 		return id;
 	};
 
-	window.clearInterval = (id: number) => {
-		const index = savedIntervalIds.indexOf(id);
-		if (index !== -1) {
-			savedIntervalIds.splice(index, 1);
+	window.clearInterval = (id) => {
+		if (typeof id === "number") {
+			const index = savedIntervalIds.indexOf(id);
+			if (index !== -1) {
+				savedIntervalIds.splice(index, 1);
+			}
 		}
 
 		return savedWindowMethods.clearInterval.call(window, id);
@@ -273,6 +288,8 @@ export function applyOverrides(editor: Editor) {
 	};
 
 	// Engine
+	savedEngineMethods.activeRenderLoops = editor.layout.preview.engine.activeRenderLoops.slice();
+
 	Engine.prototype.createRawCubeTextureFromUrl = (url: string, ...args: any[]) => {
 		if (url && url.includes(publicScene)) {
 			url = url.replace(publicScene, projectDir);

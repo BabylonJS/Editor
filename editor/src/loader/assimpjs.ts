@@ -20,9 +20,9 @@ export class AssimpJSLoader implements ISceneLoaderPluginAsync {
 		".x": {
 			isBinary: true,
 		},
-		// ".fbx": {
-		// 	isBinary: true,
-		// },
+		".fbx": {
+			isBinary: true,
+		},
 		".3ds": {
 			isBinary: true,
 		},
@@ -190,7 +190,7 @@ export class AssimpJSLoader implements ISceneLoaderPluginAsync {
 			const wasmPath = join(this.appPath, nodeModules, "assimpjs/dist");
 
 			this._assimpjs = await assimpjs({
-				locateFile: (file) => {
+				locateFile: (file: string) => {
 					return join(wasmPath, file);
 				},
 			});

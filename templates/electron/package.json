@@ -4,7 +4,7 @@
 	"description": "",
 	"type": "module",
 	"private": true,
-	"main": "dist/main.mjs",
+	"main": "dist/src/electron/main.mjs",
 	"scripts": {
 		"dev": "DEV=1 concurrently \"vite\" \"tsc-watch -p tsconfig-electron.json --onSuccess \\\"electron .\\\"\"",
 		"build": "vite build && tsc -p tsconfig-electron.json",
@@ -25,11 +25,11 @@
 		"@types/node": "^22",
 		"babylonjs-editor-cli": "latest",
 		"concurrently": "9.2.0",
-		"electron": "39.8.5",
+		"electron": "42.8.0",
 		"electron-builder": "26.0.12",
 		"tailwindcss": "4.1.18",
 		"tsc-watch": "7.2.0",
-		"typescript": "5.9.3",
+		"typescript": "6.0.3",
 		"vite": "7.3.5"
 	}
 }

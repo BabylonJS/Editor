@@ -52,8 +52,8 @@ export function EditorInspectorDimensionsField(props: IEditorInspectorDimensions
 					property={`${props.property}.width`}
 					noUndoRedo={props.noUndoRedo}
 					step={props.step}
-					min={props.min?.[0] ?? props.min}
-					max={props.max?.[0] ?? props.max}
+					min={(props.min as number[])?.[0] ?? props.min}
+					max={(props.max as number[])?.[0] ?? props.max}
 					onChange={() => props.onChange?.()}
 					onFinishChange={() => props.onFinishChange?.()}
 				/>
@@ -63,8 +63,8 @@ export function EditorInspectorDimensionsField(props: IEditorInspectorDimensions
 					property={`${props.property}.height`}
 					noUndoRedo={props.noUndoRedo}
 					step={props.step}
-					min={props.min?.[1] ?? props.min}
-					max={props.max?.[1] ?? props.max}
+					min={(props.min as number[])?.[1] ?? props.min}
+					max={(props.max as number[])?.[1] ?? props.max}
 					onChange={() => props.onChange?.()}
 					onFinishChange={() => props.onFinishChange?.()}
 				/>

@@ -81,18 +81,18 @@ export function applyTextureToObject(editor: Editor, object: any, texture: Textu
 		return;
 	}
 
-	function TextureSlotComponent({ property }) {
+	function TextureSlotComponent(props: { property: string }) {
 		return (
 			<Button
 				variant="ghost"
 				className="w-full"
 				onClick={() => {
 					registerSimpleUndoRedo({
-						property,
+						property: props.property,
 						object: material,
 						newValue: texture,
 						executeRedo: true,
-						oldValue: material![property],
+						oldValue: material![props.property],
 						onLost: () => texture.dispose(),
 					});
 
@@ -101,7 +101,7 @@ export function applyTextureToObject(editor: Editor, object: any, texture: Textu
 					editor.layout.inspector.forceUpdate();
 				}}
 			>
-				{property}
+				{props.property}
 			</Button>
 		);
 	}

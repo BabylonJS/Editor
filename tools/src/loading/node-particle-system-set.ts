@@ -16,7 +16,7 @@ export function registerNodeParticleSystemSetParser() {
 	registered = true;
 
 	AddParser("NodeParticleSystemSetEditorPlugin", (parsedData: any, scene: Scene, container: AssetContainer, rootUrl: string) => {
-		parsedData.meshes?.forEach((mesh: any) => {
+		parsedData.meshes?.forEach((mesh) => {
 			if (!mesh.isNodeParticleSystemMesh) {
 				return;
 			}
@@ -26,7 +26,7 @@ export function registerNodeParticleSystemSetParser() {
 				return;
 			}
 
-			mesh.nodeParticleSystemSet.blocks?.forEach((block: any) => {
+			mesh.nodeParticleSystemSet.blocks?.forEach((block) => {
 				if (block.url) {
 					block.url = `${rootUrl}${block.url}`;
 				}

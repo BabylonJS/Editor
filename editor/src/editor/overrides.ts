@@ -5,7 +5,7 @@ import childProcess from "child_process";
 const originalLoad = Module["_load"];
 const resolveFilename = Module["_resolveFilename"];
 
-const originalSpawn = childProcess.spawn;
+const originalSpawn = childProcess.spawn as any;
 
 Module["_load"] = function (request: string, parent: typeof Module, isMain: boolean) {
 	if (request.startsWith("babylonjs-editor-tools")) {
