@@ -57,9 +57,9 @@ export function CodeBlock({ code, language = "typescript", filename, className =
 		};
 	}, [code, language]);
 
-	async function handleCopyCode() {
+	async function handleCopyCode(codeSnippet: string) {
 		try {
-			await navigator.clipboard.writeText(code);
+			await navigator.clipboard.writeText(codeSnippet);
 			setCopied(true);
 			toast.success("Code copied to clipboard!");
 			if (copyTimeout.current) {
@@ -83,7 +83,8 @@ export function CodeBlock({ code, language = "typescript", filename, className =
 				</div>
 
 				<button
-					onClick={handleCopyCode}
+					type="button"
+					onClick={() => handleCopyCode(code)}
 					aria-label="Copy code"
 					className="flex items-center gap-1.5 px-2 py-1 rounded-md text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors"
 				>
