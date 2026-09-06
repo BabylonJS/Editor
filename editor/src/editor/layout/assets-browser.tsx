@@ -515,6 +515,12 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 		const scripts = nodes.map((node) => node.metadata?.scripts ?? []).flat();
 
 		scripts.forEach((script) => {
+			if (oldRelativePath.startsWith("src/") && newRelativePath.startsWith("src/")) {
+				if (script.key === oldRelativePath.replace("src/", "")) {
+					script.key = newRelativePath.replace("src/", "");
+				}
+			}
+
 			for (const v in script.values) {
 				if (!script.values.hasOwnProperty(v)) {
 					continue;
