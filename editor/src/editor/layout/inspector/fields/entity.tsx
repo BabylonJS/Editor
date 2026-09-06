@@ -59,6 +59,9 @@ export function EditorInspectorSceneEntityField<T extends Node | IParticleSystem
 	}
 
 	function handleDrop(ev: DragEvent<HTMLDivElement>) {
+		ev.preventDefault();
+		ev.stopPropagation();
+
 		setDragOver(false);
 
 		const data = JSON.parse(ev.dataTransfer.getData("graph/node")) as string[];
