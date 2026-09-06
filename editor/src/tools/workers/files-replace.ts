@@ -9,9 +9,16 @@ addEventListener("message", async (event) => {
 			try {
 				let data = await readFile(file, "utf-8");
 
-				for (const [originalRelativePath, cache] of entries) {
-					const regex = new RegExp(originalRelativePath, "g");
+				for (const [oldRelativePath, cache] of entries) {
+					// Full relative path
+					const regex = new RegExp(oldRelativePath, "g");
 					data = data.replace(regex, cache.newRelativePath);
+
+					// Special case for scripts where "src" is not part of the path
+					if (oldRelativePath.startsWith("src/") && cache.newRelativePath.startsWith("src/")) {
+						const srcRegex = new RegExp(oldRelativePath.replace("src/", ""), "g");
+						data = data.replace(srcRegex, cache.newRelativePath.replace("src/", ""));
+					}
 				}
 
 				await writeFile(file, data, "utf-8");
