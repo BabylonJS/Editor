@@ -331,6 +331,8 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 			return;
 		}
 
+		const hardwareScalingLevel = this.engine?.getHardwareScalingLevel();
+
 		this.axis?.stop();
 		this.icons?.stop();
 
@@ -361,7 +363,11 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
 		this._previewCamera = null;
 
-		return this._onGotCanvasRef(this.canvas);
+		await this._onGotCanvasRef(this.canvas);
+
+		if ((hardwareScalingLevel ?? null) !== null) {
+			this.engine?.setHardwareScalingLevel(hardwareScalingLevel);
+		}
 	}
 
 	/**
