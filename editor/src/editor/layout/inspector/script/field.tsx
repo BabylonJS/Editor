@@ -1,9 +1,9 @@
 import { clipboard } from "electron";
 import { FSWatcher } from "chokidar";
-import { join, dirname } from "path/posix";
+import { join, dirname, extname } from "path/posix";
 import { pathExists, stat } from "fs-extra";
 
-import { useEffect, useState } from "react";
+import { DragEvent, useEffect, useState } from "react";
 
 import { FaCopy } from "react-icons/fa";
 import { VscDebug } from "react-icons/vsc";
@@ -73,6 +73,8 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 		srcAbsolutePath = join(dirname(projectConfiguration.path), "src", props.script.key);
 	}
 
+	const [dragOver, setDragOver] = useState(false);
+
 	const [exists, setExists] = useState<boolean | null>(null);
 
 	const [enabled, setEnabled] = useState(props.script.enabled);
@@ -98,7 +100,7 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 
 			textures.splice(0, textures.length);
 		};
-	}, []);
+	}, [srcAbsolutePath]);
 
 	useEffect(() => {
 		props.script.debugOnly = debugOnly;
@@ -137,6 +139,8 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 
 			setWatcher(watcher);
 		}
+
+		return exists;
 	}
 
 	async function handleParseVisibleProperties() {
@@ -271,13 +275,82 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 		);
 	}
 
-	function handleCopyName(): void {
+	function handleCopyName() {
 		clipboard.writeText(props.script.key);
 		toast.success("Name copied to clipboard.");
 	}
 
+	function handleDragAssetOver(ev: DragEvent<HTMLDivElement>) {
+		ev.preventDefault();
+		ev.stopPropagation();
+
+		setDragOver(true);
+	}
+
+	function handleAssetDrop(ev: DragEvent<HTMLDivElement>) {
+		ev.preventDefault();
+		ev.stopPropagation();
+
+		setDragOver(false);
+
+		if (!props.editor.state.projectPath) {
+			return;
+		}
+
+		const absolutePaths = JSON.parse(ev.dataTransfer.getData("assets")) as string[];
+		if (!Array.isArray(absolutePaths) || absolutePaths.length > 1) {
+			return;
+		}
+
+		const files = absolutePaths.filter((path) => {
+			const extension = extname(path).toLowerCase();
+			return extension === ".ts" || extension === ".tsx";
+		});
+
+		const file = files[0];
+		if (!file) {
+			return;
+		}
+
+		const extension = extname(file).toLowerCase();
+		if (extension !== ".ts" && extension !== ".tsx") {
+			return;
+		}
+
+		const oldScriptKey = props.script.key;
+		const projectDir = dirname(props.editor.state.projectPath!);
+
+		const relativePath = file.replace(join(projectDir, "/src/"), "").replace(/\\/g, "/");
+		if (relativePath === file || oldScriptKey === relativePath) {
+			return;
+		}
+
+		if (props.object.metadata.scripts.find((script) => script.key === relativePath)) {
+			return toast.warning(`Script '${relativePath}' is already attached to the object.`);
+		}
+
+		registerUndoRedo({
+			executeRedo: true,
+			action: () => {
+				props.editor.layout.graph.refresh();
+				props.editor.layout.inspector.forceUpdate();
+			},
+			undo: () => (props.script.key = oldScriptKey),
+			redo: () => (props.script.key = relativePath),
+		});
+	}
+
 	return (
-		<div className="flex flex-col gap-2 bg-muted-foreground/35 dark:bg-muted-foreground/5 rounded-lg px-2 pb-2.5">
+		<div
+			onDrop={(ev) => handleAssetDrop(ev)}
+			onDragLeave={() => setDragOver(false)}
+			onDragOver={(ev) => handleDragAssetOver(ev)}
+			className={`
+				flex flex-col gap-2 rounded-lg px-2 pb-2.5
+				${dragOver ? "bg-background" : "bg-muted-foreground/35 dark:bg-muted-foreground/5"}
+				transition-all duration-300 ease-in-out
+			`}
+		>
 			<div className="flex gap-2">
 				<SiTypescript size="80px" className={`${enabled ? "opacity-100" : "opacity-15"} transition-all duration-300 ease-in-out`} />
 
