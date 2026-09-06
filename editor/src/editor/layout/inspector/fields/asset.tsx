@@ -51,6 +51,9 @@ export function EditorInspectorAssetField(props: IEditorInspectorAssetFieldProps
 	}
 
 	async function handleDrop(ev: DragEvent<HTMLDivElement>) {
+		ev.preventDefault();
+		ev.stopPropagation();
+
 		setDragOver(false);
 
 		const data = JSON.parse(ev.dataTransfer.getData("assets")) as string[];
