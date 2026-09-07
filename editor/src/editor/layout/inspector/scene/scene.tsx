@@ -4,14 +4,17 @@ import { IoMdCube } from "react-icons/io";
 import { Divider } from "@blueprintjs/core";
 
 import {
+	VolumetricFogMode,
+	VolumetricDebugMode,
 	getVLSPostProcess as externalGetVLSPostProcess,
 	getTAARenderingPipeline as externalGetTAARenderingPipeline,
 	getSSRRenderingPipeline as externalGetSSRRenderingPipeline,
 	getMotionBlurPostProcess as externalGetMotionBlurPostProcess,
 	getSSAO2RenderingPipeline as externalGetSSAO2RenderingPipeline,
 	getDefaultRenderingPipeline as externalGetDefaultRenderingPipeline,
+	getVolumetricLightingRenderingPipeline as externalGetVolumetricLightingRenderingPipeline,
 } from "babylonjs-editor-tools";
-import { DepthOfFieldEffectBlurLevel, Scene, TonemappingOperator, AnimationGroup, VolumetricLightScatteringPostProcess } from "babylonjs";
+import { Color3, DepthOfFieldEffectBlurLevel, Scene, TonemappingOperator, AnimationGroup, VolumetricLightScatteringPostProcess } from "babylonjs";
 
 import { Button } from "../../../../ui/shadcn/ui/button";
 
@@ -20,6 +23,7 @@ import { isScene } from "../../../../tools/guards/scene";
 
 import { registerUndoRedo } from "../../../../tools/undoredo";
 import { updateAllLights } from "../../../../tools/light/shadows";
+import { createArrayBoundColor3 } from "../../../../tools/light/volumetric";
 import { updateIblShadowsRenderPipeline } from "../../../../tools/light/ibl";
 
 import { createVLSPostProcess, disposeVLSPostProcess, getVLSPostProcess, parseVLSPostProcess, serializeVLSPostProcess } from "../../../rendering/vls";
@@ -46,6 +50,15 @@ import {
 	parseDefaultRenderingPipeline,
 	serializeDefaultRenderingPipeline,
 } from "../../../rendering/default-pipeline";
+import {
+	createVolumetricLightingRenderingPipeline,
+	disposeVolumetricLightingRenderingPipeline,
+	getVolumetricLightingRenderingPipeline,
+	isVolumetricLightingSupported,
+	parseVolumetricLightingRenderingPipeline,
+	serializeVolumetricLightingRenderingPipeline,
+} from "../../../rendering/volumetric-lighting";
+
 import {
 	createIblShadowsRenderingPipeline,
 	disposeIblShadowsRenderingPipeline,
@@ -116,6 +129,8 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 					<EditorInspectorNumberField object={this.props.object} property="iblIntensity" label="IBL Intensity" />
 				</EditorInspectorSectionField>
 
+				<ScriptInspectorComponent editor={this.props.editor} object={this.props.object} />
+
 				<EditorInspectorSectionField title="Fog">
 					<EditorInspectorSwitchField object={this.props.object} property="fogEnabled" label="Enabled" onChange={() => this.forceUpdate()} />
 
@@ -150,8 +165,7 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 					)}
 				</EditorInspectorSectionField>
 
-				<ScriptInspectorComponent editor={this.props.editor} object={this.props.object} />
-
+				{this._getVolumetricLightingComponent()}
 				{this._getPhysicsComponent()}
 
 				{this._getDefaultRenderingPipelineComponent()}
@@ -891,6 +905,319 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 					</>
 				)}
 			</EditorInspectorSectionField>
+		);
+	}
+
+	private _volumetricAmbientColor: { color: Color3 } | null = null;
+
+	private _volumetricFogColor: { color: Color3 } | null = null;
+
+	private _getVolumetricFogColorObject(): { color: Color3 } {
+		this._volumetricFogColor ??= {
+			color: createArrayBoundColor3(
+				() => getVolumetricLightingRenderingPipeline()?.configuration.fogColor ?? [1, 1, 1],
+				(value) => {
+					const pipeline = getVolumetricLightingRenderingPipeline();
+					if (pipeline) {
+						pipeline.configuration.fogColor = value;
+					}
+				}
+			),
+		};
+
+		return this._volumetricFogColor;
+	}
+
+	private _getVolumetricAmbientColorObject(): { color: Color3 } {
+		// Must not capture the configuration of the pipeline it was created for: the pipeline is disposed
+		// and re-created every time the effect is toggled or the active camera changes.
+		this._volumetricAmbientColor ??= {
+			color: createArrayBoundColor3(
+				() => getVolumetricLightingRenderingPipeline()?.configuration.ambientColor ?? [0, 0, 0],
+				(value) => {
+					const pipeline = getVolumetricLightingRenderingPipeline();
+					if (pipeline) {
+						pipeline.configuration.ambientColor = value;
+					}
+				}
+			),
+		};
+
+		return this._volumetricAmbientColor;
+	}
+
+	private _getVolumetricLightingComponent(): ReactNode {
+		if (!isVolumetricLightingSupported(this.props.editor)) {
+			return (
+				<EditorInspectorSectionField title="Volumetric Lighting">
+					<div className="text-center text-muted-foreground">Volumetric lighting requires a WebGL 2 engine and is not supported here.</div>
+				</EditorInspectorSectionField>
+			);
+		}
+
+		const pipeline = this.isPlaying ? externalGetVolumetricLightingRenderingPipeline() : getVolumetricLightingRenderingPipeline();
+
+		const config = {
+			enabled: pipeline ? true : false,
+		};
+
+		const configuration = pipeline?.configuration;
+		// const stats = pipeline?.getStats();
+		// const budget = pipeline?.getBudget();
+
+		return (
+			<>
+				<EditorInspectorSectionField title="Volumetric Lighting">
+					<EditorInspectorSwitchField
+						object={config}
+						property="enabled"
+						label="Enabled"
+						disabled={this.isPlaying}
+						noUndoRedo
+						onChange={() => {
+							const previousPipeline = pipeline;
+							const serializedPipeline = serializeVolumetricLightingRenderingPipeline();
+
+							registerUndoRedo({
+								executeRedo: true,
+								undo: () => {
+									if (!previousPipeline) {
+										disposeVolumetricLightingRenderingPipeline();
+									} else if (serializedPipeline) {
+										parseVolumetricLightingRenderingPipeline(this.props.editor, serializedPipeline);
+									}
+								},
+								redo: () => {
+									if (previousPipeline) {
+										disposeVolumetricLightingRenderingPipeline();
+									} else if (serializedPipeline) {
+										parseVolumetricLightingRenderingPipeline(this.props.editor, serializedPipeline);
+									} else {
+										createVolumetricLightingRenderingPipeline(this.props.editor);
+									}
+								},
+							});
+
+							this.forceUpdate();
+						}}
+					/>
+
+					{configuration && (
+						<>
+							<EditorInspectorNumberField object={configuration} property="intensity" label="Intensity" min={0} step={0.01} />
+							<EditorInspectorNumberField object={configuration} property="steps" label="Steps" min={4} max={256} step={1} />
+							<EditorInspectorNumberField object={configuration} property="resolutionScale" label="Resolution Scale" min={0.1} max={1} step={0.05} />
+
+							<EditorInspectorListField
+								object={configuration}
+								property="fogMode"
+								label="Mode"
+								items={[
+									{ text: "Exponential", value: VolumetricFogMode.Exponential },
+									{ text: "Exponential Squared", value: VolumetricFogMode.ExponentialSquared },
+									{ text: "Linear", value: VolumetricFogMode.Linear },
+								]}
+								onChange={() => this.forceUpdate()}
+							/>
+
+							{configuration.fogMode !== VolumetricFogMode.Linear && (
+								<EditorInspectorNumberField object={configuration} property="fogDensity" label="Density" min={0} step={0.0001} />
+							)}
+
+							{configuration.fogMode === VolumetricFogMode.Linear && (
+								<>
+									<EditorInspectorNumberField object={configuration} property="fogStart" label="Start" min={0} step={1} />
+									<EditorInspectorNumberField object={configuration} property="fogEnd" label="End" min={0} step={1} />
+								</>
+							)}
+
+							<EditorInspectorColorField object={this._getVolumetricFogColorObject()} property="color" label={<div className="w-14">Color</div>} />
+
+							{/* <EditorInspectorListField
+								object={configuration}
+								property="stepDistribution"
+								label="Step Distribution"
+								items={[
+									{ text: "Linear", value: VolumetricStepDistribution.Linear },
+									{ text: "Exponential", value: VolumetricStepDistribution.Exponential },
+								]}
+							/>
+							<EditorInspectorListField
+								object={configuration}
+								property="ditherMode"
+								label="Dithering"
+								items={[
+									{ text: "None", value: VolumetricDitherMode.None },
+									{ text: "Ordered (Bayer)", value: VolumetricDitherMode.Bayer },
+									{ text: "Interleaved Gradient Noise", value: VolumetricDitherMode.InterleavedGradientNoise },
+								]}
+								onChange={() => this.forceUpdate()}
+							/>
+
+							{configuration.ditherMode !== VolumetricDitherMode.None && (
+								<>
+									<EditorInspectorNumberField object={configuration} property="ditherStrength" label="Dither Strength" min={0} max={1} step={0.01} />
+									<EditorInspectorSwitchField
+										object={configuration}
+										property="temporalJitter"
+										label="Animate Dithering"
+										tooltip="Animates the dithering pattern over time. Converges to a clean image when temporal anti-aliasing is enabled, adds visible noise otherwise."
+									/>
+								</>
+							)} */}
+
+							{/* <EditorInspectorNumberField object={configuration} property="albedo" label="Albedo" min={0} max={1} step={0.01} /> */}
+							<EditorInspectorNumberField object={configuration} property="maxDistance" label="Max Distance" min={1} step={1} />
+
+							{/* <EditorInspectorSwitchField object={configuration} property="heightFogEnabled" label="Height Fog" onChange={() => this.forceUpdate()} />
+
+							{configuration.heightFogEnabled && (
+								<>
+									<EditorInspectorNumberField object={configuration} property="heightFogBaseHeight" label="Base Height" step={1} />
+									<EditorInspectorNumberField object={configuration} property="heightFogFalloff" label="Falloff" min={0} step={0.001} />
+								</>
+							)} */}
+
+							{/* <EditorInspectorSwitchField
+								object={configuration}
+								property="screenSpaceShadows"
+								label="Occlude Lights With Geometry"
+								onChange={() => this.forceUpdate()}
+							/>
+
+							{configuration.screenSpaceShadows && (
+								<>
+									<EditorInspectorNumberField object={configuration} property="screenSpaceShadowSteps" label="Occlusion Samples" min={1} max={32} step={1} />
+									<EditorInspectorNumberField
+										object={configuration}
+										property="screenSpaceShadowMaxDistance"
+										label="Occlusion Distance"
+										min={1}
+										step={1}
+										tooltip="How far the search for an occluder walks towards the light. A directional light has no position to walk to, so this is what bounds its search. The default is derived from the size of the scene."
+									/>
+									<EditorInspectorNumberField
+										object={configuration}
+										property="screenSpaceShadowThickness"
+										label="Occlusion Thickness"
+										min={0.01}
+										step={0.1}
+										tooltip="How thick a surface is assumed to be, as a multiple of its distance to the camera. Lower it if objects in the foreground stamp their silhouette into the shafts behind them, raise it if thick walls stop occluding."
+									/>
+									<EditorInspectorNumberField
+										object={configuration}
+										property="screenSpaceShadowBias"
+										label="Occlusion Bias"
+										min={0}
+										max={1}
+										step={0.001}
+										tooltip="How far behind a surface a sample has to be, relative to its own distance to the camera, to count as occluded. Raise it if dark streaks appear over the geometry."
+									/>
+								</>
+							)} */}
+
+							{/* <EditorInspectorSwitchField
+								object={configuration}
+								property="lightExtinctionEnabled"
+								label="Attenuate Lights By The Medium"
+								tooltip="Dims each light with the amount of medium it has to travel through to reach the sample. Exact for an exponential fog, an approximation for the other modes."
+							/> */}
+
+							{/* {configuration.lightExtinctionEnabled && (
+								<>
+									<EditorInspectorNumberField object={configuration} property="lightExtinctionClamp" label="Extinction Clamp" min={0} step={1} />
+									<EditorInspectorNumberField object={configuration} property="extinctionAmount" label="Attenuate Scene" min={0} max={1} step={0.01} />
+								</>
+							)} */}
+
+							{/* <Divider />
+
+							<div className="font-semibold px-2">Denoise</div>
+
+							<EditorInspectorNumberField object={configuration} property="blurPasses" label="Blur Passes" min={0} max={2} step={1} />
+							<EditorInspectorNumberField object={configuration} property="blurRadius" label="Blur Radius" min={1} max={6} step={1} />
+							<EditorInspectorNumberField object={configuration} property="blurDepthThreshold" label="Blur Depth Threshold" min={0.0001} max={1} step={0.001} />
+							<EditorInspectorNumberField
+								object={configuration}
+								property="upsampleDepthThreshold"
+								label="Upsample Depth Threshold"
+								min={0.0001}
+								max={1}
+								step={0.001}
+							/>
+
+							<Divider />
+
+							<div className="font-semibold px-2">Budget</div>
+
+							<EditorInspectorNumberField
+								object={configuration}
+								property="maxLights"
+								label="Max Lights"
+								min={0}
+								max={64}
+								step={1}
+								tooltip="Maximum number of lights evaluated at each step of the raymarching. The effective value is clamped by the capabilities of the GPU."
+							/>
+							<EditorInspectorNumberField
+								object={configuration}
+								property="maxShadowedLights"
+								label="Max Shadowed Lights"
+								min={0}
+								max={8}
+								step={1}
+								tooltip="Maximum number of lights casting volumetric shadows. Each one costs a texture unit. Lights over the budget still contribute, without shadows."
+							/>
+							<EditorInspectorListField
+								object={configuration}
+								property="pcfTaps"
+								label="Shadow Taps"
+								items={[
+									{ text: "1 tap", value: 1 },
+									{ text: "4 taps", value: 4 },
+								]}
+							/>
+							<EditorInspectorNumberField
+								object={configuration}
+								property="selectionRefreshRate"
+								label="Selection Refresh Rate"
+								min={1}
+								max={60}
+								step={1}
+								tooltip="Number of frames between two refreshes of the list of lights taking part in the effect."
+							/>
+
+							<Divider /> */}
+
+							<EditorInspectorListField
+								object={configuration}
+								property="debugMode"
+								label="Debug"
+								items={[
+									{ text: "None", value: VolumetricDebugMode.None },
+									{ text: "Scattering", value: VolumetricDebugMode.Scattering },
+									{ text: "Transmittance", value: VolumetricDebugMode.Transmittance },
+									{ text: "Light Count", value: VolumetricDebugMode.LightCount },
+								]}
+							/>
+
+							{/* {stats && budget && (
+								<div className="px-2 py-1 text-muted-foreground text-sm">
+									{stats.candidateCount} light(s) enabled: {stats.shadowedCount} shadowed (max {budget.maxShadowSlots}), {stats.unshadowedCount} unshadowed (max{" "}
+									{budget.maxArrayLights}), {stats.culledCount} culled, {stats.droppedCount} over budget.
+								</div>
+							)} */}
+						</>
+					)}
+				</EditorInspectorSectionField>
+
+				{configuration && (
+					<EditorInspectorSectionField title="Volumetric Fog">
+						<EditorInspectorColorField object={this._getVolumetricAmbientColorObject()} property="color" label={<div className="w-14">Ambient</div>} />
+						<EditorInspectorNumberField object={configuration} property="ambientIntensity" label="Ambient Intensity" min={0} step={0.01} />
+					</EditorInspectorSectionField>
+				)}
+			</>
 		);
 	}
 

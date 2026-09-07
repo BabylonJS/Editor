@@ -38,6 +38,7 @@ import { ssaoRenderingPipelineCameraConfigurations } from "../../editor/renderin
 import { defaultPipelineCameraConfigurations } from "../../editor/rendering/default-pipeline";
 import { motionBlurPostProcessCameraConfigurations } from "../../editor/rendering/motion-blur";
 import { iblShadowsRenderingPipelineCameraConfigurations } from "../../editor/rendering/ibl-shadows";
+import { volumetricLightingRenderingPipelineCameraConfigurations } from "../../editor/rendering/volumetric-lighting";
 
 import { writeBinaryGeometry } from "../tools/geometry";
 import { writeBinaryMorphTarget } from "../tools/morph-target";
@@ -852,6 +853,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 					defaultRenderingPipeline: defaultPipelineCameraConfigurations.get(camera),
 					taaRenderingPipeline: taaPipelineCameraConfigurations.get(camera),
 					iblShadowsRenderPipeline: iblShadowsRenderingPipelineCameraConfigurations.get(camera),
+					volumetricLightingRenderingPipeline: volumetricLightingRenderingPipelineCameraConfigurations.get(camera),
 				})),
 				metadata: scene.metadata,
 				editorCamera: {

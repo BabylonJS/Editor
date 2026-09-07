@@ -24,6 +24,7 @@ import {
 	getSSRRenderingPipeline,
 	getTAARenderingPipeline,
 	getVLSPostProcess,
+	getVolumetricLightingRenderingPipeline,
 } from "babylonjs-editor-tools";
 
 // Request all plugins
@@ -50,6 +51,7 @@ export {
 	getSSRRenderingPipeline,
 	getTAARenderingPipeline,
 	getVLSPostProcess,
+	getVolumetricLightingRenderingPipeline,
 };
 `;
 

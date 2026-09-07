@@ -32,6 +32,7 @@ import { parseSSAO2RenderingPipeline, ssaoRenderingPipelineCameraConfigurations 
 import { parseMotionBlurPostProcess, motionBlurPostProcessCameraConfigurations } from "../../editor/rendering/motion-blur";
 import { parseDefaultRenderingPipeline, defaultPipelineCameraConfigurations } from "../../editor/rendering/default-pipeline";
 import { iblShadowsRenderingPipelineCameraConfigurations, parseIblShadowsRenderingPipeline } from "../../editor/rendering/ibl-shadows";
+import { parseVolumetricLightingRenderingPipeline, volumetricLightingRenderingPipelineCameraConfigurations } from "../../editor/rendering/volumetric-lighting";
 
 import { createDirectoryIfNotExist } from "../../tools/fs";
 
@@ -456,6 +457,7 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 			defaultPipelineCameraConfigurations.set(camera, configuration.defaultRenderingPipeline);
 			taaPipelineCameraConfigurations.set(camera, configuration.taaRenderingPipeline);
 			iblShadowsRenderingPipelineCameraConfigurations.set(camera, configuration.iblShadowsRenderPipeline);
+			volumetricLightingRenderingPipelineCameraConfigurations.set(camera, configuration.volumetricLightingRenderingPipeline);
 
 			if (isEditorCamera(camera)) {
 				if (configuration.iblShadowsRenderPipeline) {
@@ -464,6 +466,10 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 
 				if (configuration.ssao2RenderingPipeline) {
 					parseSSAO2RenderingPipeline(editor, configuration.ssao2RenderingPipeline);
+				}
+
+				if (configuration.volumetricLightingRenderingPipeline) {
+					parseVolumetricLightingRenderingPipeline(editor, configuration.volumetricLightingRenderingPipeline);
 				}
 
 				if (configuration.vlsPostProcess) {
