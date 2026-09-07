@@ -6,6 +6,12 @@ import { disposeTAARenderingPipeline, parseTAARenderingPipeline, serializeTAARen
 import { disposeSSAO2RenderingPipeline, parseSSAO2RenderingPipeline, serializeSSAO2RenderingPipeline, ssaoRenderingPipelineCameraConfigurations } from "./ssao";
 import { disposeMotionBlurPostProcess, motionBlurPostProcessCameraConfigurations, parseMotionBlurPostProcess, serializeMotionBlurPostProcess } from "./motion-blur";
 import { defaultPipelineCameraConfigurations, disposeDefaultRenderingPipeline, parseDefaultRenderingPipeline, serializeDefaultRenderingPipeline } from "./default-pipeline";
+import {
+	disposeVolumetricLightingRenderingPipeline,
+	parseVolumetricLightingRenderingPipeline,
+	serializeVolumetricLightingRenderingPipeline,
+	volumetricLightingRenderingPipelineCameraConfigurations,
+} from "./volumetric-lighting";
 
 /**
  * Saves the rendering configurations for the given camera. This is useful to restore the rendering configurations
@@ -17,6 +23,7 @@ export function saveRenderingConfigurationForCamera(camera: Camera) {
 	vlsPostProcessCameraConfigurations.set(camera, serializeVLSPostProcess());
 	ssrRenderingPipelineCameraConfigurations.set(camera, serializeSSRRenderingPipeline());
 	motionBlurPostProcessCameraConfigurations.set(camera, serializeMotionBlurPostProcess());
+	volumetricLightingRenderingPipelineCameraConfigurations.set(camera, serializeVolumetricLightingRenderingPipeline());
 	defaultPipelineCameraConfigurations.set(camera, serializeDefaultRenderingPipeline());
 	taaRenderingPipelineCameraConfigurations.set(camera, serializeTAARenderingPipeline());
 }
@@ -26,6 +33,7 @@ export interface IApplyRenderingConfigurationOptions {
 	vlsDisabled?: boolean;
 	ssrDisabled?: boolean;
 	motionBlurDisabled?: boolean;
+	volumetricLightingDisabled?: boolean;
 	defaultPipelineDisabled?: boolean;
 	taaDisabled?: boolean;
 }
@@ -42,12 +50,18 @@ export function applyRenderingConfigurationForCamera(camera: Camera, rootUrl: st
 	disposeVLSPostProcess(camera.getScene());
 	disposeSSRRenderingPipeline();
 	disposeMotionBlurPostProcess();
+	disposeVolumetricLightingRenderingPipeline();
 	disposeDefaultRenderingPipeline();
 	disposeTAARenderingPipeline();
 
 	const ssao2RenderingPipeline = ssaoRenderingPipelineCameraConfigurations.get(camera);
 	if (ssao2RenderingPipeline && !options?.ssao2Disabled) {
 		parseSSAO2RenderingPipeline(camera.getScene(), camera, ssao2RenderingPipeline);
+	}
+
+	const volumetricLightingRenderingPipeline = volumetricLightingRenderingPipelineCameraConfigurations.get(camera);
+	if (volumetricLightingRenderingPipeline && !options?.volumetricLightingDisabled) {
+		parseVolumetricLightingRenderingPipeline(camera.getScene(), camera, volumetricLightingRenderingPipeline);
 	}
 
 	const vlsPostProcess = vlsPostProcessCameraConfigurations.get(camera);

@@ -29,6 +29,7 @@ import { disposeSSRRenderingPipeline } from "./rendering/ssr";
 import { disposeSSAO2RenderingPipeline } from "./rendering/ssao";
 import { disposeMotionBlurPostProcess } from "./rendering/motion-blur";
 import { disposeDefaultRenderingPipeline } from "./rendering/default-pipeline";
+import { disposeVolumetricLightingRenderingPipeline } from "./rendering/volumetric-lighting";
 
 import { CommandPalette } from "./dialogs/command-palette/command-palette";
 import { EditorGenerateProjectComponent } from "./dialogs/generate/generate-project";
@@ -324,6 +325,7 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 		disposeSSRRenderingPipeline();
 		disposeMotionBlurPostProcess();
 		disposeSSAO2RenderingPipeline();
+		disposeVolumetricLightingRenderingPipeline();
 		disposeDefaultRenderingPipeline();
 
 		onProjectConfigurationChangedObservable.notifyObservers(projectConfiguration);

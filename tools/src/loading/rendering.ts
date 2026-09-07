@@ -6,6 +6,7 @@ import { taaRenderingPipelineCameraConfigurations } from "../rendering/taa";
 import { ssaoRenderingPipelineCameraConfigurations } from "../rendering/ssao";
 import { motionBlurPostProcessCameraConfigurations } from "../rendering/motion-blur";
 import { defaultPipelineCameraConfigurations } from "../rendering/default-pipeline";
+import { volumetricLightingRenderingPipelineCameraConfigurations } from "../rendering/volumetric-lighting";
 
 export function applyRenderingConfigurations(scene: Scene, rendering: any): void {
 	const postProcessConfigurations = Array.isArray(rendering) ? rendering : [];
@@ -30,6 +31,10 @@ export function applyRenderingConfigurations(scene: Scene, rendering: any): void
 
 		if (configuration.motionBlurPostProcess) {
 			motionBlurPostProcessCameraConfigurations.set(camera, configuration.motionBlurPostProcess);
+		}
+
+		if (configuration.volumetricLightingRenderingPipeline) {
+			volumetricLightingRenderingPipelineCameraConfigurations.set(camera, configuration.volumetricLightingRenderingPipeline);
 		}
 
 		if (configuration.defaultRenderingPipeline) {
