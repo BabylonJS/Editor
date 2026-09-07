@@ -30,8 +30,9 @@ export function setVolumetricLightingRenderingPipelineRef(pipeline: VolumetricLi
 }
 
 /**
- * Returns wether or not the volumetric lighting rendering pipeline is supported by the engine used by the editor.
- * @param editor defines the reference to the editor.
+ * Returns wether or not the volumetric lighting rendering pipeline is supported by the engine of the scene.
+ * Both WebGL 2 and WebGPU are supported, each with its own hand written version of the shaders.
+ * @param scene defines the reference to the scene to check.
  */
 export function isVolumetricLightingSupported(scene: Scene): boolean {
 	const engine = scene?.getEngine();
