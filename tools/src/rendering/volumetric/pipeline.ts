@@ -37,6 +37,8 @@ import {
 	selectVolumetricLights,
 } from "./selector";
 
+import { ShaderLanguage } from "@babylonjs/core/Materials/shaderLanguage";
+
 import { registerVolumetricLightingShaders, volumetricLightingBlurShaderName, volumetricLightingComposeShaderName, volumetricLightingScatteringShaderName } from "./shaders";
 
 const leftHandedForward = new Vector3(0, 0, 1);
@@ -166,16 +168,24 @@ export class VolumetricLightingRenderingPipeline extends PostProcessRenderPipeli
 
 	/**
 	 * Returns wether or not the volumetric lighting rendering pipeline is supported by the given engine.
-	 * The raymarching shader relies on features that are only available on WebGL 2 (shadow samplers and
-	 * texture arrays) and is written in GLSL, which WebGPU can't consume without an external transpiler.
+	 * The raymarching shader relies on shadow samplers and texture arrays, which need WebGL 2, and ships as
+	 * both GLSL and hand written WGSL so WebGPU is supported without an external transpiler.
 	 * @param engine defines the reference to the engine to check.
 	 */
 	public static IsSupported(engine: AbstractEngine): boolean {
 		if (engine.isWebGPU) {
-			return false;
+			return true;
 		}
 
 		return ((engine as any).webGLVersion ?? 0) >= 2;
+	}
+
+	/**
+	 * Returns the language the shaders of the pipeline must be written in for the given engine.
+	 * @param engine defines the reference to the engine to check.
+	 */
+	public static GetShaderLanguage(engine: AbstractEngine): ShaderLanguage {
+		return engine.isWebGPU ? ShaderLanguage.WGSL : ShaderLanguage.GLSL;
 	}
 
 	private _scene: Scene;
@@ -184,6 +194,7 @@ export class VolumetricLightingRenderingPipeline extends PostProcessRenderPipeli
 	private _configurationProxy: IVolumetricLightingConfiguration;
 
 	private _textureType: number;
+	private _shaderLanguage: ShaderLanguage;
 	private _ldrEncode: boolean;
 
 	private _depthRenderer: DepthRenderer | null = null;
@@ -239,7 +250,8 @@ export class VolumetricLightingRenderingPipeline extends PostProcessRenderPipeli
 	public constructor(name: string, scene: Scene, camera: Camera, configuration?: Partial<IVolumetricLightingConfiguration>) {
 		super(scene.getEngine(), name);
 
-		registerVolumetricLightingShaders();
+		this._shaderLanguage = VolumetricLightingRenderingPipeline.GetShaderLanguage(scene.getEngine());
+		registerVolumetricLightingShaders(this._shaderLanguage);
 
 		this._scene = scene;
 		this._camera = camera;
@@ -643,7 +655,12 @@ export class VolumetricLightingRenderingPipeline extends PostProcessRenderPipeli
 			engine,
 			false,
 			this._buildScatteringDefines(emptySelection, environment),
-			this._textureType
+			this._textureType,
+			undefined,
+			undefined,
+			false,
+			undefined,
+			this._shaderLanguage
 		);
 		this._scatteringPostProcess.autoClear = false;
 		this._scatteringPostProcess.alphaMode = Constants.ALPHA_DISABLE;
@@ -662,7 +679,12 @@ export class VolumetricLightingRenderingPipeline extends PostProcessRenderPipeli
 				engine,
 				false,
 				this._blurDefines,
-				this._textureType
+				this._textureType,
+				undefined,
+				undefined,
+				false,
+				undefined,
+				this._shaderLanguage
 			);
 
 			blurPostProcess.autoClear = false;
@@ -686,7 +708,12 @@ export class VolumetricLightingRenderingPipeline extends PostProcessRenderPipeli
 			engine,
 			false,
 			this._composeDefines,
-			this._textureType
+			this._textureType,
+			undefined,
+			undefined,
+			false,
+			undefined,
+			this._shaderLanguage
 		);
 		this._composePostProcess.autoClear = false;
 		this._composePostProcess.alphaMode = Constants.ALPHA_DISABLE;

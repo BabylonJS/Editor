@@ -174,8 +174,13 @@ const volumetricSlotHysteresis = 0.15;
 export function computeVolumetricBudget(engine: AbstractEngine, configuration: IVolumetricLightingConfiguration): IVolumetricBudget {
 	const caps = engine.getCaps();
 
+	// WebGPU reports the size of its uniform buffer in floats rather than in vec4, unlike WebGL 2 whose
+	// MAX_FRAGMENT_UNIFORM_VECTORS really is a vector count.
+	const reportedVectors = caps.maxFragmentUniformVectors || 224;
+	const availableVectors = engine.isWebGPU ? Math.floor(reportedVectors / 4) : reportedVectors;
+
 	// 20 vectors are used by the camera, the medium and the fog, 8 more are kept as headroom for the driver.
-	const vectorBudget = Math.max(224, caps.maxFragmentUniformVectors || 224) - 28;
+	const vectorBudget = Math.max(224, availableVectors) - 28;
 	// "textureSampler" and "depthSampler" are always bound.
 	const samplerBudget = Math.max(8, caps.maxTexturesImageUnits || 16) - 2;
 
