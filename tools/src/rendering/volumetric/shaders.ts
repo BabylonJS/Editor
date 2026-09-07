@@ -1,4 +1,7 @@
 import { ShaderStore } from "@babylonjs/core/Engines/shaderStore";
+import { ShaderLanguage } from "@babylonjs/core/Materials/shaderLanguage";
+
+import { getVolumetricLightingShadersWGSL } from "./shaders-wgsl";
 
 import { maxVolumetricShadowSlots } from "./types";
 
@@ -766,18 +769,32 @@ void main(void) {
 `;
 }
 
-let registered = false;
+const registered: Partial<Record<ShaderLanguage, boolean>> = {};
 
 /**
  * Registers the shaders of the volumetric lighting rendering pipeline in the shader store of Babylon.js.
- * Calling this function multiple times has no effect.
+ * Calling this function multiple times for the same language has no effect.
+ *
+ * The WGSL sources are hand written rather than transpiled from the GLSL ones: Babylon.js can only convert
+ * GLSL to WGSL by downloading twgsl from its CDN, which an offline application can't rely on.
+ * @param shaderLanguage defines the language the shaders are registered for.
  */
-export function registerVolumetricLightingShaders(): void {
-	if (registered) {
+export function registerVolumetricLightingShaders(shaderLanguage: ShaderLanguage): void {
+	if (registered[shaderLanguage]) {
 		return;
 	}
 
-	registered = true;
+	registered[shaderLanguage] = true;
+
+	if (shaderLanguage === ShaderLanguage.WGSL) {
+		const shaders = getVolumetricLightingShadersWGSL();
+
+		ShaderStore.ShadersStoreWGSL[`${volumetricLightingScatteringShaderName}PixelShader`] = shaders.scattering;
+		ShaderStore.ShadersStoreWGSL[`${volumetricLightingBlurShaderName}PixelShader`] = shaders.blur;
+		ShaderStore.ShadersStoreWGSL[`${volumetricLightingComposeShaderName}PixelShader`] = shaders.compose;
+
+		return;
+	}
 
 	ShaderStore.ShadersStore[`${volumetricLightingScatteringShaderName}PixelShader`] = buildVolumetricLightingScatteringShader(maxVolumetricShadowSlots);
 	ShaderStore.ShadersStore[`${volumetricLightingBlurShaderName}PixelShader`] = buildVolumetricLightingBlurShader();
