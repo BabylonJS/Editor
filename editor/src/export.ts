@@ -61,6 +61,7 @@ export * from "./editor/rendering/vls";
 export * from "./editor/rendering/ssao";
 export * from "./editor/rendering/motion-blur";
 export * from "./editor/rendering/default-pipeline";
+export * from "./editor/rendering/volumetric-lighting";
 
 export * from "./ui/spinner";
 export * from "./ui/color-picker";

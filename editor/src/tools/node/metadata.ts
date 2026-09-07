@@ -1,5 +1,7 @@
 import { Node } from "babylonjs";
 
+import { IVolumetricLightConfiguration } from "babylonjs-editor-tools";
+
 export interface INodeMetadata {
 	/**
 	 * Defines wether or not the object is locked.
@@ -13,6 +15,10 @@ export interface INodeMetadata {
 	 * Defines wether or not the object is visible in the graph panel in the editor.
 	 */
 	notVisibleInGraph?: boolean;
+	/**
+	 * Defines the configuration of the volumetric lighting for the light. @see IVolumetricLightConfiguration
+	 */
+	volumetricLighting?: IVolumetricLightConfiguration;
 }
 
 /**

@@ -22,6 +22,7 @@ import { CustomMetadataInspector } from "../metadata/custom-metadata";
 import { EditorLightPBRInspector } from "./components/pbr";
 import { EditorLightClusterInspector } from "./components/cluster";
 import { EditorLightShadowsInspector } from "./components/shadows";
+import { EditorLightVolumetricInspector } from "./components/volumetric";
 
 export class EditorSpotLightInspector extends Component<IEditorInspectorImplementationProps<SpotLight>> {
 	/**
@@ -114,6 +115,8 @@ export class EditorSpotLightInspector extends Component<IEditorInspectorImplemen
 				<EditorLightShadowsInspector editor={this.props.editor} light={this.props.object} onShadowGeneratorChanged={() => this.forceUpdate()}>
 					<EditorInspectorNumberField label="Angle" object={this.props.object} property="shadowAngleScale" min={0} max={Math.PI * 2} />
 				</EditorLightShadowsInspector>
+
+				<EditorLightVolumetricInspector editor={this.props.editor} light={this.props.object} />
 
 				<CustomMetadataInspector object={this.props.object} />
 			</>

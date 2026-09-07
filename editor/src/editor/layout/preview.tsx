@@ -81,6 +81,11 @@ import { disposeSSRRenderingPipeline, parseSSRRenderingPipeline, ssrRenderingPip
 import { disposeSSAO2RenderingPipeline, parseSSAO2RenderingPipeline, ssaoRenderingPipelineCameraConfigurations } from "../rendering/ssao";
 import { disposeMotionBlurPostProcess, motionBlurPostProcessCameraConfigurations, parseMotionBlurPostProcess } from "../rendering/motion-blur";
 import { defaultPipelineCameraConfigurations, disposeDefaultRenderingPipeline, parseDefaultRenderingPipeline } from "../rendering/default-pipeline";
+import {
+	volumetricLightingRenderingPipelineCameraConfigurations,
+	disposeVolumetricLightingRenderingPipeline,
+	parseVolumetricLightingRenderingPipeline,
+} from "../rendering/volumetric-lighting";
 
 import { EditorGraphContextMenu } from "./graph/context-menu";
 
@@ -339,6 +344,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		disposeSSRRenderingPipeline();
 		disposeMotionBlurPostProcess();
 		disposeSSAO2RenderingPipeline();
+		disposeVolumetricLightingRenderingPipeline();
 		disposeDefaultRenderingPipeline();
 		disposeTAARenderingPipeline();
 
@@ -1144,12 +1150,18 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		disposeVLSPostProcess(this.props.editor);
 		disposeSSRRenderingPipeline();
 		disposeMotionBlurPostProcess();
+		disposeVolumetricLightingRenderingPipeline();
 		disposeDefaultRenderingPipeline();
 		disposeTAARenderingPipeline();
 
 		const ssao2Pipeline = ssaoRenderingPipelineCameraConfigurations.get(camera);
 		if (ssao2Pipeline) {
 			parseSSAO2RenderingPipeline(this.props.editor, ssao2Pipeline);
+		}
+
+		const volumetricLightingRenderingPipeline = volumetricLightingRenderingPipelineCameraConfigurations.get(camera);
+		if (volumetricLightingRenderingPipeline) {
+			parseVolumetricLightingRenderingPipeline(this.props.editor, volumetricLightingRenderingPipeline);
 		}
 
 		const vlsPostProcess = vlsPostProcessCameraConfigurations.get(camera);
