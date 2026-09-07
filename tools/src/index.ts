@@ -26,7 +26,13 @@ export * from "./rendering/taa";
 export * from "./rendering/ssao";
 export * from "./rendering/motion-blur";
 export * from "./rendering/default-pipeline";
+export * from "./rendering/volumetric-lighting";
+
 export * from "./rendering/tools";
+
+export * from "./rendering/volumetric/types";
+export * from "./rendering/volumetric/selector";
+export * from "./rendering/volumetric/pipeline";
 
 export * from "./decorators/scene";
 export * from "./decorators/gui";

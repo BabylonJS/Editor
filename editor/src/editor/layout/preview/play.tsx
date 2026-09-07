@@ -18,6 +18,7 @@ import {
 	setSSRRenderingPipelineRef,
 	setTAARenderingPipelineRef,
 	setVLSPostProcessRef,
+	setVolumetricLightingRenderingPipelineRef,
 } from "babylonjs-editor-tools";
 
 import { Badge } from "../../../ui/shadcn/ui/badge";
@@ -409,6 +410,7 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 			setMotionBlurPostProcessRef(this._compiledScriptExports.getMotionBlurPostProcess());
 			setSSAO2RenderingPipelineRef(this._compiledScriptExports.getSSAO2RenderingPipeline());
 			setDefaultRenderingPipelineRef(this._compiledScriptExports.getDefaultRenderingPipeline());
+			setVolumetricLightingRenderingPipelineRef(this._compiledScriptExports.getVolumetricLightingRenderingPipeline());
 		} catch (e) {
 			console.error(e);
 			toast.error("Failed to load scene. Check the console for more information.");
