@@ -669,6 +669,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 							instance.rotation.copyFrom(object.rotation);
 							instance.scaling.copyFrom(object.scaling);
 							instance.rotationQuaternion = object.rotationQuaternion?.clone() ?? null;
+							instance.billboardMode = object.billboardMode;
 							instance.parent = object.parent;
 
 							if (object.physicsAggregate) {
