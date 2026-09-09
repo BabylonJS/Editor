@@ -34,6 +34,7 @@ import { updateAllLights, updateLightShadowMapRefreshRate, updatePointLightShado
 
 import { applyMaterialAssetToObject } from "../../preview/import/material";
 
+import { EditorInspectorListField } from "../fields/list";
 import { EditorInspectorStringField } from "../fields/string";
 import { EditorInspectorSwitchField } from "../fields/switch";
 import { EditorInspectorVectorField } from "../fields/vector";
@@ -158,6 +159,19 @@ export class EditorMeshInspector extends Component<IEditorInspectorImplementatio
 						object={this.props.object}
 						property="scaling"
 						onFinishChange={() => this._handleTransformsUpdated()}
+					/>
+
+					<EditorInspectorListField
+						label="Billboard Mode"
+						object={this.props.object}
+						property="billboardMode"
+						items={[
+							{ text: "None", value: AbstractMesh.BILLBOARDMODE_NONE },
+							{ text: "All", value: AbstractMesh.BILLBOARDMODE_ALL },
+							{ text: "X", value: AbstractMesh.BILLBOARDMODE_X },
+							{ text: "Y", value: AbstractMesh.BILLBOARDMODE_Y },
+							{ text: "Z", value: AbstractMesh.BILLBOARDMODE_Z },
+						]}
 					/>
 				</EditorInspectorSectionField>
 
