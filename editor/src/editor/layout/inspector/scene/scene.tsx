@@ -460,9 +460,9 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 								property="maxLights"
 								label="Max Lights"
 								min={0}
-								max={64}
+								max={256}
 								step={1}
-								tooltip="Maximum number of lights evaluated at each step of the raymarching. The effective value is clamped by the capabilities of the GPU."
+								tooltip="Maximum number of lights taking part in the effect. A point or a spot light only costs where its volume is visible on screen. The effective value is clamped by the capabilities of the GPU."
 							/>
 							<EditorInspectorNumberField
 								object={configuration}

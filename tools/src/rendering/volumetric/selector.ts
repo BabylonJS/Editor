@@ -11,7 +11,14 @@ import { CascadedShadowGenerator } from "@babylonjs/core/Lights/Shadows/cascaded
 
 import { isCascadedShadowGenerator, isShadowGenerator, isClusteredLightContainer, isDirectionalLight, isHemisphericLight, isPointLight, isSpotLight } from "../../tools/guards";
 
-import { IVolumetricLightConfiguration, IVolumetricLightingConfiguration, getVolumetricLightConfiguration, maxVolumetricArrayLights, maxVolumetricShadowSlots } from "./types";
+import {
+	IVolumetricLightConfiguration,
+	IVolumetricLightingConfiguration,
+	getVolumetricLightConfiguration,
+	maxVolumetricArrayLights,
+	maxVolumetricDirectionalLights,
+	maxVolumetricShadowSlots,
+} from "./types";
 
 /**
  * Defines the type of sampler needed to read the shadow map of a light.
@@ -47,6 +54,25 @@ export enum VolumetricShadowMode {
 	 * The shadow map stores the exponential of the depth, compared in the "close" space.
 	 */
 	CloseEsm = 2,
+}
+
+/**
+ * Defines how the transmittance of the medium is evaluated by the raymarching shader.
+ */
+export enum VolumetricTransmittanceMode {
+	/**
+	 * Closed form of the three fog modes, for a medium whose density doesn't depend on the altitude.
+	 */
+	Analytic = 0,
+	/**
+	 * Closed form of the exponential fog mode combined with the height falloff.
+	 */
+	AnalyticHeight = 1,
+	/**
+	 * Optical depth integrated numerically along the view ray, for the other fog modes combined with the
+	 * height falloff, which have no closed form.
+	 */
+	Numeric = 2,
 }
 
 /**
@@ -122,6 +148,11 @@ export interface IVolumetricShadowSlot {
 	mode: VolumetricShadowMode;
 	packed: boolean;
 	mapSize: number;
+	/**
+	 * Defines wether or not the light of the slot has a bounded volume (point and spot lights). Those are
+	 * integrated only over the part of the view ray crossing their volume, the others along the whole ray.
+	 */
+	local: boolean;
 }
 
 /**
@@ -132,7 +163,15 @@ export interface IVolumetricLightSelection {
 		candidate: IVolumetricLightCandidate;
 		shadow: IVolumetricShadowSlot;
 	}[];
+	/**
+	 * Defines the lights evaluated without a shadow map. The first "directionalCount" entries are the
+	 * directional lights, the point and spot lights follow.
+	 */
 	unshadowed: IVolumetricLightCandidate[];
+	/**
+	 * Defines the number of directional lights at the start of "unshadowed".
+	 */
+	directionalCount: number;
 	csm: {
 		candidate: IVolumetricLightCandidate;
 		generator: CascadedShadowGenerator;
@@ -149,6 +188,7 @@ export interface IVolumetricLightSelection {
 export interface IVolumetricBudget {
 	maxShadowSlots: number;
 	maxArrayLights: number;
+	maxDirectionalLights: number;
 	allowCsm: boolean;
 }
 
@@ -158,6 +198,11 @@ export interface IVolumetricBudget {
 const shadowedLightVectorCost = 10;
 const arrayLightVectorCost = 4;
 const csmVectorCost = 6 + 4 * 4;
+
+/**
+ * Defines how many uniform vectors are used by the camera, the medium and the fog, plus some headroom for the driver.
+ */
+const fixedVectorCost = 32;
 
 /**
  * Defines the fraction of its own score a light already owning a shadowed slot gets as a bonus, which is
@@ -179,10 +224,9 @@ export function computeVolumetricBudget(engine: AbstractEngine, configuration: I
 	const reportedVectors = caps.maxFragmentUniformVectors || 224;
 	const availableVectors = engine.isWebGPU ? Math.floor(reportedVectors / 4) : reportedVectors;
 
-	// 20 vectors are used by the camera, the medium and the fog, 8 more are kept as headroom for the driver.
-	const vectorBudget = Math.max(224, availableVectors) - 28;
-	// "textureSampler" and "depthSampler" are always bound.
-	const samplerBudget = Math.max(8, caps.maxTexturesImageUnits || 16) - 2;
+	const vectorBudget = Math.max(224, availableVectors) - fixedVectorCost;
+	// Only "textureSampler", which holds the linear depth of the scene, is always bound.
+	const samplerBudget = Math.max(8, caps.maxTexturesImageUnits || 16) - 1;
 
 	const allowCsm = samplerBudget >= 2;
 	const csmCost = allowCsm ? csmVectorCost : 0;
@@ -197,7 +241,12 @@ export function computeVolumetricBudget(engine: AbstractEngine, configuration: I
 		Math.min(maxVolumetricArrayLights, configuration.maxLights, Math.floor((vectorBudget - csmCost - maxShadowSlots * shadowedLightVectorCost) / arrayLightVectorCost))
 	);
 
-	return { maxShadowSlots, maxArrayLights, allowCsm };
+	return {
+		maxShadowSlots,
+		maxArrayLights,
+		maxDirectionalLights: Math.min(maxVolumetricDirectionalLights, maxArrayLights),
+		allowCsm,
+	};
 }
 
 /**
@@ -242,6 +291,7 @@ export function resolveVolumetricShadowSlot(light: Light, scene: Scene): IVolume
 
 	const mapSize = generator.getShadowMap()?.getSize().width ?? 1024;
 	const packed = shadowMap.textureType === Constants.TEXTURETYPE_UNSIGNED_BYTE;
+	const local = !isDirectionalLight(light);
 
 	const isCube = (light as any).needCube?.() === true;
 
@@ -258,22 +308,28 @@ export function resolveVolumetricShadowSlot(light: Light, scene: Scene): IVolume
 				mode: VolumetricShadowMode.Standard,
 				packed,
 				mapSize,
+				local,
 			};
 
 		case ShadowGenerator.FILTER_EXPONENTIALSHADOWMAP:
 		case ShadowGenerator.FILTER_BLUREXPONENTIALSHADOWMAP:
-			return { generator, kind: isCube ? VolumetricShadowKind.Cube : VolumetricShadowKind.Texture2D, mode: VolumetricShadowMode.Esm, packed, mapSize };
+			return { generator, kind: isCube ? VolumetricShadowKind.Cube : VolumetricShadowKind.Texture2D, mode: VolumetricShadowMode.Esm, packed, mapSize, local };
 
 		case ShadowGenerator.FILTER_CLOSEEXPONENTIALSHADOWMAP:
 		case ShadowGenerator.FILTER_BLURCLOSEEXPONENTIALSHADOWMAP:
-			return { generator, kind: isCube ? VolumetricShadowKind.Cube : VolumetricShadowKind.Texture2D, mode: VolumetricShadowMode.CloseEsm, packed, mapSize };
+			return { generator, kind: isCube ? VolumetricShadowKind.Cube : VolumetricShadowKind.Texture2D, mode: VolumetricShadowMode.CloseEsm, packed, mapSize, local };
 
 		default:
-			return { generator, kind: isCube ? VolumetricShadowKind.Cube : VolumetricShadowKind.Texture2D, mode: VolumetricShadowMode.Standard, packed, mapSize };
+			return { generator, kind: isCube ? VolumetricShadowKind.Cube : VolumetricShadowKind.Texture2D, mode: VolumetricShadowMode.Standard, packed, mapSize, local };
 	}
 }
 
-function getLightWorldPosition(light: Light, result: Vector3): Vector3 {
+/**
+ * Returns the world position of the given light, taking its parent into account.
+ * @param light defines the reference to the light to get its position.
+ * @param result defines the vector the position is written to.
+ */
+export function getVolumetricLightWorldPosition(light: Light, result: Vector3): Vector3 {
 	const anyLight = light as any;
 
 	if (anyLight.computeTransformedInformation?.() && anyLight.transformedPosition) {
@@ -287,12 +343,68 @@ function getLightWorldPosition(light: Light, result: Vector3): Vector3 {
 	return result;
 }
 
-function getVolumetricLightRadius(light: Light, config: IVolumetricLightConfiguration, configuration: IVolumetricLightingConfiguration): number {
-	const range = light.range > 0 && isFinite(light.range) ? light.range : configuration.maxDistance;
-	return Math.min(range * config.rangeMultiplier, configuration.maxDistance);
+/**
+ * Returns the normalized world direction of the given light, taking its parent into account.
+ * @param light defines the reference to the light to get its direction.
+ * @param result defines the vector the direction is written to.
+ */
+export function getVolumetricLightWorldDirection(light: Light, result: Vector3): Vector3 {
+	const anyLight = light as any;
+
+	if (anyLight.computeTransformedInformation?.() && anyLight.transformedDirection) {
+		result.copyFrom(anyLight.transformedDirection);
+	} else if (anyLight.direction) {
+		result.copyFrom(anyLight.direction);
+	} else {
+		result.copyFromFloats(0, 0, 1);
+	}
+
+	return result.normalize();
+}
+
+/**
+ * Returns the radius of the volume reached by the given light, as used by the raymarching shader.
+ * "Light.range" defaults to Number.MAX_VALUE, anything past the reach of the march means no attenuation at all.
+ * @param light defines the reference to the light to get its radius.
+ * @param config defines the volumetric configuration of the light.
+ * @param configuration defines the configuration of the pipeline.
+ */
+export function getVolumetricLightRange(light: Light, config: IVolumetricLightConfiguration, configuration: IVolumetricLightingConfiguration): number {
+	const range = light.range > 0 && light.range < Number.MAX_VALUE ? light.range : configuration.maxDistance;
+	return Math.max(1e-3, Math.min(range * config.rangeMultiplier, 3.4e38));
 }
 
 const temporaryPosition = new Vector3();
+const temporaryDirection = new Vector3();
+
+/**
+ * Computes the sphere bounding the volume the given light can reach. A spot light only reaches the cone
+ * that starts at its position, whose bounding sphere is much smaller than the sphere of its range.
+ * @param light defines the reference to the light to bound.
+ * @param range defines the radius of the volume reached by the light.
+ * @param center defines the vector the center of the sphere is written to.
+ * @returns the radius of the sphere.
+ */
+function computeVolumetricLightBounds(light: Light, range: number, center: Vector3): number {
+	getVolumetricLightWorldPosition(light, center);
+
+	if (!isSpotLight(light)) {
+		return range;
+	}
+
+	// The smallest sphere containing the cone of half angle "a" cut by the sphere of the range is centered on
+	// the axis, at "range / (2 cos(a))" of the apex, as long as that is closer than the range itself.
+	const cosHalfAngle = Math.cos(light.angle * 0.5);
+	if (cosHalfAngle <= 0.5) {
+		return range;
+	}
+
+	const radius = range / (2 * cosHalfAngle);
+	getVolumetricLightWorldDirection(light, temporaryDirection);
+	center.addInPlace(temporaryDirection.scaleInPlace(radius));
+
+	return radius;
+}
 
 /**
  * Returns wether or not the sphere of influence of a light intersects the frustum of the camera.
@@ -310,6 +422,13 @@ function isSphereInFrustum(center: Vector3, radius: number, planes: Plane[]): bo
 	}
 
 	return true;
+}
+
+/**
+ * Returns a number identifying the code the raymarching shader needs to read the given shadow map.
+ */
+function getShadowSlotSignature(shadow: IVolumetricShadowSlot): number {
+	return (shadow.local ? 64 : 0) + shadow.kind * 16 + shadow.mode * 4 + (shadow.packed ? 1 : 0);
 }
 
 /**
@@ -368,8 +487,8 @@ export function selectVolumetricLights(
 			// A directional light lights the whole scene, it is always the most important contributor.
 			score += 1e6;
 		} else {
-			const radius = getVolumetricLightRadius(light, config, configuration);
-			getLightWorldPosition(light, temporaryPosition);
+			const range = Math.min(getVolumetricLightRange(light, config, configuration), configuration.maxDistance);
+			const radius = computeVolumetricLightBounds(light, range, temporaryPosition);
 
 			if (!isSphereInFrustum(temporaryPosition, radius, frustumPlanes)) {
 				stats.culledCount++;
@@ -406,20 +525,42 @@ export function selectVolumetricLights(
 	const shadowedCandidates: { candidate: IVolumetricLightCandidate; shadow: IVolumetricShadowSlot }[] = [];
 	const unshadowedCandidates: IVolumetricLightCandidate[] = [];
 
+	// Explains why each light of the unshadowed tier doesn't use a shadow map, written as the lights are
+	// classified so the shadow map of each light is only resolved once per selection.
+	const unshadowedReasons = new Map<number, string>();
+
 	let csm: IVolumetricLightSelection["csm"] = null;
 
 	candidates.forEach((candidate) => {
 		const { light, config } = candidate;
 
-		const canBeShadowed = config.castVolumetricShadows && !candidate.isClustered && light.shadowEnabled && scene.shadowsEnabled;
-		if (!canBeShadowed) {
+		if (!config.castVolumetricShadows) {
+			unshadowedReasons.set(light.uniqueId, "occlusion is disabled on this light.");
+			unshadowedCandidates.push(candidate);
+			return;
+		}
+
+		if (candidate.isClustered) {
+			unshadowedReasons.set(light.uniqueId, "clustered lighting doesn't support shadow maps.");
+			unshadowedCandidates.push(candidate);
+			return;
+		}
+
+		if (!light.shadowEnabled || !scene.shadowsEnabled) {
+			unshadowedReasons.set(light.uniqueId, "shadows are disabled on this light or on the scene.");
 			unshadowedCandidates.push(candidate);
 			return;
 		}
 
 		const generator = light.getShadowGenerator(scene.activeCamera) ?? light.getShadowGenerator();
 
-		if (generator && isCascadedShadowGenerator(generator) && budget.allowCsm) {
+		if (!generator) {
+			unshadowedReasons.set(light.uniqueId, "the light has no shadow generator.");
+			unshadowedCandidates.push(candidate);
+			return;
+		}
+
+		if (isCascadedShadowGenerator(generator) && budget.allowCsm) {
 			const shadowMap = generator.getShadowMapForRendering();
 
 			if (!csm && shadowMap?.isReady()) {
@@ -436,12 +577,14 @@ export function selectVolumetricLights(
 				return;
 			}
 
+			unshadowedReasons.set(light.uniqueId, csm ? "another light already uses the single cascaded shadow map slot." : "its cascaded shadow map is not ready yet.");
 			unshadowedCandidates.push(candidate);
 			return;
 		}
 
 		const shadow = resolveVolumetricShadowSlot(light, scene);
 		if (!shadow) {
+			unshadowedReasons.set(light.uniqueId, "the shadow map of the light is not ready yet.");
 			unshadowedCandidates.push(candidate);
 			return;
 		}
@@ -462,6 +605,10 @@ export function selectVolumetricLights(
 		return score + Math.abs(score) * volumetricSlotHysteresis;
 	}
 
+	function getPreviousSlot(entry: { candidate: IVolumetricLightCandidate }): number {
+		return previousSlots.get(entry.candidate.light.uniqueId) ?? Number.MAX_SAFE_INTEGER;
+	}
+
 	shadowedCandidates.sort((a, b) => {
 		const difference = getHysteresisScore(b) - getHysteresisScore(a);
 		if (difference !== 0) {
@@ -469,23 +616,55 @@ export function selectVolumetricLights(
 		}
 
 		// Equal scores keep their previous slot, which keeps the generated shader identical.
-		const previousA = previousSlots.get(a.candidate.light.uniqueId) ?? Number.MAX_SAFE_INTEGER;
-		const previousB = previousSlots.get(b.candidate.light.uniqueId) ?? Number.MAX_SAFE_INTEGER;
-
-		return previousA - previousB;
+		return getPreviousSlot(a) - getPreviousSlot(b);
 	});
 
 	const shadowed = shadowedCandidates.slice(0, budget.maxShadowSlots);
 
+	// The code of each slot of the shader only depends on the kind of shadow map it reads, so ordering the
+	// slots by kind makes the shader depend on how many shadow maps of each kind there are rather than on
+	// which light uses which slot. Swapping two lights of the same kind then never recompiles anything.
+	shadowed.sort((a, b) => getShadowSlotSignature(a.shadow) - getShadowSlotSignature(b.shadow) || getPreviousSlot(a) - getPreviousSlot(b));
+
 	// Lights that don't fit in the shadowed tier fall back to the unshadowed one instead of disappearing.
 	shadowedCandidates.slice(budget.maxShadowSlots).forEach((entry) => {
+		unshadowedReasons.set(entry.candidate.light.uniqueId, "the shadowed lights budget is full.");
 		unshadowedCandidates.push(entry.candidate);
 	});
 
 	unshadowedCandidates.sort((a, b) => b.score - a.score);
 
-	const unshadowed = unshadowedCandidates.slice(0, budget.maxArrayLights);
-	const dropped = unshadowedCandidates.slice(budget.maxArrayLights);
+	// Directional lights light the whole view ray and are marched along it, the point and spot lights are
+	// integrated over their own volume only. Both live in the same arrays, the directional ones first.
+	const directional: IVolumetricLightCandidate[] = [];
+	const local: IVolumetricLightCandidate[] = [];
+	const dropped: { candidate: IVolumetricLightCandidate; reason: string }[] = [];
+
+	unshadowedCandidates.forEach((candidate) => {
+		if (isDirectionalLight(candidate.light)) {
+			if (directional.length < budget.maxDirectionalLights) {
+				directional.push(candidate);
+			} else {
+				dropped.push({
+					candidate,
+					reason: `Not rendered: at most ${budget.maxDirectionalLights} directional light(s) without a shadow map can take part in the effect.`,
+				});
+			}
+		} else {
+			local.push(candidate);
+		}
+	});
+
+	const localCapacity = Math.max(0, budget.maxArrayLights - directional.length);
+
+	local.slice(localCapacity).forEach((candidate) => {
+		dropped.push({
+			candidate,
+			reason: 'Not rendered: the lights budget is full. Raise "Max Lights" or lower the priority of the other lights.',
+		});
+	});
+
+	const unshadowed = directional.concat(local.slice(0, localCapacity));
 
 	shadowed.forEach((entry, index) => {
 		stats.shadowedCount++;
@@ -510,42 +689,20 @@ export function selectVolumetricLights(
 	unshadowed.forEach((candidate) => {
 		stats.unshadowedCount++;
 
-		const generator = candidate.light.getShadowGenerator(scene.activeCamera) ?? candidate.light.getShadowGenerator();
-
 		// Every light of this tier is occluded with the depth buffer instead of a shadow map when it asked
 		// for it, so the wording only has to explain why the shadow map isn't the one being used.
 		const occluded = candidate.config.castVolumetricShadows ? "Occluded using the depth buffer" : "Not occluded by the geometry";
+		const reason = unshadowedReasons.get(candidate.light.uniqueId) ?? "the light has no shadow map.";
 
-		let reason: string;
-		if (!candidate.config.castVolumetricShadows) {
-			reason = `${occluded}: occlusion is disabled on this light.`;
-		} else if (candidate.isClustered) {
-			reason = `${occluded}: clustered lighting doesn't support shadow maps.`;
-		} else if (!scene.shadowsEnabled || !candidate.light.shadowEnabled) {
-			reason = `${occluded}: shadows are disabled on this light or on the scene.`;
-		} else if (!generator) {
-			reason = `${occluded}: the light has no shadow generator.`;
-		} else if (isCascadedShadowGenerator(generator)) {
-			reason = csm ? `${occluded}: another light already uses the single cascaded shadow map slot.` : `${occluded}: its cascaded shadow map is not ready yet.`;
-		} else if (!resolveVolumetricShadowSlot(candidate.light, scene)) {
-			reason = `${occluded}: the shadow map of the light is not ready yet.`;
-		} else {
-			reason = `${occluded}: the shadowed lights budget is full.`;
-		}
-
-		stats.perLight.set(candidate.light.uniqueId, { state: "unshadowed", slot: -1, reason });
+		stats.perLight.set(candidate.light.uniqueId, { state: "unshadowed", slot: -1, reason: `${occluded}: ${reason}` });
 	});
 
-	dropped.forEach((candidate) => {
+	dropped.forEach(({ candidate, reason }) => {
 		stats.droppedCount++;
-		stats.perLight.set(candidate.light.uniqueId, {
-			state: "dropped",
-			slot: -1,
-			reason: 'Not rendered: the lights budget is full. Raise "Max Lights" or lower the priority of the other lights.',
-		});
+		stats.perLight.set(candidate.light.uniqueId, { state: "dropped", slot: -1, reason });
 	});
 
-	return { shadowed, unshadowed, csm, stats };
+	return { shadowed, unshadowed, directionalCount: directional.length, csm, stats };
 }
 
 /**
@@ -558,7 +715,22 @@ export interface IVolumetricShaderEnvironment {
 	reverseDepth: boolean;
 	ndcHalfZ: boolean;
 	fogMode: number;
-	analyticTransmittance: boolean;
+	transmittance: VolumetricTransmittanceMode;
+	/**
+	 * Defines wether or not the linear depth of the scene is packed in an 8 bits RGBA texture because the
+	 * engine can't render to a 32 bits float one.
+	 */
+	linearDepthPacked: boolean;
+	/**
+	 * Defines the size of the uniform arrays holding the lights evaluated without a shadow map. The number of
+	 * lights actually stored in them is a uniform, which is what lets lights enter and leave the frustum of
+	 * the camera without recompiling anything.
+	 */
+	arrayLightCapacity: number;
+	/**
+	 * Defines the number of samples taken across the volume of each point and spot light.
+	 */
+	lightSteps: number;
 }
 
 /**
@@ -572,11 +744,12 @@ export function computeVolumetricShapeKey(
 	configuration: IVolumetricLightingConfiguration,
 	environment: IVolumetricShaderEnvironment
 ): string {
-	const slots = selection.shadowed.map((entry) => `${entry.shadow.kind}.${entry.shadow.mode}.${entry.shadow.packed ? 1 : 0}`).join("|");
+	const slots = selection.shadowed.map((entry) => `${entry.shadow.kind}.${entry.shadow.mode}.${entry.shadow.packed ? 1 : 0}.${entry.shadow.local ? 1 : 0}`).join("|");
 	const csm = selection.csm ? `${selection.csm.kind}.${selection.csm.cascades}.${selection.csm.packed ? 1 : 0}` : "-";
 
 	return [
 		configuration.steps,
+		environment.lightSteps,
 		configuration.stepDistribution,
 		configuration.ditherMode,
 		configuration.temporalJitter ? 1 : 0,
@@ -587,12 +760,14 @@ export function computeVolumetricShapeKey(
 		configuration.debugMode,
 		configuration.screenSpaceShadows ? configuration.screenSpaceShadowSteps : 0,
 		environment.fogMode,
-		environment.analyticTransmittance ? 1 : 0,
+		environment.transmittance,
 		environment.depthMode,
 		environment.ldrEncode ? 1 : 0,
 		environment.reverseDepth ? 1 : 0,
 		environment.ndcHalfZ ? 1 : 0,
-		selection.unshadowed.length,
+		environment.linearDepthPacked ? 1 : 0,
+		environment.arrayLightCapacity,
+		selection.directionalCount,
 		slots,
 		csm,
 	].join(",");
