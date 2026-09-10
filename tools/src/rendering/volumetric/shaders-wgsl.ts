@@ -1,27 +1,33 @@
 import { maxVolumetricShadowSlots } from "./types";
 
 /**
- * WGSL version of the three passes of the volumetric lighting rendering pipeline, for WebGPU.
+ * WGSL version of the four passes of the volumetric lighting rendering pipeline, for WebGPU.
  *
  * This is a hand written port of the GLSL in "shaders.ts" rather than a transpilation: Babylon.js can only
  * turn GLSL into WGSL by downloading twgsl from its CDN, which an offline Electron application can't rely on.
  * Both versions are driven by exactly the same "#define" set, so the pipeline, the light selection and the
- * shader shape key are shared and only the source of the three passes differs.
+ * shader shape key are shared and only the source of the passes differs.
+ *
+ * Babylon.js emulates the conventions of WebGL on WebGPU: render targets are stored bottom-up and
+ * "fragmentInputs.position" is flipped like "gl_FragCoord" when needed, so the integer texel fetches below
+ * address the textures exactly like their GLSL counterparts.
  */
 
 /**
- * Helpers shared by the three passes. They read the "depthSampler" texture declared by each pass.
+ * Unpacks a depth packed in the four channels of an 8 bits RGBA texture, the same way Babylon.js does.
  */
-const commonHelpers = /* wgsl */ `
-fn volMod(x: f32, y: f32) -> f32 {
-	return x - y * floor(x / y);
-}
-
+const packingHelpers = /* wgsl */ `
 fn volUnpack(color: vec4f) -> f32 {
 	let bitShift = vec4f(1.0 / (255.0 * 255.0 * 255.0), 1.0 / (255.0 * 255.0), 1.0 / 255.0, 1.0);
 	return dot(color, bitShift);
 }
+`;
 
+/**
+ * Reads the full resolution depth map of the depth renderer, bound as "depthSampler". Requires the
+ * "volCameraMinMaxZ" and "volDepthUnpack" uniforms.
+ */
+const depthMapHelpers = /* wgsl */ `
 fn volSampleDepth(uv: vec2f) -> f32 {
 	#ifdef VOL_DEPTH_PACKED
 		return volUnpack(textureSampleLevel(depthSampler, depthSamplerSampler, uv, 0.0));
@@ -45,11 +51,137 @@ fn volLinearDepth(d: f32) -> f32 {
 `;
 
 /**
+ * Reads the linear depth written by the linear depth pass. Requires the "volCameraMinMaxZ" uniform.
+ * @param texture defines the name of the texture holding the linear depth.
+ */
+function buildLinearDepthHelpers(texture: string): string {
+	return /* wgsl */ `
+// Returns the distance along the view axis, in scene units, of the texel at the given coordinates.
+fn volReadLinearDepth(coordinates: vec2i) -> f32 {
+	#ifdef VOL_LINEAR_DEPTH_PACKED
+		return volUnpack(textureLoad(${texture}, coordinates, 0)) * uniforms.volCameraMinMaxZ.y;
+	#else
+		return textureLoad(${texture}, coordinates, 0).r;
+	#endif
+}
+
+// Returns the texel of the linear depth under the center of the given texel of the scattering buffer.
+// @see the GLSL version.
+fn volScatterToDepthTexel(scatterTexel: vec2i, depthSize: vec2i) -> vec2i {
+	return min(vec2i((vec2f(scatterTexel) + 0.5) * uniforms.volDepthRatio), depthSize - 1);
+}
+`;
+}
+
+/**
+ * The linear depth pass. @see buildVolumetricLightingLinearDepthShader.
+ */
+export function buildVolumetricLightingLinearDepthShaderWGSL(): string {
+	return /* wgsl */ `
+varying vUV: vec2f;
+
+var textureSamplerSampler: sampler;
+var textureSampler: texture_2d<f32>;
+var depthSamplerSampler: sampler;
+var depthSampler: texture_2d<f32>;
+
+uniform volCameraMinMaxZ: vec2f;
+uniform volDepthUnpack: vec2f;
+
+${packingHelpers}
+${depthMapHelpers}
+
+fn volPack(depth: f32) -> vec4f {
+	let bitShift = vec4f(255.0 * 255.0 * 255.0, 255.0 * 255.0, 255.0, 1.0);
+	let bitMask = vec4f(0.0, 1.0 / 255.0, 1.0 / 255.0, 1.0 / 255.0);
+
+	var result = fract(depth * bitShift);
+	result -= result.xxyz * bitMask;
+
+	return result;
+}
+
+@fragment
+fn main(input: FragmentInputs) -> FragmentOutputs {
+	let viewZ = volLinearDepth(volSampleDepth(input.vUV));
+
+	#ifdef VOL_LINEAR_DEPTH_PACKED
+		fragmentOutputs.color = volPack(clamp(viewZ / uniforms.volCameraMinMaxZ.y, 0.0, 0.9999999));
+	#else
+		fragmentOutputs.color = vec4f(viewZ, 0.0, 0.0, 1.0);
+	#endif
+}
+`;
+}
+
+/**
+ * Generates the loop integrating the in-scattering of a point or a spot light over the part of the view ray
+ * crossing its volume. @see the GLSL version in "shaders.ts".
+ * @param seed defines the expression decorrelating the samples of this light from the ones of the other lights.
+ * @param occlusion defines the statement applying the occlusion of the light to "contribution".
+ */
+function buildLocalLightIntegrationWGSL(seed: string, occlusion: string): string {
+	return /* wgsl */ `
+		let chordLength = t1 - t0;
+
+		// The point of the view ray closest to the light splits the chord in two halves over which both the
+		// attenuation and the phase function are monotonic, which is where stratified samples do best.
+		var closest = clamp(dot(data.xyz, volRayDir), t0, t1);
+		if (closest - t0 < 0.02 * chordLength) {
+			closest = t0;
+		} else if (t1 - closest < 0.02 * chordLength) {
+			closest = t1;
+		}
+
+		let count = volLocalSampleCount(chordLength, falloff.x, tEnd - tStart);
+
+		var firstCount = clamp(i32(f32(count) * (closest - t0) / chordLength + 0.5), 1, count - 1);
+		if (closest <= t0) {
+			firstCount = 0;
+		} else if (closest >= t1) {
+			firstCount = count;
+		}
+
+		let firstWidth = (closest - t0) / f32(max(firstCount, 1));
+		let secondWidth = (t1 - closest) / f32(max(count - firstCount, 1));
+		let stratum = volStratumOffset(${seed});
+
+		var result = vec3f(0.0);
+
+		for (var k: i32 = 0; k < VOL_LOCAL_MAX_STEPS; k++) {
+			if (k >= count) {
+				break;
+			}
+
+			let inFirstHalf = k < firstCount;
+			let width = select(secondWidth, firstWidth, inFirstHalf);
+			let t = select(closest + width * (f32(k - firstCount) + stratum), t0 + width * (f32(k) + stratum), inFirstHalf);
+
+			let position = volRayDir * t;
+			let sigmaT = volExtinctionAt(uniforms.volCameraPosition.y + position.y, t);
+
+			let lightSample = volEvalLocalLight(data, diffuse, direction, falloff, position);
+			var contribution = lightSample.xyz;
+			let distanceToLight = lightSample.w;
+
+			if (contribution.r + contribution.g + contribution.b > 0.0) {
+				${occlusion}
+				result += contribution * (volCombinedTransmittance(t, sigmaT, distanceToLight) * sigmaT * width);
+			}
+		}
+
+		return vec4f(result, 1.0);
+`;
+}
+
+/**
  * The raymarching pass. @see buildVolumetricLightingScatteringShader for what it computes.
  * @param shadowSlotCount defines the number of shadowed light slots the shader is generated for.
  */
 export function buildVolumetricLightingScatteringShaderWGSL(shadowSlotCount: number): string {
 	const slots: string[] = [];
+	const globalSlotContributions: string[] = [];
+	const localSlotContributions: string[] = [];
 
 	for (let i = 0; i < shadowSlotCount; ++i) {
 		slots.push(
@@ -66,13 +198,15 @@ export function buildVolumetricLightingScatteringShaderWGSL(shadowSlotCount: num
 		var volShadowSampler{X}: texture_2d<f32>;
 	#endif
 
-	fn volShadow{X}(p: vec3f) -> f32 {
+	// Returns the shadowing of a point given its position relative to the camera and, for the 2d shadow maps, its
+	// position in the clip space of the light. @see the GLSL version.
+	fn volShadow{X}(position: vec3f, clip: vec4f) -> f32 {
 		let info = uniforms.volShadowInfo[{X}];
 		let edge = uniforms.volShadowLightFalloff[{X}].z;
 
 		#if VOL_SHADOW_KIND{X} == 2
 			// Cube shadow map of a point light. It stores the radial distance to the light.
-			var toFragment = p - uniforms.volShadowLightData[{X}].xyz;
+			var toFragment = position - uniforms.volShadowLightData[{X}].xyz;
 			let depth = clamp((length(toFragment) + info.z) / info.w, 0.0, 1.0);
 
 			toFragment = normalize(toFragment);
@@ -93,7 +227,6 @@ export function buildVolumetricLightingScatteringShaderWGSL(shadowSlotCount: num
 				return select(1.0, info.x, depth > shadowMapSample);
 			#endif
 		#else
-			let clip = uniforms.volShadowMatrix[{X}] * vec4f(p, 1.0);
 			let clipSpace = clip.xyz / clip.w;
 
 			// "getTransformMatrix" gives the world to light clip space matrix without the [-1, 1] -> [0, 1] bias.
@@ -150,27 +283,58 @@ export function buildVolumetricLightingScatteringShaderWGSL(shadowSlotCount: num
 			#endif
 		#endif
 	}
+
+	#if VOL_SHADOW_LOCAL{X} == 1
+		// Point or spot light casting volumetric shadows: integrated over its own volume, like the others.
+		fn volIntegrateShadowSlot{X}(tStart: f32, tEnd: f32) -> vec4f {
+			let data = uniforms.volShadowLightData[{X}];
+			let direction = uniforms.volShadowLightDirection[{X}];
+			let falloff = uniforms.volShadowLightFalloff[{X}];
+
+			let chord = volLightChord(data, direction, falloff.x);
+			let t0 = max(chord.x, tStart);
+			let t1 = min(chord.y, tEnd);
+
+			if (t1 <= t0) {
+				return vec4f(0.0);
+			}
+
+			let diffuse = uniforms.volShadowLightDiffuse[{X}];
+
+			// The light clip space position of the points of the view ray is affine in their distance to the camera.
+			let clipOrigin = uniforms.volShadowMatrix[{X}] * vec4f(uniforms.volCameraPosition, 1.0);
+			let clipDirection = uniforms.volShadowMatrix[{X}] * vec4f(volRayDir, 0.0);
+			${buildLocalLightIntegrationWGSL("f32({X}) + 0.5", "contribution *= mix(1.0, volShadow{X}(position, clipOrigin + clipDirection * t), falloff.w);")}
+		}
+	#endif
 #endif
 `.replace(/\{X\}/g, i.toString())
 		);
-	}
 
-	const shadowContributions: string[] = [];
-	for (let i = 0; i < shadowSlotCount; ++i) {
-		shadowContributions.push(
+		globalSlotContributions.push(
 			/* wgsl */ `
-			#if VOL_SHADOW_SLOT_COUNT > {X}
-			{
-				var lightVector = vec3f(0.0);
-				var distanceToLight = 0.0;
-				let contribution = volEvalLight(uniforms.volShadowLightData[{X}], uniforms.volShadowLightDiffuse[{X}], uniforms.volShadowLightDirection[{X}], uniforms.volShadowLightFalloff[{X}], p, rayDir, sigmaT, &lightVector, &distanceToLight);
-				if (dot(contribution, contribution) > 0.0) {
-					let shadow = mix(1.0, volShadow{X}(p), uniforms.volShadowLightFalloff[{X}].w);
-					scattering += contribution * shadow;
-					stepLights += 1.0;
-				}
-			}
+				#if VOL_SHADOW_SLOT_COUNT > {X}
+					#if VOL_SHADOW_LOCAL{X} == 0
+					{
+						// Recomputed rather than kept affine to keep fewer registers alive across the march. @see the GLSL version.
+						let shadow = volShadow{X}(position, uniforms.volShadowMatrix[{X}] * vec4f(uniforms.volCameraPosition + position, 1.0));
+						scattering += volEvalDirectionalLight(uniforms.volShadowLightData[{X}], uniforms.volShadowLightDiffuse[{X}]) * mix(1.0, shadow, uniforms.volShadowLightFalloff[{X}].w);
+						stepLights += 1.0;
+					}
+					#endif
+				#endif
+`.replace(/\{X\}/g, i.toString())
+		);
+
+		localSlotContributions.push(
+			/* wgsl */ `
+		#if VOL_SHADOW_SLOT_COUNT > {X}
+			#if VOL_SHADOW_LOCAL{X} == 1
+				lightResult = volIntegrateShadowSlot{X}(tStart, tEnd);
+				accumulated += lightResult.xyz;
+				evaluatedLights += lightResult.w;
 			#endif
+		#endif
 `.replace(/\{X\}/g, i.toString())
 		);
 	}
@@ -178,16 +342,16 @@ export function buildVolumetricLightingScatteringShaderWGSL(shadowSlotCount: num
 	return /* wgsl */ `
 varying vUV: vec2f;
 
-var textureSamplerSampler: sampler;
+// Full resolution linear depth of the scene, written by the linear depth pass.
 var textureSampler: texture_2d<f32>;
-var depthSamplerSampler: sampler;
-var depthSampler: texture_2d<f32>;
+
+// Ratio between the resolution of the linear depth and the resolution of the scattering buffer.
+uniform volDepthRatio: vec2f;
 
 uniform volInverseViewProjection: mat4x4f;
 uniform volCameraPosition: vec3f;
 uniform volCameraForward: vec3f;
 uniform volCameraMinMaxZ: vec2f;
-uniform volDepthUnpack: vec2f;
 uniform volFrameIndex: f32;
 
 uniform volFogInfos: vec4f;
@@ -200,13 +364,15 @@ uniform volMedium: vec4f;
 	uniform volScreenShadowParams: vec4f;
 #endif
 uniform volAmbient: vec3f;
+
+// (maximum distance, dithering strength, light extinction clamp, number of point and spot lights in the arrays)
 uniform volParams: vec4f;
 
-#if VOL_ARRAY_LIGHT_COUNT > 0
-	uniform volLightData: array<vec4f, VOL_ARRAY_LIGHT_COUNT>;
-	uniform volLightDiffuse: array<vec4f, VOL_ARRAY_LIGHT_COUNT>;
-	uniform volLightDirection: array<vec4f, VOL_ARRAY_LIGHT_COUNT>;
-	uniform volLightFalloff: array<vec4f, VOL_ARRAY_LIGHT_COUNT>;
+#if VOL_MAX_ARRAY_LIGHTS > 0
+	uniform volLightData: array<vec4f, VOL_MAX_ARRAY_LIGHTS>;
+	uniform volLightDiffuse: array<vec4f, VOL_MAX_ARRAY_LIGHTS>;
+	uniform volLightDirection: array<vec4f, VOL_MAX_ARRAY_LIGHTS>;
+	uniform volLightFalloff: array<vec4f, VOL_MAX_ARRAY_LIGHTS>;
 #endif
 
 #if VOL_SHADOW_SLOT_COUNT > 0
@@ -235,7 +401,25 @@ uniform volParams: vec4f;
 	#endif
 #endif
 
-${commonHelpers}
+// Values shared by every function of the pass, computed once per pixel. Every position the raymarching
+// manipulates is relative to the camera, which keeps the precision of the lights far from the origin.
+var<private> volRayDir: vec3f;
+var<private> volCosForward: f32;
+var<private> volNoise: f32;
+var<private> volJitter: f32;
+
+#ifdef VOL_SCREEN_SHADOWS
+	var<private> volDepthSize: vec2i;
+	var<private> volClipOrigin: vec4f;
+	var<private> volClipDirection: vec4f;
+#endif
+
+${packingHelpers}
+${buildLinearDepthHelpers("textureSampler")}
+
+fn volMod(x: f32, y: f32) -> f32 {
+	return x - y * floor(x / y);
+}
 
 fn volFallOff(value: f32, clipSpaceXY: vec2f, frustumEdgeFalloff: f32) -> f32 {
 	let mask = smoothstep(1.0 - frustumEdgeFalloff, 1.00000012, clamp(dot(clipSpaceXY, clipSpaceXY), 0.0, 1.0));
@@ -273,22 +457,16 @@ fn volInterleavedGradientNoise(p: vec2f) -> f32 {
 	return fract(52.9829189 * fract(dot(p, vec2f(0.06711056, 0.00583715))));
 }
 
-// Transmittance of the medium between the camera and "t". @see the GLSL version.
-fn volMediumTransmittance(t: f32) -> f32 {
-	var coefficient = 1.0;
-
-	#if VOL_FOG_MODE == 2
-		coefficient = (uniforms.volFogInfos.z - t) / max(uniforms.volFogInfos.z - uniforms.volFogInfos.y, uniforms.volLinearFogEps);
-	#elif VOL_FOG_MODE == 1
-		coefficient = 1.0 / pow(2.71828, t * t * uniforms.volFogInfos.w * uniforms.volFogInfos.w);
+// Returns the offset of the samples of a light inside their strata. @see the GLSL version.
+fn volStratumOffset(seed: f32) -> f32 {
+	#if VOL_DITHER == 0
+		return 0.5;
 	#else
-		coefficient = 1.0 / pow(2.71828, t * uniforms.volFogInfos.w);
+		return mix(0.5, fract(volNoise + seed * 0.618034), uniforms.volParams.y);
 	#endif
-
-	return clamp(coefficient, 0.0, 1.0);
 }
 
-// sigma(t) = -d/dt ln(T(t)), the exact analytic derivative of the transmittance above.
+// sigma(t) = -d/dt ln(T(t)), the exact analytic derivative of the optical depth. @see the GLSL version.
 fn volFogExtinction(t: f32) -> f32 {
 	#if VOL_FOG_MODE == 2
 		return select(1.0 / max(uniforms.volFogInfos.z - t, uniforms.volLinearFogEps), 0.0, t < uniforms.volFogInfos.y);
@@ -299,186 +477,367 @@ fn volFogExtinction(t: f32) -> f32 {
 	#endif
 }
 
-fn volExtinctionAt(p: vec3f, t: f32) -> f32 {
+// "height" is the absolute altitude of the sample, "t" its distance to the camera.
+fn volExtinctionAt(height: f32, t: f32) -> f32 {
 	var sigma = volFogExtinction(t);
 
 	#ifdef VOL_HEIGHT_FOG
-		sigma *= exp(-max(0.0, p.y - uniforms.volMedium.y) * uniforms.volMedium.z);
+		sigma *= exp(-max(0.0, height - uniforms.volMedium.y) * uniforms.volMedium.z);
 	#endif
 
 	return sigma;
 }
 
+// Transmittance of the medium between the camera and the point of the view ray at the distance "t".
+// @see the GLSL version.
+#if VOL_TRANSMITTANCE == 1
+	fn volHeightSegment(s1: f32, s2: f32) -> f32 {
+		let y0 = uniforms.volCameraPosition.y - uniforms.volMedium.y;
+		let h1 = y0 + s1 * volRayDir.y;
+		let h2 = y0 + s2 * volRayDir.y;
+
+		if (h1 + h2 <= 0.0) {
+			return s2 - s1;
+		}
+
+		let e1 = exp(-uniforms.volMedium.z * max(h1, 0.0));
+		let e2 = exp(-uniforms.volMedium.z * max(h2, 0.0));
+		let slope = uniforms.volMedium.z * volRayDir.y;
+
+		return select((e1 - e2) / slope, 0.5 * (e1 + e2) * (s2 - s1), abs(slope * (s2 - s1)) < 1e-4);
+	}
+
+	fn volOpticalDepth(t: f32) -> f32 {
+		let crossing = select(-1.0, (uniforms.volMedium.y - uniforms.volCameraPosition.y) / volRayDir.y, abs(volRayDir.y) > 1e-6);
+
+		var opticalLength = 0.0;
+		if (crossing > 0.0 && crossing < t) {
+			opticalLength = volHeightSegment(0.0, crossing) + volHeightSegment(crossing, t);
+		} else {
+			opticalLength = volHeightSegment(0.0, t);
+		}
+
+		return uniforms.volFogInfos.w * opticalLength;
+	}
+
+	fn volTransmittance(t: f32) -> f32 {
+		return exp(-volOpticalDepth(t));
+	}
+#elif VOL_TRANSMITTANCE == 2
+	var<private> volOpticalDepths: array<f32, VOL_TRANSMITTANCE_SAMPLES + 1>;
+	var<private> volOpticalDepthStart: f32;
+	var<private> volOpticalDepthScale: f32;
+
+	fn volBuildOpticalDepths(tStart: f32, tEnd: f32) {
+		let stepSize = (tEnd - tStart) / f32(VOL_TRANSMITTANCE_SAMPLES);
+
+		volOpticalDepthStart = tStart;
+		volOpticalDepthScale = 1.0 / stepSize;
+
+		var previous = volExtinctionAt(uniforms.volCameraPosition.y + volRayDir.y * tStart, tStart);
+		var opticalDepth = previous * tStart;
+
+		volOpticalDepths[0] = opticalDepth;
+
+		for (var i: i32 = 1; i <= VOL_TRANSMITTANCE_SAMPLES; i++) {
+			let t = tStart + stepSize * f32(i);
+			let sigma = volExtinctionAt(uniforms.volCameraPosition.y + volRayDir.y * t, t);
+
+			opticalDepth += 0.5 * (previous + sigma) * stepSize;
+			volOpticalDepths[i] = opticalDepth;
+			previous = sigma;
+		}
+	}
+
+	fn volOpticalDepth(t: f32) -> f32 {
+		let x = clamp((t - volOpticalDepthStart) * volOpticalDepthScale, 0.0, f32(VOL_TRANSMITTANCE_SAMPLES));
+		let i = min(i32(x), VOL_TRANSMITTANCE_SAMPLES - 1);
+
+		return mix(volOpticalDepths[i], volOpticalDepths[i + 1], x - f32(i));
+	}
+
+	fn volTransmittance(t: f32) -> f32 {
+		return exp(-volOpticalDepth(t));
+	}
+#elif VOL_FOG_MODE == 2
+	fn volTransmittance(t: f32) -> f32 {
+		return clamp((uniforms.volFogInfos.z - t) / max(uniforms.volFogInfos.z - uniforms.volFogInfos.y, uniforms.volLinearFogEps), 0.0, 1.0);
+	}
+#else
+	fn volOpticalDepth(t: f32) -> f32 {
+		#if VOL_FOG_MODE == 1
+			let x = t * uniforms.volFogInfos.w;
+			return x * x;
+		#else
+			return t * uniforms.volFogInfos.w;
+		#endif
+	}
+
+	fn volTransmittance(t: f32) -> f32 {
+		return exp(-volOpticalDepth(t));
+	}
+#endif
+
+// Transmittance of the medium to the point at the distance "t", combined with the attenuation of the light on
+// its way to that point. @see the GLSL version.
+fn volCombinedTransmittance(t: f32, sigmaT: f32, distanceToLight: f32) -> f32 {
+	#ifdef VOL_LIGHT_EXTINCTION
+		let lightOpticalDepth = sigmaT * min(distanceToLight, uniforms.volParams.z);
+
+		#ifdef VOL_OPTICAL_DEPTH
+			return exp(-(volOpticalDepth(t) + lightOpticalDepth));
+		#else
+			return volTransmittance(t) * exp(-lightOpticalDepth);
+		#endif
+	#else
+		return volTransmittance(t);
+	#endif
+}
+
 #ifdef VOL_SCREEN_SHADOWS
-// Walks the segment between a point of the medium and a light. @see the GLSL version.
-fn volScreenShadow(p: vec3f, lightVector: vec3f, distanceToLight: f32, jitter: f32) -> f32 {
-	let traced = min(distanceToLight, uniforms.volScreenShadowParams.x);
-	if (traced <= 0.0) {
+	// Walks a segment going from a point of the medium towards a light through the depth buffer. The segment is
+	// given in clip space, where it is affine. @see the GLSL version.
+	fn volScreenShadow(clipStart: vec4f, clipDelta: vec4f, depthStart: f32, depthDelta: f32) -> f32 {
+		for (var i: i32 = 1; i <= VOL_SCREEN_SHADOW_STEPS; i++) {
+			let u = (f32(i) + volJitter) * (1.0 / f32(VOL_SCREEN_SHADOW_STEPS + 1));
+
+			let clip = clipStart + clipDelta * u;
+			if (clip.w <= 0.0) {
+				continue;
+			}
+
+			let uv = (clip.xy / clip.w) * 0.5 + 0.5;
+			if (uv.x < 0.0 || uv.x >= 1.0 || uv.y < 0.0 || uv.y >= 1.0) {
+				continue;
+			}
+
+			let sceneDepth = volReadLinearDepth(vec2i(uv * vec2f(volDepthSize)));
+
+			let depthDifference = depthStart + depthDelta * u - sceneDepth;
+			let bias = max(uniforms.volScreenShadowParams.y * sceneDepth, uniforms.volCameraMinMaxZ.x);
+
+			if (depthDifference > bias && depthDifference < uniforms.volScreenShadowParams.z * sceneDepth) {
+				return 0.0;
+			}
+		}
+
 		return 1.0;
 	}
 
-	let stepSize = traced / f32(VOL_SCREEN_SHADOW_STEPS + 1);
+	// Occlusion of a point or a spot light, seen from the point of the view ray at the distance "t".
+	fn volScreenShadowToLight(t: f32, lightClip: vec4f, lightDepth: f32, distanceToLight: f32) -> f32 {
+		let clipStart = volClipOrigin + volClipDirection * t;
+		let depthStart = t * volCosForward;
+		let fraction = min(1.0, uniforms.volScreenShadowParams.x / max(distanceToLight, 1e-4));
 
-	for (var i: i32 = 1; i <= VOL_SCREEN_SHADOW_STEPS; i++) {
-		let samplePosition = p + lightVector * (stepSize * (f32(i) + jitter));
-
-		let clip = uniforms.volViewProjection * vec4f(samplePosition, 1.0);
-		if (clip.w <= 0.0) {
-			continue;
-		}
-
-		let uv = (clip.xy / clip.w) * 0.5 + 0.5;
-		if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) {
-			continue;
-		}
-
-		let sampleDepth = dot(samplePosition - uniforms.volCameraPosition, uniforms.volCameraForward);
-		let sceneDepth = volLinearDepth(volSampleDepth(uv));
-
-		let depthDifference = sampleDepth - sceneDepth;
-		let bias = max(uniforms.volScreenShadowParams.y * sceneDepth, uniforms.volCameraMinMaxZ.x);
-
-		if (depthDifference > bias && depthDifference < uniforms.volScreenShadowParams.z * sceneDepth) {
-			return 0.0;
-		}
+		return volScreenShadow(clipStart, (lightClip - clipStart) * fraction, depthStart, (lightDepth - depthStart) * fraction);
 	}
-
-	return 1.0;
-}
 #endif
 
-// Evaluates the in-scattered radiance coming from a single light, without any shadowing.
-fn volEvalLight(
-	data: vec4f,
-	diffuse: vec4f,
-	direction: vec4f,
-	falloff: vec4f,
-	p: vec3f,
-	rayDir: vec3f,
-	sigmaT: f32,
-	lightVector: ptr<function, vec3f>,
-	distanceToLight: ptr<function, f32>
-) -> vec3f {
-	var attenuation = 1.0;
+// Evaluates the in-scattered radiance coming from a directional light, without any shadowing.
+fn volEvalDirectionalLight(data: vec4f, diffuse: vec4f) -> vec3f {
+	return diffuse.rgb * volPhaseHG(dot(volRayDir, data.xyz), diffuse.a);
+}
 
-	*lightVector = vec3f(0.0, 1.0, 0.0);
-	*distanceToLight = 0.0;
+// Evaluates the in-scattered radiance coming from a point or a spot light at the given position, relative to
+// the camera, without any shadowing nor extinction. Returns the radiance in "xyz" and the distance to the light in "w".
+fn volEvalLocalLight(data: vec4f, diffuse: vec4f, direction: vec4f, falloff: vec4f, position: vec3f) -> vec4f {
+	let toLight = data.xyz - position;
+	let distanceToLight = max(length(toLight), 1e-4);
+	let lightVector = toLight / distanceToLight;
 
-	if (data.w == 1.0) {
-		// Directional light: "data.xyz" already holds the direction pointing to the light.
-		*lightVector = data.xyz;
-		*distanceToLight = 3.4e38;
-	} else {
-		let toLight = data.xyz - p;
-		let distance = max(length(toLight), 1e-4);
+	// Same linear attenuation as "computeLighting" in the "lightsFragmentFunctions" include.
+	var attenuation = max(0.0, 1.0 - distanceToLight / falloff.x);
 
-		*distanceToLight = distance;
-		*lightVector = toLight / distance;
-
-		// Same linear attenuation as "computeLighting" in the "lightsFragmentFunctions" include.
-		attenuation = max(0.0, 1.0 - distance / falloff.x);
-
-		if (data.w == 2.0) {
-			let cosAngle = max(0.0, dot(direction.xyz, -(*lightVector)));
-			attenuation *= select(0.0, max(0.0, pow(cosAngle, falloff.y)), cosAngle >= direction.w);
-		}
+	if (data.w == 2.0) {
+		let cosAngle = max(0.0, dot(direction.xyz, -lightVector));
+		attenuation *= select(0.0, max(0.0, pow(cosAngle, falloff.y)), cosAngle >= direction.w);
 	}
 
 	if (attenuation <= 0.0) {
-		return vec3f(0.0);
+		return vec4f(0.0, 0.0, 0.0, distanceToLight);
 	}
 
-	#ifdef VOL_LIGHT_EXTINCTION
-		if (data.w != 1.0) {
-			attenuation *= exp(-sigmaT * min(*distanceToLight, uniforms.volParams.z));
-		}
-	#endif
+	return vec4f(diffuse.rgb * (attenuation * volPhaseHG(dot(volRayDir, lightVector), diffuse.a)), distanceToLight);
+}
 
-	// The scattering angle is the angle between the direction the light travels (-lightVector) and the
-	// direction the ray travels (-rayDir), which is exactly dot(rayDir, lightVector).
-	return diffuse.rgb * (attenuation * volPhaseHG(dot(rayDir, *lightVector), diffuse.a));
+// Returns the part of the view ray crossing the cone of a spot light, cut by the sphere of its range.
+// @see the GLSL version.
+fn volConeChord(apex: vec3f, axis: vec3f, cosAngle: f32, range: f32, sphere: vec2f) -> vec2f {
+	if (cosAngle <= 1e-3) {
+		return sphere;
+	}
+
+	let origin = apex * (-1.0 / range);
+	let dv = dot(volRayDir, axis);
+	let ov = dot(origin, axis);
+	let cos2 = cosAngle * cosAngle;
+
+	let a = dv * dv - cos2;
+	let b = dv * ov - cos2 * dot(volRayDir, origin);
+	let c = ov * ov - cos2 * dot(origin, origin);
+
+	if (abs(a) < 1e-4) {
+		return sphere;
+	}
+
+	let discriminant = b * b - a * c;
+	var cone = vec2f(0.0);
+
+	if (a < 0.0) {
+		if (discriminant <= 0.0) {
+			return vec2f(1.0, -1.0);
+		}
+
+		let s = sqrt(discriminant);
+		cone = vec2f((-b + s) / a, (-b - s) / a);
+
+		if (dv * 0.5 * (cone.x + cone.y) + ov < 0.0) {
+			return vec2f(1.0, -1.0);
+		}
+	} else {
+		let s = sqrt(max(discriminant, 0.0));
+		cone = select(vec2f(-1e30, (-b - s) / a), vec2f((-b + s) / a, 1e30), dv > 0.0);
+	}
+
+	return vec2f(max(sphere.x, (cone.x - 0.005) * range), min(sphere.y, (cone.y + 0.005) * range));
+}
+
+// Returns the part of the view ray, as distances to the camera, crossing the volume a point or a spot light
+// reaches. @see the GLSL version.
+fn volLightChord(data: vec4f, direction: vec4f, range: f32) -> vec2f {
+	let closest = dot(data.xyz, volRayDir);
+	let offset = data.xyz - volRayDir * closest;
+	let halfChord2 = range * range - dot(offset, offset);
+
+	if (halfChord2 <= 0.0) {
+		return vec2f(1.0, -1.0);
+	}
+
+	let halfChord = sqrt(halfChord2);
+	var chord = vec2f(closest - halfChord, closest + halfChord);
+
+	if (data.w == 2.0) {
+		chord = volConeChord(data.xyz, direction.xyz, direction.w, range, chord);
+	}
+
+	return chord;
+}
+
+// Returns the number of samples taken over the given chord of a light. @see the GLSL version.
+fn volLocalSampleCount(chordLength: f32, range: f32, rayLength: f32) -> i32 {
+	let count = max(f32(VOL_LIGHT_STEPS) * chordLength / (2.0 * range), f32(VOL_STEPS) * chordLength / rayLength);
+	return clamp(i32(ceil(count)), 2, VOL_LOCAL_MAX_STEPS);
 }
 
 ${slots.join("\n")}
 
 #ifdef VOL_CSM
-	fn volCsmShadow(p: vec3f) -> f32 {
+	// The parts of the view ray inside the box of each cascade, and the clip space position of the view ray in the
+	// current cascade. @see the GLSL version.
+	var<private> volCsmEntries: vec4f;
+	var<private> volCsmExits: vec4f;
+	var<private> volCsmCurrent: i32;
+	var<private> volCsmClipOrigin: vec4f;
+	var<private> volCsmClipDirection: vec4f;
+
+	// Returns the part of the view ray inside the box of a cascade. @see the GLSL version.
+	fn volCsmBoxInterval(origin: vec4f, direction: vec4f) -> vec2f {
+		#ifdef VOL_NDC_HALF_Z
+			let boxMin = vec3f(-0.96, -0.96, 0.0);
+		#else
+			let boxMin = vec3f(-0.96, -0.96, -1.0);
+		#endif
+		let boxMax = vec3f(0.96, 0.96, 1.0);
+
+		let safeDirection = select(vec3f(1e-9), direction.xyz, abs(direction.xyz) > vec3f(1e-9));
+		let inverseDirection = 1.0 / safeDirection;
+		let t0 = (boxMin - origin.xyz) * inverseDirection;
+		let t1 = (boxMax - origin.xyz) * inverseDirection;
+		let tMin = min(t0, t1);
+		let tMax = max(t0, t1);
+
+		return vec2f(max(max(tMin.x, tMin.y), tMin.z), min(min(tMax.x, tMax.y), tMax.z));
+	}
+
+	fn volPrepareCsm() {
+		volCsmEntries = vec4f(1e30);
+		volCsmExits = vec4f(-1e30);
+
 		for (var cascade: i32 = 0; cascade < VOL_CSM_CASCADES; cascade++) {
-			let clip = uniforms.volCsmMatrices[cascade] * vec4f(p, 1.0);
-			let clipSpace = clip.xyz / clip.w;
-			let uv = 0.5 * clipSpace.xy + vec2f(0.5);
-
-			#ifdef VOL_NDC_HALF_Z
-				let insideDepth = clipSpace.z >= 0.0 && clipSpace.z <= 1.0;
-			#else
-				let insideDepth = abs(clipSpace.z) <= 1.0;
-			#endif
-
-			// A point outside every cascade must stay lit, exactly like the material path does past the last
-			// cascade. Falling back to the last cascade would sample its clamped border texel and report the
-			// whole distant volume as shadowed.
-			let inside = all(uv >= vec2f(0.02)) && all(uv <= vec2f(0.98)) && insideDepth;
-			if (!inside) {
-				continue;
-			}
-
-			#if VOL_CSM_KIND == 1
-				var uvDepth = 0.5 * clipSpace + vec3f(0.5);
-				#ifdef VOL_NDC_HALF_Z
-					uvDepth.z = clipSpace.z;
-				#endif
-
-				let shadow = textureSampleCompareLevel(volCsmSampler, volCsmSamplerSampler, uvDepth.xy, cascade, uvDepth.z);
-				return volFallOff(mix(uniforms.volCsmInfo.x, 1.0, shadow), clipSpace.xy, uniforms.volCsmLightFalloff.z);
-			#else
-				let depthMetric = clamp(volDepthMetric(clip, uniforms.volCsmInfo.zw), 0.0, 1.0);
-
-				#ifdef VOL_CSM_PACKED
-					let shadowMapSample = volUnpack(textureSampleLevel(volCsmSampler, volCsmSamplerSampler, uv, cascade, 0.0));
-				#else
-					let shadowMapSample = textureSampleLevel(volCsmSampler, volCsmSamplerSampler, uv, cascade, 0.0).x;
-				#endif
-
-				return select(1.0, volFallOff(uniforms.volCsmInfo.x, clipSpace.xy, uniforms.volCsmLightFalloff.z), depthMetric > shadowMapSample);
-			#endif
+			let interval = volCsmBoxInterval(uniforms.volCsmMatrices[cascade] * vec4f(uniforms.volCameraPosition, 1.0), uniforms.volCsmMatrices[cascade] * vec4f(volRayDir, 0.0));
+			volCsmEntries[cascade] = interval.x;
+			volCsmExits[cascade] = interval.y;
 		}
 
-		return 1.0;
+		volCsmCurrent = -1;
+	}
+
+	// Returns the shadowing of the point of the view ray at the distance "t" from the camera.
+	fn volCsmShadow(t: f32) -> f32 {
+		// The first cascade containing the sample is the most detailed one.
+		var cascade: i32 = -1;
+		for (var i: i32 = VOL_CSM_CASCADES - 1; i >= 0; i--) {
+			if (t >= volCsmEntries[i] && t <= volCsmExits[i]) {
+				cascade = i;
+			}
+		}
+
+		if (cascade < 0) {
+			return 1.0;
+		}
+
+		if (cascade != volCsmCurrent) {
+			volCsmCurrent = cascade;
+			volCsmClipOrigin = uniforms.volCsmMatrices[cascade] * vec4f(uniforms.volCameraPosition, 1.0);
+			volCsmClipDirection = uniforms.volCsmMatrices[cascade] * vec4f(volRayDir, 0.0);
+		}
+
+		// The projection of a directional light is orthographic, "w" is always 1.
+		let clip = volCsmClipOrigin + volCsmClipDirection * t;
+		let clipSpace = clip.xyz;
+
+		#if VOL_CSM_KIND == 1
+			var uvDepth = 0.5 * clipSpace + vec3f(0.5);
+			#ifdef VOL_NDC_HALF_Z
+				uvDepth.z = clipSpace.z;
+			#endif
+
+			let shadow = textureSampleCompareLevel(volCsmSampler, volCsmSamplerSampler, uvDepth.xy, cascade, uvDepth.z);
+			return volFallOff(mix(uniforms.volCsmInfo.x, 1.0, shadow), clipSpace.xy, uniforms.volCsmLightFalloff.z);
+		#else
+			let uv = 0.5 * clipSpace.xy + vec2f(0.5);
+			let depthMetric = clamp(volDepthMetric(clip, uniforms.volCsmInfo.zw), 0.0, 1.0);
+
+			#ifdef VOL_CSM_PACKED
+				let shadowMapSample = volUnpack(textureSampleLevel(volCsmSampler, volCsmSamplerSampler, uv, cascade, 0.0));
+			#else
+				let shadowMapSample = textureSampleLevel(volCsmSampler, volCsmSamplerSampler, uv, cascade, 0.0).x;
+			#endif
+
+			return select(1.0, volFallOff(uniforms.volCsmInfo.x, clipSpace.xy, uniforms.volCsmLightFalloff.z), depthMetric > shadowMapSample);
+		#endif
 	}
 #endif
 
-@fragment
-fn main(input: FragmentInputs) -> FragmentOutputs {
-	// Reconstruct the world space direction of the view ray from the UV of the pixel.
-	let farPoint = uniforms.volInverseViewProjection * vec4f(input.vUV * 2.0 - 1.0, 1.0, 1.0);
-	let rayDir = normalize(farPoint.xyz / farPoint.w - uniforms.volCameraPosition);
+#if VOL_GLOBAL_LIGHT_COUNT > 0
+	// Marches the whole view ray for the lights that reach all of it: the directional lights. Returns the
+	// in-scattered radiance in "xyz" and the number of lights evaluated in "w".
+	fn volMarchGlobalLights(tStart: f32, tEnd: f32) -> vec4f {
+		#if VOL_DIRECTIONAL_LIGHT_COUNT > 0
+			#ifdef VOL_SCREEN_SHADOWS
+				// The occlusion search of a directional light always walks the same direction over the same distance,
+				// only its starting point moves along the view ray.
+				var directionClip: array<vec4f, VOL_DIRECTIONAL_LIGHT_COUNT>;
+				var directionDepth: array<f32, VOL_DIRECTIONAL_LIGHT_COUNT>;
 
-	// The depth map stores the distance along the view axis, the ray is not aligned with it.
-	let cosForward = max(dot(rayDir, uniforms.volCameraForward), 1e-4);
-	let viewZ = volLinearDepth(volSampleDepth(input.vUV));
-
-	let tEnd = min(viewZ / cosForward, uniforms.volParams.x);
-	let tStart = max(uniforms.volCameraMinMaxZ.x / cosForward, 1e-3);
-
-	var accumulated = vec3f(0.0);
-	var transmittance = 1.0;
-	var evaluatedLights = 0.0;
-	var finalTransmittance = 1.0;
-
-	// WGSL has no early return from the fragment entry point, the whole march is guarded instead.
-	if (tEnd > tStart) {
-		// Offset the first sample of the ray to trade the banding produced by a low step count for noise.
-		var jitter = 0.0;
-		#if VOL_DITHER == 1
-			jitter = volBayer4(input.position.xy);
-		#elif VOL_DITHER == 2
-			var ditherPosition = input.position.xy;
-			#ifdef VOL_TEMPORAL_JITTER
-				ditherPosition += uniforms.volFrameIndex * 5.588238;
+				for (var li: i32 = 0; li < VOL_DIRECTIONAL_LIGHT_COUNT; li++) {
+					let traced = uniforms.volLightData[li].xyz * uniforms.volScreenShadowParams.x;
+					directionClip[li] = uniforms.volViewProjection * vec4f(traced, 0.0);
+					directionDepth[li] = dot(traced, uniforms.volCameraForward);
+				}
 			#endif
-			jitter = volInterleavedGradientNoise(ditherPosition);
 		#endif
-		jitter *= uniforms.volParams.y;
 
 		#if VOL_DISTRIBUTION == 1
 			let ratio = pow(tEnd / tStart, 1.0 / f32(VOL_STEPS));
@@ -486,6 +845,8 @@ fn main(input: FragmentInputs) -> FragmentOutputs {
 			let uniformStep = (tEnd - tStart) / f32(VOL_STEPS);
 		#endif
 
+		var result = vec3f(0.0);
+		var evaluatedLights = 0.0;
 		var segmentStart = tStart;
 
 		for (var i: i32 = 0; i < VOL_STEPS; i++) {
@@ -500,91 +861,178 @@ fn main(input: FragmentInputs) -> FragmentOutputs {
 
 			// The jitter picks the sample inside its own segment, so the marched interval stays exactly
 			// [tStart, tEnd] whatever the dithering does.
-			let t = segmentBegin + dt * jitter;
+			let t = segmentBegin + dt * volJitter;
 			segmentStart = segmentEnd;
 
-			let p = uniforms.volCameraPosition + rayDir * t;
-			let sigmaT = volExtinctionAt(p, t);
+			let position = volRayDir * t;
+			let sigmaT = volExtinctionAt(uniforms.volCameraPosition.y + position.y, t);
 
-			if (sigmaT > 1e-6) {
-				// Both branches give the transmittance at the START of the segment: "segmentIntegral" below
-				// already accounts for the extinction across the segment itself.
-				#ifdef VOL_ANALYTIC_TRANSMITTANCE
-					let viewTransmittance = volMediumTransmittance(segmentBegin);
-				#else
-					let viewTransmittance = transmittance;
-				#endif
+			if (sigmaT <= 1e-6) {
+				continue;
+			}
 
-				if (viewTransmittance < 0.003) {
-					break;
-				}
+			// The transmittance at the START of the segment: the factor below accounts for the extinction
+			// across the segment itself.
+			let viewTransmittance = volTransmittance(segmentBegin);
+			if (viewTransmittance < 0.003) {
+				break;
+			}
 
-				var scattering = uniforms.volAmbient;
-				var stepLights = 0.0;
+			var scattering = vec3f(0.0);
+			var stepLights = 0.0;
 
-${shadowContributions.join("")}
-				#ifdef VOL_CSM
-				{
-					var lightVector = vec3f(0.0);
-					var distanceToLight = 0.0;
-					let contribution = volEvalLight(uniforms.volCsmLightData, uniforms.volCsmLightDiffuse, uniforms.volCsmLightDirection, uniforms.volCsmLightFalloff, p, rayDir, sigmaT, &lightVector, &distanceToLight);
-					if (dot(contribution, contribution) > 0.0) {
-						scattering += contribution * mix(1.0, volCsmShadow(p), uniforms.volCsmLightFalloff.w);
-						stepLights += 1.0;
-					}
-				}
-				#endif
+${globalSlotContributions.join("")}
+			#ifdef VOL_CSM
+			{
+				scattering += volEvalDirectionalLight(uniforms.volCsmLightData, uniforms.volCsmLightDiffuse) * mix(1.0, volCsmShadow(t), uniforms.volCsmLightFalloff.w);
+				stepLights += 1.0;
+			}
+			#endif
 
-				#if VOL_ARRAY_LIGHT_COUNT > 0
-				for (var li: i32 = 0; li < VOL_ARRAY_LIGHT_COUNT; li++) {
-					var lightVector = vec3f(0.0);
-					var distanceToLight = 0.0;
-					var contribution = volEvalLight(uniforms.volLightData[li], uniforms.volLightDiffuse[li], uniforms.volLightDirection[li], uniforms.volLightFalloff[li], p, rayDir, sigmaT, &lightVector, &distanceToLight);
+			#if VOL_DIRECTIONAL_LIGHT_COUNT > 0
+				for (var li: i32 = 0; li < VOL_DIRECTIONAL_LIGHT_COUNT; li++) {
+					var contribution = volEvalDirectionalLight(uniforms.volLightData[li], uniforms.volLightDiffuse[li]);
 
 					#ifdef VOL_SCREEN_SHADOWS
 						// "volLightFalloff[li].z" carries whether this light asked to be occluded by the geometry.
-						if (dot(contribution, contribution) > 0.0 && uniforms.volLightFalloff[li].z > 0.5) {
-							contribution *= volScreenShadow(p, lightVector, distanceToLight, jitter);
+						if (uniforms.volLightFalloff[li].z > 0.5) {
+							contribution *= volScreenShadow(volClipOrigin + volClipDirection * t, directionClip[li], t * volCosForward, directionDepth[li]);
 						}
 					#endif
 
 					scattering += contribution;
-					stepLights += select(0.0, 1.0, dot(contribution, contribution) > 0.0);
+					stepLights += 1.0;
 				}
-				#endif
+			#endif
 
-				evaluatedLights = max(evaluatedLights, stepLights);
+			evaluatedLights = max(evaluatedLights, stepLights);
 
-				// The scattering coefficient is a fraction of the extinction, which conserves energy.
-				scattering *= sigmaT * uniforms.volMedium.x * uniforms.volFogColor;
-
-				// Analytic integral of the in-scattering over the segment, which is what makes the result
-				// independent from the number of steps instead of merely converging to it.
-				let attenuation = exp(-sigmaT * dt);
-				let segmentIntegral = (1.0 - attenuation) / sigmaT;
-
-				accumulated += viewTransmittance * scattering * segmentIntegral;
-
-				#ifndef VOL_ANALYTIC_TRANSMITTANCE
-					transmittance *= attenuation;
-				#endif
-			}
+			// Analytic integral of the in-scattering over the segment. @see the GLSL version.
+			result += scattering * (viewTransmittance * (1.0 - exp(-sigmaT * dt)));
 		}
 
-		#ifdef VOL_ANALYTIC_TRANSMITTANCE
-			finalTransmittance = volMediumTransmittance(tEnd);
-		#else
-			finalTransmittance = transmittance;
+		return vec4f(result, evaluatedLights);
+	}
+#endif
+
+#if VOL_LOCAL_ARRAY_LIGHTS == 1
+	// Integrates a point or a spot light of the arrays over the part of the view ray crossing its volume.
+	// Returns the in-scattered radiance in "xyz" and whether the light was evaluated in "w".
+	fn volIntegrateArrayLight(index: i32, tStart: f32, tEnd: f32) -> vec4f {
+		let data = uniforms.volLightData[index];
+		let direction = uniforms.volLightDirection[index];
+		let falloff = uniforms.volLightFalloff[index];
+
+		let chord = volLightChord(data, direction, falloff.x);
+		let t0 = max(chord.x, tStart);
+		let t1 = min(chord.y, tEnd);
+
+		if (t1 <= t0) {
+			return vec4f(0.0);
+		}
+
+		let diffuse = uniforms.volLightDiffuse[index];
+
+		#ifdef VOL_SCREEN_SHADOWS
+			// "falloff.z" carries whether this light asked to be occluded by the geometry.
+			let occluded = falloff.z > 0.5;
+			let lightClip = volClipOrigin + uniforms.volViewProjection * vec4f(data.xyz, 0.0);
+			let lightDepth = dot(data.xyz, uniforms.volCameraForward);
 		#endif
-	} else {
-		accumulated = vec3f(0.0);
-		finalTransmittance = 1.0;
+
+		${buildLocalLightIntegrationWGSL(
+			"f32(index)",
+			`#ifdef VOL_SCREEN_SHADOWS
+					if (occluded) {
+						contribution *= volScreenShadowToLight(t, lightClip, lightDepth, distanceToLight);
+					}
+				#endif`
+		)}
+	}
+#endif
+
+@fragment
+fn main(input: FragmentInputs) -> FragmentOutputs {
+	// Reconstruct the world space direction of the view ray from the UV of the pixel.
+	let farPoint = uniforms.volInverseViewProjection * vec4f(input.vUV * 2.0 - 1.0, 1.0, 1.0);
+	volRayDir = normalize(farPoint.xyz / farPoint.w - uniforms.volCameraPosition);
+
+	// The depth map stores the distance along the view axis, the ray is not aligned with it.
+	volCosForward = max(dot(volRayDir, uniforms.volCameraForward), 1e-4);
+	let pixel = fragmentInputs.position.xy;
+	let depthSize = vec2i(textureDimensions(textureSampler));
+	let viewZ = volReadLinearDepth(volScatterToDepthTexel(vec2i(pixel), depthSize));
+
+	let tEnd = min(viewZ / volCosForward, uniforms.volParams.x);
+	let tStart = max(uniforms.volCameraMinMaxZ.x / volCosForward, 1e-3);
+
+	var result = vec3f(0.0);
+	var finalTransmittance = 1.0;
+	var evaluatedLights = 0.0;
+
+	// WGSL has no early return from the fragment entry point, the whole integration is guarded instead.
+	if (tEnd > tStart) {
+		// Offsets the samples inside their segments to trade the banding produced by a low sample count for noise.
+		volNoise = 0.0;
+		#if VOL_DITHER == 1
+			volNoise = volBayer4(pixel);
+		#elif VOL_DITHER == 2
+			var ditherPosition = pixel;
+			#ifdef VOL_TEMPORAL_JITTER
+				ditherPosition += uniforms.volFrameIndex * 5.588238;
+			#endif
+			volNoise = volInterleavedGradientNoise(ditherPosition);
+		#endif
+		volJitter = volNoise * uniforms.volParams.y;
+
+		#ifdef VOL_SCREEN_SHADOWS
+			volDepthSize = depthSize;
+			volClipOrigin = uniforms.volViewProjection * vec4f(uniforms.volCameraPosition, 1.0);
+			volClipDirection = uniforms.volViewProjection * vec4f(volRayDir, 0.0);
+		#endif
+
+		#if VOL_TRANSMITTANCE == 2
+			volBuildOpticalDepths(tStart, tEnd);
+		#endif
+
+		#ifdef VOL_CSM
+			volPrepareCsm();
+		#endif
+
+		// The in-scattering of the constant ambient light has a closed form whatever the medium. @see the GLSL version.
+		var accumulated = uniforms.volAmbient * (volTransmittance(tStart) - volTransmittance(tEnd));
+		var lightResult = vec4f(0.0);
+
+		#if VOL_GLOBAL_LIGHT_COUNT > 0
+			lightResult = volMarchGlobalLights(tStart, tEnd);
+			accumulated += lightResult.xyz;
+			evaluatedLights += lightResult.w;
+		#endif
+
+${localSlotContributions.join("")}
+
+		#if VOL_LOCAL_ARRAY_LIGHTS == 1
+			let localEnd = VOL_DIRECTIONAL_LIGHT_COUNT + i32(uniforms.volParams.w + 0.5);
+
+			for (var i: i32 = VOL_DIRECTIONAL_LIGHT_COUNT; i < VOL_MAX_ARRAY_LIGHTS; i++) {
+				if (i >= localEnd) {
+					break;
+				}
+
+				lightResult = volIntegrateArrayLight(i, tStart, tEnd);
+				accumulated += lightResult.xyz;
+				evaluatedLights += lightResult.w;
+			}
+		#endif
+
+		// The scattering coefficient is a fraction of the extinction, which guarantees energy conservation.
+		result = accumulated * uniforms.volMedium.x * uniforms.volFogColor;
+		finalTransmittance = volTransmittance(tEnd);
 	}
 
-	var result = accumulated;
-
 	#if VOL_DEBUG == 3
-		let ratioOfBudget = clamp(evaluatedLights / f32(max(VOL_ARRAY_LIGHT_COUNT + VOL_SHADOW_SLOT_COUNT + VOL_CSM_LIGHT_COUNT, 1)), 0.0, 1.0);
+		// From blue for no light to red for 16 lights or more evaluated by the pixel.
+		let ratioOfBudget = clamp(evaluatedLights / 16.0, 0.0, 1.0);
 		result = vec3f(ratioOfBudget, 1.0 - abs(ratioOfBudget * 2.0 - 1.0), 1.0 - ratioOfBudget);
 	#endif
 
@@ -604,43 +1052,48 @@ export function buildVolumetricLightingBlurShaderWGSL(): string {
 	return /* wgsl */ `
 varying vUV: vec2f;
 
-var textureSamplerSampler: sampler;
 var textureSampler: texture_2d<f32>;
-var depthSamplerSampler: sampler;
-var depthSampler: texture_2d<f32>;
+var volLinearDepthSampler: texture_2d<f32>;
 
 uniform volCameraMinMaxZ: vec2f;
-uniform volDepthUnpack: vec2f;
+uniform volDepthRatio: vec2f;
 uniform volBlurDirection: vec2f;
 uniform volBlurParams: vec2f;
 
-${commonHelpers}
+${packingHelpers}
+${buildLinearDepthHelpers("volLinearDepthSampler")}
 
 @fragment
 fn main(input: FragmentInputs) -> FragmentOutputs {
-	let centerDepth = volLinearDepth(volSampleDepth(input.vUV));
-	let depthThreshold = max(uniforms.volBlurParams.y * max(centerDepth, uniforms.volCameraMinMaxZ.x), 1e-4);
-	let sigma = max(uniforms.volBlurParams.x, 1e-4);
+	// Every tap is an exact texel compared using the depth the raymarching used for it. @see the GLSL version.
+	let size = vec2i(textureDimensions(textureSampler));
+	let depthSize = vec2i(textureDimensions(volLinearDepthSampler));
+	let center = vec2i(fragmentInputs.position.xy);
+	let direction = vec2i(uniforms.volBlurDirection);
 
-	var result = textureSampleLevel(textureSampler, textureSamplerSampler, input.vUV, 0.0);
+	let centerDepth = volReadLinearDepth(volScatterToDepthTexel(center, depthSize));
+	let inverseDepthThreshold = 1.0 / max(uniforms.volBlurParams.y * max(centerDepth, uniforms.volCameraMinMaxZ.x), 1e-4);
+	let sigma = max(uniforms.volBlurParams.x, 1e-4);
+	let inverseTwoSigma2 = 1.0 / (2.0 * sigma * sigma);
+
+	var result = textureLoad(textureSampler, center, 0);
 	var totalWeight = 1.0;
 
 	for (var i: i32 = 1; i <= VOL_BLUR_RADIUS; i++) {
-		let offset = f32(i);
-		let spatialWeight = exp(-offset * offset / (2.0 * sigma * sigma));
+		let spatialWeight = exp(-f32(i * i) * inverseTwoSigma2);
 
-		let uvPositive = input.vUV + uniforms.volBlurDirection * offset;
-		let uvNegative = input.vUV - uniforms.volBlurDirection * offset;
+		let positive = center + direction * i;
+		let negative = center - direction * i;
 
-		if (uvPositive.x <= 1.0 && uvPositive.y <= 1.0 && uvPositive.x >= 0.0 && uvPositive.y >= 0.0) {
-			let weight = spatialWeight * exp(-abs(volLinearDepth(volSampleDepth(uvPositive)) - centerDepth) / depthThreshold);
-			result += textureSampleLevel(textureSampler, textureSamplerSampler, uvPositive, 0.0) * weight;
+		if (positive.x < size.x && positive.y < size.y) {
+			let weight = spatialWeight * exp(-abs(volReadLinearDepth(volScatterToDepthTexel(positive, depthSize)) - centerDepth) * inverseDepthThreshold);
+			result += textureLoad(textureSampler, positive, 0) * weight;
 			totalWeight += weight;
 		}
 
-		if (uvNegative.x <= 1.0 && uvNegative.y <= 1.0 && uvNegative.x >= 0.0 && uvNegative.y >= 0.0) {
-			let weight = spatialWeight * exp(-abs(volLinearDepth(volSampleDepth(uvNegative)) - centerDepth) / depthThreshold);
-			result += textureSampleLevel(textureSampler, textureSamplerSampler, uvNegative, 0.0) * weight;
+		if (negative.x >= 0 && negative.y >= 0) {
+			let weight = spatialWeight * exp(-abs(volReadLinearDepth(volScatterToDepthTexel(negative, depthSize)) - centerDepth) * inverseDepthThreshold);
+			result += textureLoad(textureSampler, negative, 0) * weight;
 			totalWeight += weight;
 		}
 	}
@@ -657,19 +1110,21 @@ export function buildVolumetricLightingComposeShaderWGSL(): string {
 	return /* wgsl */ `
 varying vUV: vec2f;
 
-var textureSamplerSampler: sampler;
 var textureSampler: texture_2d<f32>;
 var volSceneSamplerSampler: sampler;
 var volSceneSampler: texture_2d<f32>;
-var depthSamplerSampler: sampler;
-var depthSampler: texture_2d<f32>;
+var volLinearDepthSampler: texture_2d<f32>;
 
 uniform volCameraMinMaxZ: vec2f;
-uniform volDepthUnpack: vec2f;
-uniform volScatterTexelSize: vec2f;
+uniform volDepthRatio: vec2f;
 uniform volComposeParams: vec4f;
 
-${commonHelpers}
+${packingHelpers}
+${buildLinearDepthHelpers("volLinearDepthSampler")}
+
+fn volMod(x: f32, y: f32) -> f32 {
+	return x - y * floor(x / y);
+}
 
 fn volBayer8(p: vec2f) -> f32 {
 	let p1 = vec2f(volMod(floor(p.x), 2.0), volMod(floor(p.y), 2.0));
@@ -683,15 +1138,17 @@ fn volBayer8(p: vec2f) -> f32 {
 	return (b1 * 16.0 + b2 * 4.0 + b3) / 64.0;
 }
 
-// Nearest depth upsampling: the four low resolution taps around the pixel are weighted by both their
-// bilinear weight and how close their depth is to the depth of the full resolution pixel.
-fn volUpsample(uv0: vec2f, centerDepth: f32) -> vec4f {
-	let scatterSize = 1.0 / uniforms.volScatterTexelSize;
-	let texelCoordinate = uv0 * scatterSize - 0.5;
+// Nearest depth upsampling. @see the GLSL version.
+fn volUpsample(uv0: vec2f, centerDepth: f32, depthSize: vec2i) -> vec4f {
+	let size = vec2i(textureDimensions(textureSampler));
+	let texelCoordinate = uv0 * vec2f(size) - 0.5;
 	let baseCoordinate = floor(texelCoordinate);
 	let fraction = texelCoordinate - baseCoordinate;
 
-	let depthThreshold = max(uniforms.volComposeParams.z * max(centerDepth, uniforms.volCameraMinMaxZ.x), 1e-4);
+	let base = vec2i(baseCoordinate);
+	let maximum = size - vec2i(1);
+
+	let inverseDepthThreshold = 1.0 / max(uniforms.volComposeParams.z * max(centerDepth, uniforms.volCameraMinMaxZ.x), 1e-4);
 
 	var result = vec4f(0.0);
 	var totalWeight = 0.0;
@@ -701,20 +1158,19 @@ fn volUpsample(uv0: vec2f, centerDepth: f32) -> vec4f {
 
 	for (var y: i32 = 0; y < 2; y++) {
 		for (var x: i32 = 0; x < 2; x++) {
-			let offset = vec2f(f32(x), f32(y));
-			let uv = (baseCoordinate + offset + 0.5) * uniforms.volScatterTexelSize;
+			let coordinates = clamp(base + vec2i(x, y), vec2i(0), maximum);
 
 			let bilinearWeight = select(fraction.x, 1.0 - fraction.x, x == 0) * select(fraction.y, 1.0 - fraction.y, y == 0);
-			let depthDistance = abs(volLinearDepth(volSampleDepth(uv)) - centerDepth);
+			let depthDistance = abs(volReadLinearDepth(volScatterToDepthTexel(coordinates, depthSize)) - centerDepth);
 
-			let tap = textureSampleLevel(textureSampler, textureSamplerSampler, uv, 0.0);
+			let tap = textureLoad(textureSampler, coordinates, 0);
 
 			if (depthDistance < nearestDistance) {
 				nearestDistance = depthDistance;
 				nearestSample = tap;
 			}
 
-			let weight = bilinearWeight / (1e-4 + depthDistance / depthThreshold);
+			let weight = bilinearWeight / (1e-4 + depthDistance * inverseDepthThreshold);
 			result += tap * weight;
 			totalWeight += weight;
 		}
@@ -726,9 +1182,11 @@ fn volUpsample(uv0: vec2f, centerDepth: f32) -> vec4f {
 
 @fragment
 fn main(input: FragmentInputs) -> FragmentOutputs {
-	let centerDepth = volLinearDepth(volSampleDepth(input.vUV));
+	// The linear depth has the full resolution of the canvas. @see the GLSL version.
+	let depthSize = vec2i(textureDimensions(volLinearDepthSampler));
+	let centerDepth = volReadLinearDepth(min(vec2i(input.vUV * vec2f(depthSize)), depthSize - 1));
 
-	var volumetric = volUpsample(input.vUV, centerDepth);
+	var volumetric = volUpsample(input.vUV, centerDepth, depthSize);
 
 	#ifdef VOL_LDR_ENCODE
 		volumetric = vec4f(volumetric.rgb / max(vec3f(1e-4), 1.0 - volumetric.rgb), volumetric.a);
@@ -747,7 +1205,7 @@ fn main(input: FragmentInputs) -> FragmentOutputs {
 		var result = sceneColor + volumetric.rgb * uniforms.volComposeParams.x;
 
 		// Breaks up the banding an 8 bits output would otherwise show on the smooth gradients of the shafts.
-		result += (volBayer8(input.position.xy) - 0.5) * uniforms.volComposeParams.w;
+		result += (volBayer8(fragmentInputs.position.xy) - 0.5) * uniforms.volComposeParams.w;
 
 		fragmentOutputs.color = vec4f(result, 1.0);
 	#endif
@@ -756,10 +1214,11 @@ fn main(input: FragmentInputs) -> FragmentOutputs {
 }
 
 /**
- * Returns the three WGSL sources of the pipeline, keyed by the name they are registered under.
+ * Returns the four WGSL sources of the pipeline, keyed by the name they are registered under.
  */
 export function getVolumetricLightingShadersWGSL(): Record<string, string> {
 	return {
+		linearDepth: buildVolumetricLightingLinearDepthShaderWGSL(),
 		scattering: buildVolumetricLightingScatteringShaderWGSL(maxVolumetricShadowSlots),
 		blur: buildVolumetricLightingBlurShaderWGSL(),
 		compose: buildVolumetricLightingComposeShaderWGSL(),

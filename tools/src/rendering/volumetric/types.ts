@@ -18,7 +18,13 @@ export const maxVolumetricShadowSlots = 8;
  * Defines the maximum number of unshadowed lights the raymarching shader can be compiled for.
  * The effective count is computed at runtime from the capabilities of the engine.
  */
-export const maxVolumetricArrayLights = 64;
+export const maxVolumetricArrayLights = 256;
+
+/**
+ * Defines the maximum number of unshadowed directional lights the raymarching shader evaluates. Unlike the
+ * point and spot lights, a directional light lights the whole view ray, so each one costs a full march.
+ */
+export const maxVolumetricDirectionalLights = 4;
 
 /**
  * Defines the available step distributions used while raymarching the participating medium.
@@ -151,9 +157,17 @@ export interface IVolumetricLightConfiguration {
  */
 export interface IVolumetricLightingConfiguration {
 	/**
-	 * Defines the number of steps used to raymarch the participating medium.
+	 * Defines the number of steps used to raymarch the participating medium for the directional lights, and
+	 * the minimum density of samples along the view ray for the point and spot lights.
 	 */
 	steps: number;
+	/**
+	 * Defines the number of samples taken across the volume of each point and spot light, when the view ray
+	 * crosses it through its center. Each light is integrated only over the part of the view ray it can reach,
+	 * so this is what drives the quality of the small lights, whatever their distance to the camera.
+	 * 0 derives it from "steps".
+	 */
+	lightSteps: number;
 	/**
 	 * Defines the resolution of the scattering and blur passes relative to the resolution of the canvas.
 	 */
@@ -295,7 +309,9 @@ export interface IVolumetricLightingConfiguration {
 	upsampleDepthThreshold: number;
 
 	/**
-	 * Defines the maximum number of unshadowed lights evaluated per step.
+	 * Defines the maximum number of unshadowed lights taking part in the effect. A point or a spot light only
+	 * costs anything for the pixels whose view ray crosses its volume, so this is a safety limit rather than
+	 * a performance setting. The effective value is clamped by the capabilities of the GPU.
 	 */
 	maxLights: number;
 	/**
@@ -340,6 +356,7 @@ export function getDefaultVolumetricLightConfiguration(): IVolumetricLightConfig
 export function getDefaultVolumetricLightingConfiguration(): IVolumetricLightingConfiguration {
 	return {
 		steps: 40,
+		lightSteps: 0,
 		resolutionScale: 0.5,
 		stepDistribution: VolumetricStepDistribution.Exponential,
 		ditherMode: VolumetricDitherMode.InterleavedGradientNoise,
@@ -375,13 +392,26 @@ export function getDefaultVolumetricLightingConfiguration(): IVolumetricLighting
 		blurDepthThreshold: 0.02,
 		upsampleDepthThreshold: 0.02,
 
-		maxLights: 24,
+		maxLights: 128,
 		maxShadowedLights: 4,
 		pcfTaps: 4,
 		selectionRefreshRate: 2,
 
 		debugMode: VolumetricDebugMode.None,
 	};
+}
+
+/**
+ * Returns the number of samples taken across the volume of each point and spot light, resolving the
+ * automatic value derived from the number of steps of the raymarching.
+ * @param configuration defines the configuration of the pipeline.
+ */
+export function getVolumetricLightSteps(configuration: IVolumetricLightingConfiguration): number {
+	if (configuration.lightSteps > 0) {
+		return configuration.lightSteps;
+	}
+
+	return Math.max(4, Math.min(64, Math.round(configuration.steps * 0.3)));
 }
 
 function normalizeNumber(value: any, defaultValue: number, min: number, max: number): number {
@@ -433,6 +463,7 @@ export function normalizeVolumetricLightingConfiguration(data: any): IVolumetric
 
 	return {
 		steps: Math.round(normalizeNumber(data.steps, defaults.steps, 4, 256)),
+		lightSteps: Math.round(normalizeNumber(data.lightSteps, defaults.lightSteps, 0, 128)),
 		resolutionScale: normalizeNumber(data.resolutionScale, defaults.resolutionScale, 0.1, 1),
 		stepDistribution: Math.round(normalizeNumber(data.stepDistribution, defaults.stepDistribution, 0, 1)),
 		ditherMode: Math.round(normalizeNumber(data.ditherMode, defaults.ditherMode, 0, 2)),
@@ -480,6 +511,12 @@ export function normalizeVolumetricLightingConfiguration(data: any): IVolumetric
 }
 
 /**
+ * Keeps the configurations that were already completed with the default values, so the selection pass of
+ * the pipeline, which reads the configuration of every light a few times per second, doesn't allocate.
+ */
+const completedVolumetricLightConfigurations = new WeakSet<object>();
+
+/**
  * Returns the volumetric lighting configuration stored in the metadata of the given light and creates
  * it using the default values if it doesn't exist yet.
  *
@@ -493,7 +530,12 @@ export function ensureVolumetricLightConfiguration(light: Light): IVolumetricLig
 	const existing = light.metadata[volumetricLightMetadataKey];
 	if (!existing || typeof existing !== "object") {
 		light.metadata[volumetricLightMetadataKey] = normalizeVolumetricLightConfiguration(null);
+		completedVolumetricLightConfigurations.add(light.metadata[volumetricLightMetadataKey]);
 		return light.metadata[volumetricLightMetadataKey];
+	}
+
+	if (completedVolumetricLightConfigurations.has(existing)) {
+		return existing;
 	}
 
 	// Fills the keys a newer version of the editor may have added since the project was saved.
@@ -503,6 +545,8 @@ export function ensureVolumetricLightConfiguration(light: Light): IVolumetricLig
 			existing[key] = (defaults as any)[key];
 		}
 	});
+
+	completedVolumetricLightConfigurations.add(existing);
 
 	return existing;
 }

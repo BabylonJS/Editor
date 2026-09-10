@@ -10,7 +10,7 @@ import { Texture } from "@babylonjs/core/Materials/Textures/texture";
 import { AbstractEngine } from "@babylonjs/core/Engines/abstractEngine";
 import { DepthRenderer } from "@babylonjs/core/Rendering/depthRenderer";
 import { PostProcess } from "@babylonjs/core/PostProcesses/postProcess";
-import { PassPostProcess } from "@babylonjs/core/PostProcesses/passPostProcess";
+import { ShaderLanguage } from "@babylonjs/core/Materials/shaderLanguage";
 import { PostProcessRenderEffect } from "@babylonjs/core/PostProcesses/RenderPipeline/postProcessRenderEffect";
 import { PostProcessRenderPipeline } from "@babylonjs/core/PostProcesses/RenderPipeline/postProcessRenderPipeline";
 
@@ -19,7 +19,9 @@ import { isDirectionalLight, isSpotLight } from "../../tools/guards";
 import {
 	IVolumetricLightingConfiguration,
 	VolumetricDitherMode,
+	VolumetricFogMode,
 	getDefaultVolumetricLightingConfiguration,
+	getVolumetricLightSteps,
 	maxVolumetricArrayLights,
 	maxVolumetricShadowSlots,
 	normalizeVolumetricLightingConfiguration,
@@ -32,14 +34,21 @@ import {
 	IVolumetricLightingStats,
 	IVolumetricShaderEnvironment,
 	VolumetricShadowKind,
+	VolumetricTransmittanceMode,
 	computeVolumetricBudget,
-	computeVolumetricShapeKey,
+	getVolumetricLightRange,
+	getVolumetricLightWorldDirection,
+	getVolumetricLightWorldPosition,
 	selectVolumetricLights,
 } from "./selector";
 
-import { ShaderLanguage } from "@babylonjs/core/Materials/shaderLanguage";
-
-import { registerVolumetricLightingShaders, volumetricLightingBlurShaderName, volumetricLightingComposeShaderName, volumetricLightingScatteringShaderName } from "./shaders";
+import {
+	registerVolumetricLightingShaders,
+	volumetricLightingBlurShaderName,
+	volumetricLightingComposeShaderName,
+	volumetricLightingLinearDepthShaderName,
+	volumetricLightingScatteringShaderName,
+} from "./shaders";
 
 const leftHandedForward = new Vector3(0, 0, 1);
 const rightHandedForward = new Vector3(0, 0, -1);
@@ -51,21 +60,26 @@ const rightHandedForward = new Vector3(0, 0, -1);
 const structuralConfigurationKeys: (keyof IVolumetricLightingConfiguration)[] = ["resolutionScale", "blurPasses"];
 
 /**
+ * Defines the number of samples of the optical depth integrated per pixel when the medium has no closed form.
+ */
+const transmittanceSamples = 32;
+
+/**
  * Defines the list of every uniform the raymarching shader may declare. Listing a uniform that the compiled
  * program optimized away is safe, Babylon.js resolves it to a null location and the setters become no-ops.
  */
 const scatteringUniforms = [
 	"volInverseViewProjection",
+	"volViewProjection",
 	"volCameraPosition",
 	"volCameraForward",
 	"volCameraMinMaxZ",
-	"volDepthUnpack",
+	"volDepthRatio",
 	"volFrameIndex",
 	"volFogInfos",
 	"volFogColor",
 	"volLinearFogEps",
 	"volMedium",
-	"volViewProjection",
 	"volScreenShadowParams",
 	"volAmbient",
 	"volParams",
@@ -87,28 +101,54 @@ const scatteringUniforms = [
 	"volCsmMatrices",
 ];
 
-const scatteringSamplers = ["depthSampler", "volCsmSampler"];
+/**
+ * Defines the options of a post-process of the pipeline.
+ */
+interface IVolumetricPostProcessOptions {
+	name: string;
+	shaderName: string;
+	uniforms: string[];
+	samplers: string[];
+	/**
+	 * Defines the ratio of the post-process, which sizes the texture it reads.
+	 */
+	ratio: number;
+	/**
+	 * Defines the sampling mode and the type of the texture the post-process reads.
+	 */
+	samplingMode: number;
+	textureType: number;
+	textureFormat?: number;
+	defines: string;
+}
+
+const scatteringSamplers = ["volCsmSampler"];
 for (let i = 0; i < maxVolumetricShadowSlots; ++i) {
 	scatteringSamplers.push(`volShadowSampler${i}`);
 }
 
 /**
  * Defines a rendering pipeline computing single-scattering volumetric lighting: the light shafts are
- * raymarched through a participating medium the pipeline describes on its own, and are occluded either by
+ * integrated through a participating medium the pipeline describes on its own, and are occluded either by
  * the shadow map a light already renders or, when it has none, by the depth buffer of the scene.
  *
  * Every light of the scene can take part in the effect, including the lights that live inside a clustered
  * light container, and each one is configured individually through "light.metadata.volumetricLighting".
  *
+ * The cost of the effect scales with what is on screen rather than with the number of lights: a directional
+ * light is marched along the whole view ray, but a point or a spot light is only integrated over the part
+ * of the view ray crossing its volume, so a light costs nothing to the pixels whose view ray misses it.
+ *
  * The pipeline is composed of four passes:
- * - a pass keeping an untouched copy of the color of the scene,
+ * - a pass keeping the color of the scene untouched and extracting its linear depth, which every later pass
+ *   reads instead of the depth map,
  * - the raymarching pass, rendered at a fraction of the resolution of the canvas,
  * - a separable depth aware blur denoising the result of the raymarching,
  * - a composition pass upsampling the result and adding it to the color of the scene.
  */
 export class VolumetricLightingRenderingPipeline extends PostProcessRenderPipeline {
 	/**
-	 * Defines the name of the render effect keeping a copy of the color of the scene.
+	 * Defines the name of the render effect keeping the color of the scene and extracting its linear depth.
 	 */
 	public static readonly SceneColorEffectName: string = "VolumetricLightingSceneColorEffect";
 	/**
@@ -168,8 +208,8 @@ export class VolumetricLightingRenderingPipeline extends PostProcessRenderPipeli
 
 	/**
 	 * Returns wether or not the volumetric lighting rendering pipeline is supported by the given engine.
-	 * The raymarching shader relies on shadow samplers and texture arrays, which need WebGL 2, and ships as
-	 * both GLSL and hand written WGSL so WebGPU is supported without an external transpiler.
+	 * The raymarching shader relies on shadow samplers, texture arrays and texel fetches, which need WebGL 2,
+	 * and ships as both GLSL and hand written WGSL so WebGPU is supported without an external transpiler.
 	 * @param engine defines the reference to the engine to check.
 	 */
 	public static IsSupported(engine: AbstractEngine): boolean {
@@ -196,19 +236,21 @@ export class VolumetricLightingRenderingPipeline extends PostProcessRenderPipeli
 	private _textureType: number;
 	private _shaderLanguage: ShaderLanguage;
 	private _ldrEncode: boolean;
+	private _linearDepthPacked: boolean;
 
 	private _depthRenderer: DepthRenderer | null = null;
 	private _ownsDepthRenderer: boolean = false;
 	private _depthMode: 0 | 1 | 2 = 0;
 
-	private _sceneColorPostProcess: PassPostProcess | null = null;
+	private _linearDepthPostProcess: PostProcess | null = null;
 	private _scatteringPostProcess: PostProcess | null = null;
 	private _blurPostProcesses: PostProcess[] = [];
 	private _composePostProcess: PostProcess | null = null;
 
 	private _selection: IVolumetricLightSelection | null = null;
 	private _budget: IVolumetricBudget;
-	private _shapeKey: string = "";
+	private _linearDepthDefines: string = "";
+	private _scatteringDefines: string = "";
 	private _blurDefines: string = "";
 	private _composeDefines: string = "";
 	private _frameCount: number = 0;
@@ -283,6 +325,10 @@ export class VolumetricLightingRenderingPipeline extends PostProcessRenderPipeli
 		const supportsHalfFloat = caps.textureHalfFloatRender && caps.textureHalfFloatLinearFiltering;
 		this._textureType = supportsHalfFloat ? Constants.TEXTURETYPE_HALF_FLOAT : Constants.TEXTURETYPE_UNSIGNED_BYTE;
 		this._ldrEncode = !supportsHalfFloat;
+
+		// The linear depth is read with texel fetches only, so a 32 bits float texture needs no filtering
+		// support. Without float render targets it is packed in an 8 bits RGBA texture instead.
+		this._linearDepthPacked = !caps.textureFloatRender;
 
 		this._budget = computeVolumetricBudget(engine, this._configuration);
 
@@ -512,20 +558,40 @@ export class VolumetricLightingRenderingPipeline extends PostProcessRenderPipeli
 	}
 
 	private _getEnvironment(): IVolumetricShaderEnvironment {
+		const configuration = this._configuration;
+
+		// The medium of the pipeline has a closed form transmittance, except when the height falloff is
+		// combined with a fog mode whose density already varies along the ray.
+		let transmittance = VolumetricTransmittanceMode.Analytic;
+		if (configuration.heightFogEnabled) {
+			transmittance = configuration.fogMode === VolumetricFogMode.Exponential ? VolumetricTransmittanceMode.AnalyticHeight : VolumetricTransmittanceMode.Numeric;
+		}
+
 		return {
 			depthMode: this._depthMode,
 			ldrEncode: this._ldrEncode,
 			reverseDepth: this._scene.getEngine().useReverseDepthBuffer,
 			ndcHalfZ: this._scene.getEngine().isNDCHalfZRange,
-			fogMode: this._configuration.fogMode,
-			// The medium of the pipeline has a closed form transmittance, so it can always be evaluated
-			// analytically unless the height falloff makes the density vary along the ray.
-			analyticTransmittance: !this._configuration.heightFogEnabled,
+			fogMode: configuration.fogMode,
+			transmittance,
+			linearDepthPacked: this._linearDepthPacked,
+			arrayLightCapacity: this._budget.maxArrayLights,
+			lightSteps: getVolumetricLightSteps(configuration),
 		};
 	}
 
-	private _buildDepthDefines(environment: IVolumetricShaderEnvironment): string {
-		let defines = "";
+	/**
+	 * Returns the defines of the passes reading the linear depth, which only depend on how it is stored.
+	 */
+	private _buildLinearDepthReadDefines(environment: IVolumetricShaderEnvironment): string {
+		return environment.linearDepthPacked ? "#define VOL_LINEAR_DEPTH_PACKED\n" : "";
+	}
+
+	/**
+	 * Returns the defines of the linear depth pass, the only one reading the depth map of the depth renderer.
+	 */
+	private _buildLinearDepthDefines(environment: IVolumetricShaderEnvironment): string {
+		let defines = this._buildLinearDepthReadDefines(environment);
 
 		if (environment.depthMode === 2) {
 			defines += "#define VOL_DEPTH_PACKED\n";
@@ -536,19 +602,39 @@ export class VolumetricLightingRenderingPipeline extends PostProcessRenderPipeli
 		return defines;
 	}
 
-	private _buildScatteringDefines(selection: IVolumetricLightSelection, environment: IVolumetricShaderEnvironment): string {
+	private _buildScatteringDefines(selection: IVolumetricLightSelection | null, environment: IVolumetricShaderEnvironment): string {
 		const configuration = this._configuration;
 
-		let defines = this._buildDepthDefines(environment);
+		const shadowed = selection?.shadowed ?? [];
+		const directionalCount = selection?.directionalCount ?? 0;
+		const csm = selection?.csm ?? null;
+		const globalSlotCount = shadowed.filter((entry) => !entry.shadow.local).length;
+
+		let defines = this._buildLinearDepthReadDefines(environment);
 
 		defines += `#define VOL_STEPS ${configuration.steps}\n`;
+		defines += `#define VOL_LIGHT_STEPS ${environment.lightSteps}\n`;
+		defines += `#define VOL_LOCAL_MAX_STEPS ${Math.max(environment.lightSteps, configuration.steps)}\n`;
 		defines += `#define VOL_DISTRIBUTION ${configuration.stepDistribution}\n`;
 		defines += `#define VOL_DITHER ${configuration.ditherMode}\n`;
 		defines += `#define VOL_PCF_TAPS ${configuration.pcfTaps}\n`;
 		defines += `#define VOL_FOG_MODE ${environment.fogMode}\n`;
+		defines += `#define VOL_TRANSMITTANCE ${environment.transmittance}\n`;
+
+		// Every medium but the linear fog alone has its transmittance written as the exponential of an optical depth.
+		if (environment.transmittance !== VolumetricTransmittanceMode.Analytic || environment.fogMode !== VolumetricFogMode.Linear) {
+			defines += "#define VOL_OPTICAL_DEPTH\n";
+		}
+		defines += `#define VOL_TRANSMITTANCE_SAMPLES ${transmittanceSamples}\n`;
 		defines += `#define VOL_DEBUG ${configuration.debugMode}\n`;
-		defines += `#define VOL_ARRAY_LIGHT_COUNT ${selection.unshadowed.length}\n`;
-		defines += `#define VOL_SHADOW_SLOT_COUNT ${selection.shadowed.length}\n`;
+
+		// The arrays are sized by the budget and the number of point and spot lights they hold is a uniform, so
+		// the lights entering and leaving the frustum of the camera never recompile the shader.
+		defines += `#define VOL_MAX_ARRAY_LIGHTS ${environment.arrayLightCapacity}\n`;
+		defines += `#define VOL_DIRECTIONAL_LIGHT_COUNT ${directionalCount}\n`;
+		defines += `#define VOL_LOCAL_ARRAY_LIGHTS ${environment.arrayLightCapacity > directionalCount ? 1 : 0}\n`;
+		defines += `#define VOL_SHADOW_SLOT_COUNT ${shadowed.length}\n`;
+		defines += `#define VOL_GLOBAL_LIGHT_COUNT ${directionalCount + globalSlotCount + (csm ? 1 : 0)}\n`;
 
 		if (configuration.ditherMode !== VolumetricDitherMode.None && configuration.temporalJitter) {
 			defines += "#define VOL_TEMPORAL_JITTER\n";
@@ -556,10 +642,6 @@ export class VolumetricLightingRenderingPipeline extends PostProcessRenderPipeli
 
 		if (configuration.heightFogEnabled) {
 			defines += "#define VOL_HEIGHT_FOG\n";
-		}
-
-		if (environment.analyticTransmittance) {
-			defines += "#define VOL_ANALYTIC_TRANSMITTANCE\n";
 		}
 
 		if (configuration.lightExtinctionEnabled) {
@@ -583,23 +665,22 @@ export class VolumetricLightingRenderingPipeline extends PostProcessRenderPipeli
 			defines += "#define VOL_NDC_HALF_Z\n";
 		}
 
-		selection.shadowed.forEach((entry, index) => {
+		shadowed.forEach((entry, index) => {
 			defines += `#define VOL_SHADOW_KIND${index} ${entry.shadow.kind}\n`;
 			defines += `#define VOL_SHADOW_MODE${index} ${entry.shadow.mode}\n`;
+			defines += `#define VOL_SHADOW_LOCAL${index} ${entry.shadow.local ? 1 : 0}\n`;
 
 			if (entry.shadow.packed) {
 				defines += `#define VOL_SHADOW_PACKED${index}\n`;
 			}
 		});
 
-		defines += `#define VOL_CSM_LIGHT_COUNT ${selection.csm ? 1 : 0}\n`;
-
-		if (selection.csm) {
+		if (csm) {
 			defines += "#define VOL_CSM\n";
-			defines += `#define VOL_CSM_CASCADES ${selection.csm.cascades}\n`;
-			defines += `#define VOL_CSM_KIND ${selection.csm.kind === VolumetricShadowKind.Sampler2DShadow ? 1 : 0}\n`;
+			defines += `#define VOL_CSM_CASCADES ${csm.cascades}\n`;
+			defines += `#define VOL_CSM_KIND ${csm.kind === VolumetricShadowKind.Sampler2DShadow ? 1 : 0}\n`;
 
-			if (selection.csm.packed) {
+			if (csm.packed) {
 				defines += "#define VOL_CSM_PACKED\n";
 			}
 		}
@@ -608,11 +689,11 @@ export class VolumetricLightingRenderingPipeline extends PostProcessRenderPipeli
 	}
 
 	private _buildBlurDefines(environment: IVolumetricShaderEnvironment): string {
-		return `${this._buildDepthDefines(environment)}#define VOL_BLUR_RADIUS ${this._configuration.blurRadius}\n`;
+		return `${this._buildLinearDepthReadDefines(environment)}#define VOL_BLUR_RADIUS ${this._configuration.blurRadius}\n`;
 	}
 
 	private _buildComposeDefines(environment: IVolumetricShaderEnvironment): string {
-		let defines = this._buildDepthDefines(environment);
+		let defines = this._buildLinearDepthReadDefines(environment);
 
 		defines += `#define VOL_DEBUG ${this._configuration.debugMode}\n`;
 
@@ -623,103 +704,107 @@ export class VolumetricLightingRenderingPipeline extends PostProcessRenderPipeli
 		return defines;
 	}
 
+	private _createPostProcess(options: IVolumetricPostProcessOptions): PostProcess {
+		const postProcess = new PostProcess(
+			options.name,
+			options.shaderName,
+			options.uniforms,
+			options.samplers,
+			options.ratio,
+			null,
+			options.samplingMode,
+			this._scene.getEngine(),
+			false,
+			options.defines,
+			options.textureType,
+			undefined,
+			undefined,
+			false,
+			options.textureFormat,
+			this._shaderLanguage
+		);
+
+		postProcess.autoClear = false;
+		postProcess.alphaMode = Constants.ALPHA_DISABLE;
+
+		return postProcess;
+	}
+
 	private _buildRenderEffects(): void {
-		const scene = this._scene;
-		const engine = scene.getEngine();
+		const engine = this._scene.getEngine();
 		const configuration = this._configuration;
 		const environment = this._getEnvironment();
 
-		const emptySelection: IVolumetricLightSelection = {
-			shadowed: [],
-			unshadowed: [],
-			csm: null,
-			stats: { candidateCount: 0, culledCount: 0, shadowedCount: 0, unshadowedCount: 0, droppedCount: 0, perLight: new Map() },
-		};
-
-		this._shapeKey = computeVolumetricShapeKey(emptySelection, configuration, environment);
+		this._linearDepthDefines = this._buildLinearDepthDefines(environment);
+		this._scatteringDefines = this._buildScatteringDefines(this._selection, environment);
 		this._blurDefines = this._buildBlurDefines(environment);
 		this._composeDefines = this._buildComposeDefines(environment);
 
-		// Keeps a copy of the color of the scene so the composition pass can add the shafts on top of an
-		// image the previous passes of this pipeline didn't touch.
-		this._sceneColorPostProcess = new PassPostProcess("VolumetricLightingSceneColor", 1.0, null, Texture.BILINEAR_SAMPLINGMODE, engine, false, this._textureType);
+		// First pass of the chain: its input is the color of the scene, kept untouched for the composition, and
+		// it writes the linear depth of the scene. The ratio of a post-process sizes the texture it READS, the
+		// size of what it writes is set by the pass that follows.
+		this._linearDepthPostProcess = this._createPostProcess({
+			name: "VolumetricLightingLinearDepth",
+			shaderName: volumetricLightingLinearDepthShaderName,
+			uniforms: ["volCameraMinMaxZ", "volDepthUnpack"],
+			samplers: ["depthSampler"],
+			ratio: 1.0,
+			samplingMode: Texture.BILINEAR_SAMPLINGMODE,
+			textureType: this._textureType,
+			defines: this._linearDepthDefines,
+		});
+		this._linearDepthPostProcess.onApplyObservable.add((effect) => this._bindLinearDepth(effect));
 
-		this._scatteringPostProcess = new PostProcess(
-			"VolumetricLightingScattering",
-			volumetricLightingScatteringShaderName,
-			scatteringUniforms,
-			scatteringSamplers,
-			configuration.resolutionScale,
-			null,
-			Texture.BILINEAR_SAMPLINGMODE,
-			engine,
-			false,
-			this._buildScatteringDefines(emptySelection, environment),
-			this._textureType,
-			undefined,
-			undefined,
-			false,
-			undefined,
-			this._shaderLanguage
-		);
-		this._scatteringPostProcess.autoClear = false;
-		this._scatteringPostProcess.alphaMode = Constants.ALPHA_DISABLE;
+		// The input of the raymarching pass is the linear depth, kept at the full resolution so the occlusion by
+		// the depth buffer sees the geometry as the scene draws it: the pass itself still rasterizes at the
+		// reduced resolution, which is set by the ratio of the pass that follows. The linear depth is only ever
+		// read with texel fetches, and a 32 bits float texture can't be filtered on every engine anyway.
+		this._scatteringPostProcess = this._createPostProcess({
+			name: "VolumetricLightingScattering",
+			shaderName: volumetricLightingScatteringShaderName,
+			uniforms: scatteringUniforms,
+			samplers: scatteringSamplers,
+			ratio: 1.0,
+			samplingMode: Texture.NEAREST_SAMPLINGMODE,
+			textureType: this._linearDepthPacked ? Constants.TEXTURETYPE_UNSIGNED_BYTE : Constants.TEXTURETYPE_FLOAT,
+			textureFormat: this._linearDepthPacked ? Constants.TEXTUREFORMAT_RGBA : Constants.TEXTUREFORMAT_R,
+			defines: this._scatteringDefines,
+		});
 		this._scatteringPostProcess.onApplyObservable.add((effect) => this._bindScattering(effect));
 
 		this._blurPostProcesses = [];
 		for (let i = 0; i < configuration.blurPasses; ++i) {
-			const blurPostProcess = new PostProcess(
-				`VolumetricLightingBlur${i}`,
-				volumetricLightingBlurShaderName,
-				["volCameraMinMaxZ", "volDepthUnpack", "volBlurDirection", "volBlurParams"],
-				["depthSampler"],
-				configuration.resolutionScale,
-				null,
-				Texture.BILINEAR_SAMPLINGMODE,
-				engine,
-				false,
-				this._blurDefines,
-				this._textureType,
-				undefined,
-				undefined,
-				false,
-				undefined,
-				this._shaderLanguage
-			);
+			const blurPostProcess = this._createPostProcess({
+				name: `VolumetricLightingBlur${i}`,
+				shaderName: volumetricLightingBlurShaderName,
+				uniforms: ["volCameraMinMaxZ", "volDepthRatio", "volBlurDirection", "volBlurParams"],
+				samplers: ["volLinearDepthSampler"],
+				ratio: configuration.resolutionScale,
+				samplingMode: Texture.BILINEAR_SAMPLINGMODE,
+				textureType: this._textureType,
+				defines: this._blurDefines,
+			});
 
-			blurPostProcess.autoClear = false;
-			blurPostProcess.alphaMode = Constants.ALPHA_DISABLE;
-			blurPostProcess.onApplyObservable.add((effect) => this._bindBlur(effect, blurPostProcess, i));
+			blurPostProcess.onApplyObservable.add((effect) => this._bindBlur(effect, i));
 
 			this._blurPostProcesses.push(blurPostProcess);
 		}
 
-		// The ratio of a post-process sizes the texture it READS, which is also the texture the previous
-		// pass renders into. Keeping it at "resolutionScale" is what makes the pass before it rasterize at
-		// the reduced resolution; the composition itself still draws at the size of whatever follows it.
-		this._composePostProcess = new PostProcess(
-			"VolumetricLightingCompose",
-			volumetricLightingComposeShaderName,
-			["volCameraMinMaxZ", "volDepthUnpack", "volScatterTexelSize", "volComposeParams"],
-			["depthSampler", "volSceneSampler"],
-			configuration.resolutionScale,
-			null,
-			Texture.BILINEAR_SAMPLINGMODE,
-			engine,
-			false,
-			this._composeDefines,
-			this._textureType,
-			undefined,
-			undefined,
-			false,
-			undefined,
-			this._shaderLanguage
-		);
-		this._composePostProcess.autoClear = false;
-		this._composePostProcess.alphaMode = Constants.ALPHA_DISABLE;
+		// Keeping the ratio at "resolutionScale" is what makes the pass before it rasterize at the reduced
+		// resolution; the composition itself still draws at the size of whatever follows it.
+		this._composePostProcess = this._createPostProcess({
+			name: "VolumetricLightingCompose",
+			shaderName: volumetricLightingComposeShaderName,
+			uniforms: ["volCameraMinMaxZ", "volDepthRatio", "volComposeParams"],
+			samplers: ["volSceneSampler", "volLinearDepthSampler"],
+			ratio: configuration.resolutionScale,
+			samplingMode: Texture.BILINEAR_SAMPLINGMODE,
+			textureType: this._textureType,
+			defines: this._composeDefines,
+		});
 		this._composePostProcess.onApplyObservable.add((effect) => this._bindCompose(effect));
 
-		this.addEffect(new PostProcessRenderEffect(engine, VolumetricLightingRenderingPipeline.SceneColorEffectName, () => this._sceneColorPostProcess, true));
+		this.addEffect(new PostProcessRenderEffect(engine, VolumetricLightingRenderingPipeline.SceneColorEffectName, () => this._linearDepthPostProcess, true));
 		this.addEffect(new PostProcessRenderEffect(engine, VolumetricLightingRenderingPipeline.ScatteringEffectName, () => this._scatteringPostProcess, true));
 
 		if (this._blurPostProcesses.length) {
@@ -730,7 +815,7 @@ export class VolumetricLightingRenderingPipeline extends PostProcessRenderPipeli
 	}
 
 	private _disposePostProcesses(cameras: Camera[]): void {
-		const postProcesses: (PostProcess | null)[] = [this._sceneColorPostProcess, this._scatteringPostProcess, ...this._blurPostProcesses, this._composePostProcess];
+		const postProcesses: (PostProcess | null)[] = [this._linearDepthPostProcess, this._scatteringPostProcess, ...this._blurPostProcesses, this._composePostProcess];
 
 		postProcesses.forEach((postProcess) => {
 			if (!postProcess) {
@@ -741,7 +826,7 @@ export class VolumetricLightingRenderingPipeline extends PostProcessRenderPipeli
 			postProcess.dispose();
 		});
 
-		this._sceneColorPostProcess = null;
+		this._linearDepthPostProcess = null;
 		this._scatteringPostProcess = null;
 		this._blurPostProcesses = [];
 		this._composePostProcess = null;
@@ -784,9 +869,9 @@ export class VolumetricLightingRenderingPipeline extends PostProcessRenderPipeli
 	}
 
 	/**
-	 * Runs the selection pass and recompiles the raymarching shader when, and only when, the shape of the
-	 * work it has to do changed. The identity and the values of the lights change every frame and only
-	 * cost a uniform update.
+	 * Runs the selection pass and recompiles the shaders when, and only when, their defines changed. The
+	 * identity, the number and the values of the point and spot lights change every frame and only cost a
+	 * uniform update: only the directional lights and the kinds of the shadow maps shape the shader.
 	 */
 	private _updateSelection(): void {
 		if (this._disposed || !this._scatteringPostProcess) {
@@ -807,17 +892,20 @@ export class VolumetricLightingRenderingPipeline extends PostProcessRenderPipeli
 
 		this._selection = selection;
 
-		const shapeKey = computeVolumetricShapeKey(selection, this._configuration, environment);
-		if (shapeKey === this._shapeKey) {
-			return;
+		// Each pass is only recompiled when its own defines changed: recompiling a pass makes it skip its
+		// draws until the new program is linked.
+		const scatteringDefines = this._buildScatteringDefines(selection, environment);
+		if (scatteringDefines !== this._scatteringDefines) {
+			this._scatteringDefines = scatteringDefines;
+			this._scatteringPostProcess.updateEffect(scatteringDefines);
 		}
 
-		this._shapeKey = shapeKey;
+		const linearDepthDefines = this._buildLinearDepthDefines(environment);
+		if (linearDepthDefines !== this._linearDepthDefines) {
+			this._linearDepthDefines = linearDepthDefines;
+			this._linearDepthPostProcess?.updateEffect(linearDepthDefines);
+		}
 
-		this._scatteringPostProcess.updateEffect(this._buildScatteringDefines(selection, environment));
-
-		// Only recompile the two other passes when their own defines changed: they don't depend on which
-		// lights are selected, and recompiling them makes the frame blank until the program is linked.
 		const blurDefines = this._buildBlurDefines(environment);
 		if (blurDefines !== this._blurDefines) {
 			this._blurDefines = blurDefines;
@@ -831,44 +919,18 @@ export class VolumetricLightingRenderingPipeline extends PostProcessRenderPipeli
 		}
 	}
 
-	private _getLightWorldPosition(light: Light, result: Vector3): Vector3 {
-		const anyLight = light as any;
-
-		if (anyLight.computeTransformedInformation?.() && anyLight.transformedPosition) {
-			result.copyFrom(anyLight.transformedPosition);
-		} else if (anyLight.position) {
-			result.copyFrom(anyLight.position);
-		} else {
-			result.copyFromFloats(0, 0, 0);
-		}
-
-		return result;
-	}
-
-	private _getLightWorldDirection(light: Light, result: Vector3): Vector3 {
-		const anyLight = light as any;
-
-		if (anyLight.computeTransformedInformation?.() && anyLight.transformedDirection) {
-			result.copyFrom(anyLight.transformedDirection);
-		} else if (anyLight.direction) {
-			result.copyFrom(anyLight.direction);
-		} else {
-			result.copyFromFloats(0, 0, 1);
-		}
-
-		return result.normalize();
-	}
-
 	/**
 	 * Fills the four vectors describing a light in the raymarching shader. The packing follows what
-	 * "Light.transferToEffect" writes for the surfaces of the scene so the shafts agree with them.
+	 * "Light.transferToEffect" writes for the surfaces of the scene so the shafts agree with them, except for
+	 * the position of the point and spot lights, which is written relative to the camera: the raymarching
+	 * works in that space, which keeps its precision whatever the distance of the scene to the origin.
 	 */
 	private _writeLight(candidate: IVolumetricLightCandidate, index: number, data: Float32Array, diffuse: Float32Array, direction: Float32Array, falloff: Float32Array): void {
 		const { light, config } = candidate;
 		const offset = index * 4;
 
 		if (isDirectionalLight(light)) {
-			this._getLightWorldDirection(light, this._temporaryVector);
+			getVolumetricLightWorldDirection(light, this._temporaryVector);
 
 			// The shader expects the direction pointing to the light, not the one the light travels along.
 			data[offset] = -this._temporaryVector.x;
@@ -876,7 +938,7 @@ export class VolumetricLightingRenderingPipeline extends PostProcessRenderPipeli
 			data[offset + 2] = -this._temporaryVector.z;
 			data[offset + 3] = 1;
 		} else {
-			this._getLightWorldPosition(light, this._temporaryVector);
+			getVolumetricLightWorldPosition(light, this._temporaryVector).subtractInPlace(this._camera.globalPosition);
 
 			data[offset] = this._temporaryVector.x;
 			data[offset + 1] = this._temporaryVector.y;
@@ -898,7 +960,7 @@ export class VolumetricLightingRenderingPipeline extends PostProcessRenderPipeli
 		diffuse[offset + 3] = config.anisotropy;
 
 		if (isSpotLight(light)) {
-			this._getLightWorldDirection(light, this._temporaryVector);
+			getVolumetricLightWorldDirection(light, this._temporaryVector);
 
 			direction[offset] = this._temporaryVector.x;
 			direction[offset + 1] = this._temporaryVector.y;
@@ -915,16 +977,21 @@ export class VolumetricLightingRenderingPipeline extends PostProcessRenderPipeli
 			falloff[offset + 1] = 1;
 		}
 
-		// "Light.range" defaults to Number.MAX_VALUE, which passes isFinite but becomes Infinity once stored
-		// in a Float32Array. Anything past the reach of the march is equivalent to no attenuation at all.
-		const range = light.range > 0 && light.range < Number.MAX_VALUE ? light.range : this._configuration.maxDistance;
-
-		falloff[offset] = Math.max(1e-3, Math.min(range * config.rangeMultiplier, 3.4e38));
+		falloff[offset] = getVolumetricLightRange(light, config, this._configuration);
 
 		// Only read by the unshadowed tier, where it asks for the depth buffer occlusion. The shadowed tier
 		// overwrites it with the frustum edge falloff of its generator, and uses its shadow map instead.
 		falloff[offset + 2] = config.castVolumetricShadows ? 1 : 0;
 		falloff[offset + 3] = config.shadowDarkness;
+	}
+
+	private _bindLinearDepth(effect: Effect): void {
+		if (!this._depthRenderer) {
+			return;
+		}
+
+		effect.setTexture("depthSampler", this._depthRenderer.getDepthMap());
+		this._bindDepthUniforms(effect);
 	}
 
 	private _bindScattering(effect: Effect): void {
@@ -933,7 +1000,7 @@ export class VolumetricLightingRenderingPipeline extends PostProcessRenderPipeli
 		const configuration = this._configuration;
 		const selection = this._selection;
 
-		if (!selection || !this._depthRenderer) {
+		if (!selection) {
 			return;
 		}
 
@@ -946,8 +1013,10 @@ export class VolumetricLightingRenderingPipeline extends PostProcessRenderPipeli
 		camera.getDirectionToRef(scene.useRightHandedSystem ? rightHandedForward : leftHandedForward, this._temporaryVector);
 		effect.setVector3("volCameraForward", this._temporaryVector.normalize());
 
-		this._bindDepthUniforms(effect);
+		effect.setFloat2("volCameraMinMaxZ", camera.minZ, camera.maxZ);
 		effect.setFloat("volFrameIndex", scene.getRenderId() % 64);
+
+		this._bindDepthRatio(effect);
 
 		effect.setFloat4("volFogInfos", configuration.fogMode, configuration.fogStart, configuration.fogEnd, configuration.fogDensity);
 
@@ -966,17 +1035,19 @@ export class VolumetricLightingRenderingPipeline extends PostProcessRenderPipeli
 		this._temporaryColor.set(configuration.ambientColor[0], configuration.ambientColor[1], configuration.ambientColor[2]).scaleInPlace(configuration.ambientIntensity);
 		effect.setColor3("volAmbient", this._temporaryColor);
 
-		effect.setFloat4("volParams", configuration.maxDistance, configuration.ditherStrength, configuration.lightExtinctionClamp, 0);
+		// The directional lights come first in the arrays, the shader walks the point and spot lights after them.
+		const unshadowedCount = selection.unshadowed.length;
+		const localCount = unshadowedCount - selection.directionalCount;
 
-		effect.setTexture("depthSampler", this._depthRenderer.getDepthMap());
+		effect.setFloat4("volParams", configuration.maxDistance, configuration.ditherStrength, configuration.lightExtinctionClamp, localCount);
 
 		// Unshadowed lights.
-		selection.unshadowed.forEach((candidate, index) => {
-			this._writeLight(candidate, index, this._lightData, this._lightDiffuse, this._lightDirection, this._lightFalloff);
-		});
+		for (let i = 0; i < unshadowedCount; ++i) {
+			this._writeLight(selection.unshadowed[i], i, this._lightData, this._lightDiffuse, this._lightDirection, this._lightFalloff);
+		}
 
-		if (selection.unshadowed.length) {
-			const count = selection.unshadowed.length * 4;
+		if (unshadowedCount) {
+			const count = unshadowedCount * 4;
 
 			effect.setFloatArray4("volLightData", this._lightData.subarray(0, count));
 			effect.setFloatArray4("volLightDiffuse", this._lightDiffuse.subarray(0, count));
@@ -1056,35 +1127,52 @@ export class VolumetricLightingRenderingPipeline extends PostProcessRenderPipeli
 		}
 	}
 
-	private _bindBlur(effect: Effect, postProcess: PostProcess, index: number): void {
-		if (!this._depthRenderer) {
+	/**
+	 * Binds the ratio between the resolution of the linear depth and the resolution of the scattering buffer.
+	 * It is computed here rather than in the shaders so every pass rounds it exactly the same way, which is what
+	 * makes them all associate each texel of the scattering buffer with the same texel of the linear depth.
+	 */
+	private _bindDepthRatio(effect: Effect): void {
+		// The ratio of a post-process sizes its input texture: the raymarching pass reads the linear depth, and
+		// the pass that follows it reads the scattering buffer. Both are activated by the time a pass applies.
+		const depth = this._scatteringPostProcess;
+		const scattering = this._blurPostProcesses[0] ?? this._composePostProcess;
+
+		const depthWidth = depth && depth.width > 0 ? depth.width : 1;
+		const depthHeight = depth && depth.height > 0 ? depth.height : 1;
+		const scatteringWidth = scattering && scattering.width > 0 ? scattering.width : depthWidth;
+		const scatteringHeight = scattering && scattering.height > 0 ? scattering.height : depthHeight;
+
+		effect.setFloat2("volDepthRatio", depthWidth / scatteringWidth, depthHeight / scatteringHeight);
+	}
+
+	private _bindBlur(effect: Effect, index: number): void {
+		if (!this._scatteringPostProcess) {
 			return;
 		}
 
-		const texelSize = postProcess.texelSize;
-
-		effect.setTexture("depthSampler", this._depthRenderer.getDepthMap());
-		this._bindDepthUniforms(effect);
-		effect.setFloat2("volBlurDirection", index % 2 === 0 ? texelSize.x : 0, index % 2 === 0 ? 0 : texelSize.y);
+		// The input of the raymarching pass is the linear depth.
+		effect.setTextureFromPostProcess("volLinearDepthSampler", this._scatteringPostProcess);
+		effect.setFloat2("volCameraMinMaxZ", this._camera.minZ, this._camera.maxZ);
+		this._bindDepthRatio(effect);
+		effect.setFloat2("volBlurDirection", index % 2 === 0 ? 1 : 0, index % 2 === 0 ? 0 : 1);
 		effect.setFloat2("volBlurParams", Math.max(this._configuration.blurRadius * 0.5, 0.5), this._configuration.blurDepthThreshold);
 	}
 
 	private _bindCompose(effect: Effect): void {
-		if (!this._depthRenderer || !this._sceneColorPostProcess) {
+		if (!this._linearDepthPostProcess || !this._scatteringPostProcess) {
 			return;
 		}
 
 		const configuration = this._configuration;
 
-		effect.setTexture("depthSampler", this._depthRenderer.getDepthMap());
-		// The snapshot renders into the texture of the NEXT pass, which is sized by "resolutionScale", so
-		// its output is a downsampled copy. Its own input texture is the untouched full resolution one.
-		effect.setTextureFromPostProcess("volSceneSampler", this._sceneColorPostProcess);
+		// The input texture of the first pass is the untouched, full resolution, color of the scene, and the
+		// input texture of the raymarching pass is the linear depth of the scene.
+		effect.setTextureFromPostProcess("volSceneSampler", this._linearDepthPostProcess);
+		effect.setTextureFromPostProcess("volLinearDepthSampler", this._scatteringPostProcess);
 
-		this._bindDepthUniforms(effect);
-
-		const texelSize = this._composePostProcess?.texelSize;
-		effect.setFloat2("volScatterTexelSize", texelSize?.x ?? 1, texelSize?.y ?? 1);
+		effect.setFloat2("volCameraMinMaxZ", this._camera.minZ, this._camera.maxZ);
+		this._bindDepthRatio(effect);
 
 		// The dithering of the output is only useful when the chain ends up in an 8 bits buffer.
 		const outputDither = this._ldrEncode ? 1 / 255 : 0;
