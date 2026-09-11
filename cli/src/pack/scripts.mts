@@ -82,6 +82,18 @@ export async function createScriptsFile(projectDir: string): Promise<void> {
 							entityName: data.name ?? data.meshes?.[0]?.name,
 						});
 					}
+
+					// Check also for instances in case of a mesh data
+					data.meshes?.forEach((mesh) => {
+						mesh.instances?.forEach((instance) => {
+							if (instance.metadata) {
+								availableMetadata.push({
+									metadata: instance.metadata,
+									entityName: instance.name,
+								});
+							}
+						});
+					});
 				})
 			);
 
