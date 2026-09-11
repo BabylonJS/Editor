@@ -231,6 +231,10 @@ export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scen
 		_applyScriptsForObject(scene, light, scriptsMap, rootUrl);
 	});
 
+	clusteredLightContainer.lights.forEach((light) => {
+		_applyScriptsForObject(scene, light, scriptsMap, rootUrl);
+	});
+
 	scene.cameras.forEach((camera) => {
 		_applyScriptsForObject(scene, camera, scriptsMap, rootUrl);
 	});
