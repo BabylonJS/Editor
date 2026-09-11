@@ -19,16 +19,17 @@ import { applyRenderingConfigurations } from "./rendering";
 import { _applyScriptsForObject } from "./script/apply";
 import { _preloadScriptsAssets } from "./script/preload";
 
+import { registerMeshParser } from "./mesh";
 import { registerAudioParser } from "./sound";
 import { registerTextureParser } from "./texture";
+import { registerSpriteMapParser } from "./sprite-map";
 import { registerShadowGeneratorParser } from "./shadows";
+import { configureTransformNodes } from "./transform-node";
 import { registerSpriteManagerParser } from "./sprite-manager";
 import { registerMorphTargetManagerParser } from "./morph-target-manager";
 import { registerNodeParticleSystemSetParser } from "./node-particle-system-set";
 
 import { configureLights } from "./light";
-import { registerSpriteMapParser } from "./sprite-map";
-import { configureTransformNodes } from "./transform-node";
 
 /**
  * Defines the possible output type of a script.
@@ -141,6 +142,7 @@ export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scen
 	scene.loadingShadowsQuality = options?.shadowsQuality ?? scene.loadingQuality;
 	scene.loadingLodsQuality = options?.lodsQuality ?? scene.loadingQuality;
 
+	registerMeshParser();
 	registerAudioParser();
 	registerTextureParser();
 	registerShadowGeneratorParser();

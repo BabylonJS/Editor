@@ -119,6 +119,10 @@ export async function loadMeshes(editor: Editor, meshesFiles: string[], scene: S
 									instance.physicsAggregate = parsePhysicsAggregate(instance, instanceData.metadata.physicsAggregate);
 									instance.physicsAggregate.body.disableSync = true;
 								}
+
+								if (instanceData.billboardMode !== undefined) {
+									instance.billboardMode = instanceData.billboardMode;
+								}
 							}
 
 							options.loadResult.meshes.push(instance);
