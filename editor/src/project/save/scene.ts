@@ -197,6 +197,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 								}
 
 								instanceData.uniqueId = instance.uniqueId;
+								instanceData.billboardMode = instance.billboardMode;
 
 								delete instanceData.parentId;
 
