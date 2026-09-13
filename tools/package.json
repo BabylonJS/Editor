@@ -31,7 +31,7 @@
 		"@vitest/coverage-v8": "4.0.17",
 		"esbuild": "0.28.1",
 		"typescript": "7.0.2",
-		"vitest": "4.1.0"
+		"vitest": "4.1.11"
 	},
 	"dependencies": {}
 }
