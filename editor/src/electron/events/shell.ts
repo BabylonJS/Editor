@@ -20,3 +20,10 @@ ipcMain.on("editor:show-item", (_, item) => {
 
 	shell.showItemInFolder(item);
 });
+
+ipcMain.on("editor:open-in-external-editor", (_, item) => {
+	const isWindows = platform() === "win32";
+	item = isWindows ? item.replace(/\//g, "\\") : item.replace(/\\/g, "/");
+
+	shell.openPath(item);
+});

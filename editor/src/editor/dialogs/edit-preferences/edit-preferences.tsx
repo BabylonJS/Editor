@@ -7,7 +7,12 @@ import { Separator } from "../../../ui/shadcn/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../ui/shadcn/ui/select";
 import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../../../ui/shadcn/ui/alert-dialog";
 
-import { trySetExperimentalFeaturesEnabledInLocalStorage } from "../../../tools/local-storage";
+import {
+	defaultIdeOptions,
+	tryGetDefaultIdeFromLocalStorage,
+	trySetDefaultIdeInLocalStorage,
+	trySetExperimentalFeaturesEnabledInLocalStorage,
+} from "../../../tools/local-storage";
 
 import { EditorInspectorKeyField } from "../../layout/inspector/fields/key";
 import { EditorInspectorNumberField } from "../../layout/inspector/fields/number";
@@ -28,6 +33,7 @@ export interface IEditorEditPreferencesComponentProps {
 
 export interface IEditorEditPreferencesComponentState {
 	theme: "light" | "dark";
+	defaultIde: string;
 }
 
 export class EditorEditPreferencesComponent extends Component<IEditorEditPreferencesComponentProps, IEditorEditPreferencesComponentState> {
@@ -36,6 +42,7 @@ export class EditorEditPreferencesComponent extends Component<IEditorEditPrefere
 
 		this.state = {
 			theme: document.body.classList.contains("dark") ? "dark" : "light",
+			defaultIde: tryGetDefaultIdeFromLocalStorage(),
 		};
 	}
 
@@ -50,6 +57,8 @@ export class EditorEditPreferencesComponent extends Component<IEditorEditPrefere
 					<div className="flex flex-col gap-[20px]">
 						<Separator />
 						{this._getThemesComponent()}
+						<Separator />
+						{this._getDefaultIdeComponent()}
 						<Separator />
 						{this._getCameraControlPreferences()}
 						<Separator />
@@ -89,6 +98,34 @@ export class EditorEditPreferencesComponent extends Component<IEditorEditPrefere
 						<SelectContent>
 							<SelectItem value="light">Light</SelectItem>
 							<SelectItem value="dark">Dark</SelectItem>
+						</SelectContent>
+					</Select>
+				</div>
+			</div>
+		);
+	}
+
+	private _getDefaultIdeComponent(): ReactNode {
+		return (
+			<div className="flex flex-col gap-[10px] w-full">
+				<div className="flex flex-col gap-[10px]">
+					<Label className="text-xl font-[400]">Default IDE</Label>
+					<Select
+						value={this.state.defaultIde}
+						onValueChange={(v) => {
+							this.setState({ defaultIde: v });
+							trySetDefaultIdeInLocalStorage(v);
+						}}
+					>
+						<SelectTrigger className="">
+							<SelectValue placeholder="Select Value..." />
+						</SelectTrigger>
+						<SelectContent>
+							{defaultIdeOptions.map((option) => (
+								<SelectItem key={option.id} value={option.id}>
+									{option.label}
+								</SelectItem>
+							))}
 						</SelectContent>
 					</Select>
 				</div>

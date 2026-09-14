@@ -12,7 +12,6 @@ import { Grid } from "react-loader-spinner";
 
 import { toast } from "sonner";
 
-import { ImFinder } from "react-icons/im";
 import { BiSolidFileCss } from "react-icons/bi";
 import { GiCeilingLight } from "react-icons/gi";
 import { GrStatusUnknown } from "react-icons/gr";
@@ -27,6 +26,7 @@ import { Input } from "../../../../ui/shadcn/ui/input";
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger, ContextMenuSeparator } from "../../../../ui/shadcn/ui/context-menu";
 
 import { isDarwin } from "../../../../tools/os";
+import { openInIde } from "../../../../tools/ide";
 
 import { Editor } from "../../../main";
 
@@ -244,7 +244,10 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 	 * Called on the item is double-clicked. To be overriden by the specialized items implementations.
 	 */
 	protected onDoubleClick(): void | Promise<void> {
-		// Nothing to do by default.
+		// If it's a file (not a directory), open it in the default editor
+		if (!this.state.isDirectory) {
+			openInIde(this.props.absolutePath, false);
+		}
 	}
 
 	private _handleDragStart(ev: DragEvent<HTMLDivElement>): void {
@@ -386,11 +389,15 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 
 		return (
 			<ContextMenuContent>
-				<ContextMenuItem className="flex items-center gap-2" onClick={() => ipcRenderer.send("editor:show-item", this.props.absolutePath)}>
-					<ImFinder className="w-4 h-4" /> {`Show in ${isDarwin ? "Finder" : "Explorer"}`}
-				</ContextMenuItem>
+				{!this.state.isDirectory && (
+					<ContextMenuItem className="flex items-center gap-2" onClick={() => openInIde(this.props.absolutePath, false)}>
+						Open
+					</ContextMenuItem>
+				)}
 
-				<ContextMenuSeparator />
+				<ContextMenuItem className="flex items-center gap-2" onClick={() => ipcRenderer.send("editor:show-item", this.props.absolutePath)}>
+					{`Show in ${isDarwin ? "Finder" : "Explorer"}`}
+				</ContextMenuItem>
 
 				{items.map((item, index) => (
 					<Fragment key={`context-menu-item-${index}`}>{item}</Fragment>
@@ -412,7 +419,7 @@ export class AssetsBrowserItem extends Component<IAssetsBrowserItemProps, IAsset
 				<ContextMenuSeparator />
 
 				<ContextMenuItem className="flex items-center gap-2 !text-red-400" onClick={() => this._handleTrashItem()}>
-					<AiOutlineClose className="w-5 h-5" fill="rgb(248, 113, 113)" /> Remove
+					<AiOutlineClose className="w-5 h-5" fill="rgb(248, 113, 113)" /> Delete
 				</ContextMenuItem>
 			</ContextMenuContent>
 		);

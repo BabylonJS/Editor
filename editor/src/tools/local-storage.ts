@@ -89,6 +89,45 @@ export function trySetCloseDashboardOnProjectOpenInLocalStorage(enabled: boolean
 }
 
 /**
+ * Defines the list of IDEs that can be selected as the default IDE used when opening
+ * a project or a file/folder from the editor.
+ */
+export const defaultIdeOptions = [
+	{ id: "auto", label: "Auto (detect installed)" },
+	{ id: "code", label: "Visual Studio Code" },
+	{ id: "cursor", label: "Cursor" },
+	{ id: "subl", label: "Sublime Text" },
+	{ id: "phpstorm", label: "PhpStorm" },
+	{ id: "webstorm", label: "WebStorm" },
+	{ id: "idea", label: "IntelliJ IDEA" },
+	{ id: "system", label: "System Default Application" },
+] as const;
+
+/**
+ * Returns the identifier of the default IDE to use when opening a project, file or folder.
+ * Defaults to "auto" when nothing is stored or the local storage can't be accessed.
+ */
+export function tryGetDefaultIdeFromLocalStorage(): string {
+	try {
+		return localStorage.getItem("babylonjs-editor-default-ide") ?? "auto";
+	} catch (e) {
+		return "auto";
+	}
+}
+
+/**
+ * Sets the identifier of the default IDE to use when opening a project, file or folder.
+ * @param ide defines the identifier of the IDE to set as the default one.
+ */
+export function trySetDefaultIdeInLocalStorage(ide: string): void {
+	try {
+		localStorage.setItem("babylonjs-editor-default-ide", ide);
+	} catch (e) {
+		// Catch silently.
+	}
+}
+
+/**
  * Returns the terminal path stored in the local storage, or null if it fails to access the local storage or if no terminal path is stored.
  */
 export function tryGetTerminalFromLocalStorage(): string | null {
