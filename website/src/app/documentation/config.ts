@@ -19,7 +19,7 @@ export const DOCS_CONFIG: IDocCategory[] = [
 				description: "An overview of the Babylon.js Editor, what it can do, and what you need before getting started.",
 			},
 			{
-				title: "Creating a project",
+				title: "Creating project",
 				href: "/documentation/basics/creating-project",
 				description: "Learn how to create a new project, select project templates, configure package managers, and import existing projects in the editor.",
 			},
@@ -71,12 +71,17 @@ export const DOCS_CONFIG: IDocCategory[] = [
 		],
 	},
 	{
-		category: "Sprites",
+		category: "Assets",
 		items: [
 			{
 				title: "Using Sprite Manager",
-				href: "/documentation/sprites/using-sprite-manager",
+				href: "/documentation/assets/using-sprite-manager",
 				description: "Create sprite managers, configure textures and atlases, animate sprites, and attach scripts to them.",
+			},
+			{
+				title: "Using Gaussian Splatting",
+				href: "/documentation/assets/using-gaussian-splatting",
+				description: "Import Gaussian Splatting assets (.splat, .spz, .sog) into your project, manipulate them in the scene, and enable runtime loading support.",
 			},
 		],
 	},
