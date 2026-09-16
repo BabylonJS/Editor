@@ -376,7 +376,7 @@ export class UpdateResourcesFromAsset extends Component<IUpdateResourcesFromAsse
 							<TableCell className="w-1/3 font-medium">{c.object.name}</TableCell>
 							<TableCell className="w-full font-thin">
 								<Select value={c.rootNode?.name ?? ""} disabled={!c.update} onValueChange={(value) => onRootNodeChange(c, value)}>
-									<SelectTrigger className="w-[180px]">
+									<SelectTrigger className="w-[180px]" onClick={(ev) => ev.stopPropagation()}>
 										<SelectValue placeholder="???" />
 									</SelectTrigger>
 									<SelectContent>
@@ -390,7 +390,7 @@ export class UpdateResourcesFromAsset extends Component<IUpdateResourcesFromAsse
 							</TableCell>
 							<TableCell className="w-full font-thin">
 								<Select value={c.matchedRootNode?.name ?? ""} disabled={!c.update} onValueChange={(value) => onAssetRootNodeChange(c, value)}>
-									<SelectTrigger className="w-[180px]">
+									<SelectTrigger className="w-[180px]" onClick={(ev) => ev.stopPropagation()}>
 										<SelectValue placeholder="???" />
 									</SelectTrigger>
 									<SelectContent>
