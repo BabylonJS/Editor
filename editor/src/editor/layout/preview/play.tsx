@@ -383,7 +383,10 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 		this._requireCompiledScripts();
 
 		const scene = new Scene(this.props.editor.layout.preview.engine);
-		scene.enablePhysics(new Vector3(0, -981, 0), new HavokPlugin());
+		const physicsPlugin = new HavokPlugin();
+		// Scenes are in centimeters: Havok limits the linear velocity to 200 units/s by default, which is only 2 m/s. Raise it to 200 m/s.
+		physicsPlugin.setVelocityLimits(200 * 100, 100);
+		scene.enablePhysics(new Vector3(0, -981, 0), physicsPlugin);
 
 		this.scene = scene;
 		this.props.editor.layout.graph.setState({
