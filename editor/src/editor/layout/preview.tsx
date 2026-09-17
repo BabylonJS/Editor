@@ -618,7 +618,10 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 			mode: EasingFunction.EASINGMODE_EASEINOUT,
 		};
 
-		this.scene.enablePhysics(new Vector3(0, -981, 0), new HavokPlugin());
+		const physicsPlugin = new HavokPlugin();
+		// Scenes are in centimeters: Havok limits the linear velocity to 200 units/s by default, which is only 2 m/s. Raise it to 200 m/s.
+		physicsPlugin.setVelocityLimits(200 * 100, 100);
+		this.scene.enablePhysics(new Vector3(0, -981, 0), physicsPlugin);
 
 		this.statistics = new Stats(this.props.editor);
 		this.statistics.onValuesChangedObservable.add((values) => {

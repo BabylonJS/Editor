@@ -85,6 +85,8 @@ const App: Component = () => {
 		const havok = await HavokPhysics();
 		const gravityVector = new Vector3(0, -9.81, 0);
 		const physicsPlugin = new HavokPlugin(true, havok);
+		// Scenes are in centimeters: Havok limits the linear velocity to 200 units/s by default, which is only 2 m/s. Raise it to 200 m/s.
+		physicsPlugin.setVelocityLimits(200 * 100, 100);
 		scene.enablePhysics(gravityVector, physicsPlugin);
 
 		SceneLoaderFlags.ForceFullSceneLoadingForIncremental = true;
