@@ -13,6 +13,7 @@ import { PostProcess } from "@babylonjs/core/PostProcesses/postProcess";
 import { ShaderLanguage } from "@babylonjs/core/Materials/shaderLanguage";
 import { PostProcessRenderEffect } from "@babylonjs/core/PostProcesses/RenderPipeline/postProcessRenderEffect";
 import { PostProcessRenderPipeline } from "@babylonjs/core/PostProcesses/RenderPipeline/postProcessRenderPipeline";
+import { PrePassEffectConfiguration } from "@babylonjs/core/Rendering/prePassEffectConfiguration";
 
 import { isDirectionalLight, isSpotLight } from "../../tools/guards";
 
@@ -41,6 +42,16 @@ import {
 	getVolumetricLightWorldPosition,
 	selectVolumetricLights,
 } from "./selector";
+
+import {
+	VolumetricDepthSource,
+	createVolumetricLightingPrePassConfiguration,
+	getVolumetricGeometryBufferDepthTexture,
+	getVolumetricGeometryBufferRenderer,
+	getVolumetricPrePassDepthTexture,
+	getVolumetricPrePassRenderer,
+	resolveVolumetricDepthSource,
+} from "./depth";
 
 import {
 	registerVolumetricLightingShaders,
@@ -131,6 +142,10 @@ for (let i = 0; i < maxVolumetricShadowSlots; ++i) {
  * Defines a rendering pipeline computing single-scattering volumetric lighting: the light shafts are
  * integrated through a participating medium the pipeline describes on its own, and are occluded either by
  * the shadow map a light already renders or, when it has none, by the depth buffer of the scene.
+ *
+ * The depth of the scene is read from the cheapest source available, re-evaluated every frame: the prepass
+ * renderer when the scene has one, then the geometry buffer renderer, and only when the scene has neither a
+ * depth renderer, which costs an additional rendering of every mesh of the scene.
  *
  * Every light of the scene can take part in the effect, including the lights that live inside a clustered
  * light container, and each one is configured individually through "light.metadata.volumetricLighting".
@@ -238,9 +253,11 @@ export class VolumetricLightingRenderingPipeline extends PostProcessRenderPipeli
 	private _ldrEncode: boolean;
 	private _linearDepthPacked: boolean;
 
+	private _depthSource: VolumetricDepthSource = VolumetricDepthSource.DepthRenderer;
 	private _depthRenderer: DepthRenderer | null = null;
 	private _ownsDepthRenderer: boolean = false;
 	private _depthMode: 0 | 1 | 2 = 0;
+	private _prePassConfiguration: PrePassEffectConfiguration = createVolumetricLightingPrePassConfiguration();
 
 	private _linearDepthPostProcess: PostProcess | null = null;
 	private _scatteringPostProcess: PostProcess | null = null;
@@ -332,7 +349,8 @@ export class VolumetricLightingRenderingPipeline extends PostProcessRenderPipeli
 
 		this._budget = computeVolumetricBudget(engine, this._configuration);
 
-		this._setupDepthRenderer();
+		this._depthSource = resolveVolumetricDepthSource(scene);
+		this._setupDepthSource();
 		this._buildRenderEffects();
 
 		scene.postProcessRenderPipelineManager.addPipeline(this);
@@ -340,6 +358,7 @@ export class VolumetricLightingRenderingPipeline extends PostProcessRenderPipeli
 
 		this._beforeCameraRenderObserver = scene.onBeforeCameraRenderObservable.add((renderedCamera) => {
 			if (renderedCamera === this._camera) {
+				this._updateDepthSource();
 				this._updateSelection();
 			}
 		});
@@ -376,6 +395,13 @@ export class VolumetricLightingRenderingPipeline extends PostProcessRenderPipeli
 	 */
 	public get configuration(): IVolumetricLightingConfiguration {
 		return this._configurationProxy;
+	}
+
+	/**
+	 * Gets where the depth of the scene is currently read from. @see VolumetricDepthSource
+	 */
+	public get depthSource(): VolumetricDepthSource {
+		return this._depthSource;
 	}
 
 	/**
@@ -463,11 +489,8 @@ export class VolumetricLightingRenderingPipeline extends PostProcessRenderPipeli
 		this._scene.postProcessRenderPipelineManager.detachCamerasFromRenderPipeline(this.name, cameras);
 		this._disposePostProcesses(cameras);
 
-		if (this._ownsDepthRenderer) {
-			this._scene.disableDepthRenderer(this._camera);
-		}
+		this._releaseDepthSource();
 
-		this._depthRenderer = null;
 		this._selection = null;
 
 		// Removing the pipeline explicitly, "dispose" alone can leave a stale entry in the manager.
@@ -489,9 +512,105 @@ export class VolumetricLightingRenderingPipeline extends PostProcessRenderPipeli
 	}
 
 	/**
-	 * Adopts the depth renderer of the camera when one already exists (the SSAO and SSR pipelines create
-	 * one) instead of paying for a second full depth pass, and detects the format it stores so the shader
+	 * Prepares the current source of the depth of the scene and detects the format it stores so the shader
 	 * can be compiled for it.
+	 */
+	private _setupDepthSource(): void {
+		switch (this._depthSource) {
+			case VolumetricDepthSource.PrePass:
+				// The prepass renderer writes the view space Z in a float texture and clears the sky to 0. The
+				// texture is requested through the effect configuration of the linear depth pass.
+				this._depthMode = 1;
+				break;
+
+			case VolumetricDepthSource.GeometryBuffer:
+				// Same content as the prepass renderer.
+				this._ensureGeometryBufferDepth();
+				this._depthMode = 1;
+				break;
+
+			default:
+				this._setupDepthRenderer();
+				break;
+		}
+
+		this._applyPrePassConfiguration();
+	}
+
+	/**
+	 * Releases what the current source of the depth of the scene owns.
+	 */
+	private _releaseDepthSource(): void {
+		if (this._ownsDepthRenderer) {
+			this._scene.disableDepthRenderer(this._camera);
+		}
+
+		this._depthRenderer = null;
+		this._ownsDepthRenderer = false;
+
+		if (this._linearDepthPostProcess) {
+			this._linearDepthPostProcess._prePassEffectConfiguration = undefined!;
+		}
+	}
+
+	/**
+	 * Switches to another source of the depth of the scene when the renderers of the scene changed: the
+	 * effects enabling the prepass renderer can be created after this pipeline, and it can be disabled at any time.
+	 */
+	private _updateDepthSource(): void {
+		if (this._disposed) {
+			return;
+		}
+
+		const depthSource = resolveVolumetricDepthSource(this._scene);
+
+		if (depthSource === this._depthSource) {
+			// Another effect sharing the geometry buffer may have disabled its depth texture.
+			if (depthSource === VolumetricDepthSource.GeometryBuffer) {
+				this._ensureGeometryBufferDepth();
+			}
+
+			return;
+		}
+
+		this._releaseDepthSource();
+
+		this._depthSource = depthSource;
+		this._setupDepthSource();
+
+		// The prepass renderer only collects the textures the post-processes of the camera require when it updates: this
+		// either starts or stops the writing of the depth texture, unless another effect requires it too. Attaching and
+		// detaching the post-processes, when the pipeline is rebuilt or disposed, already marks it as dirty.
+		getVolumetricPrePassRenderer(this._scene)?.markAsDirty();
+
+		// Runs a selection pass this frame, which recompiles the passes whose defines depend on the format of the depth.
+		this._lightsDirty = true;
+	}
+
+	/**
+	 * Enables the depth texture of the geometry buffer renderer. Toggling it recreates the whole geometry
+	 * buffer, so it is only done when no other effect already enabled it.
+	 */
+	private _ensureGeometryBufferDepth(): void {
+		const geometryBufferRenderer = getVolumetricGeometryBufferRenderer(this._scene);
+		if (geometryBufferRenderer && !geometryBufferRenderer.enableDepth) {
+			geometryBufferRenderer.enableDepth = true;
+		}
+	}
+
+	/**
+	 * Asks the prepass renderer to write the depth of the scene when it is the current source. The prepass
+	 * renderer collects the configurations of the post-processes attached to the camera when it updates.
+	 */
+	private _applyPrePassConfiguration(): void {
+		if (this._linearDepthPostProcess && this._depthSource === VolumetricDepthSource.PrePass) {
+			this._linearDepthPostProcess._prePassEffectConfiguration = this._prePassConfiguration;
+		}
+	}
+
+	/**
+	 * Adopts the depth renderer of the camera when one already exists instead of paying for a second full
+	 * depth pass, and detects the format it stores so the shader can be compiled for it.
 	 */
 	private _setupDepthRenderer(): void {
 		const existing = (this._scene as any)._depthRenderer?.[this._camera.uniqueId] as DepthRenderer | undefined;
@@ -754,6 +873,7 @@ export class VolumetricLightingRenderingPipeline extends PostProcessRenderPipeli
 			defines: this._linearDepthDefines,
 		});
 		this._linearDepthPostProcess.onApplyObservable.add((effect) => this._bindLinearDepth(effect));
+		this._applyPrePassConfiguration();
 
 		// The input of the raymarching pass is the linear depth, kept at the full resolution so the occlusion by
 		// the depth buffer sees the geometry as the scene draws it: the pass itself still rasterizes at the
@@ -986,11 +1106,31 @@ export class VolumetricLightingRenderingPipeline extends PostProcessRenderPipeli
 	}
 
 	private _bindLinearDepth(effect: Effect): void {
-		if (!this._depthRenderer) {
+		let depthTexture: Texture | null = null;
+
+		switch (this._depthSource) {
+			case VolumetricDepthSource.PrePass: {
+				const prePassRenderer = getVolumetricPrePassRenderer(this._scene);
+				depthTexture = prePassRenderer ? getVolumetricPrePassDepthTexture(prePassRenderer) : null;
+				break;
+			}
+
+			case VolumetricDepthSource.GeometryBuffer: {
+				const geometryBufferRenderer = getVolumetricGeometryBufferRenderer(this._scene);
+				depthTexture = geometryBufferRenderer ? getVolumetricGeometryBufferDepthTexture(geometryBufferRenderer) : null;
+				break;
+			}
+
+			default:
+				depthTexture = this._depthRenderer?.getDepthMap() ?? null;
+				break;
+		}
+
+		if (!depthTexture) {
 			return;
 		}
 
-		effect.setTexture("depthSampler", this._depthRenderer.getDepthMap());
+		effect.setTexture("depthSampler", depthTexture);
 		this._bindDepthUniforms(effect);
 	}
 
