@@ -3,8 +3,8 @@ import { AiOutlineMinus, AiOutlinePlus } from "react-icons/ai";
 
 import { Reorder } from "framer-motion";
 
-import { Ragdoll, Skeleton, Axis, Vector3, Mesh, TransformNode } from "babylonjs";
-import { IRagDollConfiguration, IRagdollRuntimeConfiguration } from "babylonjs-editor-tools";
+import { Ragdoll, Skeleton, Axis, Vector3, Mesh, TransformNode, Scalar } from "babylonjs";
+import { IRagDollConfiguration, IRagdollRuntimeConfiguration, applyRagdollJointLimits } from "babylonjs-editor-tools";
 
 import { Button } from "../../../ui/shadcn/ui/button";
 
@@ -13,6 +13,8 @@ import { isMesh, isTransformNode } from "../../../tools/guards/nodes";
 import { EditorInspectorListField, IEditorInspectorListFieldItem } from "../inspector/fields/list";
 import { EditorInspectorNumberField } from "../inspector/fields/number";
 import { EditorInspectorSectionField } from "../inspector/fields/section";
+
+import { applyMixamoTemplate } from "./templates/mixamo";
 
 import { RagdollEditor } from "./editor";
 
@@ -47,6 +49,19 @@ export class RagdollEditorInspector extends Component<IRagdollEditorInspectorPro
 		return (
 			<div className="flex flex-col gap-2 w-full h-full overflow-y-auto">
 				{this._getRagdollInspector()}
+
+				{!this.props.configuration.runtimeConfiguration.length && (
+					<EditorInspectorSectionField title="Templates">
+						<div className="text-center font-semibold text-lg">Start by applying a template to quickly set up your ragdoll configuration.</div>
+						<div
+							onClick={() => this._handleApplyMixamoTemplate()}
+							className="flex items-center justify-center w-full h-10 bg-background hover:bg-secondary transition-all duration-300 ease-in-out cursor-pointer"
+						>
+							Mixamo template
+						</div>
+					</EditorInspectorSectionField>
+				)}
+
 				{this._getConfigurationListInspector()}
 				{this._getConfigurationInspector()}
 			</div>
@@ -79,11 +94,29 @@ export class RagdollEditorInspector extends Component<IRagdollEditorInspectorPro
 				<EditorInspectorListField noUndoRedo search object={this} property="_selectedRootNode" label="Root Node" items={rootNodes} onChange={() => this._handleChange()} />
 				<EditorInspectorNumberField noUndoRedo object={this.props.configuration} property="scalingFactor" label="Scaling Factor" onChange={() => this._handleChange()} />
 
-				<Button variant={this.state.isRagdollApplied ? "destructive" : "default"} onClick={() => this._handleApplyOrStopRagdollPreview()}>
+				<Button
+					onClick={() => this._handleApplyOrStopRagdollPreview()}
+					disabled={!this.props.configuration.runtimeConfiguration.length}
+					variant={this.state.isRagdollApplied ? "destructive" : "default"}
+				>
 					Apply and preview Ragdoll
 				</Button>
 			</EditorInspectorSectionField>
 		);
+	}
+
+	private _handleApplyMixamoTemplate(): void {
+		const preview = this.props.ragdollEditor.preview;
+
+		if (!preview.container) {
+			return;
+		}
+
+		const newConfiguration = applyMixamoTemplate(preview.container);
+		this.props.configuration.runtimeConfiguration = newConfiguration;
+
+		this._handleChange();
+		this.props.ragdollEditor.forceUpdate();
 	}
 
 	private _handleApplyOrStopRagdollPreview(): void {
@@ -97,9 +130,17 @@ export class RagdollEditorInspector extends Component<IRagdollEditorInspectorPro
 			this._handleChange();
 		} else if (ragdoll) {
 			this._lastRootNodeScaling.copyFrom(this.state.selectedRootNode?.scaling ?? Vector3.Zero());
-			this.state.selectedRootNode?.scaling.scaleInPlace(100);
+			this.state.selectedRootNode?.scaling.scaleInPlace(this.props.configuration.scalingFactor);
 			ragdoll?.ragdoll();
-			ragdoll?.getAggregate(0)?.body.applyImpulse(new Vector3(200, 200, 200), Vector3.ZeroReadOnly);
+
+			this.props.configuration.runtimeConfiguration.forEach((_, index) => {
+				ragdoll
+					?.getAggregate(index)
+					?.body.applyImpulse(
+						new Vector3(1000 * Math.random(), 1000 * Math.random(), 1000 * Math.random()),
+						new Vector3(100 * Scalar.RandomRange(-1, 1), 150, -100 * Scalar.RandomRange(-1, 1)).scaleInPlace(this.props.configuration.scalingFactor)
+					);
+			});
 		}
 		this.setState({
 			isRagdollApplied: !this.state.isRagdollApplied,
@@ -324,6 +365,9 @@ export class RagdollEditorInspector extends Component<IRagdollEditorInspectorPro
 		skeleton.returnToRest();
 
 		preview.ragdoll = new Ragdoll(skeleton, rootNode, this.props.configuration.runtimeConfiguration as any);
+
+		// The ragdoll of Babylon.js doesn't apply the "min" and "max" limits of its joints by itself.
+		applyRagdollJointLimits(preview.ragdoll as any, this.props.configuration.runtimeConfiguration);
 		preview.resetViewer();
 	}
 }
