@@ -36,23 +36,29 @@ const packingHelpers = /* glsl */ `
 `;
 
 /**
- * Reads the full resolution depth map of the depth renderer. Requires the "volCameraMinMaxZ" and
- * "volDepthUnpack" uniforms.
+ * Reads the full resolution depth map of the depth source (prepass, geometry buffer or depth renderer), bound
+ * as "depthSampler". Requires the "volCameraMinMaxZ" and "volDepthUnpack" uniforms.
  */
 const depthMapHelpers = /* glsl */ `
-	float volSampleDepth(sampler2D s, vec2 uv) {
+	// Reads the texel under the given coordinates rather than filtering: the depth of a silhouette must not be
+	// averaged with the sky, and the 32 bits float textures of the prepass renderer can't be filtered everywhere.
+	float volSampleDepth(vec2 uv) {
+		ivec2 size = textureSize(depthSampler, 0);
+		ivec2 coordinates = min(ivec2(uv * vec2(size)), size - 1);
+
 		#ifdef VOL_DEPTH_PACKED
-			return volUnpack(texture2D(s, uv));
+			return volUnpack(texelFetch(depthSampler, coordinates, 0));
 		#else
-			return texture2D(s, uv).r;
+			return texelFetch(depthSampler, coordinates, 0).r;
 		#endif
 	}
 
 	// Converts the raw value stored in the depth map into a distance along the view axis, in scene units.
 	float volLinearDepth(float d) {
 		#ifdef VOL_DEPTH_VIEWZ
-			// The depth renderer stores the view space Z directly. The sky is cleared to 0.
-			return (d <= 0.0) ? volCameraMinMaxZ.y : d;
+			// The view space Z is stored directly, negative in a right handed scene. The sky is cleared to 0.
+			float viewZ = abs(d);
+			return (viewZ <= 0.0) ? volCameraMinMaxZ.y : viewZ;
 		#else
 			// The depth renderer stores "(clipZ + minZ) / (minZ + maxZ)", which is affine in the view space Z
 			// for both the perspective and the orthographic projections. "volDepthUnpack" holds the two
@@ -90,18 +96,19 @@ const linearDepthHelpers = /* glsl */ `
  * The linear depth pass. It is the first pass of the pipeline, so its input is the untouched color of the
  * scene that the composition reads back, and it writes the distance along the view axis of each pixel.
  *
- * Every later pass reads this texture instead of the depth map of the depth renderer: a single 32 bits
+ * Every later pass reads this texture instead of the depth map of the depth source: a single 32 bits
  * channel is half the memory traffic of the 16 bits RGBA depth map, which matters for the thousands of reads
  * of the depth-buffer occlusion, and it needs neither unpacking nor linearization. It is kept at the full
  * resolution so the occlusion sees the geometry exactly as the surfaces of the scene draw it.
  */
 export function buildVolumetricLightingLinearDepthShader(): string {
 	return /* glsl */ `precision highp float;
+precision highp int;
 
 varying vec2 vUV;
 
 uniform sampler2D textureSampler;
-uniform sampler2D depthSampler;
+uniform highp sampler2D depthSampler;
 
 uniform vec2 volCameraMinMaxZ;
 uniform vec2 volDepthUnpack;
@@ -120,7 +127,7 @@ vec4 volPack(float depth) {
 }
 
 void main(void) {
-	float viewZ = volLinearDepth(volSampleDepth(depthSampler, vUV));
+	float viewZ = volLinearDepth(volSampleDepth(vUV));
 
 	#ifdef VOL_LINEAR_DEPTH_PACKED
 		gl_FragColor = volPack(clamp(viewZ / volCameraMinMaxZ.y, 0.0, 0.9999999));

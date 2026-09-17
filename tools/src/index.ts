@@ -32,6 +32,7 @@ export * from "./rendering/tools";
 
 export * from "./rendering/volumetric/types";
 export * from "./rendering/volumetric/selector";
+export * from "./rendering/volumetric/depth";
 export * from "./rendering/volumetric/pipeline";
 
 export * from "./decorators/scene";
