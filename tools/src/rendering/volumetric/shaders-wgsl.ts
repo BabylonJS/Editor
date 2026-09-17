@@ -24,23 +24,29 @@ fn volUnpack(color: vec4f) -> f32 {
 `;
 
 /**
- * Reads the full resolution depth map of the depth renderer, bound as "depthSampler". Requires the
- * "volCameraMinMaxZ" and "volDepthUnpack" uniforms.
+ * Reads the full resolution depth map of the depth source (prepass, geometry buffer or depth renderer), bound
+ * as "depthSampler". Requires the "volCameraMinMaxZ" and "volDepthUnpack" uniforms.
  */
 const depthMapHelpers = /* wgsl */ `
+// Loads the texel under the given coordinates rather than filtering: the 32 bits float textures of the prepass
+// renderer are not filterable on WebGPU. @see the GLSL version.
 fn volSampleDepth(uv: vec2f) -> f32 {
+	let size = vec2i(textureDimensions(depthSampler));
+	let coordinates = min(vec2i(uv * vec2f(size)), size - 1);
+
 	#ifdef VOL_DEPTH_PACKED
-		return volUnpack(textureSampleLevel(depthSampler, depthSamplerSampler, uv, 0.0));
+		return volUnpack(textureLoad(depthSampler, coordinates, 0));
 	#else
-		return textureSampleLevel(depthSampler, depthSamplerSampler, uv, 0.0).r;
+		return textureLoad(depthSampler, coordinates, 0).r;
 	#endif
 }
 
 // Converts the raw value stored in the depth map into a distance along the view axis, in scene units.
 fn volLinearDepth(d: f32) -> f32 {
 	#ifdef VOL_DEPTH_VIEWZ
-		// The depth renderer stores the view space Z directly. The sky is cleared to 0.
-		return select(d, uniforms.volCameraMinMaxZ.y, d <= 0.0);
+		// The view space Z is stored directly, negative in a right handed scene. The sky is cleared to 0.
+		let viewZ = abs(d);
+		return select(viewZ, uniforms.volCameraMinMaxZ.y, viewZ <= 0.0);
 	#else
 		// The depth renderer stores "(clipZ + minZ) / (minZ + maxZ)", which is affine in the view space Z
 		// for both the perspective and the orthographic projections. "volDepthUnpack" holds the two
@@ -82,7 +88,6 @@ varying vUV: vec2f;
 
 var textureSamplerSampler: sampler;
 var textureSampler: texture_2d<f32>;
-var depthSamplerSampler: sampler;
 var depthSampler: texture_2d<f32>;
 
 uniform volCameraMinMaxZ: vec2f;
