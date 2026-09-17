@@ -20,7 +20,10 @@ import {
 	PhysicsAggregate,
 	PhysicsShapeType,
 	TransformNode,
+	AssetContainer,
 } from "babylonjs";
+
+import { convertGltfToLeftHanded } from "../../../tools/scene/gltf";
 
 import { getProjectAssetsRootUrl } from "../../../project/configuration";
 
@@ -43,6 +46,8 @@ export class RagdollEditorPreview extends Component<IRagdollEditorPreviewProps, 
 	public camera!: ArcRotateCamera;
 	public ground!: GroundMesh;
 	public scalingNode!: TransformNode;
+
+	public container: AssetContainer | null = null;
 
 	public ragdoll: Ragdoll | null = null;
 
@@ -72,6 +77,8 @@ export class RagdollEditorPreview extends Component<IRagdollEditorPreviewProps, 
 		this.camera.attachControl();
 
 		const hk = new HavokPlugin();
+		// Scenes are in centimeters: Havok limits the linear velocity to 200 units/s by default, which is only 2 m/s. Raise it to 200 m/s.
+		hk.setVelocityLimits(200 * 100, 100);
 		this.scene.enablePhysics(new Vector3(0, -981, 0), hk);
 
 		this._light = new DirectionalLight("light", new Vector3(-1, -2, -1), this.scene);
@@ -134,19 +141,21 @@ export class RagdollEditorPreview extends Component<IRagdollEditorPreviewProps, 
 			this.scene.environmentTexture = texture;
 		}
 
-		const container = await LoadAssetContainerAsync(basename(absolutePath), this.scene, {
+		this.container = await LoadAssetContainerAsync(basename(absolutePath), this.scene, {
 			rootUrl: join(dirname(absolutePath), "/"),
 		});
 
-		const nodes = [...container.meshes, ...container.transformNodes, ...container.lights, ...container.cameras];
+		const nodes = [...this.container.meshes, ...this.container.transformNodes, ...this.container.lights, ...this.container.cameras];
 
-		container.addAllToScene();
+		this.container.addAllToScene();
 
-		container.animationGroups.forEach((animationGroup) => {
+		convertGltfToLeftHanded(this.container);
+
+		this.container.animationGroups.forEach((animationGroup) => {
 			animationGroup.stop();
 		});
 
-		container.skeletons.forEach((skeleton) => {
+		this.container.skeletons.forEach((skeleton) => {
 			skeleton.returnToRest();
 		});
 
