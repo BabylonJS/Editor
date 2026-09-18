@@ -2,6 +2,8 @@ import { Scene } from "@babylonjs/core/scene";
 import { Camera } from "@babylonjs/core/Cameras/camera";
 import { SSAO2RenderingPipeline } from "@babylonjs/core/PostProcesses/RenderPipeline/Pipelines/ssao2RenderingPipeline";
 
+import { getHdrTextureType, IRenderingOptions } from "./tools";
+
 let ssaoRenderingPipeline: SSAO2RenderingPipeline | null = null;
 
 /**
@@ -28,9 +30,11 @@ export function disposeSSAO2RenderingPipeline(): void {
 	}
 }
 
-export function createSSAO2RenderingPipeline(scene: Scene, camera: Camera): SSAO2RenderingPipeline {
-	ssaoRenderingPipeline = new SSAO2RenderingPipeline("SSAO2RenderingPipeline", scene, 1.0, [camera]);
-	ssaoRenderingPipeline.samples = 4;
+export function createSSAO2RenderingPipeline(scene: Scene, camera: Camera, _options?: IRenderingOptions): SSAO2RenderingPipeline {
+	ssaoRenderingPipeline = new SSAO2RenderingPipeline("SSAO2RenderingPipeline", scene, 1.0, [camera], undefined, getHdrTextureType(scene.getEngine()));
+
+	// Don't handle MSAA for SSAO as it can causes massive performance issues.
+	ssaoRenderingPipeline.textureSamples = 1; // options?.msaaSamples ?? 1;
 
 	return ssaoRenderingPipeline;
 }
@@ -56,12 +60,11 @@ export function serializeSSAO2RenderingPipeline(): any {
 	};
 }
 
-export function parseSSAO2RenderingPipeline(scene: Scene, camera: Camera, data: any): SSAO2RenderingPipeline {
-	if (ssaoRenderingPipeline) {
-		return ssaoRenderingPipeline;
-	}
+export function parseSSAO2RenderingPipeline(scene: Scene, camera: Camera, data: any, options?: IRenderingOptions): SSAO2RenderingPipeline {
+	const pipeline = ssaoRenderingPipeline ?? createSSAO2RenderingPipeline(scene, camera, options);
 
-	const pipeline = createSSAO2RenderingPipeline(scene, camera);
+	// Don't handle MSAA for SSAO as it can causes massive performance issues.
+	pipeline.textureSamples = 1; // options?.msaaSamples ?? 1;
 
 	pipeline.radius = data.radius;
 	pipeline.totalStrength = data.totalStrength;
@@ -69,7 +72,6 @@ export function parseSSAO2RenderingPipeline(scene: Scene, camera: Camera, data: 
 	pipeline.maxZ = data.maxZ;
 	pipeline.minZAspect = data.minZAspect;
 	pipeline.epsilon = data.epsilon;
-	pipeline.textureSamples = data.textureSamples;
 	pipeline.bypassBlur = data.bypassBlur;
 	pipeline.bilateralSamples = data.bilateralSamples;
 	pipeline.bilateralSoften = data.bilateralSoften;
