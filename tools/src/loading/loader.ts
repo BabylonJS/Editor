@@ -158,6 +158,10 @@ export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scen
 	const configuration = sceneConfigurationMap.get(scene) ?? {};
 	sceneConfigurationMap.set(scene, configuration);
 
+	scene.onDisposeObservable.addOnce(() => {
+		sceneConfigurationMap.delete(scene);
+	});
+
 	// Append to the given scene
 	await AppendSceneAsync(`${rootUrl}${sceneFilename}`, scene, {
 		pluginExtension: ".babylon",
