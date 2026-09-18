@@ -53,13 +53,28 @@ function registerUpdateSoundsObserver(scene: Scene) {
 	});
 }
 
-function registerSoundNodeEvents(instance: SoundNode) {
-	instance.sound?.onDisposeObservable.addOnce(() => {
+/**
+ * Takes the node back out of `soundInstances` once its sound is disposed.
+ *
+ * Registered against the sound, so it can only be done once the sound exists - which for a node configured from
+ * a source (`configureSourceNodeFrom`) is after an await, long after `registerSoundNodeEvents` has run. Doing it
+ * there against an `instance.sound` that was still undefined registered nothing at all, and every instantiated
+ * sound node stayed in `soundInstances` for the lifetime of the page: it kept the node, and through it the whole
+ * scene it belonged to, alive - and the per-frame spatial update walked a list that only ever grew.
+ */
+function registerSoundInstanceCleanup(instance: SoundNode, sound: StaticSound) {
+	sound.onDisposeObservable.addOnce(() => {
 		const index = soundInstances.indexOf(instance);
 		if (index !== -1) {
 			soundInstances.splice(index, 1);
 		}
 	});
+}
+
+function registerSoundNodeEvents(instance: SoundNode) {
+	if (instance.sound) {
+		registerSoundInstanceCleanup(instance, instance.sound);
+	}
 
 	instance.onDisposeObservable.addOnce(() => {
 		instance.sound?.dispose();
@@ -121,6 +136,7 @@ export function configureSourceNodeFrom(source: SoundNode, target: SoundNode) {
 			target.autoUpdateSpatial = source.autoUpdateSpatial;
 
 			soundInstances.push(target);
+			registerSoundInstanceCleanup(target, sound);
 			registerUpdateSoundsObserver(target.getScene());
 
 			target.onSoundLoadedObservable.notifyObservers(target);
