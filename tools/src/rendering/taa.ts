@@ -2,6 +2,8 @@ import { Scene } from "@babylonjs/core/scene";
 import { Camera } from "@babylonjs/core/Cameras/camera";
 import { TAARenderingPipeline } from "@babylonjs/core/PostProcesses/RenderPipeline/Pipelines/taaRenderingPipeline";
 
+import { getHdrTextureType, IRenderingOptions } from "./tools";
+
 let taaRenderingPipeline: TAARenderingPipeline | null = null;
 
 /**
@@ -28,9 +30,9 @@ export function disposeTAARenderingPipeline(): void {
 	}
 }
 
-export function createTAARenderingPipeline(scene: Scene, camera: Camera): TAARenderingPipeline {
-	taaRenderingPipeline = new TAARenderingPipeline("TAARenderingPipeline", scene, [camera]);
-	taaRenderingPipeline.samples = 4;
+export function createTAARenderingPipeline(scene: Scene, camera: Camera, options?: IRenderingOptions): TAARenderingPipeline {
+	taaRenderingPipeline = new TAARenderingPipeline("TAARenderingPipeline", scene, [camera], getHdrTextureType(scene.getEngine()));
+	taaRenderingPipeline.msaaSamples = options?.msaaSamples ?? 1;
 
 	return taaRenderingPipeline;
 }
@@ -49,15 +51,11 @@ export function serializeTAARenderingPipeline(): any {
 	};
 }
 
-export function parseTAARenderingPipeline(scene: Scene, camera: Camera, data: any): TAARenderingPipeline {
-	if (taaRenderingPipeline) {
-		return taaRenderingPipeline;
-	}
-
-	const pipeline = createTAARenderingPipeline(scene, camera);
+export function parseTAARenderingPipeline(scene: Scene, camera: Camera, data: any, options?: IRenderingOptions): TAARenderingPipeline {
+	const pipeline = taaRenderingPipeline ?? createTAARenderingPipeline(scene, camera, options);
+	pipeline.msaaSamples = options?.msaaSamples ?? 1;
 
 	pipeline.factor = data.factor;
-	pipeline.samples = data.samples;
 	pipeline.clampHistory = data.clampHistory;
 	pipeline.reprojectHistory = data.reprojectHistory;
 	pipeline.disableOnCameraMove = data.disableOnCameraMove;

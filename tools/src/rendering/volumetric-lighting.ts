@@ -3,6 +3,7 @@ import { Camera } from "@babylonjs/core/Cameras/camera";
 
 import { VolumetricLightingRenderingPipeline } from "./volumetric/pipeline";
 import { IVolumetricLightingConfiguration, normalizeVolumetricLightingConfiguration } from "./volumetric/types";
+import { IRenderingOptions } from "./tools";
 
 let volumetricLightingRenderingPipeline: VolumetricLightingRenderingPipeline | null = null;
 
@@ -46,8 +47,9 @@ export function disposeVolumetricLightingRenderingPipeline(): void {
 	}
 }
 
-export function createVolumetricLightingRenderingPipeline(scene: Scene, camera: Camera): VolumetricLightingRenderingPipeline {
+export function createVolumetricLightingRenderingPipeline(scene: Scene, camera: Camera, options?: IRenderingOptions): VolumetricLightingRenderingPipeline {
 	volumetricLightingRenderingPipeline = new VolumetricLightingRenderingPipeline("VolumetricLightingRenderingPipeline", scene, camera);
+	volumetricLightingRenderingPipeline.msaaSamples = options?.msaaSamples ?? 1;
 
 	return volumetricLightingRenderingPipeline;
 }
@@ -60,8 +62,9 @@ export function serializeVolumetricLightingRenderingPipeline(): any {
 	return volumetricLightingRenderingPipeline.serializeConfiguration();
 }
 
-export function parseVolumetricLightingRenderingPipeline(scene: Scene, camera: Camera, data: any): VolumetricLightingRenderingPipeline {
-	const pipeline = getVolumetricLightingRenderingPipeline() ?? createVolumetricLightingRenderingPipeline(scene, camera);
+export function parseVolumetricLightingRenderingPipeline(scene: Scene, camera: Camera, data: any, options?: IRenderingOptions): VolumetricLightingRenderingPipeline {
+	const pipeline = volumetricLightingRenderingPipeline ?? createVolumetricLightingRenderingPipeline(scene, camera, options);
+	pipeline.msaaSamples = options?.msaaSamples ?? 1;
 
 	// A project saved before the medium was derived from the size of the scene has no value stored for it,
 	// and the static defaults would be wrong for anything but a scene authored in centimetres.

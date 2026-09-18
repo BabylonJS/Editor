@@ -2,6 +2,8 @@ import { Scene } from "@babylonjs/core/scene";
 import { Camera } from "@babylonjs/core/Cameras/camera";
 import { MotionBlurPostProcess } from "@babylonjs/core/PostProcesses/motionBlurPostProcess";
 
+import { getHdrTextureType, IRenderingOptions } from "./tools";
+
 let motionBlurPostProcess: MotionBlurPostProcess | null = null;
 
 /**
@@ -28,8 +30,9 @@ export function disposeMotionBlurPostProcess(): void {
 	}
 }
 
-export function createMotionBlurPostProcess(scene: Scene, camera: Camera): MotionBlurPostProcess {
-	motionBlurPostProcess = new MotionBlurPostProcess("MotionBlurPostProcess", scene, 1.0, camera);
+export function createMotionBlurPostProcess(scene: Scene, camera: Camera, options?: IRenderingOptions): MotionBlurPostProcess {
+	motionBlurPostProcess = new MotionBlurPostProcess("MotionBlurPostProcess", scene, 1.0, camera, undefined, undefined, undefined, getHdrTextureType(scene.getEngine()));
+	motionBlurPostProcess.samples = options?.msaaSamples ?? 1;
 	motionBlurPostProcess.motionStrength = 1.0;
 	motionBlurPostProcess.isObjectBased = true;
 
@@ -48,12 +51,9 @@ export function serializeMotionBlurPostProcess(): any {
 	};
 }
 
-export function parseMotionBlurPostProcess(scene: Scene, camera: Camera, data: any): MotionBlurPostProcess {
-	if (motionBlurPostProcess) {
-		return motionBlurPostProcess;
-	}
-
-	const postProcess = createMotionBlurPostProcess(scene, camera);
+export function parseMotionBlurPostProcess(scene: Scene, camera: Camera, data: any, options?: IRenderingOptions): MotionBlurPostProcess {
+	const postProcess = motionBlurPostProcess ?? createMotionBlurPostProcess(scene, camera, options);
+	postProcess.samples = options?.msaaSamples ?? 1;
 
 	postProcess.isObjectBased = data.isObjectBased;
 	postProcess.motionStrength = data.motionStrength;
