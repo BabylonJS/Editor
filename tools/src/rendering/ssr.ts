@@ -2,6 +2,8 @@ import { Scene } from "@babylonjs/core/scene";
 import { Camera } from "@babylonjs/core/Cameras/camera";
 import { SSRRenderingPipeline } from "@babylonjs/core/PostProcesses/RenderPipeline/Pipelines/ssrRenderingPipeline";
 
+import { getHdrTextureType, IRenderingOptions } from "./tools";
+
 let ssrRenderingPipeline: SSRRenderingPipeline | null = null;
 
 /**
@@ -28,9 +30,9 @@ export function disposeSSRRenderingPipeline(): void {
 	}
 }
 
-export function createSSRRenderingPipeline(scene: Scene, camera: Camera): SSRRenderingPipeline {
-	ssrRenderingPipeline = new SSRRenderingPipeline("SSRRenderingPipeline", scene, [camera]);
-	ssrRenderingPipeline.samples = 4;
+export function createSSRRenderingPipeline(scene: Scene, camera: Camera, options?: IRenderingOptions): SSRRenderingPipeline {
+	ssrRenderingPipeline = new SSRRenderingPipeline("SSRRenderingPipeline", scene, [camera], undefined, getHdrTextureType(scene.getEngine()));
+	ssrRenderingPipeline.samples = options?.msaaSamples ?? 1;
 
 	return ssrRenderingPipeline;
 }
@@ -69,14 +71,9 @@ export function serializeSSRRenderingPipeline(): any {
 	};
 }
 
-export function parseSSRRenderingPipeline(scene: Scene, camera: Camera, data: any): SSRRenderingPipeline {
-	if (ssrRenderingPipeline) {
-		return ssrRenderingPipeline;
-	}
-
-	const pipeline = createSSRRenderingPipeline(scene, camera);
-
-	pipeline.samples = data.samples;
+export function parseSSRRenderingPipeline(scene: Scene, camera: Camera, data: any, options?: IRenderingOptions): SSRRenderingPipeline {
+	const pipeline = ssrRenderingPipeline ?? createSSRRenderingPipeline(scene, camera, options);
+	pipeline.samples = options?.msaaSamples ?? 1;
 
 	pipeline.step = data.step;
 	pipeline.thickness = data.thickness;

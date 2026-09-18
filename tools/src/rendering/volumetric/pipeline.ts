@@ -252,6 +252,8 @@ export class VolumetricLightingRenderingPipeline extends PostProcessRenderPipeli
 	private _shaderLanguage: ShaderLanguage;
 	private _ldrEncode: boolean;
 	private _linearDepthPacked: boolean;
+	private _msaaSamples: number = 1;
+	private _msaaSamplesAssigned: boolean = false;
 
 	private _depthSource: VolumetricDepthSource = VolumetricDepthSource.DepthRenderer;
 	private _depthRenderer: DepthRenderer | null = null;
@@ -405,6 +407,23 @@ export class VolumetricLightingRenderingPipeline extends PostProcessRenderPipeli
 	}
 
 	/**
+	 * Gets the number of MSAA samples used when the scene is rasterized (default: 1, no MSAA).
+	 */
+	public get msaaSamples(): number {
+		return this._msaaSamples;
+	}
+
+	/**
+	 * Sets the number of MSAA samples used when the scene is rasterized. Babylon.js clamps the value to
+	 * "engine.getCaps().maxMSAASamples", which WebGPU reports as 4 since its specification only allows 1 and 4.
+	 */
+	public set msaaSamples(value: number) {
+		this._msaaSamples = value;
+		this._msaaSamplesAssigned = true;
+		this._applyMsaaSamples();
+	}
+
+	/**
 	 * Gets the statistics of the last selection pass, used by the inspector to explain what each light does.
 	 */
 	public getStats(): IVolumetricLightingStats | null {
@@ -535,6 +554,10 @@ export class VolumetricLightingRenderingPipeline extends PostProcessRenderPipeli
 		}
 
 		this._applyPrePassConfiguration();
+
+		// Switching the source moves what the scene is rasterized into between the prepass renderer and the
+		// first pass of the pipeline, so the sample count has to follow it.
+		this._applyMsaaSamples();
 	}
 
 	/**
@@ -605,6 +628,34 @@ export class VolumetricLightingRenderingPipeline extends PostProcessRenderPipeli
 	private _applyPrePassConfiguration(): void {
 		if (this._linearDepthPostProcess && this._depthSource === VolumetricDepthSource.PrePass) {
 			this._linearDepthPostProcess._prePassEffectConfiguration = this._prePassConfiguration;
+		}
+	}
+
+	/**
+	 * Applies the MSAA sample count on whatever the scene is rasterized into. Only the very first pass of the
+	 * chain of the camera receives the geometry of the scene: the passes that follow draw a full screen triangle
+	 * on which MSAA antialiases nothing while still paying for the samples and their resolve. When the prepass
+	 * renderer is the source of the depth, the scene is rendered in its multi render target instead, which is
+	 * then the one to multisample.
+	 */
+	private _applyMsaaSamples(): void {
+		// The prepass renderer is shared with the other effects of the scene, so nothing is written on it until
+		// the sample count of this pipeline is explicitly set: re-applying the default would silently disable the
+		// MSAA another effect (SSAO2 and its "textureSamples", typically) asked the prepass renderer for.
+		if (!this._msaaSamplesAssigned) {
+			return;
+		}
+
+		if (this._depthSource === VolumetricDepthSource.PrePass) {
+			const prePassRenderer = getVolumetricPrePassRenderer(this._scene);
+			if (prePassRenderer) {
+				prePassRenderer.samples = this._msaaSamples;
+				return;
+			}
+		}
+
+		if (!this._enableMSAAOnFirstPostProcess(this._msaaSamples) && this._msaaSamples > 1) {
+			console.warn("Volumetric lighting: MSAA is not supported by the engine, the requested samples are ignored.");
 		}
 	}
 
@@ -932,6 +983,9 @@ export class VolumetricLightingRenderingPipeline extends PostProcessRenderPipeli
 		}
 
 		this.addEffect(new PostProcessRenderEffect(engine, VolumetricLightingRenderingPipeline.ComposeEffectName, () => this._composePostProcess, true));
+
+		// The post-processes are recreated by a rebuild, losing the sample count that was set on them.
+		this._applyMsaaSamples();
 	}
 
 	private _disposePostProcesses(cameras: Camera[]): void {
