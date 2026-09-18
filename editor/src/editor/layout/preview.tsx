@@ -341,6 +341,8 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		this.axis?.stop();
 		this.icons?.stop();
 
+		this.statistics?.dispose();
+
 		disposeSSRRenderingPipeline();
 		disposeMotionBlurPostProcess();
 		disposeSSAO2RenderingPipeline();
@@ -638,24 +640,34 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		this.forceUpdate();
 	}
 
-	private async _createWebgpuEngine(canvas: HTMLCanvasElement): Promise<WebGPUEngine> {
-		const glslangJs = require("@babylonjs/core/assets/glslang/glslang.cjs");
-		const glslang = await glslangJs(join(process.cwd(), "../node_modules/@babylonjs/core/assets/glslang/glslang.wasm"));
+	private _twgsl: any = null;
+	private _glslang: any = null;
 
-		const twgslJs = require("@babylonjs/core/assets/twgsl/twgsl.cjs");
-		const twgsl = await twgslJs(join(process.cwd(), "../node_modules/@babylonjs/core/assets/twgsl/twgsl.wasm"));
+	private async _createWebgpuEngine(canvas: HTMLCanvasElement): Promise<WebGPUEngine> {
+		if (!this._glslang) {
+			const glslangJs = require("@babylonjs/core/assets/glslang/glslang.cjs");
+			this._glslang = await glslangJs(join(process.cwd(), "../node_modules/@babylonjs/core/assets/glslang/glslang.wasm"));
+		}
+
+		if (!this._twgsl) {
+			const twgslJs = require("@babylonjs/core/assets/twgsl/twgsl.cjs");
+			this._twgsl = await twgslJs(join(process.cwd(), "../node_modules/@babylonjs/core/assets/twgsl/twgsl.wasm"));
+		}
 
 		const engine = new WebGPUEngine(canvas, {
 			antialias: true,
 			audioEngine: true,
 			adaptToDeviceRatio: true,
 			glslangOptions: {
-				glslang,
+				glslang: this._glslang,
 			},
 			twgslOptions: {
-				twgsl,
+				twgsl: this._twgsl,
 			},
+			setMaximumLimits: true,
+			enableAllFeatures: true,
 			useHighPrecisionMatrix: true,
+			useExactSrgbConversions: true,
 			powerPreference: "high-performance",
 		});
 
