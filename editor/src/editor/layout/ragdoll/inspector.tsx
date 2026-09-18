@@ -259,6 +259,9 @@ export class RagdollEditorInspector extends Component<IRagdollEditorInspectorPro
 			},
 		];
 
+		this.state.selectedConfiguration.mass ??= 1;
+		this.state.selectedConfiguration.restitution ??= 0;
+
 		return (
 			<EditorInspectorSectionField title="Configuration Details">
 				<div className="flex flex-col gap-2 rounded-lg bg-black/50 text-white/75 p-2">
@@ -317,6 +320,16 @@ export class RagdollEditorInspector extends Component<IRagdollEditorInspectorPro
 				<EditorInspectorNumberField noUndoRedo object={this.state.selectedConfiguration} property="width" label="Width" onChange={() => this._handleChange()} />
 				<EditorInspectorNumberField noUndoRedo object={this.state.selectedConfiguration} property="height" label="Height" onChange={() => this._handleChange()} />
 				<EditorInspectorNumberField noUndoRedo object={this.state.selectedConfiguration} property="depth" label="Depth" onChange={() => this._handleChange()} />
+				<EditorInspectorNumberField noUndoRedo object={this.state.selectedConfiguration} property="mass" label="Mass" min={0} onChange={() => this._handleChange()} />
+				<EditorInspectorNumberField
+					noUndoRedo
+					object={this.state.selectedConfiguration}
+					property="restitution"
+					label="Restitution"
+					min={0}
+					max={1}
+					onChange={() => this._handleChange()}
+				/>
 				<EditorInspectorListField
 					noUndoRedo
 					object={this.state.selectedConfiguration}
