@@ -7,16 +7,18 @@ import { IParticleSystem } from "@babylonjs/core/Particles/IParticleSystem";
 
 import { IScript } from "../../script";
 
-import { applyDecorators } from "../../decorators/apply";
+import { applyDecorators, IApplyDecoratorsOptions } from "../../decorators/apply";
 
 import { isAnyParticleSystem, isNode, isScene, isSoundNode } from "../../tools/guards";
 
 import { ScriptMap } from "../loader";
 
+export interface _IApplyScriptsForObjectOptions extends IApplyDecoratorsOptions {}
+
 /**
  * @internal
  */
-export function _applyScriptsForObject(scene: Scene, object: any, scriptsMap: ScriptMap, rootUrl: string) {
+export function _applyScriptsForObject(scene: Scene, object: any, scriptsMap: ScriptMap, options: _IApplyScriptsForObjectOptions) {
 	if (!object.metadata?.scripts) {
 		return;
 	}
@@ -38,7 +40,7 @@ export function _applyScriptsForObject(scene: Scene, object: any, scriptsMap: Sc
 		if (exports.default) {
 			result = new exports.default(object);
 
-			const decoratorsResult = applyDecorators(scene, object, script, result, rootUrl);
+			const decoratorsResult = applyDecorators(scene, object, script, result, options);
 			Object.assign(observers, decoratorsResult?.observers ?? {});
 		}
 
@@ -79,7 +81,9 @@ export function applyScriptOnObject(object: any, scriptConstructor: new (...args
 		values: {},
 	};
 
-	applyDecorators(scene, object, script, instance, "");
+	applyDecorators(scene, object, script, instance, {
+		rootUrl: "",
+	});
 
 	if (instance.onStart) {
 		observers.onStartObserver = scene.onBeforeRenderObservable.addOnce(() => instance.onStart!());

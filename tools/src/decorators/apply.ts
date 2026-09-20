@@ -109,7 +109,16 @@ export interface ISceneDecoratorData {
 	}[];
 }
 
-export function applyDecorators(scene: Scene, object: any, script: any, instance: any, rootUrl: string) {
+function formatNameWithId(name: string, namingId?: string) {
+	return namingId ? `${name}-${namingId}` : name;
+}
+
+export interface IApplyDecoratorsOptions {
+	rootUrl: string;
+	namingId?: string;
+}
+
+export function applyDecorators(scene: Scene, object: any, script: any, instance: any, options: IApplyDecoratorsOptions) {
 	const ctor = instance.constructor as ISceneDecoratorData;
 	if (!ctor) {
 		return;
@@ -117,7 +126,7 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 
 	// @nodeFromScene
 	ctor._NodesFromScene?.forEach((params) => {
-		instance[params.propertyKey.toString()] = getNodeByName(params.nodeName, scene);
+		instance[params.propertyKey.toString()] = getNodeByName(formatNameWithId(params.nodeName, options.namingId), scene);
 	});
 
 	// @componentFromScene
@@ -147,7 +156,7 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 
 	// @nodeFromDescendants
 	ctor._NodesFromDescendants?.forEach((params) => {
-		const descendant = (object as Partial<Node>).getDescendants?.(params.directDescendantsOnly, (node) => node.name === params.nodeName)[0];
+		const descendant = (object as Partial<Node>).getDescendants?.(params.directDescendantsOnly, (node) => node.name === formatNameWithId(params.nodeName, options.namingId))[0];
 		instance[params.propertyKey.toString()] = descendant ?? null;
 	});
 
@@ -158,7 +167,7 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 
 	// @soundFromScene
 	ctor._SoundsFromScene?.forEach((params) => {
-		const sound = getNodeByName(params.soundName, scene);
+		const sound = getNodeByName(formatNameWithId(params.soundName, options.namingId), scene);
 		if (sound && isSoundNode(sound)) {
 			instance[params.propertyKey.toString()] = sound ?? null;
 		}
@@ -166,7 +175,7 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 
 	// @guiFromAsset, deprecated
 	(ctor._GuiFromAsset ?? []).map(async (params) => {
-		const guiUrl = `${rootUrl}assets/${params.pathInAssets}`;
+		const guiUrl = `${options.rootUrl}assets/${params.pathInAssets}`;
 
 		try {
 			const data = await loadJsonFile<any>(guiUrl);
@@ -247,7 +256,7 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 
 				case "texture":
 					if (value) {
-						instance[propertyKey] = Texture.Parse(value, scene, rootUrl);
+						instance[propertyKey] = Texture.Parse(value, scene, options.rootUrl);
 					}
 					break;
 
@@ -275,7 +284,7 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 								break;
 
 							case "material":
-								instance[propertyKey] = Material.Parse(data, scene, rootUrl);
+								instance[propertyKey] = Material.Parse(data, scene, options.rootUrl);
 								break;
 						}
 					}

@@ -25,7 +25,9 @@ describe("decorators/apply", () => {
 		}
 
 		const instance = new Temp("Temp", scene);
-		applyDecorators(scene, transformNode, {}, instance, "");
+		applyDecorators(scene, transformNode, {}, instance, {
+			rootUrl: "",
+		});
 		expect(scene.getNodeByName).toHaveBeenCalledWith("MyNode");
 		expect(instance.node).toBe(transformNode);
 	});
@@ -49,7 +51,9 @@ describe("decorators/apply", () => {
 
 		const instance = new Temp("Temp", scene);
 
-		applyDecorators(scene, transformNode, {}, instance, "");
+		applyDecorators(scene, transformNode, {}, instance, {
+			rootUrl: "",
+		});
 		expect(transformNode.getDescendants).toHaveBeenNthCalledWith(1, true, expect.anything());
 		expect(transformNode.getDescendants).toHaveBeenNthCalledWith(2, false, expect.anything());
 		expect(transformNode.getDescendants).toHaveBeenNthCalledWith(3, false, expect.anything());
@@ -69,7 +73,9 @@ describe("decorators/apply", () => {
 		}
 
 		const instance = new Temp("Temp", scene);
-		applyDecorators(scene, transformNode, {}, instance, "");
+		applyDecorators(scene, transformNode, {}, instance, {
+			rootUrl: "",
+		});
 		expect(scene.getAnimationGroupByName).toHaveBeenCalledWith("MyAnimationGroup");
 		expect(instance.animationGroup).toBe(animationGroup);
 	});
