@@ -205,7 +205,10 @@ export class AdvancedAssetContainer {
 
 		// Apply scripts after everything else is set up to avoid issues with dependencies between scripts
 		newDescendants.forEach((node) => {
-			_applyScriptsForObject(this.container.scene, node, this._scriptsMap, this._rootUrl);
+			_applyScriptsForObject(this.container.scene, node, this._scriptsMap, {
+				namingId,
+				rootUrl: this._rootUrl,
+			});
 		});
 
 		configureTransformNodes(this.container.scene);
