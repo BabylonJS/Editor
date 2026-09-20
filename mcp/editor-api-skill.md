@@ -24,8 +24,8 @@ import { Tools, Vector3 } from "babylonjs";
 import { UniqueNumber } from "babylonjs-editor";
 
 export function main(editor) {
-    // build content here; may be async (return a Promise)
-    return "summary of what was done";
+	// build content here; may be async (return a Promise)
+	return "summary of what was done";
 }
 ```
 
@@ -53,6 +53,7 @@ This applies to instanced meshes too (`mesh.createInstance(...)`).
 `editor` is the editor's central object. Most useful members:
 
 ### Scene & rendering
+
 - `editor.layout.preview.scene` → the live **Babylon.js `Scene`**. Your main entry point: create/find meshes, materials, lights, cameras. Pass it to Babylon constructors / `MeshBuilder` so objects join the live scene.
 - `editor.layout.preview.engine` → the Babylon engine.
 - `editor.layout.preview.camera` → the editor camera.
@@ -60,21 +61,26 @@ This applies to instanced meshes too (`mesh.createInstance(...)`).
 - `editor.layout.preview.switchToCamera(camera)` → make a camera active (saves/restores its per-camera post-processes).
 
 ### Scene graph (left panel) — call after adding/removing nodes so they appear
+
 - `await editor.layout.graph.refresh()`
 - `editor.layout.graph.setSelectedNode(node)`
 - `editor.layout.graph.getSelectedNodes()`
 
 ### Inspector (right panel)
+
 - `editor.layout.inspector.setEditedObject(object)`
 - `editor.layout.inspector.forceUpdate()`
 
 ### Assets browser
+
 - `editor.layout.assets.refresh()`
 
 ### Console (visible to the user in the editor; NOT returned to you)
+
 - `editor.layout.console.log(msg)` / `.warn(msg)` / `.error(msg)`
 
 ### Layout / project
+
 - `editor.layout.addLayoutTab(...)`, `editor.layout.selectTab(id)`, `editor.layout.removeLayoutTab(id)`
 - `editor.path` → the editor application path.
 
@@ -93,80 +99,85 @@ For the full surface, the editor source under `/editor/src/editor` (`preview`, `
 ## Examples
 
 ### Scatter a forest from an existing "Tree" mesh
+
 ```js
 import { Tools, Vector3 } from "babylonjs";
 import { UniqueNumber } from "babylonjs-editor";
 
 export function main(editor) {
-    const scene = editor.layout.preview.scene;
-    const tree = scene.getMeshByName("Tree");
-    if (!tree) { return "No mesh named 'Tree' found — import one first."; }
+	const scene = editor.layout.preview.scene;
+	const tree = scene.getMeshByName("Tree");
+	if (!tree) {
+		return "No mesh named 'Tree' found — import one first.";
+	}
 
-    for (let i = 0; i < 200; i++) {
-        const inst = tree.createInstance("Tree " + i);
-        inst.id = Tools.RandomId();
-        inst.uniqueId = UniqueNumber.Get();
-        inst.parent = tree.parent;
-        inst.position = new Vector3((Math.random() - 0.5) * 20000, 0, (Math.random() - 0.5) * 20000);
-        inst.rotation.y = Math.random() * Math.PI * 2;
-        const s = 0.8 + Math.random() * 0.5;
-        inst.scaling.set(s, s, s);
-    }
+	for (let i = 0; i < 200; i++) {
+		const inst = tree.createInstance("Tree " + i);
+		inst.id = Tools.RandomId();
+		inst.uniqueId = UniqueNumber.Get();
+		inst.parent = tree.parent;
+		inst.position = new Vector3((Math.random() - 0.5) * 20000, 0, (Math.random() - 0.5) * 20000);
+		inst.rotation.y = Math.random() * Math.PI * 2;
+		const s = 0.8 + Math.random() * 0.5;
+		inst.scaling.set(s, s, s);
+	}
 
-    editor.layout.graph.refresh();
-    return "Created 200 tree instances.";
+	editor.layout.graph.refresh();
+	return "Created 200 tree instances.";
 }
 ```
 
 ### A grid of voxel blocks from one source cube
+
 ```js
 import { Tools, MeshBuilder, Vector3 } from "babylonjs";
 import { UniqueNumber } from "babylonjs-editor";
 
 export function main(editor) {
-    const scene = editor.layout.preview.scene;
+	const scene = editor.layout.preview.scene;
 
-    const block = MeshBuilder.CreateBox("Block", { size: 100 }, scene);
-    block.id = Tools.RandomId();
-    block.uniqueId = UniqueNumber.Get();
+	const block = MeshBuilder.CreateBox("Block", { size: 100 }, scene);
+	block.id = Tools.RandomId();
+	block.uniqueId = UniqueNumber.Get();
 
-    const N = 16;
-    for (let x = 0; x < N; x++) {
-        for (let z = 0; z < N; z++) {
-            const inst = block.createInstance(`Block ${x}_${z}`);
-            inst.id = Tools.RandomId();
-            inst.uniqueId = UniqueNumber.Get();
-            inst.parent = block.parent;
-            inst.position = new Vector3(x * 100, 0, z * 100);
-        }
-    }
+	const N = 16;
+	for (let x = 0; x < N; x++) {
+		for (let z = 0; z < N; z++) {
+			const inst = block.createInstance(`Block ${x}_${z}`);
+			inst.id = Tools.RandomId();
+			inst.uniqueId = UniqueNumber.Get();
+			inst.parent = block.parent;
+			inst.position = new Vector3(x * 100, 0, z * 100);
+		}
+	}
 
-    editor.layout.graph.refresh();
-    return `Created a ${N}x${N} block grid.`;
+	editor.layout.graph.refresh();
+	return `Created a ${N}x${N} block grid.`;
 }
 ```
 
 ### Custom geometry from raw vertex data
+
 ```js
 import { Tools, Mesh, VertexData } from "babylonjs";
 import { UniqueNumber } from "babylonjs-editor";
 
 export function main(editor) {
-    const scene = editor.layout.preview.scene;
+	const scene = editor.layout.preview.scene;
 
-    const mesh = new Mesh("CustomGeometry", scene);
-    mesh.id = Tools.RandomId();
-    mesh.uniqueId = UniqueNumber.Get();
+	const mesh = new Mesh("CustomGeometry", scene);
+	mesh.id = Tools.RandomId();
+	mesh.uniqueId = UniqueNumber.Get();
 
-    const data = new VertexData();
-    data.positions = [0, 0, 0, 100, 0, 0, 50, 100, 0];
-    data.indices = [0, 1, 2];
-    data.normals = [];
-    VertexData.ComputeNormals(data.positions, data.indices, data.normals);
-    data.applyToMesh(mesh);
+	const data = new VertexData();
+	data.positions = [0, 0, 0, 100, 0, 0, 50, 100, 0];
+	data.indices = [0, 1, 2];
+	data.normals = [];
+	VertexData.ComputeNormals(data.positions, data.indices, data.normals);
+	data.applyToMesh(mesh);
 
-    editor.layout.graph.refresh();
-    return "Created a custom triangle mesh.";
+	editor.layout.graph.refresh();
+	return "Created a custom triangle mesh.";
 }
 ```
 
