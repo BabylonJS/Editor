@@ -7,7 +7,7 @@
 		@apply !text-background;
 	}
 
-	.fab-description>ul,
+	.fab-description > ul,
 	li,
 	u,
 	p,
@@ -17,7 +17,7 @@
 		@apply !text-background;
 	}
 
-	.fab-description>a {
+	.fab-description > a {
 		@apply !underline !text-blue-500;
 	}
 }
