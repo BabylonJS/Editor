@@ -263,7 +263,9 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 				case "asset":
 					if (value) {
 						const assetType = (params.configuration as VisibleInspectorDecoratorAssetConfiguration).assetType;
-						const data = scriptAssetsCache.get(value);
+
+						const assetsCache = scriptAssetsCache.get(scene)!;
+						const data = assetsCache.get(value);
 
 						switch (assetType) {
 							case "json":
@@ -405,7 +407,8 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 
 	// @sceneAsset
 	ctor._SceneAssets?.forEach((params) => {
-		instance[params.propertyKey.toString()] = scriptAssetsCache.get(params.sceneName);
+		const assetsCache = scriptAssetsCache.get(scene)!;
+		instance[params.propertyKey.toString()] = assetsCache.get(params.sceneName);
 	});
 
 	return {
