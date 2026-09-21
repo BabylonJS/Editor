@@ -41,8 +41,8 @@ export * from "./tools/light/shadows";
 export * from "./tools/node/metadata";
 export * from "./tools/material/material";
 export * from "./tools/material/extract";
+export * from "./tools/material/material";
 export * from "./tools/mesh/collision";
-export * from "./tools/scene/materials";
 
 export * from "./tools/guards/material";
 export * from "./tools/guards/math";

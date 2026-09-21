@@ -12,7 +12,7 @@ export const editorWindows: BrowserWindow[] = [];
  * Creates a new window that takes up the entire screen.
  * @returns The newly created window.
  */
-export async function createEditorWindow(): Promise<BrowserWindow> {
+export async function createEditorWindow(isWebGPU: boolean): Promise<BrowserWindow> {
 	const primaryDisplay = screen.getPrimaryDisplay();
 	const { width, height } = {
 		width: primaryDisplay.workAreaSize.width * 0.75,
@@ -79,7 +79,7 @@ export async function createEditorWindow(): Promise<BrowserWindow> {
 		closeAllNodePtyForWebContentsId(window.webContents.id);
 	});
 
-	window.loadURL(join("file://", app.getAppPath(), "index.html"));
+	window.loadURL(join("file://", app.getAppPath(), "index.html?isWebGPU=" + isWebGPU));
 
 	if (process.env.DEBUG) {
 		setTimeout(() => {

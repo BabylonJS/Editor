@@ -209,7 +209,7 @@ export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scen
 	configureShadowMapRefreshRate(scene);
 
 	if (scene.metadata?.rendering) {
-		applyRenderingConfigurations(scene, scene.metadata.rendering);
+		applyRenderingConfigurations(scene, scene.metadata);
 
 		if (scene.activeCamera) {
 			applyRenderingConfigurationForCamera(scene.activeCamera, rootUrl, options?.postProcessConfiguration);
