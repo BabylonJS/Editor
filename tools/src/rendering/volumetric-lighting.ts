@@ -8,9 +8,17 @@ import { IRenderingOptions } from "./tools";
 let volumetricLightingRenderingPipeline: VolumetricLightingRenderingPipeline | null = null;
 
 /**
- * Defines the configuration of the volumetric lighting rendering pipeline per camera.
+ * Defines the configuration of the volumetric lighting rendering pipeline for all cameras.
  */
-export const volumetricLightingRenderingPipelineCameraConfigurations = new Map<Camera, any>();
+let configuration: any = null;
+
+export function getVolumetricLightingRenderingPipelineConfiguration(): any {
+	return configuration;
+}
+
+export function setVolumetricLightingRenderingPipelineConfiguration(config: any) {
+	configuration = config;
+}
 
 export function getVolumetricLightingRenderingPipeline(): VolumetricLightingRenderingPipeline | null {
 	// Babylon.js disposes a rendering pipeline on its own as soon as one of its post-processes fails to

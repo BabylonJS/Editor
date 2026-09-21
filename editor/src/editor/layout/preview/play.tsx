@@ -29,7 +29,7 @@ import { ensureTemporaryDirectoryExists } from "../../../tools/project";
 import { compileScript } from "../../../tools/compile";
 import { setUndoRedoEnabled } from "../../../tools/undoredo";
 import { wait, waitNextAnimationFrame } from "../../../tools/tools";
-import { forceCompileAllSceneMaterials } from "../../../tools/scene/materials";
+import { forceCompileAllSceneMaterials } from "../../../tools/material/material";
 import { applyOverrides, restorePlayOverrides } from "../../../tools/scene/play/override";
 
 import { exportProject } from "../../../project/export/export";

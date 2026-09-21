@@ -313,7 +313,7 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 	 * @param absolutePath defines the absolute path to the project to open.
 	 */
 	public async openProject(absolutePath: string): Promise<void> {
-		await waitUntil(() => this.layout.preview.scene);
+		await waitUntil(() => this.layout.preview.scene && this.path);
 
 		ipcRenderer.send("editor:maximize-window");
 

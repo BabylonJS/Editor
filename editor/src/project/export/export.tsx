@@ -21,7 +21,7 @@ import { ssrRenderingPipelineCameraConfigurations } from "../../editor/rendering
 import { ssaoRenderingPipelineCameraConfigurations } from "../../editor/rendering/ssao";
 import { defaultPipelineCameraConfigurations } from "../../editor/rendering/default-pipeline";
 import { motionBlurPostProcessCameraConfigurations } from "../../editor/rendering/motion-blur";
-import { volumetricLightingRenderingPipelineCameraConfigurations } from "../../editor/rendering/volumetric-lighting";
+import { getVolumetricLightingRenderingPipelineConfiguration } from "../../editor/rendering/volumetric-lighting";
 
 import { Editor } from "../../editor/main";
 
@@ -151,8 +151,9 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 			motionBlurPostProcess: motionBlurPostProcessCameraConfigurations.get(camera),
 			defaultRenderingPipeline: defaultPipelineCameraConfigurations.get(camera),
 			taaRenderingPipeline: taaPipelineCameraConfigurations.get(camera),
-			volumetricLightingRenderingPipelineCameraConfigurations: volumetricLightingRenderingPipelineCameraConfigurations.get(camera),
 		}));
+
+	data.metadata.volumetricLightingRenderingPipelineConfiguration = getVolumetricLightingRenderingPipelineConfiguration();
 
 	delete data.effectLayers;
 	delete data.postProcesses;

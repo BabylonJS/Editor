@@ -32,14 +32,14 @@ import { parseSSAO2RenderingPipeline, ssaoRenderingPipelineCameraConfigurations 
 import { parseMotionBlurPostProcess, motionBlurPostProcessCameraConfigurations } from "../../editor/rendering/motion-blur";
 import { parseDefaultRenderingPipeline, defaultPipelineCameraConfigurations } from "../../editor/rendering/default-pipeline";
 import { iblShadowsRenderingPipelineCameraConfigurations, parseIblShadowsRenderingPipeline } from "../../editor/rendering/ibl-shadows";
-import { parseVolumetricLightingRenderingPipeline, volumetricLightingRenderingPipelineCameraConfigurations } from "../../editor/rendering/volumetric-lighting";
+import { parseVolumetricLightingRenderingPipeline, setVolumetricLightingRenderingPipelineConfiguration } from "../../editor/rendering/volumetric-lighting";
 
 import { createDirectoryIfNotExist } from "../../tools/fs";
 
 import { createSceneLink } from "../../tools/scene/scene-link";
 import { updateIblShadowsRenderPipeline } from "../../tools/light/ibl";
-import { forceCompileAllSceneMaterials } from "../../tools/scene/materials";
 import { IAssetCache, loadSavedAssetsCache } from "../../tools/assets/cache";
+import { forceCompileAllSceneMaterials } from "../../tools/material/material";
 import { checkProjectCachedCompressedTextures } from "../../tools/assets/ktx";
 import { isAbstractMesh, isEditorCamera, isMesh } from "../../tools/guards/nodes";
 import { isCubeTexture, isHDRCubeTexture, isTexture } from "../../tools/guards/texture";
@@ -441,6 +441,9 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 			}
 		});
 
+		// Volumetric lighting
+		setVolumetricLightingRenderingPipelineConfiguration(config.volumetricLightingRenderingPipelineConfiguration);
+
 		// For each camera
 		const postProcessConfigurations = Array.isArray(config.rendering) ? config.rendering : [];
 
@@ -457,7 +460,6 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 			defaultPipelineCameraConfigurations.set(camera, configuration.defaultRenderingPipeline);
 			taaPipelineCameraConfigurations.set(camera, configuration.taaRenderingPipeline);
 			iblShadowsRenderingPipelineCameraConfigurations.set(camera, configuration.iblShadowsRenderPipeline);
-			volumetricLightingRenderingPipelineCameraConfigurations.set(camera, configuration.volumetricLightingRenderingPipeline);
 
 			if (isEditorCamera(camera)) {
 				if (configuration.iblShadowsRenderPipeline) {
@@ -468,8 +470,8 @@ export async function loadScene(editor: Editor, projectPath: string, scenePath: 
 					parseSSAO2RenderingPipeline(editor, configuration.ssao2RenderingPipeline);
 				}
 
-				if (configuration.volumetricLightingRenderingPipeline) {
-					parseVolumetricLightingRenderingPipeline(editor, configuration.volumetricLightingRenderingPipeline);
+				if (config.volumetricLightingRenderingPipelineConfiguration) {
+					parseVolumetricLightingRenderingPipeline(editor, config.volumetricLightingRenderingPipelineConfiguration);
 				}
 
 				if (configuration.vlsPostProcess) {

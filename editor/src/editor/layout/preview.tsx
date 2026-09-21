@@ -82,7 +82,7 @@ import { disposeSSAO2RenderingPipeline, parseSSAO2RenderingPipeline, ssaoRenderi
 import { disposeMotionBlurPostProcess, motionBlurPostProcessCameraConfigurations, parseMotionBlurPostProcess } from "../rendering/motion-blur";
 import { defaultPipelineCameraConfigurations, disposeDefaultRenderingPipeline, parseDefaultRenderingPipeline } from "../rendering/default-pipeline";
 import {
-	volumetricLightingRenderingPipelineCameraConfigurations,
+	getVolumetricLightingRenderingPipelineConfiguration,
 	disposeVolumetricLightingRenderingPipeline,
 	parseVolumetricLightingRenderingPipeline,
 } from "../rendering/volumetric-lighting";
@@ -535,8 +535,8 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		Animation.AllowMatricesInterpolation = true;
 		Animation.AllowMatrixDecomposeForInterpolation = true;
 
-		const webGpuSupported = false;
-		// const webGpuSupported = await WebGPUEngine.IsSupportedAsync;
+		// const webGpuSupported = false;
+		const webGpuSupported = location.href.includes("isWebGPU=true") && (await WebGPUEngine.IsSupportedAsync);
 
 		if (webGpuSupported) {
 			this.engine = await this._createWebgpuEngine(this._workingCanvas);
@@ -644,14 +644,19 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 	private _glslang: any = null;
 
 	private async _createWebgpuEngine(canvas: HTMLCanvasElement): Promise<WebGPUEngine> {
+		await waitUntil(() => this.props.editor.path);
+
+		const appPath = this.props.editor.path!;
+		const nodeModules = process.env.DEBUG ? "../node_modules" : "node_modules";
+
 		if (!this._glslang) {
 			const glslangJs = require("@babylonjs/core/assets/glslang/glslang.cjs");
-			this._glslang = await glslangJs(join(process.cwd(), "../node_modules/@babylonjs/core/assets/glslang/glslang.wasm"));
+			this._glslang = await glslangJs(join(appPath, nodeModules, "@babylonjs/core/assets/glslang/glslang.wasm"));
 		}
 
 		if (!this._twgsl) {
 			const twgslJs = require("@babylonjs/core/assets/twgsl/twgsl.cjs");
-			this._twgsl = await twgslJs(join(process.cwd(), "../node_modules/@babylonjs/core/assets/twgsl/twgsl.wasm"));
+			this._twgsl = await twgslJs(join(appPath, nodeModules, "@babylonjs/core/assets/twgsl/twgsl.wasm"));
 		}
 
 		const engine = new WebGPUEngine(canvas, {
@@ -1174,7 +1179,7 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 			parseSSAO2RenderingPipeline(this.props.editor, ssao2Pipeline);
 		}
 
-		const volumetricLightingRenderingPipeline = volumetricLightingRenderingPipelineCameraConfigurations.get(camera);
+		const volumetricLightingRenderingPipeline = getVolumetricLightingRenderingPipelineConfiguration();
 		if (volumetricLightingRenderingPipeline) {
 			parseVolumetricLightingRenderingPipeline(this.props.editor, volumetricLightingRenderingPipeline);
 		}

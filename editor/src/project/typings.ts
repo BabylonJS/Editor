@@ -50,6 +50,11 @@ export interface IEditorProject {
 	 * Gizmo snap preferences (translate / rotate / scale).
 	 */
 	gizmoSnap?: IGizmoSnapPreferences;
+
+	/**
+	 * Defines wether or not the project is using WebGPU in order to start the editor in WebGPU mode.
+	 */
+	isWebGPU?: boolean;
 }
 
 export interface IEditorProjectPlugin {

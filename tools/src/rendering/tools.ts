@@ -12,7 +12,8 @@ import {
 	disposeVolumetricLightingRenderingPipeline,
 	parseVolumetricLightingRenderingPipeline,
 	serializeVolumetricLightingRenderingPipeline,
-	volumetricLightingRenderingPipelineCameraConfigurations,
+	setVolumetricLightingRenderingPipelineConfiguration,
+	getVolumetricLightingRenderingPipelineConfiguration,
 } from "./volumetric-lighting";
 
 /**
@@ -25,9 +26,10 @@ export function saveRenderingConfigurationForCamera(camera: Camera) {
 	vlsPostProcessCameraConfigurations.set(camera, serializeVLSPostProcess());
 	ssrRenderingPipelineCameraConfigurations.set(camera, serializeSSRRenderingPipeline());
 	motionBlurPostProcessCameraConfigurations.set(camera, serializeMotionBlurPostProcess());
-	volumetricLightingRenderingPipelineCameraConfigurations.set(camera, serializeVolumetricLightingRenderingPipeline());
 	defaultPipelineCameraConfigurations.set(camera, serializeDefaultRenderingPipeline());
 	taaRenderingPipelineCameraConfigurations.set(camera, serializeTAARenderingPipeline());
+
+	setVolumetricLightingRenderingPipelineConfiguration(serializeVolumetricLightingRenderingPipeline());
 }
 
 export interface IRenderingOptions {
@@ -65,7 +67,7 @@ export function applyRenderingConfigurationForCamera(camera: Camera, rootUrl: st
 		parseSSAO2RenderingPipeline(camera.getScene(), camera, ssao2RenderingPipeline, options);
 	}
 
-	const volumetricLightingRenderingPipeline = volumetricLightingRenderingPipelineCameraConfigurations.get(camera);
+	const volumetricLightingRenderingPipeline = getVolumetricLightingRenderingPipelineConfiguration();
 	if (volumetricLightingRenderingPipeline && !options?.volumetricLightingDisabled) {
 		parseVolumetricLightingRenderingPipeline(camera.getScene(), camera, volumetricLightingRenderingPipeline, options);
 	}
