@@ -31,6 +31,7 @@ import { GPUParticleSystem } from "@babylonjs/core/Particles/gpuParticleSystem";
 import { Sprite } from "@babylonjs/core/Sprites/sprite";
 
 import { SoundNode } from "./sound";
+import { SpriteManagerNode } from "./sprite";
 
 /**
  * Returns wether or not the given object is an AbstractMesh.
@@ -259,6 +260,15 @@ export function isAnyParticleSystem(object: any): object is IParticleSystem {
 	}
 
 	return false;
+}
+
+/**
+ * Returns wether or not the given object is a SpriteManagerNode.
+ * @param object defines the reference to the object to test its class name.
+ * @returns true if the object is a SpriteManagerNode, false otherwise.
+ */
+export function isSpriteManagerNode(object: any): object is SpriteManagerNode {
+	return object.getClassName?.() === "SpriteManagerNode";
 }
 
 /**
