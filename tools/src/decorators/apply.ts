@@ -162,7 +162,7 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 
 	// @fromAnimationGroups
 	ctor._AnimationGroups?.forEach((params) => {
-		instance[params.propertyKey.toString()] = scene.getAnimationGroupByName(params.animationGroupName);
+		instance[params.propertyKey.toString()] = scene.getAnimationGroupByName(formatNameWithId(params.animationGroupName, options.namingId));
 	});
 
 	// @soundFromScene
@@ -194,7 +194,7 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 	// @fromParticleSystems
 	ctor._ParticleSystemsFromScene?.forEach((params) => {
 		const particleSystem = scene.particleSystems?.find((particleSystem) => {
-			if (particleSystem.name !== params.particleSystemName) {
+			if (particleSystem.name !== formatNameWithId(params.particleSystemName, options.namingId)) {
 				return false;
 			}
 
@@ -379,7 +379,7 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 		}
 
 		ctor._SpritesFromSpriteManager?.forEach((params) => {
-			const sprite = spriteManagerNode.spriteManager?.sprites.find((s) => s.name === params.spriteName) || null;
+			const sprite = spriteManagerNode.spriteManager?.sprites.find((s) => s.name === formatNameWithId(params.spriteName, options.namingId)) || null;
 			instance[params.propertyKey.toString()] = sprite;
 		});
 	}
@@ -396,11 +396,11 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 		}
 
 		ctor._AnimationsFromSprite.forEach((params) => {
-			const animation = spriteAnimations.find((a) => a.name === params.animationName);
+			const animation = spriteAnimations.find((a) => a.name === formatNameWithId(params.animationName, options.namingId));
 			if (animation) {
 				instance[params.propertyKey.toString()] = animation ?? null;
 			} else {
-				console.warn(`Sprite animation named "${params.animationName}" not found on sprite "${object.name}".`);
+				console.warn(`Sprite animation named "${formatNameWithId(params.animationName, options.namingId)}" not found on sprite "${object.name}".`);
 			}
 		});
 	}
