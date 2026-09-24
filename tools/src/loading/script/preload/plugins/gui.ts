@@ -13,7 +13,7 @@ export async function preloadFullScreenScriptAsset(parameters: IScriptAssetParse
 		switch (data.guiType) {
 			case "fullscreen":
 				gui = AdvancedDynamicTexture.CreateFullscreenUI(data.name, true, parameters.scene);
-				gui.parseSerializedObject(data.content, false);
+				gui.parseSerializedObject(data.content, false, (url) => `${parameters.rootUrl}${url}`);
 				break;
 			default:
 				throw new Error(`Unknown GUI type: ${data.guiType}`);
