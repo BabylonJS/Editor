@@ -718,7 +718,7 @@ export interface IVolumetricShaderEnvironment {
 	transmittance: VolumetricTransmittanceMode;
 	/**
 	 * Defines wether or not the linear depth of the scene is packed in an 8 bits RGBA texture because the
-	 * engine can't render to a 32 bits float one.
+	 * engine can't render to a float one.
 	 */
 	linearDepthPacked: boolean;
 	/**
@@ -728,7 +728,11 @@ export interface IVolumetricShaderEnvironment {
 	 */
 	arrayLightCapacity: number;
 	/**
-	 * Defines the number of samples taken across the volume of each point and spot light.
+	 * Defines the number of steps the directional lights are marched with each frame. @see getVolumetricSamplingSteps
+	 */
+	steps: number;
+	/**
+	 * Defines the number of samples taken across the volume of each point and spot light each frame.
 	 */
 	lightSteps: number;
 }
@@ -748,11 +752,12 @@ export function computeVolumetricShapeKey(
 	const csm = selection.csm ? `${selection.csm.kind}.${selection.csm.cascades}.${selection.csm.packed ? 1 : 0}` : "-";
 
 	return [
-		configuration.steps,
+		environment.steps,
 		environment.lightSteps,
 		configuration.stepDistribution,
 		configuration.ditherMode,
 		configuration.temporalJitter ? 1 : 0,
+		configuration.temporalAccumulation ? 1 : 0,
 		configuration.heightFogEnabled ? 1 : 0,
 		configuration.lightExtinctionEnabled ? 1 : 0,
 		configuration.pcfTaps,

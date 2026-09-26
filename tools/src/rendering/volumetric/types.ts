@@ -27,6 +27,13 @@ export const maxVolumetricArrayLights = 256;
 export const maxVolumetricDirectionalLights = 4;
 
 /**
+ * Defines by how much the temporal accumulation divides the number of samples the raymarching computes each
+ * frame. The samples of consecutive frames are offset from each other, so the accumulated result still
+ * averages at least as many positions along each view ray as the configured steps.
+ */
+export const volumetricTemporalSamplesDivider = 3;
+
+/**
  * Defines the available step distributions used while raymarching the participating medium.
  */
 export enum VolumetricStepDistribution {
@@ -178,16 +185,34 @@ export interface IVolumetricLightingConfiguration {
 	stepDistribution: VolumetricStepDistribution;
 	/**
 	 * Defines the dithering mode used to hide the banding produced by a low step count. @see VolumetricDitherMode
+	 * With the temporal accumulation, "None" falls back on the interleaved gradient noise: the accumulation needs
+	 * the samples of neighboring pixels to differ to tell the noise from the changes of the scene.
 	 */
 	ditherMode: VolumetricDitherMode;
 	/**
-	 * Defines the strength of the dithering applied to the starting offset of the rays.
+	 * Defines the strength of the dithering applied to the starting offset of the rays. Not used by the temporal
+	 * accumulation, which always spreads the samples over their whole segment.
 	 */
 	ditherStrength: number;
 	/**
 	 * Defines wether or not the dithering pattern is animated over time. Requires temporal anti-aliasing to converge.
+	 * Not used by the temporal accumulation, which animates the samples on its own.
 	 */
 	temporalJitter: boolean;
+	/**
+	 * Defines wether or not the light shafts are accumulated over the frames. Each frame only computes a fraction
+	 * of the samples of the raymarching, offset from one frame to the next, and blends them with the result of the
+	 * previous frames reprojected on the current view: the result converges to the quality of the configured
+	 * steps, or better, for a fraction of their cost. @see volumetricTemporalSamplesDivider
+	 */
+	temporalAccumulation: boolean;
+	/**
+	 * Defines the weight of the current frame when it is blended with the accumulated previous frames, like the
+	 * "factor" of the TAA rendering pipeline. Lower values average more frames, which gives smoother light shafts,
+	 * but make them slower to follow the changes of the scene. The current frame weighs more than this while the
+	 * camera moves quickly compared to the distance of what it looks at, so the light shafts never lag behind it.
+	 */
+	temporalAccumulationFactor: number;
 
 	/**
 	 * Defines how the density of the medium evolves with the distance to the camera. @see VolumetricFogMode
@@ -343,7 +368,7 @@ export function getDefaultVolumetricLightConfiguration(): IVolumetricLightConfig
 		anisotropy: 0.35,
 		useCustomColor: false,
 		color: [1, 1, 1],
-		castVolumetricShadows: true,
+		castVolumetricShadows: false,
 		shadowDarkness: 1,
 		rangeMultiplier: 1,
 		priority: 0,
@@ -362,6 +387,8 @@ export function getDefaultVolumetricLightingConfiguration(): IVolumetricLighting
 		ditherMode: VolumetricDitherMode.InterleavedGradientNoise,
 		ditherStrength: 1,
 		temporalJitter: false,
+		temporalAccumulation: false,
+		temporalAccumulationFactor: 0.1,
 
 		fogMode: VolumetricFogMode.Exponential,
 		fogDensity: 0.0005,
@@ -412,6 +439,43 @@ export function getVolumetricLightSteps(configuration: IVolumetricLightingConfig
 	}
 
 	return Math.max(4, Math.min(64, Math.round(configuration.steps * 0.3)));
+}
+
+/**
+ * Defines the number of samples the raymarching computes for each pixel during a single frame.
+ */
+export interface IVolumetricSamplingSteps {
+	/**
+	 * Defines the number of steps of the march of the directional lights, and the minimum density of samples
+	 * along the view ray for the point and spot lights.
+	 */
+	steps: number;
+	/**
+	 * Defines the number of samples taken across the volume of each point and spot light.
+	 */
+	lightSteps: number;
+}
+
+/**
+ * Returns the number of samples the raymarching computes each frame. With the temporal accumulation the
+ * configured values are divided, the history of the previous frames providing the samples each frame skips.
+ * @param configuration defines the configuration of the pipeline.
+ * @param temporalSamplesDivider defines by how much the temporal accumulation divides the number of samples.
+ */
+export function getVolumetricSamplingSteps(
+	configuration: IVolumetricLightingConfiguration,
+	temporalSamplesDivider: number = volumetricTemporalSamplesDivider
+): IVolumetricSamplingSteps {
+	const lightSteps = getVolumetricLightSteps(configuration);
+
+	if (!configuration.temporalAccumulation || temporalSamplesDivider <= 1) {
+		return { steps: configuration.steps, lightSteps };
+	}
+
+	return {
+		steps: Math.max(4, Math.ceil(configuration.steps / temporalSamplesDivider)),
+		lightSteps: Math.max(2, Math.ceil(lightSteps / temporalSamplesDivider)),
+	};
 }
 
 function normalizeNumber(value: any, defaultValue: number, min: number, max: number): number {
@@ -469,6 +533,8 @@ export function normalizeVolumetricLightingConfiguration(data: any): IVolumetric
 		ditherMode: Math.round(normalizeNumber(data.ditherMode, defaults.ditherMode, 0, 2)),
 		ditherStrength: normalizeNumber(data.ditherStrength, defaults.ditherStrength, 0, 1),
 		temporalJitter: data.temporalJitter ?? defaults.temporalJitter,
+		temporalAccumulation: data.temporalAccumulation ?? defaults.temporalAccumulation,
+		temporalAccumulationFactor: normalizeNumber(data.temporalAccumulationFactor, defaults.temporalAccumulationFactor, 0.005, 1),
 
 		fogMode: Math.round(normalizeNumber(data.fogMode, defaults.fogMode, 0, 2)),
 		fogDensity: normalizeNumber(data.fogDensity, defaults.fogDensity, 0, 100),
