@@ -1,4 +1,5 @@
 import { SSAO2RenderingPipeline, Camera } from "babylonjs";
+import { getHdrTextureType } from "babylonjs-editor-tools";
 
 import { Editor } from "../main";
 
@@ -21,7 +22,14 @@ export function disposeSSAO2RenderingPipeline(): void {
 }
 
 export function createSSAO2RenderingPipeline(editor: Editor): SSAO2RenderingPipeline {
-	ssaoRenderingPipeline = new SSAO2RenderingPipeline("SSAO2RenderingPipeline", editor.layout.preview.scene, 1.0, [editor.layout.preview.scene.activeCamera!], false);
+	ssaoRenderingPipeline = new SSAO2RenderingPipeline(
+		"SSAO2RenderingPipeline",
+		editor.layout.preview.scene,
+		1.0,
+		[editor.layout.preview.scene.activeCamera!],
+		false,
+		getHdrTextureType(editor.layout.preview.engine as any)
+	);
 	ssaoRenderingPipeline.samples = 16;
 
 	return ssaoRenderingPipeline;
@@ -57,7 +65,7 @@ export function parseSSAO2RenderingPipeline(editor: Editor, data: any): SSAO2Ren
 	ssao2RenderingPipeline.maxZ = data.maxZ;
 	ssao2RenderingPipeline.minZAspect = data.minZAspect;
 	ssao2RenderingPipeline.epsilon = data.epsilon;
-	ssao2RenderingPipeline.textureSamples = data.textureSamples;
+	// ssao2RenderingPipeline.textureSamples = data.textureSamples;
 	ssao2RenderingPipeline.bypassBlur = data.bypassBlur;
 	ssao2RenderingPipeline.bilateralSamples = data.bilateralSamples;
 	ssao2RenderingPipeline.bilateralSoften = data.bilateralSoften;

@@ -31,7 +31,7 @@ export function disposeSSAO2RenderingPipeline(): void {
 }
 
 export function createSSAO2RenderingPipeline(scene: Scene, camera: Camera, _options?: IRenderingOptions): SSAO2RenderingPipeline {
-	ssaoRenderingPipeline = new SSAO2RenderingPipeline("SSAO2RenderingPipeline", scene, 1.0, [camera], undefined, getHdrTextureType(scene.getEngine()));
+	ssaoRenderingPipeline = new SSAO2RenderingPipeline("SSAO2RenderingPipeline", scene, 1.0, [camera], false, getHdrTextureType(scene.getEngine()));
 
 	// Don't handle MSAA for SSAO as it can causes massive performance issues.
 	ssaoRenderingPipeline.textureSamples = 1; // options?.msaaSamples ?? 1;

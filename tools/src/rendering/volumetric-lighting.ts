@@ -1,9 +1,9 @@
 import { Scene } from "@babylonjs/core/scene";
 import { Camera } from "@babylonjs/core/Cameras/camera";
 
+import { IRenderingOptions } from "./tools";
 import { VolumetricLightingRenderingPipeline } from "./volumetric/pipeline";
 import { IVolumetricLightingConfiguration, normalizeVolumetricLightingConfiguration } from "./volumetric/types";
-import { IRenderingOptions } from "./tools";
 
 let volumetricLightingRenderingPipeline: VolumetricLightingRenderingPipeline | null = null;
 
