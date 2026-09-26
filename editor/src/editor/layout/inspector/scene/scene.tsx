@@ -243,8 +243,6 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 		};
 
 		const configuration = pipeline?.configuration;
-		// const stats = pipeline?.getStats();
-		// const budget = pipeline?.getBudget();
 
 		return (
 			<>
@@ -292,10 +290,10 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 								property="steps"
 								label="Steps"
 								items={[
-									{ text: "Low", value: 10 },
-									{ text: "Medium", value: 40 },
-									{ text: "High", value: 128 },
-									{ text: "Ultra", value: 256 },
+									{ text: "Low", value: 12 },
+									{ text: "Medium", value: 24 },
+									{ text: "High", value: 40 },
+									{ text: "Ultra", value: 128 },
 								]}
 								onChange={() => this.forceUpdate()}
 							/>
@@ -312,6 +310,12 @@ export class EditorSceneInspector extends Component<IEditorInspectorImplementati
 								]}
 								onChange={() => this.forceUpdate()}
 							/>
+
+							<EditorInspectorSwitchField object={configuration} property="temporalAccumulation" label="Temporal Accumulation" onChange={() => this.forceUpdate()} />
+
+							{configuration.temporalAccumulation && (
+								<EditorInspectorNumberField object={configuration} property="temporalAccumulationFactor" label="Factor" min={0.005} max={0.3} step={0.001} />
+							)}
 
 							<EditorInspectorListField
 								object={configuration}

@@ -16,6 +16,11 @@ export const volumetricLightingLinearDepthShaderName = "volumetricLightingLinear
 export const volumetricLightingScatteringShaderName = "volumetricLightingScattering";
 
 /**
+ * Defines the name of the temporal accumulation shader in the shader store of Babylon.js.
+ */
+export const volumetricLightingTemporalShaderName = "volumetricLightingTemporal";
+
+/**
  * Defines the name of the bilateral blur shader in the shader store of Babylon.js.
  */
 export const volumetricLightingBlurShaderName = "volumetricLightingBlur";
@@ -26,9 +31,14 @@ export const volumetricLightingBlurShaderName = "volumetricLightingBlur";
 export const volumetricLightingComposeShaderName = "volumetricLightingCompose";
 
 /**
- * Unpacks a depth packed in the four channels of an 8 bits RGBA texture, the same way Babylon.js does.
+ * Defines how the linear depth is stored: scaled down in a float texture, or packed in the four channels of an
+ * 8 bits RGBA texture, the same way Babylon.js does.
  */
 const packingHelpers = /* glsl */ `
+	// Stored scaled down by a power of two, which is exact: a 16 bits float then holds the far plane of the largest
+	// scenes, with a relative precision of 0.05%.
+	const float volLinearDepthScale = 1.0 / 1024.0;
+
 	float volUnpack(vec4 color) {
 		const vec4 bitShift = vec4(1.0 / (255.0 * 255.0 * 255.0), 1.0 / (255.0 * 255.0), 1.0 / 255.0, 1.0);
 		return dot(color, bitShift);
@@ -79,7 +89,7 @@ const linearDepthHelpers = /* glsl */ `
 		#ifdef VOL_LINEAR_DEPTH_PACKED
 			return volUnpack(texelFetch(s, coordinates, 0)) * volCameraMinMaxZ.y;
 		#else
-			return texelFetch(s, coordinates, 0).r;
+			return texelFetch(s, coordinates, 0).r * (1.0 / volLinearDepthScale);
 		#endif
 	}
 
@@ -96,8 +106,8 @@ const linearDepthHelpers = /* glsl */ `
  * The linear depth pass. It is the first pass of the pipeline, so its input is the untouched color of the
  * scene that the composition reads back, and it writes the distance along the view axis of each pixel.
  *
- * Every later pass reads this texture instead of the depth map of the depth source: a single 32 bits
- * channel is half the memory traffic of the 16 bits RGBA depth map, which matters for the thousands of reads
+ * Every later pass reads this texture instead of the depth map of the depth source: a single 16 bits
+ * channel is a fraction of the memory traffic of the RGBA depth map, which matters for the thousands of reads
  * of the depth-buffer occlusion, and it needs neither unpacking nor linearization. It is kept at the full
  * resolution so the occlusion sees the geometry exactly as the surfaces of the scene draw it.
  */
@@ -113,6 +123,9 @@ uniform highp sampler2D depthSampler;
 uniform vec2 volCameraMinMaxZ;
 uniform vec2 volDepthUnpack;
 
+// (1 when the pipeline has nothing to draw this frame, unused, unused, unused)
+uniform vec4 volPassParams;
+
 ${packingHelpers}
 ${depthMapHelpers}
 
@@ -127,12 +140,19 @@ vec4 volPack(float depth) {
 }
 
 void main(void) {
+	// Nothing reads the linear depth while the pipeline has nothing to draw.
+	if (volPassParams.x > 0.5) {
+		gl_FragColor = vec4(0.0);
+		return;
+	}
+
 	float viewZ = volLinearDepth(volSampleDepth(vUV));
 
 	#ifdef VOL_LINEAR_DEPTH_PACKED
 		gl_FragColor = volPack(clamp(viewZ / volCameraMinMaxZ.y, 0.0, 0.9999999));
 	#else
-		gl_FragColor = vec4(viewZ, 0.0, 0.0, 1.0);
+		// Bounded by the largest 16 bits float.
+		gl_FragColor = vec4(min(viewZ * volLinearDepthScale, 65504.0), 0.0, 0.0, 1.0);
 	#endif
 }
 `;
@@ -382,6 +402,9 @@ uniform vec3 volCameraForward;
 uniform vec2 volCameraMinMaxZ;
 uniform float volFrameIndex;
 
+// Offset of the current frame along the golden ratio sequence the samples walk with the temporal accumulation.
+uniform float volTemporalOffset;
+
 uniform vec4 volFogInfos;
 uniform vec3 volFogColor;
 uniform float volLinearFogEps;
@@ -395,6 +418,9 @@ uniform vec3 volAmbient;
 
 // (maximum distance, dithering strength, light extinction clamp, number of point and spot lights in the arrays)
 uniform vec4 volParams;
+
+// (1 when the pipeline has nothing to draw this frame, unused, unused, unused)
+uniform vec4 volPassParams;
 
 #if VOL_MAX_ARRAY_LIGHTS > 0
 	uniform vec4 volLightData[VOL_MAX_ARRAY_LIGHTS];
@@ -1030,6 +1056,12 @@ ${globalSlotContributions.join("")}
 #endif
 
 void main(void) {
+	// Nothing to draw this frame: no light reaches the view and the medium neither glows nor attenuates anything.
+	if (volPassParams.x > 0.5) {
+		gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+		return;
+	}
+
 	// Reconstruct the world space direction of the view ray from the UV of the pixel.
 	vec4 farPoint = volInverseViewProjection * vec4(vUV * 2.0 - 1.0, 1.0, 1.0);
 	volRayDir = normalize(farPoint.xyz / farPoint.w - volCameraPosition);
@@ -1058,6 +1090,14 @@ void main(void) {
 			ditherPosition += volFrameIndex * 5.588238;
 		#endif
 		volNoise = volInterleavedGradientNoise(ditherPosition);
+	#endif
+
+	#ifdef VOL_TEMPORAL_ACCUMULATION
+		// Each pixel walks the golden ratio sequence from the offset of its dithering pattern, one step per frame:
+		// the samples of consecutive frames spread evenly over their segments, and the accumulation averages them.
+		// The pattern of the pixels around stays the same, which is what lets the accumulation tell its noise from
+		// the changes of the scene.
+		volNoise = fract(volNoise + volTemporalOffset);
 	#endif
 	volJitter = volNoise * volParams.y;
 
@@ -1124,6 +1164,121 @@ ${localSlotContributions.join("")}
 }
 
 /**
+ * The temporal accumulation pass. Blends the scattering of the current frame, whose samples are offset from one
+ * frame to the next, with the scattering accumulated over the previous frames: the result converges to the
+ * integral the samples of all these frames estimate together, which is what lets each frame compute fewer of them.
+ *
+ * The history is reprojected on the current view, and clipped to the range of values the current frame shows
+ * around the pixel so that a moving light, a moving occluder or a surface revealed by the motion of the camera
+ * never leaves a trail. The blend follows the "factor" of the TAA rendering pipeline: the weight of the current frame.
+ */
+export function buildVolumetricLightingTemporalShader(): string {
+	return /* glsl */ `precision highp float;
+precision highp int;
+
+varying vec2 vUV;
+
+// Scattering computed this frame, and scattering accumulated over the previous frames, both at the resolution of
+// the scattering buffer.
+uniform sampler2D textureSampler;
+uniform sampler2D volHistorySampler;
+
+// Full resolution linear depth of the scene, written by the linear depth pass.
+uniform highp sampler2D volLinearDepthSampler;
+
+uniform vec2 volCameraMinMaxZ;
+uniform vec2 volDepthRatio;
+uniform mat4 volInverseViewProjection;
+uniform vec3 volCameraPosition;
+uniform vec3 volCameraForward;
+
+// View projection matrix of the previous frame, applied to positions relative to the current camera.
+uniform mat4 volPreviousViewProjection;
+
+// (weight of the current frame, width of the clipping of the history in standard deviations, maximum distance of
+// the march, 1 when the history holds the previous frame, 2 when the previous frame had nothing to draw)
+uniform vec4 volTemporalParams;
+
+// (distance the camera moved since the previous frame, part of the medium along the view ray whose change the
+// delay of the history may lag behind)
+uniform vec2 volTemporalMotion;
+
+${packingHelpers}
+${linearDepthHelpers}
+
+void main(void) {
+	ivec2 texel = ivec2(gl_FragCoord.xy);
+	ivec2 size = textureSize(textureSampler, 0);
+
+	// Bounded so a light next to the camera, which a half float can't hold, never turns the history infinite.
+	vec4 current = min(texelFetch(textureSampler, texel, 0), vec4(65000.0));
+
+	if (volTemporalParams.w < 0.5) {
+		gl_FragColor = current;
+		return;
+	}
+
+	// The end of the marched part of the view ray is reprojected in the previous frame: the medium in front of it
+	// is spread along the ray, but its scattering varies slowly enough for the surface behind it, or the maximum
+	// distance of the march, to be a faithful anchor.
+	ivec2 depthSize = textureSize(volLinearDepthSampler, 0);
+	float viewZ = volReadLinearDepth(volLinearDepthSampler, volScatterToDepthTexel(texel, depthSize));
+
+	vec4 farPoint = volInverseViewProjection * vec4(vUV * 2.0 - 1.0, 1.0, 1.0);
+	vec3 rayDir = normalize(farPoint.xyz / farPoint.w - volCameraPosition);
+	float t = min(viewZ / max(dot(rayDir, volCameraForward), 1e-4), volTemporalParams.z);
+
+	vec4 previousClip = volPreviousViewProjection * vec4(rayDir * t, 1.0);
+	vec2 previousUV = (previousClip.xy / previousClip.w) * 0.5 + 0.5;
+
+	if (previousClip.w <= 0.0 || previousUV.x < 0.0 || previousUV.x > 1.0 || previousUV.y < 0.0 || previousUV.y > 1.0) {
+		gl_FragColor = current;
+		return;
+	}
+
+	// The pipeline had nothing to draw the previous frame: no light at all, seen through the same medium.
+	vec4 history = volTemporalParams.w > 1.5 ? vec4(0.0, 0.0, 0.0, current.a) : texture2D(volHistorySampler, previousUV);
+
+	// A history holding an infinity or a NaN would never recover from it.
+	if (!all(lessThan(abs(history), vec4(1e20)))) {
+		gl_FragColor = current;
+		return;
+	}
+
+	// Variance clipping: the history is kept within what the current frame shows around the pixel.
+	vec4 m1 = vec4(0.0);
+	vec4 m2 = vec4(0.0);
+
+	for (int y = -1; y <= 1; ++y) {
+		for (int x = -1; x <= 1; ++x) {
+			vec4 c = min(texelFetch(textureSampler, clamp(texel + ivec2(x, y), ivec2(0), size - 1), 0), vec4(65000.0));
+			m1 += c;
+			m2 += c * c;
+		}
+	}
+
+	vec4 mean = m1 * (1.0 / 9.0);
+	vec4 sigma = sqrt(max(m2 * (1.0 / 9.0) - mean * mean, vec4(0.0)));
+	vec4 clipped = clamp(history, mean - volTemporalParams.y * sigma, mean + volTemporalParams.y * sigma);
+
+	// The history holds the medium as seen from where the camera was. A rotation of the camera changes nothing to
+	// what a view ray crosses, but moving it changes the medium along the view ray by about the distance it moved
+	// relative to the length of the ray: the weight of the current frame grows with that change, so the delay of
+	// the history never lags behind more than the given part of it.
+	float motion = volTemporalMotion.x / max(t, 1e-3);
+	float factor = max(volTemporalParams.x, motion / (motion + volTemporalMotion.y));
+
+	// The transmittance only depends on the length of medium in front of the surface: when it changed, the history
+	// shows another surface and is dropped. Compared before the clipping, which would hide the change.
+	float transmittanceChange = abs(history.a - current.a) / max(max(history.a, current.a), 1e-3);
+	float historyWeight = (1.0 - factor) * (1.0 - smoothstep(0.02, 0.15, transmittanceChange));
+
+	gl_FragColor = mix(current, clipped, historyWeight);
+}
+`;
+}
+
+/**
  * The separable bilateral blur pass. Denoises the low resolution scattering buffer without letting the
  * light shafts bleed across the silhouettes of the geometry.
  */
@@ -1141,10 +1296,19 @@ uniform vec2 volDepthRatio;
 uniform vec2 volBlurDirection;
 uniform vec2 volBlurParams;
 
+// (1 when the pipeline has nothing to draw this frame, unused, unused, unused)
+uniform vec4 volPassParams;
+
 ${packingHelpers}
 ${linearDepthHelpers}
 
 void main(void) {
+	// Nothing to draw this frame: the composition doesn't read the scattering buffer.
+	if (volPassParams.x > 0.5) {
+		gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+		return;
+	}
+
 	// The blur runs at the resolution of the scattering buffer and every tap is an exact texel, compared using
 	// the depth the raymarching used for it: no filtering is needed, no depth has to be unpacked nor linearized.
 	ivec2 size = textureSize(textureSampler, 0);
@@ -1201,6 +1365,9 @@ uniform highp sampler2D volLinearDepthSampler;
 uniform vec2 volCameraMinMaxZ;
 uniform vec2 volDepthRatio;
 uniform vec4 volComposeParams;
+
+// (1 when the pipeline has nothing to draw this frame, unused, unused, unused)
+uniform vec4 volPassParams;
 
 ${packingHelpers}
 ${linearDepthHelpers}
@@ -1261,6 +1428,13 @@ vec4 volUpsample(float centerDepth, ivec2 depthSize) {
 }
 
 void main(void) {
+	// Nothing to draw this frame: the color of the scene passes through, exactly as it would under light shafts of
+	// zero intensity.
+	if (volPassParams.x > 0.5) {
+		gl_FragColor = vec4(texture2D(volSceneSampler, vUV).rgb + (volBayer8(gl_FragCoord.xy) - 0.5) * volComposeParams.w, 1.0);
+		return;
+	}
+
 	// The linear depth has the full resolution of the canvas: same texel the depth map would give with a nearest filter.
 	ivec2 depthSize = textureSize(volLinearDepthSampler, 0);
 	float centerDepth = volReadLinearDepth(volLinearDepthSampler, min(ivec2(vUV * vec2(depthSize)), depthSize - 1));
@@ -1317,6 +1491,7 @@ export function registerVolumetricLightingShaders(shaderLanguage: ShaderLanguage
 
 		ShaderStore.ShadersStoreWGSL[`${volumetricLightingLinearDepthShaderName}PixelShader`] = shaders.linearDepth;
 		ShaderStore.ShadersStoreWGSL[`${volumetricLightingScatteringShaderName}PixelShader`] = shaders.scattering;
+		ShaderStore.ShadersStoreWGSL[`${volumetricLightingTemporalShaderName}PixelShader`] = shaders.temporal;
 		ShaderStore.ShadersStoreWGSL[`${volumetricLightingBlurShaderName}PixelShader`] = shaders.blur;
 		ShaderStore.ShadersStoreWGSL[`${volumetricLightingComposeShaderName}PixelShader`] = shaders.compose;
 
@@ -1325,6 +1500,7 @@ export function registerVolumetricLightingShaders(shaderLanguage: ShaderLanguage
 
 	ShaderStore.ShadersStore[`${volumetricLightingLinearDepthShaderName}PixelShader`] = buildVolumetricLightingLinearDepthShader();
 	ShaderStore.ShadersStore[`${volumetricLightingScatteringShaderName}PixelShader`] = buildVolumetricLightingScatteringShader(maxVolumetricShadowSlots);
+	ShaderStore.ShadersStore[`${volumetricLightingTemporalShaderName}PixelShader`] = buildVolumetricLightingTemporalShader();
 	ShaderStore.ShadersStore[`${volumetricLightingBlurShaderName}PixelShader`] = buildVolumetricLightingBlurShader();
 	ShaderStore.ShadersStore[`${volumetricLightingComposeShaderName}PixelShader`] = buildVolumetricLightingComposeShader();
 }

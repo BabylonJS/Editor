@@ -1,7 +1,7 @@
 import { maxVolumetricShadowSlots } from "./types";
 
 /**
- * WGSL version of the four passes of the volumetric lighting rendering pipeline, for WebGPU.
+ * WGSL version of the passes of the volumetric lighting rendering pipeline, for WebGPU.
  *
  * This is a hand written port of the GLSL in "shaders.ts" rather than a transpilation: Babylon.js can only
  * turn GLSL into WGSL by downloading twgsl from its CDN, which an offline Electron application can't rely on.
@@ -14,9 +14,12 @@ import { maxVolumetricShadowSlots } from "./types";
  */
 
 /**
- * Unpacks a depth packed in the four channels of an 8 bits RGBA texture, the same way Babylon.js does.
+ * Defines how the linear depth is stored. @see the GLSL version.
  */
 const packingHelpers = /* wgsl */ `
+// Stored scaled down by a power of two, which is exact. @see the GLSL version.
+const volLinearDepthScale: f32 = 1.0 / 1024.0;
+
 fn volUnpack(color: vec4f) -> f32 {
 	let bitShift = vec4f(1.0 / (255.0 * 255.0 * 255.0), 1.0 / (255.0 * 255.0), 1.0 / 255.0, 1.0);
 	return dot(color, bitShift);
@@ -67,7 +70,7 @@ fn volReadLinearDepth(coordinates: vec2i) -> f32 {
 	#ifdef VOL_LINEAR_DEPTH_PACKED
 		return volUnpack(textureLoad(${texture}, coordinates, 0)) * uniforms.volCameraMinMaxZ.y;
 	#else
-		return textureLoad(${texture}, coordinates, 0).r;
+		return textureLoad(${texture}, coordinates, 0).r * (1.0 / volLinearDepthScale);
 	#endif
 }
 
@@ -93,6 +96,9 @@ var depthSampler: texture_2d<f32>;
 uniform volCameraMinMaxZ: vec2f;
 uniform volDepthUnpack: vec2f;
 
+// (1 when the pipeline has nothing to draw this frame, unused, unused, unused)
+uniform volPassParams: vec4f;
+
 ${packingHelpers}
 ${depthMapHelpers}
 
@@ -108,13 +114,19 @@ fn volPack(depth: f32) -> vec4f {
 
 @fragment
 fn main(input: FragmentInputs) -> FragmentOutputs {
-	let viewZ = volLinearDepth(volSampleDepth(input.vUV));
+	// Nothing reads the linear depth while the pipeline has nothing to draw.
+	if (uniforms.volPassParams.x > 0.5) {
+		fragmentOutputs.color = vec4f(0.0);
+	} else {
+		let viewZ = volLinearDepth(volSampleDepth(input.vUV));
 
-	#ifdef VOL_LINEAR_DEPTH_PACKED
-		fragmentOutputs.color = volPack(clamp(viewZ / uniforms.volCameraMinMaxZ.y, 0.0, 0.9999999));
-	#else
-		fragmentOutputs.color = vec4f(viewZ, 0.0, 0.0, 1.0);
-	#endif
+		#ifdef VOL_LINEAR_DEPTH_PACKED
+			fragmentOutputs.color = volPack(clamp(viewZ / uniforms.volCameraMinMaxZ.y, 0.0, 0.9999999));
+		#else
+			// Bounded by the largest 16 bits float.
+			fragmentOutputs.color = vec4f(min(viewZ * volLinearDepthScale, 65504.0), 0.0, 0.0, 1.0);
+		#endif
+	}
 }
 `;
 }
@@ -359,6 +371,9 @@ uniform volCameraForward: vec3f;
 uniform volCameraMinMaxZ: vec2f;
 uniform volFrameIndex: f32;
 
+// Offset of the current frame along the golden ratio sequence the samples walk with the temporal accumulation.
+uniform volTemporalOffset: f32;
+
 uniform volFogInfos: vec4f;
 uniform volFogColor: vec3f;
 uniform volLinearFogEps: f32;
@@ -372,6 +387,9 @@ uniform volAmbient: vec3f;
 
 // (maximum distance, dithering strength, light extinction clamp, number of point and spot lights in the arrays)
 uniform volParams: vec4f;
+
+// (1 when the pipeline has nothing to draw this frame, unused, unused, unused)
+uniform volPassParams: vec4f;
 
 #if VOL_MAX_ARRAY_LIGHTS > 0
 	uniform volLightData: array<vec4f, VOL_MAX_ARRAY_LIGHTS>;
@@ -975,8 +993,9 @@ fn main(input: FragmentInputs) -> FragmentOutputs {
 	var finalTransmittance = 1.0;
 	var evaluatedLights = 0.0;
 
-	// WGSL has no early return from the fragment entry point, the whole integration is guarded instead.
-	if (tEnd > tStart) {
+	// WGSL has no early return from the fragment entry point, the whole integration is guarded instead. Nothing is
+	// drawn either while no light reaches the view and the medium neither glows nor attenuates anything.
+	if (tEnd > tStart && uniforms.volPassParams.x < 0.5) {
 		// Offsets the samples inside their segments to trade the banding produced by a low sample count for noise.
 		volNoise = 0.0;
 		#if VOL_DITHER == 1
@@ -987,6 +1006,11 @@ fn main(input: FragmentInputs) -> FragmentOutputs {
 				ditherPosition += uniforms.volFrameIndex * 5.588238;
 			#endif
 			volNoise = volInterleavedGradientNoise(ditherPosition);
+		#endif
+
+		#ifdef VOL_TEMPORAL_ACCUMULATION
+			// Each pixel walks the golden ratio sequence from the offset of its dithering pattern. @see the GLSL version.
+			volNoise = fract(volNoise + uniforms.volTemporalOffset);
 		#endif
 		volJitter = volNoise * uniforms.volParams.y;
 
@@ -1051,6 +1075,102 @@ ${localSlotContributions.join("")}
 }
 
 /**
+ * The temporal accumulation pass. @see buildVolumetricLightingTemporalShader.
+ */
+export function buildVolumetricLightingTemporalShaderWGSL(): string {
+	return /* wgsl */ `
+varying vUV: vec2f;
+
+var textureSampler: texture_2d<f32>;
+var volHistorySamplerSampler: sampler;
+var volHistorySampler: texture_2d<f32>;
+var volLinearDepthSampler: texture_2d<f32>;
+
+uniform volCameraMinMaxZ: vec2f;
+uniform volDepthRatio: vec2f;
+uniform volInverseViewProjection: mat4x4f;
+uniform volCameraPosition: vec3f;
+uniform volCameraForward: vec3f;
+uniform volPreviousViewProjection: mat4x4f;
+
+// (weight of the current frame, width of the clipping in standard deviations, maximum distance of the march,
+// 1 when the history holds the previous frame, 2 when the previous frame had nothing to draw)
+uniform volTemporalParams: vec4f;
+
+// (distance the camera moved since the previous frame, part of the medium along the view ray whose change the
+// delay of the history may lag behind)
+uniform volTemporalMotion: vec2f;
+
+${packingHelpers}
+${buildLinearDepthHelpers("volLinearDepthSampler")}
+
+@fragment
+fn main(input: FragmentInputs) -> FragmentOutputs {
+	let texel = vec2i(fragmentInputs.position.xy);
+	let size = vec2i(textureDimensions(textureSampler));
+
+	// Bounded so a light next to the camera, which a half float can't hold, never turns the history infinite.
+	let current = min(textureLoad(textureSampler, texel, 0), vec4f(65000.0));
+	var result = current;
+
+	// WGSL has no early return from the fragment entry point, the accumulation is guarded instead.
+	if (uniforms.volTemporalParams.w > 0.5) {
+		// The end of the marched part of the view ray is reprojected in the previous frame. @see the GLSL version.
+		let depthSize = vec2i(textureDimensions(volLinearDepthSampler));
+		let viewZ = volReadLinearDepth(volScatterToDepthTexel(texel, depthSize));
+
+		let farPoint = uniforms.volInverseViewProjection * vec4f(input.vUV * 2.0 - 1.0, 1.0, 1.0);
+		let rayDir = normalize(farPoint.xyz / farPoint.w - uniforms.volCameraPosition);
+		let t = min(viewZ / max(dot(rayDir, uniforms.volCameraForward), 1e-4), uniforms.volTemporalParams.z);
+
+		let previousClip = uniforms.volPreviousViewProjection * vec4f(rayDir * t, 1.0);
+		let previousUV = (previousClip.xy / previousClip.w) * 0.5 + 0.5;
+
+		// Clamped so a position reprojected off the screen still reads a valid texel: whether the history is used
+		// at all is decided below. Nothing to draw the previous frame: no light at all, seen through the same medium.
+		let sampled = textureSampleLevel(volHistorySampler, volHistorySamplerSampler, clamp(previousUV, vec2f(0.0), vec2f(1.0)), 0.0);
+		let history = select(sampled, vec4f(0.0, 0.0, 0.0, current.a), uniforms.volTemporalParams.w > 1.5);
+
+		let inside = previousClip.w > 0.0 && all(previousUV >= vec2f(0.0)) && all(previousUV <= vec2f(1.0));
+
+		// A history holding an infinity or a NaN would never recover from it.
+		let finite = all(abs(history) < vec4f(1e20));
+
+		if (inside && finite) {
+			// Variance clipping: the history is kept within what the current frame shows around the pixel.
+			var m1 = vec4f(0.0);
+			var m2 = vec4f(0.0);
+
+			for (var y: i32 = -1; y <= 1; y++) {
+				for (var x: i32 = -1; x <= 1; x++) {
+					let c = min(textureLoad(textureSampler, clamp(texel + vec2i(x, y), vec2i(0), size - 1), 0), vec4f(65000.0));
+					m1 += c;
+					m2 += c * c;
+				}
+			}
+
+			let mean = m1 * (1.0 / 9.0);
+			let sigma = sqrt(max(m2 * (1.0 / 9.0) - mean * mean, vec4f(0.0)));
+			let clipped = clamp(history, mean - uniforms.volTemporalParams.y * sigma, mean + uniforms.volTemporalParams.y * sigma);
+
+			// Moving the camera changes the medium along the view ray, the history is trusted less. @see the GLSL version.
+			let motion = uniforms.volTemporalMotion.x / max(t, 1e-3);
+			let factor = max(uniforms.volTemporalParams.x, motion / (motion + uniforms.volTemporalMotion.y));
+
+			// The transmittance only depends on the length of medium in front of the surface. @see the GLSL version.
+			let transmittanceChange = abs(history.a - current.a) / max(max(history.a, current.a), 1e-3);
+			let historyWeight = (1.0 - factor) * (1.0 - smoothstep(0.02, 0.15, transmittanceChange));
+
+			result = mix(current, clipped, historyWeight);
+		}
+	}
+
+	fragmentOutputs.color = result;
+}
+`;
+}
+
+/**
  * The separable bilateral blur pass. @see buildVolumetricLightingBlurShader.
  */
 export function buildVolumetricLightingBlurShaderWGSL(): string {
@@ -1065,45 +1185,53 @@ uniform volDepthRatio: vec2f;
 uniform volBlurDirection: vec2f;
 uniform volBlurParams: vec2f;
 
+// (1 when the pipeline has nothing to draw this frame, unused, unused, unused)
+uniform volPassParams: vec4f;
+
 ${packingHelpers}
 ${buildLinearDepthHelpers("volLinearDepthSampler")}
 
 @fragment
 fn main(input: FragmentInputs) -> FragmentOutputs {
-	// Every tap is an exact texel compared using the depth the raymarching used for it. @see the GLSL version.
-	let size = vec2i(textureDimensions(textureSampler));
-	let depthSize = vec2i(textureDimensions(volLinearDepthSampler));
-	let center = vec2i(fragmentInputs.position.xy);
-	let direction = vec2i(uniforms.volBlurDirection);
+	// Nothing to draw this frame: the composition doesn't read the scattering buffer.
+	if (uniforms.volPassParams.x > 0.5) {
+		fragmentOutputs.color = vec4f(0.0, 0.0, 0.0, 1.0);
+	} else {
+		// Every tap is an exact texel compared using the depth the raymarching used for it. @see the GLSL version.
+		let size = vec2i(textureDimensions(textureSampler));
+		let depthSize = vec2i(textureDimensions(volLinearDepthSampler));
+		let center = vec2i(fragmentInputs.position.xy);
+		let direction = vec2i(uniforms.volBlurDirection);
 
-	let centerDepth = volReadLinearDepth(volScatterToDepthTexel(center, depthSize));
-	let inverseDepthThreshold = 1.0 / max(uniforms.volBlurParams.y * max(centerDepth, uniforms.volCameraMinMaxZ.x), 1e-4);
-	let sigma = max(uniforms.volBlurParams.x, 1e-4);
-	let inverseTwoSigma2 = 1.0 / (2.0 * sigma * sigma);
+		let centerDepth = volReadLinearDepth(volScatterToDepthTexel(center, depthSize));
+		let inverseDepthThreshold = 1.0 / max(uniforms.volBlurParams.y * max(centerDepth, uniforms.volCameraMinMaxZ.x), 1e-4);
+		let sigma = max(uniforms.volBlurParams.x, 1e-4);
+		let inverseTwoSigma2 = 1.0 / (2.0 * sigma * sigma);
 
-	var result = textureLoad(textureSampler, center, 0);
-	var totalWeight = 1.0;
+		var result = textureLoad(textureSampler, center, 0);
+		var totalWeight = 1.0;
 
-	for (var i: i32 = 1; i <= VOL_BLUR_RADIUS; i++) {
-		let spatialWeight = exp(-f32(i * i) * inverseTwoSigma2);
+		for (var i: i32 = 1; i <= VOL_BLUR_RADIUS; i++) {
+			let spatialWeight = exp(-f32(i * i) * inverseTwoSigma2);
 
-		let positive = center + direction * i;
-		let negative = center - direction * i;
+			let positive = center + direction * i;
+			let negative = center - direction * i;
 
-		if (positive.x < size.x && positive.y < size.y) {
-			let weight = spatialWeight * exp(-abs(volReadLinearDepth(volScatterToDepthTexel(positive, depthSize)) - centerDepth) * inverseDepthThreshold);
-			result += textureLoad(textureSampler, positive, 0) * weight;
-			totalWeight += weight;
+			if (positive.x < size.x && positive.y < size.y) {
+				let weight = spatialWeight * exp(-abs(volReadLinearDepth(volScatterToDepthTexel(positive, depthSize)) - centerDepth) * inverseDepthThreshold);
+				result += textureLoad(textureSampler, positive, 0) * weight;
+				totalWeight += weight;
+			}
+
+			if (negative.x >= 0 && negative.y >= 0) {
+				let weight = spatialWeight * exp(-abs(volReadLinearDepth(volScatterToDepthTexel(negative, depthSize)) - centerDepth) * inverseDepthThreshold);
+				result += textureLoad(textureSampler, negative, 0) * weight;
+				totalWeight += weight;
+			}
 		}
 
-		if (negative.x >= 0 && negative.y >= 0) {
-			let weight = spatialWeight * exp(-abs(volReadLinearDepth(volScatterToDepthTexel(negative, depthSize)) - centerDepth) * inverseDepthThreshold);
-			result += textureLoad(textureSampler, negative, 0) * weight;
-			totalWeight += weight;
-		}
+		fragmentOutputs.color = result / totalWeight;
 	}
-
-	fragmentOutputs.color = result / totalWeight;
 }
 `;
 }
@@ -1123,6 +1251,9 @@ var volLinearDepthSampler: texture_2d<f32>;
 uniform volCameraMinMaxZ: vec2f;
 uniform volDepthRatio: vec2f;
 uniform volComposeParams: vec4f;
+
+// (1 when the pipeline has nothing to draw this frame, unused, unused, unused)
+uniform volPassParams: vec4f;
 
 ${packingHelpers}
 ${buildLinearDepthHelpers("volLinearDepthSampler")}
@@ -1187,44 +1318,51 @@ fn volUpsample(uv0: vec2f, centerDepth: f32, depthSize: vec2i) -> vec4f {
 
 @fragment
 fn main(input: FragmentInputs) -> FragmentOutputs {
-	// The linear depth has the full resolution of the canvas. @see the GLSL version.
-	let depthSize = vec2i(textureDimensions(volLinearDepthSampler));
-	let centerDepth = volReadLinearDepth(min(vec2i(input.vUV * vec2f(depthSize)), depthSize - 1));
+	// Nothing to draw this frame: the color of the scene passes through. @see the GLSL version.
+	if (uniforms.volPassParams.x > 0.5) {
+		let sceneColor = textureSampleLevel(volSceneSampler, volSceneSamplerSampler, input.vUV, 0.0).rgb;
+		fragmentOutputs.color = vec4f(sceneColor + (volBayer8(fragmentInputs.position.xy) - 0.5) * uniforms.volComposeParams.w, 1.0);
+	} else {
+		// The linear depth has the full resolution of the canvas. @see the GLSL version.
+		let depthSize = vec2i(textureDimensions(volLinearDepthSampler));
+		let centerDepth = volReadLinearDepth(min(vec2i(input.vUV * vec2f(depthSize)), depthSize - 1));
 
-	var volumetric = volUpsample(input.vUV, centerDepth, depthSize);
+		var volumetric = volUpsample(input.vUV, centerDepth, depthSize);
 
-	#ifdef VOL_LDR_ENCODE
-		volumetric = vec4f(volumetric.rgb / max(vec3f(1e-4), 1.0 - volumetric.rgb), volumetric.a);
-	#endif
+		#ifdef VOL_LDR_ENCODE
+			volumetric = vec4f(volumetric.rgb / max(vec3f(1e-4), 1.0 - volumetric.rgb), volumetric.a);
+		#endif
 
-	// WGSL has no early return from the fragment entry point, so the debug outputs are branches instead.
-	#if VOL_DEBUG == 1 || VOL_DEBUG == 3
-		fragmentOutputs.color = vec4f(volumetric.rgb * uniforms.volComposeParams.x, 1.0);
-	#elif VOL_DEBUG == 2
-		fragmentOutputs.color = vec4f(vec3f(volumetric.a), 1.0);
-	#else
-		var sceneColor = textureSampleLevel(volSceneSampler, volSceneSamplerSampler, input.vUV, 0.0).rgb;
+		// WGSL has no early return from the fragment entry point, so the debug outputs are branches instead.
+		#if VOL_DEBUG == 1 || VOL_DEBUG == 3
+			fragmentOutputs.color = vec4f(volumetric.rgb * uniforms.volComposeParams.x, 1.0);
+		#elif VOL_DEBUG == 2
+			fragmentOutputs.color = vec4f(vec3f(volumetric.a), 1.0);
+		#else
+			var sceneColor = textureSampleLevel(volSceneSampler, volSceneSamplerSampler, input.vUV, 0.0).rgb;
 
-		sceneColor *= mix(1.0, volumetric.a, uniforms.volComposeParams.y);
+			sceneColor *= mix(1.0, volumetric.a, uniforms.volComposeParams.y);
 
-		var result = sceneColor + volumetric.rgb * uniforms.volComposeParams.x;
+			var result = sceneColor + volumetric.rgb * uniforms.volComposeParams.x;
 
-		// Breaks up the banding an 8 bits output would otherwise show on the smooth gradients of the shafts.
-		result += (volBayer8(fragmentInputs.position.xy) - 0.5) * uniforms.volComposeParams.w;
+			// Breaks up the banding an 8 bits output would otherwise show on the smooth gradients of the shafts.
+			result += (volBayer8(fragmentInputs.position.xy) - 0.5) * uniforms.volComposeParams.w;
 
-		fragmentOutputs.color = vec4f(result, 1.0);
-	#endif
+			fragmentOutputs.color = vec4f(result, 1.0);
+		#endif
+	}
 }
 `;
 }
 
 /**
- * Returns the four WGSL sources of the pipeline, keyed by the name they are registered under.
+ * Returns the WGSL sources of the passes of the pipeline, keyed by the name they are registered under.
  */
 export function getVolumetricLightingShadersWGSL(): Record<string, string> {
 	return {
 		linearDepth: buildVolumetricLightingLinearDepthShaderWGSL(),
 		scattering: buildVolumetricLightingScatteringShaderWGSL(maxVolumetricShadowSlots),
+		temporal: buildVolumetricLightingTemporalShaderWGSL(),
 		blur: buildVolumetricLightingBlurShaderWGSL(),
 		compose: buildVolumetricLightingComposeShaderWGSL(),
 	};
