@@ -11,7 +11,7 @@ Each skill is a self-contained folder with a `SKILL.md` (loaded on demand by its
 
 | Skill | Use it when you need to… |
 | --- | --- |
-| [`babylonjs-editor-tools`](./babylonjs-editor-tools/SKILL.md) | Write/attach scripts, load scenes, and use the editor decorators (`@nodeFromScene`, `@visibleAs*`, `@onPointerEvent`, `@sceneAsset`, …) in a project created with the Babylon.js Editor. |
+| [`babylonjs-editor-tools`](./babylonjs-editor-tools/SKILL.md) | Write/attach scripts, load scenes, use the editor decorators (`@nodeFromScene`, `@visibleAs*`, `@onPointerEvent`, `@sceneAsset`, …) and the runtime helpers (scripts lookup, cinematics, sprites, sounds, post-processes, ragdolls, navmeshes, decals, offline database) in a project created with the Babylon.js Editor. |
 
 ## Source of truth
 
@@ -22,3 +22,10 @@ These skills are distilled from:
 - The starter templates: `templates/*/src/{App,scripts}.ts`.
 
 When the package API changes, update the relevant `references/*.md` file alongside the code.
+
+## Used by the editor's AI assistant
+
+The editor bundles these skills (`editor/esbuild.mjs` builds them into `editor/build/assistant/plugin`) and gives
+them to the agent of its AI assistant: Claude Code loads them for the session with `--plugin-dir`, and Codex gets
+them copied in the `.agents/skills` folder of the project (updated with the editor, unless the user modified
+them). Changes here reach the assistant with the next build of the editor.

@@ -3,9 +3,12 @@
 `AdvancedAssetContainer` extends Babylon.js' `AssetContainer` to add editor-specific features — most
 importantly, **scripts attached to the contained nodes are re-applied to instantiated/cloned copies**.
 
-You get one from the `@sceneAsset(file)` decorator (see [scene-decorators.md](scene-decorators.md)):
+You get one from the `@sceneAsset(file)` decorator (see [scene-decorators.md](scene-decorators.md)), or from
+`@visibleAsAsset("scene", ...)` to let the user choose the `.scene` in the inspector. The raw Babylon.js
+`AssetContainer` is available as `.container`.
 
 ```ts
+import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { sceneAsset, AdvancedAssetContainer } from "babylonjs-editor-tools";
 
 export default class Spawner {
@@ -23,8 +26,8 @@ export default class Spawner {
 2. **Repeated scene (e.g. enemies):** call `removeDefault()` to drop the auto-added instance, then
    `instantiate()` as many times as needed.
 
-> When a scene is loaded as a container, it is **automatically instantiated once** and those nodes are added
-> to the main scene. Call `removeDefault()` if you don't want that default instance.
+> When a scene is loaded as a container, **its own nodes are added to the main scene** (with their scripts),
+> so they appear once. Call `removeDefault()` if you don't want them there.
 
 ## API
 
@@ -36,8 +39,16 @@ container exists only to be instantiated on demand.
 ### `instantiate(options?): AdvancedAssetContainerInstantiatedEntries`
 
 Instantiates (or clones) all meshes, skeletons and animation groups, adds them to the scene, and re-applies
-any attached scripts to the new nodes. Returns the instantiated entries (root nodes, skeletons, animation
-groups), which expose `.dispose()`.
+any attached scripts to the new nodes. Returns an `AdvancedAssetContainerInstantiatedEntries`:
+
+| Member | Description |
+| --- | --- |
+| `rootNodes`, `skeletons`, `animationGroups` | The instantiated entities. |
+| `namingId` | The unique id appended to the names of this copy. |
+| `getRootNodeByName(name)` | A root node of this copy, by its **original** name. |
+| `getNodeByName(name)` | Any node of this copy (searched recursively), by its **original** name. |
+| `getScriptByClassByObjectName(name, Class)` | The script instance of `Class` on the node of this copy named `name`. |
+| `dispose()` | Removes this copy from the scene. |
 
 ```ts
 interface IAdvancedAssetContainerInstantiateOptions {
@@ -64,14 +75,22 @@ public onStart(): void {
 }
 ```
 
-Each instantiated copy gets unique names/ids, and entity links inside its scripts are remapped to the new
-copy — so `@visibleAsEntity` references and animation-group links keep pointing at the right per-instance
-objects.
+Each instantiated copy gets unique ids, and **names suffixed with `-<namingId>`** (`"Enemy"` becomes
+`"Enemy-XyZ12"`), so `scene.getNodeByName("Enemy")` doesn't find the copies: use the `getNodeByName` of the
+returned entries instead. Entity links inside its scripts are remapped to the new copy — `@visibleAsEntity`
+references, animation-group links, and decorators like `@nodeFromScene("Weapon")` resolve to the node of the same
+copy (`"Weapon-XyZ12"`).
+
+```ts
+const enemy = this._enemy!.instantiate();
+const weapon = enemy.getNodeByName("Weapon");
+const ai = enemy.getScriptByClassByObjectName("EnemyRoot", EnemyAIComponent);
+```
 
 ### `getRootNodeByName(name): Node | null`
 
-Find a node among the container's root nodes by name. Useful when you keep the default instance and never
-call `removeDefault()`.
+Find a node among the container's root nodes (the default nodes added to the scene) by name. Useful when you
+keep the default instance and never call `removeDefault()`.
 
 ### `getScriptByClassByObjectName(name, ClassType): InstanceType | null`
 
