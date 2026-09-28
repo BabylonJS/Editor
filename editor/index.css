@@ -135,6 +135,10 @@ input {
 	-webkit-app-region: drag;
 }
 
+.electron-no-drag {
+	-webkit-app-region: no-drag;
+}
+
 .electron-rounded-corners {
 	@apply rounded-xl;
 }
@@ -243,4 +247,86 @@ audio::-webkit-media-controls-time-remaining-display {
 
 .xterm .xterm-viewport {
 	background-color: transparent !important;
+}
+
+/* AI ASSISTANT */
+
+@property --assistant-button-angle {
+	syntax: "<angle>";
+	initial-value: 0deg;
+	inherits: false;
+}
+
+@keyframes assistant-button-rotate {
+	to {
+		--assistant-button-angle: 360deg;
+	}
+}
+
+.assistant-button {
+	position: relative;
+	isolation: isolate;
+}
+
+/* The animated multicolor border, shown on hover and while the assistant is open or working. */
+.assistant-button::before,
+.assistant-button-glow::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	padding: 1.5px;
+	border-radius: inherit;
+	background: conic-gradient(from var(--assistant-button-angle), #d97757, #f5b041, #e8618c, #9b6bf2, #4f8ff7, #3ec9a7, #d97757);
+	pointer-events: none;
+	animation: assistant-button-rotate 4s linear infinite paused;
+	-webkit-mask:
+		linear-gradient(#000 0 0) content-box,
+		linear-gradient(#000 0 0);
+	-webkit-mask-composite: xor;
+	mask-composite: exclude;
+}
+
+.assistant-button::before {
+	opacity: 0;
+	transition: opacity 300ms ease;
+}
+
+/*
+ * The glow is a blurred copy of the border: the blur is set on an element of its own because a mask always applies after
+ * the filter of its element. It stays behind the content of the button.
+ */
+.assistant-button-glow {
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	border-radius: inherit;
+	filter: blur(6px);
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity 300ms ease;
+}
+
+.assistant-button-glow::before {
+	padding: 2px;
+}
+
+.assistant-button:hover::before,
+.assistant-button[data-active="true"]::before,
+.assistant-button:hover .assistant-button-glow,
+.assistant-button[data-active="true"] .assistant-button-glow {
+	opacity: 1;
+}
+
+.assistant-button:hover::before,
+.assistant-button[data-active="true"]::before,
+.assistant-button:hover .assistant-button-glow::before,
+.assistant-button[data-active="true"] .assistant-button-glow::before {
+	animation-play-state: running;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.assistant-button::before,
+	.assistant-button-glow::before {
+		animation: none;
+	}
 }

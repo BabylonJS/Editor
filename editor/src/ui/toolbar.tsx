@@ -1,6 +1,6 @@
 import { ipcRenderer } from "electron";
 
-import { PropsWithChildren } from "react";
+import { PropsWithChildren, ReactNode } from "react";
 import { IoCloseOutline } from "react-icons/io5";
 import { VscChromeMinimize, VscMultipleWindows } from "react-icons/vsc";
 
@@ -8,7 +8,12 @@ import { isDarwin } from "../tools/os";
 
 import { Button } from "./shadcn/ui/button";
 
-export interface IToolbarComponentProps extends PropsWithChildren {}
+export interface IToolbarComponentProps extends PropsWithChildren {
+	/**
+	 * Defines the content displayed on the right of the toolbar, before the buttons of the window.
+	 */
+	right?: ReactNode;
+}
 
 export function ToolbarComponent(props: IToolbarComponentProps) {
 	return (
@@ -16,6 +21,8 @@ export function ToolbarComponent(props: IToolbarComponentProps) {
 			{props.children}
 
 			<div className="w-full h-10 electron-draggable" />
+
+			{props.right && <div className="flex items-center gap-1 pl-2 pr-1 my-auto z-50 electron-no-drag">{props.right}</div>}
 
 			{(!isDarwin() || process.env.DEBUG) && (
 				<div className="flex z-50 pr-3 my-auto">

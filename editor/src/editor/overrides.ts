@@ -56,6 +56,16 @@ Module["_load"] = function (request: string, parent: typeof Module, isMain: bool
 		return originalLoad(join(__dirname.replace(/\\/g, "/"), "../../recast-generators.js"), parent, isMain);
 	}
 
+	// The Node.js build of react-resizable-panels is meant for server rendering: none of its panels ever register in
+	// their group, so they can't be resized. Load the build for browsers instead.
+	if (request === "react-resizable-panels") {
+		return originalLoad(
+			resolveFilename(request, module, false).replace(/react-resizable-panels\.(development\.)?node\.cjs\.js$/, "react-resizable-panels.browser.cjs.js"),
+			parent,
+			isMain
+		);
+	}
+
 	if (request.startsWith("react")) {
 		return originalLoad(resolveFilename(request, module, false), parent, isMain);
 	}

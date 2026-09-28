@@ -1,6 +1,6 @@
-import { createServer } from "http";
+import { Server } from "http";
 
-import { Scene } from "babylonjs";
+import { Observable, Scene } from "babylonjs";
 
 import { Editor } from "../editor/main";
 
@@ -16,6 +16,7 @@ import { createCamera, setActiveCamera } from "./cameras/cameras";
 import { getCameraPostProcesses, setCameraPostProcess } from "./rendering/post-process";
 import { listMaterials, listMaterialTypes, createMaterial, setMaterialProperties, assignTextureToMaterial, setEnvironmentTexture } from "./materials/materials";
 import { listAssets, getAssetPreview, instantiateMeshAsset } from "./assets/assets";
+import { importAsset, reloadAssetEndpoint } from "./assets/import";
 import { listParticleAssets, instantiateParticleSystem } from "./particles/particles";
 import { listSoundAssets, createSound, setSoundProperties } from "./sounds/sounds";
 import { listAnimationGroups, playAnimationGroup, stopAnimationGroup, createAnimation, deleteAnimationGroup } from "./animations/animations";
@@ -24,6 +25,7 @@ import { listScripts, createScript, readScript, writeScript, attachScript, listA
 import { writeAgentScript, runAgentScript, listAgentScripts, getEditorApi } from "./scripts/editor-scripts";
 import { getScreenshot, focusNode, runProject } from "./screenshot";
 import { createBatchHandler } from "./batch";
+import { createMCPRequestListener, listenMCPServer } from "./server";
 
 export interface IEditorMCPDataType {
 	endpoint: string;
@@ -95,6 +97,8 @@ export const MCPEndpoints: Record<string, (scene: Scene, data: any, options: IMC
 	list_assets: listAssets,
 	get_asset_preview: getAssetPreview,
 	instantiate_mesh_asset: instantiateMeshAsset,
+	import_asset: importAsset,
+	reload_asset: reloadAssetEndpoint,
 
 	// Particle systems
 	list_particle_assets: listParticleAssets,
@@ -142,53 +146,94 @@ export const MCPEndpoints: Record<string, (scene: Scene, data: any, options: IMC
 // Batch endpoint reuses the same handlers from the map above.
 MCPEndpoints.execute_batch = createBatchHandler(MCPEndpoints);
 
+export interface IEditorMcpServerOptions {
+	/**
+	 * Defines the port to listen on. 0 lets the system pick a free port.
+	 * @default MCPServerPort
+	 */
+	port?: number;
+	/**
+	 * Defines the token every request must send in the "x-babylonjs-editor-token" header. Null accepts every request.
+	 */
+	token?: string | null;
+}
+
+export interface IEditorMcpServer {
+	/**
+	 * Defines the port the server listens on, on the loopback interface.
+	 */
+	readonly port: number;
+	/**
+	 * Defines the token every request must send, if any.
+	 */
+	readonly token: string | null;
+	/**
+	 * Notified with the name of the endpoint each time a tool starts being handled.
+	 */
+	readonly onRequestObservable: Observable<string>;
+	/**
+	 * Notified with the name of the endpoint and wether it succeeded each time a tool was handled.
+	 */
+	readonly onResponseObservable: Observable<{ endpoint: string; succeeded: boolean }>;
+	/**
+	 * Stops listening.
+	 */
+	close(): Promise<void>;
+}
+
 /**
- * Initializes the editor MCP HTTP server.
+ * Starts the HTTP server the MCP server of the editor sends the tools it receives to. It only listens on the
+ * loopback interface, and rejects every request sent by a web page.
+ * @param editor defines the reference to the editor.
+ * @param options defines the port to listen on and the token requests must send.
+ */
+export async function startMcpServer(editor: Editor, options: IEditorMcpServerOptions = {}): Promise<IEditorMcpServer> {
+	const token = options.token ?? null;
+
+	const onRequestObservable = new Observable<string>();
+	const onResponseObservable = new Observable<{ endpoint: string; succeeded: boolean }>();
+
+	const listener = createMCPRequestListener({
+		token,
+		getAction: (endpoint) => {
+			const action = Object.prototype.hasOwnProperty.call(MCPEndpoints, endpoint) ? MCPEndpoints[endpoint] : undefined;
+			return action ? (data) => action(editor.layout.preview.scene, data, { editor }) : undefined;
+		},
+		onRequest: (endpoint) => onRequestObservable.notifyObservers(endpoint),
+		onResponse: (endpoint, succeeded) => onResponseObservable.notifyObservers({ endpoint, succeeded }),
+	});
+
+	const { server, port } = await listenMCPServer(listener, options.port ?? MCPServerPort);
+
+	return {
+		port,
+		token,
+		onRequestObservable,
+		onResponseObservable,
+		close: () => closeServer(server),
+	};
+}
+
+function closeServer(server: Server): Promise<void> {
+	return new Promise<void>((resolve) => {
+		server.close(() => resolve());
+		server.closeAllConnections?.();
+	});
+}
+
+/**
+ * Initializes the editor MCP HTTP server on its well known port, without any token, for the MCP server of the
+ * Claude Desktop extension.
  * Resilient: if the port is already in use (e.g. a second editor window), the error is caught
  * and logged in the editor console instead of crashing the application.
  * @param editor defines the reference to the editor.
  */
 export function initializeMcpServer(editor: Editor): void {
-	const server = createServer(async (req, res) => {
-		let data: IEditorMCPDataType;
-		try {
-			data = await new Promise<IEditorMCPDataType>((resolve, reject) => {
-				let body = "";
-
-				req.on("data", (chunk) => (body += chunk));
-				req.on("end", () => resolve(JSON.parse(body)));
-				req.on("error", reject);
-			});
-		} catch (e) {
-			res.writeHead(400);
-			res.end(JSON.stringify({ error: e instanceof Error ? e.message : String(e) }));
-			return;
-		}
-
-		const action = MCPEndpoints[data.endpoint];
-
-		if (!action) {
-			res.writeHead(404);
-			res.end(JSON.stringify({ error: `Unknown endpoint: ${data.endpoint}` }));
-			return;
-		}
-
-		try {
-			const result = await action(editor.layout.preview.scene, data, { editor });
-
-			res.writeHead(200);
-			res.end(JSON.stringify(result ?? null));
-		} catch (e) {
-			res.writeHead(500);
-			res.end(JSON.stringify({ error: e instanceof Error ? e.message : String(e) }));
-		}
-	});
-
-	server.on("error", (e) => {
-		editor.layout.console.error(`MCP Server failed to start: ${e instanceof Error ? e.message : String(e)}`);
-	});
-
-	server.listen(MCPServerPort, "127.0.0.1", () => {
-		editor.layout.console.log(`MCP Server is listening on port ${MCPServerPort}`);
-	});
+	startMcpServer(editor, { port: MCPServerPort })
+		.then(() => {
+			editor.layout.console.log(`MCP Server is listening on port ${MCPServerPort}`);
+		})
+		.catch((e) => {
+			editor.layout.console.error(`MCP Server failed to start: ${e instanceof Error ? e.message : String(e)}`);
+		});
 }

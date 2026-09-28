@@ -21,6 +21,7 @@ import { saveScene } from "./scene";
 import { EditorSaveProjectProgressComponent } from "./progress";
 
 let saving = false;
+let lastSaveEndTime = 0;
 
 export async function saveProject(editor: Editor): Promise<void> {
 	if (saving) {
@@ -38,6 +39,7 @@ export async function saveProject(editor: Editor): Promise<void> {
 		}
 	} finally {
 		saving = false;
+		lastSaveEndTime = Date.now();
 		editor.layout.preview.setRenderScene(true);
 	}
 }
@@ -121,4 +123,12 @@ async function _saveProject(editor: Editor) {
 	// 	noProgress: true,
 	// 	noDialog: false,
 	// });
+}
+
+export function isSavingProject(): boolean {
+	return saving;
+}
+
+export function getLastProjectSaveEndTime(): number {
+	return lastSaveEndTime;
 }

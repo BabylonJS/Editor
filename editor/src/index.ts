@@ -118,7 +118,7 @@ ipcMain.on("app:quit", () => {
 });
 
 let dashboardWindow: BrowserWindow | null = null;
-let menuOptions = { enableExperimentalFeatures: false, openedTabs: [] };
+let menuOptions = { enableExperimentalFeatures: false, openedTabs: [], assistantOpen: false };
 
 ipcMain.on("editor:setup-menu", (_, options) => {
 	menuOptions = options;

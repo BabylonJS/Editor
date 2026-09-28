@@ -15,6 +15,8 @@ Derived from `mcp/specifications.md`. Goal: an AI agent connected to this MCP mu
 
 - Editor runs an HTTP server on `http://127.0.0.1:3712` (see `editor/src/mcp/mcp.ts`).
 - The MCP server POSTs to `http://localhost:3712/{endpoint}` with JSON body `{ endpoint, ...inputFields }` (see `mcp/src/request.mts`).
+- The AI assistant panel of the editor (`editor/src/editor/layout/assistant.tsx`) starts its own server per editor window with `startMcpServer(editor, { port: 0, token })`: a free port and a random token. The MCP server it gives to Claude Code reads them from `BABYLONJS_EDITOR_MCP_URL` and `BABYLONJS_EDITOR_MCP_TOKEN`, and sends the token in the `X-BabylonJS-Editor-Token` header. `BABYLONJS_EDITOR_ASSISTANT=1` adds assistant-specific server instructions.
+- The server only listens on the loopback interface and answers `403` to any request carrying an `Origin` header (web pages), `401` when a token is configured and missing or wrong, `400` to an invalid body and `404` to an unknown endpoint.
 - **Editor handler return contract:**
   - Handlers are `(scene: Scene, data: any, options: IMCPActionOptions) => any | Promise<any>`.
   - On success: HTTP `200`, body = the JSON value the handler returns (this is the tool's `data`).
@@ -119,7 +121,9 @@ Per-camera effects. **Post-processes are per-camera**, so configuring one switch
 |---|---|---|---|
 | `list_assets` | List project assets, optionally filtered by type. Include whether an `editor_preview.png` exists for the containing folder. | `{ type?: "texture"|"cube-texture"|"mesh"|"sound"|"material"|"particle"|"json"|"navmesh", folder?: string }` | `{ assets: [{ name, path, type, hasPreview }] }` |
 | `get_asset_preview` | Return the folder `editor_preview.(png/jpg/bmp)` or a generated thumbnail as base64 (image tool). | `{ path }` | `{ imageBase64, mimeType }` |
-| `instantiate_mesh_asset` | Load a mesh asset (`.glb/.gltf/.babylon/.fbx`) into the scene = drag'n'drop equivalent (auto x100 scale for glTF per spec). Reuse `editor/src/editor/layout/preview/import/*`. | `{ path, name?, parentId?, position? }` | `{ rootNodeId, createdNodes: [nodeSummary] }` |
+| `instantiate_mesh_asset` | Load a mesh asset (`.glb/.gltf/.babylon/.fbx`) into the scene = drag'n'drop equivalent (auto x100 scale for glTF per spec). Reuse `editor/src/editor/layout/preview/import/*`. A single imported root is linked to its asset (`metadata.editorSourceAsset`) so it is imported again in place when the asset changes. | `{ path, name?, parentId?, position? }` | `{ rootNodeId, createdNodes: [nodeSummary] }` |
+| `import_asset` | Copy a file from anywhere on disk into `assets/` (or `assets/<folder>`). Never replaces an existing asset unless `overwrite` (a free name is used instead); the external buffers/images of a `.gltf` are copied with it in a folder of their own. Replacing an asset reloads the scene elements using it. | `{ sourcePath, folder?, name?, overwrite? }` | `{ path, absolutePath, resources: string[], reloaded }` |
+| `reload_asset` | Reload the scene elements created from an asset modified on disk: textures (image assets), node particle systems (`.npss`), the material of a `.material`, `.gui`, links to a `.scene`, hierarchies linked by `instantiate_mesh_asset`. The assistant also does it automatically for files changed under `assets/` (see `editor/src/tools/assets/reload.ts`). | `{ path }` | `{ path, type, reloaded }` |
 
 ### Particle systems
 
