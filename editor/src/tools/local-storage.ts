@@ -124,7 +124,7 @@ export function tryGetAssistantAgentFromLocalStorage(): string | null {
 
 /**
  * Sets the identifier of the agent the user chose to run in the AI assistant in the local storage.
- * @param agent defines the identifier of the agent, like "claude" or "codex".
+ * @param agent defines the identifier of the agent, like "claude", "codex" or "antigravity".
  */
 export function trySetAssistantAgentInLocalStorage(agent: string): void {
 	try {
@@ -136,7 +136,7 @@ export function trySetAssistantAgentInLocalStorage(agent: string): void {
 
 /**
  * Returns the path of the executable of the given agent chosen by the user, or null to find it automatically.
- * @param agent defines the identifier of the agent, like "claude" or "codex".
+ * @param agent defines the identifier of the agent, like "claude", "codex" or "antigravity".
  */
 export function tryGetAssistantExecutablePathFromLocalStorage(agent: string): string | null {
 	try {
@@ -148,7 +148,7 @@ export function tryGetAssistantExecutablePathFromLocalStorage(agent: string): st
 
 /**
  * Sets the path of the executable of the given agent chosen by the user in the local storage.
- * @param agent defines the identifier of the agent, like "claude" or "codex".
+ * @param agent defines the identifier of the agent, like "claude", "codex" or "antigravity".
  * @param path defines the absolute path of the executable, or null to find it automatically.
  */
 export function trySetAssistantExecutablePathInLocalStorage(agent: string, path: string | null): void {

@@ -26,6 +26,7 @@ When the package API changes, update the relevant `references/*.md` file alongsi
 ## Used by the editor's AI assistant
 
 The editor bundles these skills (`editor/esbuild.mjs` builds them into `editor/build/assistant/plugin`) and gives
-them to the agent of its AI assistant: Claude Code loads them for the session with `--plugin-dir`, and Codex gets
-them copied in the `.agents/skills` folder of the project (updated with the editor, unless the user modified
-them). Changes here reach the assistant with the next build of the editor.
+them to the agent of its AI assistant: Claude Code loads them for the session with `--plugin-dir`, Codex gets them
+copied in the `.agents/skills` folder of the project (updated with the editor, unless the user modified them), and
+Antigravity CLI gets them in the plugin the assistant writes among the user's plugins while it runs. Changes here reach
+the assistant with the next build of the editor.

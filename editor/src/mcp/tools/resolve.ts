@@ -159,6 +159,7 @@ export function toVector3(value: any): Vector3 {
 /**
  * Deeply sets a property on the given target using a dotted path (e.g. "material.albedoColor").
  * Arrays are coerced to Color3/Vector3/Color4/Vector2/Vector4 based on the existing property type.
+ * Methods are never replaced: "isEnabled" is set through "setEnabled", and other methods throw.
  * @param target defines the root object on which to set the property.
  * @param path defines the dotted path to the property to set.
  * @param value defines the value to set.
@@ -179,6 +180,18 @@ export function deepSet(target: any, path: string, value: any): void {
 	}
 
 	const key = parts[parts.length - 1];
+
+	// A method is never replaced by a value: the engine calls it, like "isEnabled()" on each frame.
+	if (typeof current[key] === "function") {
+		const setterName = key.replace(/^is(?=[A-Z])/, "set");
+		if (setterName !== key && typeof current[setterName] === "function") {
+			current[setterName](value);
+			return;
+		}
+
+		throw new Error(`Cannot set property "${path}": "${key}" is a method, not a property.`);
+	}
+
 	current[key] = coerceValueForExistingProperty(current[key], value);
 }
 

@@ -1,11 +1,12 @@
 import { findCodexExecutable } from "./codex";
+import { findAntigravityExecutable } from "./antigravity";
 import { findClaudeExecutable } from "./claude";
 import { IAssistantExecutable } from "./executable";
 
 /**
  * Defines the coding agents the AI assistant can run.
  */
-export type EditorAssistantAgentId = "claude" | "codex";
+export type EditorAssistantAgentId = "claude" | "codex" | "antigravity";
 
 export interface IEditorAssistantAgent {
 	/**
@@ -64,6 +65,17 @@ export const assistantAgents: IEditorAssistantAgent[] = [
 		setupUrl: "https://developers.openai.com/codex/cli",
 		getInstallCommand: (windows) => (windows ? "irm https://chatgpt.com/codex/install.ps1 | iex" : "curl -fsSL https://chatgpt.com/codex/install.sh | sh"),
 		findExecutable: (customPath) => findCodexExecutable(customPath),
+	},
+	{
+		// Gemini CLI no longer serves personal Google accounts: Antigravity CLI replaces it.
+		id: "antigravity",
+		name: "Antigravity CLI",
+		modelName: "Gemini",
+		account: "Google account",
+		desktopApp: null,
+		setupUrl: "https://antigravity.google/docs/cli/install/",
+		getInstallCommand: (windows) => (windows ? "irm https://antigravity.google/cli/install.ps1 | iex" : "curl -fsSL https://antigravity.google/cli/install.sh | bash"),
+		findExecutable: (customPath) => findAntigravityExecutable(customPath),
 	},
 ];
 

@@ -99,6 +99,7 @@
 		{ "name": "list_attached_scripts", "description": "List scripts attached to a node and their exported values." },
 		{ "name": "set_script_exported_value", "description": "Set an exported/inspector value of a script attached to a node." },
 		{ "name": "detach_script", "description": "Detach a script from a node." },
+		{ "name": "get_instructions", "description": "Return the instructions to follow when driving the Babylon.js Editor." },
 		{ "name": "get_editor_api", "description": "Describe the `editor` mediator object available to agent automation scripts." },
 		{ "name": "write_agent_script", "description": "Write a .js automation script into the project's agentdata/ folder (export function main(editor))." },
 		{ "name": "run_agent_script", "description": "Compile and run an agentdata/ automation script via main(editor) for complex/procedural tasks." },

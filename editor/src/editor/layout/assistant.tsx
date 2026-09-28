@@ -50,6 +50,16 @@ import { EditorAssistantIcon } from "./assistant/icon";
 import { IAssistantExecutable } from "./assistant/executable";
 import { assistantAgents, EditorAssistantAgentId, getAssistantAgent, IEditorAssistantAgent } from "./assistant/agents";
 import { getAssistantWorkStateFromCodexTitle, getCodexArguments, getCodexEnvironment } from "./assistant/codex";
+import {
+	addAntigravityPlugin,
+	antigravityHookAnswer,
+	antigravityHookEvents,
+	getAntigravityArguments,
+	getAntigravityEnvironment,
+	getAssistantWorkStateAfterAntigravityHook,
+	isAntigravityApprovalPrompt,
+	removeAntigravityPlugin,
+} from "./assistant/antigravity";
 import { installAssistantSkillsInProject } from "./assistant/skills";
 import {
 	getAssistantMcpServerScriptPath,
@@ -66,6 +76,7 @@ import {
 	getAssistantWorkStateAfterInput,
 	IAssistantHookInput,
 	IAssistantHooksServer,
+	IAssistantHooksServerOptions,
 	isAssistantInputNotification,
 	startAssistantHooksServer,
 	supportsAssistantHooks,
@@ -74,7 +85,8 @@ import {
 /**
  * Defines the environment variables of the editor that must not reach the agent: an internal flag of the editor
  * (DEBUG, set in development), variables that would make it believe it runs in another application or as Node.js, and
- * the markers another Claude Code session gives to the processes it starts, for an editor started from one.
+ * the markers another Claude Code or Antigravity CLI session gives to the processes it starts, for an editor started
+ * from one.
  */
 const ignoredEnvironmentVariables = [
 	"DEBUG",
@@ -92,6 +104,12 @@ const ignoredEnvironmentVariables = [
 	"CLAUDE_CODE_SESSION_ATTENDED",
 	"CLAUDE_CODE_SESSION_ID",
 	"CLAUDE_CODE_SSE_PORT",
+	"ANTIGRAVITY_LS_ADDRESS",
+	"ANTIGRAVITY_CSRF_TOKEN",
+	"ANTIGRAVITY_SIDECAR_WEB_PORT",
+	"ANTIGRAVITY_SIDECAR_UI_TOKEN",
+	"ANTIGRAVITY_AGENTAPI_EXE",
+	"ANTIGRAVITY_EXECUTABLE_DATA_DIR",
 ];
 
 /**
@@ -141,6 +159,9 @@ export class EditorAssistant extends Component<IEditorAssistantProps, IEditorAss
 	private _projectPath: string | null = null;
 	private _starting: boolean = false;
 	private _sessionAgent: EditorAssistantAgentId | null = null;
+	private _antigravityPluginRemoval: Promise<void> | null = null;
+	// The end of the output of Antigravity CLI, without its escape sequences, where it asks the user to allow a tool.
+	private _antigravityOutput: string = "";
 
 	// Mirrors the state of the editor, which is updated asynchronously, for the events that follow each other.
 	private _workState: EditorAssistantWorkState = "idle";
@@ -292,6 +313,11 @@ export class EditorAssistant extends Component<IEditorAssistantProps, IEditorAss
 			const env = this._getEnvironment();
 			const pluginDirectory = await this._getPluginDirectory(editorPath);
 
+			// Left by an editor that crashed while it ran Antigravity CLI.
+			if (agent.id !== "antigravity") {
+				await removeAntigravityPlugin(this._sessionId);
+			}
+
 			let args: string[];
 			if (agent.id === "codex") {
 				if (pluginDirectory) {
@@ -301,8 +327,22 @@ export class EditorAssistant extends Component<IEditorAssistantProps, IEditorAss
 				// Codex tells what it is doing through the title of its terminal, see _handleTitleChange.
 				args = getCodexArguments(mcpOptions, resume, executable.version);
 				Object.assign(env, getCodexEnvironment(mcpOptions));
+			} else if (agent.id === "antigravity") {
+				// The previous session may still be removing the plugin.
+				await this._antigravityPluginRemoval;
+				await addAntigravityPlugin(this._sessionId, mcpOptions, pluginDirectory);
+
+				// Antigravity CLI tells what it is doing through the hooks of the plugin, and asks to allow tools in its
+				// terminal, see _handleAntigravityOutput.
+				const hooksServer = await this._startHooksServer((event, input) => this._handleAntigravityHook(event, input), {
+					events: antigravityHookEvents,
+					body: antigravityHookAnswer,
+				});
+
+				args = getAntigravityArguments(resume);
+				Object.assign(env, getAntigravityEnvironment(mcpOptions, hooksServer));
 			} else {
-				const hooksServer = supportsAssistantHooks(executable.version) ? await this._startHooksServer() : null;
+				const hooksServer = supportsAssistantHooks(executable.version) ? await this._startHooksServer((event, input) => this._handleHook(event, input)) : null;
 				const { mcpConfigurationPath, settingsPath } = await writeAssistantConfiguration(
 					joinNative(tmpdir(), "babylonjs-editor-assistant", this._sessionId),
 					mcpOptions,
@@ -330,7 +370,13 @@ export class EditorAssistant extends Component<IEditorAssistantProps, IEditorAss
 			this._pty = pty;
 			this._sessionAgent = agent.id;
 
-			pty.onGetDataObservable.add((data) => this._terminal?.write(data));
+			pty.onGetDataObservable.add((data) => {
+				this._terminal?.write(data);
+
+				if (this._sessionAgent === "antigravity") {
+					this._handleAntigravityOutput(data);
+				}
+			});
 			pty.onExitObservable.add((exitCode) => {
 				if (this._pty !== pty) {
 					return;
@@ -341,6 +387,7 @@ export class EditorAssistant extends Component<IEditorAssistantProps, IEditorAss
 				this._stopHooksServer();
 
 				void removeAgentData(this._projectPath);
+				this._removeAntigravityPlugin();
 
 				this.setState({ status: "exited", exitCode });
 			});
@@ -415,20 +462,31 @@ export class EditorAssistant extends Component<IEditorAssistantProps, IEditorAss
 		this._stopHooksServer();
 
 		void removeAgentData(this._projectPath);
+		this._removeAntigravityPlugin();
+	}
+
+	/**
+	 * Removes the plugin given to Antigravity CLI, once no session of the assistant uses it anymore, so the other
+	 * sessions of Antigravity CLI of the user don't start the MCP server of the editor.
+	 */
+	private _removeAntigravityPlugin(): void {
+		if (this._sessionAgent === "antigravity") {
+			this._antigravityPluginRemoval = removeAntigravityPlugin(this._sessionId);
+		}
 	}
 
 	/**
 	 * Starts the HTTP server the hook events of the new session are sent to. Each session has its own server, so the
 	 * events a stopped session still sends are never received.
 	 */
-	private async _startHooksServer(): Promise<IAssistantHooksServer> {
+	private async _startHooksServer(onHook: (event: string, input: IAssistantHookInput) => void, options?: IAssistantHooksServerOptions): Promise<IAssistantHooksServer> {
 		this._stopHooksServer();
 
 		const server = await startAssistantHooksServer((event, input) => {
 			if (this._hooksServer === server) {
-				this._handleHook(event, input);
+				onHook(event, input);
 			}
-		});
+		}, options);
 
 		this._hooksServer = server;
 
@@ -455,6 +513,7 @@ export class EditorAssistant extends Component<IEditorAssistantProps, IEditorAss
 		const finished = this._workState !== "idle" && workState === "idle";
 
 		this._workState = workState;
+		this._antigravityOutput = "";
 		this.props.editor.setState({ assistantWorkState: workState });
 
 		// The automation scripts the agent wrote to build content are not kept once it finished its work.
@@ -493,6 +552,52 @@ export class EditorAssistant extends Component<IEditorAssistantProps, IEditorAss
 				}
 				break;
 		}
+	}
+
+	private _handleAntigravityHook(event: string, input: IAssistantHookInput): void {
+		const wasBusy = this._workState !== "idle";
+		this._setWorkState(getAssistantWorkStateAfterAntigravityHook(event));
+
+		if (event !== "Stop" || !wasBusy) {
+			return;
+		}
+
+		if (input.error || /error/i.test(input.terminationReason ?? "")) {
+			toast.error("AI Assistant stopped because of an error", {
+				description: input.error || undefined,
+				action: this._getShowToastAction(),
+			});
+		} else {
+			toast.success("AI Assistant is done", {
+				action: this._getShowToastAction(),
+			});
+		}
+	}
+
+	/**
+	 * Follows the output of Antigravity CLI while it works to know when it waits for the user to allow a tool, a command
+	 * or a URL: it runs no hook while it waits.
+	 */
+	private _handleAntigravityOutput(data: string): void {
+		if (this._workState !== "working") {
+			return;
+		}
+
+		// eslint-disable-next-line no-control-regex
+		const text = data.replace(/\x1b\][^\x07\x1b]*(\x07|\x1b\\)|\x1b\[[0-9;?<>=]*[a-zA-Z~]|\x1b[()][A-Z0-9]/g, "");
+		this._antigravityOutput = (this._antigravityOutput + text).slice(-2000);
+
+		if (!isAntigravityApprovalPrompt(this._antigravityOutput)) {
+			return;
+		}
+
+		this._setWorkState("waiting");
+
+		// Stays until the assistant stops waiting.
+		this._inputToastId = toast.warning("AI Assistant needs your input", {
+			duration: Infinity,
+			action: this._getShowToastAction(),
+		});
 	}
 
 	/**
@@ -648,6 +753,11 @@ export class EditorAssistant extends Component<IEditorAssistantProps, IEditorAss
 		terminal.onData((data) => {
 			this._pty?.write(data);
 			this._setWorkState(getAssistantWorkStateAfterInput(this._workState, data));
+
+			// Antigravity CLI tells nothing when the user answers: the tool, which may be a long command, runs.
+			if (this._sessionAgent === "antigravity" && this._workState === "waiting" && data === "\r") {
+				this._setWorkState("working");
+			}
 		});
 		terminal.onResize(({ cols, rows }) => this._pty?.resize(cols, rows));
 
