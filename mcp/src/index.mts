@@ -20,6 +20,19 @@ import { registerAgentScriptTools } from "./tools/agent-scripts.mjs";
 import { registerVerificationTools } from "./tools/verification.mjs";
 import { registerBatchTools } from "./tools/batch.mjs";
 
+/**
+ * Instructions added when the server runs inside the AI assistant panel of the editor, where the working directory
+ * is the root of the project of the user.
+ */
+const assistantInstructions = [
+	"",
+	"RUNNING INSIDE THE EDITOR'S AI ASSISTANT PANEL:",
+	"- The user talks to you from a panel docked next to the editor, and watches the scene change as you work. The current working directory is the root of their project: assets live under `assets/`, behavior scripts under `src/`.",
+	"- Files you create or modify under `assets/` (generated textures, meshes, `.npss` particle systems, `.material` files, ...) show up in the assets browser right away. The elements of the scene that use a modified asset are reloaded automatically: textures, node particle systems, materials, GUI, and meshes imported with `instantiate_mesh_asset`. Call `reload_asset` to force it.",
+	"- To add a file that lives outside the project (a download, a file generated in a temporary folder), use `import_asset`: it copies it into `assets/` and returns its project-relative path, ready for `instantiate_mesh_asset`, `assign_texture_to_material`, etc.",
+	"- Never edit the files inside `*.scene` folders or `project.bjseditor` by hand: they are rewritten each time the user saves.",
+];
+
 const server = new McpServer(
 	{
 		name: "babylonjs-editor-mcp",
@@ -69,6 +82,7 @@ const server = new McpServer(
 			"- Give gameplay objects physics with `set_mesh_physics`; configure collisions and any other deep property via `set_node_properties`.",
 			"- Reach for real assets first: check existing project assets with `list_assets`/`get_asset_preview`, and download richer ones through the visible marketplace tools (never background APIs).",
 			"- Read the scene before changing it (`get_scene_hierarchy`, `get_active_scene`) and ADD to it; preserve what the user already has unless they ask otherwise. Verify the result visually with `get_screenshot`.",
+			...(process.env.BABYLONJS_EDITOR_ASSISTANT === "1" ? assistantInstructions : []),
 		].join("\n"),
 	}
 );

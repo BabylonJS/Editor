@@ -24,7 +24,9 @@ import { openSingleFileDialog } from "../../tools/dialog";
 import { saveSceneScreenshot } from "../../tools/scene/screenshot";
 
 import { showConfirm } from "../../ui/dialog";
+import { Button } from "../../ui/shadcn/ui/button";
 import { ToolbarComponent } from "../../ui/toolbar";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../ui/shadcn/ui/tooltip";
 
 import { saveProject } from "../../project/save/save";
 import { startProjectDevProcess } from "../../project/run";
@@ -38,6 +40,7 @@ import { getCameraCommands } from "../dialogs/command-palette/camera";
 import { getSpriteCommands } from "../dialogs/command-palette/sprite";
 import { ICommandPaletteType } from "../dialogs/command-palette/command-palette";
 
+import { EditorAssistantIcon } from "./assistant/icon";
 import { EditorMarketplaceBrowser } from "./marketplace";
 
 export interface IEditorToolbarProps {
@@ -76,14 +79,54 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 			<>
 				{isDarwin() && <div className="absolute top-0 left-0 w-screen h-10 electron-draggable" />}
 
+				{/* Without the toolbar, the button of the assistant lives in the title bar. */}
+				{isDarwin() && !process.env.DEBUG && this.props.editor.state.enableExperimentalFeatures && (
+					<div className="absolute top-0 right-0 flex items-center h-10 pr-2 z-[9999] electron-no-drag">{this._getAssistantButton()}</div>
+				)}
+
 				{(!isDarwin() || process.env.DEBUG) && this._getToolbar()}
 			</>
 		);
 	}
 
+	private _getAssistantButton(): ReactNode {
+		const { assistantOpen: open, assistantWorkState: workState } = this.props.editor.state;
+
+		return (
+			<TooltipProvider delayDuration={0}>
+				<Tooltip>
+					<TooltipTrigger asChild>
+						<Button
+							variant="ghost"
+							data-active={open || workState !== "idle"}
+							className={`assistant-button h-8 gap-2 px-2 ${open ? "bg-primary/20 hover:bg-primary/30" : "hover:bg-muted"}`}
+							onClick={() => this.props.editor.setAssistantOpen(!this.props.editor.state.assistantOpen)}
+						>
+							<span className="assistant-button-glow" />
+							<EditorAssistantIcon workState={workState} size={20} />
+							<span className="text-sm">AI Assistant</span>
+						</Button>
+					</TooltipTrigger>
+					<TooltipContent>{this._getAssistantTooltip()}</TooltipContent>
+				</Tooltip>
+			</TooltipProvider>
+		);
+	}
+
+	private _getAssistantTooltip(): string {
+		switch (this.props.editor.state.assistantWorkState) {
+			case "working":
+				return "The AI assistant is working...";
+			case "waiting":
+				return "The AI assistant needs your input";
+			default:
+				return this.props.editor.state.assistantOpen ? "Hide the AI assistant" : "Ask Claude to build your scene and add assets to your project";
+		}
+	}
+
 	private _getToolbar(): ReactNode {
 		return (
-			<ToolbarComponent>
+			<ToolbarComponent right={this.props.editor.state.enableExperimentalFeatures && this._getAssistantButton()}>
 				<Menubar className="border-none rounded-none pl-3 my-auto">
 					<img alt="" src="assets/babylonjs_icon.png" className="w-6 object-contain" />
 
@@ -251,6 +294,14 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 							<MenubarCheckboxItem checked={this.props.editor.state.openedTabs.includes("marketplace")} onClick={() => this._handleToggleMarketplace()}>
 								Marketplace
 							</MenubarCheckboxItem>
+							{this.props.editor.state.enableExperimentalFeatures && (
+								<MenubarCheckboxItem
+									checked={this.props.editor.state.assistantOpen}
+									onClick={() => this.props.editor.setAssistantOpen(!this.props.editor.state.assistantOpen)}
+								>
+									AI Assistant
+								</MenubarCheckboxItem>
+							)}
 						</MenubarContent>
 					</MenubarMenu>
 

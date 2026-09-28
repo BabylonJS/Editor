@@ -11,8 +11,8 @@ import { isDarwin } from "../tools/os";
 import { waitUntil } from "../tools/tools";
 import { isDomTextInputFocused } from "../tools/dom";
 import { onRedoObservable, onUndoObservable, redo, undo } from "../tools/undoredo";
-import { tryGetExperimentalFeaturesEnabledFromLocalStorage } from "../tools/local-storage";
 import { checkNodeJSAvailable, checkVisualStudioCodeAvailable, nodeJSAvailable, visualStudioCodeAvailable } from "../tools/process";
+import { tryGetAssistantOpenFromLocalStorage, tryGetExperimentalFeaturesEnabledFromLocalStorage, trySetAssistantOpenInLocalStorage } from "../tools/local-storage";
 
 import { saveProject } from "../project/save/save";
 import { onProjectConfigurationChangedObservable, projectConfiguration } from "../project/configuration";
@@ -40,6 +40,7 @@ import { Toaster } from "../ui/shadcn/ui/sonner";
 
 import { EditorLayout } from "./layout";
 import { removeNodes } from "./layout/graph/remove";
+import { EditorAssistantWorkState } from "./layout/assistant/hooks";
 
 import "./nodes/camera";
 import "./nodes/scene-link";
@@ -125,6 +126,14 @@ export interface IEditorState {
 	 * Defines the list of tabs that are currently opened in the layout.
 	 */
 	openedTabs: string[];
+	/**
+	 * Defines wether or not the AI assistant panel is open on the right of the editor.
+	 */
+	assistantOpen: boolean;
+	/**
+	 * Defines what the AI assistant is doing: nothing, working on a request, or waiting for the user to answer it.
+	 */
+	assistantWorkState: EditorAssistantWorkState;
 
 	/**
 	 * Defines if the project is being edited.
@@ -168,6 +177,8 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 	public constructor(props: IEditorProps) {
 		super(props);
 
+		const enableExperimentalFeatures = tryGetExperimentalFeaturesEnabledFromLocalStorage();
+
 		this.state = {
 			plugins: [],
 			lastOpenedScenePath: null,
@@ -180,8 +191,11 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 			compressedPvrtcEnabled: false,
 			compressedTextureQuality: "very-fast",
 
-			enableExperimentalFeatures: tryGetExperimentalFeaturesEnabledFromLocalStorage(),
+			enableExperimentalFeatures,
+
 			openedTabs: [],
+			assistantWorkState: "idle",
+			assistantOpen: enableExperimentalFeatures && tryGetAssistantOpenFromLocalStorage(),
 
 			editProject: false,
 			editPreferences: false,
@@ -252,6 +266,8 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 
 		ipcRenderer.on("editor:run-project", () => startProjectDevProcess(this));
 
+		ipcRenderer.on("editor:toggle-assistant", () => this.setAssistantOpen(!this.state.assistantOpen));
+
 		onUndoObservable.add(() => {
 			this.layout.graph.refresh();
 			this.layout.inspector.forceUpdate();
@@ -273,10 +289,6 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 
 		// Ready
 		ipcRenderer.send("editor:ready");
-		ipcRenderer.send("editor:setup-menu", {
-			enableExperimentalFeatures: this.state.enableExperimentalFeatures,
-			openedTabs: this.state.openedTabs,
-		});
 
 		// Start the MCP server once the layout/preview scene is ready.
 		await waitUntil(() => this.layout?.preview?.scene);
@@ -306,6 +318,8 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 				}
 			});
 		}
+
+		this.updateMenu();
 	}
 
 	/**
@@ -331,6 +345,38 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 		onProjectConfigurationChangedObservable.notifyObservers(projectConfiguration);
 
 		await loadProject(this, absolutePath);
+	}
+
+	/**
+	 * Updates the native menu of the application with the current state of the editor.
+	 */
+	public updateMenu(): void {
+		ipcRenderer.send("editor:setup-menu", {
+			enableExperimentalFeatures: this.state.enableExperimentalFeatures,
+			openedTabs: this.state.openedTabs,
+			assistantOpen: this.state.assistantOpen,
+		});
+	}
+
+	/**
+	 * Shows or hides the AI assistant panel docked on the right of the editor. Hiding it keeps its session running.
+	 * The AI assistant is an experimental feature: it can't be shown while experimental features are disabled.
+	 * @param open defines wether or not the AI assistant panel is open.
+	 */
+	public setAssistantOpen(open: boolean): void {
+		if (open === this.state.assistantOpen || (open && !this.state.enableExperimentalFeatures)) {
+			return;
+		}
+
+		trySetAssistantOpenInLocalStorage(open);
+
+		this.setState({ assistantOpen: open }, () => {
+			this.updateMenu();
+
+			if (open) {
+				requestAnimationFrame(() => this.layout.assistant?.focus());
+			}
+		});
 	}
 
 	/**

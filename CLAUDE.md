@@ -85,7 +85,8 @@ Packaging is platform-bound: macOS builds must run on macOS, Windows builds on W
   - `project/typings.ts` — `IEditorProject` shape and project-level enums (compressed texture software/quality, package manager).
 - `editor/src/loader/` — runtime loaders used by the editor preview (mesh, material, texture, animation, node, assimp).
 - `editor/src/tools/` — editor-internal utilities grouped by domain (`scene`, `mesh`, `material`, `node`, `light`, `particles`, `physics`, `animation`, `recast` (navmesh), `plugins`, `workers`, `guards`, `maths`).
-- `editor/src/mcp/` — in-editor side of MCP integration (actions the MCP server can invoke, scene hierarchy queries).
+- `editor/src/mcp/` — in-editor side of MCP integration (actions the MCP server can invoke, scene hierarchy queries). `startMcpServer()` serves them over HTTP on the loopback interface, optionally behind a token.
+- `editor/src/editor/layout/assistant.tsx` (+ `assistant/`) — the AI assistant panel docked on the right of the editor (topbar button, `editor.toggleAssistant()`). It hosts the user's own Claude Code installation in a terminal (never handles Claude credentials), gives it the MCP server bundled with the editor (`editor/build/mcp/index.mjs`, run by the editor executable with `ELECTRON_RUN_AS_NODE`) connected to its window through a per-window port and token, and watches `assets/` to refresh the assets browser and reload changed assets (`editor/src/tools/assets/reload.ts`).
 - `editor/src/export.ts` — the **public API surface** re-exported as the `babylonjs-editor` package (used by the `plugins/` workspaces and potentially user scripts). When adding something plugins/scripts should consume, export it here.
 
 ### Runtime library (`tools/`)

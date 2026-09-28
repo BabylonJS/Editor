@@ -74,6 +74,8 @@
 		{ "name": "list_assets", "description": "List project assets, optionally filtered by type/folder, with preview availability." },
 		{ "name": "get_asset_preview", "description": "Return an asset/folder preview image as base64 (image)." },
 		{ "name": "instantiate_mesh_asset", "description": "Load a mesh asset into the scene (drag'n'drop equivalent; glTF auto-scaled)." },
+		{ "name": "import_asset", "description": "Copy a file from anywhere on disk (a download, a generated texture or mesh) into the project's assets folder." },
+		{ "name": "reload_asset", "description": "Reload the elements of the scene created from an asset after it changed on disk." },
 		{ "name": "list_particle_assets", "description": "List the .npss node particle system assets in the project." },
 		{ "name": "instantiate_particle_system", "description": "Instantiate a particle system asset or create a default one in the scene." },
 		{ "name": "list_sound_assets", "description": "List the .mp3/.ogg/.wav sound assets available in the project." },

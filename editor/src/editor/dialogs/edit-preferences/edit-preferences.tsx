@@ -1,4 +1,3 @@
-import { ipcRenderer } from "electron";
 import { Component, ReactNode } from "react";
 
 import { Label } from "../../../ui/shadcn/ui/label";
@@ -212,11 +211,9 @@ export class EditorEditPreferencesComponent extends Component<IEditorEditPrefere
 						<Switch
 							checked={this.props.editor.state.enableExperimentalFeatures}
 							onCheckedChange={(v) => {
-								this.props.editor.setState({ enableExperimentalFeatures: v });
+								this.props.editor.setState({ enableExperimentalFeatures: v }, () => this.props.editor.updateMenu());
 
 								trySetExperimentalFeaturesEnabledInLocalStorage(v);
-
-								ipcRenderer.send("editor:setup-menu", { enableExperimentalFeatures: v });
 
 								this.props.editor.layout.graph.refresh();
 								this.props.editor.layout.assets.refresh();
@@ -225,6 +222,11 @@ export class EditorEditPreferencesComponent extends Component<IEditorEditPrefere
 								this.props.editor.layout.animations.forceUpdate();
 
 								this.props.editor.layout.removeLayoutTab("marketplace");
+
+								// The AI assistant is an experimental feature: it is closed and its session stops.
+								if (!v) {
+									this.props.editor.setAssistantOpen(false);
+								}
 							}}
 						/>
 						Enable experimental features

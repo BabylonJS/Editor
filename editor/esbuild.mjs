@@ -31,6 +31,20 @@ const configurations = [
 		outfile: "./build/recast-generators.js",
 		external: ["@recast-navigation/core"],
 	},
+	// The MCP server the AI assistant starts to drive the editor, self-contained so it runs with the executable of the
+	// editor (see "ELECTRON_RUN_AS_NODE") without any node_modules. It must stay unpacked from the asar archive.
+	{
+		bundle: true,
+		platform: "node",
+		target: "node20",
+		format: "esm",
+		minify: !isWatch,
+		entryPoints: ["../mcp/src/index.mts"],
+		outfile: "./build/mcp/index.mjs",
+		banner: {
+			js: "import { createRequire as __createRequire } from 'module'; const require = __createRequire(import.meta.url);",
+		},
+	},
 ];
 
 configurations.forEach((configuration) => {
