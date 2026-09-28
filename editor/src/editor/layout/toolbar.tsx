@@ -120,7 +120,7 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 			case "waiting":
 				return "The AI assistant needs your input";
 			default:
-				return this.props.editor.state.assistantOpen ? "Hide the AI assistant" : "Ask Claude to build your scene and add assets to your project";
+				return this.props.editor.state.assistantOpen ? "Hide the AI assistant" : "Ask AI to assist you in scene and code editing";
 		}
 	}
 
