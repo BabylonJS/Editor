@@ -38,6 +38,7 @@ import {
 	trySetAssistantExecutablePathInLocalStorage,
 } from "../../tools/local-storage";
 
+import { removeAgentData } from "../../project/agent-data";
 import { onProjectConfigurationChangedObservable, projectConfiguration } from "../../project/configuration";
 
 import type { IEditorMcpServer } from "../../mcp/mcp";
@@ -335,6 +336,8 @@ export class EditorAssistant extends Component<IEditorAssistantProps, IEditorAss
 				this._watcher?.stop();
 				this._stopHooksServer();
 
+				void removeAgentData(this._projectPath);
+
 				this.setState({ status: "exited", exitCode });
 			});
 
@@ -406,6 +409,8 @@ export class EditorAssistant extends Component<IEditorAssistantProps, IEditorAss
 		this._watcher = null;
 
 		this._stopHooksServer();
+
+		void removeAgentData(this._projectPath);
 	}
 
 	/**
@@ -443,8 +448,15 @@ export class EditorAssistant extends Component<IEditorAssistantProps, IEditorAss
 			this._inputToastId = null;
 		}
 
+		const finished = this._workState !== "idle" && workState === "idle";
+
 		this._workState = workState;
 		this.props.editor.setState({ assistantWorkState: workState });
+
+		// The automation scripts the agent wrote to build content are not kept once it finished its work.
+		if (finished) {
+			void removeAgentData(this._projectPath);
+		}
 	}
 
 	private _handleHook(event: string, input: IAssistantHookInput): void {

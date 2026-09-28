@@ -15,6 +15,7 @@ import { tryGetExperimentalFeaturesEnabledFromLocalStorage } from "../tools/loca
 import { checkNodeJSAvailable, checkVisualStudioCodeAvailable, nodeJSAvailable, visualStudioCodeAvailable } from "../tools/process";
 
 import { saveProject } from "../project/save/save";
+import { removeAgentData } from "../project/agent-data";
 import { onProjectConfigurationChangedObservable, projectConfiguration } from "../project/configuration";
 
 // import { initializeMcpServer } from "../mcp/mcp";
@@ -335,6 +336,9 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 		absolutePath = absolutePath.replace(/\\/g, sep);
 
 		projectConfiguration.path = absolutePath;
+
+		// Automation scripts an agent left in the project, if it didn't finish.
+		void removeAgentData(absolutePath);
 
 		disposeVLSPostProcess(this);
 		disposeSSRRenderingPipeline();

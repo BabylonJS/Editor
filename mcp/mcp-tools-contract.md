@@ -48,7 +48,7 @@ Every editor handler that mutates the scene MUST make the change visible in the 
 | `get_scene_hierarchy` | Hierarchy of nodes as a tree (EXISTS, keep). | `{ rootNodeName?: string }` | tree of `{ id, name, type, children[] }` (extend existing to include `type`) |
 | `list_scenes` | List all `.scene` assets in the project. | `{}` | `{ scenes: [{ name, path, isActive }] }` |
 | `get_active_scene` | Name/path of the currently edited scene + counts. | `{}` | `{ name, path, meshCount, lightCount, materialCount }` |
-| `save_scene` | Save the current scene/project. | `{}` | `{ saved: true }` |
+| `save_scene` | Save the current scene/project, after the user confirms it in a dialog of the editor (`showConfirm`): users review, maybe tweak, and save the agent's work themselves. Declining is not an error. | `{}` | `{ saved: true }` or `{ saved: false, message }` |
 | `get_scene_settings` | Scene-level settings (clear color, ambient color, environment texture, fog, active camera). | `{}` | object |
 | `set_scene_settings` | Set scene-level settings via property paths. | `{ properties: { [path]: value } }` | updated settings |
 
@@ -197,6 +197,8 @@ Distinct from behavior scripts: these are `.js` files in a root **`agentdata/`**
 | `get_editor_api` | Reference for the `editor` mediator object (scene at `editor.layout.preview.scene`, graph/inspector/assets/console, conventions) + the `main(editor)` skeleton + a forest example. Derived from `/editor/src/editor`. | `{}` | `{ reference: string }` |
 | `write_agent_script` | Write/overwrite a `.js` script under `agentdata/` (name sanitized, `.js` enforced, no `..`). Must export `main(editor)`. | `{ name, content }` | `{ path }` |
 | `run_agent_script` | Compile + run an `agentdata/` script's `main(editor)` (await async). Accepts existing `name` or inline `content` (write-and-run). Refreshes graph/assets after. Returns only a primitive script result. | `{ name?, content? }` | `{ ran: true, script, result }` |
+
+`agentdata/` and its compiled scripts (`.bjseditor/agent-scripts`) are removed by `editor/src/project/agent-data.ts` `removeAgentData`: when the AI assistant's agent finishes an answer (its work state goes back to idle), when its session stops or exits, and when a project is opened (leftovers of agents that didn't finish, like external MCP clients).
 | `list_agent_scripts` | List `.js` scripts in `agentdata/`. | `{}` | `{ scripts: [{ name, path }] }` |
 
 ### Verification & utility

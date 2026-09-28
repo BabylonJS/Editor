@@ -31,7 +31,7 @@
 		{ "name": "get_scene_hierarchy", "description": "Get the current scene's node hierarchy as a tree of { id, name, type, children }." },
 		{ "name": "list_scenes", "description": "List all .scene assets in the project and which one is active." },
 		{ "name": "get_active_scene", "description": "Get the active scene's name/path plus mesh, light and material counts." },
-		{ "name": "save_scene", "description": "Save the current scene/project to disk." },
+		{ "name": "save_scene", "description": "Save the current scene/project to disk, once the user confirms it in the editor." },
 		{ "name": "get_scene_settings", "description": "Get scene-level settings (clear/ambient color, environment texture, fog, active camera)." },
 		{ "name": "set_scene_settings", "description": "Set scene-level settings via dotted property paths." },
 		{ "name": "get_node", "description": "Get full details of a node by id or name." },
