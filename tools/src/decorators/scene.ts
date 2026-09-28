@@ -1,5 +1,15 @@
 import { ISceneDecoratorData } from "./apply";
 
+export type NodeFromSceneOptions = {
+	/**
+	 * Defines whether or not the node should be searched for globally in the scene instead of being scoped to the container the node comes from.
+	 * Each scene loaded using `@sceneAsset` or `@visibleAsEntity("scene", ...)` is loaded into its own asset container before it's added to the main scene.
+	 * Setting `global: false` will restrict the search to the asset container the node comes from.
+	 * @default false
+	 */
+	global?: boolean;
+};
+
 /**
  * Makes the decorated property linked to the node that has the given name.
  * Once the script is instantiated, the reference to the node is retrieved from the scene
@@ -7,28 +17,12 @@ import { ISceneDecoratorData } from "./apply";
  * This can be used only by scripts using Classes.
  * @param nodeName defines the name of the node to retrieve in scene.
  */
-export function nodeFromScene(nodeName: string) {
+export function nodeFromScene(nodeName: string, options?: NodeFromSceneOptions) {
 	return function (target: any, propertyKey: string | Symbol) {
 		const ctor = target.constructor as ISceneDecoratorData;
 
 		ctor._NodesFromScene ??= [];
-		ctor._NodesFromScene.push({ propertyKey, nodeName });
-	};
-}
-
-/**
- * Makes the decorated property linked to the instantiated component of the given constructor type.
- * Once the script is instantiated, the reference to the component is retrieved from the scene
- * and assigned to the property. Components link cant' be used in constructor.
- * This can be used only by scripts using Classes.
- * @param componentConstructor defines the class of the type to retrieve.
- */
-export function componentFromScene<T extends new (...args: any) => any>(componentConstructor: T) {
-	return function (target: any, propertyKey: string | Symbol) {
-		const ctor = target.constructor as ISceneDecoratorData;
-
-		ctor._ComponentsFromScene ??= [];
-		ctor._ComponentsFromScene.push({ propertyKey, componentConstructor });
+		ctor._NodesFromScene.push({ propertyKey, nodeName, options });
 	};
 }
 
@@ -82,5 +76,21 @@ export function sceneAsset(sceneName: string) {
 			sceneName,
 			propertyKey,
 		});
+	};
+}
+
+/**
+ * Makes the decorated property linked to the instantiated component of the given constructor type.
+ * Once the script is instantiated, the reference to the component is retrieved from the scene
+ * and assigned to the property. Components link cant' be used in constructor.
+ * This can be used only by scripts using Classes.
+ * @param componentConstructor defines the class of the type to retrieve.
+ */
+export function componentFromScene<T extends new (...args: any) => any>(componentConstructor: T) {
+	return function (target: any, propertyKey: string | Symbol) {
+		const ctor = target.constructor as ISceneDecoratorData;
+
+		ctor._ComponentsFromScene ??= [];
+		ctor._ComponentsFromScene.push({ propertyKey, componentConstructor });
 	};
 }
