@@ -7,7 +7,6 @@ import { Actions, ICloseType, IJsonModel, Layout, Model, TabNode, TabSetNode } f
 import { Observable, Tools } from "babylonjs";
 
 import { waitNextAnimationFrame } from "../tools/tools";
-import { tryGetAssistantSizeFromLocalStorage, trySetAssistantSizeInLocalStorage } from "../tools/local-storage";
 
 import { Editor } from "./main";
 
@@ -98,10 +97,9 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
 
 	private _layoutVersion: string = "5.0.0-alpha.3";
 
-	private _assistantPanel: ImperativePanelHandle | null = null;
-	private _assistantSize: number = tryGetAssistantSizeFromLocalStorage() ?? 30;
+	private _assistantSize: number = 30;
 	private _assistantLayoutSize: number | null = null;
-	private _assistantDefaultSize: number = this.props.editor.state.assistantOpen ? this._assistantSize : 0;
+	private _assistantPanel: ImperativePanelHandle | null = null;
 
 	public constructor(props: IEditorLayoutProps) {
 		super(props);
@@ -142,7 +140,7 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
 						collapsedSize={0}
 						minSize={15}
 						maxSize={70}
-						defaultSize={this._assistantDefaultSize}
+						defaultSize={0}
 						ref={(r) => (this._assistantPanel = r)}
 						onCollapse={() => this.props.editor.setAssistantOpen(false)}
 					>
@@ -185,9 +183,8 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
 
 		this._assistantLayoutSize = assistantSize;
 
-		if (assistantSize > 0 && assistantSize !== this._assistantSize) {
+		if (assistantSize > 0) {
 			this._assistantSize = assistantSize;
-			trySetAssistantSizeInLocalStorage(assistantSize);
 		}
 
 		// The assistant may have been toggled before the first layout.

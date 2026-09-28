@@ -11,8 +11,8 @@ import { isDarwin } from "../tools/os";
 import { waitUntil } from "../tools/tools";
 import { isDomTextInputFocused } from "../tools/dom";
 import { onRedoObservable, onUndoObservable, redo, undo } from "../tools/undoredo";
+import { tryGetExperimentalFeaturesEnabledFromLocalStorage } from "../tools/local-storage";
 import { checkNodeJSAvailable, checkVisualStudioCodeAvailable, nodeJSAvailable, visualStudioCodeAvailable } from "../tools/process";
-import { tryGetAssistantOpenFromLocalStorage, tryGetExperimentalFeaturesEnabledFromLocalStorage, trySetAssistantOpenInLocalStorage } from "../tools/local-storage";
 
 import { saveProject } from "../project/save/save";
 import { onProjectConfigurationChangedObservable, projectConfiguration } from "../project/configuration";
@@ -126,6 +126,7 @@ export interface IEditorState {
 	 * Defines the list of tabs that are currently opened in the layout.
 	 */
 	openedTabs: string[];
+
 	/**
 	 * Defines wether or not the AI assistant panel is open on the right of the editor.
 	 */
@@ -194,8 +195,8 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 			enableExperimentalFeatures,
 
 			openedTabs: [],
+			assistantOpen: false,
 			assistantWorkState: "idle",
-			assistantOpen: enableExperimentalFeatures && tryGetAssistantOpenFromLocalStorage(),
 
 			editProject: false,
 			editPreferences: false,
@@ -368,7 +369,9 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 			return;
 		}
 
-		trySetAssistantOpenInLocalStorage(open);
+		if (open) {
+			ipcRenderer.send("editor:project-hook", "AI assistant opened");
+		}
 
 		this.setState({ assistantOpen: open }, () => {
 			this.updateMenu();
