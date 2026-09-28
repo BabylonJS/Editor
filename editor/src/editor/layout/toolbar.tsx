@@ -103,7 +103,7 @@ export class EditorToolbar extends Component<IEditorToolbarProps> {
 							onClick={() => this.props.editor.setAssistantOpen(!this.props.editor.state.assistantOpen)}
 						>
 							<span className="assistant-button-glow" />
-							<EditorAssistantIcon workState={workState} size={20} />
+							<EditorAssistantIcon workState={workState} size={20} multicolor={!open} />
 							<span className="text-sm">AI Assistant</span>
 						</Button>
 					</TooltipTrigger>

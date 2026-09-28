@@ -324,6 +324,11 @@ audio::-webkit-media-controls-time-remaining-display {
 	animation-play-state: running;
 }
 
+/* The multicolor icon of the assistant, painted with the gradient each icon defines (see "assistant/icon.tsx"). */
+.editor-assistant-icon-multicolor {
+	fill: var(--editor-assistant-icon-paint);
+}
+
 @media (prefers-reduced-motion: reduce) {
 	.assistant-button::before,
 	.assistant-button-glow::before {
