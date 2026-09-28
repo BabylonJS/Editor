@@ -83,6 +83,7 @@ export const assistantAllowedEditorTools = [
 	"stop_animation_group",
 	"create_animation",
 	// Marketplace, scripts & verification (read only)
+	"get_instructions",
 	"open_marketplace",
 	"search_marketplace",
 	"list_scripts",

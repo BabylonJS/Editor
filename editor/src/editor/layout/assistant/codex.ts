@@ -30,6 +30,19 @@ export const codexTerminalTitleItems = ["activity", "run-state"];
 export const codexNoDaemonMinimumVersion = "0.158.0";
 
 /**
+ * Defines the instructions given to the model of Codex. Codex doesn't give the instructions of the MCP servers to its
+ * models, and the recent ones only see the tools they search for: without them, the model doesn't know the editor is
+ * connected and edits the files of the project instead. Written without quotes nor line breaks to stay a TOML literal
+ * string (see toTomlString).
+ */
+export const codexDeveloperInstructions = [
+	"You are running in the AI assistant panel of the Babylon.js Editor: the user sees the editor next to you, and the editor is connected to you through the MCP server babylonjs-editor.",
+	"Do everything that concerns the scene (nodes, meshes, materials, lights, cameras, assets, scripts, physics, testing the game) with the tools of this server, never by editing the files of the project by hand.",
+	`Its tools are named mcp__babylonjs_editor__<tool>, for example mcp__babylonjs_editor__get_scene_hierarchy. When they are not listed, they are deferred: find them in ALL_TOOLS and call them from exec through the global tools object, for example await tools.mcp__babylonjs_editor__get_scene_hierarchy({}).`,
+	"Before your first action on the scene, call mcp__babylonjs_editor__get_instructions and follow the instructions it returns.",
+].join(" ");
+
+/**
  * Defines the environment variables Codex gives to the MCP server of the editor. They are given to Codex rather than
  * written in its arguments, which the other users of the computer can read.
  */
@@ -156,6 +169,9 @@ export function getCodexArguments(options: IAssistantMcpConfigurationOptions, re
 		`mcp_servers.${assistantMcpServerName}={ ${server.join(", ")} }`,
 		"-c",
 		`tui.terminal_title=${toTomlArray(codexTerminalTitleItems)}`,
+		// Replaces the developer instructions of the configuration of the user, if any, for the session.
+		"-c",
+		`developer_instructions=${toTomlString(codexDeveloperInstructions)}`,
 	];
 }
 

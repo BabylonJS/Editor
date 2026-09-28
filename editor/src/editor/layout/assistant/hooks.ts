@@ -66,6 +66,10 @@ export interface IAssistantHookInput {
 	 * Defines the last message of the turn, which is the text of the error for "StopFailure" events.
 	 */
 	last_assistant_message?: string;
+	/**
+	 * Defines why Antigravity CLI stopped, like "NO_TOOL_CALL" or "error", for its "Stop" events.
+	 */
+	terminationReason?: string;
 }
 
 export interface IAssistantHooksServer {
@@ -179,20 +183,36 @@ function parseHookInput(body: string | null): IAssistantHookInput {
 	}
 }
 
+export interface IAssistantHooksServerOptions {
+	/**
+	 * Defines the hook events the server accepts. Defaults to the ones of Claude Code.
+	 */
+	events?: string[];
+	/**
+	 * Defines the body of the answers, which the agent reads as the result of the hook. Defaults to an empty body, which
+	 * lets Claude Code go on as if there was no hook.
+	 */
+	body?: string;
+}
+
 /**
- * Creates the function handling the hook events Claude Code sends to the assistant. It always answers with an empty
- * body, which lets Claude Code go on as if there was no hook.
+ * Creates the function handling the hook events the agent sends to the assistant. It always answers with the same body,
+ * which lets the agent go on as if there was no hook.
  * @param token defines the token requests must send in the "x-babylonjs-editor-token" header.
  * @param onHook defines the function called with the name and the input of each hook event.
+ * @param options defines the events accepted and the body of the answers.
  */
 export function createAssistantHooksListener(
 	token: string,
-	onHook: (event: string, input: IAssistantHookInput) => void
+	onHook: (event: string, input: IAssistantHookInput) => void,
+	options: IAssistantHooksServerOptions = {}
 ): (req: IncomingMessage, res: ServerResponse) => Promise<void> {
+	const events = options.events ?? assistantHookEvents;
+
 	return async (req, res) => {
 		const event = new URL(req.url ?? "/", "http://127.0.0.1").pathname.substring(1);
 
-		// Like the MCP server of the editor: only Claude Code knows the token, and web pages are always rejected.
+		// Like the MCP server of the editor: only the agent knows the token, and web pages are always rejected.
 		let status = 200;
 		if (req.headers.origin) {
 			status = 403;
@@ -200,14 +220,14 @@ export function createAssistantHooksListener(
 			status = 401;
 		} else if (req.method !== "POST") {
 			status = 405;
-		} else if (!assistantHookEvents.includes(event)) {
+		} else if (!events.includes(event)) {
 			status = 404;
 		}
 
 		const body = await readHookBody(req);
 
 		res.writeHead(status);
-		res.end();
+		res.end(status === 200 ? options.body : undefined);
 
 		if (status === 200) {
 			onHook(event, parseHookInput(body));
@@ -216,13 +236,17 @@ export function createAssistantHooksListener(
 }
 
 /**
- * Starts the HTTP server Claude Code sends the hook events of the assistant to. It only listens on the loopback
+ * Starts the HTTP server the agent sends the hook events of the assistant to. It only listens on the loopback
  * interface, on a port chosen by the system, and expects a new random token.
  * @param onHook defines the function called with the name and the input of each hook event.
+ * @param options defines the events accepted and the body of the answers.
  */
-export async function startAssistantHooksServer(onHook: (event: string, input: IAssistantHookInput) => void): Promise<IAssistantHooksServer> {
+export async function startAssistantHooksServer(
+	onHook: (event: string, input: IAssistantHookInput) => void,
+	options: IAssistantHooksServerOptions = {}
+): Promise<IAssistantHooksServer> {
 	const token = randomBytes(32).toString("hex");
-	const { server, port } = await listenMCPServer(createAssistantHooksListener(token, onHook), 0);
+	const { server, port } = await listenMCPServer(createAssistantHooksListener(token, onHook, options), 0);
 
 	return {
 		url: `http://127.0.0.1:${port}`,

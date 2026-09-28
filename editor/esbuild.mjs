@@ -49,7 +49,7 @@ const configurations = [
 ];
 
 // The skills of the website, bundled as a plugin the AI assistant gives to the agents it runs (Claude Code loads it
-// with "--plugin-dir", Codex gets its skills copied in the project). It must stay unpacked from the asar archive.
+// with "--plugin-dir", Codex gets its skills copied in the project, Antigravity CLI in the plugin the assistant gives it). It must stay unpacked from the asar archive.
 function buildAssistantPlugin() {
 	const pluginDirectory = "./build/assistant/plugin";
 	const packageJson = JSON.parse(readFileSync("./package.json", "utf-8"));
