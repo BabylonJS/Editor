@@ -29,6 +29,7 @@ import {
 
 // Request all plugins
 import "babylonjs-editor-tools/loading/gaussian-splatting";
+import "babylonjs-editor-tools/loading/script/preload/plugins/gui";
 import "babylonjs-editor-tools/loading/script/preload/plugins/navmesh";
 
 {{imports}}

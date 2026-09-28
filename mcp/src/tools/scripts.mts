@@ -70,7 +70,9 @@ export function registerScriptTools(server: McpServer): void {
 		{
 			title: "Attach script",
 			description:
-				"Attach a script file to a node (the scene itself can also have scripts). This writes the node's script metadata exactly as the inspector's Scripts section does, so the attachment is visible to the user.",
+				"Attach a script file to a node (the scene itself can also have scripts). This writes the node's script metadata exactly as the inspector's Scripts section does, so the attachment is visible to the user. " +
+				"The script is compiled: the result lists its inspector properties (`@visibleAs*`, `@visibleAsEntity`, `@visibleAsAsset`) with their types and default values — configure them with `set_script_exported_value` — " +
+				"or its `compileError` to fix with `write_script`. Attach the script again after adding properties to it, then check it with `play_scene`.",
 			inputSchema: z.object({
 				nodeId: z.string().optional().describe("Id of the target node (preferred)."),
 				nodeName: z.string().optional().describe("Name of the target node."),
@@ -86,7 +88,8 @@ export function registerScriptTools(server: McpServer): void {
 		{
 			title: "List attached scripts",
 			description:
-				"List the scripts attached to a node along with their exported inspector values. Use this to discover which exported values you can tune with `set_script_exported_value`.",
+				"List the scripts attached to a node with their inspector properties (key, type, entity/asset type, current value), or their `compileError`. " +
+				"Use this to discover which values you can tune with `set_script_exported_value`.",
 			inputSchema: z.object({
 				nodeId: z.string().optional().describe("Id of the target node (preferred)."),
 				nodeName: z.string().optional().describe("Name of the target node."),
@@ -101,13 +104,16 @@ export function registerScriptTools(server: McpServer): void {
 		{
 			title: "Set script exported value",
 			description:
-				"Set an exported/inspector value of a script attached to a node. This lets you configure the same reusable script differently per object (e.g. open distance, speed).",
+				"Set an inspector value of a script attached to a node (a property decorated with `@visibleAs*`, `@visibleAsEntity` or `@visibleAsAsset`). This lets you configure the same reusable script differently per object (e.g. speed, sensitivity, the camera to drive). " +
+				"The value is checked and converted for the type of the property: number, boolean, string; vector2/vector3 as `[x, y, z]`; color3/color4 as `[r, g, b(, a)]` in 0..1 or `#rrggbb`; " +
+				'keymap as a key ("w", "Space", "Shift"); entity as the id or name of a node, sound or particle system, or the name of an animation group; asset as the project path of the file (e.g. `assets/rifle.json`); ' +
+				"texture as the project path of an image; `null` clears an entity, asset or texture.",
 			inputSchema: z.object({
 				nodeId: z.string().optional().describe("Id of the target node (preferred)."),
 				nodeName: z.string().optional().describe("Name of the target node."),
 				path: z.string().describe("Project path of the attached script."),
-				key: z.string().describe("Name of the exported value to set."),
-				value: z.any().describe("The new value."),
+				key: z.string().describe("Name of the decorated property to set (its property name in the script, or its inspector label)."),
+				value: z.any().describe("The new value, in the format of its type (see the description)."),
 			}),
 			annotations: { idempotentHint: true },
 		},

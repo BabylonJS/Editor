@@ -183,9 +183,9 @@ Reference: `tools/src/script.ts` (`IScript` = `onStart`/`onUpdate`/`onStop`). Sc
 | `create_script` | Create a new TS script with the editor's default skeleton at a path under `src/`. | `{ path, className? }` | `{ path }` |
 | `read_script` | Read a script's content. | `{ path }` | `{ content }` |
 | `write_script` | Overwrite/update a script's content. | `{ path, content }` | `{ path }` |
-| `attach_script` | Attach a script file to a node (writes the node script metadata as the inspector does). | `{ nodeId?, nodeName?, path }` | updated node summary |
-| `list_attached_scripts` | List scripts attached to a node + their exported values. | `{ nodeId?, nodeName? }` | `{ scripts: [{ path, exportedValues }] }` |
-| `set_script_exported_value` | Set an exported/inspector value of an attached script on a node. | `{ nodeId?, nodeName?, path, key, value }` | updated summary |
+| `attach_script` | Attach a script file to a node (writes the node script metadata as the inspector does), then compile it like the inspector (`workers/script.js` compile + extract, `editor/src/mcp/scripts/values.ts`) to fill `metadata.scripts[i].values` with `computeDefaultValuesForObject`: the loader of the game throws for a script with decorated properties and no `values`. | `{ nodeId?, nodeName?, path }` | node summary + `{ script: { path, enabled, properties: [{ key, type, label, description, entityType?, assetType?, value }] } \| { compileError } }` |
+| `list_attached_scripts` | List scripts attached to a node with their inspector properties (values updated the same way). | `{ nodeId?, nodeName? }` | `{ scripts: [{ path, enabled, properties \| compileError }] }` |
+| `set_script_exported_value` | Set an inspector value of an attached script. The key must be a decorated property (name or label); the value is converted to the format the inspector saves: arrays for vectors/colors (also `{x,y,z}`, `#rrggbb`), key code for keymaps (`"w"`, `"Space"`), node/sound/particle system **id** or animation group **name** for entities (resolved from id or name), project-relative path for assets (extension checked), serialized texture for textures (from an image path). | `{ nodeId?, nodeName?, path, key, value }` | node summary + `{ script: { path, properties } }` |
 | `detach_script` | Remove an attached script from a node. | `{ nodeId?, nodeName?, path }` | updated summary |
 
 ### Agent automation scripts (`.js` run in the editor)
@@ -203,9 +203,21 @@ Distinct from behavior scripts: these are `.js` files in a root **`agentdata/`**
 
 | endpoint | description | input | output |
 |---|---|---|---|
-| `get_screenshot` | Screenshot of the preview for visual verification. Reuse `editor/src/tools/scene/screenshot.ts` `getBase64SceneScreenshot`. | `{ width?: number, height?: number }` | `{ imageBase64, mimeType: "image/png" }` (image tool) |
+| `get_screenshot` | Screenshot of the preview for visual verification. Reuse `editor/src/tools/scene/screenshot.ts` `getBase64SceneScreenshot`. While the game plays, the game scene is captured (the editor scene isn't rendered then). | `{ width?: number, height?: number }` | `{ imageBase64, mimeType: "image/png" }` (image tool) |
 | `focus_node` | Frame the camera on a node (helps screenshots). | `{ nodeId?, nodeName? }` | `{ ok: true }` |
 | `run_project` | (Optional) Start the project dev/run process. | `{}` | `{ started: true }` |
+
+### Play-testing
+
+The game played in the preview like the Play button (`editor/src/editor/layout/preview/play.tsx`: export, esbuild compile of `src/scripts.ts`, `loadScene` in a new scene with Havok). During play, `editor/src/tools/scene/play/override.tsx` forwards the `console` methods of the game and its uncaught errors (`error`/`unhandledrejection`, repeated errors logged once) to the editor console, which keeps a text history (`EditorConsole.entries`, `nextEntryId`, `getEntriesSince`). Editor handlers in `editor/src/mcp/play/play.ts`. Only `play_scene` runs the project's code: the assistant doesn't pre-approve it.
+
+| endpoint | description | input | output |
+|---|---|---|---|
+| `play_scene` | Play (stopping a running game first, so scripts are compiled again), wait `durationMs` (default 2000, max 30000), report the console messages logged since. Stops the game when the scripts don't compile. | `{ durationMs? }` | `{ playing, compiled, activeCamera, fps, errors, warnings, logs }` |
+| `stop_scene` | Stop the game. | `{}` | `{ playing: false, wasPlaying }` |
+| `simulate_input` | Dispatch `keydown`/`keyup` (with legacy `keyCode`) and `pointermove`/`pointerdown`/`pointerup` events on the canvas: keys held for `durationMs`, `pointerMovement` spread over it, then a click at the center. Pointer lock can't be obtained by synthetic events. | `{ keys?: string[], durationMs?, pointerMovement?: [dx, dy], click?: "left"\|"right", holdClick? }` | `{ playing, keys, durationMs, errors, logs }` |
+| `inspect_play_scene` | State of the playing scene: active camera, pointer lock, playing animation groups, FPS, and world position/rotation/linear velocity of nodes looked up by id or name in the playing scene. | `{ nodeIds?, nodeNames? }` | `{ activeCamera, pointerLocked, playingAnimationGroups, fps, nodes }` |
+| `get_console_logs` | Messages of the editor console, optionally since an id and filtered by level. | `{ sinceId?, levels?, limit? }` | `{ entries: [{ id, level, message, time }], nextId }` |
 
 ### Batch (spec §"Important notes")
 

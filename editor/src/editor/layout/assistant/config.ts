@@ -21,7 +21,8 @@ export const assistantHookTimeout = 5;
 /**
  * Defines the tools of the editor Claude Code may use without asking the user first: reading the project, and
  * composing the scene with content the user sees appear live. Deleting, saving, downloading, writing or running code
- * and batches (which can run any tool) keep asking, as Claude Code does by default.
+ * (playing the scene runs the scripts of the project) and batches (which can run any tool) keep asking, as Claude
+ * Code does by default.
  */
 export const assistantAllowedEditorTools = [
 	// Scene & nodes
@@ -89,6 +90,11 @@ export const assistantAllowedEditorTools = [
 	"list_agent_scripts",
 	"get_screenshot",
 	"focus_node",
+	// Play-testing: controlling and reading the game once the user allowed "play_scene", which runs its scripts.
+	"stop_scene",
+	"simulate_input",
+	"inspect_play_scene",
+	"get_console_logs",
 ];
 
 export interface IAssistantMcpConfigurationOptions {

@@ -10,6 +10,8 @@ import { projectConfiguration } from "../../project/configuration";
 import { IMCPActionOptions } from "../action";
 import { resolveNode, toNodeSummary } from "../tools/resolve";
 
+import { getScriptProperties, getScriptPropertyValue, updateScriptValues } from "./values";
+
 /**
  * Returns the absolute path of the project directory.
  */
@@ -118,42 +120,75 @@ export async function writeScript(_scene: Scene, data: any): Promise<any> {
 }
 
 /**
+ * Returns the decorated properties of the given attached script with their values, after updating the values saved in
+ * the metadata of the object. A script that doesn't compile is reported with its error.
+ */
+async function getAttachedScriptDescription(script: any): Promise<any> {
+	const description: any = {
+		path: join("src", script.key),
+		enabled: script.enabled,
+	};
+
+	try {
+		description.properties = getScriptProperties(script, await updateScriptValues(script));
+	} catch (e) {
+		// The loader of the game requires the values of a script with decorated properties.
+		script.values ??= {};
+
+		description.compileError = e instanceof Error ? e.message : String(e);
+		description.properties = [];
+	}
+
+	return description;
+}
+
+/**
  * Attaches a script file to a node, writing the node script metadata as the inspector does.
  */
-export function attachScript(scene: Scene, data: any, options: IMCPActionOptions): any {
+export async function attachScript(scene: Scene, data: any, options: IMCPActionOptions): Promise<any> {
 	const node = resolveNode({ scene, nodeId: data.nodeId, nodeName: data.nodeName });
 	const absolutePath = resolveScriptPath(data.path);
 	const key = getScriptKey(absolutePath);
 
+	if (!(await pathExists(absolutePath))) {
+		throw new Error(`Script not found: ${data.path}`);
+	}
+
 	node.metadata ??= {};
 	node.metadata.scripts ??= [];
 
-	const existing = node.metadata.scripts.find((script) => script.key === key);
-	if (!existing) {
-		node.metadata.scripts.push({
+	let script = node.metadata.scripts.find((script) => script.key === key);
+	if (!script) {
+		script = {
 			_id: Tools.RandomId(),
 			enabled: true,
 			key,
-		});
+		};
+
+		node.metadata.scripts.push(script);
 	}
+
+	const description = await getAttachedScriptDescription(script);
 
 	options.editor.layout.inspector.setEditedObject(node);
 	options.editor.layout.inspector.forceUpdate();
 
-	return toNodeSummary(node);
+	return {
+		...toNodeSummary(node),
+		script: description,
+	};
 }
 
 /**
  * Lists the scripts attached to a node and their exported values.
  */
-export function listAttachedScripts(scene: Scene, data: any): any {
+export async function listAttachedScripts(scene: Scene, data: any): Promise<any> {
 	const node = resolveNode({ scene, nodeId: data.nodeId, nodeName: data.nodeName });
 
-	const scripts = (node.metadata?.scripts ?? []).map((script) => ({
-		path: join("src", script.key),
-		enabled: script.enabled,
-		exportedValues: script.values ?? {},
-	}));
+	const scripts: any[] = [];
+	for (const script of node.metadata?.scripts ?? []) {
+		scripts.push(await getAttachedScriptDescription(script));
+	}
 
 	return { scripts };
 }
@@ -161,7 +196,7 @@ export function listAttachedScripts(scene: Scene, data: any): any {
 /**
  * Sets an exported/inspector value of an attached script on a node.
  */
-export function setScriptExportedValue(scene: Scene, data: any, options: IMCPActionOptions): any {
+export async function setScriptExportedValue(scene: Scene, data: any, options: IMCPActionOptions): Promise<any> {
 	const node = resolveNode({ scene, nodeId: data.nodeId, nodeName: data.nodeName });
 	const absolutePath = resolveScriptPath(data.path);
 	const key = getScriptKey(absolutePath);
@@ -171,18 +206,26 @@ export function setScriptExportedValue(scene: Scene, data: any, options: IMCPAct
 		throw new Error(`Script "${data.path}" is not attached to node "${node.name}".`);
 	}
 
-	script.values ??= {};
-	if (script.values[data.key] && typeof script.values[data.key] === "object" && "value" in script.values[data.key]) {
-		// Preserve the existing exported value descriptor shape ({ type, description, value }).
-		script.values[data.key].value = data.value;
-	} else {
-		script.values[data.key] = { value: data.value };
+	const output = await updateScriptValues(script);
+
+	const property = output.find((property) => property.propertyKey === data.key) ?? output.find((property) => property.label === data.key);
+	if (!property) {
+		const available = output.map((property) => `${property.propertyKey} (${property.configuration.type})`).join(", ");
+		throw new Error(`Script "${data.path}" has no property "${data.key}" shown in the inspector. Available: ${available || "none (decorate properties with @visibleAs*)"}.`);
 	}
+
+	script.values[property.propertyKey].value = await getScriptPropertyValue(scene, property, data.value);
 
 	options.editor.layout.inspector.setEditedObject(node);
 	options.editor.layout.inspector.forceUpdate();
 
-	return toNodeSummary(node);
+	return {
+		...toNodeSummary(node),
+		script: {
+			path: join("src", key),
+			properties: getScriptProperties(script, output),
+		},
+	};
 }
 
 /**
