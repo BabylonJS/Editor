@@ -11,6 +11,7 @@ import { listScenes, getActiveScene, saveScene, getSceneSettings, setSceneSettin
 
 import { getNode, setNodeTransform, setNodeProperties, setNodeParent, renameNode, deleteNode, selectNode, getSelectedNodes } from "./nodes/nodes";
 import { createPrimitiveMesh, createInstance, cloneMesh, setMeshMaterial, setMeshVisibility, setMeshPhysics, getMeshBoundingInfo } from "./meshes/meshes";
+import { createDecal, updateDecal } from "./meshes/decals";
 import { createLight, setLightShadows, removeLightShadows, createClusteredLightContainer, addLightToClusteredContainer, removeLightFromClusteredContainer } from "./lights/lights";
 import { createCamera, setActiveCamera } from "./cameras/cameras";
 import { getCameraPostProcesses, setCameraPostProcess } from "./rendering/post-process";
@@ -68,6 +69,10 @@ export const MCPEndpoints: Record<string, (scene: Scene, data: any, options: IMC
 	set_mesh_visibility: setMeshVisibility,
 	set_mesh_physics: setMeshPhysics,
 	get_mesh_bounding_info: getMeshBoundingInfo,
+
+	// Decals
+	create_decal: createDecal,
+	update_decal: updateDecal,
 
 	// Lights & shadows
 	create_light: createLight,

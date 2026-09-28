@@ -3,6 +3,7 @@ import { ensureDir, writeJSON } from "fs-extra";
 
 import { MCPTokenHeader } from "../../../mcp/server";
 
+import { compareVersions } from "./executable";
 import { assistantHookEvents } from "./hooks";
 
 /**
@@ -44,6 +45,8 @@ export const assistantAllowedEditorTools = [
 	"set_mesh_visibility",
 	"set_mesh_physics",
 	"get_mesh_bounding_info",
+	"create_decal",
+	"update_decal",
 	"create_light",
 	"set_light_shadows",
 	"remove_light_shadows",
@@ -182,13 +185,29 @@ export function createAssistantSettings(hooks: IAssistantHooksConfigurationOptio
 }
 
 /**
+ * Defines the oldest version of Claude Code the assistant gives its plugin to. Claude Code refuses to start with an
+ * option it doesn't know, and "--plugin-dir" is known to exist in this version.
+ */
+export const assistantPluginMinimumClaudeVersion = "2.1.101";
+
+/**
+ * Returns wether or not the given version of Claude Code can load the plugin of the assistant for the session.
+ * @param claudeVersion defines the version of Claude Code, like "2.1.283".
+ */
+export function supportsAssistantPlugin(claudeVersion: string): boolean {
+	return compareVersions(claudeVersion, assistantPluginMinimumClaudeVersion) >= 0;
+}
+
+/**
  * Returns the arguments Claude Code is started with.
  * @param mcpConfigurationPath defines the absolute path of the MCP configuration file.
  * @param settingsPath defines the absolute path of the settings file.
  * @param resume defines wether or not to continue the last conversation of the project instead of starting a new one.
+ * @param pluginDirectory defines the absolute path of the plugin of the assistant, holding the skills of the editor,
+ * loaded for the session only.
  */
-export function getClaudeArguments(mcpConfigurationPath: string, settingsPath: string, resume: boolean): string[] {
-	return ["--mcp-config", mcpConfigurationPath, "--settings", settingsPath, ...(resume ? ["--continue"] : [])];
+export function getClaudeArguments(mcpConfigurationPath: string, settingsPath: string, resume: boolean, pluginDirectory: string | null = null): string[] {
+	return ["--mcp-config", mcpConfigurationPath, "--settings", settingsPath, ...(pluginDirectory ? ["--plugin-dir", pluginDirectory] : []), ...(resume ? ["--continue"] : [])];
 }
 
 /**
@@ -207,6 +226,15 @@ export function getWindowsBatchCommandLine(batchFile: string, args: string[]): s
  */
 export function getAssistantMcpServerScriptPath(appPath: string): string {
 	return join(appPath, "build", "mcp", "index.mjs").replace(/app\.asar([\\/])/, "app.asar.unpacked$1");
+}
+
+/**
+ * Returns the absolute path of the plugin of the assistant bundled with the editor: the skills of the editor, built
+ * from the ones of the website. In a packaged editor, it is unpacked from the asar archive so the agents can read it.
+ * @param appPath defines the path of the application, as returned by "app.getAppPath()".
+ */
+export function getAssistantPluginDirectory(appPath: string): string {
+	return join(appPath, "build", "assistant", "plugin").replace(/app\.asar([\\/])/, "app.asar.unpacked$1");
 }
 
 /**

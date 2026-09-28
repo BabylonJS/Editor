@@ -52,6 +52,8 @@
 		{ "name": "set_mesh_visibility", "description": "Toggle a mesh's visible/enabled state or set its visibility factor." },
 		{ "name": "set_mesh_physics", "description": "Add/update/remove a Havok physics body on a mesh (mass, motion type, shape, friction, restitution) for gameplay." },
 		{ "name": "get_mesh_bounding_info", "description": "Get a mesh's local/world bounding box and hierarchy bounds (size, min, max, center) for scattering and placement." },
+		{ "name": "create_decal", "description": "Project a decal (logo, poster, crack, stain, road marking...) made of a material on the surface of a mesh." },
+		{ "name": "update_decal", "description": "Change the size, angle or place of a decal, projecting it again on its mesh." },
 		{ "name": "create_light", "description": "Create a directional, point, spot or hemispheric light." },
 		{ "name": "set_light_shadows", "description": "Enable and configure a light's shadow generator (classic or cascaded for directional lights)." },
 		{ "name": "remove_light_shadows", "description": "Remove the shadow generator from a light so it stops casting shadows." },

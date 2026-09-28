@@ -2,6 +2,7 @@ import { tmpdir } from "os";
 import { join as joinNative } from "path";
 import { dirname, join } from "path/posix";
 import { randomBytes, randomUUID } from "crypto";
+import { pathExists } from "fs-extra";
 import { clipboard, ipcRenderer, shell, webUtils } from "electron";
 
 import { Component, DragEvent, ReactNode } from "react";
@@ -48,11 +49,14 @@ import { EditorAssistantIcon } from "./assistant/icon";
 import { IAssistantExecutable } from "./assistant/executable";
 import { assistantAgents, EditorAssistantAgentId, getAssistantAgent, IEditorAssistantAgent } from "./assistant/agents";
 import { getAssistantWorkStateFromCodexTitle, getCodexArguments, getCodexEnvironment } from "./assistant/codex";
+import { installAssistantSkillsInProject } from "./assistant/skills";
 import {
 	getAssistantMcpServerScriptPath,
+	getAssistantPluginDirectory,
 	getClaudeArguments,
 	getWindowsBatchCommandLine,
 	IAssistantMcpConfigurationOptions,
+	supportsAssistantPlugin,
 	writeAssistantConfiguration,
 } from "./assistant/config";
 import {
@@ -281,9 +285,14 @@ export class EditorAssistant extends Component<IEditorAssistantProps, IEditorAss
 			};
 
 			const env = this._getEnvironment();
+			const pluginDirectory = await this._getPluginDirectory(editorPath);
 
 			let args: string[];
 			if (agent.id === "codex") {
+				if (pluginDirectory) {
+					await this._installSkillsInProject(pluginDirectory, projectDirectory);
+				}
+
 				// Codex tells what it is doing through the title of its terminal, see _handleTitleChange.
 				args = getCodexArguments(mcpOptions, resume, executable.version);
 				Object.assign(env, getCodexEnvironment(mcpOptions));
@@ -295,7 +304,7 @@ export class EditorAssistant extends Component<IEditorAssistantProps, IEditorAss
 					hooksServer
 				);
 
-				args = getClaudeArguments(mcpConfigurationPath, settingsPath, resume);
+				args = getClaudeArguments(mcpConfigurationPath, settingsPath, resume, pluginDirectory && supportsAssistantPlugin(executable.version) ? pluginDirectory : null);
 			}
 
 			const terminal = this._ensureTerminal();
@@ -349,6 +358,33 @@ export class EditorAssistant extends Component<IEditorAssistantProps, IEditorAss
 			this.setState({ status: "error", error: e instanceof Error ? e.message : String(e) });
 		} finally {
 			this._starting = false;
+		}
+	}
+
+	/**
+	 * Returns the absolute path of the plugin of the assistant, holding the skills of the editor, or null when it was not
+	 * built.
+	 */
+	private async _getPluginDirectory(editorPath: string): Promise<string | null> {
+		const pluginDirectory = getAssistantPluginDirectory(editorPath);
+		return (await pathExists(pluginDirectory)) ? pluginDirectory : null;
+	}
+
+	/**
+	 * Installs the skills of the editor in the project for Codex, which only finds skills in the project or in the home
+	 * folder of the user. The agent still starts when they can't be installed.
+	 */
+	private async _installSkillsInProject(pluginDirectory: string, projectDirectory: string): Promise<void> {
+		try {
+			const results = await installAssistantSkillsInProject(pluginDirectory, projectDirectory);
+
+			Object.entries(results).forEach(([name, result]) => {
+				if (result === "installed" || result === "updated") {
+					this.props.editor.layout.console.log(`AI assistant: skill "${name}" ${result} in ".agents/skills" of the project.`);
+				}
+			});
+		} catch (e) {
+			this.props.editor.layout.console.warn(`AI assistant: failed to install the skills of the editor in the project: ${e instanceof Error ? e.message : e}`);
 		}
 	}
 

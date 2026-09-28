@@ -77,6 +77,15 @@ Every editor handler that mutates the scene MUST make the change visible in the 
 | `set_mesh_physics` | Add/update/remove a Havok physics body (gameplay). Mirrors `editor/src/editor/layout/inspector/mesh/physics.tsx`: creates a `PhysicsAggregate` with `getPhysicsShapeForMesh` default, sets `body.disableSync=true`. `motionType` static/dynamic/animated; `shapeType` box/sphere/capsule/cylinder/mesh; mass on body mass properties; friction/restitution on shape material. | `{ nodeId?, nodeName?, enabled?: boolean, mass?, motionType?, shapeType?, friction?, restitution? }` | node summary + `{ physics }` |
 | `get_mesh_bounding_info` | Bounding box in local & world space + whole-hierarchy world bounds (for scattering/placement). | `{ nodeId?, nodeName? }` | `{ local:{min,max,center,size}, world:{min,max,center,size}, hierarchyWorld:{min,max,size} }` |
 
+### Decals
+
+Decals are meshes built with `MeshBuilder.CreateDecal` (`localMode`, `cullBackFaces`), parented to the mesh they are projected on, with `metadata.decal = { angle, sizeX, sizeY, sizeZ, meshId, position, normal }` — the same shape as the decals painted with the editor's decals tool (`editor/src/editor/layout/inspector/decals/decals.tsx`), so the mesh inspector's Decal section edits them and saving merges the static decals of each material (`editor/src/project/save/decals.ts`). Editor side: `editor/src/mcp/meshes/decals.ts`.
+
+| endpoint | description | input | output |
+|---|---|---|---|
+| `create_decal` | Project a decal on a mesh. The material is a scene material (`materialId`/`materialName`) or a `.material` asset (`materialAssetPath`, loaded like the decals tool does); its `zOffset` becomes -3 when 0. `position`/`normal` are in world space (cm); without `normal`, rays are cast towards `position` from the active camera and along each axis, and the hit on the target closest to `position` gives the point and the face normal used. Default size `[100,100,100]`. | `{ targetNodeId?, targetNodeName?, materialId?, materialName?, materialAssetPath?, position: [x,y,z], normal?: [x,y,z], size?: [w,h,depth?], angle?: number, name? }` | node summary + `{ decal }` |
+| `update_decal` | Rebuild a decal's geometry with a new size/angle/position/normal on the same mesh (values not given are kept). Fails for decals merged at save time (no `meshId`). | `{ nodeId?, nodeName?, position?, normal?, size?, angle? }` | node summary + `{ decal }` |
+
 ### Lights & shadows
 
 | endpoint | description | input | output |
