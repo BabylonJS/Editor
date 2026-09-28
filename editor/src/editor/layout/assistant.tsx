@@ -122,6 +122,7 @@ export interface IEditorAssistantState {
 	exitCode: number | null;
 	activity: string | null;
 	dragOver: boolean;
+	welcome: boolean;
 }
 
 export class EditorAssistant extends Component<IEditorAssistantProps, IEditorAssistantState> {
@@ -130,6 +131,7 @@ export class EditorAssistant extends Component<IEditorAssistantProps, IEditorAss
 	private _webglAddon: WebglAddon | null = null;
 	private _terminalContainer: HTMLDivElement | null = null;
 	private _resizeObserver: ResizeObserver | null = null;
+	private _fitTimeout: ReturnType<typeof setTimeout> | null = null;
 	private _themeObserver: MutationObserver | null = null;
 
 	private _pty: NodePtyInstance | null = null;
@@ -160,6 +162,7 @@ export class EditorAssistant extends Component<IEditorAssistantProps, IEditorAss
 			exitCode: null,
 			activity: null,
 			dragOver: false,
+			welcome: props.open,
 		};
 	}
 
@@ -169,9 +172,10 @@ export class EditorAssistant extends Component<IEditorAssistantProps, IEditorAss
 		return (
 			<div className="flex flex-col w-full h-full bg-background text-foreground border-l border-border/50">
 				{this._getHeader()}
+				{this._getWelcome()}
 
 				<div
-					className={`relative w-full h-full min-h-0 ${this.state.dragOver ? "outline outline-2 -outline-offset-2 outline-primary/60" : ""}`}
+					className={`relative w-full flex-1 min-h-0 ${this.state.dragOver ? "outline outline-2 -outline-offset-2 outline-primary/60" : ""}`}
 					onDragOver={(ev) => this._handleDragOver(ev)}
 					onDragLeave={() => this.setState({ dragOver: false })}
 					onDrop={(ev) => this._handleDrop(ev)}
@@ -209,13 +213,13 @@ export class EditorAssistant extends Component<IEditorAssistantProps, IEditorAss
 			return;
 		}
 
+		this.setState({ welcome: true });
+
 		if (this.state.status === "idle" || this.state.status === "no-project") {
 			this.start(false);
 		} else {
-			requestAnimationFrame(() => {
-				this._fit();
-				this.focus();
-			});
+			// The terminal fits its new size once the panel stopped sliding (see the resize observer).
+			requestAnimationFrame(() => this.focus());
 		}
 	}
 
@@ -646,9 +650,28 @@ export class EditorAssistant extends Component<IEditorAssistantProps, IEditorAss
 			this._setWorkState(getAssistantWorkStateAfterInput(this._workState, data));
 		});
 		terminal.onResize(({ cols, rows }) => this._pty?.resize(cols, rows));
+
+		// Only the keys of the user hide the welcome message: the agent also receives the answers of the terminal to its
+		// queries as data.
+		terminal.onKey(() => {
+			if (this.state.welcome) {
+				this.setState({ welcome: false });
+			}
+		});
 		terminal.onTitleChange((title) => this._handleTitleChange(title));
 
-		this._resizeObserver = new ResizeObserver(() => requestAnimationFrame(() => this._fit()));
+		// Fitted once the size settles: the panel slides when it opens or closes, and each fit resizes the terminal of
+		// the agent, which draws its whole interface again.
+		this._resizeObserver = new ResizeObserver(() => {
+			if (this._fitTimeout) {
+				clearTimeout(this._fitTimeout);
+			}
+
+			this._fitTimeout = setTimeout(() => {
+				this._fitTimeout = null;
+				this._fit();
+			}, 100);
+		});
 		this._resizeObserver.observe(this._terminalContainer);
 
 		// The theme of the editor is switched live from the preferences by toggling the "dark" class of the body.
@@ -668,6 +691,11 @@ export class EditorAssistant extends Component<IEditorAssistantProps, IEditorAss
 	private _disposeTerminal(): void {
 		this._resizeObserver?.disconnect();
 		this._resizeObserver = null;
+
+		if (this._fitTimeout) {
+			clearTimeout(this._fitTimeout);
+			this._fitTimeout = null;
+		}
 
 		this._themeObserver?.disconnect();
 		this._themeObserver = null;
@@ -889,6 +917,28 @@ export class EditorAssistant extends Component<IEditorAssistantProps, IEditorAss
 						</Tooltip>
 					</div>
 				</TooltipProvider>
+			</div>
+		);
+	}
+
+	/**
+	 * Returns the message welcoming the user each time the panel opens, until they type or close it.
+	 */
+	private _getWelcome(): ReactNode {
+		if (!this.state.welcome) {
+			return null;
+		}
+
+		return (
+			<div className="relative shrink-0 mx-2 mt-2 px-4 py-3 rounded-lg bg-secondary/40 border border-border/50 animate-in fade-in slide-in-from-top-2 duration-500">
+				<div className="w-fit mr-6 text-sm font-semibold bg-gradient-to-r from-[#d97757] via-[#e8618c] to-[#4f8ff7] bg-clip-text text-transparent">
+					You bring the vision and the art direction.
+				</div>
+				<div className="mt-1 pr-6 text-sm text-muted-foreground">Let the AI build with your art and code the gameplay for you.</div>
+
+				<Button variant="ghost" className="absolute top-1.5 right-1.5 w-6 h-6 !p-0" onClick={() => this.setState({ welcome: false })}>
+					<IoCloseOutline className="w-4 h-4" />
+				</Button>
 			</div>
 		);
 	}

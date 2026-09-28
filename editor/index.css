@@ -329,7 +329,16 @@ audio::-webkit-media-controls-time-remaining-display {
 	fill: var(--editor-assistant-icon-paint);
 }
 
+/* The panels of the editor slide when the panel of the assistant opens or closes (see "EditorLayout"). */
+.editor-assistant-panel-animating > [data-panel] {
+	transition: flex-grow 300ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
 @media (prefers-reduced-motion: reduce) {
+	.editor-assistant-panel-animating > [data-panel] {
+		transition: none;
+	}
+
 	.assistant-button::before,
 	.assistant-button-glow::before {
 		animation: none;
