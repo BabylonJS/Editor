@@ -29,6 +29,7 @@ export * from "./rendering/default-pipeline";
 export * from "./rendering/volumetric-lighting";
 
 export * from "./rendering/tools";
+export * from "./rendering/order";
 
 export * from "./rendering/volumetric/types";
 export * from "./rendering/volumetric/selector";

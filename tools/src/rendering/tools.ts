@@ -2,6 +2,8 @@ import { Camera } from "@babylonjs/core/Cameras/camera";
 import { Constants } from "@babylonjs/core/Engines/constants";
 import { AbstractEngine } from "@babylonjs/core/Engines/abstractEngine";
 
+import { keepRenderingPipelinesOrdered } from "./order";
+
 import { disposeVLSPostProcess, parseVLSPostProcess, serializeVLSPostProcess, vlsPostProcessCameraConfigurations } from "./vls";
 import { disposeSSRRenderingPipeline, parseSSRRenderingPipeline, serializeSSRRenderingPipeline, ssrRenderingPipelineCameraConfigurations } from "./ssr";
 import { disposeTAARenderingPipeline, parseTAARenderingPipeline, serializeTAARenderingPipeline, taaRenderingPipelineCameraConfigurations } from "./taa";
@@ -61,6 +63,9 @@ export function applyRenderingConfigurationForCamera(camera: Camera, rootUrl: st
 	disposeVolumetricLightingRenderingPipeline();
 	disposeDefaultRenderingPipeline();
 	disposeTAARenderingPipeline();
+
+	// Pipelines created, or rebuilt, later on must still run in the order they are created in below.
+	keepRenderingPipelinesOrdered(camera.getScene());
 
 	const ssao2RenderingPipeline = ssaoRenderingPipelineCameraConfigurations.get(camera);
 	if (ssao2RenderingPipeline && !options?.ssao2Disabled) {

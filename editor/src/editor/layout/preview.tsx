@@ -39,6 +39,7 @@ import {
 	_GetAudioEngine,
 	GaussianSplattingCompoundMesh,
 } from "babylonjs";
+import { keepRenderingPipelinesOrdered } from "babylonjs-editor-tools";
 
 import { SpinnerUIComponent } from "../../ui/spinner";
 
@@ -562,6 +563,10 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		this.scene.skipPointerUpPicking = true;
 		this.scene.skipPointerDownPicking = true;
 		this.scene.skipPointerMovePicking = true;
+
+		// Enabling a pipeline in the inspector appends it at the end of the chain of the camera: keeps the same order
+		// as when they are all created at once. @see _switchToCameraById
+		keepRenderingPipelinesOrdered(this.scene as any);
 
 		this.camera = new EditorCamera("camera", Vector3.Zero(), this.scene);
 		this.camera.attachControl(true);
