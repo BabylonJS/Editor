@@ -32,6 +32,7 @@ const assistantInstructions = [
 	"- Files you create or modify under `assets/` (generated textures, meshes, `.npss` particle systems, `.material` files, ...) show up in the assets browser right away. The elements of the scene that use a modified asset are reloaded automatically: textures, node particle systems, materials, GUI, and meshes imported with `instantiate_mesh_asset`. Call `reload_asset` to force it.",
 	"- To add a file that lives outside the project (a download, a file generated in a temporary folder), use `import_asset`: it copies it into `assets/` and returns its project-relative path, ready for `instantiate_mesh_asset`, `assign_texture_to_material`, etc.",
 	"- Never edit the files inside `*.scene` folders or `project.bjseditor` by hand: they are rewritten each time the user saves.",
+	"- The `agentdata/` folder of the automation scripts is deleted when you finish your answer: don't rely on its scripts in a later answer.",
 ];
 
 const server = new McpServer(
@@ -92,6 +93,7 @@ const server = new McpServer(
 			"- For many copies of the same mesh, `create_instance` already creates N instances in one call; prefer it over many separate creations.",
 			"",
 			"CORRECTNESS & STYLE RULES:",
+			"- Don't save the project on your own: the user reviews what you did, maybe tweaks it, and saves it themselves. Only call `save_scene` when they ask; the editor asks them to confirm.",
 			"- Prefer `create_instance` over `clone_mesh`; clone only when a copy needs a different material. Instances share the source mesh's parent so the hierarchy stays readable.",
 			"- Non-shadow-casting lights belong in the ClusteredLightContainer (`add_light_to_clustered_container`).",
 			"- Units are centimeters; imported glTF/GLB assets are auto-scaled ×100. New TypeScript scripts must live under `src/`.",

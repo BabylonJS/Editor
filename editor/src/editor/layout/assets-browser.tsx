@@ -47,6 +47,7 @@ import { ICommandPaletteType } from "../dialogs/command-palette/command-palette"
 import { getMaterialCommands, getMaterialsLibraryCommands } from "../dialogs/command-palette/material";
 
 import { loadScene } from "../../project/load/scene";
+import { getAgentDataDirectory } from "../../project/agent-data";
 import { saveProject, saveProjectConfiguration } from "../../project/save/save";
 import { getProjectAssetsRootUrl, onProjectConfigurationChangedObservable, projectConfiguration } from "../../project/configuration";
 
@@ -268,11 +269,16 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 		return this.state.browsedPath?.startsWith(join(dirname(projectConfiguration.path!), "/src")) ?? false;
 	}
 
+	private _isAgentDataFolder(projectPath: string, path: string): boolean {
+		const agentDataDirectory = getAgentDataDirectory(projectPath);
+		return path.replace(/\\/g, "/") === agentDataDirectory;
+	}
+
 	private async _refreshFilesTreeNodes(path: string): Promise<void> {
 		const files = await normalizedGlob(join(dirname(path), "**"), {
 			ignore: {
-				childrenIgnored: (p) => directoryPackagesExtensions.includes(extname(p.name).toLowerCase()),
-				ignored: (p) => !p.isDirectory() || directoryPackagesExtensions.includes(extname(p.name).toLowerCase()),
+				childrenIgnored: (p) => directoryPackagesExtensions.includes(extname(p.name).toLowerCase()) || this._isAgentDataFolder(path, p.fullpath()),
+				ignored: (p) => !p.isDirectory() || directoryPackagesExtensions.includes(extname(p.name).toLowerCase()) || this._isAgentDataFolder(path, p.fullpath()),
 			},
 		});
 
@@ -611,9 +617,15 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 	}
 
 	private async _refreshItems(path: string): Promise<void> {
+		const agentDataDirectory = projectConfiguration.path ? getAgentDataDirectory(projectConfiguration.path) : null;
+
 		let files = await readdir(path);
 		files = files.filter((f) => {
 			if (f.charAt(0) === ".") {
+				return false;
+			}
+
+			if (agentDataDirectory && join(path.replace(/\\/g, "/"), f) === agentDataDirectory) {
 				return false;
 			}
 

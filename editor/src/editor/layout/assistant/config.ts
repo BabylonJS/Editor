@@ -30,6 +30,8 @@ export const assistantAllowedEditorTools = [
 	"list_scenes",
 	"get_active_scene",
 	"get_scene_settings",
+	// The editor asks the user to confirm it itself.
+	"save_scene",
 	"set_scene_settings",
 	"get_node",
 	"set_node_transform",

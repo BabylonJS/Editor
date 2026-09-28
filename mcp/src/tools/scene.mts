@@ -50,9 +50,10 @@ export function registerSceneTools(server: McpServer): void {
 		"save_scene",
 		{
 			title: "Save scene",
-			description: "Save the current scene/project to disk. Call this once you are satisfied with the result so the user's work is persisted.",
+			description:
+				"Save the current scene/project to disk. ONLY call it when the user explicitly asks you to save: users want to review, and maybe tweak, what you did before keeping it, and usually save themselves. " +
+				"The editor asks the user to confirm first; when they decline, the result says so — don't save again unless they ask.",
 			inputSchema: z.object({}),
-			annotations: { idempotentHint: true },
 		},
 		async (args): Promise<CallToolResult> => callTextTool("save_scene", args)
 	);

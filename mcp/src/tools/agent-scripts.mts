@@ -28,7 +28,8 @@ export function registerAgentScriptTools(server: McpServer): void {
 				"Write (or overwrite) a JavaScript automation script into the project's `agentdata/` folder (at the project root). " +
 				"The script MUST export `main(editor)` (see `get_editor_api`). These scripts run INSIDE the editor with full access to the `editor` mediator and the live Babylon scene — " +
 				"use them for COMPLEX or VOLUMINOUS tasks the individual tools can't easily express: custom/procedural geometry, algorithmic scattering (forests, cities), bulk programmatic edits. " +
-				"For ordinary scene building, prefer the dedicated tools. After writing, execute it with `run_agent_script`.",
+				"For ordinary scene building, prefer the dedicated tools. After writing, execute it with `run_agent_script`. " +
+				"In the editor's AI assistant, the `agentdata/` folder is deleted when you finish your answer: write and run scripts in the same answer, and never save the project from a script.",
 			inputSchema: z.object({
 				name: z.string().describe('Script file name under `agentdata/`, e.g. `forest.js` (a `.js` extension is added if missing; subfolders allowed, no "..").'),
 				content: z.string().describe("The full JavaScript source. Must contain `export function main(editor) { ... }`."),
@@ -45,7 +46,8 @@ export function registerAgentScriptTools(server: McpServer): void {
 			description:
 				"Compile and execute an `agentdata/` automation script by calling its `main(editor)` export inside the editor. " +
 				"Pass an existing script `name`, or inline `content` to write-and-run in one step. The script can be async and may return a short summary string that is returned to you. " +
-				"Changes are reflected live in the editor. Read `get_editor_api` first to know what the `editor` object can do.",
+				"Changes are reflected live in the editor. Read `get_editor_api` first to know what the `editor` object can do. " +
+				"Prefer inline `content`: the `agentdata/` folder doesn't outlive your answer.",
 			inputSchema: z.object({
 				name: z.string().optional().describe("Name/path of the script under `agentdata/` to run."),
 				content: z.string().optional().describe("Optional inline JavaScript source. If provided, it is written to `agentdata/<name>` (or a default name) then executed."),
