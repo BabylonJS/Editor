@@ -21,6 +21,8 @@ import { isAbstractMesh, isNode, isSoundNode, isSprite, isTransformNode } from "
 import { scriptAssetsCache } from "../loading/script/preload";
 import { getScriptByClassForObject } from "../loading/script/apply";
 
+import { NodeFromSceneOptions } from "./scene";
+import { SoundFromSceneOptions } from "./sound";
 import { IPointerEventDecoratorOptions } from "./events";
 import { VisibleInInspectorDecoratorConfiguration, VisibleInInspectorDecoratorEntityConfiguration, VisibleInspectorDecoratorAssetConfiguration } from "./inspector";
 
@@ -29,12 +31,7 @@ export interface ISceneDecoratorData {
 	_NodesFromScene?: {
 		nodeName: string;
 		propertyKey: string | Symbol;
-	}[];
-
-	// @componentFromScene
-	_ComponentsFromScene?: {
-		componentConstructor: new (...args: any) => any;
-		propertyKey: string | Symbol;
+		options?: NodeFromSceneOptions;
 	}[];
 
 	// @nodeFromDescendants
@@ -53,6 +50,13 @@ export interface ISceneDecoratorData {
 	// @soundFromScene
 	_SoundsFromScene?: {
 		soundName: string;
+		propertyKey: string | Symbol;
+		options?: SoundFromSceneOptions;
+	}[];
+
+	// @componentFromScene
+	_ComponentsFromScene?: {
+		componentConstructor: new (...args: any) => any;
 		propertyKey: string | Symbol;
 	}[];
 
@@ -126,7 +130,11 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 
 	// @nodeFromScene
 	ctor._NodesFromScene?.forEach((params) => {
-		instance[params.propertyKey.toString()] = getNodeByName(formatNameWithId(params.nodeName, options.namingId), scene);
+		instance[params.propertyKey.toString()] = getNodeByName(
+			formatNameWithId(params.nodeName, params.options?.global ? undefined : options.namingId),
+			scene,
+			params.options?.global ? undefined : object._parentContainer
+		);
 	});
 
 	// @componentFromScene
@@ -167,7 +175,11 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 
 	// @soundFromScene
 	ctor._SoundsFromScene?.forEach((params) => {
-		const sound = getNodeByName(formatNameWithId(params.soundName, options.namingId), scene);
+		const sound = getNodeByName(
+			formatNameWithId(params.soundName, params.options?.global ? undefined : options.namingId),
+			scene,
+			params.options?.global ? undefined : object._parentContainer
+		);
 		if (sound && isSoundNode(sound)) {
 			instance[params.propertyKey.toString()] = sound ?? null;
 		}
