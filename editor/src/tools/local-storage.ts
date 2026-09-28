@@ -112,53 +112,6 @@ export function trySetTerminalInLocalStorage(terminalPath: string): void {
 }
 
 /**
- * Returns wether or not the AI assistant panel was left open.
- */
-export function tryGetAssistantOpenFromLocalStorage(): boolean {
-	try {
-		return localStorage.getItem("babylonjs-editor-assistant-open") === "true";
-	} catch (e) {
-		return false;
-	}
-}
-
-/**
- * Sets wether or not the AI assistant panel is open in the local storage.
- * @param open defines wether or not the AI assistant panel is open.
- */
-export function trySetAssistantOpenInLocalStorage(open: boolean): void {
-	try {
-		localStorage.setItem("babylonjs-editor-assistant-open", JSON.stringify(open));
-	} catch (e) {
-		// Catch silently.
-	}
-}
-
-/**
- * Returns the size of the AI assistant panel, in percents of the width of the window, or null if none is stored.
- */
-export function tryGetAssistantSizeFromLocalStorage(): number | null {
-	try {
-		const size = parseFloat(localStorage.getItem("babylonjs-editor-assistant-size") ?? "");
-		return isFinite(size) && size > 0 && size < 100 ? size : null;
-	} catch (e) {
-		return null;
-	}
-}
-
-/**
- * Sets the size of the AI assistant panel in the local storage.
- * @param size defines the size of the AI assistant panel, in percents of the width of the window.
- */
-export function trySetAssistantSizeInLocalStorage(size: number): void {
-	try {
-		localStorage.setItem("babylonjs-editor-assistant-size", size.toString());
-	} catch (e) {
-		// Catch silently.
-	}
-}
-
-/**
  * Returns the path of the Claude Code executable chosen by the user, or null to find it automatically.
  */
 export function tryGetClaudeExecutablePathFromLocalStorage(): string | null {
