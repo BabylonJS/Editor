@@ -6,6 +6,7 @@ import packageJson from "../package.json" with { type: "json" };
 import { registerSceneTools } from "./tools/scene.mjs";
 import { registerNodeTools } from "./tools/nodes.mjs";
 import { registerMeshTools } from "./tools/meshes.mjs";
+import { registerDecalTools } from "./tools/decals.mjs";
 import { registerLightTools } from "./tools/lights.mjs";
 import { registerCameraTools } from "./tools/cameras.mjs";
 import { registerRenderingTools } from "./tools/rendering.mjs";
@@ -59,6 +60,7 @@ const server = new McpServer(
 			"- Props, pickups & gameplay objects: import/instance the prop, give dynamic ones a `set_mesh_physics` body (box/capsule), then attach a small behavior script (pickup, damage, button) that references the authored mesh.",
 			"- Player / character: import a character mesh, add a `dynamic` capsule body with `set_mesh_physics`, create/position a `create_camera`, then attach a movement/input script that drives the AUTHORED mesh and camera.",
 			"- Water / effects: use a `water` material on a plane for lakes/rivers; use `instantiate_particle_system` for fire, smoke, sparks, magic, weather.",
+			"- Details on surfaces (logos, posters, graffiti, cracks, stains, road markings, moss): `create_material` + `assign_texture_to_material` with the image (make its alpha visible with `set_material_properties`), then `create_decal` on the wall/floor/prop at a point of its surface. Reuse one material for all the decals of the same image, and adjust them with `update_decal`.",
 			"- Mood & quality: `set_active_camera`, then `set_camera_post_process` on it — `default` for tone mapping + bloom + vignette + depth of field, `ssao` for contact shadows. A sunset = warm directional light color + tuned sky/skybox material.",
 			"",
 			"WHEN SCRIPTS ARE APPROPRIATE (and only then):",
@@ -90,6 +92,7 @@ const server = new McpServer(
 registerSceneTools(server);
 registerNodeTools(server);
 registerMeshTools(server);
+registerDecalTools(server);
 registerLightTools(server);
 registerCameraTools(server);
 registerRenderingTools(server);

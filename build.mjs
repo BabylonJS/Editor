@@ -74,7 +74,7 @@ function build({ x64, arm64 } = options) {
 			compression: "normal",
 			extraFiles: ["bin/**", "templates/**"],
 			files: ["./build/**", "./fonts/**", "./assets/**", "./index.html"],
-			asarUnpack: ["**/node_modules/sharp/**/*", "**/node_modules/@img/**/*", "build/mcp/**/*"],
+			asarUnpack: ["**/node_modules/sharp/**/*", "**/node_modules/@img/**/*", "build/mcp/**/*", "build/assistant/**/*"],
 		},
 	});
 }
