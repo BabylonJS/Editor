@@ -16,12 +16,26 @@ import { IoAdd, IoCloseOutline, IoEllipsisHorizontal } from "react-icons/io5";
 import { Button } from "../../ui/shadcn/ui/button";
 import { SpinnerUIComponent } from "../../ui/spinner";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../ui/shadcn/ui/tooltip";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "../../ui/shadcn/ui/dropdown-menu";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuLabel,
+	DropdownMenuRadioGroup,
+	DropdownMenuRadioItem,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "../../ui/shadcn/ui/dropdown-menu";
 
 import { isWindows } from "../../tools/os";
 import { openSingleFileDialog } from "../../tools/dialog";
 import { execNodePty, NodePtyInstance } from "../../tools/node-pty";
-import { tryGetClaudeExecutablePathFromLocalStorage, trySetClaudeExecutablePathInLocalStorage } from "../../tools/local-storage";
+import {
+	tryGetAssistantAgentFromLocalStorage,
+	tryGetAssistantExecutablePathFromLocalStorage,
+	trySetAssistantAgentInLocalStorage,
+	trySetAssistantExecutablePathInLocalStorage,
+} from "../../tools/local-storage";
 
 import { onProjectConfigurationChangedObservable, projectConfiguration } from "../../project/configuration";
 
@@ -31,8 +45,16 @@ import { Editor } from "../main";
 
 import type { AssistantAssetsWatcher } from "./assistant/watcher";
 import { EditorAssistantIcon } from "./assistant/icon";
-import { findClaudeExecutable, IClaudeExecutable } from "./assistant/claude";
-import { getAssistantMcpServerScriptPath, getClaudeArguments, getWindowsBatchCommandLine, writeAssistantConfiguration } from "./assistant/config";
+import { IAssistantExecutable } from "./assistant/executable";
+import { assistantAgents, EditorAssistantAgentId, getAssistantAgent, IEditorAssistantAgent } from "./assistant/agents";
+import { getAssistantWorkStateFromCodexTitle, getCodexArguments, getCodexEnvironment } from "./assistant/codex";
+import {
+	getAssistantMcpServerScriptPath,
+	getClaudeArguments,
+	getWindowsBatchCommandLine,
+	IAssistantMcpConfigurationOptions,
+	writeAssistantConfiguration,
+} from "./assistant/config";
 import {
 	EditorAssistantWorkState,
 	getAssistantWorkStateAfterHook,
@@ -45,12 +67,7 @@ import {
 } from "./assistant/hooks";
 
 /**
- * Defines the URL of the documentation explaining how to install Claude Code.
- */
-const claudeCodeSetupUrl = "https://code.claude.com/docs/en/setup";
-
-/**
- * Defines the environment variables of the editor that must not reach Claude Code: an internal flag of the editor
+ * Defines the environment variables of the editor that must not reach the agent: an internal flag of the editor
  * (DEBUG, set in development), variables that would make it believe it runs in another application or as Node.js, and
  * the markers another Claude Code session gives to the processes it starts, for an editor started from one.
  */
@@ -72,6 +89,12 @@ const ignoredEnvironmentVariables = [
 	"CLAUDE_CODE_SSE_PORT",
 ];
 
+/**
+ * Defines the environment variables starting with "CODEX_" that are settings of the user. The others are the markers
+ * a Codex session gives to the processes it starts, for an editor started from one: they don't reach the agent either.
+ */
+const userCodexEnvironmentVariables = ["CODEX_HOME", "CODEX_CA_CERTIFICATE"];
+
 export type EditorAssistantStatus = "idle" | "no-project" | "searching" | "not-found" | "starting" | "running" | "exited" | "error";
 
 export interface IEditorAssistantProps {
@@ -88,7 +111,8 @@ export interface IEditorAssistantProps {
 
 export interface IEditorAssistantState {
 	status: EditorAssistantStatus;
-	claude: IClaudeExecutable | null;
+	agent: EditorAssistantAgentId;
+	executable: IAssistantExecutable | null;
 	error: string | null;
 	exitCode: number | null;
 	activity: string | null;
@@ -109,6 +133,7 @@ export class EditorAssistant extends Component<IEditorAssistantProps, IEditorAss
 	private _watcher: AssistantAssetsWatcher | null = null;
 	private _projectPath: string | null = null;
 	private _starting: boolean = false;
+	private _sessionAgent: EditorAssistantAgentId | null = null;
 
 	// Mirrors the state of the editor, which is updated asynchronously, for the events that follow each other.
 	private _workState: EditorAssistantWorkState = "idle";
@@ -124,7 +149,8 @@ export class EditorAssistant extends Component<IEditorAssistantProps, IEditorAss
 
 		this.state = {
 			status: "idle",
-			claude: null,
+			agent: getAssistantAgent(tryGetAssistantAgentFromLocalStorage()).id,
+			executable: null,
 			error: null,
 			exitCode: null,
 			activity: null,
@@ -199,7 +225,7 @@ export class EditorAssistant extends Component<IEditorAssistantProps, IEditorAss
 	}
 
 	/**
-	 * Gets wether or not a Claude Code session is running in the assistant.
+	 * Gets wether or not a session of the agent is running in the assistant.
 	 */
 	public get isRunning(): boolean {
 		return this.state.status === "running";
@@ -213,7 +239,7 @@ export class EditorAssistant extends Component<IEditorAssistantProps, IEditorAss
 	}
 
 	/**
-	 * Starts a Claude Code session in the root folder of the project, connected to this editor window.
+	 * Starts a session of the agent chosen by the user in the root folder of the project, connected to this editor window.
 	 * @param resume defines wether or not to continue the last conversation of the project instead of starting a new one.
 	 */
 	public async start(resume: boolean): Promise<void> {
@@ -231,12 +257,13 @@ export class EditorAssistant extends Component<IEditorAssistantProps, IEditorAss
 		try {
 			this.setState({ status: "searching", error: null, exitCode: null });
 
-			const claude = await findClaudeExecutable(tryGetClaudeExecutablePathFromLocalStorage());
-			if (!claude) {
-				return this.setState({ status: "not-found", claude: null });
+			const agent = getAssistantAgent(this.state.agent);
+			const executable = await agent.findExecutable(tryGetAssistantExecutablePathFromLocalStorage(agent.id));
+			if (!executable) {
+				return this.setState({ status: "not-found", executable: null });
 			}
 
-			this.setState({ status: "starting", claude });
+			this.setState({ status: "starting", executable });
 
 			const editorPath = this.props.editor.path;
 			if (!editorPath) {
@@ -244,37 +271,50 @@ export class EditorAssistant extends Component<IEditorAssistantProps, IEditorAss
 			}
 
 			const mcpServer = await this._ensureMcpServer();
-			const hooksServer = supportsAssistantHooks(claude.version) ? await this._startHooksServer() : null;
 			const projectDirectory = dirname(this._projectPath);
 
-			const { mcpConfigurationPath, settingsPath } = await writeAssistantConfiguration(
-				joinNative(tmpdir(), "babylonjs-editor-assistant", this._sessionId),
-				{
-					executablePath: ipcRenderer.sendSync("editor:get-executable-path"),
-					serverScriptPath: getAssistantMcpServerScriptPath(editorPath),
-					url: `http://127.0.0.1:${mcpServer.port}`,
-					token: mcpServer.token!,
-				},
-				hooksServer
-			);
+			const mcpOptions: IAssistantMcpConfigurationOptions = {
+				executablePath: ipcRenderer.sendSync("editor:get-executable-path"),
+				serverScriptPath: getAssistantMcpServerScriptPath(editorPath),
+				url: `http://127.0.0.1:${mcpServer.port}`,
+				token: mcpServer.token!,
+			};
+
+			const env = this._getEnvironment();
+
+			let args: string[];
+			if (agent.id === "codex") {
+				// Codex tells what it is doing through the title of its terminal, see _handleTitleChange.
+				args = getCodexArguments(mcpOptions, resume, executable.version);
+				Object.assign(env, getCodexEnvironment(mcpOptions));
+			} else {
+				const hooksServer = supportsAssistantHooks(executable.version) ? await this._startHooksServer() : null;
+				const { mcpConfigurationPath, settingsPath } = await writeAssistantConfiguration(
+					joinNative(tmpdir(), "babylonjs-editor-assistant", this._sessionId),
+					mcpOptions,
+					hooksServer
+				);
+
+				args = getClaudeArguments(mcpConfigurationPath, settingsPath, resume);
+			}
 
 			const terminal = this._ensureTerminal();
 			terminal.reset();
 
-			const args = getClaudeArguments(mcpConfigurationPath, settingsPath, resume);
-			const isBatchFile = isWindows() && /\.(cmd|bat)$/i.test(claude.path);
+			const isBatchFile = isWindows() && /\.(cmd|bat)$/i.test(executable.path);
 
 			const pty = await execNodePty("", {
-				file: isBatchFile ? (process.env.COMSPEC ?? "cmd.exe") : claude.path,
-				args: isBatchFile ? getWindowsBatchCommandLine(claude.path, args) : args,
+				file: isBatchFile ? (process.env.COMSPEC ?? "cmd.exe") : executable.path,
+				args: isBatchFile ? getWindowsBatchCommandLine(executable.path, args) : args,
 				cwd: projectDirectory,
-				env: this._getEnvironment(),
+				env,
 				name: "xterm-256color",
 				cols: terminal.cols,
 				rows: terminal.rows,
 			});
 
 			this._pty = pty;
+			this._sessionAgent = agent.id;
 
 			pty.onGetDataObservable.add((data) => this._terminal?.write(data));
 			pty.onExitObservable.add((exitCode) => {
@@ -293,7 +333,7 @@ export class EditorAssistant extends Component<IEditorAssistantProps, IEditorAss
 
 			await this._startWatcher(projectDirectory);
 
-			// Claude Code may have exited while the watcher was starting.
+			// The agent may have exited while the watcher was starting.
 			if (this._pty !== pty) {
 				this._watcher?.stop();
 				return;
@@ -313,7 +353,7 @@ export class EditorAssistant extends Component<IEditorAssistantProps, IEditorAss
 	}
 
 	/**
-	 * Stops the current Claude Code session, if any, and starts a new one.
+	 * Stops the current session of the agent, if any, and starts a new one.
 	 * @param resume defines wether or not to continue the last conversation of the project instead of starting a new one.
 	 */
 	public async restart(resume: boolean): Promise<void> {
@@ -404,6 +444,36 @@ export class EditorAssistant extends Component<IEditorAssistantProps, IEditorAss
 	}
 
 	/**
+	 * Follows what Codex is doing through the title it gives to its terminal: Codex only runs the hooks the user
+	 * trusted, while the terminal of the assistant always receives the title.
+	 */
+	private _handleTitleChange(title: string): void {
+		if (!this._pty || this._sessionAgent !== "codex") {
+			return;
+		}
+
+		const workState = getAssistantWorkStateFromCodexTitle(title);
+		if (workState === null || workState === this._workState) {
+			return;
+		}
+
+		const wasBusy = this._workState !== "idle";
+		this._setWorkState(workState);
+
+		if (workState === "idle" && wasBusy) {
+			toast.success("AI Assistant is done", {
+				action: this._getShowToastAction(),
+			});
+		} else if (workState === "waiting") {
+			// Stays until the assistant stops waiting.
+			this._inputToastId = toast.warning("AI Assistant needs your input", {
+				duration: Infinity,
+				action: this._getShowToastAction(),
+			});
+		}
+	}
+
+	/**
 	 * Returns the action of the notifications of the assistant, which shows its panel when it is hidden.
 	 */
 	private _getShowToastAction(): { label: string; onClick: () => void } | undefined {
@@ -441,7 +511,7 @@ export class EditorAssistant extends Component<IEditorAssistantProps, IEditorAss
 
 			this.setState({ activity: endpoint });
 
-			// A tool of the editor runs: the user allowed it, before Claude Code tells it once the tool is done.
+			// A tool of the editor runs: the user allowed it, before the agent tells it once the tool is done.
 			if (this._workState === "waiting") {
 				this._setWorkState("working");
 			}
@@ -476,7 +546,11 @@ export class EditorAssistant extends Component<IEditorAssistantProps, IEditorAss
 		const env: Record<string, string> = {};
 
 		Object.entries(process.env).forEach(([key, value]) => {
-			if (value !== undefined && !ignoredEnvironmentVariables.includes(key) && !key.startsWith("VSCODE_")) {
+			if (value === undefined || ignoredEnvironmentVariables.includes(key) || key.startsWith("VSCODE_")) {
+				return;
+			}
+
+			if (!key.startsWith("CODEX_") || userCodexEnvironmentVariables.includes(key)) {
 				env[key] = value;
 			}
 		});
@@ -524,6 +598,7 @@ export class EditorAssistant extends Component<IEditorAssistantProps, IEditorAss
 			this._setWorkState(getAssistantWorkStateAfterInput(this._workState, data));
 		});
 		terminal.onResize(({ cols, rows }) => this._pty?.resize(cols, rows));
+		terminal.onTitleChange((title) => this._handleTitleChange(title));
 
 		this._resizeObserver = new ResizeObserver(() => requestAnimationFrame(() => this._fit()));
 		this._resizeObserver.observe(this._terminalContainer);
@@ -614,7 +689,7 @@ export class EditorAssistant extends Component<IEditorAssistantProps, IEditorAss
 	}
 
 	/**
-	 * Types the paths of the dropped assets or files in the prompt of Claude Code, relative to the project when they
+	 * Types the paths of the dropped assets or files in the prompt of the agent, relative to the project when they
 	 * are in it, so the user can talk about them.
 	 */
 	private _handleDrop(ev: DragEvent<HTMLDivElement>): void {
@@ -654,26 +729,47 @@ export class EditorAssistant extends Component<IEditorAssistantProps, IEditorAss
 		}
 	}
 
-	private _handleLocateClaude(): void {
+	private _handleLocateExecutable(): void {
+		const agent = getAssistantAgent(this.state.agent);
 		const path = openSingleFileDialog({
-			title: "Locate the Claude Code executable",
+			title: `Locate the ${agent.name} executable`,
 		});
 
 		if (!path) {
 			return;
 		}
 
-		trySetClaudeExecutablePathInLocalStorage(path);
+		trySetAssistantExecutablePathInLocalStorage(agent.id, path);
 		this.restart(false);
 	}
 
-	private _handleResetClaudeLocation(): void {
-		trySetClaudeExecutablePathInLocalStorage(null);
+	private _handleResetExecutableLocation(): void {
+		trySetAssistantExecutablePathInLocalStorage(this.state.agent, null);
 		this.restart(false);
+	}
+
+	/**
+	 * Remembers the agent chosen by the user and starts a new session with it. The conversation of the current agent
+	 * can be resumed later from the menu.
+	 */
+	private _handleAgentChange(agentId: EditorAssistantAgentId): void {
+		if (agentId === this.state.agent) {
+			return;
+		}
+
+		trySetAssistantAgentInLocalStorage(agentId);
+
+		this.setState({ agent: agentId, executable: null }, () => {
+			if (this._pty || this.props.open) {
+				this.restart(false);
+			}
+		});
 	}
 
 	private _getHeader(): ReactNode {
-		const { claude, activity } = this.state;
+		const { executable, activity } = this.state;
+		const agent = getAssistantAgent(this.state.agent);
+		const busy = this.state.status === "searching" || this.state.status === "starting";
 
 		return (
 			<div className="flex items-center justify-between gap-2 w-full h-10 px-2 bg-primary-foreground shrink-0">
@@ -687,7 +783,11 @@ export class EditorAssistant extends Component<IEditorAssistantProps, IEditorAss
 							<span className="truncate">{activity}</span>
 						</div>
 					) : (
-						claude && <div className="text-xs text-muted-foreground truncate">Claude Code {claude.version}</div>
+						executable && (
+							<div className="text-xs text-muted-foreground truncate">
+								{agent.name} {executable.version}
+							</div>
+						)
 					)}
 				</div>
 
@@ -713,12 +813,21 @@ export class EditorAssistant extends Component<IEditorAssistantProps, IEditorAss
 									Resume last conversation
 								</DropdownMenuItem>
 								<DropdownMenuSeparator />
-								<DropdownMenuItem onClick={() => this._handleLocateClaude()}>Locate Claude Code executable...</DropdownMenuItem>
-								<DropdownMenuItem disabled={!tryGetClaudeExecutablePathFromLocalStorage()} onClick={() => this._handleResetClaudeLocation()}>
-									Find Claude Code automatically
+								<DropdownMenuLabel className="text-xs font-normal text-muted-foreground">Agent</DropdownMenuLabel>
+								<DropdownMenuRadioGroup value={agent.id} onValueChange={(value) => this._handleAgentChange(value as EditorAssistantAgentId)}>
+									{assistantAgents.map((item) => (
+										<DropdownMenuRadioItem key={item.id} value={item.id} disabled={busy}>
+											{item.name}
+										</DropdownMenuRadioItem>
+									))}
+								</DropdownMenuRadioGroup>
+								<DropdownMenuSeparator />
+								<DropdownMenuItem onClick={() => this._handleLocateExecutable()}>Locate {agent.name} executable...</DropdownMenuItem>
+								<DropdownMenuItem disabled={!tryGetAssistantExecutablePathFromLocalStorage(agent.id)} onClick={() => this._handleResetExecutableLocation()}>
+									Find {agent.name} automatically
 								</DropdownMenuItem>
 								<DropdownMenuSeparator />
-								<DropdownMenuItem onClick={() => shell.openExternal(claudeCodeSetupUrl)}>Claude Code documentation...</DropdownMenuItem>
+								<DropdownMenuItem onClick={() => shell.openExternal(agent.setupUrl)}>{agent.name} documentation...</DropdownMenuItem>
 							</DropdownMenuContent>
 						</DropdownMenu>
 
@@ -752,7 +861,9 @@ export class EditorAssistant extends Component<IEditorAssistantProps, IEditorAss
 				return (
 					<div className="flex flex-col items-center gap-4 text-muted-foreground">
 						<SpinnerUIComponent width={32} height={32} />
-						<div className="text-sm">{this.state.status === "searching" ? "Looking for Claude Code..." : "Starting Claude Code..."}</div>
+						<div className="text-sm">
+							{this.state.status === "searching" ? "Looking for" : "Starting"} {getAssistantAgent(this.state.agent).name}...
+						</div>
 					</div>
 				);
 
@@ -776,16 +887,19 @@ export class EditorAssistant extends Component<IEditorAssistantProps, IEditorAss
 	}
 
 	private _getNotFoundPlaceholder(): ReactNode {
-		const installCommand = isWindows() ? "irm https://claude.ai/install.ps1 | iex" : "curl -fsSL https://claude.ai/install.sh | bash";
-		const customPath = tryGetClaudeExecutablePathFromLocalStorage();
+		const agent = getAssistantAgent(this.state.agent);
+		const otherAgents = assistantAgents.filter((item) => item.id !== agent.id);
+
+		const installCommand = agent.getInstallCommand(isWindows());
+		const customPath = tryGetAssistantExecutablePathFromLocalStorage(agent.id);
 
 		return (
 			<div className="flex flex-col gap-4 max-w-md">
-				<div className="text-lg font-semibold">Claude Code is required</div>
+				<div className="text-lg font-semibold">{agent.name} is required</div>
 
 				<div className="text-sm text-muted-foreground">
-					The assistant runs Claude Code, installed on this computer, and connects it to the editor so Claude can build your scene and add assets to your project. It uses
-					your own Claude account: sign in from this panel the first time.
+					The assistant runs {agent.name}, installed on this computer, and connects it to the editor so {agent.modelName} can build your scene and add assets to your
+					project. It uses your own {agent.account}: sign in from this panel the first time.
 				</div>
 
 				{customPath ? (
@@ -793,8 +907,8 @@ export class EditorAssistant extends Component<IEditorAssistantProps, IEditorAss
 				) : (
 					<>
 						<div className="text-sm text-muted-foreground">
-							Claude Code was not found. Install it with the following command in a {isWindows() ? "PowerShell" : "terminal"}, or with the Claude desktop app, then
-							try again:
+							{agent.name} was not found. Install it with the following command in a {isWindows() ? "PowerShell" : "terminal"}
+							{agent.desktopApp ? `, or with ${agent.desktopApp}` : ""}, then try again:
 						</div>
 
 						<div className="flex items-center gap-2">
@@ -808,18 +922,24 @@ export class EditorAssistant extends Component<IEditorAssistantProps, IEditorAss
 
 				<div className="flex flex-wrap gap-2">
 					<Button onClick={() => this.restart(false)}>Try again</Button>
-					<Button variant="secondary" onClick={() => this._handleLocateClaude()}>
+					<Button variant="secondary" onClick={() => this._handleLocateExecutable()}>
 						Locate executable...
 					</Button>
 					{customPath && (
-						<Button variant="secondary" onClick={() => this._handleResetClaudeLocation()}>
+						<Button variant="secondary" onClick={() => this._handleResetExecutableLocation()}>
 							Find automatically
 						</Button>
 					)}
-					<Button variant="ghost" onClick={() => shell.openExternal(claudeCodeSetupUrl)}>
+					<Button variant="ghost" onClick={() => shell.openExternal(agent.setupUrl)}>
 						Installation guide
 					</Button>
 				</div>
+
+				{otherAgents.map((item: IEditorAssistantAgent) => (
+					<Button key={item.id} variant="link" className="self-start h-auto p-0 text-sm" onClick={() => this._handleAgentChange(item.id)}>
+						Use {item.name} instead
+					</Button>
+				))}
 			</div>
 		);
 	}
@@ -827,7 +947,9 @@ export class EditorAssistant extends Component<IEditorAssistantProps, IEditorAss
 	private _getExitedBar(): ReactNode {
 		return (
 			<div className="absolute left-0 right-0 bottom-0 flex flex-wrap items-center justify-between gap-2 px-3 py-2 bg-secondary/95 border-t border-border/50">
-				<div className="text-sm text-muted-foreground">Claude Code exited{this.state.exitCode ? ` (code ${this.state.exitCode})` : ""}.</div>
+				<div className="text-sm text-muted-foreground">
+					{getAssistantAgent(this.state.agent).name} exited{this.state.exitCode ? ` (code ${this.state.exitCode})` : ""}.
+				</div>
 				<div className="flex gap-2">
 					<Button size="sm" variant="secondary" onClick={() => this.restart(true)}>
 						Resume conversation

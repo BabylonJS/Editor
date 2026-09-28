@@ -112,26 +112,51 @@ export function trySetTerminalInLocalStorage(terminalPath: string): void {
 }
 
 /**
- * Returns the path of the Claude Code executable chosen by the user, or null to find it automatically.
+ * Returns the identifier of the agent the user chose to run in the AI assistant, or null if none was chosen yet.
  */
-export function tryGetClaudeExecutablePathFromLocalStorage(): string | null {
+export function tryGetAssistantAgentFromLocalStorage(): string | null {
 	try {
-		return localStorage.getItem("babylonjs-editor-assistant-claude-path") || null;
+		return localStorage.getItem("babylonjs-editor-assistant-agent") || null;
 	} catch (e) {
 		return null;
 	}
 }
 
 /**
- * Sets the path of the Claude Code executable chosen by the user in the local storage.
+ * Sets the identifier of the agent the user chose to run in the AI assistant in the local storage.
+ * @param agent defines the identifier of the agent, like "claude" or "codex".
+ */
+export function trySetAssistantAgentInLocalStorage(agent: string): void {
+	try {
+		localStorage.setItem("babylonjs-editor-assistant-agent", agent);
+	} catch (e) {
+		// Catch silently.
+	}
+}
+
+/**
+ * Returns the path of the executable of the given agent chosen by the user, or null to find it automatically.
+ * @param agent defines the identifier of the agent, like "claude" or "codex".
+ */
+export function tryGetAssistantExecutablePathFromLocalStorage(agent: string): string | null {
+	try {
+		return localStorage.getItem(`babylonjs-editor-assistant-${agent}-path`) || null;
+	} catch (e) {
+		return null;
+	}
+}
+
+/**
+ * Sets the path of the executable of the given agent chosen by the user in the local storage.
+ * @param agent defines the identifier of the agent, like "claude" or "codex".
  * @param path defines the absolute path of the executable, or null to find it automatically.
  */
-export function trySetClaudeExecutablePathInLocalStorage(path: string | null): void {
+export function trySetAssistantExecutablePathInLocalStorage(agent: string, path: string | null): void {
 	try {
 		if (path) {
-			localStorage.setItem("babylonjs-editor-assistant-claude-path", path);
+			localStorage.setItem(`babylonjs-editor-assistant-${agent}-path`, path);
 		} else {
-			localStorage.removeItem("babylonjs-editor-assistant-claude-path");
+			localStorage.removeItem(`babylonjs-editor-assistant-${agent}-path`);
 		}
 	} catch (e) {
 		// Catch silently.

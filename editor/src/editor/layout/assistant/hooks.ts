@@ -3,7 +3,7 @@ import { IncomingMessage, ServerResponse } from "http";
 
 import { isMCPTokenValid, listenMCPServer, MCPTokenHeader } from "../../../mcp/server";
 
-import { compareVersions } from "./claude";
+import { compareVersions } from "./executable";
 
 /**
  * Defines what the AI assistant is doing: nothing, working on a request of the user, or waiting for the user to answer
