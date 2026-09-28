@@ -105,6 +105,11 @@
 		{ "name": "list_agent_scripts", "description": "List the .js automation scripts in the project's agentdata/ folder." },
 		{ "name": "get_screenshot", "description": "Capture a preview screenshot for visual verification (image)." },
 		{ "name": "focus_node", "description": "Frame the editor camera on a node." },
+		{ "name": "play_scene", "description": "Play the game in the editor's preview and get its compile errors, runtime errors and logs." },
+		{ "name": "stop_scene", "description": "Stop the game playing in the preview." },
+		{ "name": "simulate_input", "description": "Hold keys, move the mouse and click in the playing game to test controllers." },
+		{ "name": "inspect_play_scene", "description": "Read the camera, playing animations and node transforms of the playing game." },
+		{ "name": "get_console_logs", "description": "Read the messages of the editor's console, including the logs and errors of the playing game." },
 		{ "name": "run_project", "description": "Start the project's dev/run process." },
 		{ "name": "execute_batch", "description": "Execute an ordered list of { tool, arguments } actions in one round-trip." }
 	],

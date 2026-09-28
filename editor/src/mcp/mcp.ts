@@ -25,6 +25,7 @@ import { openMarketplaceAndSelectAsset, openMarketplaceAndSearch, downloadMarket
 import { listScripts, createScript, readScript, writeScript, attachScript, listAttachedScripts, setScriptExportedValue, detachScript } from "./scripts/scripts";
 import { writeAgentScript, runAgentScript, listAgentScripts, getEditorApi } from "./scripts/editor-scripts";
 import { getScreenshot, focusNode, runProject } from "./screenshot";
+import { playScene, stopScene, simulateInput, inspectPlayScene, getConsoleLogs } from "./play/play";
 import { createBatchHandler } from "./batch";
 import { createMCPRequestListener, listenMCPServer } from "./server";
 
@@ -146,6 +147,13 @@ export const MCPEndpoints: Record<string, (scene: Scene, data: any, options: IMC
 	get_screenshot: getScreenshot,
 	focus_node: focusNode,
 	run_project: runProject,
+
+	// Play-testing the game in the preview
+	play_scene: playScene,
+	stop_scene: stopScene,
+	simulate_input: simulateInput,
+	inspect_play_scene: inspectPlayScene,
+	get_console_logs: getConsoleLogs,
 };
 
 // Batch endpoint reuses the same handlers from the map above.
