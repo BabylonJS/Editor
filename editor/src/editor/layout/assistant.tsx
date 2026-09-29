@@ -201,7 +201,8 @@ export class EditorAssistant extends Component<IEditorAssistantProps, IEditorAss
 					onDragLeave={() => this.setState({ dragOver: false })}
 					onDrop={(ev) => this._handleDrop(ev)}
 				>
-					<div className={`absolute inset-0 p-2 overflow-hidden ${showTerminal ? "" : "invisible"}`}>
+					{/* Isolated: the layers of the terminal (the link layer of the WebGL renderer, the scrollbar...) have z-indexes that would put them above the bar shown when the agent exits, catching its clicks. */}
+					<div className={`absolute inset-0 p-2 overflow-hidden isolate ${showTerminal ? "" : "invisible"}`}>
 						<div ref={(r) => (this._terminalContainer = r)} className="w-full h-full overflow-hidden" />
 					</div>
 
