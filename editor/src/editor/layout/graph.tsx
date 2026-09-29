@@ -162,6 +162,9 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 
 	private _playRefreshIntervalId: number | null = null;
 
+	private _tree: Tree | null = null;
+	private _scrollToNodeTimeout: ReturnType<typeof setTimeout> | null = null;
+
 	public constructor(props: IEditorGraphProps) {
 		super(props);
 
@@ -269,6 +272,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 
 				<div className="flex flex-col w-full h-full overflow-y-auto">
 					<Tree
+						ref={(r) => (this._tree = r)}
 						contents={this.state.nodes}
 						onNodeExpand={(n) => this._handleNodeExpanded(n)}
 						onNodeCollapse={(n) => this._handleNodeCollapsed(n)}
@@ -507,17 +511,26 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			}
 		}
 
+		let treeNodeId: string | number | null = null;
+
 		this._forEachNode(this.state.nodes, (n) => {
 			if (typeof n.id === "string" && idsToExpand.includes(n.id)) {
 				n.isExpanded = true;
 			}
 
 			n.isSelected = n.nodeData === node;
+
+			if (n.isSelected) {
+				treeNodeId = n.id;
+			}
 		});
 
-		this.setState({
-			nodes: this.state.nodes,
-		});
+		this.setState(
+			{
+				nodes: this.state.nodes,
+			},
+			() => this._scrollToNode(treeNodeId)
+		);
 	}
 
 	/**
@@ -533,15 +546,39 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 	 * @param node defines the reference to the node to select in the graph.
 	 */
 	public addToSelectedNodes(node: Node | IParticleSystem | Sprite): void {
+		let treeNodeId: string | number | null = null;
+
 		this._forEachNode(this.state.nodes, (n) => {
 			if (n.nodeData === node) {
 				n.isSelected = true;
+				treeNodeId = n.id;
 			}
 		});
 
-		this.setState({
-			nodes: this.state.nodes,
-		});
+		this.setState(
+			{
+				nodes: this.state.nodes,
+			},
+			() => this._scrollToNode(treeNodeId)
+		);
+	}
+
+	/**
+	 * Scrolls the graph to center the given node of the tree, selected from elsewhere (the preview for example), when it
+	 * isn't visible. The parents expanded to show it open with an animation of 200ms: it scrolls once they are open.
+	 * @param treeNodeId defines the id of the node of the tree to show.
+	 */
+	private _scrollToNode(treeNodeId: string | number | null): void {
+		if (this._scrollToNodeTimeout) {
+			clearTimeout(this._scrollToNodeTimeout);
+		}
+
+		this._scrollToNodeTimeout = setTimeout(() => {
+			if (treeNodeId !== null) {
+				// Chromium only, not typed: centers the node only when it isn't visible.
+				(this._tree?.getNodeContentElement(treeNodeId) as any)?.scrollIntoViewIfNeeded(true);
+			}
+		}, 200);
 	}
 
 	/**
