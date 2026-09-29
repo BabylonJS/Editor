@@ -9,7 +9,7 @@ import type { EditorAssistantWorkState } from "./hooks";
 /**
  * Defines the colors of the icon of the AI assistant, the ones of the animated border of its button.
  */
-const assistantIconColors = ["#d97757", "#f5b041", "#e8618c", "#9b6bf2", "#4f8ff7", "#3ec9a7"];
+export const assistantIconColors = ["#d97757", "#f5b041", "#e8618c", "#9b6bf2", "#4f8ff7", "#3ec9a7"];
 
 export interface IEditorAssistantIconProps {
 	/**

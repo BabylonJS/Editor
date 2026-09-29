@@ -20,7 +20,9 @@ import { EditorAnimation } from "./layout/animation";
 import { EditorAssetsBrowser } from "./layout/assets-browser";
 import { EditorTerminal } from "./layout/terminal";
 import { EditorMarketplaceBrowser } from "./layout/marketplace";
+
 import { EditorAssistant } from "./layout/assistant";
+import { playAssistantSmokeEffectOnce } from "./layout/assistant/smoke";
 
 export interface IEditorLayoutProps {
 	/**
@@ -311,6 +313,7 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
 		if (isOpen && isCollapsed) {
 			if (animate) {
 				this._animateAssistantPanel();
+				playAssistantSmokeEffectOnce(() => this._getAssistantPanelLeft(), 300);
 			}
 			panel.resize(this._assistantSize);
 		} else if (!isOpen && !isCollapsed) {
@@ -341,6 +344,11 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
 			this._assistantAnimationTimeout = null;
 			group.classList.remove("editor-assistant-panel-animating");
 		}, 300);
+	}
+
+	private _getAssistantPanelLeft(): number {
+		const element = document.querySelector<HTMLElement>('[data-panel-id="editor-assistant"]');
+		return element?.getBoundingClientRect().left ?? window.innerWidth;
 	}
 
 	private _handleSplitLayout(sizes: number[]): void {
