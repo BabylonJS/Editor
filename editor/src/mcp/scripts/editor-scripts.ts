@@ -205,6 +205,9 @@ CONVENTIONS
 - After building, call: await editor.layout.graph.refresh() and select a representative node.
 - The editor source under /editor/src/editor (preview, layout, graph, inspector, assets-browser) documents the full surface if you need more.
 
+TERRAINS
+Never displace ground or terrain vertices or replace their geometry in scripts: create a terrain with create_terrain (grounds can't be sculpted) and shape it with the terrain tools (sculpt_terrain, generate_terrain, modify_terrain, set_terrain_layer, paint_terrain). Read heights with sample_terrain and place objects with snap_nodes_to_terrain. In game scripts, use getTerrainHeightAtCoordinates / getTerrainNormalAtCoordinatesToRef from babylonjs-editor-tools (they work for every terrain and return null over holes).
+
 EXAMPLE — scatter a forest from an existing "Tree" mesh:
 
     import { Tools, Vector3 } from "babylonjs";

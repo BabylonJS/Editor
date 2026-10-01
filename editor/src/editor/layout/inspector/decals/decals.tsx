@@ -177,8 +177,9 @@ export class EditorDecalsInspector extends Component<IEditorDecalsInspectorProps
 		return (
 			<div
 				className={`
-                    flex gap-2 w-full h-24 rounded-lg
-                    ${this.state.assetDragOver ? "bg-secondary" : ""}
+                    flex gap-2 w-full h-24 rounded-lg p-2
+					border-[1px] border-secondary-foreground/35 border-dashed
+                    ${this.state.assetDragOver ? "bg-accent" : "bg-primary-foreground/35"}
                     transition-all duration-300 ease-in-out
                 `}
 				onDragOver={(ev) => {
@@ -190,13 +191,12 @@ export class EditorDecalsInspector extends Component<IEditorDecalsInspectorProps
 			>
 				<div
 					className={`
-                        flex justify-center items-center w-24 h-24 rounded-lg
+                        flex justify-center items-center h-20 aspect-square rounded-lg
                         ${decalsConfiguration.materialPath ? "bg-secondary" : "bg-accent"}
                         transition-all duration-300 ease-in-out
                     `}
 				>
 					{!decalsConfiguration.materialPath && <MdOutlineQuestionMark className="w-8 h-8" />}
-
 					{decalsConfiguration.materialPath && <GiMaterialsScience className="w-8 h-8" />}
 				</div>
 

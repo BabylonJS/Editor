@@ -31,6 +31,7 @@ import { GPUParticleSystem } from "@babylonjs/core/Particles/gpuParticleSystem";
 import { Sprite } from "@babylonjs/core/Sprites/sprite";
 
 import { SoundNode } from "./sound";
+import { TerrainMesh } from "./terrain";
 import { SpriteManagerNode } from "./sprite";
 
 /**
@@ -293,4 +294,13 @@ export function isSoundNode(object: any): object is SoundNode {
  */
 export function isGaussianSplattingMesh(object: any): object is GaussianSplattingMesh {
 	return object.getClassName?.() === "GaussianSplattingMesh";
+}
+
+/**
+ * Returns whether or not the given mesh is a terrain made with the editor, or a clone of one.
+ * Instances of a terrain are InstancedMesh: test their `sourceMesh`.
+ * @param object defines the reference to the object to test.
+ */
+export function isTerrainMesh(object: unknown): object is TerrainMesh {
+	return (object as any)?.isTerrainMesh === true;
 }

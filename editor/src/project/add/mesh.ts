@@ -2,6 +2,11 @@ import { MeshBuilder, Mesh, Node } from "babylonjs";
 
 import { Editor } from "../../editor/main";
 
+import { TerrainMesh } from "../../editor/nodes/terrain";
+
+import { ITerrainCreateOptions } from "../../tools/terrain/engine/types";
+import { initializeTerrainMesh } from "../../tools/terrain/engine/structure";
+
 import { configureAddedMesh } from "./configure";
 
 export function addBoxMesh(editor: Editor, parent?: Node) {
@@ -43,6 +48,15 @@ export function addGroundMesh(editor: Editor, parent?: Node) {
 	};
 
 	return configureAddedMesh(editor, ground, parent);
+}
+
+export function addTerrainMesh(editor: Editor, parent?: Node, options?: ITerrainCreateOptions) {
+	const terrain = new TerrainMesh(options?.name ?? "New Terrain", editor.layout.preview.scene);
+	initializeTerrainMesh(terrain, options);
+
+	configureAddedMesh(editor, terrain, parent);
+
+	return terrain;
 }
 
 export function addSphereMesh(editor: Editor, parent?: Node) {

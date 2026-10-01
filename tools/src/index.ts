@@ -19,6 +19,7 @@ export * from "./tools/ragdoll";
 export * from "./tools/mesh";
 export * from "./tools/node";
 export * from "./tools/navmesh";
+export * from "./tools/terrain";
 
 export * from "./rendering/vls";
 export * from "./rendering/ssr";
@@ -55,3 +56,5 @@ export * from "./cinematic/cinematic";
 export * from "./loading/database/indexdb";
 export * from "./loading/database/database";
 export * from "./loading/database/preload";
+
+export * from "./terrain/index";

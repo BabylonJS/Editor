@@ -7,6 +7,7 @@ import { readSceneDirectories } from "../tools/scene.mjs";
 
 import { compressFileToKtx } from "./assets/ktx.mjs";
 import { collectUsedAssetsForScene } from "./assets/collect.mjs";
+import { extractTerrainWeightMaps } from "./assets/terrain.mjs";
 import { extractNodeMaterialTextures } from "./assets/material.mjs";
 import { getExtractedTextureOutputPath } from "./assets/texture.mjs";
 import { extractNodeParticleSystemSetTextures, extractParticleSystemTextures } from "./assets/particle-system.mjs";
@@ -720,6 +721,18 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 	// Manage usedfiles
 	const usedFiles = await collectUsedAssetsForScene(scene, options.publicDir);
 	usedFiles.push(`${options.sceneName}.babylon`);
+
+	// Extract terrain weight maps (listed in an array of the plugin data, where the collection above doesn't look)
+	for (const material of materials) {
+		const relativePaths = await extractTerrainWeightMaps(material, options);
+
+		relativePaths.forEach((relativePath) => {
+			if (!usedFiles.includes(relativePath)) {
+				usedFiles.push(relativePath);
+				options.exportedAssets.push(join(options.publicDir, relativePath));
+			}
+		});
+	}
 
 	const geometryFiles = usedFiles.filter((file) => extname(file).toLowerCase() === ".babylonbinarymeshdata").map((file) => basename(file));
 

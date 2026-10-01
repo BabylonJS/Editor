@@ -16,6 +16,7 @@ import {
 	Vector3,
 	_GetAudioEngine,
 } from "babylonjs";
+import { registerTerrainMaterialPlugin } from "babylonjs-editor-tools";
 
 import { Editor } from "../../editor/main";
 
@@ -46,6 +47,7 @@ import { isCubeTexture, isHDRCubeTexture, isTexture } from "../../tools/guards/t
 import { updateAllLights, updatePointLightShadowMapRenderListPredicate } from "../../tools/light/shadows";
 
 import { registerTextureParser } from "./texture";
+import { registerTerrainMeshParser } from "./terrain";
 import { createNewSceneDefaultNodes } from "./default";
 import { LoadSceneProgressComponent, showLoadSceneProgressDialog } from "./progress";
 
@@ -104,6 +106,9 @@ export type ISceneLoaderPluginOptions = SceneLoaderOptions & {
 
 export async function loadScene(editor: Editor, projectPath: string, scenePath: string, options?: SceneLoaderOptions): Promise<SceneLoadResult> {
 	registerTextureParser(editor);
+
+	registerTerrainMeshParser(editor);
+	registerTerrainMaterialPlugin();
 
 	const scene = editor.layout.preview.scene;
 	const relativeScenePath = scenePath.replace(join(projectPath, "/"), "");

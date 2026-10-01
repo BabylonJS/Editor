@@ -81,6 +81,52 @@ Lower quality levels reduce memory and improve performance (especially on mobile
 `high` (untouched), `medium` (half-size textures), and `low` (quarter-size). `very-low` is even more
 aggressive on shadows and LODs.
 
+## Terrains
+
+Support for terrains (the `TerrainMesh` nodes sculpted and painted in the editor) is **not** included by default, for
+tree-shaking purposes: like Gaussian Splatting, it is registered by importing its file once in the code of the app,
+before `loadScene`:
+
+```ts
+import "babylonjs-editor-tools/loading/terrain";
+```
+
+The import registers the parser of the terrains and `TerrainMaterialPlugin`; `loadScene` then waits for the weight
+maps (the painted layers) and the layer textures. Don't rely on `src/scripts.ts` for it: the file written when the
+project is played in the editor imports every plugin, the one written by `babylonjs-editor-cli pack` (Generate)
+imports none. Without the import, a scene that contains a terrain is not loaded entirely: Babylon.js logs
+`BABYLON.TerrainMaterialPlugin not found, you may have missed an import.` and stops parsing the scene at the terrain
+material (its meshes are missing). What matters:
+
+- Terrains are exported as a `GroundMesh` flagged `isTerrainMesh`: the parser sets `mesh.isTerrainMesh` on them
+  (`isTerrainMesh(mesh)`) and repairs their `GroundMesh` internals so their heights match the relief. Other loaders
+  (e.g. the Babylon.js sandbox) still get a ground.
+
+- `texturesQuality` (or `quality`) also scales the terrain layer textures: `high` full size, `medium` half,
+  `low` and `very-low` a quarter (at least 128 px). Weight maps are data: they are never downscaled or
+  compressed.
+- Nothing to set for the weight maps: games free their CPU copy once they are on the GPU (4 MB per 1024 × 1024
+  map) and load them again from their files after a WebGL context loss. Only a game that reads or paints them at
+  runtime (`getWeightMap`, `updateWeightMapRegion`) sets `TerrainMaterialPlugin.KeepWeightMapData = true` **before**
+  `loadScene`, like the editor does.
+- `engine.doNotHandleContextLost = true` (or the `doNotHandleContextLost` engine option) keeps no CPU copy of the
+  textures for the recovery of a lost WebGL context: it saves 64 MB for 8 layers of 1024 px, but the page must be
+  reloaded after a context loss. Meant for memory-constrained devices (mobile).
+- Terrain layers need WebGL2 or WebGPU (WebGL1 renders the relief with the plain PBR material). Scenes with
+  terrains also load on a `NullEngine` (servers, tests), without GPU work.
+- Read heights with `getTerrainHeightAtCoordinates` (see [runtime-helpers.md](runtime-helpers.md#terrains)).
+
+```ts
+import { loadScene } from "babylonjs-editor-tools";
+
+import "babylonjs-editor-tools/loading/terrain";
+
+await loadScene("/scene/", "example.babylon", scene, scriptsMap, {
+    quality: "high",
+    texturesQuality: "medium", // Terrain layer textures at half size.
+});
+```
+
 ## Typical bootstrap
 
 This is how the templates wire it up (vanilla JS template, abridged):
@@ -128,4 +174,5 @@ Notes:
 ## Loading sub-scenes / containers
 
 To load a `.scene` you want to instantiate (rather than append into the main scene), use the `@sceneAsset`
-decorator and the `AdvancedAssetContainer` API — see [scene-containers.md](scene-containers.md).
+decorator and the `AdvancedAssetContainer` API — see [scene-containers.md](scene-containers.md). Their terrains
+are set up like the ones of the main scene, as are the terrain materials loaded with `loadMaterialFromFile`.
