@@ -16,7 +16,6 @@ import { IoAdd, IoCloseOutline, IoEllipsisHorizontal } from "react-icons/io5";
 
 import { Button } from "../../ui/shadcn/ui/button";
 import { SpinnerUIComponent } from "../../ui/spinner";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../ui/shadcn/ui/tooltip";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -978,56 +977,44 @@ export class EditorAssistant extends Component<IEditorAssistantProps, IEditorAss
 					)}
 				</div>
 
-				<TooltipProvider delayDuration={0}>
-					<div className="flex items-center gap-1 shrink-0">
-						<Tooltip>
-							<TooltipTrigger asChild>
-								<Button variant="ghost" className="w-8 h-8 !p-0" disabled={!projectConfiguration.path} onClick={() => this.restart(false)}>
-									<IoAdd className="w-5 h-5" />
-								</Button>
-							</TooltipTrigger>
-							<TooltipContent>New conversation</TooltipContent>
-						</Tooltip>
+				<div className="flex items-center gap-1 shrink-0">
+					<Button variant="ghost" className="w-8 h-8 !p-0" disabled={!projectConfiguration.path} onClick={() => this.restart(false)}>
+						<IoAdd className="w-5 h-5" />
+					</Button>
 
-						<DropdownMenu>
-							<DropdownMenuTrigger asChild>
-								<Button variant="ghost" className="w-8 h-8 !p-0">
-									<IoEllipsisHorizontal className="w-5 h-5" />
-								</Button>
-							</DropdownMenuTrigger>
-							<DropdownMenuContent align="end">
-								<DropdownMenuItem disabled={!projectConfiguration.path} onClick={() => this.restart(true)}>
-									Resume last conversation
-								</DropdownMenuItem>
-								<DropdownMenuSeparator />
-								<DropdownMenuLabel className="text-xs font-normal text-muted-foreground">Agent</DropdownMenuLabel>
-								<DropdownMenuRadioGroup value={agent.id} onValueChange={(value) => this._handleAgentChange(value as EditorAssistantAgentId)}>
-									{assistantAgents.map((item) => (
-										<DropdownMenuRadioItem key={item.id} value={item.id} disabled={busy}>
-											{item.name}
-										</DropdownMenuRadioItem>
-									))}
-								</DropdownMenuRadioGroup>
-								<DropdownMenuSeparator />
-								<DropdownMenuItem onClick={() => this._handleLocateExecutable()}>Locate {agent.name} executable...</DropdownMenuItem>
-								<DropdownMenuItem disabled={!tryGetAssistantExecutablePathFromLocalStorage(agent.id)} onClick={() => this._handleResetExecutableLocation()}>
-									Find {agent.name} automatically
-								</DropdownMenuItem>
-								<DropdownMenuSeparator />
-								<DropdownMenuItem onClick={() => shell.openExternal(agent.setupUrl)}>{agent.name} documentation...</DropdownMenuItem>
-							</DropdownMenuContent>
-						</DropdownMenu>
+					<DropdownMenu>
+						<DropdownMenuTrigger asChild>
+							<Button variant="ghost" className="w-8 h-8 !p-0">
+								<IoEllipsisHorizontal className="w-5 h-5" />
+							</Button>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent align="end">
+							<DropdownMenuItem disabled={!projectConfiguration.path} onClick={() => this.restart(true)}>
+								Resume last conversation
+							</DropdownMenuItem>
+							<DropdownMenuSeparator />
+							<DropdownMenuLabel className="text-xs font-normal text-muted-foreground">Agent</DropdownMenuLabel>
+							<DropdownMenuRadioGroup value={agent.id} onValueChange={(value) => this._handleAgentChange(value as EditorAssistantAgentId)}>
+								{assistantAgents.map((item) => (
+									<DropdownMenuRadioItem key={item.id} value={item.id} disabled={busy}>
+										{item.name}
+									</DropdownMenuRadioItem>
+								))}
+							</DropdownMenuRadioGroup>
+							<DropdownMenuSeparator />
+							<DropdownMenuItem onClick={() => this._handleLocateExecutable()}>Locate {agent.name} executable...</DropdownMenuItem>
+							<DropdownMenuItem disabled={!tryGetAssistantExecutablePathFromLocalStorage(agent.id)} onClick={() => this._handleResetExecutableLocation()}>
+								Find {agent.name} automatically
+							</DropdownMenuItem>
+							<DropdownMenuSeparator />
+							<DropdownMenuItem onClick={() => shell.openExternal(agent.setupUrl)}>{agent.name} documentation...</DropdownMenuItem>
+						</DropdownMenuContent>
+					</DropdownMenu>
 
-						<Tooltip>
-							<TooltipTrigger asChild>
-								<Button variant="ghost" className="w-8 h-8 !p-0" onClick={() => this.props.editor.setAssistantOpen(false)}>
-									<IoCloseOutline className="w-5 h-5" />
-								</Button>
-							</TooltipTrigger>
-							<TooltipContent>Hide the assistant (the session keeps running)</TooltipContent>
-						</Tooltip>
-					</div>
-				</TooltipProvider>
+					<Button variant="ghost" className="w-8 h-8 !p-0" onClick={() => this.props.editor.setAssistantOpen(false)}>
+						<IoCloseOutline className="w-5 h-5" />
+					</Button>
+				</div>
 			</div>
 		);
 	}
