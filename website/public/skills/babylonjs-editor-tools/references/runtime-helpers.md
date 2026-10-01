@@ -132,6 +132,74 @@ other meshes. The static ones are merged per material when the scene is saved.
 - `setStaticDecalsEnabled(enabled, scene)` shows or hides the static decals — e.g. to save draw calls on
   low-end devices.
 
+## Terrains
+
+Terrains are the `TerrainMesh` nodes sculpted and painted in the editor's Terrain tab (or by an agent with the
+terrain MCP tools). They are exported as a `GroundMesh` flagged with `isTerrainMesh` when the scene is loaded (the
+`TerrainMesh` interface of `babylonjs-editor-tools`). Their relief (holes included) is regular geometry; their texture
+layers come from a `TerrainMaterialPlugin` on a PBR material. Both need `babylonjs-editor-tools/loading/terrain` to be
+imported once in the app (see [loading-scenes.md](loading-scenes.md#terrains)).
+
+```ts
+getTerrainHeightAtCoordinates(mesh, x, z): number | null
+getTerrainNormalAtCoordinatesToRef(mesh, x, z, result: Vector3): boolean
+invalidateTerrainHeightCache(mesh): void
+isTerrainMesh(mesh): mesh is TerrainMesh
+getTerrainMaterialPlugin(material): TerrainMaterialPlugin | null
+```
+
+- `x` and `z` are **world** coordinates in centimeters. The height is the world Y (cm) of the rendered surface,
+  or `null` outside the terrain, over a hole, or when the mesh is not a terrain.
+- `getTerrainNormalAtCoordinatesToRef` writes the world normal of the surface into `result` and returns `false`
+  (`result` untouched) where the height would be `null`. Slope in degrees: `Math.acos(normal.y) * 180 / Math.PI`.
+- Both work for every terrain, its clones (they keep the flag) and its instances, moved, rotated or scaled. The first call caches the heights (a few ms at 1024 subdivisions); the next calls are O(1). Call
+  `invalidateTerrainHeightCache(mesh)` after editing the vertex data of a terrain in place at runtime.
+- **Never** use `getHeightAtCoordinates` / `getNormalAtCoordinates` (inherited from `GroundMesh`) on terrains: they
+  ignore holes and return the terrain's `position.y` outside of it instead of `null`.
+- `isTerrainMesh(mesh)` is `true` for the terrains and their clones (`mesh.isTerrainMesh`; `getClassName()` stays
+  `"GroundMesh"`, `"Mesh"` for a clone; for an instance, test its `sourceMesh`).
+- `getTerrainMaterialPlugin(mesh.material)?.data.layers` lists the texture layers as configured in the editor
+  (`id`, `name`, texture paths, `tileSize` in cm, `tint`, `roughness`, `metallic`...). `plugin.updateLayer(id,
+  patch)` changes a layer at runtime: tint, tiling and PBR values apply at once, a new texture path rebuilds the
+  layer textures. There is no runtime sculpting or painting API: sculpt and paint in the editor.
+
+```ts
+import { Mesh } from "@babylonjs/core/Meshes/mesh";
+import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { getTerrainHeightAtCoordinates, getTerrainNormalAtCoordinatesToRef, visibleAsEntity } from "babylonjs-editor-tools";
+
+export default class FollowTerrainComponent {
+    @visibleAsEntity("node", "Terrain")
+    private _terrain: Mesh | null = null;
+
+    /** Slope under the mesh in degrees (0 = flat), e.g. read by a movement script to slow down on steep slopes. */
+    public slopeDegrees: number = 0;
+
+    private _normal: Vector3 = new Vector3();
+
+    public constructor(public mesh: Mesh) {}
+
+    public onUpdate(): void {
+        if (!this._terrain) {
+            return;
+        }
+
+        // World centimeters (this mesh has no parent). null: outside the terrain or over a hole.
+        const position = this.mesh.position;
+        const y = getTerrainHeightAtCoordinates(this._terrain, position.x, position.z);
+        if (y === null) {
+            return;
+        }
+
+        position.y = y;
+
+        if (getTerrainNormalAtCoordinatesToRef(this._terrain, position.x, position.z, this._normal)) {
+            this.slopeDegrees = Math.acos(Math.min(1, this._normal.y)) * (180 / Math.PI);
+        }
+    }
+}
+```
+
 ## Textures, materials & performance
 
 - `forceCompileAllSceneMaterials(scene)` compiles the shaders of all materials up front, to avoid hitches the
@@ -164,4 +232,5 @@ await preloadAssetsToDatabase("my-game", "/scene/", {
 `isMesh`, `isInstancedMesh`, `isAbstractMesh`, `isTransformNode`, `isNode`, `isLight` (and `isPointLight`,
 `isDirectionalLight`, `isSpotLight`, `isHemisphericLight`), `isCamera`, `isScene`, `isTexture`, `isSprite`,
 `isSpriteManagerNode`, `isSoundNode`, `isAnyParticleSystem`, `isParticleSystem`, `isGPUParticleSystem`,
-`isShadowGenerator`, `isClusteredLightContainer`, … — useful in scripts that accept any object.
+`isShadowGenerator`, `isClusteredLightContainer`, … — useful in scripts that accept any object. For terrains,
+`isTerrainMesh(mesh)` (see [Terrains](#terrains)).

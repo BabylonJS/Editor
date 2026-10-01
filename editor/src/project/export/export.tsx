@@ -9,6 +9,7 @@ import { isNodeMaterial } from "../../tools/guards/material";
 import { isHDRCubeTexture } from "../../tools/guards/texture";
 import { getCollisionMeshFor } from "../../tools/mesh/collision";
 import { storeTexturesBaseSize } from "../../tools/material/texture";
+import { extractTerrainWeightMaps } from "../../tools/terrain/extract";
 import { extractNodeMaterialTextures } from "../../tools/material/extract";
 import { createDirectoryIfNotExist, normalizedGlob } from "../../tools/fs";
 import { extractNodeParticleSystemSetTextures, extractParticleSystemTextures } from "../../tools/particles/extract";
@@ -393,6 +394,17 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 				exportedAssets.push(...relativePaths.map((path) => join(scenePath, path)));
 			})
 		);
+	}
+
+	// Extract weight maps from terrain materials.
+	for (const materialData of data.materials ?? []) {
+		const fileNames = await extractTerrainWeightMaps(editor, {
+			materialData,
+			sceneName,
+			scenePath,
+		});
+
+		savedGeometries.push(...fileNames);
 	}
 
 	// Write final scene file.

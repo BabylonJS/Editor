@@ -5,6 +5,8 @@ import { Scene, Constants, Matrix, Mesh, SceneLoader, MultiMaterial, Geometry, G
 
 import { ISceneLoaderPluginOptions } from "../scene";
 
+import { relocateTerrainWeightMaps } from "./terrains";
+
 import { wait } from "../../../tools/tools";
 import { isCollisionMesh, isMesh } from "../../../tools/guards/nodes";
 import { isMultiMaterial, isNodeMaterial } from "../../../tools/guards/material";
@@ -17,6 +19,8 @@ import { CollisionMesh } from "../../../editor/nodes/collision";
 import { Editor } from "../../../editor/main";
 
 export async function loadMeshes(editor: Editor, meshesFiles: string[], scene: Scene, options: ISceneLoaderPluginOptions) {
+	const alreadyLoadedMaterials = new Set(scene.materials);
+
 	const loadedMeshes = await Promise.all(
 		meshesFiles.map(async (file) => {
 			if (file.startsWith(".")) {
@@ -269,4 +273,11 @@ export async function loadMeshes(editor: Editor, meshesFiles: string[], scene: S
 			}
 		}
 	});
+
+	// Relocate terrain weigh maps for newly created materials only
+	const newLoadedMaterials = scene.materials.filter((material) => {
+		return !alreadyLoadedMaterials.has(material);
+	});
+
+	await relocateTerrainWeightMaps(newLoadedMaterials, options);
 }

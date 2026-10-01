@@ -20,6 +20,7 @@ import {
 } from "babylonjs";
 
 import { EditorCamera } from "../../editor/nodes/camera";
+import { TerrainMesh } from "../../editor/nodes/terrain";
 import { CollisionMesh } from "../../editor/nodes/collision";
 
 import { isSoundNode } from "./sound";
@@ -35,6 +36,7 @@ export function isAbstractMesh(object: any): object is Mesh {
 		case "Mesh":
 		case "LineMesh":
 		case "GroundMesh":
+		case "TerrainMesh":
 		case "InstancedMesh":
 		case "NodeParticleSystemSetMesh":
 		case "GaussianSplattingMesh":
@@ -54,6 +56,7 @@ export function isMesh(object: any): object is Mesh {
 	switch (object.getClassName?.()) {
 		case "Mesh":
 		case "GroundMesh":
+		case "TerrainMesh":
 		case "GaussianSplattingMesh":
 		case "GaussianSplattingMeshBase":
 			return true;
@@ -261,4 +264,12 @@ export function isGaussianSplattingPartProxyMesh(object: any): object is Gaussia
  */
 export function isAnyGaussianSplattingMesh(object: any): object is GaussianSplattingMesh | GaussianSplattingPartProxyMesh {
 	return isGaussianSplattingMesh(object) || isGaussianSplattingPartProxyMesh(object);
+}
+
+/**
+ * Returns wether or not the given object is a TerrainMesh.
+ * @param object defines the reference to the object to test its class name.
+ */
+export function isTerrainMesh(object: any): object is TerrainMesh {
+	return object?.getClassName?.() === "TerrainMesh";
 }

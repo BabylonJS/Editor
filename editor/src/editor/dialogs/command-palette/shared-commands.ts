@@ -72,6 +72,12 @@ export const meshCommandItems = {
 		key: "add-ground-mesh",
 		ipcRendererChannelKey: "ground-mesh",
 	} as CommandItem,
+	terrain: {
+		text: "Terrain Mesh",
+		label: "Add a new terrain mesh to the scene",
+		key: "add-terrain-mesh",
+		ipcRendererChannelKey: "terrain-mesh",
+	} as CommandItem,
 	sphere: {
 		text: "Sphere Mesh",
 		label: "Add a new sphere mesh to the scene",

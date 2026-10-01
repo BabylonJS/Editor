@@ -12,6 +12,20 @@ import { listScenes, getActiveScene, saveScene, getSceneSettings, setSceneSettin
 import { getNode, setNodeTransform, setNodeProperties, setNodeParent, renameNode, deleteNode, selectNode, getSelectedNodes } from "./nodes/nodes";
 import { createPrimitiveMesh, createInstance, cloneMesh, setMeshMaterial, setMeshVisibility, setMeshPhysics, getMeshBoundingInfo } from "./meshes/meshes";
 import { createDecal, updateDecal } from "./meshes/decals";
+import {
+	getTerrainInfo,
+	createTerrain,
+	sculptTerrain,
+	paintTerrain,
+	generateTerrain,
+	modifyTerrain,
+	importTerrainHeightmapEndpoint,
+	exportTerrainHeightmapEndpoint,
+	sampleTerrain,
+	snapNodesToTerrain,
+} from "./terrain/terrain";
+import { setTerrainLayer, setTerrainMaterial, autoPaintTerrain } from "./terrain/layers";
+import { listTerrainBrushes, addTerrainBrush } from "./terrain/brushes";
 import { createLight, setLightShadows, removeLightShadows, createClusteredLightContainer, addLightToClusteredContainer, removeLightFromClusteredContainer } from "./lights/lights";
 import { createCamera, setActiveCamera } from "./cameras/cameras";
 import { getCameraPostProcesses, setCameraPostProcess } from "./rendering/post-process";
@@ -74,6 +88,23 @@ export const MCPEndpoints: Record<string, (scene: Scene, data: any, options: IMC
 	// Decals
 	create_decal: createDecal,
 	update_decal: updateDecal,
+
+	// Terrains (sculpting and painting grounds, on the same engine as the Terrain tab)
+	get_terrain_info: getTerrainInfo,
+	create_terrain: createTerrain,
+	sculpt_terrain: sculptTerrain,
+	paint_terrain: paintTerrain,
+	set_terrain_layer: setTerrainLayer,
+	auto_paint_terrain: autoPaintTerrain,
+	generate_terrain: generateTerrain,
+	modify_terrain: modifyTerrain,
+	import_terrain_heightmap: importTerrainHeightmapEndpoint,
+	export_terrain_heightmap: exportTerrainHeightmapEndpoint,
+	list_terrain_brushes: listTerrainBrushes,
+	add_terrain_brush: addTerrainBrush,
+	sample_terrain: sampleTerrain,
+	snap_nodes_to_terrain: snapNodesToTerrain,
+	set_terrain_material: setTerrainMaterial,
 
 	// Lights & shadows
 	create_light: createLight,
