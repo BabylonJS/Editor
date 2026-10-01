@@ -54,6 +54,34 @@
 		{ "name": "get_mesh_bounding_info", "description": "Get a mesh's local/world bounding box and hierarchy bounds (size, min, max, center) for scattering and placement." },
 		{ "name": "create_decal", "description": "Project a decal (logo, poster, crack, stain, road marking...) made of a material on the surface of a mesh." },
 		{ "name": "update_decal", "description": "Change the size, angle or place of a decal, projecting it again on its mesh." },
+		{
+			"name": "get_terrain_info",
+			"description": "Describe a terrain (size, resolution, height range, holes, texture layers with coverage, physics, decals, warnings) or list the terrains of the scene."
+		},
+		{ "name": "create_terrain", "description": "Create a new sculptable and paintable terrain (default 10240 x 10240 cm, 256 subdivisions); grounds can't become terrains." },
+		{
+			"name": "sculpt_terrain",
+			"description": "Sculpt the relief of a terrain along a stroke of world points (raise, smooth, flatten, ramp, noise, terrace, erode, stamp, holes)."
+		},
+		{ "name": "paint_terrain", "description": "Paint a texture layer on a terrain along a stroke of world points (paint, erase, blend or replace)." },
+		{
+			"name": "set_terrain_layer",
+			"description": "Add, update, move or remove a texture layer of a terrain (maps, tiling, tint, PBR values), optionally from a PBR or Standard material."
+		},
+		{ "name": "generate_terrain", "description": "Generate a whole terrain relief procedurally (fBm, ridged, billow, islands) with optional erosion and terraces." },
+		{
+			"name": "modify_terrain",
+			"description": "Apply a whole-terrain operation: smooth, erode, terrace, flatten, offset, scale, normalize, clear holes, resample, resize, fill or normalize layers."
+		},
+		{ "name": "import_terrain_heightmap", "description": "Import heights from a heightmap image (black = minHeight, white = maxHeight, image top = +Z)." },
+		{ "name": "export_terrain_heightmap", "description": "Export the terrain heights as a 16-bit heightmap with a JSON sidecar giving the height range." },
+		{ "name": "list_terrain_brushes", "description": "List the brushes available to sculpt_terrain and paint_terrain." },
+		{ "name": "sample_terrain", "description": "Read the terrain surface at world points: height, normal, slope, holes and the dominant painted layer." },
+		{ "name": "snap_nodes_to_terrain", "description": "Move nodes vertically onto the terrain surface (optionally aligned to the slope), e.g. trees, rocks and buildings." },
+		{
+			"name": "set_terrain_material",
+			"description": "Enable or disable texture painting on a terrain and change its material settings (resolutions, anisotropy, height blending)."
+		},
 		{ "name": "create_light", "description": "Create a directional, point, spot or hemispheric light." },
 		{ "name": "set_light_shadows", "description": "Enable and configure a light's shadow generator (classic or cascaded for directional lights)." },
 		{ "name": "remove_light_shadows", "description": "Remove the shadow generator from a light so it stops casting shadows." },

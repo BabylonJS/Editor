@@ -16,6 +16,8 @@ import { isTexture } from "../guards/texture";
 import { isBone, isMesh } from "../guards/nodes";
 import { isMultiMaterial, isNodeMaterial } from "../guards/material";
 
+import { reloadTerrainImage } from "../terrain/io/reload";
+
 /**
  * Defines the key, in the metadata of the root node of an imported mesh asset, that holds the project-relative path
  * of the asset it was imported from. Only the meshes imported by the MCP tools are linked to their asset: they are
@@ -106,6 +108,11 @@ export async function reloadAsset(editor: Editor, absolutePath: string): Promise
 	switch (type) {
 		case "texture":
 			reloaded = await reloadTextures(editor.layout.preview.scene, path, absolutePath);
+
+			// Terrain layers and weight maps: only files of the project (their paths are relative to the project).
+			if (path !== absolutePath) {
+				reloaded += reloadTerrainImage(editor, path);
+			}
 			break;
 
 		case "particle-system":

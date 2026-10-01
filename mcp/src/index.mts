@@ -10,6 +10,7 @@ import { registerSceneTools } from "./tools/scene.mjs";
 import { registerNodeTools } from "./tools/nodes.mjs";
 import { registerMeshTools } from "./tools/meshes.mjs";
 import { registerDecalTools } from "./tools/decals.mjs";
+import { registerTerrainTools } from "./tools/terrain.mjs";
 import { registerLightTools } from "./tools/lights.mjs";
 import { registerCameraTools } from "./tools/cameras.mjs";
 import { registerRenderingTools } from "./tools/rendering.mjs";
@@ -50,12 +51,12 @@ const instructions = [
 	"",
 	"COMMON RECIPES — compose the tools to build WebGL game content (these are examples; generalize them):",
 	"- Forest / vegetation: import ONE tree with `instantiate_mesh_asset` (or download via the marketplace), read its size with `get_mesh_bounding_info`, then `create_instance` with scattered `transforms` (vary position + random Y rotation + slight scale). Add rocks/bushes/grass the same way. A few source meshes → thousands of instances.",
-	"- Ground / terrain: `create_primitive_mesh ground` → `create_material pbr` → `assign_texture_to_material` (albedo + bump/normal + metallic/roughness) → tile the textures via `set_material_properties` (`albedoTexture.uScale`/`vScale`) → give it a static physics body with `set_mesh_physics` so things collide with it.",
+	'- Ground / terrain: `create_terrain` (256 subdivisions for about 100 m) → `generate_terrain` or `sculpt_terrain` (raise, smooth, flatten along world points) → `set_terrain_layer` layer 0 (the Base layer, e.g. grass) then more layers for rock, sand, snow (albedo + normal maps from the project or the marketplace) → paint them with `paint_terrain` → `get_screenshot`. Place trees, rocks and buildings with `snap_nodes_to_terrain` (or read heights with `sample_terrain`). Give the terrain a STATIC body with `set_mesh_physics` (`motionType: "static"`); terrains get a mesh physics shape by default.',
 	"- Sky & global lighting: `set_environment_texture` from a `.env`/`.hdr` cube (with `createSkybox`) for the backdrop AND image-based ambient light → add a `directional` `create_light` as the sun and enable `set_light_shadows` on it → put extra fill/point/spot lights into the ClusteredLightContainer.",
 	"- Procedural sky / day-night (no HDR): create a `skybox` mesh + a `sky` material (`create_material`), assign it, then control the sun/time-of-day via `set_material_properties` (`inclination`, `azimuth`, `luminance`, `turbidity`). Use `list_material_types` to see all Materials Library effects (water, lava, fire, toon/cell, grid, gradient, triplanar).",
 	"- Voxel / Minecraft world: make one cube mesh + one material per block type (clone the material per type), then `create_instance` over a grid of `transforms` for the blocks (batched). Different block types = a source cube per type + its instances. Author a representative chunk as real assets; only stream additional chunks from those authored prefabs in a script if the world is huge.",
 	"- Modular building / level: create or import wall/floor/roof/door modules ONCE, place them with instances on a grid, and group each room/building under an `empty` transform node so the hierarchy is tidy and hand-editable.",
-	"- Props, pickups & gameplay objects: import/instance the prop, give dynamic ones a `set_mesh_physics` body (box/capsule), then attach a small behavior script (pickup, damage, button) that references the authored mesh.",
+	'- Props, pickups & gameplay objects: import/instance the prop, give dynamic ones a `set_mesh_physics` body (`motionType: "dynamic"` with a box/capsule shape; a new body is static otherwise), then attach a small behavior script (pickup, damage, button) that references the authored mesh.',
 	"- Player character controller (third-person, shooter, platformer, first-person): see PLAYER CONTROLLERS below.",
 	"- Water / effects: use a `water` material on a plane for lakes/rivers; use `instantiate_particle_system` for fire, smoke, sparks, magic, weather.",
 	"- Details on surfaces (logos, posters, graffiti, cracks, stains, road markings, moss): `create_material` + `assign_texture_to_material` with the image (make its alpha visible with `set_material_properties`), then `create_decal` on the wall/floor/prop at a point of its surface. Reuse one material for all the decals of the same image, and adjust them with `update_decal`.",
@@ -129,6 +130,7 @@ registerSceneTools(server);
 registerNodeTools(server);
 registerMeshTools(server);
 registerDecalTools(server);
+registerTerrainTools(server);
 registerLightTools(server);
 registerCameraTools(server);
 registerRenderingTools(server);

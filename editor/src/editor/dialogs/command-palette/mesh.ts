@@ -13,6 +13,7 @@ import {
 	addCylinderMesh,
 	addTorusMesh,
 	addTorusKnotMesh,
+	addTerrainMesh,
 } from "../../../project/add/mesh";
 
 import { meshCommandItems } from "./shared-commands";
@@ -31,6 +32,10 @@ export function getMeshCommands(editor?: Editor, parent?: Node): ICommandPalette
 		{
 			...meshCommandItems.ground,
 			action: () => editor && addGroundMesh(editor, parent),
+		},
+		{
+			...meshCommandItems.terrain,
+			action: () => editor && addTerrainMesh(editor, parent),
 		},
 		{
 			...meshCommandItems.sphere,

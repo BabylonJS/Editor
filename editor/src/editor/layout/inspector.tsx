@@ -2,7 +2,7 @@ import { Component, ReactNode } from "react";
 import { Icon, NonIdealState } from "@blueprintjs/core";
 
 import { FaInfoCircle } from "react-icons/fa";
-import { FaCube, FaSprayCanSparkles } from "react-icons/fa6";
+import { FaCube, FaMountainSun, FaSprayCanSparkles } from "react-icons/fa6";
 
 import { Tools } from "babylonjs";
 
@@ -40,6 +40,7 @@ import { EditorSoundNodeInspector } from "./inspector/sound/sound-node";
 import { EditorAdvancedDynamicTextureInspector } from "./inspector/gui/gui";
 
 import { EditorDecalsInspector } from "./inspector/decals/decals";
+import { EditorTerrainInspector } from "./inspector/terrain/terrain";
 
 import { EditorParticleSystemInspector } from "./inspector/particles/particle-system";
 import { EditorGPUParticleSystemInspector } from "./inspector/particles/gpu-particle-system";
@@ -126,6 +127,12 @@ export class EditorInspector extends Component<IEditorInspectorProps, IEditorIns
 						<TabsTrigger value="decals" className="flex gap-2 items-center w-full">
 							<FaSprayCanSparkles className="w-4 h-4" /> Decal
 						</TabsTrigger>
+
+						{this.props.editor.state.enableExperimentalFeatures && (
+							<TabsTrigger value="terrain" className="flex gap-2 items-center w-full">
+								<FaMountainSun className="w-4 h-4" /> Terrain
+							</TabsTrigger>
+						)}
 					</TabsList>
 
 					{disabled && (
@@ -162,6 +169,12 @@ export class EditorInspector extends Component<IEditorInspectorProps, IEditorIns
 					<TabsContent value="decals" className="w-full h-full overflow-auto">
 						<EditorDecalsInspector editor={this.props.editor} />
 					</TabsContent>
+
+					{this.props.editor.state.enableExperimentalFeatures && (
+						<TabsContent value="terrain" className="w-full h-full overflow-auto">
+							<EditorTerrainInspector editor={this.props.editor} object={this.state.editedObject} />
+						</TabsContent>
+					)}
 				</Tabs>
 			</div>
 		);

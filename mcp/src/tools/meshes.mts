@@ -13,8 +13,8 @@ export function registerMeshTools(server: McpServer): void {
 			description:
 				"Create a built-in primitive mesh (box, sphere, ground, plane, cylinder, capsule, torus, torusknot, skybox) or an `empty` transform node used for grouping. " +
 				"Returns the created node summary including its `id`, which you can pass to other tools (set material, set transform, create instances from it, etc.). " +
-				"Positions are in centimeters. Pass `options` to shape the primitive (e.g. `{ size }` for a box, `{ diameter }` for a sphere, `{ width, height, subdivisions }` for a ground). " +
-				"For a ground with HEIGHT VARIATIONS / terrain, create it with enough `subdivisions` then displace its vertices with an agent script (`write_agent_script` + `run_agent_script`) or apply a heightmap — a flat `ground` cannot be made hilly with `set_node_transform` alone. " +
+				"Positions are in centimeters. Pass `options` to shape the primitive (e.g. `{ size }` for a box, `{ diameter }` for a sphere, `{ width, height, subdivisions }` for a ground: `subdivisions` is an integer from 1 to 1024, and a flat ground needs few). " +
+				"For hills, mountains, holes or painted ground textures, use the terrain tools (`create_terrain`, `sculpt_terrain`, `generate_terrain`, `set_terrain_layer`, `paint_terrain`) instead of displacing vertices in scripts. " +
 				"To build a scene, chain `create_primitive_mesh` calls (or `instantiate_mesh_asset`), then assign materials, then verify with `get_screenshot`.",
 			inputSchema: z.object({
 				type: z.enum(["box", "sphere", "ground", "plane", "cylinder", "capsule", "torus", "torusknot", "skybox", "empty"]).describe("The primitive type to create."),
@@ -119,15 +119,22 @@ export function registerMeshTools(server: McpServer): void {
 			title: "Set mesh physics",
 			description:
 				"Give a mesh real gameplay physics with a Havok physics body, or update/remove it. Use this for gravity, falling/stacking objects, projectiles, vehicles, character bodies, etc. " +
-				"Pass `enabled:false` to remove the body. `motionType`: `static` (immovable world geometry like ground/walls), `dynamic` (affected by gravity & forces), `animated` (moved by script/animation, pushes dynamic bodies). " +
+				"Pass `enabled:false` to remove the body. `motionType`: `static` (immovable world geometry like ground/walls/terrains), `dynamic` (affected by gravity & forces), `animated` (moved by script/animation, pushes dynamic bodies). " +
+				'A new body is STATIC unless you pass `motionType: "dynamic"` / `"animated"` or a `mass` above 0: pass `dynamic` for anything that must fall or be pushed. ' +
 				"`mass` only matters for dynamic bodies. `shapeType`: `box`/`sphere`/`capsule`/`cylinder` are cheap approximations; `mesh` is the exact (expensive) collision shape — use `box`/`capsule` for most gameplay, `mesh` only for static complex geometry. " +
 				"`friction` and `restitution` (bounciness) are 0..1. Combine with scripts (see `create_script`/`attach_script`) to apply impulses and build gameplay.",
 			inputSchema: z.object({
 				nodeId: z.string().optional().describe("Id of the target mesh (preferred)."),
 				nodeName: z.string().optional().describe("Name of the target mesh."),
 				enabled: z.boolean().optional().describe("Enable (create if missing) or remove the physics body. Defaults to true."),
-				mass: z.number().optional().describe("Mass in kilograms (dynamic bodies only). Default 1 when the body is created."),
-				motionType: z.enum(["static", "dynamic", "animated"]).optional().describe("Body motion type. Default static for newly created bodies unless set."),
+				mass: z
+					.number()
+					.optional()
+					.describe("Mass in kilograms (dynamic bodies only). Default when the body is created: 0 (static) without `motionType` or with `static`, else 1."),
+				motionType: z
+					.enum(["static", "dynamic", "animated"])
+					.optional()
+					.describe("Body motion type. A new body is static unless `motionType` is dynamic / animated or a `mass` above 0 is given."),
 				shapeType: z.enum(["box", "sphere", "capsule", "cylinder", "mesh"]).optional().describe("Collision shape. Defaults to a sensible shape inferred from the mesh."),
 				friction: z.number().optional().describe("Surface friction, 0..1."),
 				restitution: z.number().optional().describe("Bounciness, 0..1."),

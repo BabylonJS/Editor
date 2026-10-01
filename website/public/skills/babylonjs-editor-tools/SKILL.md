@@ -7,6 +7,7 @@ description: >-
   mentions editor scripts, IScript onStart/onUpdate, loadScene, AdvancedAssetContainer, the @nodeFromScene /
   @visibleAs* / @onPointerEvent / @sceneAsset / @visibleAsAsset decorators, or runtime helpers such as
   getScriptByClassForObject, applyScriptOnObject, cinematics, sprites, sounds, ragdolls, navmeshes, decals,
+  terrains (getTerrainHeightAtCoordinates, getTerrainNormalAtCoordinatesToRef, TerrainMaterialPlugin layers),
   post-processes or the offline assets database.
 ---
 
@@ -21,7 +22,8 @@ Babylon.js Editor. It is what user game code (`src/scripts/*.ts`) and the app bo
 3. **Decorators** used inside scripts to retrieve scene objects, expose customizable inspector fields,
    link assets, and listen to input events.
 4. **Runtime helpers** to find or attach scripts, play cinematics and sprite animations, drive sounds,
-   post-processes, ragdolls, navmeshes and decals, and cache assets offline.
+   post-processes, ragdolls, navmeshes and decals, read the relief and layers of terrains, and cache assets
+   offline.
 
 Everything is imported from the package root:
 
@@ -45,10 +47,17 @@ import { loadScene, nodeFromScene, visibleAsNumber, onPointerEvent } from "babyl
 ## When the editor's MCP tools are available
 
 In the editor's AI assistant (or any agent connected to the `babylonjs-editor` MCP server), **author the
-scene with the MCP tools** — meshes, materials, instances, lights, cameras, particles, physics, decals — so the
-user can edit the result by hand. Scripts written with this package are for runtime **behavior** only (input,
-game rules, AI, reacting to events, spawning copies of authored assets). Write them under `src/`, attach them
-with the MCP script tools, and set their `@visibleAs*` values from the editor rather than hard-coding them.
+scene with the MCP tools** — meshes, materials, instances, lights, cameras, particles, physics, decals,
+terrains — so the user can edit the result by hand. Scripts written with this package are for runtime
+**behavior** only (input, game rules, AI, reacting to events, spawning copies of authored assets). Write them
+under `src/`, attach them with the MCP script tools, and set their `@visibleAs*` values from the editor rather
+than hard-coding them.
+
+Never displace ground vertices or replace ground geometry in scripts to make hills: create a terrain with
+`create_terrain` (grounds can't be sculpted), sculpt and paint it with the terrain tools (`generate_terrain`,
+`sculpt_terrain`, `modify_terrain`, `set_terrain_layer`, `paint_terrain`), and place objects
+on it with `snap_nodes_to_terrain` (or read heights with `sample_terrain`). At runtime, scripts read the relief with `getTerrainHeightAtCoordinates` /
+`getTerrainNormalAtCoordinatesToRef` (see [references/runtime-helpers.md](references/runtime-helpers.md#terrains)).
 
 ## Quick reference
 
@@ -110,6 +119,7 @@ preloads script assets, configures lights/shadows/LODs/physics/post-processing, 
 | Play a sprite animation by name | `playSpriteAnimationFromName(sprite, name, onEnd?)` |
 | Tune a post-process | `getDefaultRenderingPipeline()`, `getSSAO2RenderingPipeline()`, … |
 | Ragdolls / navmeshes / decals | `applyRagdollJointLimits`, `RecastNavigationHelper`, `setStaticDecalsEnabled` |
+| Terrain height, normal and layers | `getTerrainHeightAtCoordinates`, `getTerrainNormalAtCoordinatesToRef`, `isTerrainMesh`, `getTerrainMaterialPlugin` (never `getHeightAtCoordinates` on terrains) |
 | Load assets offline / faster | `setupOfflineProvider`, `preloadAssetsToDatabase`, `forceCompileAllSceneMaterials` |
 
 ## Minimal class-based script

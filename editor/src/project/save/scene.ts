@@ -43,6 +43,7 @@ import { getVolumetricLightingRenderingPipelineConfiguration } from "../../edito
 import { writeBinaryGeometry } from "../tools/geometry";
 import { writeBinaryMorphTarget } from "../tools/morph-target";
 
+import { saveTerrains } from "./terrains";
 import { saveMergedDecals } from "./decals";
 import { showSaveSceneProgressDialog } from "./dialog";
 
@@ -106,6 +107,13 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 	const savedGeometryIds: string[] = [];
 
 	storeTexturesBaseSize(scene);
+
+	// Write terrain weight maps
+	await saveTerrains(editor, {
+		scenePath,
+		savedFiles,
+		relativeScenePath,
+	});
 
 	// Write geometries and meshes
 	await Promise.all(

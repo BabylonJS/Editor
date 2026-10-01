@@ -21,6 +21,11 @@ export interface IEditorInspectorSectionFieldProps extends PropsWithChildren {
 	tooltip?: ReactNode;
 
 	/**
+	 * Defines wether or not the section is initially closed.
+	 */
+	closed?: boolean;
+
+	/**
 	 * Defines wether or not the section is processing something. If true,
 	 * the section becomes unusable and a loader is drawn at its center.
 	 */
@@ -28,7 +33,7 @@ export interface IEditorInspectorSectionFieldProps extends PropsWithChildren {
 }
 
 export function EditorInspectorSectionField(props: IEditorInspectorSectionFieldProps) {
-	const [opened, setOpened] = useState(true);
+	const [opened, setOpened] = useState(!props.closed);
 
 	return (
 		<div className="relative flex flex-col gap-2 w-full bg-secondary dark:bg-secondary/35 rounded-lg p-2">

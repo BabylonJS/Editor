@@ -3,11 +3,11 @@ import { extname } from "path/posix";
 import { Component, DragEvent, ReactNode } from "react";
 import { Button as BPButton, Tree, TreeNodeInfo } from "@blueprintjs/core";
 
-import { FaLink } from "react-icons/fa6";
 import { IoMdCube } from "react-icons/io";
 import { AiOutlinePlus } from "react-icons/ai";
 import { HiSpeakerWave } from "react-icons/hi2";
 import { SiBabylondotjs } from "react-icons/si";
+import { FaLink, FaMountainSun } from "react-icons/fa6";
 import { GiBrickWall, GiSparkles } from "react-icons/gi";
 import { HiOutlineCubeTransparent } from "react-icons/hi";
 import { IoCheckmark, IoPlay, IoSparklesSharp } from "react-icons/io5";
@@ -55,6 +55,7 @@ import {
 	getNodeParentingConfiguration,
 	IOldNodeHierarchyConfiguration,
 } from "../../tools/node/parenting";
+import { addGaussianSplattingMeshPartProxyMesh } from "../../tools/mesh/gaussian-splatting";
 import { isSprite, isSpriteManagerNode, isSpriteMapNode } from "../../tools/guards/sprites";
 import { parsePhysicsAggregate, serializePhysicsAggregate } from "../../tools/physics/serialization/aggregate";
 import { isAnyParticleSystem, isGPUParticleSystem, isNodeParticleSystemSetMesh, isParticleSystem } from "../../tools/guards/particles";
@@ -72,6 +73,7 @@ import {
 	isMesh,
 	isNode,
 	isTransformNode,
+	isTerrainMesh,
 } from "../../tools/guards/nodes";
 import {
 	onNodeModifiedObservable,
@@ -97,7 +99,6 @@ import { applySoundAsset } from "./preview/import/sound";
 import { EditorGraphLabel } from "./graph/label";
 import { EditorGraphContextMenu } from "./graph/context-menu";
 import { setNewParentForGraphSelectedNodes } from "./graph/move";
-import { addGaussianSplattingMeshPartProxyMesh } from "../../tools/mesh/gaussian-splatting";
 
 export interface IEditorGraphProps {
 	/**
@@ -1263,6 +1264,10 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 
 		if (isNodeParticleSystemSetMesh(object)) {
 			return <TbServerSpark className="w-4 h-4" />;
+		}
+
+		if (isTerrainMesh(object)) {
+			return <FaMountainSun className="w-4 h-4" />;
 		}
 
 		if (isAbstractMesh(object)) {

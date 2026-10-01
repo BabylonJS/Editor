@@ -11,7 +11,7 @@ Each skill is a self-contained folder with a `SKILL.md` (loaded on demand by its
 
 | Skill | Use it when you need to… |
 | --- | --- |
-| [`babylonjs-editor-tools`](./babylonjs-editor-tools/SKILL.md) | Write/attach scripts, load scenes, use the editor decorators (`@nodeFromScene`, `@visibleAs*`, `@onPointerEvent`, `@sceneAsset`, …) and the runtime helpers (scripts lookup, cinematics, sprites, sounds, post-processes, ragdolls, navmeshes, decals, offline database) in a project created with the Babylon.js Editor. |
+| [`babylonjs-editor-tools`](./babylonjs-editor-tools/SKILL.md) | Write/attach scripts, load scenes, use the editor decorators (`@nodeFromScene`, `@visibleAs*`, `@onPointerEvent`, `@sceneAsset`, …) and the runtime helpers (scripts lookup, cinematics, sprites, sounds, post-processes, ragdolls, navmeshes, decals, terrains: heights, normals and texture layers, offline database) in a project created with the Babylon.js Editor. |
 
 ## Source of truth
 
