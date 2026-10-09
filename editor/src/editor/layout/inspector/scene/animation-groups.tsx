@@ -1,15 +1,18 @@
 import { Reorder } from "framer-motion";
 
-import { MouseEvent, useEffect, useState } from "react";
+import { MouseEvent, useEffect, useRef, useState } from "react";
 
 import { IoPlay, IoStop } from "react-icons/io5";
 import { AiFillMerge, AiOutlineClose, AiOutlineMinus } from "react-icons/ai";
+
+import { useEventListener } from "usehooks-ts";
 
 import { Scene, AnimationGroup } from "babylonjs";
 
 import { Editor } from "../../../main";
 
 import { showPrompt } from "../../../../ui/dialog";
+import { Input } from "../../../../ui/shadcn/ui/input";
 import { Button } from "../../../../ui/shadcn/ui/button";
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "../../../../ui/shadcn/ui/context-menu";
 
@@ -23,16 +26,43 @@ export interface IEditorSceneAnimationGroupsInspectorProps {
 }
 
 export function EditorSceneAnimationGroupsInspector(props: IEditorSceneAnimationGroupsInspectorProps) {
+	const inputRef = useRef<HTMLInputElement>(null);
+
 	const [animationGroupsSearch, setAnimationGroupsSearch] = useState<string>("");
 	const [selectedAnimationGroups, setSelectedAnimationGroups] = useState<AnimationGroup[]>([]);
 
 	const [animationGroups, setAnimationGroups] = useState<AnimationGroup[]>([]);
 	const [playingAnimationGroups, setPlayingAnimationGroups] = useState<AnimationGroup[]>([]);
 
+	const [renamedAnimationGroupName, setRenamedAnimationGroupName] = useState<string>("");
+	const [renamedAnimationGroup, setRenamedAnimationGroup] = useState<AnimationGroup | null>(null);
+
 	useEffect(() => {
 		setAnimationGroups(props.scene.animationGroups);
 		setPlayingAnimationGroups(props.scene.animationGroups.filter((animationGroup) => animationGroup.isPlaying));
 	}, [props.scene]);
+
+	useEffect(() => {
+		if (renamedAnimationGroup) {
+			setTimeout(() => {
+				inputRef.current?.select();
+				inputRef.current?.focus();
+			}, 0);
+		}
+	}, [renamedAnimationGroup]);
+
+	useEventListener("keyup", (ev) => {
+		if (ev.key === "Escape" && renamedAnimationGroup) {
+			setRenamedAnimationGroup(null);
+			setRenamedAnimationGroupName("");
+		}
+
+		if (ev.key === "Enter" && renamedAnimationGroup) {
+			if (renamedAnimationGroup) {
+				handleInputNameBlurred();
+			}
+		}
+	});
 
 	function handleAnimationGroupClick(ev: MouseEvent<HTMLDivElement>, animationGroup: AnimationGroup) {
 		if (ev.ctrlKey || ev.metaKey) {
@@ -130,6 +160,24 @@ export function EditorSceneAnimationGroupsInspector(props: IEditorSceneAnimation
 		setAnimationGroups(props.scene.animationGroups.slice());
 	}
 
+	function handleRenameAnimationGroup(animationGroup: AnimationGroup) {
+		setRenamedAnimationGroup(animationGroup);
+		setRenamedAnimationGroupName(animationGroup.name);
+	}
+
+	function handleInputNameBlurred() {
+		const oldName = renamedAnimationGroup!.name;
+
+		registerUndoRedo({
+			executeRedo: true,
+			undo: () => (renamedAnimationGroup!.name = oldName),
+			redo: () => (renamedAnimationGroup!.name = renamedAnimationGroupName),
+		});
+
+		setRenamedAnimationGroup(null);
+		setRenamedAnimationGroupName("");
+	}
+
 	const hasAnimations = animationGroups.length > 0;
 	const animations = animationGroups.filter((animationGroup) => animationGroup.name.toLowerCase().includes(animationGroupsSearch.toLowerCase()));
 
@@ -176,16 +224,35 @@ export function EditorSceneAnimationGroupsInspector(props: IEditorSceneAnimation
 									<ContextMenuTrigger>
 										<div
 											onClick={(ev) => handleAnimationGroupClick(ev, animationGroup)}
+											onDoubleClick={() => handleRenameAnimationGroup(animationGroup)}
 											className={`
-                                        flex items-center gap-2
-                                        ${selectedAnimationGroups.includes(animationGroup) ? "bg-muted" : "hover:bg-muted/35"}
-                                        transition-all duration-300 ease-in-out
-                                    `}
+												flex items-center gap-2
+												${selectedAnimationGroups.includes(animationGroup) ? "bg-muted" : "hover:bg-muted/35"}
+												transition-all duration-300 ease-in-out
+											`}
 										>
-											<Button variant="ghost" className="w-8 h-8 p-1" onClick={() => handlePlayOrStopAnimationGroup(animationGroup)}>
-												{animationGroup.isPlaying ? <IoStop className="w-6 h-6" strokeWidth={1} /> : <IoPlay className="w-6 h-6" strokeWidth={1} />}
-											</Button>
-											{animationGroup.name}
+											{/* Renaming group */}
+											{renamedAnimationGroup === animationGroup && (
+												<Input
+													ref={inputRef}
+													className="w-full"
+													value={renamedAnimationGroupName}
+													onCopy={(ev) => ev.stopPropagation()}
+													onPaste={(ev) => ev.stopPropagation()}
+													onBlur={() => handleInputNameBlurred()}
+													onChange={(e) => setRenamedAnimationGroupName(e.target.value)}
+												/>
+											)}
+
+											{/* Just display animation group */}
+											{renamedAnimationGroup !== animationGroup && (
+												<>
+													<Button variant="ghost" className="w-8 h-8 p-1" onClick={() => handlePlayOrStopAnimationGroup(animationGroup)}>
+														{animationGroup.isPlaying ? <IoStop className="w-6 h-6" strokeWidth={1} /> : <IoPlay className="w-6 h-6" strokeWidth={1} />}
+													</Button>
+													{animationGroup.name}
+												</>
+											)}
 										</div>
 									</ContextMenuTrigger>
 									<ContextMenuContent>
