@@ -3,6 +3,8 @@ import { extname, join, dirname } from "path/posix";
 import { toast } from "sonner";
 import { Component, DragEvent, ReactNode } from "react";
 
+import { Reorder } from "framer-motion";
+
 import { Tools } from "babylonjs";
 
 import { Editor } from "../../../main";
@@ -36,20 +38,34 @@ export class ScriptInspectorComponent extends Component<IScriptInspectorComponen
 	public render(): ReactNode {
 		return (
 			<EditorInspectorSectionField title="Scripts">
-				{this.props.object.metadata?.scripts?.map((script: any, index: number) => {
-					script._id ??= Tools.RandomId();
+				{this.props.object.metadata?.scripts && (
+					<Reorder.Group
+						axis="y"
+						onReorder={(items) => {
+							this.props.object.metadata.scripts = items;
+							this.forceUpdate();
+						}}
+						values={this.props.object.metadata?.scripts ?? []}
+						className="flex flex-col gap-2"
+					>
+						{this.props.object.metadata?.scripts?.map((script: any, index: number) => {
+							script._id ??= Tools.RandomId();
 
-					return (
-						<InspectorScriptField
-							key={script._id}
-							script={script}
-							scriptIndex={index}
-							editor={this.props.editor}
-							object={this.props.object}
-							onRemove={() => this._handleRemoveScript(index)}
-						/>
-					);
-				})}
+							return (
+								<Reorder.Item key={`${script._id}`} value={script} id={`${script._id}`}>
+									<InspectorScriptField
+										key={script._id}
+										script={script}
+										scriptIndex={index}
+										editor={this.props.editor}
+										object={this.props.object}
+										onRemove={() => this._handleRemoveScript(index)}
+									/>
+								</Reorder.Item>
+							);
+						})}
+					</Reorder.Group>
+				)}
 
 				{this._getEmptyComponent()}
 			</EditorInspectorSectionField>
