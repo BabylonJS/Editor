@@ -54,7 +54,6 @@ export class ScriptInspectorComponent extends Component<IScriptInspectorComponen
 							return (
 								<Reorder.Item key={`${script._id}`} value={script} id={`${script._id}`}>
 									<InspectorScriptField
-										key={script._id}
 										script={script}
 										scriptIndex={index}
 										editor={this.props.editor}
