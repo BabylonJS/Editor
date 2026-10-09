@@ -8,7 +8,7 @@ import { Scene, Node, IParticleSystem } from "babylonjs";
 import { Button } from "../../../../ui/shadcn/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../../../ui/shadcn/ui/tooltip";
 
-import { isNode } from "../../../../tools/guards/nodes";
+import { isClusteredLightContainer, isNode } from "../../../../tools/guards/nodes";
 import { isSoundNode } from "../../../../tools/guards/sound";
 import { registerSimpleUndoRedo } from "../../../../tools/undoredo";
 import { isAnyParticleSystem } from "../../../../tools/guards/particles";
@@ -31,7 +31,7 @@ export function EditorInspectorSceneEntityField<T extends Node | IParticleSystem
 		const nodeOrId = getInspectorPropertyValue(props.object, props.property) ?? null;
 		if (nodeOrId) {
 			if (typeof nodeOrId === "string") {
-				setValue(getObjectById(nodeOrId));
+				setValue(getObjectById(nodeOrId) as T);
 			} else {
 				setValue(nodeOrId as T);
 			}
@@ -40,8 +40,17 @@ export function EditorInspectorSceneEntityField<T extends Node | IParticleSystem
 		}
 	}, [props.object, props.property]);
 
-	function getObjectById(id: string): T | null {
-		return (props.scene.getNodeById(id) as T) ?? (props.scene.particleSystems?.find((ps) => ps.id === id) as T);
+	function getObjectById(id: string) {
+		let object = props.scene.getNodeById(id) ?? props.scene.particleSystems?.find((ps) => ps.id === id);
+		if (!object) {
+			// Check in clustered light container
+			const clusteredLightContainer = props.scene.lights.find((light) => isClusteredLightContainer(light));
+			if (clusteredLightContainer) {
+				object = clusteredLightContainer.lights.find((light) => light.id === id);
+			}
+		}
+
+		return object ?? null;
 	}
 
 	function handleDragOver(ev: DragEvent<HTMLDivElement>) {
@@ -83,7 +92,7 @@ export function EditorInspectorSceneEntityField<T extends Node | IParticleSystem
 			return;
 		}
 
-		handleSetNode(getObjectById(data[0]));
+		handleSetNode(getObjectById(data[0]) as T);
 	}
 
 	function handleSetNode(node: T | null) {
