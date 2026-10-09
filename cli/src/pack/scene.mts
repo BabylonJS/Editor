@@ -606,6 +606,15 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 		})
 	);
 
+	// Animation groups
+	let animationGroups = await Promise.all(
+		options.directories.animationGroupFiles.map(async (file) => {
+			return fs.readJSON(join(options.sceneFile, "animationGroups", file));
+		})
+	);
+
+	animationGroups = animationGroups.filter((animationGroup) => !animationGroup.doNotSerialize);
+
 	const scene = {
 		autoClear: true,
 		clearColor: options.config.clearColor,
@@ -668,12 +677,7 @@ export async function createBabylonScene(options: ICreateBabylonSceneOptions) {
 		),
 
 		shadowGenerators,
-
-		animationGroups: await Promise.all(
-			options.directories.animationGroupFiles.map(async (file) => {
-				return fs.readJSON(join(options.sceneFile, "animationGroups", file));
-			})
-		),
+		animationGroups,
 
 		postProcesses: [],
 		spriteManagers: [],

@@ -19,6 +19,7 @@ export async function loadAnimationGroups(editor: Editor, animationGroupFiles: s
 
 				const animationGroup = AnimationGroup.Parse(data, scene);
 				animationGroup.uniqueId = data.uniqueId;
+				animationGroup.doNotSerialize = data.doNotSerialize;
 
 				if (animationGroup.targetedAnimations.length === 0) {
 					animationGroup.dispose();

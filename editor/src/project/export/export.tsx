@@ -34,6 +34,7 @@ import { configureMaterials } from "./materials";
 import { configureMeshesPhysics } from "./physics";
 import { configureClusteredLights } from "./light";
 import { configureParticleSystems } from "./particles";
+import { configureAnimationGroups } from "./animation";
 import { EditorExportProjectProgressComponent } from "./progress";
 import { ExportSceneProgressComponent, showExportSceneProgressDialog } from "./dialog";
 
@@ -165,6 +166,7 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 	configureMeshesLODs(data, scene);
 	configureMeshesPhysics(data, scene);
 	configureParticleSystems(data, scene);
+	configureAnimationGroups(data, scene);
 	configureClusteredLights(data, clusteredLightContainer);
 
 	// Configure environment texture
