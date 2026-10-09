@@ -739,6 +739,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 			try {
 				const data = animationGroup.serialize();
 				data.uniqueId = animationGroup.uniqueId;
+				data.doNotSerialize = animationGroup.doNotSerialize;
 
 				await writeJSON(animationGroupPath, data);
 			} catch (e) {

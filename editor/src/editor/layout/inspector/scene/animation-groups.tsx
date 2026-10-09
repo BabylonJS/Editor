@@ -14,7 +14,7 @@ import { Editor } from "../../../main";
 import { showPrompt } from "../../../../ui/dialog";
 import { Input } from "../../../../ui/shadcn/ui/input";
 import { Button } from "../../../../ui/shadcn/ui/button";
-import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "../../../../ui/shadcn/ui/context-menu";
+import { ContextMenu, ContextMenuCheckboxItem, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "../../../../ui/shadcn/ui/context-menu";
 
 import { registerUndoRedo } from "../../../../tools/undoredo";
 
@@ -33,6 +33,8 @@ export function EditorSceneAnimationGroupsInspector(props: IEditorSceneAnimation
 
 	const [animationGroups, setAnimationGroups] = useState<AnimationGroup[]>([]);
 	const [playingAnimationGroups, setPlayingAnimationGroups] = useState<AnimationGroup[]>([]);
+
+	const [rightClickedAnimationGroup, setRightClickedAnimationGroup] = useState<AnimationGroup | null>(null);
 
 	const [renamedAnimationGroupName, setRenamedAnimationGroupName] = useState<string>("");
 	const [renamedAnimationGroup, setRenamedAnimationGroup] = useState<AnimationGroup | null>(null);
@@ -160,6 +162,33 @@ export function EditorSceneAnimationGroupsInspector(props: IEditorSceneAnimation
 		setAnimationGroups(props.scene.animationGroups.slice());
 	}
 
+	function handleSetAnimationGroupsDoNotSerialize() {
+		if (!rightClickedAnimationGroup) {
+			return;
+		}
+
+		const doNotSerialize = !rightClickedAnimationGroup.doNotSerialize;
+
+		const map = selectedAnimationGroups.map((animationGroup) => ({
+			animationGroup,
+			doNotSerialize: animationGroup.doNotSerialize,
+		}));
+
+		registerUndoRedo({
+			executeRedo: true,
+			undo: () => {
+				map.forEach(({ animationGroup, doNotSerialize }) => {
+					animationGroup.doNotSerialize = doNotSerialize;
+				});
+			},
+			redo: () => {
+				selectedAnimationGroups.forEach((animationGroup) => {
+					animationGroup.doNotSerialize = doNotSerialize;
+				});
+			},
+		});
+	}
+
 	function handleRenameAnimationGroup(animationGroup: AnimationGroup) {
 		setRenamedAnimationGroup(animationGroup);
 		setRenamedAnimationGroupName(animationGroup.name);
@@ -220,7 +249,7 @@ export function EditorSceneAnimationGroupsInspector(props: IEditorSceneAnimation
 					>
 						{animations.map((animationGroup) => (
 							<Reorder.Item key={`${animationGroup.name}`} value={animationGroup} id={`${animationGroup.name}`}>
-								<ContextMenu>
+								<ContextMenu onOpenChange={(v) => setRightClickedAnimationGroup(v ? animationGroup : null)}>
 									<ContextMenuTrigger>
 										<div
 											onClick={(ev) => handleAnimationGroupClick(ev, animationGroup)}
@@ -228,6 +257,7 @@ export function EditorSceneAnimationGroupsInspector(props: IEditorSceneAnimation
 											className={`
 												flex items-center gap-2
 												${selectedAnimationGroups.includes(animationGroup) ? "bg-muted" : "hover:bg-muted/35"}
+												${animationGroup.doNotSerialize ? "line-through text-foreground/35" : ""}
 												transition-all duration-300 ease-in-out
 											`}
 										>
@@ -259,6 +289,10 @@ export function EditorSceneAnimationGroupsInspector(props: IEditorSceneAnimation
 										<ContextMenuItem className="flex items-center gap-2" onClick={handleMergeSelectedAnimationGroups}>
 											<AiFillMerge className="w-5 h-5" /> Merge...
 										</ContextMenuItem>
+										<ContextMenuSeparator />
+										<ContextMenuCheckboxItem checked={animationGroup.doNotSerialize} onClick={handleSetAnimationGroupsDoNotSerialize}>
+											Do not serialize
+										</ContextMenuCheckboxItem>
 										<ContextMenuSeparator />
 										<ContextMenuItem className="flex items-center gap-2 !text-red-400" onClick={handleRemoveSelectedAnimationGroups}>
 											<AiOutlineClose className="w-5 h-5" fill="rgb(248, 113, 113)" /> Remove
