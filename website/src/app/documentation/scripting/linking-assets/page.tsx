@@ -1,8 +1,11 @@
-"use client";
+import type { Metadata } from "next";
 
-import { Callout, CodeBlock, DocPage, DocHeading, DocVideo } from "../../components";
+import { Callout, CodeBlock, CustomLink, DocPage, DocHeading, DocVideo } from "../../components";
+import { getDocMetadata } from "../../config";
 
 import { linkingGuiExample, linkingJsonExample, linkingMaterialExample, linkingRestrictedMaterialExample } from "./code";
+
+export const metadata: Metadata = getDocMetadata("/documentation/scripting/linking-assets");
 
 export default function DocumentationLinkingAssetsPage() {
 	return (
@@ -13,7 +16,8 @@ export default function DocumentationLinkingAssetsPage() {
 
 			<p>
 				To use those assets in scripts, properties need to be decorated with the <b>@visibleAsAsset</b> decorator from the <b>babylonjs-editor-tools</b> package and will
-				then be available in the editor's inspector.
+				then be available in the editor's inspector, like any other{" "}
+				<CustomLink href="/documentation/scripting/customizing-scripts">customizable script property</CustomLink>.
 				<br />
 				To set those properties, simply select an asset from the <b>Assets Browser</b> panel and drag & drop it to the desired property in the inspector.
 			</p>
@@ -28,7 +32,8 @@ export default function DocumentationLinkingAssetsPage() {
 						<b>json</b>: any JSON file that can be parsed.
 					</li>
 					<li>
-						<b>material</b>: any material created in the editor and available as asset.
+						<b>material</b>: any <CustomLink href="/documentation/basics/managing-assets#creating-your-own-materials">material created in the editor</CustomLink> and
+						available as asset.
 					</li>
 					<li>
 						<b>gui</b>: any GUI created in the editor and available as asset.

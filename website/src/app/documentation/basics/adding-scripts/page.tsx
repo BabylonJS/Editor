@@ -1,9 +1,12 @@
-"use client";
+import type { Metadata } from "next";
 
-import { Callout, CodeBlock, DocPage, DocHeading, DocVideo } from "../../components";
+import { Callout, CodeBlock, CustomLink, DocPage, DocHeading, DocVideo } from "../../components";
+import { getDocMetadata } from "../../config";
 
 import { tsClassDecoratorsExample } from "./from-scene";
 import { tsClassBasedExample, tsFunctionBasedExample } from "./examples";
+
+export const metadata: Metadata = getDocMetadata("/documentation/basics/adding-scripts");
 
 export default function DocumentationAddingScriptsPage() {
 	return (
@@ -72,7 +75,10 @@ export default function DocumentationAddingScriptsPage() {
 				drag'n'drop the script file from the <b>Assets Browser</b> panel to the <b>Scripts</b> section in the inspector.
 			</p>
 
-			<p>Once done, the script is attached to the object and will be executed automatically when running the application.</p>
+			<p>
+				Once done, the script is attached to the object and will be executed automatically when{" "}
+				<CustomLink href="/documentation/basics/running-project">running the project</CustomLink>.
+			</p>
 
 			<DocVideo src="/documentation/basics/adding-scripts/attaching-script.mp4" />
 
@@ -104,6 +110,13 @@ export default function DocumentationAddingScriptsPage() {
 
 			<p>
 				Those decorators are equivalent to calling the associated methods like <b>scene.getMeshById("...")</b>, <b>scene.getTransformNodeById("...")</b> etc.
+			</p>
+
+			<p>
+				All of them are detailed in <CustomLink href="/documentation/scripting/common-decorators">common decorators</CustomLink>. Scripts can also expose properties in the
+				inspector (see <CustomLink href="/documentation/scripting/customizing-scripts">customizing scripts</CustomLink>),{" "}
+				<CustomLink href="/documentation/scripting/listening-events">listen to pointer and keyboard events</CustomLink> and{" "}
+				<CustomLink href="/documentation/scripting/linking-assets">link assets</CustomLink> such as JSON files and materials.
 			</p>
 
 			<Callout type="warning" title="Class-based scripts only">

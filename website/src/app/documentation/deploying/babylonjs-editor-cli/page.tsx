@@ -1,8 +1,11 @@
-"use client";
+import type { Metadata } from "next";
 
 import { CodeBlock, CustomLink, DocPage, DocHeading, DocVideo } from "../../components";
+import { getDocMetadata } from "../../config";
 
 import { ciExample, installing, pack, packageJson } from "./scripts";
+
+export const metadata: Metadata = getDocMetadata("/documentation/deploying/babylonjs-editor-cli");
 
 export default function UsingBabylonJSEditorCLIPage() {
 	return (
@@ -27,8 +30,12 @@ export default function UsingBabylonJSEditorCLIPage() {
 					<li>
 						generate all <b>.babylon</b> scenes.
 					</li>
-					<li>generate all necessary assets including down-scaled and compressed textures.</li>
-					<li>collect all scripts attached to entities in order to bundle them properly.</li>
+					<li>
+						generate all necessary assets including down-scaled and <CustomLink href="/documentation/advanced/compressing-textures">compressed textures</CustomLink>.
+					</li>
+					<li>
+						collect all <CustomLink href="/documentation/basics/adding-scripts">scripts attached to entities</CustomLink> in order to bundle them properly.
+					</li>
 				</ul>
 			</div>
 

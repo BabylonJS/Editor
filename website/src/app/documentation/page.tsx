@@ -1,6 +1,9 @@
-"use client";
+import type { Metadata } from "next";
 
 import { Callout, CustomLink, DocPage, DocHeading } from "./components";
+import { DOCS_CONFIG, getDocMetadata } from "./config";
+
+export const metadata: Metadata = getDocMetadata("/documentation");
 
 export default function DocumentationPage() {
 	return (
@@ -10,12 +13,16 @@ export default function DocumentationPage() {
 			<p>
 				Babylon.js Editor is a visual editor for Babylon.js. It allows you to create and edit scenes, materials, attach scripts and more.
 				<br />
-				The Babylon.js Editor is available on <b>Windows</b>, <b>macOS</b>, and <b>Linux</b> platforms.
+				The Babylon.js Editor is available on <b>Windows</b>, <b>macOS</b>, and <b>Linux</b> platforms and can be{" "}
+				<CustomLink href="/download">downloaded for free</CustomLink>.
 			</p>
 
 			<p>
 				The goal is to provide a simple and easy-to-use interface for creating and editing Babylon.js applications such as video games. It includes a large variety of
-				optimization tools, such as compressed textures generation, LOD collisions and more.
+				optimization tools, such as <CustomLink href="/documentation/advanced/compressing-textures">compressed textures</CustomLink> generation, LOD collisions and more. It
+				also supports 2D sprites with <CustomLink href="/documentation/assets/using-sprite-manager">sprite managers</CustomLink>,{" "}
+				<CustomLink href="/documentation/assets/using-gaussian-splatting">Gaussian Splatting</CustomLink> assets and importing assets from Fab.com using the{" "}
+				<CustomLink href="/documentation/plugins/fab">Fab plugin</CustomLink>.
 			</p>
 
 			<p>
@@ -39,6 +46,27 @@ export default function DocumentationPage() {
 				Of course, also a basic understanding of the <CustomLink href="https://babylonjs.com/">Babylon.js</CustomLink> engine, the most powerful, beautiful, simple, and
 				open web rendering engine in the world.
 			</Callout>
+
+			<DocHeading level={2}>Chapters</DocHeading>
+
+			{DOCS_CONFIG.map((category) => (
+				<div key={category.category} className="flex flex-col gap-2">
+					<DocHeading level={3}>{category.category}</DocHeading>
+
+					<ul className="list-disc pl-6 space-y-1">
+						{category.items
+							.filter((item) => item.href !== "/documentation")
+							.map((item) => (
+								<li key={item.href}>
+									<b>
+										<CustomLink href={item.href}>{item.title}</CustomLink>
+									</b>
+									: {item.description}
+								</li>
+							))}
+					</ul>
+				</div>
+			))}
 		</DocPage>
 	);
 }

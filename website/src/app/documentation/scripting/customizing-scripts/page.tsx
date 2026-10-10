@@ -1,6 +1,7 @@
-"use client";
+import type { Metadata } from "next";
 
-import { CodeBlock, DocPage, DocHeading, DocVideo } from "../../components";
+import { CodeBlock, CustomLink, DocPage, DocHeading, DocVideo } from "../../components";
+import { getDocMetadata } from "../../config";
 
 import {
 	visibleAsBooleanDecoratorsExample,
@@ -13,14 +14,17 @@ import {
 	visibleAsVector3DecoratorsExample,
 } from "./visible-as";
 
+export const metadata: Metadata = getDocMetadata("/documentation/scripting/customizing-scripts");
+
 export default function DocumentationCustomizingScriptsPage() {
 	return (
 		<DocPage>
 			<DocHeading level={2}>Introduction</DocHeading>
 
 			<p>
-				A same script can be attached to multiple objects in the scene. Each object may have its own configuration for the script so they can behave differently. To do so,
-				properties like booleans, numbers, vectors, colors etc. can be decorated so they become customizable in the editor per script and per object.
+				A same script can be <CustomLink href="/documentation/basics/adding-scripts">attached to multiple objects</CustomLink> in the scene. Each object may have its own
+				configuration for the script so they can behave differently. To do so, properties like booleans, numbers, vectors, colors etc. can be decorated so they become
+				customizable in the editor per script and per object.
 			</p>
 
 			<p>
@@ -175,6 +179,11 @@ export default function DocumentationCustomizingScriptsPage() {
 			</p>
 
 			<DocVideo src="/documentation/customizing-scripts/attach-entity.mp4" />
+
+			<p>
+				Entities can also be retrieved by their name using the <CustomLink href="/documentation/scripting/common-decorators">common decorators</CustomLink>, and assets such
+				as JSON files, materials and GUIs can be referenced the same way: see <CustomLink href="/documentation/scripting/linking-assets">linking assets</CustomLink>.
+			</p>
 		</DocPage>
 	);
 }

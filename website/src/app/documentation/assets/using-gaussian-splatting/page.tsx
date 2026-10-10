@@ -1,7 +1,10 @@
-"use client";
+import type { Metadata } from "next";
 
 import { CodeBlock, CustomLink, DocHeading, DocPage } from "../../components";
+import { getDocMetadata } from "../../config";
 import { loadSceneWithGaussianSplatting } from "./scripts";
+
+export const metadata: Metadata = getDocMetadata("/documentation/assets/using-gaussian-splatting");
 
 export default function DocumentationUsingGaussianSplattingPage() {
 	return (
@@ -16,8 +19,10 @@ export default function DocumentationUsingGaussianSplattingPage() {
 			<DocHeading level={2}>Importing Gaussian Splatting assets</DocHeading>
 
 			<p>
-				The Babylon.js Editor supports Gaussian Splatting assets. You can import them in your project and use them in your scene. The Editor will automatically create a
-				Gaussian Splatting instance. You can then manipulate them in the scene and change their properties in the Inspector. You can also add scripts to them.
+				The Babylon.js Editor supports Gaussian Splatting assets. You can{" "}
+				<CustomLink href="/documentation/basics/composing-scene#adding-custom-3d-models">import them in your project</CustomLink> and use them in your scene. The Editor
+				will automatically create a Gaussian Splatting instance. You can then manipulate them in the scene and change their properties in the Inspector. You can also{" "}
+				<CustomLink href="/documentation/basics/adding-scripts">add scripts</CustomLink> to them.
 			</p>
 
 			<div className="flex flex-col gap-2">
