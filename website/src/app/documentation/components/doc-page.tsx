@@ -3,7 +3,9 @@
 import React, { PropsWithChildren, ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { Fade } from "react-awesome-reveal";
-import { getDocItemByPath } from "../config";
+import { JsonLd } from "@/components/json-ld";
+import { siteName, siteUrl } from "@/lib/site";
+import { getDocItemByPath, IDocItem } from "../config";
 import { DocPagination } from "./doc-pagination";
 
 export interface IDocPageProps extends PropsWithChildren {
@@ -16,6 +18,30 @@ export interface IDocPageProps extends PropsWithChildren {
 	className?: string;
 }
 
+/**
+ * Returns the breadcrumb of the given documentation page, shown by search engines in place of its URL.
+ */
+function getBreadcrumbJsonLd(item: IDocItem): Record<string, unknown> {
+	const items = [
+		{ name: siteName, item: siteUrl },
+		{ name: "Documentation", item: `${siteUrl}/documentation` },
+	];
+
+	if (item.href !== "/documentation") {
+		items.push({ name: item.title, item: `${siteUrl}${item.href}` });
+	}
+
+	return {
+		"@context": "https://schema.org",
+		"@type": "BreadcrumbList",
+		itemListElement: items.map((entry, index) => ({
+			"@type": "ListItem",
+			position: index + 1,
+			...entry,
+		})),
+	};
+}
+
 export function DocPage({ title, description, headerActions, showPagination = true, children, className = "" }: IDocPageProps) {
 	const pathname = usePathname();
 	const configItem = getDocItemByPath(pathname);
@@ -25,6 +51,8 @@ export function DocPage({ title, description, headerActions, showPagination = tr
 
 	return (
 		<main className="w-full min-h-screen p-5 bg-black text-neutral-100">
+			{configItem && <JsonLd data={getBreadcrumbJsonLd(configItem)} />}
+
 			<div className={`flex flex-col gap-8 lg:max-w-3xl 2xl:max-w-5xl mx-auto pt-28 pb-20 ${className}`}>
 				{/* Page Header */}
 				{(displayTitle || displayDescription || headerActions) && (

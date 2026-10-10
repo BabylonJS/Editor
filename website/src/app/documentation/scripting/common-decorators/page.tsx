@@ -1,7 +1,10 @@
-"use client";
+import type { Metadata } from "next";
 
 import { DocPage, DocHeading, CodeBlock, Callout, CustomLink } from "../../components";
+import { getDocMetadata } from "../../config";
 import { animationGroupFromScene, componentFromScene, nodeFromDescendants, nodeFromScene, sceneAsset } from "./decorators";
+
+export const metadata: Metadata = getDocMetadata("/documentation/scripting/common-decorators");
 
 export default function DocumentationCommonDecoratorsPage() {
 	return (
@@ -11,6 +14,12 @@ export default function DocumentationCommonDecoratorsPage() {
 			<p>
 				Scripts can retrieve instances from the scene by using common decorators. Those decorators link scene objects directly to properties in your script, making it
 				simple to reference meshes, lights, cameras, or other components without manual searching.
+			</p>
+
+			<p>
+				New to scripting? Start with <CustomLink href="/documentation/basics/adding-scripts">adding scripts</CustomLink>. To configure a script per object from the
+				inspector, see <CustomLink href="/documentation/scripting/customizing-scripts">customizing scripts</CustomLink>, and to react to user inputs see{" "}
+				<CustomLink href="/documentation/scripting/listening-events">listening events</CustomLink>.
 			</p>
 
 			<DocHeading level={2}>@nodeFromScene</DocHeading>

@@ -14,6 +14,8 @@ import { IoArrowDownCircleSharp, IoLogoGithub, IoSpeedometer } from "react-icons
 
 import isMobile from "is-mobile";
 
+import { homeJsonLd } from "@/lib/site";
+import { JsonLd } from "@/components/json-ld";
 import { AppleIcon } from "@/components/icons/apple";
 import { LinuxIcon } from "@/components/icons/linux";
 import { WindowsIcon } from "@/components/icons/windows";
@@ -23,6 +25,8 @@ import { Experiment } from "./experiment";
 import { LandingRendererComponent } from "./renderer";
 
 import "./landing.css";
+
+const screenshotAlt = "Babylon.js Editor showing the scene graph, the 3D preview, the inspector and the assets browser";
 
 export default function HomePage() {
 	const videoRef = useRef<HTMLVideoElement>(null);
@@ -73,6 +77,8 @@ export default function HomePage() {
 	return (
 		<ReactLenis root>
 			<main className="min-w-screen min-h-screen text-neutral-50">
+				<JsonLd data={homeJsonLd} />
+
 				<div
 					style={{
 						filter: `brightness(${featuresVisible ? 0 : 1})`,
@@ -84,7 +90,7 @@ export default function HomePage() {
 
 				<div className="absolute 2xl:fixed top-0 left-0 w-full px-5 z-50">
 					<div className="flex justify-between items-center w-full">
-						<img alt="" src="/logo.svg" className="h-14 lg:h-20 -ml-12" />
+						<img alt="Babylon.js" src="/logo.svg" className="h-14 lg:h-20 -ml-12" />
 
 						<Link
 							href="/download"
@@ -102,15 +108,21 @@ export default function HomePage() {
 					<div className="flex flex-col gap-4 w-full">
 						<Fade cascade damping={0.1} triggerOnce direction="up">
 							<Fade>
-								<div className="text-5xl md:text-7xl lg:text-8xl xl:text-9xl font-semibold font-sans drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)] tracking-tighter text-center px-5">
+								<h1 className="text-5xl md:text-7xl lg:text-8xl xl:text-9xl font-semibold font-sans drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)] tracking-tighter text-center px-5">
 									Babylon.js Editor
-								</div>
+								</h1>
 							</Fade>
 
 							<Fade>
 								<div className="text-center text-xl md:text-3xl max-w-64 md:max-w-max font-semibold tracking-tighter drop-shadow-[0_1px_1px_rgba(0,0,0,1)] mx-auto px-5">
 									Focus more on <b className="text-[hsl(254,50%,60%)]">creating</b> and less on <b className="text-[rgb(187,70,75)]">coding</b>.
 								</div>
+							</Fade>
+
+							<Fade>
+								<p className="text-center md:text-lg max-w-72 md:max-w-max text-neutral-300 drop-shadow-[0_1px_1px_rgba(0,0,0,1)] mx-auto px-5">
+									The free and open-source editor to build 3D games and applications for the web with Babylon.js.
+								</p>
 							</Fade>
 
 							<div className="hidden lg:flex justify-center gap-4 pt-4">
@@ -132,13 +144,17 @@ export default function HomePage() {
 
 							{mobile && (
 								<div className="w-full h-full object-contain">
-									<img alt="" src="/screenshots/large.webp" className="max-h-[65dvh] object-contain z-50 mx-auto hidden sm:hidden md:hidden lg:hidden xl:block" />
 									<img
-										alt=""
+										alt={screenshotAlt}
+										src="/screenshots/large.webp"
+										className="max-h-[65dvh] object-contain z-50 mx-auto hidden sm:hidden md:hidden lg:hidden xl:block"
+									/>
+									<img
+										alt={screenshotAlt}
 										src="/screenshots/medium.webp"
 										className="max-h-[75dvh] object-contain z-50 mx-auto hidden sm:hidden md:hidden lg:block xl:hidden"
 									/>
-									<img alt="" src="/screenshots/small.webp" className="max-h-[75dvh] object-contain z-50 mx-auto lg:hidden" />
+									<img alt={screenshotAlt} src="/screenshots/small.webp" className="max-h-[75dvh] object-contain z-50 mx-auto lg:hidden" />
 								</div>
 							)}
 
@@ -177,11 +193,11 @@ export default function HomePage() {
 						mobile={mobile}
 						mobileAvailable={false}
 						title={
-							<div className="flex flex-col items-center">
-								<div className="text-lg md:text-2xl lg:text-3xl xl:text-4xl tracking-tighter">Presenting</div>
-								<div className="font-[o4b] py-10 text-white drop-shadow-[0_0_25px_rgba(220,38,38,0.8)]">Out 4 Blood</div>
-								<div className="text-lg md:text-xl lg:text-2xl xl:text-3xl tracking-tighter">A game achieved using Babylon.js Editor</div>
-							</div>
+							<span className="flex flex-col items-center">
+								<span className="text-lg md:text-2xl lg:text-3xl xl:text-4xl tracking-tighter">Presenting</span>
+								<span className="font-[o4b] py-10 text-white drop-shadow-[0_0_25px_rgba(220,38,38,0.8)]">Out 4 Blood</span>
+								<span className="text-lg md:text-xl lg:text-2xl xl:text-3xl tracking-tighter">A game achieved using Babylon.js Editor</span>
+							</span>
 						}
 						runLabel="Run game"
 						coverVideo="https://babylonjs-editor.fra1.cdn.digitaloceanspaces.com/experiments/horde/cover.mp4"
@@ -191,8 +207,15 @@ export default function HomePage() {
 						<>
 							<b>Out 4 Blood</b> is a hardcore multiplayer zombie wave-survival shooter built for relentless co-op action and intense last-stand gameplay.
 							<br />
-							From scene assembly and lighting to gameplay scripting, the entire game was created <b>100% with the Babylon.js Editor</b>, showcasing a complete
-							end-to-end production pipeline inside the engine.
+							From{" "}
+							<Link href="/documentation/basics/composing-scene" className="underline underline-offset-4">
+								scene assembly
+							</Link>{" "}
+							and lighting to{" "}
+							<Link href="/documentation/basics/adding-scripts" className="underline underline-offset-4">
+								gameplay scripting
+							</Link>
+							, the entire game was created <b>100% with the Babylon.js Editor</b>, showcasing a complete end-to-end production pipeline inside the engine.
 							<br />
 							The game features high-quality 3D assets sourced from Quixel, Sketchfab, Fab, and Mixamo, while its real-time multiplayer experience is powered by{" "}
 							<Link href="https://colyseus.io/" target="_blank" className="underline underline-offset-4">
@@ -217,13 +240,17 @@ export default function HomePage() {
 							<Fade className="w-full" cascade damping={0.1} triggerOnce direction="right">
 								<div className="flex flex-col justify-center gap-2">
 									<div className="flex justify-between items-center text-3xl drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
-										Built-in Templates
+										<h2>Built-in Templates</h2>
 										<div className="lg:hidden flex gap-2">
 											<IoSpeedometer />
 										</div>
 									</div>
 									<div className="drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
-										Kickstart your development with built-in templates, including{" "}
+										Kickstart your development with{" "}
+										<Link href="/documentation/basics/creating-project" className="underline underline-offset-4">
+											built-in templates
+										</Link>
+										, including{" "}
 										<Link target="_blank" href="https://nextjs.org" className="underline underline-offset-4">
 											Next.js
 										</Link>
@@ -253,13 +280,13 @@ export default function HomePage() {
 							<Fade className="w-full" cascade damping={0.1} triggerOnce direction="up">
 								<div className="flex flex-col justify-center gap-2">
 									<div className="flex justify-between items-center text-3xl drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
-										Open-Source
+										<h2>Open-Source</h2>
 										<div className="lg:hidden flex gap-2">
 											<IoLogoGithub />
 										</div>
 									</div>
 									<div className="drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
-										The Babylon.js Editor is an open-source project maintained by the community. The sources are available on{" "}
+										The Babylon.js Editor is a free and open-source 3D scene and game editor maintained by the community. The sources are available on{" "}
 										<Link target="_blank" href="https://github.com/BabylonJS/Editor" className="underline underline-offset-4">
 											Github
 										</Link>
@@ -298,7 +325,7 @@ export default function HomePage() {
 							<Fade className="w-full" cascade damping={0.1} triggerOnce direction="left">
 								<div className="flex flex-col justify-center gap-2">
 									<div className="flex justify-between items-center text-3xl drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
-										Cross-Platform
+										<h2>Cross-Platform</h2>
 										<div className="lg:hidden flex gap-2">
 											<WindowsIcon color="#fff" />
 											<AppleIcon color="#fff" />
@@ -306,7 +333,11 @@ export default function HomePage() {
 										</div>
 									</div>
 									<div className="drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
-										The Babylon.js Editor is available on Windows, macOS, and Linux.
+										The Babylon.js Editor is{" "}
+										<Link href="/download" className="underline underline-offset-4">
+											available on Windows, macOS, and Linux
+										</Link>
+										.
 										<br />
 										Enjoy a unified development environment that supports all major platforms, allowing you to focus on creativity and innovation rather than
 										compatibility issues.
@@ -324,7 +355,7 @@ export default function HomePage() {
 							<Fade className="w-full" cascade damping={0.1} triggerOnce direction="down">
 								<div className="flex flex-col justify-center gap-2">
 									<div className="flex justify-between items-center text-3xl drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
-										Integrated Tools
+										<h2>Integrated Tools</h2>
 										<div className="lg:hidden flex gap-2">
 											<FaToolbox />
 										</div>
@@ -332,8 +363,11 @@ export default function HomePage() {
 									<div className="drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
 										Enhance your development process, enabling you to bring your most ambitious projects to life with ease and efficiency.
 										<br />
-										Experience the power of high-resolution textures with support of advanced formats like automatic KTX compressed textures. This feature
-										allows to incorporate stunning 4K textures into your projects, optimizing performance without sacrificing visual quality.
+										Experience the power of high-resolution textures with support of advanced formats like automatic{" "}
+										<Link href="/documentation/advanced/compressing-textures" className="underline underline-offset-4">
+											KTX compressed textures
+										</Link>
+										. This feature allows to incorporate stunning 4K textures into your projects, optimizing performance without sacrificing visual quality.
 									</div>
 								</div>
 							</Fade>
@@ -417,14 +451,30 @@ export default function HomePage() {
 					<div className="relative flex flex-col w-screen min-h-screen bg-black">
 						<Fade cascade damping={0.1} triggerOnce direction="up" className="flex justify-center items-center w-full p-10 lg:pt-20 lg:pb-0">
 							<div className="flex flex-col gap-10">
-								<div className="text-5xl md:text-7xl lg:text-8xl xl:text-9xl font-semibold font-sans drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)] tracking-tighter text-center px-5">
+								<h2 className="text-5xl md:text-7xl lg:text-8xl xl:text-9xl font-semibold font-sans drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)] tracking-tighter text-center px-5">
 									Documentation
-								</div>
+								</h2>
 
 								<GiBookmarklet color="white" className="w-52 h-52 lg:w-96 lg:h-96 mx-auto drop-shadow-[0_1px_1px_rgba(0,0,0,1)]" />
 
 								<div className="text-center drop-shadow-[0_1px_1px_rgba(0,0,0,1)]">
-									Learn how to use the Babylon.js Editor and start building your own video game or app.
+									Learn how to use the Babylon.js Editor and start building your own video game or app:{" "}
+									<Link href="/documentation/basics/creating-project" className="underline underline-offset-4">
+										create a project
+									</Link>
+									,{" "}
+									<Link href="/documentation/basics/composing-scene" className="underline underline-offset-4">
+										compose your scene
+									</Link>
+									,{" "}
+									<Link href="/documentation/basics/adding-scripts" className="underline underline-offset-4">
+										add scripts
+									</Link>{" "}
+									and{" "}
+									<Link href="/documentation/basics/running-project" className="underline underline-offset-4">
+										run your project
+									</Link>
+									.
 									<br />
 									Once you have covered all the chapters you will be aware, at a foundation level, of what the Babylon.js Editor has to offer you.
 								</div>

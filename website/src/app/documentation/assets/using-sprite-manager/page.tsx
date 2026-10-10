@@ -1,8 +1,11 @@
-"use client";
+import type { Metadata } from "next";
 
 import { CodeBlock, CustomLink, DocPage, DocHeading, DocVideo } from "../../components";
+import { getDocMetadata } from "../../config";
 
 import { assignScriptSprite, assignScriptSpriteManager, getAnimationSprite, playAnimationSprite } from "./scripts";
+
+export const metadata: Metadata = getDocMetadata("/documentation/assets/using-sprite-manager");
 
 export default function DocumentationUsingSpriteManagerPage() {
 	return (
@@ -64,8 +67,9 @@ export default function DocumentationUsingSpriteManagerPage() {
 			<DocHeading level={2}>Assigning script to a Sprite</DocHeading>
 
 			<p>
-				Scripts can be assigned to individual sprites created from a sprite manager. When assigning a script to a sprite, the sprite instance can be accessed in the script
-				using the <b>Sprite</b> type from the <b>@babylonjs/core</b> package:
+				Scripts can be assigned to individual sprites created from a sprite manager, the same way{" "}
+				<CustomLink href="/documentation/basics/adding-scripts">scripts are attached</CustomLink> to any other object. When assigning a script to a sprite, the sprite
+				instance can be accessed in the script using the <b>Sprite</b> type from the <b>@babylonjs/core</b> package:
 			</p>
 
 			<CodeBlock code={assignScriptSprite} />

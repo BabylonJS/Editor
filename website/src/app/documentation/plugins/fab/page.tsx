@@ -1,6 +1,9 @@
-"use client";
+import type { Metadata } from "next";
 
 import { Callout, CustomLink, DocPage, DocHeading, DocVideo } from "../../components";
+import { getDocMetadata } from "../../config";
+
+export const metadata: Metadata = getDocMetadata("/documentation/plugins/fab");
 
 export default function DocumentationUsingFabPluginPage() {
 	return (
@@ -74,7 +77,8 @@ export default function DocumentationUsingFabPluginPage() {
 			<DocHeading level={2}>Instantiating</DocHeading>
 
 			<p>
-				To instantiate an imported Fab asset into the scene, simply select it from the Fab tab and drag'n'drop it into the preview panel like any other asset.
+				To instantiate an imported Fab asset into the scene, simply select it from the Fab tab and drag'n'drop it into the preview panel{" "}
+				<CustomLink href="/documentation/basics/composing-scene#adding-custom-3d-models">like any other 3D model</CustomLink>.
 				<br />
 				Because Fab assets are described by a collection of meshes and materials, the plugin will automatically assign pre-configured materials to the meshes when
 				instantiating them.
@@ -82,7 +86,8 @@ export default function DocumentationUsingFabPluginPage() {
 
 			<p>
 				For a manual import, you can simply navigate to the <b>assets/fab</b> folder in the <b>Assets browser</b> panel and drag'n'drop the desired asset into the preview
-				or the graph panels. Doing that allows you to use available assets such as materials separately.
+				or the graph panels. Doing that allows you to use available assets such as <CustomLink href="/documentation/basics/managing-assets">materials</CustomLink>{" "}
+				separately.
 			</p>
 
 			<DocVideo src="/documentation/plugins/fab/instantiating.mp4" />

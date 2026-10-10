@@ -1,6 +1,9 @@
-"use client";
+import type { Metadata } from "next";
 
-import { DocPage, DocHeading, DocImage, Callout } from "../../components";
+import { DocPage, DocHeading, DocImage, Callout, CustomLink } from "../../components";
+import { getDocMetadata } from "../../config";
+
+export const metadata: Metadata = getDocMetadata("/documentation/basics/creating-project");
 
 export default function DocumentationCreatingProjectPage() {
 	return (
@@ -82,13 +85,18 @@ export default function DocumentationCreatingProjectPage() {
 
 			<DocHeading level={2}>Opening and Editing</DocHeading>
 
-			<p>To open and edit your project, double-click on its card in the dashboard.</p>
+			<p>
+				To open and edit your project, double-click on its card in the dashboard. From there, you can start{" "}
+				<CustomLink href="/documentation/basics/composing-scene">composing your scene</CustomLink>,{" "}
+				<CustomLink href="/documentation/basics/adding-scripts">adding scripts</CustomLink> to your objects and{" "}
+				<CustomLink href="/documentation/basics/running-project">running your project</CustomLink> directly from the editor.
+			</p>
 
 			<DocImage src="/documentation/basics/creating-project/project-opened.png" alt="Project opened in Babylon.js Editor" />
 
 			<Callout type="info" title="Automatic Dependency Updates">
 				Each time a project is opened, the editor checks and updates dependencies using your selected package manager. This ensures all editor runtime tools and per-project
-				plugins are up-to-date and compatible.
+				plugins (such as the <CustomLink href="/documentation/plugins/fab">Fab plugin</CustomLink>) are up-to-date and compatible.
 			</Callout>
 
 			<DocHeading level={2}>Import project</DocHeading>

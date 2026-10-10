@@ -3,6 +3,14 @@ module.exports = {
     siteUrl: "https://editor.babylonjs.com",
     generateRobotsTxt: true,
 
+    exclude: [
+        // Image shared on social networks, not a page.
+        "/opengraph-image.jpg",
+        // Placeholder pages served with "noindex" until their content is written.
+        "/documentation/advanced/lod-collisions",
+        "/documentation/advanced/optimizing-shadows",
+    ],
+
     transform: (config, path) => {
         if (path === "/") {
             config.priority = 1;

@@ -1,6 +1,9 @@
-"use client";
+import type { Metadata } from "next";
 
 import { Callout, CustomLink, DocPage, DocHeading, DocImage, DocVideo } from "../../components";
+import { getDocMetadata } from "../../config";
+
+export const metadata: Metadata = getDocMetadata("/documentation/basics/managing-assets");
 
 export default function DocumentationManagingAssetsPage() {
 	return (
@@ -8,8 +11,11 @@ export default function DocumentationManagingAssetsPage() {
 			<DocHeading level={2}>Introduction</DocHeading>
 
 			<p>
-				This chapter is linked to the previous one (<b>Composing scene</b>) but goes deeper into the management of assets. How to create your own materials, how to assign
-				textures to materials, etc.
+				This chapter is linked to the previous one (
+				<b>
+					<CustomLink href="/documentation/basics/composing-scene">Composing scene</CustomLink>
+				</b>
+				) but goes deeper into the management of assets. How to create your own materials, how to assign textures to materials, etc.
 			</p>
 
 			<Callout type="warning" title="Assets folder">
@@ -38,7 +44,8 @@ export default function DocumentationManagingAssetsPage() {
 				<b>
 					<CustomLink href="https://doc.babylonjs.com/features/featuresDeepDive/materials/using/introToPBR">excellent documentation</CustomLink>
 				</b>{" "}
-				of Babylon.js.
+				of Babylon.js. A dedicated Sky Material is also available to render skies, see <CustomLink href="/documentation/tips/creating-skybox">creating a skybox</CustomLink>
+				.
 			</p>
 
 			<p>
@@ -128,6 +135,11 @@ export default function DocumentationManagingAssetsPage() {
 			</Callout>
 
 			<DocVideo src="/documentation/basics/managing-assets/assigning-texture-preview.mp4" />
+
+			<p>
+				To reduce the video memory used by your textures, see <CustomLink href="/documentation/advanced/compressing-textures">compressing textures</CustomLink>. Materials
+				can also be used from your code, see <CustomLink href="/documentation/scripting/linking-assets">linking assets</CustomLink> to scripts.
+			</p>
 		</DocPage>
 	);
 }

@@ -1,0 +1,1 @@
+Babylon.js Editor: open-source 3D web game and scene editor, showing a scene in the 3D preview with the graph, inspector and assets browser

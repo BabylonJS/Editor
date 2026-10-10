@@ -1,8 +1,11 @@
-"use client";
+import type { Metadata } from "next";
 
 import { IoPlay, IoRefresh, IoStop } from "react-icons/io5";
 
-import { DocPage, DocHeading, DocVideo } from "../../components";
+import { CustomLink, DocPage, DocHeading, DocVideo } from "../../components";
+import { getDocMetadata } from "../../config";
+
+export const metadata: Metadata = getDocMetadata("/documentation/basics/running-project");
 
 export default function DocumentationRunningProjectPage() {
 	return (
@@ -10,8 +13,8 @@ export default function DocumentationRunningProjectPage() {
 			<DocHeading level={2}>Introduction</DocHeading>
 
 			<p>
-				Projects can be played directly from the editor. A project can be composed of multiple scenes and some scripts may be attached to objects in the scene(s). There are
-				2 options:
+				Projects can be played directly from the editor. A project can be composed of multiple scenes and some{" "}
+				<CustomLink href="/documentation/basics/adding-scripts">scripts may be attached</CustomLink> to objects in the scene(s). There are 2 options:
 			</p>
 
 			<ul className="list-disc pl-6 space-y-1">
@@ -20,7 +23,8 @@ export default function DocumentationRunningProjectPage() {
 					resources (textures, etc.). This is the default behavior of the editor.
 				</li>
 				<li>
-					<b>play the project as-is</b>: consists on running the <b>dev</b> command using the project's selected package manager (npm, yarn, bun or pnpm).
+					<b>play the project as-is</b>: consists on running the <b>dev</b> command using the project's{" "}
+					<CustomLink href="/documentation/basics/creating-project#choosing-package-manager">selected package manager</CustomLink> (npm, yarn, bun or pnpm).
 				</li>
 			</ul>
 
@@ -33,7 +37,8 @@ export default function DocumentationRunningProjectPage() {
 
 			<p>
 				Each time the current scene is played, the editor will update the assets located in the <b>public</b> folder of the project. If new assets were added to the project
-				(especially images), this can take a few seconds to generate all new necessary files before the project can be played.
+				(especially images), this can take a few seconds to generate all new necessary files before the project can be played. The same files can be generated from the
+				command line using the <CustomLink href="/documentation/deploying/babylonjs-editor-cli">Babylon.js Editor CLI</CustomLink>.
 			</p>
 
 			<p>Note that when playing, all the scripts are watched for changes and will be reloaded automatically when modified until the "play" mode is stopped.</p>
@@ -53,6 +58,10 @@ export default function DocumentationRunningProjectPage() {
 			</p>
 
 			<DocVideo src="/documentation/basics/running-project/running-project.mp4" />
+
+			<p>
+				Playing and stopping the scene is also available as a <CustomLink href="/documentation/tips/shortcuts">keyboard shortcut</CustomLink>.
+			</p>
 		</DocPage>
 	);
 }

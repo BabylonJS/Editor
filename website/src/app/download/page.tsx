@@ -12,7 +12,7 @@ export default function DownloadPage() {
 		<main className="min-w-screen min-h-screen p-5 bg-black text-neutral-50">
 			<div className="absolute 2xl:fixed top-0 left-0 flex justify-between items-center w-full px-5">
 				<Link href="/" className="flex justify-between items-center w-full">
-					<img alt="" src="/logo.svg" className="h-14 lg:h-20 -ml-12" />
+					<img alt="Babylon.js Editor" src="/logo.svg" className="h-14 lg:h-20 -ml-12" />
 				</Link>
 
 				<Link href="/documentation" className="flex items-center gap-2 text-black bg-neutral-50 rounded-full px-5 py-2">
@@ -24,7 +24,17 @@ export default function DownloadPage() {
 			<div className="flex flex-col gap-10 max-w-4xl mx-auto pt-32">
 				<Fade cascade damping={0.1} triggerOnce className="w-full">
 					<Fade>
-						<div className="text-3xl md:text-5xl lg:text-6xl font-semibold font-sans tracking-tighter text-center">Download Babylon.js Editor</div>
+						<h1 className="text-3xl md:text-5xl lg:text-6xl font-semibold font-sans tracking-tighter text-center">Download Babylon.js Editor</h1>
+					</Fade>
+
+					<Fade>
+						<p className="text-neutral-400 text-center">
+							Free and open-source, for Windows, macOS and Linux. Once installed, follow the guide to{" "}
+							<Link href="/documentation/basics/creating-project" className="underline underline-offset-4">
+								create your first project
+							</Link>
+							.
+						</p>
 					</Fade>
 
 					<DownloadVersionComponent

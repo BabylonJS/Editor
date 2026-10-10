@@ -1,6 +1,7 @@
-"use client";
+import type { Metadata } from "next";
 
-import { Callout, CodeBlock, DocPage, DocHeading } from "../../components";
+import { Callout, CodeBlock, CustomLink, DocPage, DocHeading } from "../../components";
+import { getDocMetadata } from "../../config";
 
 import {
 	onPointerEventBasicExample,
@@ -11,12 +12,18 @@ import {
 	onKeyboardEventArrayBasicExample,
 } from "./code";
 
+export const metadata: Metadata = getDocMetadata("/documentation/scripting/listening-events");
+
 export default function DocumentationListeningEventsPage() {
 	return (
 		<DocPage>
 			<DocHeading level={2}>Introduction</DocHeading>
 
-			<p>The editor provides some helpers for listening events in the scene. Those helpers are provided as decorators and can be used in any attached script in the scene.</p>
+			<p>
+				The editor provides some helpers for listening events in the scene. Those helpers are provided as decorators, like the{" "}
+				<CustomLink href="/documentation/scripting/common-decorators">common decorators</CustomLink>, and can be used in any{" "}
+				<CustomLink href="/documentation/basics/adding-scripts">attached script</CustomLink> in the scene.
+			</p>
 
 			<p>Each decorator can be used to decorate a method in the class. Method that will be called each time an event of the provided type(s) is raised in the scene.</p>
 
@@ -63,8 +70,8 @@ export default function DocumentationListeningEventsPage() {
 			<DocHeading level={3}>Including descendants</DocHeading>
 
 			<p>
-				When importing meshes, from a <b>GLB</b> file for example, it can be useful to listen for events on the entire hierarchy of imported meshes. Especially when the
-				imported hierarchy is complex and contains multiple meshes.
+				When <CustomLink href="/documentation/basics/composing-scene#adding-custom-3d-models">importing meshes</CustomLink>, from a <b>GLB</b> file for example, it can be
+				useful to listen for events on the entire hierarchy of imported meshes. Especially when the imported hierarchy is complex and contains multiple meshes.
 			</p>
 
 			<p>

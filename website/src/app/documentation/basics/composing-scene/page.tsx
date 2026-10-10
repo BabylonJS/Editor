@@ -1,6 +1,9 @@
-"use client";
+import type { Metadata } from "next";
 
 import { DocPage, DocHeading, DocVideo, DocImage, Callout, CustomLink } from "../../components";
+import { getDocMetadata } from "../../config";
+
+export const metadata: Metadata = getDocMetadata("/documentation/basics/composing-scene");
 
 export default function DocumentationComposingScenePage() {
 	return (
@@ -20,7 +23,8 @@ export default function DocumentationComposingScenePage() {
 					<b>Inspector</b>: by default on the right side, where you can see and edit the properties of the selected object.
 				</li>
 				<li>
-					<b>Assets Browser</b>: by default on the bottom side, where you can see and manage the assets of the project (textures, materials, meshes, etc.).
+					<b>Assets Browser</b>: by default on the bottom side, where you can see and manage the assets of the project (textures, materials, meshes, etc.). See{" "}
+					<CustomLink href="/documentation/basics/managing-assets">managing assets</CustomLink>.
 				</li>
 			</ul>
 
@@ -44,7 +48,9 @@ export default function DocumentationComposingScenePage() {
 				.
 			</p>
 
-			<p>In the editor, gizmos are available in the preview panel toolbar or via shortcut:</p>
+			<p>
+				In the editor, gizmos are available in the preview panel toolbar or via <CustomLink href="/documentation/tips/shortcuts">keyboard shortcuts</CustomLink>:
+			</p>
 
 			<ul className="list-disc pl-6 space-y-1">
 				<li>
@@ -68,7 +74,7 @@ export default function DocumentationComposingScenePage() {
 			<p>
 				The editor supports adding primitive objects such as meshes, lights, and cameras.
 				<br />
-				By default, the template already contains a{" "}
+				By default, the <CustomLink href="/documentation/basics/creating-project#choosing-template">project template</CustomLink> already contains a{" "}
 				<b>
 					<CustomLink href="https://doc.babylonjs.com/features/featuresDeepDive/cameras/camera_introduction#universal-camera">Universal camera</CustomLink>
 				</b>
@@ -99,11 +105,17 @@ export default function DocumentationComposingScenePage() {
 				geometries are created using default values and you can edit them in the inspector.
 			</p>
 
+			<p>
+				Other kinds of objects have their own chapter: see <CustomLink href="/documentation/tips/creating-skybox">creating a skybox</CustomLink> and{" "}
+				<CustomLink href="/documentation/assets/using-sprite-manager">using sprite managers</CustomLink>.
+			</p>
+
 			<DocHeading level={2}>Adding custom 3D models</DocHeading>
 
 			<p>
 				The editor supports multiple file formats for 3D models such as <b>.glb</b>, <b>.gltf</b>, <b>.obj</b>, <b>.fbx</b>, <b>.babylon</b>, <b>.stl</b>, and <b>.blend</b>
-				.
+				. <CustomLink href="/documentation/assets/using-gaussian-splatting">Gaussian Splatting</CustomLink> assets are supported as well, and assets from Fab.com can be
+				imported using the <CustomLink href="/documentation/plugins/fab">Fab plugin</CustomLink>.
 			</p>
 
 			<Callout type="note" title="FBX Conversion">
