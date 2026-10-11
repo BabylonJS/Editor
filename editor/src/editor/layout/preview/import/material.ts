@@ -1,7 +1,7 @@
 import { Material } from "babylonjs";
 
 import { registerUndoRedo } from "../../../../tools/undoredo";
-import { isAbstractMesh } from "../../../../tools/guards/nodes";
+import { isAbstractMesh, isMesh } from "../../../../tools/guards/nodes";
 
 import { Editor } from "../../../main";
 
@@ -32,7 +32,7 @@ export function applyMaterialAssetToObject(editor: Editor, object: any, absolute
  * @param material defines the reference to the material instance to apply on the object.
  */
 export function applyMaterialToObject(editor: Editor, object: any, material: Material) {
-	if (!isAbstractMesh(object)) {
+	if (!isMesh(object)) {
 		return;
 	}
 
@@ -42,19 +42,25 @@ export function applyMaterialToObject(editor: Editor, object: any, material: Mat
 		executeRedo: true,
 		undo: () => {
 			object.material = oldMaterial;
-			object.getLODLevels().forEach((lod) => {
-				if (lod.mesh) {
-					lod.mesh.material = oldMaterial;
-				}
-			});
+
+			if (isMesh(object)) {
+				object.getLODLevels().forEach((lod) => {
+					if (lod.mesh) {
+						lod.mesh.material = oldMaterial;
+					}
+				});
+			}
 		},
 		redo: () => {
 			object.material = material;
-			object.getLODLevels().forEach((lod) => {
-				if (lod.mesh) {
-					lod.mesh.material = material;
-				}
-			});
+
+			if (isMesh(object)) {
+				object.getLODLevels().forEach((lod) => {
+					if (lod.mesh) {
+						lod.mesh.material = material;
+					}
+				});
+			}
 		},
 		onLost: () => {
 			const bindedMeshes = material.getBindedMeshes();
