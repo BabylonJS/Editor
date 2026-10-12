@@ -363,6 +363,7 @@ export function InspectorScriptField(props: IInspectorScriptFieldProps) {
 			case "animationGroup":
 				return (
 					<EditorInspectorListField
+						hasNullSearchValue
 						key={value.propertyKey}
 						object={props.script[scriptValues][value.propertyKey]}
 						property="value"

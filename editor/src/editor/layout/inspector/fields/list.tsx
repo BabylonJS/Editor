@@ -21,8 +21,17 @@ export interface IEditorInspectorListFieldItem {
 	label?: string;
 }
 
+// Special item in case hasNullSearchValue is true in props.
+const noneItem = {
+	key: "__editor_none__",
+	text: "None",
+	value: null,
+} as IEditorInspectorListFieldItem;
+
 export interface IEditorInspectorListFieldProps extends IEditorInspectorFieldProps {
 	search?: boolean;
+	hasNullSearchValue?: boolean;
+
 	items: IEditorInspectorListFieldItem[];
 
 	onChange?: (value: any, oldValue: any) => void;
@@ -46,7 +55,7 @@ export function EditorInspectorListField(props: IEditorInspectorListFieldProps) 
 	}
 
 	function handleSetValue(value: string) {
-		const item = props.items.find((i) => i.value === value);
+		const item = value === "__editor_none__" ? noneItem : props.items.find((i) => i.value === value);
 		if (!item || item?.value === selectedItem?.value) {
 			return;
 		}
@@ -92,13 +101,21 @@ export function EditorInspectorListField(props: IEditorInspectorListFieldProps) 
 	}
 
 	function SearchableList() {
+		const currentValue = selectedItem?.value ?? null;
+
 		return (
 			<Popover open={open} onOpenChange={setOpen}>
 				<PopoverTrigger asChild>
 					<Button variant="outline" role="combobox" aria-expanded={open} className={`${props.label ? "w-2/3" : "w-full"} justify-between`}>
 						<div className="flex gap-2 items-center">
 							{selectedItem?.icon}
-							<div className="!text-foreground font-semibold">{selectedItem?.text ?? "Select Value..."}</div>
+							<div
+								className={`
+									${currentValue === null ? "!text-muted-foreground font-normal" : "!text-foreground font-semibold"}
+								`}
+							>
+								{selectedItem?.text ?? "Select Value..."}
+							</div>
 						</div>
 						<ChevronDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
 					</Button>
@@ -109,10 +126,28 @@ export function EditorInspectorListField(props: IEditorInspectorListFieldProps) 
 						<CommandList>
 							<CommandEmpty>No value found.</CommandEmpty>
 							<CommandGroup>
+								{props.hasNullSearchValue && (
+									<CommandItem
+										key="__editor_none__"
+										value="__editor_none__"
+										onSelect={(v) => {
+											handleSetValue(v);
+											setOpen(false);
+										}}
+										className={`justify-between !pointer-events-auto ${currentValue === null ? "!opacity-100" : "hover:!opacity-100"}`}
+									>
+										<div className="flex gap-2 items-center">
+											<div className={`!text-foreground ${currentValue === null ? "font-semibold" : ""}`}>None</div>
+										</div>
+
+										<CheckIcon className={`mr-2 h-4 w-4 ${currentValue === null ? "opacity-100" : "opacity-0"}`} />
+									</CommandItem>
+								)}
+
 								{props.items.map((item) => (
 									<CommandItem
 										key={item.key ?? item.text}
-										value={item.value.toString()}
+										value={item.value?.toString()}
 										onSelect={(v) => {
 											const numberRegex = /^(?:-(?:[1-9](?:\d{0,2}(?:,\d{3})+|\d*))|(?:0|(?:[1-9](?:\d{0,2}(?:,\d{3})+|\d*))))(?:.\d+|)$/;
 											if (v.match(numberRegex)) {
