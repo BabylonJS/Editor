@@ -78,49 +78,56 @@ export async function checkProjectCachedCompressedTextures(editor: Editor) {
 		const internalTextureExtension = extname(internalTexture.url).toLowerCase();
 
 		if (editor.state.compressedTexturesEnabledInPreview) {
-			const fileStat = await stat(join(projectDirectory, name));
-			const hash = fileStat.mtimeMs.toString();
+			try {
+				const fileStat = await stat(join(projectDirectory, name));
+				const hash = fileStat.mtimeMs.toString();
 
-			const isNewFile = !cache[name] || cache[name] !== hash;
+				const isNewFile = !cache[name] || cache[name] !== hash;
 
-			const destinationFolder = join(texturesDirectory, dirname(name));
-			await ensureDir(destinationFolder);
+				const destinationFolder = join(texturesDirectory, dirname(name));
+				await ensureDir(destinationFolder);
 
-			if (editor.state.compressedTextureSoftware === "PVRTexTool" && getCompressedTexturesCliPath() && internalTextureExtension !== ".ktx") {
-				cache[name] = hash;
+				if (editor.state.compressedTextureSoftware === "PVRTexTool" && getCompressedTexturesCliPath() && internalTextureExtension !== ".ktx") {
+					cache[name] = hash;
 
-				const result = await compressFileToKtxFormat(editor, join(projectDirectory, name), {
-					force: isNewFile,
-					destinationFolder,
-					format: supportedType,
-				});
+					const result = await compressFileToKtxFormat(editor, join(projectDirectory, name), {
+						force: isNewFile,
+						destinationFolder,
+						format: supportedType,
+					});
 
-				if (result) {
-					const previousUrl = texture.url;
-					texture.updateURL(result);
-					texture.url = previousUrl;
+					if (result) {
+						const previousUrl = texture.url;
+						texture.updateURL(result);
+						texture.url = previousUrl;
 
-					computedTextures.push(name);
+						computedTextures.push(name);
+					}
+
+					continue;
+				} else if (editor.state.compressedTextureSoftware === "Khronos KTX-Software" && internalTextureExtension !== ".ktx2") {
+					cache[name] = hash;
+
+					const result = await compressFileToKtx2(editor, join(projectDirectory, name), {
+						force: isNewFile,
+						destinationFolder,
+					});
+
+					if (result) {
+						const previousUrl = texture.url;
+						texture.updateURL(result);
+						texture.url = previousUrl;
+
+						computedTextures.push(name);
+					}
+
+					continue;
 				}
-
-				continue;
-			} else if (editor.state.compressedTextureSoftware === "Khronos KTX-Software" && internalTextureExtension !== ".ktx2") {
-				cache[name] = hash;
-
-				const result = await compressFileToKtx2(editor, join(projectDirectory, name), {
-					force: isNewFile,
-					destinationFolder,
-				});
-
-				if (result) {
-					const previousUrl = texture.url;
-					texture.updateURL(result);
-					texture.url = previousUrl;
-
-					computedTextures.push(name);
+			} catch (e) {
+				if (e instanceof Error) {
+					editor.layout.console.warn(`Failed to compress texture "${name}":`);
+					editor.layout.console.error(e.message);
 				}
-
-				continue;
 			}
 		}
 
