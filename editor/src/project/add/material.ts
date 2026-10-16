@@ -7,6 +7,7 @@ export function addPBRMaterial(scene: Scene) {
 	const material = new PBRMaterial("New PBR Material", scene);
 	material.id = Tools.RandomId();
 	material.uniqueId = UniqueNumber.Get();
+	material.imageProcessingConfiguration.applyByPostProcess = true;
 
 	return material;
 }
@@ -15,6 +16,7 @@ export function addStandardMaterial(scene: Scene) {
 	const material = new StandardMaterial("New Standard Material", scene);
 	material.id = Tools.RandomId();
 	material.uniqueId = UniqueNumber.Get();
+	material.imageProcessingConfiguration.applyByPostProcess = true;
 
 	return material;
 }
@@ -24,6 +26,7 @@ export function addNodeMaterial(scene: Scene) {
 	material.id = Tools.RandomId();
 	material.uniqueId = UniqueNumber.Get();
 	material.setToDefault();
+	material.imageProcessingConfiguration.applyByPostProcess = true;
 
 	return material;
 }
