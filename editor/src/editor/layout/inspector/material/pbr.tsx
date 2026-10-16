@@ -3,7 +3,7 @@ import { dirname, join } from "path/posix";
 
 import { Component, ReactNode } from "react";
 
-import { PBRMaterial, AbstractMesh, Texture } from "babylonjs";
+import { PBRMaterial, AbstractMesh, Texture, TonemappingOperator } from "babylonjs";
 
 import { showAlert } from "../../../../ui/dialog";
 import { Button } from "../../../../ui/shadcn/ui/button";
@@ -18,6 +18,7 @@ import { configureImportedTexture } from "../../preview/import/import";
 
 import { Editor } from "../../../main";
 
+import { EditorInspectorListField } from "../fields/list";
 import { EditorInspectorColorField } from "../fields/color";
 import { EditorInspectorBlockField } from "../fields/block";
 import { EditorInspectorStringField } from "../fields/string";
@@ -369,6 +370,54 @@ export class EditorPBRMaterialInspector extends Component<IEditorPBRMaterialInsp
 					<EditorInspectorNumberField label="Environment Intensity" object={this.props.material} property="environmentIntensity" min={0} />
 					<EditorInspectorNumberField label="Emissive Intensity" object={this.props.material} property="emissiveIntensity" min={0} />
 					<EditorInspectorNumberField label="Specular Intensity" object={this.props.material} property="specularIntensity" min={0} />
+				</EditorInspectorSectionField>
+
+				<EditorInspectorSectionField title="Image processing">
+					<EditorInspectorSwitchField
+						label="Apply By Post Process"
+						object={this.props.material.imageProcessingConfiguration}
+						property="applyByPostProcess"
+						onChange={() => this.forceUpdate()}
+					/>
+
+					{!this.props.material.imageProcessingConfiguration.applyByPostProcess && (
+						<>
+							<EditorInspectorNumberField object={this.props.material.imageProcessingConfiguration} property="exposure" label="Exposure" />
+							<EditorInspectorNumberField object={this.props.material.imageProcessingConfiguration} property="contrast" label="Contrast" />
+							<EditorInspectorSwitchField object={this.props.material.imageProcessingConfiguration} property="fromLinearSpace" label="From Linear Space" />
+
+							<EditorInspectorSwitchField
+								object={this.props.material.imageProcessingConfiguration}
+								property="toneMappingEnabled"
+								label="Tone Mapping Enabled"
+								onChange={() => this.forceUpdate()}
+							/>
+
+							{this.props.material.imageProcessingConfiguration.toneMappingEnabled && (
+								<EditorInspectorListField
+									object={this.props.material.imageProcessingConfiguration}
+									property="toneMappingType"
+									label="Tone Mapping Type"
+									items={[
+										{ text: "Hable", value: TonemappingOperator.Hable },
+										{ text: "Reinhard", value: TonemappingOperator.Reinhard },
+										{ text: "Heji Dawson", value: TonemappingOperator.HejiDawson },
+										{ text: "Photographic", value: TonemappingOperator.Photographic },
+									]}
+								/>
+							)}
+
+							<EditorInspectorSwitchField
+								object={this.props.material.imageProcessingConfiguration}
+								property="ditheringEnabled"
+								label="Dithering Enabled"
+								onChange={() => this.forceUpdate()}
+							/>
+							{this.props.material.imageProcessingConfiguration.ditheringEnabled && (
+								<EditorInspectorNumberField object={this.props.material.imageProcessingConfiguration} property="ditheringIntensity" label="Dithering Intensity" />
+							)}
+						</>
+					)}
 				</EditorInspectorSectionField>
 
 				<EditorInspectorSectionField title="Misc">
