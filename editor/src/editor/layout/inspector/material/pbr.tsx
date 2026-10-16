@@ -3,7 +3,7 @@ import { dirname, join } from "path/posix";
 
 import { Component, ReactNode } from "react";
 
-import { PBRMaterial, AbstractMesh, Texture, TonemappingOperator } from "babylonjs";
+import { Material, PBRMaterial, AbstractMesh, Texture, TonemappingOperator } from "babylonjs";
 
 import { showAlert } from "../../../../ui/dialog";
 import { Button } from "../../../../ui/shadcn/ui/button";
@@ -377,20 +377,35 @@ export class EditorPBRMaterialInspector extends Component<IEditorPBRMaterialInsp
 						label="Apply By Post Process"
 						object={this.props.material.imageProcessingConfiguration}
 						property="applyByPostProcess"
-						onChange={() => this.forceUpdate()}
+						onChange={() => this._handleImageProcessingChanged(true)}
 					/>
 
 					{!this.props.material.imageProcessingConfiguration.applyByPostProcess && (
 						<>
-							<EditorInspectorNumberField object={this.props.material.imageProcessingConfiguration} property="exposure" label="Exposure" />
-							<EditorInspectorNumberField object={this.props.material.imageProcessingConfiguration} property="contrast" label="Contrast" />
-							<EditorInspectorSwitchField object={this.props.material.imageProcessingConfiguration} property="fromLinearSpace" label="From Linear Space" />
+							<EditorInspectorNumberField
+								object={this.props.material.imageProcessingConfiguration}
+								property="exposure"
+								label="Exposure"
+								onChange={() => this._handleImageProcessingChanged()}
+							/>
+							<EditorInspectorNumberField
+								object={this.props.material.imageProcessingConfiguration}
+								property="contrast"
+								label="Contrast"
+								onChange={() => this._handleImageProcessingChanged()}
+							/>
+							<EditorInspectorSwitchField
+								object={this.props.material.imageProcessingConfiguration}
+								property="fromLinearSpace"
+								label="From Linear Space"
+								onChange={() => this._handleImageProcessingChanged()}
+							/>
 
 							<EditorInspectorSwitchField
 								object={this.props.material.imageProcessingConfiguration}
 								property="toneMappingEnabled"
 								label="Tone Mapping Enabled"
-								onChange={() => this.forceUpdate()}
+								onChange={() => this._handleImageProcessingChanged(true)}
 							/>
 
 							{this.props.material.imageProcessingConfiguration.toneMappingEnabled && (
@@ -404,6 +419,7 @@ export class EditorPBRMaterialInspector extends Component<IEditorPBRMaterialInsp
 										{ text: "Heji Dawson", value: TonemappingOperator.HejiDawson },
 										{ text: "Photographic", value: TonemappingOperator.Photographic },
 									]}
+									onChange={() => this._handleImageProcessingChanged()}
 								/>
 							)}
 
@@ -411,10 +427,15 @@ export class EditorPBRMaterialInspector extends Component<IEditorPBRMaterialInsp
 								object={this.props.material.imageProcessingConfiguration}
 								property="ditheringEnabled"
 								label="Dithering Enabled"
-								onChange={() => this.forceUpdate()}
+								onChange={() => this._handleImageProcessingChanged(true)}
 							/>
 							{this.props.material.imageProcessingConfiguration.ditheringEnabled && (
-								<EditorInspectorNumberField object={this.props.material.imageProcessingConfiguration} property="ditheringIntensity" label="Dithering Intensity" />
+								<EditorInspectorNumberField
+									object={this.props.material.imageProcessingConfiguration}
+									property="ditheringIntensity"
+									label="Dithering Intensity"
+									onChange={() => this._handleImageProcessingChanged()}
+								/>
 							)}
 						</>
 					)}
@@ -440,6 +461,18 @@ export class EditorPBRMaterialInspector extends Component<IEditorPBRMaterialInsp
 				</EditorInspectorSectionField>
 			</>
 		);
+	}
+
+	/**
+	 * Once loaded, the material's image processing configuration is a parsed instance that the material doesn't observe,
+	 * so the effect has to be rebuilt manually to see the changes live.
+	 */
+	private _handleImageProcessingChanged(forceUpdate: boolean = false): void {
+		this.props.material.markAsDirty(Material.ImageProcessingDirtyFlag);
+
+		if (forceUpdate) {
+			this.forceUpdate();
+		}
 	}
 
 	private _handleSubSurfaceEnabledChange(v: boolean): void {
