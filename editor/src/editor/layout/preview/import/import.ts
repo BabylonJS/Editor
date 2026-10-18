@@ -1,6 +1,6 @@
 import { isAbsolute } from "path";
-import { join, dirname, basename, extname } from "path/posix";
 import { pathExists, readFile, readJSON, writeFile } from "fs-extra";
+import { join, dirname, basename, extname, normalize } from "path/posix";
 
 import axios from "axios";
 import { toast } from "sonner";
@@ -347,7 +347,7 @@ export function cleanTexture(texture: Texture, filename: string) {
 		texture.updateURL(filename);
 	}
 
-	const relativePath = filename.replace(join(dirname(projectConfiguration.path!), "/"), "");
+	const relativePath = normalize(filename).replace(join(dirname(projectConfiguration.path!), "/"), "");
 	texture.name = relativePath;
 	texture.url = relativePath;
 

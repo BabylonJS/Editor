@@ -23,6 +23,7 @@ import {
 
 import { UniqueNumber } from "../../../tools/tools";
 import { openSingleFileDialog } from "../../../tools/dialog";
+import { getLoaderPluginOptions } from "../../../tools/assets/loader";
 import { isMesh, isTransformNode } from "../../../tools/guards/nodes";
 
 import { Editor } from "../../main";
@@ -157,6 +158,7 @@ export class UpdateResourcesFromAsset extends Component<IUpdateResourcesFromAsse
 	public async componentDidMount(): Promise<void> {
 		this._container = await LoadAssetContainerAsync(basename(this.props.filename), this.props.editor.layout.preview.scene, {
 			rootUrl: join(dirname(this.props.filename), "/"),
+			pluginOptions: getLoaderPluginOptions(this.props.editor.path ?? ""),
 		});
 
 		this._container.meshes.forEach((mesh) => {
