@@ -24,6 +24,7 @@ import {
 } from "babylonjs";
 
 import { convertGltfToLeftHanded } from "../../../tools/scene/gltf";
+import { getLoaderPluginOptions } from "../../../tools/assets/loader";
 
 import { getProjectAssetsRootUrl } from "../../../project/configuration";
 
@@ -143,6 +144,7 @@ export class RagdollEditorPreview extends Component<IRagdollEditorPreviewProps, 
 
 		this.container = await LoadAssetContainerAsync(basename(absolutePath), this.scene, {
 			rootUrl: join(dirname(absolutePath), "/"),
+			pluginOptions: getLoaderPluginOptions(this.props.editor.path ?? ""),
 		});
 
 		const nodes = [...this.container.meshes, ...this.container.transformNodes, ...this.container.lights, ...this.container.cameras];
