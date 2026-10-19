@@ -122,8 +122,6 @@ export class NavMeshEditor extends Component<INavmeshEditorProps, INavmeshEditor
 		this.props.onClose();
 	}
 
-	public async refreshAll(): Promise<void> {}
-
 	public async updateNavMesh(): Promise<void> {
 		this._disposeDebugNavMesh();
 		this._disposePlugin();
@@ -134,7 +132,9 @@ export class NavMeshEditor extends Component<INavmeshEditorProps, INavmeshEditor
 			const meshes = getStaticMeshes(this.props.editor.layout.preview.scene, this.configuration.staticMeshes);
 
 			try {
-				this.result = await this.plugin!.createNavMeshAsync(meshes.effectiveStaticMeshes, this.configuration.navMeshParameters);
+				this.result = await this.plugin!.createNavMeshAsync(meshes.effectiveStaticMeshes, {
+					...this.configuration.navMeshParameters,
+				});
 				if (this.result) {
 					WaitForFullTileCacheUpdate(this.result.navMesh, this.result.tileCache);
 				}
