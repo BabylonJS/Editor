@@ -60,6 +60,7 @@ export function getStaticMeshes(scene: Scene, configurations: INavMeshStaticMesh
 
 			if (clone) {
 				clone.metadata = null;
+				clone.parent = mesh.parent;
 				clone.position.copyFrom(mesh.position);
 				clone.rotation.copyFrom(mesh.rotation);
 				clone.scaling.copyFrom(mesh.scaling);
