@@ -5,7 +5,7 @@ import { setNodeSerializable, setNodeVisibleInGraph } from "../../../tools/node/
 
 import { INavMeshObstacleConfiguration, INavMeshStaticMeshConfiguration } from "./types";
 
-export function getStaticMeshes(scene: Scene, configurations: INavMeshStaticMeshConfiguration[]) {
+export function getStaticMeshes(scene: Scene, configurations: INavMeshStaticMeshConfiguration[], useLowestLods: boolean) {
 	const clonedMeshes: AbstractMesh[] = [];
 	const clonedGeometries: Geometry[] = [];
 
@@ -24,8 +24,12 @@ export function getStaticMeshes(scene: Scene, configurations: INavMeshStaticMesh
 			let clone: Mesh | null = null;
 			let effectiveMesh: Mesh | null = null;
 
-			if (isInstancedMesh(mesh)) {
-				clone = mesh.sourceMesh.clone("mergedClone", null, true, false);
+			// LOD levels are drawn using the world matrix of the mesh (or instance) they belong to. The lowest one comes first.
+			const sourceMesh = isInstancedMesh(mesh) ? mesh.sourceMesh : mesh;
+			const lowestLodMesh = useLowestLods ? sourceMesh.getLODLevels().find((lodLevel) => lodLevel.mesh)?.mesh : null;
+
+			if (lowestLodMesh || isInstancedMesh(mesh)) {
+				clone = (lowestLodMesh ?? sourceMesh).clone("mergedClone", null, true, false);
 				effectiveMesh = clone;
 			} else {
 				effectiveMesh = mesh;
@@ -65,9 +69,8 @@ export function getStaticMeshes(scene: Scene, configurations: INavMeshStaticMesh
 				clone.rotation.copyFrom(mesh.rotation);
 				clone.scaling.copyFrom(mesh.scaling);
 
-				if (mesh.rotationQuaternion) {
-					clone.rotationQuaternion = mesh.rotationQuaternion.clone();
-				}
+				// The clone has the rotation quaternion of the mesh it comes from (source mesh, LOD level), if any.
+				clone.rotationQuaternion = mesh.rotationQuaternion?.clone() ?? null;
 
 				clone.setEnabled(false);
 

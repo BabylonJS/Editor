@@ -13,6 +13,7 @@ import * as RecastCore from "@recast-navigation/core";
 
 import { SpinnerUIComponent } from "../../../ui/spinner";
 
+import { wait } from "../../../tools/tools";
 import { setNodeSerializable, setNodeVisibleInGraph } from "../../../tools/node/metadata";
 
 import { Editor } from "../../main";
@@ -24,6 +25,7 @@ import { NavMeshEditorMeshesList } from "./meshes";
 import { NavMeshEditorObstacles } from "./obstacles";
 import { NavMeshEditorInspector } from "./inspector";
 import { getObstacleMeshes, getStaticMeshes } from "./tools";
+import { generateNavMesh, IIsolatedAreasRemovalOptions, INavMeshGenerationProgress } from "./generate/islands";
 
 export interface INavmeshEditorProps {
 	editor: Editor;
@@ -36,6 +38,7 @@ export interface INavmeshEditorProps {
 
 export interface INavmeshEditorState {
 	initializing: boolean;
+	generationProgress: INavMeshGenerationProgress | null;
 }
 
 export class NavMeshEditor extends Component<INavmeshEditorProps, INavmeshEditorState> {
@@ -47,6 +50,9 @@ export class NavMeshEditor extends Component<INavmeshEditorProps, INavmeshEditor
 	private _debugNavMesh: Mesh | null = null;
 	private _debugObstacles: { obstacle: IObstacle; mesh: Mesh }[] = [];
 
+	private _generating: boolean = false;
+	private _generationRequested: boolean = false;
+
 	public constructor(props: INavmeshEditorProps) {
 		super(props);
 
@@ -54,6 +60,7 @@ export class NavMeshEditor extends Component<INavmeshEditorProps, INavmeshEditor
 
 		this.state = {
 			initializing: true,
+			generationProgress: null,
 		};
 	}
 
@@ -71,7 +78,7 @@ export class NavMeshEditor extends Component<INavmeshEditorProps, INavmeshEditor
 				<div className="flex flex-col w-full overflow-y-auto">
 					<NavMeshEditorMeshesList editor={this.props.editor} navMeshEditor={this} />
 					<NavMeshEditorObstacles editor={this.props.editor} navMeshEditor={this} />
-					<NavMeshEditorInspector editor={this.props.editor} navMeshEditor={this} />
+					<NavMeshEditorInspector editor={this.props.editor} navMeshEditor={this} generationProgress={this.state.generationProgress} />
 				</div>
 
 				{/* <div className="flex flex-1 h-full pb-10">
@@ -99,6 +106,11 @@ export class NavMeshEditor extends Component<INavmeshEditorProps, INavmeshEditor
 			return sceneMesh !== null;
 		});
 
+		this.props.configuration.isolatedAreas ??= {
+			remove: true,
+			minimumArea: 200000,
+		};
+
 		// Build navmesh from data if exists
 		const navMeshBinPath = join(this.props.absolutePath, "navmesh.bin");
 		const tilecacheBinPath = join(this.props.absolutePath, "tilecache.bin");
@@ -123,18 +135,38 @@ export class NavMeshEditor extends Component<INavmeshEditorProps, INavmeshEditor
 	}
 
 	public async updateNavMesh(): Promise<void> {
+		// Asked while generating: generates again once done so the navmesh reflects the latest changes.
+		if (this._generating) {
+			this._generationRequested = true;
+			return;
+		}
+
 		this._disposeDebugNavMesh();
 		this._disposePlugin();
 
 		if (this.configuration.staticMeshes.length) {
+			this._generating = true;
+			this.setState({
+				generationProgress: { label: "Generating", progress: 0 },
+			});
+
+			// Lets the progress be displayed before the meshes are prepared.
+			await wait(0);
 			await this._createPlugin();
 
-			const meshes = getStaticMeshes(this.props.editor.layout.preview.scene, this.configuration.staticMeshes);
+			const plugin = this.plugin!;
+			const meshes = getStaticMeshes(this.props.editor.layout.preview.scene, this.configuration.staticMeshes, this.configuration.useLowestLods ?? false);
 
 			try {
-				this.result = await this.plugin!.createNavMeshAsync(meshes.effectiveStaticMeshes, {
+				this.result = await plugin.createNavMeshAsync(meshes.effectiveStaticMeshes, {
 					...this.configuration.navMeshParameters,
 				});
+
+				// The navmesh editor has been closed while generating.
+				if (plugin !== this.plugin) {
+					return plugin.dispose();
+				}
+
 				if (this.result) {
 					WaitForFullTileCacheUpdate(this.result.navMesh, this.result.tileCache);
 				}
@@ -150,17 +182,27 @@ export class NavMeshEditor extends Component<INavmeshEditorProps, INavmeshEditor
 					toast.error("Failed to re-initialize RecastCore");
 					this.props.editor.layout.console.error(`Failed to re-initialize RecastCore: ${(e as Error).message}`);
 				}
+			} finally {
+				meshes.clonedGeometries.forEach((geometry) => {
+					geometry.dispose();
+				});
+
+				meshes.clonedMeshes.forEach((mesh) => {
+					mesh.dispose(false, false);
+				});
+
+				this._generating = false;
+				this.setState({
+					generationProgress: null,
+				});
 			}
 
-			meshes.clonedGeometries.forEach((geometry) => {
-				geometry.dispose();
-			});
-
-			meshes.clonedMeshes.forEach((mesh) => {
-				mesh.dispose(false, false);
-			});
-
 			this.createDebugObstacles();
+
+			if (this._generationRequested) {
+				this._generationRequested = false;
+				return this.updateNavMesh();
+			}
 		}
 
 		this.forceUpdate();
@@ -268,6 +310,24 @@ export class NavMeshEditor extends Component<INavmeshEditorProps, INavmeshEditor
 				...RecastGenerators,
 			},
 		});
+
+		this.plugin.createNavMeshAsyncImpl = (meshes, parameters) => {
+			return generateNavMesh(meshes, parameters, this._getIsolatedAreasRemovalOptions(), (generationProgress) => this.setState({ generationProgress }));
+		};
+	}
+
+	private _getIsolatedAreasRemovalOptions(): IIsolatedAreasRemovalOptions | null {
+		const isolatedAreas = this.configuration.isolatedAreas;
+		if (!isolatedAreas?.remove) {
+			return null;
+		}
+
+		const referenceNode = isolatedAreas.referenceNodeId ? this.props.editor.layout.preview.scene.getNodeById(isolatedAreas.referenceNodeId) : null;
+
+		return {
+			minimumArea: isolatedAreas.minimumArea,
+			referencePosition: referenceNode?.computeWorldMatrix(true).getTranslation() ?? null,
+		};
 	}
 
 	private _disposePlugin(): void {

@@ -2,9 +2,17 @@ import { INavMeshParametersV2 } from "babylonjs-addons/navigation/types";
 
 export interface INavMeshConfiguration {
 	navMeshParameters: INavMeshParametersV2;
+	useLowestLods?: boolean;
+	isolatedAreas?: INavMeshIsolatedAreasConfiguration;
 
 	staticMeshes: INavMeshStaticMeshConfiguration[];
 	obstacleMeshes: INavMeshObstacleConfiguration[];
+}
+
+export interface INavMeshIsolatedAreasConfiguration {
+	remove: boolean;
+	minimumArea: number;
+	referenceNodeId?: string;
 }
 
 export interface INavMeshStaticMeshConfiguration {
