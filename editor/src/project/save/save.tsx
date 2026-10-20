@@ -60,6 +60,8 @@ export async function saveProjectConfiguration(editor: Editor) {
 		compressedPvrtcEnabled: editor.state.compressedPvrtcEnabled,
 		compressedTextureQuality: editor.state.compressedTextureQuality,
 
+		convertImportedLightmaps: editor.state.convertImportedLightmaps,
+
 		gizmoSnap: editor.layout.preview?.state.gizmoSnap,
 	};
 

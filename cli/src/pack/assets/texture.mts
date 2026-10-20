@@ -78,7 +78,9 @@ export async function processExportedTexture(absolutePath: string, options: ICom
 
 		if (options.force || !(await fs.pathExists(finalPath))) {
 			try {
-				const buffer = await sharp(absolutePath).resize(size.width, size.height).toBuffer();
+				// "fill", not sharp's default "cover": uvs are normalised, so a texture
+				// whose proportions change must be stretched - cover crops it.
+				const buffer = await sharp(absolutePath).resize(size.width, size.height, { fit: "fill" }).toBuffer();
 
 				await fs.writeFile(finalPath, buffer);
 
