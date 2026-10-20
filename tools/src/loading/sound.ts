@@ -12,13 +12,45 @@ import { StaticSoundBuffer } from "@babylonjs/core/AudioV2/abstractAudio/staticS
 import { IStaticSoundOptions, StaticSound } from "@babylonjs/core/AudioV2/abstractAudio/staticSound";
 import { _GetAudioEngine, CreateSoundAsync, CreateSoundBufferAsync } from "@babylonjs/core/AudioV2/abstractAudio/audioEngineV2";
 
-import { SoundNode } from "../tools/sound";
+import { SoundNode, spatialSoundsUpdateOptions } from "../tools/sound";
 
 let registered = false;
 let registeredUpdateObserver: Observer<Scene> | null = null;
 
 const soundInstances: SoundNode[] = [];
 const cachedSoundBuffers: Map<string, Promise<StaticSoundBuffer | null>> = new Map();
+
+// The sound nodes the per-frame spatial update looks at: the ones started through their node (`play`, `resume`) and
+// not seen stopped since. Walking every loaded sound node instead - a scene with a few dozen characters has hundreds
+// of them, nearly all silent - was most of the update's time.
+const playingSoundInstances: Set<SoundNode> = new Set();
+
+// How many frames apart every loaded sound node is looked at for one that plays without having been started through
+// its node (its sound played directly): those are followed too, from then on.
+const playingSoundsCollectInterval = 15;
+
+/**
+ * Adds the sound nodes playing that were not started through their node to the ones the per-frame update follows.
+ */
+function collectPlayingSoundInstances() {
+	for (let i = 0, count = soundInstances.length; i < count; ++i) {
+		const instance = soundInstances[i];
+		if (instance.isPlaying()) {
+			playingSoundInstances.add(instance);
+		}
+	}
+}
+
+/**
+ * Moves a sound that follows its node to where its node is, as it is started: until the per-frame update gets to it,
+ * on the next frame - or a few frames later for a far one, see `setSpatialSoundsUpdateOptions` - it would be heard
+ * from wherever it was last placed, which for a sound played now and then is where it was played the last time.
+ */
+function placeSoundOnStart(instance: SoundNode, sound: StaticSound) {
+	if (sound._isSpatial && instance.autoUpdateSpatial && instance.isEnabled(false) && !instance.isPlaying()) {
+		sound.spatial.update();
+	}
+}
 
 function createSoundInstance(name: string, options: Partial<IStaticSoundOptions>) {
 	const audioEngine = _GetAudioEngine(null) as _WebAudioEngine;
@@ -34,22 +66,52 @@ function registerUpdateSoundsObserver(scene: Scene) {
 
 	const listenerPosition = Vector3.Zero();
 
+	let frame = 0;
+
 	registeredUpdateObserver = scene.onBeforeRenderObservable.add(() => {
 		const listener = _GetAudioEngine(null).listener.attachedNode;
 		if (!listener) {
 			return;
 		}
 
+		if (++frame % playingSoundsCollectInterval === 0) {
+			collectPlayingSoundInstances();
+		}
+
+		if (!playingSoundInstances.size || !scene.activeCamera) {
+			return;
+		}
+
 		listener.getWorldMatrix().getTranslationToRef(listenerPosition);
 
-		soundInstances.forEach((instance) => {
-			if (instance.isEnabled(false) && instance.autoUpdateSpatial && instance.sound?._isSpatial && instance.isPlaying() && scene.activeCamera) {
-				const distance = Vector3.Distance(listenerPosition, instance.getAbsolutePosition());
-				if (distance <= instance.sound!.spatial.maxDistance) {
-					instance.sound.spatial.update();
+		const farDistance = spatialSoundsUpdateOptions.farDistance;
+		const farUpdateInterval = spatialSoundsUpdateOptions.farUpdateInterval;
+
+		for (const instance of playingSoundInstances) {
+			if (!instance.isPlaying()) {
+				// Kept while it waits to start (played with a wait time): nothing else would bring it back.
+				if (instance.sound?.state !== SoundState.Starting) {
+					playingSoundInstances.delete(instance);
 				}
+				continue;
 			}
-		});
+
+			if (!instance.isEnabled(false) || !instance.autoUpdateSpatial || !instance.sound?._isSpatial) {
+				continue;
+			}
+
+			const distance = Vector3.Distance(listenerPosition, instance.getAbsolutePosition());
+			if (distance > instance.sound.spatial.maxDistance) {
+				continue;
+			}
+
+			// Spread over the frames by node, so the far sounds are not all moved on the same one.
+			if (farDistance > 0 && distance > farDistance && (frame + instance.uniqueId) % farUpdateInterval !== 0) {
+				continue;
+			}
+
+			instance.sound.spatial.update();
+		}
 	});
 }
 
@@ -68,6 +130,8 @@ function registerSoundInstanceCleanup(instance: SoundNode, sound: StaticSound) {
 		if (index !== -1) {
 			soundInstances.splice(index, 1);
 		}
+
+		playingSoundInstances.delete(instance);
 	});
 }
 
@@ -118,7 +182,7 @@ export function configureSourceNodeFrom(source: SoundNode, target: SoundNode) {
 
 	sound
 		._initAsync(source.sound.buffer, {
-			spatialAutoUpdate: true,
+			spatialEnabled: source.sound._isSpatial,
 		})
 		.then(() => {
 			sound.volume = source.volume;
@@ -170,9 +234,17 @@ export function configureSoundNodePrototype(instance: SoundNode, sound: StaticSo
 	instance.isStopped = () => sound.state === SoundState.Stopped;
 
 	instance.pause = () => sound.pause();
-	instance.resume = () => sound.resume();
+	instance.resume = () => {
+		placeSoundOnStart(instance, sound);
+		sound.resume();
+		playingSoundInstances.add(instance);
+	};
 	instance.stop = (options) => sound.stop(options);
-	instance.play = (options) => sound.play(options);
+	instance.play = (options) => {
+		placeSoundOnStart(instance, sound);
+		sound.play(options);
+		playingSoundInstances.add(instance);
+	};
 
 	instance.setVolume = (volume, options) => sound.setVolume(volume, options);
 
