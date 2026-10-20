@@ -39,3 +39,41 @@ export interface SoundNode extends TransformNode {
 
 	cloneAsync(name: string, newParent?: Node | null, doNotCloneChildren?: boolean): Promise<SoundNode>;
 }
+
+/**
+ * Defines how the spatial sounds that follow their node (`SoundNode.autoUpdateSpatial`) are followed.
+ * @see setSpatialSoundsUpdateOptions
+ */
+export interface ISpatialSoundsUpdateOptions {
+	/**
+	 * Defines the distance to the listener beyond which a playing sound is followed only every `farUpdateInterval`
+	 * frames instead of on every frame. 0, the default, follows every sound on every frame.
+	 */
+	farDistance: number;
+	/**
+	 * Defines how many frames apart a sound farther than `farDistance` is followed. 1, the default, is every frame.
+	 */
+	farUpdateInterval: number;
+}
+
+export const spatialSoundsUpdateOptions: ISpatialSoundsUpdateOptions = {
+	farDistance: 0,
+	farUpdateInterval: 1,
+};
+
+/**
+ * Sets how the spatial sounds that follow their node (`SoundNode.autoUpdateSpatial`) are followed: by default every
+ * playing sound within its max distance is moved to its node on every frame. A sound far from the listener can be
+ * moved less often (`farDistance`, `farUpdateInterval`): where it is heard from changes little from one frame to
+ * the next, and each update costs the main thread and schedules new parameter values on the audio thread.
+ * @param options defines the options to change, the others are kept.
+ */
+export function setSpatialSoundsUpdateOptions(options: Partial<ISpatialSoundsUpdateOptions>) {
+	if (options.farDistance !== undefined) {
+		spatialSoundsUpdateOptions.farDistance = Math.max(0, options.farDistance);
+	}
+
+	if (options.farUpdateInterval !== undefined) {
+		spatialSoundsUpdateOptions.farUpdateInterval = Math.max(1, Math.floor(options.farUpdateInterval));
+	}
+}
