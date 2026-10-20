@@ -41,6 +41,8 @@ export async function loadProject(editor: Editor, path: string) {
 		compressedEtc2Enabled: project.compressedEtc2Enabled ?? false,
 		compressedPvrtcEnabled: project.compressedPvrtcEnabled ?? false,
 		compressedTextureQuality: project.compressedTextureQuality ?? "very-fast",
+
+		convertImportedLightmaps: project.convertImportedLightmaps ?? true,
 	});
 
 	editor.layout.forceUpdate();

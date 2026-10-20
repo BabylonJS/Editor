@@ -28,6 +28,8 @@ import { executeSimpleWorker } from "../../../../tools/worker";
 import { convertGltfToLeftHanded } from "../../../../tools/scene/gltf";
 import { isMultiMaterial } from "../../../../tools/guards/material";
 import { getLoaderPluginOptions } from "../../../../tools/assets/loader";
+import { flipTextureV } from "../../../../tools/material/texture";
+import { convertEmissiveLightmap } from "../../../../tools/material/lightmap";
 import { configureSimultaneousLightsForMaterial } from "../../../../tools/material/material";
 import { onNodesAddedObservable, onTextureAddedObservable } from "../../../../tools/observables";
 import { addGaussianSplattingMeshPartProxyMesh } from "../../../../tools/mesh/gaussian-splatting";
@@ -188,6 +190,13 @@ export async function loadImportedSceneFile(scene: Scene, absolutePath: string, 
 
 	const configuredEmbeddedTextures: number[] = [];
 
+	let lightmappedMaterials = 0;
+	const convertLightmap = (material: Material) => {
+		if (editor.state.convertImportedLightmaps && convertEmissiveLightmap(material)) {
+			++lightmappedMaterials;
+		}
+	};
+
 	result.meshes.forEach((mesh) => {
 		if (isMesh(mesh)) {
 			if (mesh.geometry) {
@@ -203,10 +212,12 @@ export async function loadImportedSceneFile(scene: Scene, absolutePath: string, 
 						if (subMaterial) {
 							configureImportedMaterial(subMaterial);
 							configureSimultaneousLightsForMaterial(subMaterial);
+							convertLightmap(subMaterial);
 						}
 					});
 				} else {
 					configureSimultaneousLightsForMaterial(mesh.material);
+					convertLightmap(mesh.material);
 				}
 			}
 		}
@@ -226,6 +237,10 @@ export async function loadImportedSceneFile(scene: Scene, absolutePath: string, 
 			}
 		});
 	});
+
+	if (lightmappedMaterials > 0) {
+		toast.success(`Baked lightmap moved to the lightmap slot on ${lightmappedMaterials} material(s).`);
+	}
 
 	onNodesAddedObservable.notifyObservers();
 
@@ -248,8 +263,7 @@ export function configureImportedMaterial(material: Material) {
 export function configureImportedTexture<T extends Texture | CubeTexture | ColorGradingTexture | HDRCubeTexture>(texture: T, noCheckInvertY?: boolean): T {
 	if (isAbsolute(texture.name)) {
 		if (!noCheckInvertY && isTexture(texture) && !texture.invertY && !texture._buffer) {
-			texture._invertY = true;
-			texture.vScale *= -1;
+			flipTextureV(texture);
 			texture.updateURL(texture.name);
 		}
 
@@ -325,8 +339,7 @@ export async function configureEmbeddedTexture(texture: Texture, absolutePath: s
 		}
 
 		if (!texture.invertY) {
-			texture._invertY = true;
-			texture.vScale *= -1;
+			flipTextureV(texture);
 			texture.updateURL(filename);
 		}
 	}
@@ -342,8 +355,7 @@ export function cleanTexture(texture: Texture, filename: string) {
 	texture._buffer = null;
 
 	if (!texture.invertY) {
-		texture._invertY = true;
-		texture.vScale *= -1;
+		flipTextureV(texture);
 		texture.updateURL(filename);
 	}
 
