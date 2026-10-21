@@ -144,6 +144,11 @@ tools/build
 tools/declaration
 tools/coverage
 
+# Babylon.js Editor Tools Lite
+tools-lite/build
+tools-lite/declaration
+tools-lite/coverage
+
 # Babylon.js Editor CLI
 cli/build
 cli/declaration

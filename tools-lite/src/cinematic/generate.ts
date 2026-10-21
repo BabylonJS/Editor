@@ -1,0 +1,308 @@
+import { SceneContext } from "@babylonjs/lite";
+
+import { isCamera } from "../tools/guards";
+import { SoundNode } from "../tools/sound";
+import { getSceneData } from "../tools/scene";
+import { getAnimationTypeForObject } from "../tools/animation";
+
+import { getMotionBlurPostProcess } from "../rendering/motion-blur";
+import { getDefaultRenderingPipeline } from "../rendering/default-pipeline";
+
+import { EditorAnimationGroup } from "../animation/animation-group";
+import { EditorAnimationEvent } from "../animation/animation-event";
+import { EditorAnimation, IEditorAnimationKey } from "../animation/animation";
+
+import { handleApplyEvent } from "./events/event";
+import { handleSetEnabledEvent } from "./events/set-enabled";
+import { handleApplyImpulseEvent } from "./events/apply-impulse";
+
+import { ICinematic } from "./typings";
+import { Cinematic } from "./cinematic";
+import { isCinematicKey, isCinematicKeyCut } from "./guards";
+import { getPropertyValue, registerAfterAnimationCallback } from "./tools";
+
+export type GenerateCinematicAnimationGroupOptions = {
+	/**
+	 * Defines wether or not sounds should be ignored when generating the animation group.
+	 * This means that no sound will be played during the cinematic playback.
+	 * @default false
+	 */
+	ignoreSounds?: boolean;
+};
+
+/**
+ * Parses the given cinematic object and generates a new playable animation group.
+ * @param cinematic defines the cinematic object to parse that was previously loaded.
+ * @param scene defines the reference to the scene where to retrieve the animated objects.
+ * @param options defines the options to use when generating the animation group.
+ */
+export function generateCinematicAnimationGroup(cinematic: ICinematic, scene: SceneContext, options?: GenerateCinematicAnimationGroupOptions) {
+	const result = new Cinematic(cinematic.name, scene);
+
+	cinematic.tracks.forEach((track) => {
+		// Animation groups
+		const animationGroup = track.animationGroup as EditorAnimationGroup;
+		if (animationGroup && track.animationGroups?.length) {
+			const effectiveAnimationGroup = animationGroup.clone(`${animationGroup.name}-cinematic-temp`);
+
+			const animationGroups = getSceneData(scene).animationGroups;
+			const index = animationGroups.indexOf(effectiveAnimationGroup);
+			if (index !== -1) {
+				animationGroups.splice(index, 1);
+			}
+
+			result.onAnimationEndObservable.add(() => {
+				animationGroup.stop();
+				effectiveAnimationGroup.stop();
+			});
+
+			const minFrame = track.animationGroups.reduce((prev, curr) => Math.min(prev, curr.frame), Number.MAX_VALUE) ?? 0;
+			const maxFrame = track.animationGroups.reduce((prev, curr) => Math.max(prev, curr.frame + curr.endFrame), 0) ?? 0;
+
+			const dummyObject = {
+				frame: minFrame,
+			};
+
+			const animationGroupsAnimation = new EditorAnimation(
+				effectiveAnimationGroup.name,
+				"frame",
+				60,
+				EditorAnimation.ANIMATIONTYPE_FLOAT,
+				EditorAnimation.ANIMATIONLOOPMODE_CYCLE
+			);
+
+			animationGroupsAnimation.setKeys([
+				{ frame: minFrame, value: 0 },
+				{ frame: maxFrame, value: maxFrame },
+			]);
+
+			track.animationGroups.forEach((configuration) => {
+				animationGroupsAnimation.addEvent(
+					new EditorAnimationEvent(configuration.frame, () => {
+						const repeatCount = configuration.repeatCount ?? 0;
+
+						effectiveAnimationGroup.to = configuration.endFrame;
+						effectiveAnimationGroup.speedRatio = configuration.speed;
+						effectiveAnimationGroup.stop();
+						effectiveAnimationGroup.play(repeatCount > 0);
+
+						if (effectiveAnimationGroup.from !== configuration.startFrame) {
+							effectiveAnimationGroup.goToFrame(configuration.startFrame);
+						}
+
+						if (repeatCount) {
+							let currentRepeatCount = 0;
+							effectiveAnimationGroup.onAnimationGroupLoopObservable.add(() => {
+								++currentRepeatCount;
+
+								if (currentRepeatCount > repeatCount) {
+									effectiveAnimationGroup.stop();
+								}
+							});
+						}
+					})
+				);
+			});
+
+			result.addTargetedAnimation(animationGroupsAnimation, dummyObject);
+
+			if ((track.animationGroupWeight?.length ?? 0) >= 2) {
+				const hasWeightVarianceKeyframe = track.animationGroupWeight!.find((keyframe) => {
+					if (isCinematicKeyCut(keyframe)) {
+						return keyframe.key1.value !== 1 || keyframe.key2.value !== 1;
+					}
+
+					return keyframe.value !== 1;
+				});
+
+				if (hasWeightVarianceKeyframe) {
+					const dummyObject = {
+						weight: 0,
+					};
+
+					const weightAnimation = new EditorAnimation(
+						`${effectiveAnimationGroup.name}-weights`,
+						"weight",
+						60,
+						EditorAnimation.ANIMATIONTYPE_FLOAT,
+						EditorAnimation.ANIMATIONLOOPMODE_CYCLE
+					);
+					const weightKeys: IEditorAnimationKey[] = [];
+
+					track.animationGroupWeight!.forEach((keyFrame) => {
+						if (isCinematicKeyCut(keyFrame)) {
+							weightKeys.push(keyFrame.key1);
+							weightKeys.push(keyFrame.key2);
+						} else {
+							weightKeys.push(keyFrame);
+						}
+					});
+
+					weightAnimation.setKeys(weightKeys);
+					result.addTargetedAnimation(weightAnimation, dummyObject);
+
+					registerAfterAnimationCallback(result, scene, () => {
+						effectiveAnimationGroup.weight = dummyObject.weight;
+					});
+				}
+			}
+		}
+
+		const sound = track.sound as SoundNode;
+
+		if (!options?.ignoreSounds && sound && sound.sound?.buffer && track.sounds?.length) {
+			const dummyObject = {
+				dummy: 0,
+				volume: 0,
+			};
+
+			const soundAnimation = new EditorAnimation(sound.name, "dummy", 60, EditorAnimation.ANIMATIONTYPE_FLOAT, EditorAnimation.ANIMATIONLOOPMODE_CYCLE);
+
+			let maxFrame = 0;
+			track.sounds?.forEach((configuration) => {
+				const duration = configuration.endFrame - configuration.startFrame;
+
+				maxFrame = Math.max(maxFrame, configuration.frame + duration);
+
+				soundAnimation.addEvent(
+					new EditorAnimationEvent(
+						configuration.frame,
+						(currentFrame) => {
+							const frameDiff = currentFrame - configuration.frame;
+							const offset = (frameDiff + configuration.startFrame) / cinematic.framesPerSecond;
+
+							sound.play({
+								startOffset: offset,
+							});
+						},
+						false
+					)
+				);
+
+				soundAnimation.addEvent(
+					new EditorAnimationEvent(configuration.frame + duration, () => {
+						sound.stop();
+					})
+				);
+			});
+
+			soundAnimation.setKeys([
+				{ frame: 0, value: 0 },
+				{ frame: maxFrame, value: maxFrame },
+			]);
+
+			result.addTargetedAnimation(soundAnimation, dummyObject);
+
+			if ((track.soundVolume?.length ?? 0) >= 2) {
+				const volumeAnimation = new EditorAnimation(sound.name, "volume", 60, EditorAnimation.ANIMATIONTYPE_FLOAT, EditorAnimation.ANIMATIONLOOPMODE_CYCLE);
+				const volumeKeys: IEditorAnimationKey[] = [];
+
+				track.soundVolume!.forEach((keyFrame) => {
+					if (isCinematicKeyCut(keyFrame)) {
+						volumeKeys.push(keyFrame.key1);
+						volumeKeys.push(keyFrame.key2);
+					} else {
+						volumeKeys.push(keyFrame);
+					}
+				});
+
+				volumeAnimation.setKeys(volumeKeys);
+				result.addTargetedAnimation(volumeAnimation, dummyObject);
+
+				registerAfterAnimationCallback(result, scene, () => {
+					sound.volume = dummyObject.volume;
+				});
+			}
+		}
+
+		if (track.keyFrameEvents) {
+			const dummyObject = {
+				dummy: 0,
+			};
+
+			const eventsAnimation = new EditorAnimation("events", "dummy", 60, EditorAnimation.ANIMATIONTYPE_FLOAT, EditorAnimation.ANIMATIONLOOPMODE_CYCLE);
+
+			let maxFrame = 0;
+			track.keyFrameEvents?.forEach((configuration) => {
+				maxFrame = Math.max(maxFrame, configuration.frame);
+
+				eventsAnimation.addEvent(
+					new EditorAnimationEvent(configuration.frame, () => {
+						switch (configuration.data?.type) {
+							case "event":
+								handleApplyEvent(result, configuration.data);
+								break;
+							case "set-enabled":
+								handleSetEnabledEvent(configuration.data);
+								break;
+							case "apply-impulse":
+								handleApplyImpulseEvent(scene, configuration.data);
+								break;
+						}
+					})
+				);
+			});
+
+			eventsAnimation.setKeys([
+				{ frame: 0, value: 0 },
+				{ frame: maxFrame + 1, value: maxFrame + 1 },
+			]);
+
+			result.addTargetedAnimation(eventsAnimation, dummyObject);
+		}
+
+		const node = track.defaultRenderingPipeline ? getDefaultRenderingPipeline() : track.node;
+
+		if (!node || !track.propertyPath || !track.keyFrameAnimations) {
+			return;
+		}
+
+		const value = getPropertyValue(node, track.propertyPath);
+		const animationType = getAnimationTypeForObject(value);
+
+		if (animationType === null) {
+			return;
+		}
+
+		const animation = new EditorAnimation(track.propertyPath, track.propertyPath, 60, animationType, EditorAnimation.ANIMATIONLOOPMODE_CYCLE);
+		const keys: IEditorAnimationKey[] = [];
+
+		track.keyFrameAnimations?.forEach((keyFrame) => {
+			if (isCinematicKey(keyFrame)) {
+				return keys.push(keyFrame);
+			}
+
+			if (isCinematicKeyCut(keyFrame)) {
+				keys.push(keyFrame.key1);
+				keys.push(keyFrame.key2);
+
+				// Babylon Lite has no motion blur: kept for compatibility with the Babylon.js version of the tools.
+				if (isCamera(node) && track.propertyPath === "position") {
+					animation.addEvent(
+						new EditorAnimationEvent(keyFrame.key1.frame, () => {
+							const motionBlur: any = getMotionBlurPostProcess();
+							if (!motionBlur) {
+								return;
+							}
+
+							const motionStrength = motionBlur.motionStrength;
+							motionBlur.motionStrength = 0;
+
+							requestAnimationFrame(() => {
+								motionBlur.motionStrength = motionStrength;
+							});
+						})
+					);
+				}
+			}
+		});
+
+		animation.setKeys(keys);
+
+		result.addTargetedAnimation(animation, node);
+	});
+
+	result.normalize();
+
+	return result;
+}
