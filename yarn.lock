@@ -1208,6 +1208,13 @@
   resolved "https://registry.yarnpkg.com/@babylonjs/ktx2decoder/-/ktx2decoder-9.27.1.tgz#65f2db0b27e3f22c7590c0e74068412281d8eff4"
   integrity sha512-Cf7wmGWn/IxcD6rcPZPySNpQ44FmjoTty2t8LXEFAxuk11LxUy2x1F6EJcXgz94ecZ1dw7t7NEknAjkq0D/OLA==
 
+"@babylonjs/lite@1.36.0":
+  version "1.36.0"
+  resolved "https://registry.yarnpkg.com/@babylonjs/lite/-/lite-1.36.0.tgz#e9f05e4d0f594b45981c13347b6f94f28519ca33"
+  integrity sha512-GrXseQnLetxCVvAGfDAE0KJtpcHsll38W5uabWI/yeu2/0QbD7KuHtLzR3f2QNHqv8+FthAcXA78rJrXfqfxJw==
+  dependencies:
+    "@types/webxr" "^0.5.0"
+
 "@babylonjs/materials@9.27.1":
   version "9.27.1"
   resolved "https://registry.yarnpkg.com/@babylonjs/materials/-/materials-9.27.1.tgz#dde68f95a135dd4257aebc6d9002b21a29c9bfc2"
@@ -6617,6 +6624,11 @@
   resolved "https://registry.yarnpkg.com/@types/verror/-/verror-1.10.9.tgz#420c32adb9a2dd50b3db4c8f96501e05a0e72941"
   integrity sha512-MLx9Z+9lGzwEuW16ubGeNkpBDE84RpB/NyGgg6z2BTpWzKkGU451cAY3UkUzZEp72RHF585oJ3V8JVNqIplcAQ==
 
+"@types/webxr@^0.5.0":
+  version "0.5.24"
+  resolved "https://registry.yarnpkg.com/@types/webxr/-/webxr-0.5.24.tgz#734d5d90dadc5809a53e422726c60337fa2f4a44"
+  integrity sha512-h8fgEd/DpoS9CBrjEQXR+dIDraopAEfu4wYVNY2tEPwk60stPWhvZMf4Foo5FakuQ7HFZoa8WceaWFervK2Ovg==
+
 "@types/wicg-file-system-access@^2020.9.5":
   version "2020.9.8"
   resolved "https://registry.yarnpkg.com/@types/wicg-file-system-access/-/wicg-file-system-access-2020.9.8.tgz#a8b739854ccb74b8048ef607d3701e9d506830e7"
@@ -7362,6 +7374,11 @@
   resolved "https://registry.yarnpkg.com/@vue/shared/-/shared-3.5.41.tgz#ac476497f74495f7525087270849841756555cf2"
   integrity sha512-IOnwSCma8j+9xJT6b8H0dEYidC80NsYmNMlZxRsukYcSoGaDBohog5hDxzeUXdFeGWFA++vWvxqOmrr96VlqMA==
 
+"@webgpu/types@0.1.74":
+  version "0.1.74"
+  resolved "https://registry.yarnpkg.com/@webgpu/types/-/types-0.1.74.tgz#e0e0417074a90da1929c7bf710d6bb970aa91b13"
+  integrity sha512-lgiI4hbuLcI9unnm2cL/tvCaQU45dp0xcLWJh5uB/9MBGvIA4F8XIk7nSiBeg+K4xWGYwgZKn80LmERI5CxoTA==
+
 "@xmldom/xmldom@^0.8.8":
   version "0.8.15"
   resolved "https://registry.yarnpkg.com/@xmldom/xmldom/-/xmldom-0.8.15.tgz#71ebf80729e4e95221d519ac9b1e1eaea7784907"
@@ -8030,6 +8047,11 @@ babylonjs-editor-cli@latest:
     pngjs "7.0.0"
     sharp "0.34.3"
 
+babylonjs-editor-tools-lite@latest:
+  version "0.0.0-stage"
+  resolved "https://registry.yarnpkg.com/babylonjs-editor-tools-lite/-/babylonjs-editor-tools-lite-0.0.0-stage.tgz#8261d7d822e2fc701d5db69219cc7962688cb854"
+  integrity sha512-yjTAZXNEb/z3hL+kE8IF9A1c4gBMKBaNAr8TTnotBJg1awjZ9KVMenz+gNBXH1PPh0Aj8RUhHlu5yxv1IDHxNg==
+
 babylonjs-editor-tools@latest:
   version "5.0.0"
   resolved "https://registry.yarnpkg.com/babylonjs-editor-tools/-/babylonjs-editor-tools-5.0.0.tgz#d2e1919cc5d4defbcbcf60259a1eb73a589cf643"
@@ -8037,9 +8059,10 @@ babylonjs-editor-tools@latest:
 
 "babylonjs-editor-tools@link:../../../Library/Caches/Yarn/v6/npm-babylonjs-editor-5.2.4-3cce3a704dc0c4572a85041a993264060376230a-integrity/node_modules/tools":
   version "0.0.0"
+  uid ""
 
 "babylonjs-editor-tools@link:tools":
-  version "5.5.2"
+  version "5.5.3-alpha.1"
 
 babylonjs-editor@latest:
   version "5.2.4"

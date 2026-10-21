@@ -1,0 +1,35 @@
+{
+	"name": "babylonjs-editor-tools-lite",
+	"version": "5.5.3-alpha.1",
+	"description": "Babylon.js Editor Tools Lite is a set of tools to help you load, run and manage the scenes made using the Babylon.js Editor with Babylon Lite (WebGPU only)",
+	"productName": "Babylon.js Editor Tools Lite",
+	"scripts": {
+		"build": "tsc -p .",
+		"watch": "tsc -p . --watch",
+		"test": "vitest run",
+		"watch-test": "vitest --watch",
+		"coverage": "vitest run --coverage"
+	},
+	"main": "build/src/index.js",
+	"exports": {
+		".": {
+			"types": "./declaration/src/index.d.ts",
+			"import": "./build/src/index.js"
+		},
+		"./*": {
+			"types": "./declaration/src/*.d.ts",
+			"import": "./build/src/*.js"
+		}
+	},
+	"typings": "declaration/src/index.d.ts",
+	"license": "(Apache-2.0)",
+	"devDependencies": {
+		"@babylonjs/havok": "1.3.14",
+		"@babylonjs/lite": "1.36.0",
+		"@vitest/coverage-v8": "4.0.17",
+		"@webgpu/types": "0.1.74",
+		"typescript": "7.0.2",
+		"vitest": "4.1.11"
+	},
+	"dependencies": {}
+}
