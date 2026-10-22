@@ -497,29 +497,6 @@ class VolumetricPassTask implements Task {
 	}
 }
 
-/**
- * Returns a texture reading the color attachment of the given render target, resolved each time a bind group is built
- * so it follows the resizes of the target.
- */
-function createRenderTargetColorTexture(target: RenderTarget): Texture2D {
-	const internal = target as unknown as { _colorView: GPUTextureView; _colorTexture: GPUTexture; _width: number; _height: number };
-
-	return {
-		get texture() {
-			return internal._colorTexture;
-		},
-		get view() {
-			return internal._colorView;
-		},
-		get width() {
-			return internal._width;
-		},
-		get height() {
-			return internal._height;
-		},
-	} as unknown as Texture2D;
-}
-
 const shadowMapTextures = new WeakMap<ShadowGenerator, Texture2D>();
 
 /**
@@ -663,6 +640,8 @@ export class _VolumetricLightingPasses {
 	private _sceneColor: Texture2D;
 	private _linearDepth: Texture2D;
 
+	private _composeTarget: RenderTarget | null = null;
+
 	private _scatteringTask: VolumetricPassTask;
 	private _temporalTask: VolumetricPassTask;
 	private _historyTask: VolumetricPassTask;
@@ -702,20 +681,21 @@ export class _VolumetricLightingPasses {
 	 * Constructor.
 	 * @param scene defines the reference to the scene to render.
 	 * @param sceneColor defines the texture holding the color of the scene.
-	 * @param linearDepth defines the render target of the geometry renderer task holding the view space depth of the scene.
-	 * @param addTask defines the function adding a task to the frame graph of the scene.
+	 * @param linearDepth defines the texture holding the view space depth of the scene (rendered by a geometry renderer task).
+	 * @param addTask defines the function adding a task to the list of the tasks drawing the pipeline.
+	 * @param outputFormat defines the format of the texture holding the color of the scene with the light shafts.
 	 */
-	public constructor(scene: SceneContext, sceneColor: Texture2D, linearDepth: RenderTarget, addTask: (task: Task) => void) {
+	public constructor(scene: SceneContext, sceneColor: Texture2D, linearDepth: Texture2D, addTask: (task: Task) => void, outputFormat: GPUTextureFormat) {
 		this._scene = scene;
 		this._engine = scene.surface.engine;
 		this._sceneColor = sceneColor;
-		this._linearDepth = createRenderTargetColorTexture(linearDepth);
+		this._linearDepth = linearDepth;
 
 		const surface = scene.surface;
 
 		this.output = createSurfaceRenderTargetTexture(this._engine, {
 			lbl: "editor-volumetric-lighting",
-			format: surface.format,
+			format: outputFormat,
 			samples: 1,
 			size: surface,
 		});
@@ -734,9 +714,13 @@ export class _VolumetricLightingPasses {
 	 * null (the camera has no volumetric lighting): the tasks drawn after it read the output.
 	 * @param pipeline defines the reference to the pipeline to render, if any.
 	 * @param imageProcessing defines the image processing the materials of Babylon Lite apply.
+	 * @param keepOutput defines wether or not the output must hold the color of the scene when nothing is drawn.
+	 * @param composeTarget defines the target the composition draws into, the output by default.
 	 * @returns false if nothing has been drawn into the output (the color of the scene is to be read instead).
 	 */
-	public update(pipeline: VolumetricLightingRenderingPipeline | null, imageProcessing: _IVolumetricImageProcessing, keepOutput: boolean): boolean {
+	public update(pipeline: VolumetricLightingRenderingPipeline | null, imageProcessing: _IVolumetricImageProcessing, keepOutput: boolean, composeTarget?: RenderTarget): boolean {
+		this._composeTarget = composeTarget ?? null;
+
 		++this._frame;
 
 		this.isDrawing = false;
@@ -923,7 +907,7 @@ export class _VolumetricLightingPasses {
 		}
 
 		const configuration = pipeline?.configuration;
-		const compose = this._preparePass(this._composeTask, "compose", this.output.rt, {
+		const compose = this._preparePass(this._composeTask, "compose", this._composeTarget ?? this.output.rt, {
 			VOL_DEBUG: passThrough ? 0 : (configuration?.debugMode ?? 0),
 			VOL_LINEAR_COMPOSE: imageProcessing.linear,
 			VOL_TONEMAPPING: imageProcessing.toneMapping,

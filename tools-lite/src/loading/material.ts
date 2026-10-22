@@ -23,6 +23,26 @@ export interface IParseMaterialOptions {
 }
 
 const skyMaterials = new WeakMap<Material, any>();
+const serializedMaterials = new WeakMap<Material, { data: any; rootUrl: string }>();
+
+/**
+ * @internal
+ * Returns the serialized Babylon.js material the given material has been created from, if any (used to render the
+ * materials the way Babylon.js does where Babylon Lite has no equivalent, ie. the glow layer).
+ * @param material defines the reference to the material.
+ */
+export function _getSerializedMaterialData(material: Material | null | undefined): any | null {
+	return material ? (serializedMaterials.get(material)?.data ?? null) : null;
+}
+
+/**
+ * @internal
+ * Returns the root url of the scene the given material has been loaded from, if any.
+ * @param material defines the reference to the material.
+ */
+export function _getSerializedMaterialRootUrl(material: Material | null | undefined): string | null {
+	return material ? (serializedMaterials.get(material)?.rootUrl ?? null) : null;
+}
 
 /**
  * Returns the serialized data of the sky material (`BABYLON.SkyMaterial`) the given material has been created from,
@@ -44,6 +64,15 @@ export function getSkyMaterialData(material: Material | null | undefined): any |
  * @returns the created material, or null if the type of the material is not supported.
  */
 export async function parseSerializedMaterial(scene: SceneContext, rootUrl: string, data: any, options?: IParseMaterialOptions): Promise<Material | null> {
+	const material = await parseMaterial(scene, rootUrl, data, options);
+	if (material) {
+		serializedMaterials.set(material, { data, rootUrl });
+	}
+
+	return material;
+}
+
+async function parseMaterial(scene: SceneContext, rootUrl: string, data: any, options?: IParseMaterialOptions): Promise<Material | null> {
 	switch (data.customType) {
 		case "BABYLON.PBRMaterial":
 		case "BABYLON.PBRMetallicRoughnessMaterial":

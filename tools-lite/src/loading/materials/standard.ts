@@ -16,6 +16,7 @@ import {
 
 import { hasSerializedTextureTransform, loadSerializedTexture } from "../texture";
 
+import { _createMaterialImageProcessingPlugin } from "./image-processing";
 import { getNormalMapChannels, loadRepackedSerializedTexture, loadSerializedTexturePixels } from "./repack";
 
 /**
@@ -55,6 +56,10 @@ export function parseStandardMaterial(scene: SceneContext, rootUrl: string, data
 
 	material.name = data.name;
 	material.metadata = data.metadata;
+
+	// Image processing: same as Babylon.js, the standard materials output their color converted to linear space when the
+	// image processing is applied by a post-process, or apply the image processing themselves.
+	material.plugins = [...(material.plugins ?? []), _createMaterialImageProcessingPlugin(scene, material, data._imageProcessingConfiguration, "standard")];
 
 	if (data.diffuse) {
 		material.diffuseColor = [data.diffuse[0], data.diffuse[1], data.diffuse[2]];

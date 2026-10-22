@@ -439,6 +439,9 @@ export class WGSLUniformWriter {
 	public readonly data: Float32Array;
 
 	private _layout: IWGSLUniformLayout;
+	private _ints: Int32Array;
+	private _uints: Uint32Array;
+	private _views: Map<string, { field: IWGSLUniformField; view: Float32Array | Int32Array | Uint32Array }> = new Map();
 
 	/**
 	 * Constructor.
@@ -447,6 +450,27 @@ export class WGSLUniformWriter {
 	public constructor(layout: IWGSLUniformLayout) {
 		this._layout = layout;
 		this.data = new Float32Array(layout.byteLength / 4);
+
+		// The integer fields are written as integers in the same buffer.
+		this._ints = new Int32Array(this.data.buffer);
+		this._uints = new Uint32Array(this.data.buffer);
+
+		layout.fields.forEach((field, name) => this._views.set(name, { field, view: this._getView(field) }));
+	}
+
+	/**
+	 * Returns the view of the buffer to write the values of the given field with.
+	 */
+	private _getView(field: IWGSLUniformField): Float32Array | Int32Array | Uint32Array {
+		if (/^(i32|vec\di|vec\d<i32>)$/.test(field.type)) {
+			return this._ints;
+		}
+
+		if (/^(u32|vec\du|vec\d<u32>)$/.test(field.type)) {
+			return this._uints;
+		}
+
+		return this.data;
 	}
 
 	/**
@@ -464,10 +488,11 @@ export class WGSLUniformWriter {
 	 * @param values defines the values to write (floats of the field, in order).
 	 */
 	public set(name: string, ...values: number[]): void {
-		const field = this._layout.fields.get(name);
-		if (field) {
+		const entry = this._views.get(name);
+		if (entry) {
+			const { field, view } = entry;
 			for (let i = 0, length = Math.min(values.length, field.size); i < length; ++i) {
-				this.data[field.offset + i] = values[i];
+				view[field.offset + i] = values[i];
 			}
 		}
 	}
@@ -479,11 +504,12 @@ export class WGSLUniformWriter {
 	 * @param values defines the values to write.
 	 */
 	public setArray(name: string, values: ArrayLike<number>): void {
-		const field = this._layout.fields.get(name);
-		if (field) {
+		const entry = this._views.get(name);
+		if (entry) {
+			const { field, view } = entry;
 			const length = Math.min(values.length, field.size);
 			for (let i = 0; i < length; ++i) {
-				this.data[field.offset + i] = values[i];
+				view[field.offset + i] = values[i];
 			}
 		}
 	}
