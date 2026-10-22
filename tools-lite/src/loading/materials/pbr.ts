@@ -599,12 +599,10 @@ export function parsePbrMaterial(scene: SceneContext, rootUrl: string, data: any
 
 	material.metadata = data.metadata;
 
-	// Image processing configuration of the material, saved by some versions of the editor: Babylon.js applies it
-	// instead of (or on top of) the image processing of the scene.
-	const imageProcessingPlugin = _createMaterialImageProcessingPlugin(scene, material, data._imageProcessingConfiguration);
-	if (imageProcessingPlugin) {
-		material.plugins = [...(material.plugins ?? []), imageProcessingPlugin];
-	}
+	// Image processing: the material outputs its linear color when the image processing is applied by a post-process,
+	// or applies the image processing itself, using the configuration of the scene or the configuration saved with the
+	// material by some versions of the editor.
+	material.plugins = [...(material.plugins ?? []), _createMaterialImageProcessingPlugin(scene, material, data._imageProcessingConfiguration, "pbr")];
 
 	const context: _IPbrParseContext = {
 		scene,

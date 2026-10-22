@@ -2,6 +2,9 @@ import { createShaderMaterial, SceneContext, setShaderUniform, ShaderMaterial } 
 
 import { getSceneData } from "../../tools/scene";
 
+import { isEditorSceneContext } from "../../rendering/pipeline";
+import { getSceneImageProcessingConfiguration } from "../../rendering/default/image-processing";
+
 /**
  * Vertex shader of the sky material, port of the Babylon.js "sky.vertex" shader.
  */
@@ -25,8 +28,8 @@ fn mainVertex(input: VertexInput) -> SkyVertexOutput {
 
 /**
  * Fragment shader of the sky material, port of the Babylon.js "sky.fragment" shader (Preetham sky model). As in
- * Babylon.js when the image processing is applied by the default rendering pipeline, the color of the sky is
- * converted to linear space and the image processing of the scene (exposure, tone mapping, contrast) is applied.
+ * Babylon.js, the color of the sky is converted to linear space when the image processing is applied by the default
+ * rendering pipeline.
  */
 const skyFragmentWGSL = `
 struct SkyVertexOutput {
@@ -90,66 +93,6 @@ fn uncharted2Tonemap(x: vec3<f32>) -> vec3<f32> {
 	return ((x * (tonemapA * x + tonemapC * tonemapB) + tonemapD * tonemapE) / (x * (tonemapA * x + tonemapB) + tonemapD * tonemapF)) - tonemapE / tonemapF;
 }
 
-const acesInputMat = mat3x3<f32>(vec3<f32>(0.59719, 0.07600, 0.02840), vec3<f32>(0.35458, 0.90834, 0.13383), vec3<f32>(0.04823, 0.01566, 0.83777));
-const acesOutputMat = mat3x3<f32>(vec3<f32>(1.60475, -0.10208, -0.00327), vec3<f32>(-0.53108, 1.10813, -0.07276), vec3<f32>(-0.07367, -0.00605, 1.07602));
-
-fn rrtAndOdtFit(v: vec3<f32>) -> vec3<f32> {
-	let a = v * (v + 0.0245786) - 0.000090537;
-	let b = v * (0.983729 * v + 0.4329510) + 0.238081;
-	return a / b;
-}
-
-fn neutralToneMapping(input: vec3<f32>) -> vec3<f32> {
-	var color = input;
-
-	let startCompression = 0.8 - 0.04;
-	let desaturation = 0.15;
-
-	let x = min(color.r, min(color.g, color.b));
-	let offset = select(0.04, x - 6.25 * x * x, x < 0.08);
-	color -= offset;
-
-	let peak = max(color.r, max(color.g, color.b));
-	if (peak < startCompression) {
-		return color;
-	}
-
-	let d = 1.0 - startCompression;
-	let newPeak = 1.0 - d * d / (peak + d - startCompression);
-	color *= newPeak / peak;
-
-	let g = 1.0 - 1.0 / (desaturation * (peak - newPeak) + 1.0);
-	return mix(color, newPeak * vec3<f32>(1.0, 1.0, 1.0), g);
-}
-
-fn applySkyImageProcessing(input: vec3<f32>) -> vec3<f32> {
-	// Same as the Babylon.js "imageProcessingCompatibility" include: back to linear space before the image processing.
-	var rgb = pow(input, vec3<f32>(2.2));
-
-	rgb *= scene.vImageInfos.x;
-
-	let toneMappingType = shaderUniforms.toneMappingType;
-	if (toneMappingType > 2.5) {
-		rgb = neutralToneMapping(rgb);
-	} else if (toneMappingType > 1.5) {
-		rgb = clamp(acesOutputMat * rrtAndOdtFit(acesInputMat * rgb), vec3<f32>(0.0), vec3<f32>(1.0));
-	} else if (toneMappingType > 0.5) {
-		rgb = 1.0 - exp2(-1.590579 * rgb);
-	}
-
-	rgb = clamp(pow(rgb, vec3<f32>(1.0 / 2.2)), vec3<f32>(0.0), vec3<f32>(1.0));
-
-	let contrast = scene.vImageInfos.y;
-	let highContrast = rgb * rgb * (3.0 - 2.0 * rgb);
-	if (contrast < 1.0) {
-		rgb = mix(vec3<f32>(0.5), rgb, contrast);
-	} else {
-		rgb = mix(rgb, highContrast, contrast - 1.0);
-	}
-
-	return max(rgb, vec3<f32>(0.0));
-}
-
 @fragment
 fn mainFragment(input: SkyVertexOutput) -> @location(0) vec4<f32> {
 	let cameraPosition = scene.vEyePosition.xyz;
@@ -201,9 +144,15 @@ fn mainFragment(input: SkyVertexOutput) -> @location(0) vec4<f32> {
 
 	let whiteScale = 1.0 / uncharted2Tonemap(vec3<f32>(tonemapW));
 	let curr = uncharted2Tonemap((log2(2.0 / pow(luminance, 4.0))) * texColor);
-	let retColor = clamp(curr * whiteScale, vec3<f32>(0.0), vec3<f32>(1.0));
+	var retColor = clamp(curr * whiteScale, vec3<f32>(0.0), vec3<f32>(1.0));
 
-	return vec4<f32>(applySkyImageProcessing(retColor), 1.0);
+	// Same as the Babylon.js "imageProcessingCompatibility" include: the sky is converted to linear space when the image
+	// processing is applied by a post-process. Otherwise, the sky material applies no image processing.
+	if (shaderUniforms.linearOutput > 0.5) {
+		retColor = pow(retColor, vec3<f32>(2.2));
+	}
+
+	return vec4<f32>(retColor, 1.0);
 }
 `;
 
@@ -289,22 +238,6 @@ export function getSkySunPosition(properties: ISkyMaterialProperties): [number, 
 	return [x, y, z];
 }
 
-function getToneMappingType(scene: SceneContext): number {
-	const imageProcessing = scene.imageProcessing;
-	if (!imageProcessing.toneMappingEnabled) {
-		return 0;
-	}
-
-	switch (imageProcessing.toneMapping?.id) {
-		case "aces":
-			return 2;
-		case "neutral":
-			return 3;
-		default:
-			return 1;
-	}
-}
-
 /**
  * Creates the Babylon Lite equivalent of the given serialized Babylon.js `SkyMaterial`: a shader material rendering
  * the same Preetham sky model. The properties of the Babylon.js `SkyMaterial` are available on the material and
@@ -330,7 +263,7 @@ export function parseSkyMaterial(scene: SceneContext, data: any): SkyShaderMater
 			{ name: "mieCoefficient", type: "f32", defaultValue: 0.005 },
 			{ name: "mieDirectionalG", type: "f32", defaultValue: 0.8 },
 			{ name: "cloudiness", type: "f32", defaultValue: 0 },
-			{ name: "toneMappingType", type: "f32", defaultValue: 0 },
+			{ name: "linearOutput", type: "f32", defaultValue: 0 },
 		],
 		// The faces of the sky boxes are seen from the inside.
 		backFaceCulling: false,
@@ -391,7 +324,7 @@ export function parseSkyMaterial(scene: SceneContext, data: any): SkyShaderMater
 		setUniform("cloudiness", properties.cloudiness);
 		setUniform("up", [properties.up.x, properties.up.y, properties.up.z]);
 		setUniform("cameraOffset", [properties.cameraOffset.x, properties.cameraOffset.y, properties.cameraOffset.z]);
-		setUniform("toneMappingType", getToneMappingType(scene));
+		setUniform("linearOutput", isEditorSceneContext(scene) && getSceneImageProcessingConfiguration(scene).applyByPostProcess ? 1 : 0);
 	};
 
 	update();

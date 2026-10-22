@@ -76,29 +76,33 @@ describe("loading/materials/pbr", () => {
 			return material.plugins?.find((plugin) => plugin.name === "EditorMaterialImageProcessing") ?? null;
 		};
 
+		// Mode (0 by a post-process, 1 by the material, 2 disabled), "IMAGEPROCESSING" define, vignette and color curves, then
+		// exposure, contrast, "TONEMAPPING" define (0 none, 1 standard, 2 ACES, 3 Khronos PBR neutral) and dithering.
+		const readMaterialUniforms = (configuration?: any) => {
+			const plugin = parseImageProcessing(configuration)!;
+			const fields = plugin.getUniforms!().ubo!;
+			const offsets = new Map(fields.map((field, index) => [field.name, index * 16]));
+			const data = new Float32Array(fields.length * 4);
+
+			plugin.writeUbo!(data, offsets);
+
+			const read = (name: string) => Array.from(data.subarray(offsets.get(name)! / 4, offsets.get(name)! / 4 + 4));
+			return [...read("editorIpMode"), ...read("editorIpParams")];
+		};
+
 		test("should use the image processing of the scene for the materials without their own configuration", () => {
-			expect(parseImageProcessing()).toBeNull();
+			// The scenes created without the frame graph tasks of the tools have no post-process: the materials apply the
+			// image processing of the scene (neutral by default).
+			expect(parseImageProcessing()).not.toBeNull();
+			expect(readMaterialUniforms()).toEqual([1, 0, 0, 0, 1, 1, 0, 0]);
 		});
 
 		test("should apply the image processing configuration of the materials as Babylon.js does", () => {
-			// Mode (0 by a post-process, 1 by the material, 2 disabled), exposure, contrast and "TONEMAPPING" define.
-			const readMaterialUniforms = (configuration: any) => {
-				const plugin = parseImageProcessing(configuration)!;
-				const fields = plugin.getUniforms!().ubo!;
-				const offsets = new Map(fields.map((field, index) => [field.name, index * 16]));
-				const data = new Float32Array(fields.length * 4);
-
-				plugin.writeUbo!(data, offsets);
-
-				const offset = offsets.get("editorIpMaterial")! / 4;
-				return Array.from(data.subarray(offset, offset + 4));
-			};
-
 			expect(readMaterialUniforms({ _isEnabled: true, _applyByPostProcess: false, _exposure: 1.25, _contrast: 1.5, _toneMappingEnabled: true, _toneMappingType: 1 })).toEqual(
-				[1, 1.25, 1.5, 2]
+				[1, 1, 0, 0, 1.25, 1.5, 2, 0]
 			);
-			expect(readMaterialUniforms({ _isEnabled: true, _applyByPostProcess: true, _exposure: 1, _contrast: 1 })).toEqual([0, 1, 1, 0]);
-			expect(readMaterialUniforms({ _isEnabled: false })).toEqual([2, 1, 1, 0]);
+			expect(readMaterialUniforms({ _isEnabled: true, _applyByPostProcess: true, _exposure: 1, _contrast: 1 })).toEqual([0, 0, 0, 0, 1, 1, 0, 0]);
+			expect(readMaterialUniforms({ _isEnabled: false })).toEqual([2, 0, 0, 0, 1, 1, 0, 0]);
 		});
 
 		test("should capture the linear color of the material before the image processing of Babylon Lite", () => {

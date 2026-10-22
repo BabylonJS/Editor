@@ -2,7 +2,7 @@ import { describe, expect, test } from "vitest";
 
 import { AcesToneMapping, NeutralToneMapping } from "@babylonjs/lite";
 
-import { _applyImageProcessingToColor, _computeColorCurves, _getMaterialsToneMapping, IColorCurves } from "../../src/rendering/pipeline";
+import { _computeColorCurves, _getMaterialsToneMapping, IColorCurves } from "../../src/rendering/pipeline";
 import { getSkySunPosition, ISkyMaterialProperties } from "../../src/loading/materials/sky";
 
 import { createTestScene } from "../helpers";
@@ -60,47 +60,6 @@ describe("rendering/pipeline", () => {
 			expect(curves.positive[1]).toBeCloseTo(-0.5, 5);
 			expect(curves.positive[2]).toBeCloseTo(-0.5, 5);
 			expect(curves.positive[3]).toBeCloseTo(0, 5);
-		});
-	});
-
-	describe("_applyImageProcessingToColor", () => {
-		const identity = { exposure: 1, contrast: 1, toneMappingEnabled: false, toneMappingType: 0 };
-
-		test("should only convert the color to gamma space when the image processing has no effect", () => {
-			const color = _applyImageProcessingToColor([0.2, 0.5, 1], identity);
-
-			expect(color[0]).toBeCloseTo(Math.pow(0.2, 1 / 2.2), 6);
-			expect(color[1]).toBeCloseTo(Math.pow(0.5, 1 / 2.2), 6);
-			expect(color[2]).toBeCloseTo(1, 6);
-		});
-
-		test("should apply the exposure and the contrast as Babylon.js does", () => {
-			const exposed = _applyImageProcessingToColor([0.1, 0.1, 0.1], { ...identity, exposure: 2 });
-			expect(exposed[0]).toBeCloseTo(Math.pow(0.2, 1 / 2.2), 6);
-
-			const gamma = Math.pow(0.2, 1 / 2.2);
-
-			const highContrast = _applyImageProcessingToColor([0.2, 0.2, 0.2], { ...identity, contrast: 1.5 });
-			expect(highContrast[0]).toBeCloseTo(gamma + (gamma * gamma * (3 - 2 * gamma) - gamma) * 0.5, 6);
-
-			const lowContrast = _applyImageProcessingToColor([0.2, 0.2, 0.2], { ...identity, contrast: 0.5 });
-			expect(lowContrast[0]).toBeCloseTo(0.5 + (gamma - 0.5) * 0.5, 6);
-		});
-
-		test("should apply the tone mappings of Babylon.js", () => {
-			// Standard: 1 - 2^(-1.590579 * x).
-			const standard = _applyImageProcessingToColor([1, 1, 1], { ...identity, toneMappingEnabled: true, toneMappingType: 0 });
-			expect(standard[0]).toBeCloseTo(Math.pow(1 - Math.pow(2, -1.590579), 1 / 2.2), 6);
-
-			// ACES and neutral keep black and saturate the bright colors.
-			const acesBlack = _applyImageProcessingToColor([0, 0, 0], { ...identity, toneMappingEnabled: true, toneMappingType: 1 });
-			acesBlack.forEach((value) => expect(value).toBeCloseTo(0, 6));
-
-			const acesBright = _applyImageProcessingToColor([100, 100, 100], { ...identity, toneMappingEnabled: true, toneMappingType: 1 });
-			acesBright.forEach((value) => expect(value).toBeCloseTo(1, 2));
-
-			const neutralDark = _applyImageProcessingToColor([0.5, 0.5, 0.5], { ...identity, toneMappingEnabled: true, toneMappingType: 2 });
-			neutralDark.forEach((value) => expect(value).toBeCloseTo(Math.pow(0.5 - 0.04, 1 / 2.2), 6));
 		});
 	});
 
