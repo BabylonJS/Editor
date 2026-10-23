@@ -155,6 +155,8 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 	private _isMouseOver: boolean = false;
 	private _selectedFiles: string[] = [];
 
+	private _divNodesMap: Map<string, HTMLDivElement> = new Map();
+
 	public constructor(props: IEditorAssetsBrowserProps) {
 		super(props);
 
@@ -367,6 +369,8 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 	 * Sets the new path being browsed by the assets browser.
 	 */
 	public async setBrowsePath(path: string): Promise<void> {
+		this._divNodesMap.clear();
+
 		this.setState({
 			gridSearch: "",
 			browsedPath: path,
@@ -579,7 +583,16 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 			return;
 		}
 
-		this.setState({ selectedKeys: [absolutePath] });
+		this.setState({ selectedKeys: [absolutePath] }, () => {
+			this._scrollToNode(absolutePath);
+		});
+	}
+
+	private _scrollToNode(absolutePath: string): void {
+		const node = this._divNodesMap.get(absolutePath);
+		if (node) {
+			node.scrollIntoView({ behavior: "instant", block: "center" });
+		}
 	}
 
 	private async _handleDropInTree(ev: React.DragEvent<HTMLDivElement>, relativePath: string): Promise<void> {
@@ -789,7 +802,11 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 									const key = join(this.state.browsedPath!, f);
 									const selected = this.state.selectedKeys.indexOf(key) > -1;
 
-									return this._getAssetBrowserItem(f, key, selected);
+									return (
+										<div key={key} ref={(el) => el && this._divNodesMap.set(key, el)}>
+											{this._getAssetBrowserItem(f, key, selected)}
+										</div>
+									);
 								})}
 						</div>
 					</ContextMenuTrigger>
@@ -889,8 +906,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 	private _getAssetBrowserItem(filename: string, key: string, selected: boolean): ReactNode {
 		const extension = extname(filename).toLowerCase();
 
-		const props: IAssetsBrowserItemProps & { key: string } = {
-			key,
+		const props: IAssetsBrowserItemProps = {
 			selected,
 			absolutePath: key,
 			selectableKey: key,
