@@ -6523,26 +6523,19 @@
   dependencies:
     "@types/node" "*"
 
-"@types/node@*", "@types/node@^22":
-  version "22.15.32"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-22.15.32.tgz#c301cc2275b535a5e54bb81d516b1d2e9afe06e5"
-  integrity sha512-3jigKqgSjsH6gYZv2nEsqdXfZqIFGAV36XYYjf9KGZ3PSG+IhLecqPnI310RvjutyMwifE2hhhNEklOUrvx/wA==
-  dependencies:
-    undici-types "~6.21.0"
-
-"@types/node@^22.5.5":
-  version "22.19.20"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-22.19.20.tgz#243823634b177312895dab14a7fb1d0103094313"
-  integrity sha512-6tELRwSDYWW9EdZhbeZmYGZ1/7Djkt+Ah3/ScEYT9cDord7UJzasR/4D3VONg9tQI5CDp+/CZC1AXj2pCFOvpw==
-  dependencies:
-    undici-types "~6.21.0"
-
-"@types/node@^24.9.0":
+"@types/node@*", "@types/node@^24.9.0":
   version "24.13.3"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-24.13.3.tgz#49f18bd3c647866dcda51a0756c145e14590ce16"
   integrity sha512-Dh8vAsV36ig5wa9OX4pXvMc9D3Veibfw2wix0CUwYODLD8nkj9UsLjASr49nPg+2eKzxhBV+v7L8pXvT4e639Q==
   dependencies:
     undici-types "~7.18.0"
+
+"@types/node@^22", "@types/node@^22.5.5":
+  version "22.19.20"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-22.19.20.tgz#243823634b177312895dab14a7fb1d0103094313"
+  integrity sha512-6tELRwSDYWW9EdZhbeZmYGZ1/7Djkt+Ah3/ScEYT9cDord7UJzasR/4D3VONg9tQI5CDp+/CZC1AXj2pCFOvpw==
+  dependencies:
+    undici-types "~6.21.0"
 
 "@types/parse-json@^4.0.0":
   version "4.0.2"
@@ -8039,7 +8032,7 @@ babylonjs-editor-tools@latest:
   version "0.0.0"
 
 "babylonjs-editor-tools@link:tools":
-  version "5.5.2"
+  version "5.5.3-alpha.0"
 
 babylonjs-editor@latest:
   version "5.2.4"
@@ -9884,10 +9877,10 @@ electron-updater@^6.6.2:
     semver "^7.6.3"
     tiny-typed-emitter "^2.1.0"
 
-electron@42.8.0:
-  version "42.8.0"
-  resolved "https://registry.yarnpkg.com/electron/-/electron-42.8.0.tgz#e3bbebc98dcc99266eaaed365c6555a022248712"
-  integrity sha512-lgeUDjUuUzUSBchBudmjCZ8ApeYdVneMi17nLRMdfxGw7FyLFligsLtIF+dL3UoNnOsupAwdqVNJCK5MFE82kQ==
+electron@42.11.9:
+  version "42.11.9"
+  resolved "https://registry.yarnpkg.com/electron/-/electron-42.11.9.tgz#3f5d349f49c72eb6add797b24dd49abcb0a5126a"
+  integrity sha512-vPTlQws45virTh1jb/dSROz6xGkXgtEcdyT5n+0+etCmHqMtvp4Pgs6Sx5bvna+AEDAMeq10uRcjdMKCTk2Gtw==
   dependencies:
     "@electron-internal/extract-zip" "^1.0.1"
     "@electron/get" "^5.0.0"
@@ -13776,9 +13769,9 @@ no-case@^3.0.4:
     tslib "^2.0.3"
 
 node-abi@^3.3.0, node-abi@^3.45.0, node-abi@^4.2.0:
-  version "3.98.0"
-  resolved "https://registry.yarnpkg.com/node-abi/-/node-abi-3.98.0.tgz#3c7fe98381cf35f9da27431c9435044d9ebff143"
-  integrity sha512-Llh8noNw7s15m+rmIrZnZQbe4gLyasL9loT74rC92PkmwWKeEedKvc7o6pjp8B3MhrYT/Cl846NOYZbz1wmddw==
+  version "3.100.0"
+  resolved "https://registry.yarnpkg.com/node-abi/-/node-abi-3.100.0.tgz#31aa9623841051d14f52415557e18101bc0de7ca"
+  integrity sha512-KNU/E0VW9T1ndOAEWNlWtxhoBSF7hqe+dMSrRPK6+PfyL2s2AcfwnXCAOke4DNXOsweivNT6/7eFHwkxWblZew==
   dependencies:
     semver "^7.3.5"
 
