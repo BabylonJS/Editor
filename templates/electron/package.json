@@ -30,6 +30,6 @@
 		"tailwindcss": "4.1.18",
 		"tsc-watch": "7.2.1",
 		"typescript": "7.0.2",
-		"vite": "7.3.5"
+		"vite": "7.3.7"
 	}
 }

@@ -24,7 +24,7 @@
 		"babylonjs-editor-cli": "latest",
 		"tailwindcss": "4.1.18",
 		"typescript": "7.0.2",
-		"vite": "7.3.5",
+		"vite": "7.3.7",
 		"@types/node": "^22"
 	}
 }
