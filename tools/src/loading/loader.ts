@@ -166,8 +166,9 @@ export async function loadScene(rootUrl: string, sceneFilename: string, scene: S
 	await AppendSceneAsync(`${rootUrl}${sceneFilename}`, scene, {
 		pluginExtension: ".babylon",
 		onProgress: (event) => {
-			const progress = Math.min((event.loaded / event.total) * 0.5);
-			options?.onProgress?.(progress);
+			if (event.total) {
+				options?.onProgress?.(Math.min((event.loaded / event.total) * 0.5, 0.5));
+			}
 		},
 	});
 
