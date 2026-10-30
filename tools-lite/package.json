@@ -1,6 +1,6 @@
 {
 	"name": "babylonjs-editor-tools-lite",
-	"version": "5.5.3-alpha.1",
+	"version": "5.5.4-alpha.0",
 	"description": "Babylon.js Editor Tools Lite is a set of tools to help you load, run and manage the scenes made using the Babylon.js Editor with Babylon Lite (WebGPU only)",
 	"productName": "Babylon.js Editor Tools Lite",
 	"scripts": {
