@@ -1,4 +1,6 @@
+import { promisify } from "node:util";
 import { basename, extname, join } from "node:path/posix";
+import { brotliCompress, constants, gzip } from "node:zlib";
 
 import fs from "fs-extra";
 import dotEnv from "dotenv";
@@ -9,9 +11,12 @@ import chalk from "chalk";
 import cliSpinners from "cli-spinners";
 
 import { pack, IPackOptions } from "../pack/pack.mjs";
+import { supportedJsonExtensions } from "../pack/assets/process.mjs";
 
 import { executeSimpleWorker } from "../tools/worker.mjs";
 import { getProjectDir, normalizedGlob } from "../tools/fs.mjs";
+
+export type S3Compression = "gzip" | "brotli";
 
 export interface IS3Options extends Partial<IPackOptions> {
 	noPack?: boolean;
@@ -25,6 +30,33 @@ export interface IS3Options extends Partial<IPackOptions> {
 	secretAccessKey?: string;
 
 	rootKey?: string;
+
+	compression?: S3Compression;
+}
+
+const compressedExtensions = [".babylon", ".babylonbinarymeshdata", ".bin", ".wav", ".wave", ".3dl", ...supportedJsonExtensions];
+
+const gzipAsync = promisify(gzip);
+const brotliCompressAsync = promisify(brotliCompress);
+
+export const contentEncoding: Record<S3Compression, string> = {
+	gzip: "gzip",
+	brotli: "br",
+};
+
+export function compress(content: Buffer, compression: S3Compression): Promise<Buffer> {
+	if (compression === "gzip") {
+		return gzipAsync(content, {
+			level: constants.Z_BEST_COMPRESSION,
+		});
+	}
+
+	return brotliCompressAsync(content, {
+		params: {
+			[constants.BROTLI_PARAM_QUALITY]: 9,
+			[constants.BROTLI_PARAM_SIZE_HINT]: content.length,
+		},
+	});
 }
 
 export async function s3(projectDir: string, options: IS3Options) {
@@ -127,10 +159,14 @@ export async function s3(projectDir: string, options: IS3Options) {
 		// Upload
 		promises.push(
 			new Promise<void>(async (resolve) => {
-				// Check if already uploaded
+				const extension = extname(relativeFilePath).toLowerCase();
+				const compression = compressedExtensions.includes(extension) ? options.compression : undefined;
+
+				// Check if already uploaded.
+				const hashPrefix = compression ? `${compression}:` : "";
 				const fileStat = await fs.stat(file);
 
-				let hash = fileStat.mtimeMs.toString();
+				let hash = `${hashPrefix}${fileStat.mtimeMs}`;
 				if (cache[relativeFilePath] && cache[relativeFilePath] === hash) {
 					notifyStep();
 					return resolve();
@@ -138,9 +174,8 @@ export async function s3(projectDir: string, options: IS3Options) {
 
 				const fileContent = await fs.readFile(file);
 
-				const extension = extname(relativeFilePath).toLowerCase();
 				if (extension === ".babylonbinarymeshdata" || extension === ".babylon") {
-					hash = await executeSimpleWorker("workers/md5.mjs", fileContent);
+					hash = `${hashPrefix}${await executeSimpleWorker<string>("workers/md5.mjs", fileContent)}`;
 					if (cache[relativeFilePath] && cache[relativeFilePath] === hash) {
 						notifyStep();
 						return resolve();
@@ -148,13 +183,16 @@ export async function s3(projectDir: string, options: IS3Options) {
 				}
 
 				try {
+					const body = compression ? await compress(fileContent, compression) : fileContent;
+
 					await client.send(
 						new PutObjectCommand({
 							Key: s3Key,
-							Body: fileContent,
+							Body: body,
 							ACL: "public-read",
 							Bucket: "babylonjs-editor",
 							ContentType: "application/octet-stream",
+							ContentEncoding: compression ? contentEncoding[compression] : undefined,
 						})
 					);
 
@@ -162,7 +200,8 @@ export async function s3(projectDir: string, options: IS3Options) {
 						message: `Successfully uploaded ${basename(file)}.`,
 					});
 
-					console.log(`${chalk.green("Successfully")} uploaded ${s3Key}.`);
+					const compressionLog = compression ? ` (${compression}: ${Math.round((body.length / Math.max(fileContent.length, 1)) * 100)}% of its size)` : "";
+					console.log(`${chalk.green("Successfully")} uploaded ${s3Key}${compressionLog}.`);
 					cache[relativeFilePath] = hash;
 				} catch (e) {
 					errorsCount++;
