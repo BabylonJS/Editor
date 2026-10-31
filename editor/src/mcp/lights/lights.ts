@@ -1,5 +1,6 @@
 import { Scene, Node, Light, ShadowGenerator, CascadedShadowGenerator, IShadowLight, DirectionalLight, SpotLight, PointLight } from "babylonjs";
 
+import { isClusteredLight } from "../../tools/light/cluster";
 import { isGaussianSplattingMesh, isGaussianSplattingPartProxyMesh, isLight } from "../../tools/guards/nodes";
 
 import { addPointLight, addDirectionalLight, addSpotLight, addHemisphericLight } from "../../project/add/light";
@@ -84,6 +85,10 @@ export function setLightShadows(scene: Scene, data: any, options: IMCPActionOpti
 
 	if (!isLight(node)) {
 		throw new Error(`Node "${node.name}" is not a light.`);
+	}
+
+	if (data.enabled && isClusteredLight(node, options.editor)) {
+		throw new Error(`Light "${node.name}" is in the clustered light container, whose lights can't cast shadows. Call \`remove_light_from_clustered_container\` first.`);
 	}
 
 	const light = node as IShadowLight;

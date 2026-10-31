@@ -38,6 +38,7 @@ export const assistantAllowedEditorTools = [
 	"set_node_properties",
 	"set_node_parent",
 	"rename_node",
+	"clone_node",
 	"select_node",
 	"get_selected_nodes",
 	// Meshes, lights & cameras

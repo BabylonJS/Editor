@@ -28,7 +28,7 @@
 	},
 	"tools_generated": false,
 	"tools": [
-		{ "name": "get_scene_hierarchy", "description": "Get the current scene's node hierarchy as a tree of { id, name, type, children }." },
+		{ "name": "get_scene_hierarchy", "description": "Get the hierarchy shown in the editor's graph as a tree of { id, name, type, children }." },
 		{ "name": "list_scenes", "description": "List all .scene assets in the project and which one is active." },
 		{ "name": "get_active_scene", "description": "Get the active scene's name/path plus mesh, light and material counts." },
 		{ "name": "save_scene", "description": "Save the current scene/project to disk, once the user confirms it in the editor." },
@@ -37,9 +37,10 @@
 		{ "name": "get_node", "description": "Get full details of a node by id or name." },
 		{ "name": "set_node_transform", "description": "Set a node's position/rotation/scaling (centimeters, radians)." },
 		{ "name": "set_node_properties", "description": "Deep-set arbitrary node properties by dotted path." },
-		{ "name": "set_node_parent", "description": "Reparent a node, preserving its world transform." },
-		{ "name": "rename_node", "description": "Rename a node." },
-		{ "name": "delete_node", "description": "Delete a node and its descendants." },
+		{ "name": "set_node_parent", "description": "Move nodes in the hierarchy like dragging them in the graph, preserving their world transform. Undoable." },
+		{ "name": "rename_node", "description": "Rename anything shown in the graph. Undoable." },
+		{ "name": "delete_node", "description": "Remove nodes and their descendants like the graph does. Undoable." },
+		{ "name": "clone_node", "description": "Duplicate a node with its children like the graph does. Undoable." },
 		{ "name": "select_node", "description": "Select/focus a node in the editor (UX only)." },
 		{
 			"name": "get_selected_nodes",

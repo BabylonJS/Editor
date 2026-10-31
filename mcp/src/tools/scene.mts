@@ -11,7 +11,8 @@ export function registerSceneTools(server: McpServer): void {
 		{
 			title: "Get scene hierarchy",
 			description:
-				"Retrieve the hierarchy of nodes in the current scene as a tree of `{ id, name, type, children[] }`. " +
+				"Retrieve the hierarchy of the current scene as a tree of `{ id, name, type, children[] }`, showing exactly what the user sees in the editor's graph: " +
+				"nodes, lights of the ClusteredLightContainer under it, particle systems under their emitter mesh, sprites under their manager, plus the skeletons and GUI at the root. " +
 				"This is the starting point for almost every task: call it first to understand what already exists, find existing meshes/lights/cameras to reuse, and get the `id` of nodes you want to modify. " +
 				"Most other tools accept a `nodeId` (preferred) or `nodeName` taken from this tree. " +
 				"Typical workflow to build a scene: `get_scene_hierarchy` to inspect, then `create_primitive_mesh`/`create_light`/`create_camera`/`instantiate_mesh_asset` to add content, then `get_screenshot` to verify the result.",

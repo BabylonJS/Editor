@@ -41,14 +41,24 @@ type _RemoveNodeData = {
  * @param editor defines the reference to the editor used to get the selected nodes and refresh the graph.
  */
 export function removeNodes(editor: Editor) {
+	removeObjects(
+		editor,
+		editor.layout.graph
+			.getSelectedNodes()
+			.filter((n) => n.nodeData)
+			.map((n) => n.nodeData)
+	);
+}
+
+/**
+ * Removes the given objects of the graph with undo/redo support.
+ * @param editor defines the reference to the editor used to refresh the graph.
+ * @param allData defines the objects of the graph to remove (nodes, particle systems, sprites, etc.).
+ */
+export function removeObjects(editor: Editor, allData: unknown[]) {
 	const scene = editor.layout.preview.scene;
 
-	const allData = editor.layout.graph
-		.getSelectedNodes()
-		.filter((n) => n.nodeData)
-		.map((n) => n.nodeData);
-
-	const nodes = allData
+	const allNodes = allData
 		.filter((n) => isNode(n))
 		.map((node) => {
 			const attached = [node]
@@ -75,6 +85,9 @@ export function removeNodes(editor: Editor) {
 			return attached;
 		})
 		.flat();
+
+	// A node can be listed with its ancestor or the source of its instance: restored twice, it would be twice in the scene.
+	const nodes = unique(allNodes, "node");
 
 	const skeletons = unique(
 		nodes
@@ -233,10 +246,17 @@ function restoreNodeData(editor: Editor, data: _RemoveNodeData, scene: Scene) {
 	if (isCamera(node)) {
 		scene.addCamera(node);
 	}
+
+	node.parent = data.parent;
 }
 
 function removeNodeData(editor: Editor, data: _RemoveNodeData, scene: Scene) {
 	const node = data.node;
+
+	// Removed nodes stay in memory for undo: still attached to their parent, they would be cloned with it and counted in its bounds.
+	if (!isGaussianSplattingPartProxyMesh(node)) {
+		node.parent = null;
+	}
 
 	if (isAbstractMesh(node)) {
 		if (isInstancedMesh(node) || isCollisionInstancedMesh(node)) {
