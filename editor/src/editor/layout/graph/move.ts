@@ -10,8 +10,24 @@ import { applyNodeParentingConfiguration, applyTransformNodeParentingConfigurati
 import { Editor } from "../../main";
 
 export function setNewParentForGraphSelectedNodes(editor: Editor, newParent: any, shift: boolean) {
+	setNewParentForObjects(
+		editor,
+		editor.layout.graph.getSelectedNodes().map((n) => n.nodeData),
+		newParent,
+		shift
+	);
+}
+
+/**
+ * Sets the new parent of the given objects of the graph with undo/redo support.
+ * @param editor defines the reference to the editor used to refresh the graph.
+ * @param objects defines the objects of the graph to move (nodes and particle systems).
+ * @param newParent defines the new parent of the objects: a node, the clustered light container or the scene.
+ * @param shift defines wether or not the objects should keep their world transform.
+ */
+export function setNewParentForObjects(editor: Editor, objects: unknown[], newParent: any, shift: boolean) {
 	const oldHierarchyMap = new Map<unknown, unknown>();
-	const nodesToMove = editor.layout.graph.getSelectedNodes();
+	const nodesToMove = objects.map((nodeData) => ({ nodeData }));
 	const clusteredLightContainer = editor.layout.preview.clusteredLightContainer;
 
 	nodesToMove.forEach((n) => {

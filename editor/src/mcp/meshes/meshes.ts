@@ -5,6 +5,8 @@ import { isMesh, isAbstractMesh, isInstancedMesh } from "../../tools/guards/node
 import { createMeshInstance } from "../../tools/mesh/instance";
 import { getPhysicsShapeForMesh } from "../../tools/physics/shape";
 
+import { configureImportedNodeIds } from "../../editor/layout/preview/import/import";
+
 import {
 	addBoxMesh,
 	addPlaneMesh,
@@ -163,6 +165,9 @@ export function cloneMesh(scene: Scene, data: any, options: IMCPActionOptions): 
 	// Mesh.clone shares the source geometry by reference (no duplication).
 	const clone = sourceMesh.clone(data.name ?? `${sourceMesh.name} (Clone)`, sourceMesh.parent, true);
 
+	// The save of the scene names the file of each mesh after its id.
+	configureImportedNodeIds(clone);
+
 	// Only duplicate the geometry when explicitly requested.
 	if (cloneGeometry) {
 		clone.makeGeometryUnique();
@@ -216,6 +221,11 @@ export function setMeshVisibility(scene: Scene, data: any, options: IMCPActionOp
 
 	if (data.visibility !== undefined) {
 		node.visibility = data.visibility;
+	}
+
+	// The icon of a node in the graph shows its enabled state.
+	if (data.isEnabled !== undefined) {
+		options.editor.layout.graph.refresh();
 	}
 
 	options.editor.layout.inspector.setEditedObject(node);

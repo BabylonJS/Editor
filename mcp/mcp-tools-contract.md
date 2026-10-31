@@ -27,7 +27,9 @@ Derived from `mcp/specifications.md`. Goal: an AI agent connected to this MCP mu
 - **Image-returning tools** (`get_screenshot`, `get_asset_preview`) return `{ content: [{ type: "image", data, mimeType }], isError }` where the editor handler returns `{ imageBase64: string, mimeType: "image/png" }`.
 
 ### Node addressing
-Nodes are addressed by `nodeId` (preferred, the Babylon `node.id`) OR `nodeName`. Endpoints that accept a target node accept both: `{ nodeId?: string, nodeName?: string }`. Resolve by id first, then by name. If neither resolves, throw `"Node not found: <id/name>"`. Materials are addressed by `materialId` similarly. Asset files are addressed by project-relative or absolute `path`.
+Nodes are addressed by `nodeId` (preferred, the Babylon `node.id`) OR `nodeName`. Endpoints that accept a target node accept both: `{ nodeId?: string, nodeName?: string }`. Resolve by id first, then by name. If neither resolves, throw `"Node not found: <id/name>"`. `resolveNode` also finds the lights of the ClusteredLightContainer, which aren't in `scene.lights`. Materials are addressed by `materialId` similarly. Asset files are addressed by project-relative or absolute `path`.
+
+The tools working on the graph itself (`get_scene_hierarchy`, `get_node`, `set_node_parent`, `rename_node`, `delete_node`, `clone_node`, `select_node`) address everything the graph shows with `resolveGraphObject`: nodes, particle systems, sprites, skeletons and GUI (sprites and GUI have no id: use `uniqueId` as a string, like `get_scene_hierarchy` gives it). The ones that modify it use `resolveEditableGraphObject`, which refuses the nodes internal to the editor (`isNodeInGraph`: its camera, collision meshes, LODs).
 
 ### Visibility requirement (critical, from spec §"Important notes")
 Every editor handler that mutates the scene MUST make the change visible in the editor UI:
@@ -35,6 +37,7 @@ Every editor handler that mutates the scene MUST make the change visible in the 
 - After creating/modifying a node: `editor.layout.inspector.setEditedObject(node)` and `editor.layout.graph.setSelectedNode(node)` where appropriate.
 - After modifying the edited object's props: `editor.layout.inspector.forceUpdate()`.
 - After creating/modifying assets (materials, scripts, etc.): refresh the assets browser (`editor.layout.assets.refresh()` — confirm method name).
+- Hierarchy changes reuse the functions of the graph, so they behave like the user's actions and are undoable: `removeObjects` (`editor/src/editor/layout/graph/remove.ts`), `setNewParentForObjects` (`editor/src/editor/layout/graph/move.ts`), `cloneNode` (`editor/src/tools/node/clone.ts`). Removed nodes stay in memory for undo, so they are still returned by `getDescendants`: filter with `isNodeInGraph`. These functions run through `registerUndoRedo`, which does nothing while the game plays: handlers throw instead (`assertNotPlaying`).
 - Prefer reusing existing editor "add"/mutation functions (`editor/src/project/add/*`, `editor/src/tools/*`) which already wire selection/gizmo/refresh, so behavior matches manual user actions and integrates with undo/redo where those functions do.
 
 ---
@@ -45,7 +48,7 @@ Every editor handler that mutates the scene MUST make the change visible in the 
 
 | endpoint | description | input | output |
 |---|---|---|---|
-| `get_scene_hierarchy` | Hierarchy of nodes as a tree (EXISTS, keep). | `{ rootNodeName?: string }` | tree of `{ id, name, type, children[] }` (extend existing to include `type`) |
+| `get_scene_hierarchy` | What the graph shows, as a tree: no node internal to the editor (`isNodeInGraph`), the content of scene links stays hidden, the lights of the ClusteredLightContainer under it, particle systems under their emitter, sprites under their manager, skeletons and GUI at the root (whole scene only). | `{ rootNodeName?: string }` | tree of `{ id, name, type, children[] }` |
 | `list_scenes` | List all `.scene` assets in the project. | `{}` | `{ scenes: [{ name, path, isActive }] }` |
 | `get_active_scene` | Name/path of the currently edited scene + counts. | `{}` | `{ name, path, meshCount, lightCount, materialCount }` |
 | `save_scene` | Save the current scene/project, after the user confirms it in a dialog of the editor (`showConfirm`): users review, maybe tweak, and save the agent's work themselves. Declining is not an error. | `{}` | `{ saved: true }` or `{ saved: false, message }` |
@@ -56,13 +59,14 @@ Every editor handler that mutates the scene MUST make the change visible in the 
 
 | endpoint | description | input | output |
 |---|---|---|---|
-| `get_node` | Full details of a node. | `{ nodeId?, nodeName? }` | `{ id, name, className, position, rotation, rotationQuaternion?, scaling, isEnabled, isVisible?, parentId?, materialId?, metadata }` |
-| `set_node_transform` | Set transform. Values in editor units (cm). Rotation in radians. Works for meshes/transform nodes (position/rotation/scaling), lights (position/direction) and cameras (position/rotation/target). Only provided & node-supported fields are applied. | `{ nodeId?, nodeName?, position?: [x,y,z], rotation?: [x,y,z], scaling?: [x,y,z], direction?: [x,y,z], target?: [x,y,z] }` | updated node summary (incl. `direction` when present) |
-| `set_node_properties` | Generic deep property set by dotted path (e.g. `"material.albedoColor"`, `"isVisible"`). Values may be numbers, strings, booleans, or `[r,g,b]`/`[x,y,z]` arrays which must be coerced to Color3/Vector3 based on the existing property type. | `{ nodeId?, nodeName?, properties: { [path]: value } }` | updated node summary |
-| `set_node_parent` | Reparent (preserve world transform via `setParent`). `parentId/parentName` null → root. If new parent is a ClusteredLightContainer and node is a non-shadow light, use `addLight`. | `{ nodeId?, nodeName?, parentId?, parentName?, preserveWorldTransform?: boolean }` | updated node summary |
-| `rename_node` | Rename a node. | `{ nodeId?, nodeName?, newName }` | updated node summary |
-| `delete_node` | Remove a node (and descendants). | `{ nodeId?, nodeName? }` | `{ deleted: true }` |
-| `select_node` | Select/focus a node in the editor (UX only). | `{ nodeId?, nodeName? }` | `{ selected: true }` |
+| `get_node` | Full details of a node. Other objects of the graph only have a summary. | `{ nodeId?, nodeName? }` | `{ id, name, className, position, rotation, rotationQuaternion?, scaling, isEnabled, isVisible?, parentId?, materialId?, metadata }` or `{ id, name, className }` |
+| `set_node_transform` | Set transform, relative to the parent of the node. Values in editor units (cm). Rotation in radians. Works for meshes/transform nodes (position/rotation/scaling), lights (position/direction) and cameras (position/rotation/target). Only provided & node-supported fields are applied. | `{ nodeId?, nodeName?, position?: [x,y,z], rotation?: [x,y,z], scaling?: [x,y,z], direction?: [x,y,z], target?: [x,y,z] }` | updated node summary (incl. `direction` when present) |
+| `set_node_properties` | Generic deep property set by dotted path (e.g. `"material.albedoColor"`, `"isVisible"`). Values may be numbers, strings, booleans, or `[r,g,b]`/`[x,y,z]` arrays which must be coerced to Color3/Vector3 based on the existing property type. Refreshes the graph for what it shows (`name`, `isEnabled`, `metadata.*`). | `{ nodeId?, nodeName?, properties: { [path]: value } }` | updated node summary |
+| `set_node_parent` | Move objects of the graph like dragging them, as one undo step. `shift` of the drag = `preserveWorldTransform` (default true). `parentId/parentName` null → root. Particle systems only go to meshes (`emitter`). The ClusteredLightContainer only takes the lights it supports. Throws for what the graph ignores silently or what would break the scene (a node under itself or its descendants stops the rendering), and while playing. Cameras and lights leaving the container keep their local transform. | `{ nodeId?, nodeName?, nodeIds?: string[], parentId?, parentName?, preserveWorldTransform?: boolean }` | updated summary, or `{ nodes: summary[] }` with `nodeIds` |
+| `rename_node` | Rename an object of the graph, undoable. Throws while playing. | `{ nodeId?, nodeName?, newName }` | updated summary |
+| `delete_node` | Remove objects of the graph (and descendants) like its "Remove" action: what depends on them too, gizmo/inspector/camera preview reset, one undo step. Refuses the ClusteredLightContainer, and throws while playing. | `{ nodeId?, nodeName?, nodeIds?: string[] }` | `{ deleted: true }` |
+| `clone_node` | Clone an object of the graph with its children like its "Clone" action (`cloneNode`: unique ids), undoable. Geometries and materials are shared unless asked. Throws while playing. | `{ nodeId?, nodeName?, name?, cloneMaterial?: boolean, cloneGeometry?: boolean }` | summary of the clone |
+| `select_node` | Select/focus an object of the graph in the editor (UX only). | `{ nodeId?, nodeName? }` | `{ selected: true }` |
 | `get_selected_nodes` | Get the nodes currently selected by the user in the editor graph. Use for "the selected node(s)" requests (e.g. instantiate the selected node to build a forest). | `{}` | `{ count, nodes: nodeSummary[] }` |
 
 ### Meshes
@@ -71,7 +75,7 @@ Every editor handler that mutates the scene MUST make the change visible in the 
 |---|---|---|---|
 | `create_primitive_mesh` | Create a primitive. Reuse `editor/src/project/add/mesh.ts`. | `{ type: "box"|"sphere"|"ground"|"plane"|"cylinder"|"capsule"|"torus"|"torusknot"|"skybox"|"empty", name?, parentId?, position?, options?: object }` | created node summary (incl. `id`) |
 | `create_instance` | Create InstancedMesh(es) from a source mesh. **Must use `editor/src/tools/mesh/instance.ts` `createMeshInstance`** (not raw `mesh.createInstance`) so each instance gets a real `id`/`uniqueId`, copied transform/visibility/enabled, and collision/shadow wiring — otherwise the inspector shows no properties. Defaults each instance's parent to the **source mesh's parent**; `parentId` overrides. | `{ sourceNodeId?, sourceNodeName?, name?, count?: number, parentId?, transforms?: [{position?,rotation?,scaling?}] }` | `{ instances: [nodeSummary] }` |
-| `clone_mesh` | Clone a mesh. `cloneGeometry=false` shares geometry (spec: clone only when material must differ). | `{ sourceNodeId?, sourceNodeName?, name?, cloneGeometry?: boolean }` | created node summary |
+| `clone_mesh` | Clone a mesh alone, without its children (see `clone_node`), with its own id. `cloneGeometry=false` shares geometry (spec: clone only when material must differ). | `{ sourceNodeId?, sourceNodeName?, name?, cloneGeometry?: boolean }` | created node summary |
 | `set_mesh_material` | Assign an existing material to a mesh. | `{ nodeId?, nodeName?, materialId }` | updated node summary |
 | `set_mesh_visibility` | Visibility/enabled toggles. | `{ nodeId?, nodeName?, isVisible?, isEnabled?, visibility?: number }` | updated node summary |
 | `set_mesh_physics` | Add/update/remove a Havok physics body (gameplay). Mirrors `editor/src/editor/layout/inspector/mesh/physics.tsx`: creates a `PhysicsAggregate` with `getPhysicsShapeForMesh` default, sets `body.disableSync=true`. `motionType` static/dynamic/animated; `shapeType` box/sphere/capsule/cylinder/mesh; mass on body mass properties; friction/restitution on shape material. | `{ nodeId?, nodeName?, enabled?: boolean, mass?, motionType?, shapeType?, friction?, restitution? }` | node summary + `{ physics }` |
