@@ -61,7 +61,7 @@ export function configureDivEvents(options: IConfigureDivEventsOptions) {
 		const animationsKeyConfigurationsToMove: ICinematicKeyConfigurationToMove[][] = [];
 
 		if (ev.shiftKey) {
-			options.cinematicEditor.cinematic.tracks.forEach((track) => {
+			options.cinematicEditor.state.sequence?.tracks.forEach((track) => {
 				const result: ICinematicKeyConfigurationToMove[] = [];
 
 				track.animationGroups?.forEach((animationGroup) => {
@@ -210,15 +210,17 @@ export function registerKeysMovedUndoRedo(cinematicEditor: CinematicEditor, anim
 			});
 		},
 		action: () => {
-			cinematicEditor.cinematic.tracks.forEach((track) => {
-				track.animationGroups?.sort((a, b) => a.frame - b.frame);
-				track.keyFrameAnimations?.sort((a, b) => {
-					const frameA = isCinematicKeyCut(a) ? a.key1.frame : a.frame;
-					const frameB = isCinematicKeyCut(b) ? b.key1.frame : b.frame;
+			cinematicEditor.cinematic.sequences
+				.flatMap((sequence) => sequence.tracks)
+				.forEach((track) => {
+					track.animationGroups?.sort((a, b) => a.frame - b.frame);
+					track.keyFrameAnimations?.sort((a, b) => {
+						const frameA = isCinematicKeyCut(a) ? a.key1.frame : a.frame;
+						const frameB = isCinematicKeyCut(b) ? b.key1.frame : b.frame;
 
-					return frameA - frameB;
+						return frameA - frameB;
+					});
 				});
-			});
 		},
 	});
 }

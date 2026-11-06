@@ -1,5 +1,5 @@
 import { IAnimationKey } from "babylonjs";
-import { ICinematicTrack, getAnimationTypeForObject } from "babylonjs-editor-tools";
+import { ICinematicKey, ICinematicTrack, getAnimationTypeForObject } from "babylonjs-editor-tools";
 
 import { Button } from "../../../../ui/shadcn/ui/button";
 
@@ -13,6 +13,8 @@ import { CinematicEditor } from "../editor";
 import { EditorInspectorNumberField } from "../../inspector/fields/number";
 import { EditorInspectorSwitchField } from "../../inspector/fields/switch";
 import { EditorInspectorSectionField } from "../../inspector/fields/section";
+
+import { getTrackCurveKeys, isKeyTangentLinked, restoreCurveKeys, setKeyTangentLinked, snapshotCurveKeys } from "../curves/tools/keys";
 
 import { getPropertyInspector, getTangentDefaultValue, getTangentInspector } from "./tools";
 
@@ -52,6 +54,28 @@ export function CinematicEditorKeyInspector(props: ICinematicEditorKeyInspectorP
 
 		props.cinematicKey.value = newValue;
 		props.cinematicEditor.inspector.forceUpdate();
+	}
+
+	function setTangentsLinked(linked: boolean) {
+		const keys = getTrackCurveKeys(props.track);
+		const index = keys?.indexOf(props.cinematicKey as ICinematicKey) ?? -1;
+
+		if (!keys || index === -1) {
+			return;
+		}
+
+		const before = snapshotCurveKeys(keys);
+		setKeyTangentLinked(keys, index, linked);
+		const after = snapshotCurveKeys(keys);
+
+		registerUndoRedo({
+			undo: () => restoreCurveKeys(keys, before),
+			redo: () => restoreCurveKeys(keys, after),
+			action: () => props.cinematicEditor.updateTracksAtCurrentTime(),
+		});
+
+		props.cinematicEditor.updateTracksAtCurrentTime();
+		props.cinematicEditor.forceUpdate();
 	}
 
 	return (
@@ -124,6 +148,15 @@ export function CinematicEditorKeyInspector(props: ICinematicEditorKeyInspectorP
 			/>
 
 			{(props.cinematicKey.outTangent ?? null) !== null && getTangentInspector(props.cinematicKey, "outTangent", props.cinematicEditor)}
+
+			<EditorInspectorSwitchField
+				label="Linked Tangents"
+				tooltip="When linked, editing the in or the out tangent of the key in the curves edits both so the curve stays smooth through the key."
+				object={{ checked: isKeyTangentLinked(props.cinematicKey as ICinematicKey) }}
+				property="checked"
+				noUndoRedo
+				onChange={(v) => setTangentsLinked(v)}
+			/>
 		</EditorInspectorSectionField>
 	);
 }

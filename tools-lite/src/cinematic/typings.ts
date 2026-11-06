@@ -3,9 +3,35 @@ import { IEditorAnimationKey } from "../animation/animation";
 export interface ICinematic {
 	name: string;
 	framesPerSecond: number;
-	tracks: ICinematicTrack[];
+
+	/**
+	 * Defines the sequences of the cinematic. Sequences are played one after the other, in order.
+	 */
+	sequences: ICinematicSequence[];
+	/**
+	 * Defines the tracks of the cinematics saved before sequences existed: they are moved to a single sequence when the cinematic is parsed.
+	 * @deprecated use `sequences` instead.
+	 */
+	tracks?: ICinematicTrack[];
 
 	outputFramesPerSecond: number;
+}
+
+/**
+ * A sequence is a part of a cinematic: it contains its own tracks and lasts until its last key. The frames of its keys are
+ * relative to the start of the sequence.
+ */
+export interface ICinematicSequence {
+	_id?: string;
+
+	/**
+	 * Defines the name of the sequence.
+	 */
+	name: string;
+	/**
+	 * Defines the tracks animated by the sequence.
+	 */
+	tracks: ICinematicTrack[];
 }
 
 export interface ICinematicTrack {

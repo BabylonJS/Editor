@@ -18,6 +18,7 @@ import { handleApplyImpulseEvent } from "./events/apply-impulse";
 
 import { ICinematic } from "./typings";
 import { Cinematic } from "./cinematic";
+import { mergeCinematicSequences } from "./sequences";
 import { isCinematicKey, isCinematicKeyCut } from "./guards";
 import { getPropertyValue, registerAfterAnimationCallback } from "./tools";
 
@@ -39,7 +40,8 @@ export type GenerateCinematicAnimationGroupOptions = {
 export function generateCinematicAnimationGroup(cinematic: ICinematic, scene: SceneContext, options?: GenerateCinematicAnimationGroupOptions) {
 	const result = new Cinematic(cinematic.name, scene);
 
-	cinematic.tracks.forEach((track) => {
+	// Sequences are played one after the other: their tracks are merged into the tracks of a single timeline.
+	mergeCinematicSequences(cinematic).forEach((track) => {
 		// Animation groups
 		const animationGroup = track.animationGroup as EditorAnimationGroup;
 		if (animationGroup && track.animationGroups?.length) {

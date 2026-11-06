@@ -44,7 +44,7 @@ export class CinematicEditorInspector extends Component<ICinematicEditorInspecto
 		return <div className="flex flex-col gap-2 w-96 h-full p-2 text-foreground overflow-y-auto">{component}</div>;
 	}
 
-	public setEditedObject(editedObject: any, editedTrack: ICinematicTrack): void {
+	public setEditedObject(editedObject: any, editedTrack: ICinematicTrack | null): void {
 		this.setState({
 			editedTrack,
 			editedObject,

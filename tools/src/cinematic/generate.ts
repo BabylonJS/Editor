@@ -17,6 +17,7 @@ import { handleApplyImpulseEvent } from "./events/apply-impulse";
 
 import { ICinematic } from "./typings";
 import { Cinematic } from "./cinematic";
+import { mergeCinematicSequences } from "./sequences";
 import { isCinematicKey, isCinematicKeyCut } from "./guards";
 import { getPropertyValue, registerAfterAnimationCallback } from "./tools";
 
@@ -38,7 +39,8 @@ export type GenerateCinematicAnimationGroupOptions = {
 export function generateCinematicAnimationGroup(cinematic: ICinematic, scene: Scene, options?: GenerateCinematicAnimationGroupOptions) {
 	const result = new Cinematic(cinematic.name, scene);
 
-	cinematic.tracks.forEach((track) => {
+	// Sequences are played one after the other: their tracks are merged into the tracks of a single timeline.
+	mergeCinematicSequences(cinematic).forEach((track) => {
 		// Animation groups
 		const animationGroup = track.animationGroup as AnimationGroup;
 		if (animationGroup && track.animationGroups?.length) {
@@ -295,7 +297,32 @@ export function generateCinematicAnimationGroup(cinematic: ICinematic, scene: Sc
 		result.addTargetedAnimation(animation, node);
 	});
 
+	holdCinematicAnimationsValues(result);
 	result.normalize();
 
 	return result;
+}
+
+/**
+ * Makes the animated values hold before the first key and after the last key of their animation until the start and the
+ * end of the cinematic. Normalizing an animation group extends the animations with copies of their first and last keys,
+ * tangents included: the values would keep moving out of the keys, during the other sequences.
+ */
+function holdCinematicAnimationsValues(cinematic: Cinematic): void {
+	cinematic.targetedAnimations.forEach((targetedAnimation) => {
+		const keys = targetedAnimation.animation.getKeys();
+		if (!keys.length) {
+			return;
+		}
+
+		const firstKey = keys[0];
+		if (firstKey.frame > cinematic.from) {
+			keys.unshift({ frame: cinematic.from, value: firstKey.value });
+		}
+
+		const lastKey = keys[keys.length - 1];
+		if (lastKey.frame < cinematic.to) {
+			keys.push({ frame: cinematic.to, value: lastKey.value });
+		}
+	});
 }

@@ -1,171 +1,88 @@
-import { MouseEvent } from "react";
+import { ReactNode } from "react";
 
-import { ICinematicKey, ICinematicKeyCut } from "babylonjs-editor-tools";
-
-import { registerUndoRedo } from "../../../../tools/undoredo";
-import { waitNextAnimationFrame } from "../../../../tools/tools";
-
-import { CinematicEditor } from "../editor";
-
-import { getKeyFrame } from "../timelines/tools";
-
-import { convertBezierToTangents } from "./tools/tools";
-
-import { getEditablePropertyValue, ICinematicEditorEditableProperty, setEditablePropertyValue } from "./tools/property";
+import { CinematicCurveComponent, CinematicCurveSide } from "./tools/keys";
 
 export interface ICinematicEditorCurveHandleProps {
-	scale: number;
-	yScale: number;
+	/**
+	 * Position of the key the handle belongs to.
+	 */
+	x: number;
+	y: number;
+	/**
+	 * Position of the tip of the handle.
+	 */
+	tipX: number;
+	tipY: number;
 
-	height: number;
+	color: string;
 
-	c1: [number, number];
-	c2: [number, number];
+	keyIndex: number;
+	component: CinematicCurveComponent;
+	side: CinematicCurveSide;
 
-	strokeColor: string;
-
-	tangentType: "in" | "out";
-
-	cinematicKey: ICinematicKey | ICinematicKeyCut;
-	nextCinematicKey: ICinematicKey | ICinematicKeyCut;
-
-	editableProperty: ICinematicEditorEditableProperty;
-	nextEditableProperty: ICinematicEditorEditableProperty;
-
-	editableTangentProperty?: ICinematicEditorEditableProperty;
-	nextEditableTangentProperty?: ICinematicEditorEditableProperty;
-
-	cinematicEditor: CinematicEditor;
+	/**
+	 * Wether the segment on that side is interpolated with tangents. When it's not, the handle shows the slope of the
+	 * straight segment and dragging it creates the tangents.
+	 */
+	defined: boolean;
+	/**
+	 * Wether the in and out tangents of the key are linked.
+	 */
+	linked: boolean;
 }
 
-export function CinematicEditorCurveHandle(props: ICinematicEditorCurveHandleProps) {
-	function handleMouseDown(ev: MouseEvent<SVGCircleElement>) {
-		ev.stopPropagation();
+/**
+ * Radius, in pixels, of the area around the tip of a handle that grabs it: larger than the drawn tip so handles are easy to grab.
+ * Sizes are given in CSS pixels, the editor is displayed at 80%.
+ */
+const handleHitRadius = 15;
+/**
+ * Distance, in pixels, from the center of the drawn tip of a handle to its corners.
+ */
+const handleTipSize = 8;
 
-		if (ev.button !== 0) {
-			return;
-		}
-
-		let mouseUpListener: (event: globalThis.MouseEvent) => void;
-		let mouseMoveListener: (event: globalThis.MouseEvent) => void;
-
-		document.body.style.cursor = "move";
-
-		let moving = false;
-		let clientX: number | null = null;
-		let clientY: number | null = null;
-
-		let oldOutTangent: number | null = null;
-		let oldInTangent: number | null = null;
-
-		const startC1 = [props.c1[0], props.c1[1]];
-		const startC2 = [props.c2[0], props.c2[1]];
-
-		document.body.addEventListener(
-			"mousemove",
-			(mouseMoveListener = (ev) => {
-				if (clientX === null) {
-					clientX = ev.clientX;
-				}
-
-				if (clientY === null) {
-					clientY = ev.clientY;
-				}
-
-				const deltaX = clientX - ev.clientX;
-				const deltaY = clientY - ev.clientY;
-				if (moving || Math.abs(deltaX) > 5 * devicePixelRatio || Math.abs(deltaY) > 5 * devicePixelRatio) {
-					moving = true;
-				} else {
-					return;
-				}
-
-				const c1 = props.tangentType === "out" ? [startC1[0] / props.scale, startC1[1] - deltaY / props.scale] : startC1;
-				const c2 = props.tangentType === "in" ? [startC2[0] / props.scale, startC2[1] - deltaY / props.scale] : startC2;
-
-				const tangents = convertBezierToTangents({
-					p0: [getKeyFrame(props.cinematicKey), getEditablePropertyValue(props.editableProperty)],
-					p1: [getKeyFrame(props.nextCinematicKey), getEditablePropertyValue(props.nextEditableProperty)],
-					c1: [c1[0], (props.height * 0.5 - c1[1]) / props.yScale],
-					c2: [c2[0], (props.height * 0.5 - c2[1]) / props.yScale],
-				});
-
-				switch (props.tangentType) {
-					case "out":
-						if (props.editableTangentProperty) {
-							oldOutTangent ??= getEditablePropertyValue(props.editableTangentProperty);
-							setEditablePropertyValue(props.editableTangentProperty, tangents.outTangent);
-						}
-						break;
-					case "in":
-						if (props.nextEditableTangentProperty) {
-							oldInTangent ??= getEditablePropertyValue(props.nextEditableTangentProperty);
-							setEditablePropertyValue(props.nextEditableTangentProperty, tangents.inTangent);
-						}
-						break;
-				}
-
-				props.cinematicEditor.curves.forceUpdate();
-				props.cinematicEditor.updateTracksAtCurrentTime();
-			})
-		);
-
-		document.body.addEventListener(
-			"mouseup",
-			(mouseUpListener = (ev) => {
-				ev.stopPropagation();
-
-				document.body.style.cursor = "auto";
-
-				document.body.removeEventListener("mouseup", mouseUpListener);
-				document.body.removeEventListener("mousemove", mouseMoveListener);
-
-				if (!moving) {
-					return;
-				}
-
-				waitNextAnimationFrame().then(() => {
-					const newOutTangent = props.editableTangentProperty ? getEditablePropertyValue(props.editableTangentProperty) : null;
-					const newInTangent = props.nextEditableTangentProperty ? getEditablePropertyValue(props.nextEditableTangentProperty) : null;
-
-					registerUndoRedo({
-						executeRedo: true,
-						undo: () => {
-							if (oldOutTangent !== null && props.editableTangentProperty) {
-								setEditablePropertyValue(props.editableTangentProperty, oldOutTangent);
-							}
-
-							if (oldInTangent !== null && props.nextEditableTangentProperty) {
-								setEditablePropertyValue(props.nextEditableTangentProperty, oldInTangent);
-							}
-						},
-						redo: () => {
-							if (oldOutTangent !== null && newOutTangent !== null && props.editableTangentProperty) {
-								setEditablePropertyValue(props.editableTangentProperty, newOutTangent);
-							}
-
-							if (oldInTangent !== null && newInTangent !== null && props.nextEditableTangentProperty) {
-								setEditablePropertyValue(props.nextEditableTangentProperty, newInTangent);
-							}
-						},
-					});
-				});
-			})
-		);
-	}
-
-	const x = props.tangentType === "out" ? props.c1[0] : props.c2[0];
-	const y = props.tangentType === "out" ? props.c1[1] : props.c2[1];
+/**
+ * Draws a tangent handle of a selected key. Handles keep the same length on screen and rotate around their key: the
+ * direction of the handle is the slope of the curve on that side of the key. Tips are hollow diamonds to tell them from
+ * keys (circles), orange when the tangents of the key are broken.
+ */
+export function CinematicEditorCurveHandle(props: ICinematicEditorCurveHandleProps): ReactNode {
+	const color = props.linked ? props.color : "#f59e0b";
 
 	return (
-		<circle
-			r={10 / props.scale}
-			className={`fill-border ${props.strokeColor}`}
-			strokeWidth={2 / props.scale}
-			cursor="pointer"
-			cx={x}
-			cy={y}
-			onMouseDownCapture={handleMouseDown}
-		/>
+		<g>
+			<line
+				x1={props.x}
+				y1={props.y}
+				x2={props.tipX}
+				y2={props.tipY}
+				stroke={color}
+				strokeOpacity={props.defined ? 0.9 : 0.6}
+				strokeWidth={2}
+				strokeDasharray={props.defined ? undefined : "4 3"}
+				className="pointer-events-none"
+			/>
+			<g
+				data-curve-target="handle"
+				data-key-index={props.keyIndex}
+				data-component={props.component ?? "-"}
+				data-side={props.side}
+				className="group"
+				style={{ cursor: "grab" }}
+			>
+				<circle cx={props.tipX} cy={props.tipY} r={handleHitRadius} fill="transparent" />
+				<polygon
+					points={getDiamondPoints(props.tipX, props.tipY, handleTipSize)}
+					strokeWidth={2}
+					strokeLinejoin="round"
+					className="pointer-events-none transition-transform duration-100 group-hover:scale-125"
+					style={{ fill: "hsl(var(--background))", stroke: color, transformBox: "fill-box", transformOrigin: "center" }}
+				/>
+			</g>
+		</g>
 	);
+}
+
+function getDiamondPoints(x: number, y: number, size: number): string {
+	return `${x},${y - size} ${x + size},${y} ${x},${y + size} ${x - size},${y}`;
 }

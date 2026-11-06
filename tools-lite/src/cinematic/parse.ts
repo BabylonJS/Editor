@@ -10,7 +10,8 @@ import { getAnimationGroupByName, getMeshById, getNodeById, getSceneData } from 
 import { EditorAnimation } from "../animation/animation";
 
 import { getPropertyValue } from "./tools";
-import { ICinematic, ICinematicKey, ICinematicKeyCut } from "./typings";
+import { getCinematicSequences } from "./sequences";
+import { ICinematic, ICinematicKey, ICinematicKeyCut, ICinematicTrack } from "./typings";
 
 function toVec3(value: any): { x: number; y: number; z: number } {
 	return { x: value?.[0] ?? 0, y: value?.[1] ?? 0, z: value?.[2] ?? 0 };
@@ -18,6 +19,7 @@ function toVec3(value: any): { x: number; y: number; z: number } {
 
 /**
  * Parses the given JSON data and returns a new cinematic object.
+ * The tracks of the cinematics saved before sequences existed are moved to a single sequence.
  * @param data defines the JSON data of the cinematic to parse.
  * @param scene defines the reference to the scene used to retrieve cinematic's data.
  */
@@ -26,75 +28,80 @@ export function parseCinematic(data: ICinematic, scene: SceneContext): ICinemati
 		name: data.name,
 		framesPerSecond: data.framesPerSecond,
 		outputFramesPerSecond: data.outputFramesPerSecond,
-		tracks: data.tracks.map((track) => {
-			let node: any = null;
-			let animationType: number | null = null;
+		sequences: getCinematicSequences(data).map((sequence) => ({
+			name: sequence.name,
+			tracks: sequence.tracks.map((track) => parseCinematicTrack(track, scene)),
+		})),
+	};
+}
 
-			if (track.node) {
-				node = getNodeById(track.node, scene);
-				if (!node) {
-					node = getSceneData(scene).particleSystems.find((ps: any) => ps.id === track.node) ?? null;
-				}
-			} else if (track.defaultRenderingPipeline) {
-				node = getDefaultRenderingPipeline();
-			} else if (track.volumetricLightScattering) {
-				node = getVLSPostProcess();
-			}
+function parseCinematicTrack(track: ICinematicTrack, scene: SceneContext): ICinematicTrack {
+	let node: any = null;
+	let animationType: number | null = null;
 
-			if (track.propertyPath) {
-				const value = getPropertyValue(node, track.propertyPath);
-				animationType = getAnimationTypeForObject(value);
-			}
+	if (track.node) {
+		node = getNodeById(track.node, scene);
+		if (!node) {
+			node = getSceneData(scene).particleSystems.find((ps: any) => ps.id === track.node) ?? null;
+		}
+	} else if (track.defaultRenderingPipeline) {
+		node = getDefaultRenderingPipeline();
+	} else if (track.volumetricLightScattering) {
+		node = getVLSPostProcess();
+	}
 
-			let sound: SoundNode | null = null;
-			if (track.sound) {
-				sound = getNodeById(track.sound, scene) as SoundNode;
-			}
+	if (track.propertyPath) {
+		const value = getPropertyValue(node, track.propertyPath);
+		animationType = getAnimationTypeForObject(value);
+	}
 
-			return {
-				node,
-				sound,
-				propertyPath: track.propertyPath,
-				defaultRenderingPipeline: track.defaultRenderingPipeline,
-				volumetricLightScattering: track.volumetricLightScattering,
-				animationGroupWeight: track.animationGroupWeight,
-				animationGroup: track.animationGroup ? getAnimationGroupByName(track.animationGroup, scene) : null,
-				animationGroups: track.animationGroups,
+	let sound: SoundNode | null = null;
+	if (track.sound) {
+		sound = getNodeById(track.sound, scene) as SoundNode;
+	}
 
-				sounds: track.sounds,
-				soundVolume: parseKeyFrameAnimations(track.soundVolume ?? [], EditorAnimation.ANIMATIONTYPE_FLOAT),
+	return {
+		node,
+		sound,
+		propertyPath: track.propertyPath,
+		defaultRenderingPipeline: track.defaultRenderingPipeline,
+		volumetricLightScattering: track.volumetricLightScattering,
+		animationGroupWeight: track.animationGroupWeight,
+		animationGroup: track.animationGroup ? getAnimationGroupByName(track.animationGroup, scene) : null,
+		animationGroups: track.animationGroups,
 
-				keyFrameEvents: track.keyFrameEvents?.map((event) => {
-					const result = {
-						...event,
-					};
+		sounds: track.sounds,
+		soundVolume: parseKeyFrameAnimations(track.soundVolume ?? [], EditorAnimation.ANIMATIONTYPE_FLOAT),
 
-					switch (event.data?.type) {
-						case "set-enabled":
-							result.data = {
-								type: "set-enabled",
-								value: event.data.value,
-								node: getNodeById(event.data.node, scene),
-							};
-							break;
-						case "apply-impulse":
-							result.data = {
-								type: "apply-impulse",
-								radius: event.data.radius,
-								mesh: getMeshById(event.data.mesh, scene),
-								force: toVec3(event.data.force),
-								contactPoint: toVec3(event.data.contactPoint),
-							};
-							break;
-					}
-
-					return result;
-				}),
-
-				keyFrameAnimations: node && animationType !== null && parseKeyFrameAnimations(track.keyFrameAnimations ?? [], animationType),
+		keyFrameEvents: track.keyFrameEvents?.map((event) => {
+			const result = {
+				...event,
 			};
+
+			switch (event.data?.type) {
+				case "set-enabled":
+					result.data = {
+						type: "set-enabled",
+						value: event.data.value,
+						node: getNodeById(event.data.node, scene),
+					};
+					break;
+				case "apply-impulse":
+					result.data = {
+						type: "apply-impulse",
+						radius: event.data.radius,
+						mesh: getMeshById(event.data.mesh, scene),
+						force: toVec3(event.data.force),
+						contactPoint: toVec3(event.data.contactPoint),
+					};
+					break;
+			}
+
+			return result;
 		}),
-	} as ICinematic;
+
+		keyFrameAnimations: node && animationType !== null && parseKeyFrameAnimations(track.keyFrameAnimations ?? [], animationType),
+	} as ICinematicTrack;
 }
 
 /**

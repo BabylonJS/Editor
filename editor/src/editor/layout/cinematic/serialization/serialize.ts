@@ -1,5 +1,5 @@
 import { Animation, Color3, Color4, Matrix, Quaternion, Vector2, Vector3 } from "babylonjs";
-import { ICinematic, ICinematicKey, ICinematicKeyCut, isCinematicKey, getAnimationTypeForObject } from "babylonjs-editor-tools";
+import { ICinematic, ICinematicKey, ICinematicKeyCut, ICinematicTrack, isCinematicKey, getAnimationTypeForObject } from "babylonjs-editor-tools";
 
 import { getInspectorPropertyValue } from "../../../../tools/property";
 
@@ -11,67 +11,72 @@ export function serializeCinematic(cinematic: ICinematic): ICinematic {
 		name: cinematic.name,
 		framesPerSecond: cinematic.framesPerSecond,
 		outputFramesPerSecond: cinematic.outputFramesPerSecond,
-		tracks: cinematic.tracks.map((track) => {
-			let animationType: number | null = null;
+		sequences: cinematic.sequences.map((sequence) => ({
+			name: sequence.name,
+			tracks: sequence.tracks.map((track) => serializeCinematicTrack(track)),
+		})),
+	};
+}
 
-			let node = track.node;
-			if (track.defaultRenderingPipeline) {
-				node = getDefaultRenderingPipeline();
-			} else if (track.volumetricLightScattering) {
-				node = getVLSPostProcess();
-			}
+export function serializeCinematicTrack(track: ICinematicTrack): ICinematicTrack {
+	let animationType: number | null = null;
 
-			if (node && track.propertyPath) {
-				const value = getInspectorPropertyValue(node, track.propertyPath);
-				animationType = getAnimationTypeForObject(value);
-			}
+	let node = track.node;
+	if (track.defaultRenderingPipeline) {
+		node = getDefaultRenderingPipeline();
+	} else if (track.volumetricLightScattering) {
+		node = getVLSPostProcess();
+	}
 
-			return {
-				node: track.node?.id,
-				propertyPath: track.propertyPath,
+	if (node && track.propertyPath) {
+		const value = getInspectorPropertyValue(node, track.propertyPath);
+		animationType = getAnimationTypeForObject(value);
+	}
 
-				animationGroups: track.animationGroups,
-				animationGroup: track.animationGroup?.name,
-				animationGroupWeight: serializeKeyFrameAnimations(track.animationGroupWeight ?? [], Animation.ANIMATIONTYPE_FLOAT),
+	return {
+		node: track.node?.id,
+		propertyPath: track.propertyPath,
 
-				defaultRenderingPipeline: track.defaultRenderingPipeline,
-				volumetricLightScattering: track.volumetricLightScattering,
+		animationGroups: track.animationGroups,
+		animationGroup: track.animationGroup?.name,
+		animationGroupWeight: serializeKeyFrameAnimations(track.animationGroupWeight ?? [], Animation.ANIMATIONTYPE_FLOAT),
 
-				sound: track.sound?.id,
-				sounds: track.sounds,
-				soundVolume: serializeKeyFrameAnimations(track.soundVolume ?? [], Animation.ANIMATIONTYPE_FLOAT),
+		defaultRenderingPipeline: track.defaultRenderingPipeline,
+		volumetricLightScattering: track.volumetricLightScattering,
 
-				keyFrameEvents: track.keyFrameEvents?.map((event) => {
-					const result = {
-						...event,
-					};
+		sound: track.sound?.id,
+		sounds: track.sounds,
+		soundVolume: serializeKeyFrameAnimations(track.soundVolume ?? [], Animation.ANIMATIONTYPE_FLOAT),
 
-					switch (event.data?.type) {
-						case "set-enabled":
-							result.data = {
-								type: "set-enabled",
-								value: event.data.value,
-								node: event.data.node?.id,
-							};
-							break;
-
-						case "apply-impulse":
-							result.data = {
-								type: "apply-impulse",
-								radius: event.data.radius,
-								mesh: event.data.mesh?.id,
-								force: event.data.force.asArray(),
-								contactPoint: event.data.contactPoint.asArray(),
-							};
-							break;
-					}
-
-					return result;
-				}),
-
-				keyFrameAnimations: animationType === null ? undefined : serializeKeyFrameAnimations(track.keyFrameAnimations ?? [], animationType),
+		keyFrameEvents: track.keyFrameEvents?.map((event) => {
+			const result = {
+				...event,
 			};
+
+			switch (event.data?.type) {
+				case "set-enabled":
+					result.data = {
+						type: "set-enabled",
+						value: event.data.value,
+						node: event.data.node?.id,
+					};
+					break;
+
+				case "apply-impulse":
+					result.data = {
+						type: "apply-impulse",
+						radius: event.data.radius,
+						mesh: event.data.mesh?.id,
+						force: event.data.force.asArray(),
+						contactPoint: event.data.contactPoint.asArray(),
+					};
+					break;
+			}
+
+			return result;
 		}),
+
+		keyFrameAnimations: animationType === null ? undefined : serializeKeyFrameAnimations(track.keyFrameAnimations ?? [], animationType),
 	};
 }
 
@@ -111,6 +116,7 @@ export function serializeKeyFrameAnimations(keyFrameAnimations: (ICinematicKey |
 				value: serializeCinematicKeyValue(keyFrame.value, animationType),
 				inTangent: serializeCinematicKeyValue(keyFrame.inTangent, animationType),
 				outTangent: serializeCinematicKeyValue(keyFrame.outTangent, animationType),
+				lockedTangent: keyFrame.lockedTangent,
 			} as ICinematicKey;
 		}
 

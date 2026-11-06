@@ -1293,7 +1293,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 
 		const cinematic = {
 			name: "New Cinematic",
-			tracks: [],
+			sequences: [{ name: "Sequence 1", tracks: [] }],
 			framesPerSecond: 60,
 			outputFramesPerSecond: 60,
 		} as ICinematic;

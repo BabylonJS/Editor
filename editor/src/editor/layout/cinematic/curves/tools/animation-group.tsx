@@ -1,4 +1,4 @@
-import { ICinematicAnimationGroup, ICinematicTrack } from "babylonjs-editor-tools";
+import { ICinematicTrack } from "babylonjs-editor-tools";
 
 export function normalizeAnimationGroupWeightKeys(track: ICinematicTrack) {
 	if (!track.animationGroups?.length) {
@@ -13,21 +13,4 @@ export function normalizeAnimationGroupWeightKeys(track: ICinematicTrack) {
 			{ type: "key", frame: maxFrame, value: 1 },
 		];
 	}
-}
-
-export function createAnimationGroupGhostRect(ag: ICinematicAnimationGroup, scale: number, height: number) {
-	return (
-		<rect
-			key={`animation-group-${ag.frame}-ghost`}
-			x={ag.frame}
-			y={height * 0.5 - 8 / scale}
-			width={((ag.endFrame - ag.startFrame) * ((ag.repeatCount ?? 0) + 1)) / Math.abs(ag.speed)}
-			height={16 / scale}
-			rx={8 / scale}
-			ry={8 / scale}
-			opacity={0.35}
-			stroke="black"
-			strokeWidth={2}
-		/>
-	);
 }

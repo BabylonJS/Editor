@@ -38,7 +38,7 @@ export class CinematicEditorTracks extends Component<ICinematicEditorTracksProps
 	}
 
 	public render(): ReactNode {
-		const cinematic = this.props.cinematicEditor.cinematic;
+		const tracks = this.props.cinematicEditor.state.sequence?.tracks ?? [];
 
 		return (
 			<div
@@ -46,7 +46,7 @@ export class CinematicEditorTracks extends Component<ICinematicEditorTracksProps
 			>
 				<div className="flex w-full h-10 py-5" />
 
-				{cinematic.tracks
+				{tracks
 					.filter((track) => isTrackInFilter(track, this.props.tracksFilter))
 					.map((track, index) => {
 						return this._getTrack(track, index === 0);
@@ -54,7 +54,7 @@ export class CinematicEditorTracks extends Component<ICinematicEditorTracksProps
 
 				<div className="fixed flex justify-between items-center w-96 h-10 bg-background px-2 border-r-2 border-r-border">
 					<div className="italic font-thin">
-						{cinematic.tracks.length} track{cinematic.tracks.length !== 1 ? "s" : ""}
+						{tracks.length} track{tracks.length !== 1 ? "s" : ""}
 					</div>
 
 					<div className="flex items-center gap-2">
@@ -85,7 +85,7 @@ export class CinematicEditorTracks extends Component<ICinematicEditorTracksProps
 	}
 
 	public componentDidMount(): void {
-		const selectedTrack = this.props.cinematicEditor.cinematic?.tracks?.[0] || null;
+		const selectedTrack = this.props.cinematicEditor.state.sequence?.tracks[0] || null;
 
 		if (selectedTrack) {
 			this.setState({ selectedTrack });
@@ -189,37 +189,40 @@ export class CinematicEditorTracks extends Component<ICinematicEditorTracksProps
 	}
 
 	private _handleAddTrackUndoRedo(track: ICinematicTrack): void {
-		const cinematic = this.props.cinematicEditor.cinematic;
-
-		registerUndoRedo({
-			executeRedo: true,
-			undo: () => {
-				const index = cinematic.tracks.indexOf(track);
-				if (index !== -1) {
-					cinematic.tracks.splice(index, 1);
-				}
-			},
-			redo: () => cinematic.tracks.push(track),
-		});
-
-		this.props.cinematicEditor.forceUpdate();
-	}
-
-	public removeTrack(track: ICinematicTrack): void {
-		const cinematic = this.props.cinematicEditor.cinematic;
-
-		const index = cinematic.tracks?.indexOf(track) ?? -1;
-		if (index === -1) {
+		const tracks = this.props.cinematicEditor.state.sequence?.tracks;
+		if (!tracks) {
 			return;
 		}
 
 		registerUndoRedo({
 			executeRedo: true,
 			undo: () => {
-				cinematic.tracks.splice(index, 0, track);
+				const index = tracks.indexOf(track);
+				if (index !== -1) {
+					tracks.splice(index, 1);
+				}
+			},
+			redo: () => tracks.push(track),
+		});
+
+		this.props.cinematicEditor.forceUpdate();
+	}
+
+	public removeTrack(track: ICinematicTrack): void {
+		const tracks = this.props.cinematicEditor.state.sequence?.tracks;
+
+		const index = tracks?.indexOf(track) ?? -1;
+		if (!tracks || index === -1) {
+			return;
+		}
+
+		registerUndoRedo({
+			executeRedo: true,
+			undo: () => {
+				tracks.splice(index, 0, track);
 			},
 			redo: () => {
-				cinematic.tracks.splice(index, 1);
+				tracks.splice(index, 1);
 			},
 		});
 
