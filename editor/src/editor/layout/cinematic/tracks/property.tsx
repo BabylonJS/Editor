@@ -146,7 +146,7 @@ export function CinematicEditorPropertyTrack(props: ICinematicEditorPropertyTrac
 			return showAlert("Property not found", `The property to animate "${property}" was not found on the object.`);
 		}
 
-		const existingAnimation = props.cinematicEditor.cinematic.tracks?.find((a) => a.node === node && a.propertyPath === property);
+		const existingAnimation = props.cinematicEditor.state.sequence?.tracks.find((a) => a.node === node && a.propertyPath === property);
 		if (existingAnimation) {
 			return showAlert("Property already animated", `The property "${property}" is already animated and cannot be animated twice.`);
 		}

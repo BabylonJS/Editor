@@ -1,14 +1,17 @@
 import { AnimationGroup } from "babylonjs";
 
-import { ICinematic } from "babylonjs-editor-tools";
+import { ICinematic, mergeCinematicSequences } from "babylonjs-editor-tools";
 import { SoundNode } from "../../../nodes/sound";
 
 export interface ISyncAnimationGroupsToFrameOptions {
 	pauseAfterSync: boolean;
 }
 
+/**
+ * Plays the animation groups of the cinematic where they are at the given frame of the cinematic.
+ */
 export function syncAnimationGroupsToFrame(frame: number, cinematic: ICinematic, options: ISyncAnimationGroupsToFrameOptions) {
-	cinematic.tracks.forEach((track) => {
+	mergeCinematicSequences(cinematic).forEach((track) => {
 		const animationGroup = track.animationGroup as AnimationGroup;
 		if (!animationGroup) {
 			return;
@@ -43,8 +46,11 @@ export function syncAnimationGroupsToFrame(frame: number, cinematic: ICinematic,
 	});
 }
 
+/**
+ * Plays the sounds of the cinematic where they are at the given frame of the cinematic.
+ */
 export function syncSoundsToFrame(frame: number, cinematic: ICinematic) {
-	cinematic.tracks.forEach((track) => {
+	mergeCinematicSequences(cinematic).forEach((track) => {
 		const node = track.sound as SoundNode;
 		if (!node) {
 			return;

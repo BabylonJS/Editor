@@ -1,17 +1,14 @@
-import { Component, MouseEvent } from "react";
+import { Component, ReactNode } from "react";
 
-import { Vector2 } from "babylonjs";
 import { ICinematicTrack } from "babylonjs-editor-tools";
-
-import { isDomElementDescendantOf } from "../../../tools/dom";
 
 import { CinematicEditor } from "./editor";
 import { CinematicEditorTracker } from "./tracker";
 
 import { CinematicEditorCurvesRoot } from "./curves/root";
+import { ICinematicEditorCurvesView } from "./curves/tools/view";
 
 export interface ICinematicEditorCurvesProps {
-	scale: number;
 	currentTime: number;
 
 	selectedTrack: ICinematicTrack | null;
@@ -20,88 +17,39 @@ export interface ICinematicEditorCurvesProps {
 }
 
 export interface ICinematicEditorCurvesState {
-	translation: Vector2;
+	/**
+	 * Defines how the curves are displayed (zoom and position on each axis).
+	 */
+	view: ICinematicEditorCurvesView;
 }
 
 export class CinematicEditorCurves extends Component<ICinematicEditorCurvesProps, ICinematicEditorCurvesState> {
 	public tracker!: CinematicEditorTracker;
 
-	private _divRef: HTMLDivElement | null = null;
-
 	public constructor(props: ICinematicEditorCurvesProps) {
 		super(props);
 
 		this.state = {
-			translation: Vector2.Zero(),
+			// Replaced by the framing of the curves once a track is displayed.
+			view: { zoomX: 4, zoomY: 1, panX: 56, panY: 300 },
 		};
 	}
 
-	public render(): React.ReactNode {
+	public render(): ReactNode {
 		return (
 			<div
-				ref={(r) => (this._divRef = r)}
 				className={`
-                    relative flex flex-col flex-1 w-full min-h-fit h-full overflow-x-hidden overflow-y-hidden
-                    ${this.props.cinematicEditor.state.editType !== "curves" ? "hidden pointer-events-none" : ""}
-                `}
-				onMouseDown={(ev) => this._handleMainDivPointerDown(ev)}
+					relative flex-1 w-full h-full overflow-hidden
+					${this.props.cinematicEditor.state.editType !== "curves" ? "hidden pointer-events-none" : ""}
+				`}
 			>
-				<CinematicEditorCurvesRoot scale={this.props.scale} translation={this.state.translation} cinematicEditor={this.props.cinematicEditor} />
-				<CinematicEditorTracker ref={(r) => (this.tracker = r!)} scale={this.props.scale} translationX={this.state.translation.x} currentTime={this.props.currentTime} />
+				{/* Same margin as the tracker so frames line up. */}
+				<div className="absolute top-0 right-0 bottom-0 left-2">
+					<CinematicEditorCurvesRoot view={this.state.view} cinematicEditor={this.props.cinematicEditor} onViewChange={(view) => this.setState({ view })} />
+				</div>
+
+				<CinematicEditorTracker ref={(r) => (this.tracker = r!)} scale={this.state.view.zoomX} translationX={this.state.view.panX} currentTime={this.props.currentTime} />
 			</div>
-		);
-	}
-
-	private _handleMainDivPointerDown(event: MouseEvent<HTMLDivElement>): void {
-		if (event.button !== 0 || event.altKey || !isDomElementDescendantOf(event.nativeEvent.target as HTMLElement, this._divRef!)) {
-			return;
-		}
-
-		document.body.style.cursor = "ew-resize";
-
-		let mouseUpListener: (event: globalThis.MouseEvent) => void;
-		let mouseMoveListener: (event: globalThis.MouseEvent) => void;
-
-		let moving = false;
-		let clientX: number | null = null;
-
-		const startPosition = (event.nativeEvent.offsetX - this.state.translation.x) / this.props.scale;
-
-		this.props.cinematicEditor.createTemporaryAnimationGroup();
-		this.props.cinematicEditor.setCurrentTime(startPosition);
-
-		document.body.addEventListener(
-			"mousemove",
-			(mouseMoveListener = (ev) => {
-				if (clientX === null) {
-					clientX = ev.clientX;
-				}
-
-				const delta = clientX - ev.clientX;
-				if (moving || Math.abs(delta) > 5 * devicePixelRatio) {
-					moving = true;
-				} else {
-					return;
-				}
-
-				const currentTime = Math.round(Math.max(0, startPosition - delta / this.props.scale));
-
-				this.props.cinematicEditor.setCurrentTime(currentTime);
-			})
-		);
-
-		document.body.addEventListener(
-			"mouseup",
-			(mouseUpListener = (ev) => {
-				ev.stopPropagation();
-
-				document.body.style.cursor = "auto";
-
-				document.body.removeEventListener("mouseup", mouseUpListener);
-				document.body.removeEventListener("mousemove", mouseMoveListener);
-
-				this.props.cinematicEditor.disposeTemporaryAnimationGroup();
-			})
 		);
 	}
 }
