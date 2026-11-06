@@ -1,5 +1,5 @@
 import { Scene, Vector3, Animation } from "babylonjs";
-import { ICinematic, ICinematicKey, ICinematicKeyCut, ICinematicTrack, parseCinematicKeyValue, getAnimationTypeForObject } from "babylonjs-editor-tools";
+import { ICinematic, ICinematicKey, ICinematicKeyCut, ICinematicTrack, parseCinematicKeyValue, getAnimationTypeForObject, getCinematicSequences } from "babylonjs-editor-tools";
 
 import { getInspectorPropertyValue } from "../../../../tools/property";
 
@@ -8,15 +8,17 @@ import { getDefaultRenderingPipeline } from "../../../rendering/default-pipeline
 
 import { SoundNode } from "../../../nodes/sound";
 
+/**
+ * Parses the given cinematic data. The tracks of the cinematics saved before sequences existed are moved to a single sequence.
+ */
 export function parseCinematic(data: ICinematic, scene: Scene) {
-	const tracks = data.tracks.map((track) => {
-		return parseCinematicTrack(track, scene);
-	});
-
 	return {
 		name: data.name,
 		framesPerSecond: data.framesPerSecond,
-		tracks: tracks.filter((track) => track !== null),
+		sequences: getCinematicSequences(data).map((sequence) => ({
+			name: sequence.name,
+			tracks: sequence.tracks.map((track) => parseCinematicTrack(track, scene)).filter((track) => track !== null),
+		})),
 		outputFramesPerSecond: data.outputFramesPerSecond,
 	} as ICinematic;
 }

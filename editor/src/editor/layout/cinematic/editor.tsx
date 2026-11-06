@@ -7,7 +7,11 @@ import { toast } from "sonner";
 import { Observer, AnimationGroup, Animation } from "babylonjs";
 import {
 	generateCinematicAnimationGroup,
+	getCinematicFramesCount,
+	getCinematicSequenceFramesCount,
+	getCinematicSequenceStartFrame,
 	ICinematic,
+	ICinematicSequence,
 	ICinematicTrack,
 	setDefaultRenderingPipelineRef,
 	setMotionBlurPostProcessRef,
@@ -44,6 +48,7 @@ import { CinematicEditorRenderDialog } from "./render/dialog";
 import { CinematicEditorTracks } from "./tracks";
 import { CinematicEditorCurves } from "./curves";
 import { CinematicEditorToolbar } from "./toolbar";
+import { CinematicEditorSequences } from "./sequences";
 import { CinematicEditorTimelines } from "./timelines";
 import { CinematicEditorInspector } from "./inspector";
 
@@ -55,9 +60,17 @@ export interface ICinematicEditorProps {
 
 export interface ICinematicEditorState {
 	timelinesScale: number;
-	curvesZoom: number;
 
+	/**
+	 * Defines the time of the tracker: relative to the start of the edited sequence, or to the start of the cinematic
+	 * when the sequences are displayed.
+	 */
 	currentTime: number;
+
+	/**
+	 * Defines the sequence whose tracks are edited. When null, the sequences of the cinematic are displayed.
+	 */
+	sequence: ICinematicSequence | null;
 
 	editType: "keyframes" | "curves";
 
@@ -87,6 +100,10 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 	 * Defines the reference to the inspector used to display and edit the cinematic properties.
 	 */
 	public inspector!: CinematicEditorInspector;
+	/**
+	 * Defines the reference to the list of the sequences of the cinematic, displayed when no sequence is edited.
+	 */
+	public sequences: CinematicEditorSequences | null = null;
 
 	/**
 	 * Defines the reference to the editor instance that owns this cinematic editor.
@@ -120,9 +137,10 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 		this.cinematic = props.cinematic;
 
 		this.state = {
-			curvesZoom: 1,
 			timelinesScale: 1,
 			currentTime: 0,
+
+			sequence: null,
 
 			tracksFilter: "",
 
@@ -141,7 +159,12 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 			<div onMouseEnter={() => (this._focused = true)} onMouseLeave={() => (this._focused = false)} className="flex flex-col w-full h-full overflow-hidden">
 				<CinematicEditorToolbar cinematicEditor={this} playing={this.state.playing} />
 
-				<div className="flex flex-1 overflow-hidden">
+				{!this.state.sequence && (
+					<CinematicEditorSequences ref={(ref) => (this.sequences = ref)} cinematicEditor={this} scale={this.state.timelinesScale} currentTime={this.state.currentTime} />
+				)}
+
+				{/* The edition of a sequence stays mounted while the sequences are displayed: its panels are used by the undo/redo actions. */}
+				<div className={`flex flex-1 overflow-hidden ${this.state.sequence ? "" : "hidden"}`}>
 					<div className="flex flex-col flex-1 overflow-hidden">
 						{/* Headers */}
 						<div className="flex w-full h-10">
@@ -168,7 +191,6 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 								<CinematicEditorCurves
 									ref={(ref) => (this.curves = ref!)}
 									cinematicEditor={this}
-									scale={this.state.curvesZoom}
 									currentTime={this.state.currentTime}
 									selectedTrack={this.state.selectedTrack}
 								/>
@@ -188,11 +210,11 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 
 	public componentDidMount(): void {
 		this._undoObserver = onUndoObservable.add(() => {
-			this.forceUpdate();
+			this._handleUndoRedo();
 		});
 
 		this._redoObserver = onRedoObservable.add(() => {
-			this.forceUpdate();
+			this._handleUndoRedo();
 		});
 
 		window.addEventListener(
@@ -222,22 +244,132 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 		this.stop();
 	}
 
+	private _handleUndoRedo(): void {
+		// The edited sequence was removed: display the sequences.
+		if (this.state.sequence && !this.cinematic.sequences.includes(this.state.sequence)) {
+			this.stop();
+			this.inspector.setEditedObject(null, null);
+
+			return this.setState({ sequence: null, hoverTrack: null, selectedTrack: null, currentTime: 0 }, () => {
+				this.forceUpdate();
+			});
+		}
+
+		this.forceUpdate();
+	}
+
 	public forceUpdate(): void {
 		super.forceUpdate();
 		this.tracks.forceUpdate();
 		this.timelines.forceUpdate();
 		this.curves.forceUpdate();
+		this.sequences?.forceUpdate();
+	}
+
+	/**
+	 * Opens the given sequence to edit its tracks. The tracker keeps its position when it is in the sequence, otherwise
+	 * it goes to the start of the sequence.
+	 * @param sequence defines the reference to the sequence to edit.
+	 */
+	public editSequence(sequence: ICinematicSequence): void {
+		this.stop();
+
+		const time = this.getCinematicFrame(this.state.currentTime);
+		const startFrame = getCinematicSequenceStartFrame(this.cinematic, sequence);
+		const framesCount = getCinematicSequenceFramesCount(sequence);
+
+		const inSequence = time >= startFrame && time <= startFrame + framesCount;
+
+		this.inspector.setEditedObject(null, null);
+
+		this.setState(
+			{
+				sequence,
+				hoverTrack: null,
+				selectedTrack: null,
+				currentTime: inSequence ? time - startFrame : 0,
+			},
+			() => {
+				if (!inSequence) {
+					this.updateTracksAtCurrentTime();
+				}
+
+				this.forceUpdate();
+			}
+		);
+	}
+
+	/**
+	 * Closes the edited sequence and displays the sequences of the cinematic.
+	 */
+	public closeSequence(): void {
+		const sequence = this.state.sequence;
+		if (!sequence) {
+			return;
+		}
+
+		this.stop();
+
+		const startFrame = getCinematicSequenceStartFrame(this.cinematic, sequence);
+		const framesCount = getCinematicSequenceFramesCount(sequence);
+
+		this.inspector.setEditedObject(null, null);
+
+		this.setState(
+			{
+				sequence: null,
+				hoverTrack: null,
+				selectedTrack: null,
+				currentTime: startFrame + Math.min(this.state.currentTime, framesCount),
+			},
+			() => {
+				this.sequences?.setState({ selectedSequence: sequence });
+				this.forceUpdate();
+			}
+		);
+	}
+
+	/**
+	 * Returns the frame, in the whole cinematic, where the tracker is when it is at the given time. In a sequence, the
+	 * time is relative to the start of the sequence: after the end of the sequence, the tracker shows its last frame, not
+	 * the next sequence.
+	 * @param time defines the time of the tracker.
+	 */
+	public getCinematicFrame(time: number): number {
+		const sequence = this.state.sequence;
+		if (!sequence) {
+			return time;
+		}
+
+		const startFrame = getCinematicSequenceStartFrame(this.cinematic, sequence);
+		const endFrame = startFrame + getCinematicSequenceFramesCount(sequence);
+
+		// The end of a sequence is the start of the next one: stay just before.
+		if (endFrame < getCinematicFramesCount(this.cinematic)) {
+			return Math.min(startFrame + time, Math.max(startFrame, endFrame - 0.001));
+		}
+
+		return startFrame + time;
+	}
+
+	/**
+	 * Returns the last frame the tracker can be played to: the end of the edited sequence or the end of the cinematic.
+	 */
+	public getMaxFrame(): number {
+		return this.state.sequence ? getCinematicSequenceFramesCount(this.state.sequence) : getCinematicFramesCount(this.cinematic);
 	}
 
 	public setCurrentTime(time: number): void {
 		this.stop();
 
+		const frame = this.getCinematicFrame(time);
+
 		const group = this.createTemporaryAnimationGroup();
 		group.start(false);
-		group.goToFrame(time);
+		group.goToFrame(frame);
 		group.pause();
 
-		syncAnimationGroupsToFrame(time, this.cinematic, {
+		syncAnimationGroupsToFrame(frame, this.cinematic, {
 			pauseAfterSync: true,
 		});
 
@@ -252,8 +384,13 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 		}
 	}
 
+	/**
+	 * Updates the scene to show the cinematic, as edited, at the current time.
+	 */
 	public updateTracksAtCurrentTime(): void {
+		this.disposeTemporaryAnimationGroup();
 		this.setCurrentTime(this.state.currentTime);
+		this.disposeTemporaryAnimationGroup();
 	}
 
 	public prepareTemporaryAnimationGroup(): void {
@@ -287,7 +424,9 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 	}
 
 	public play(): void {
-		if (this.state.playing || !this.cinematic.tracks.length) {
+		const tracksCount = this.state.sequence?.tracks.length ?? this.cinematic.sequences.reduce((count, sequence) => count + sequence.tracks.length, 0);
+
+		if (this.state.playing || !tracksCount) {
 			return;
 		}
 
@@ -303,7 +442,7 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 		this._currentTimeBeforePlay = this.state.currentTime;
 
 		const currentTime = this.state.currentTime;
-		const maxFrame = this.timelines.getMaxWidthForTimelines() / this.state.timelinesScale;
+		const maxFrame = this.getMaxFrame();
 
 		this._playAnimation ??= new Animation("editor-currentTime", "_animatedCurrentTime", 60, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CYCLE);
 		this._playAnimation.setKeys([
@@ -311,10 +450,12 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 			{ frame: maxFrame, value: maxFrame },
 		]);
 
-		const frame = Math.min(currentTime, maxFrame);
+		const frame = this.getCinematicFrame(Math.min(currentTime, maxFrame));
+		const endFrame = this.getCinematicFrame(maxFrame);
 
+		// In a sequence followed by other sequences, only the sequence is played.
 		const group = this.createTemporaryAnimationGroup();
-		group.start(false, 1.0, frame);
+		group.start(false, 1.0, frame, endFrame < getCinematicFramesCount(this.cinematic) ? endFrame : undefined);
 
 		syncSoundsToFrame(frame, this.cinematic);
 		syncAnimationGroupsToFrame(frame, this.cinematic, {
@@ -333,6 +474,7 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 			(this._playRenderLoop = () => {
 				this.curves.tracker.setForcedCurrentTime(this._animatedCurrentTime);
 				this.timelines.tracker.setForcedCurrentTime(this._animatedCurrentTime);
+				this.sequences?.tracker?.setForcedCurrentTime(this._animatedCurrentTime);
 			})
 		);
 	}
@@ -344,6 +486,7 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 
 		this.curves.tracker.setForcedCurrentTime(null);
 		this.timelines.tracker.setForcedCurrentTime(null);
+		this.sequences?.tracker?.setForcedCurrentTime(null);
 
 		this.setState({
 			playing: false,
@@ -358,8 +501,10 @@ export class CinematicEditor extends Component<ICinematicEditorProps, ICinematic
 		}
 
 		// Stop all sounds
-		this.cinematic.tracks.forEach((track) => {
-			track.sound?.stop();
+		this.cinematic.sequences.forEach((sequence) => {
+			sequence.tracks.forEach((track) => {
+				track.sound?.stop();
+			});
 		});
 
 		restoreSceneState();

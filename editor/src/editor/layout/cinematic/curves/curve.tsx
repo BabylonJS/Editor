@@ -1,161 +1,71 @@
-import { IAnimationKey } from "babylonjs";
-import { ICinematicKey, ICinematicKeyCut, ICinematicTrack } from "babylonjs-editor-tools";
+import { ReactNode } from "react";
 
-import { getKeyFrame } from "../timelines/tools";
+import { CinematicCurveComponent, CinematicCurveKey, getComponentValue, getCurveKeyFrame, getCurveSegment, getInKey, getOutKey } from "./tools/keys";
+import { frameToX, ICinematicEditorCurvesView, valueToY } from "./tools/view";
 
-import { CinematicEditor } from "../editor";
-
-import { convertKeysToBezier, valueToSVGY } from "./tools/tools";
-import { getEditablePropertyValue, ICinematicEditorEditableProperty } from "./tools/property";
-
-import { removeAnimationKey } from "../timelines/remove";
-
-import { CinematicEditorCurveHandle } from "./handle";
-import { CinematicEditorPropertyPoint } from "./point";
-
-export interface ICinematicEditorPropertyCubeProps {
+export interface ICinematicEditorCurvePathProps {
+	keys: CinematicCurveKey[];
+	component: CinematicCurveComponent;
+	view: ICinematicEditorCurvesView;
+	width: number;
 	color: string;
-	height: number;
-
-	scale: number;
-	yScale: number;
-
-	drawPoint: boolean;
-	drawHandles: boolean;
-
-	track: ICinematicTrack;
-
-	cinematicKey: ICinematicKey | ICinematicKeyCut;
-	nextCinematicKey: ICinematicKey | ICinematicKeyCut;
-
-	editableAnimationKey: IAnimationKey;
-	nextEditableAnimationKey: IAnimationKey;
-
-	editableProperty: ICinematicEditorEditableProperty;
-	nextEditableProperty: ICinematicEditorEditableProperty;
-
-	editableTangentProperty?: ICinematicEditorEditableProperty;
-	nextEditableTangentProperty?: ICinematicEditorEditableProperty;
-
-	cinematicEditor: CinematicEditor;
 }
 
-export function CinematicEditorPropertyCurve(props: ICinematicEditorPropertyCubeProps) {
-	const value = getEditablePropertyValue(props.editableProperty);
-	const nextValue = getEditablePropertyValue(props.nextEditableProperty);
+/**
+ * Draws the curve of a component exactly as it is played: segments with tangents on both ends are cubic, the others are
+ * straight lines and the values of the first and last keys are held before and after them. Cuts jump at their frame:
+ * the curve is interrupted there, so the jump doesn't look like a steep animation (the cut itself is drawn across the graph).
+ * A wider invisible stroke makes the curve easy to hover and double-click to insert keys.
+ */
+export function CinematicEditorCurvePath(props: ICinematicEditorCurvePathProps): ReactNode {
+	const { keys, component, view } = props;
 
-	const { p0, p1, c1, c2 } = convertKeysToBezier({
-		frame1: getKeyFrame(props.cinematicKey),
-		frame2: getKeyFrame(props.nextCinematicKey),
-		value1: value * props.yScale,
-		value2: nextValue * props.yScale,
-		outTangent: props.editableTangentProperty ? getEditablePropertyValue(props.editableTangentProperty) * props.yScale : 0,
-		inTangent: props.nextEditableTangentProperty ? getEditablePropertyValue(props.nextEditableTangentProperty) * props.yScale : 0,
+	const x = (frame: number): number => frameToX(view, frame);
+	const y = (value: number): number => valueToY(view, value);
+
+	let d = "";
+
+	keys.forEach((key, index) => {
+		const frame = getCurveKeyFrame(key);
+		const inValue = getComponentValue(getInKey(key).value, component);
+		const outValue = getComponentValue(getOutKey(key).value, component);
+
+		if (index === 0) {
+			d += `M ${x(frame)} ${y(inValue)}`;
+		}
+
+		if (inValue !== outValue) {
+			d += ` M ${x(frame)} ${y(outValue)}`;
+		}
+
+		if (index < keys.length - 1) {
+			const segment = getCurveSegment(keys, index, component);
+
+			if (segment.hermite) {
+				const third = (segment.frame1 - segment.frame0) / 3;
+
+				d += ` C ${x(segment.frame0 + third)} ${y(segment.value0 + segment.slope0 * third)}`;
+				d += ` ${x(segment.frame1 - third)} ${y(segment.value1 - segment.slope1 * third)}`;
+				d += ` ${x(segment.frame1)} ${y(segment.value1)}`;
+			} else {
+				d += ` L ${x(segment.frame1)} ${y(segment.value1)}`;
+			}
+		}
 	});
 
-	const computedP0 = [p0[0], valueToSVGY(p0[1], props.height)] as [number, number];
-	const computedP1 = [p1[0], valueToSVGY(p1[1], props.height)] as [number, number];
-	const computedC1 = [c1[0], valueToSVGY(c1[1], props.height)] as [number, number];
-	const computedC2 = [c2[0], valueToSVGY(c2[1], props.height)] as [number, number];
+	const firstX = x(getCurveKeyFrame(keys[0]));
+	const firstY = y(getComponentValue(getInKey(keys[0]).value, component));
+	const lastX = x(getCurveKeyFrame(keys[keys.length - 1]));
+	const lastY = y(getComponentValue(getOutKey(keys[keys.length - 1]).value, component));
 
-	const d = `
-        M ${computedP0[0]},${computedP0[1]} 
-        C ${computedC1[0]},${computedC1[1]} 
-        ${computedC2[0]},${computedC2[1]} 
-        ${computedP1[0]},${computedP1[1]}
-    `;
+	const holds = `M ${Math.min(-10, firstX)} ${firstY} L ${firstX} ${firstY} M ${lastX} ${lastY} L ${Math.max(props.width + 10, lastX)} ${lastY}`;
+	const componentAttribute = component ?? "-";
 
 	return (
-		<>
-			<path d={d} className={`fill-none ${props.color} pointer-events-none`} strokeWidth={2 / props.scale} />
-
-			{props.drawPoint && (
-				<CinematicEditorPropertyPoint
-					cx={computedP0[0]}
-					cy={computedP0[1]}
-					scale={props.scale}
-					yScale={props.yScale}
-					cinematicKey={props.cinematicKey}
-					editableProperty={props.editableProperty}
-					animationKey={props.editableAnimationKey}
-					cinematicEditor={props.cinematicEditor}
-					onRemoved={() => removeAnimationKey(props.cinematicEditor, props.track, props.cinematicKey)}
-				/>
-			)}
-
-			<CinematicEditorPropertyPoint
-				cx={computedP1[0]}
-				cy={computedP1[1]}
-				scale={props.scale}
-				yScale={props.yScale}
-				cinematicKey={props.nextCinematicKey}
-				editableProperty={props.nextEditableProperty}
-				animationKey={props.nextEditableAnimationKey}
-				cinematicEditor={props.cinematicEditor}
-				onRemoved={() => removeAnimationKey(props.cinematicEditor, props.track, props.nextCinematicKey)}
-			/>
-
-			{props.editableTangentProperty && props.drawHandles && (
-				<>
-					<line
-						x1={computedP0[0]}
-						y1={computedP0[1]}
-						x2={computedC1[0]}
-						y2={computedC1[1]}
-						className={`${props.color} pointer-events-none`}
-						strokeWidth={2 / props.scale}
-						strokeDasharray={4 / props.scale}
-					/>
-
-					<CinematicEditorCurveHandle
-						scale={props.scale}
-						yScale={props.yScale}
-						height={props.height}
-						strokeColor={props.color}
-						c1={computedC1}
-						c2={computedC2}
-						tangentType="out"
-						cinematicKey={props.cinematicKey}
-						nextCinematicKey={props.nextCinematicKey}
-						editableProperty={props.editableProperty}
-						nextEditableProperty={props.nextEditableProperty}
-						editableTangentProperty={props.editableTangentProperty}
-						nextEditableTangentProperty={props.nextEditableTangentProperty}
-						cinematicEditor={props.cinematicEditor}
-					/>
-				</>
-			)}
-
-			{props.nextEditableTangentProperty && props.drawHandles && (
-				<>
-					<line
-						x1={computedP1[0]}
-						y1={computedP1[1]}
-						x2={computedC2[0]}
-						y2={computedC2[1]}
-						className={`${props.color} pointer-events-none`}
-						strokeWidth={2 / props.scale}
-						strokeDasharray={4 / props.scale}
-					/>
-
-					<CinematicEditorCurveHandle
-						scale={props.scale}
-						yScale={props.yScale}
-						height={props.height}
-						strokeColor={props.color}
-						c1={computedC1}
-						c2={computedC2}
-						tangentType="in"
-						cinematicKey={props.cinematicKey}
-						nextCinematicKey={props.nextCinematicKey}
-						editableProperty={props.editableProperty}
-						nextEditableProperty={props.nextEditableProperty}
-						editableTangentProperty={props.editableTangentProperty}
-						nextEditableTangentProperty={props.nextEditableTangentProperty}
-						cinematicEditor={props.cinematicEditor}
-					/>
-				</>
-			)}
-		</>
+		<g>
+			<path d={holds} fill="none" stroke={props.color} strokeOpacity={0.35} strokeWidth={1.5} strokeDasharray="4 4" className="pointer-events-none" />
+			<path d={d} fill="none" stroke={props.color} strokeWidth={2} strokeLinejoin="round" className="pointer-events-none" />
+			<path d={d + " " + holds} fill="none" stroke="transparent" strokeWidth={12} data-curve-target="curve" data-component={componentAttribute} style={{ cursor: "copy" }} />
+		</g>
 	);
 }

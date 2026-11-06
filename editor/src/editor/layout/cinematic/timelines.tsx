@@ -3,7 +3,7 @@ import { Component, MouseEvent, ReactNode } from "react";
 import { AiOutlinePlus } from "react-icons/ai";
 
 import { Tools } from "babylonjs";
-import { ICinematicTrack, isCinematicKeyCut } from "babylonjs-editor-tools";
+import { ICinematicTrack, getCinematicSequenceFramesCount, isCinematicKeyCut } from "babylonjs-editor-tools";
 
 import { isDomElementDescendantOf } from "../../../tools/dom";
 
@@ -45,7 +45,7 @@ export class CinematicEditorTimelines extends Component<ICinematicEditorTimeline
 
 	public render(): ReactNode {
 		const width = this.getMaxWidthForTimelines();
-		const cinematic = this.props.cinematicEditor.cinematic;
+		const tracks = this.props.cinematicEditor.state.sequence?.tracks ?? [];
 
 		return (
 			<div
@@ -63,7 +63,7 @@ export class CinematicEditorTimelines extends Component<ICinematicEditorTimeline
 					className="relative min-w-full h-10 mx-2 py-2"
 				/>
 
-				{cinematic.tracks
+				{tracks
 					.filter((track) => isTrackInFilter(track, this.props.tracksFilter))
 					.map((track, index) => {
 						return this._getTrack(track, width, index === 0);
@@ -236,73 +236,56 @@ export class CinematicEditorTimelines extends Component<ICinematicEditorTimeline
 		return this.getMaxFrameForTimelines() * this.props.scale;
 	}
 
+	/**
+	 * Returns the last frame of the edited sequence: the end of its last key, event, sound or animation group.
+	 */
 	public getMaxFrameForTimelines(): number {
-		let frame = 0;
-		this.props.cinematicEditor.cinematic.tracks.forEach((track) => {
-			track.animationGroups?.forEach((animationGroup) => {
-				frame = Math.max(frame, animationGroup.frame + (animationGroup.endFrame - animationGroup.startFrame));
-			});
-
-			track.sounds?.forEach((sound) => {
-				frame = Math.max(frame, sound.frame + (sound.endFrame - sound.startFrame));
-			});
-
-			track.keyFrameAnimations?.forEach((key) => {
-				if (isCinematicKeyCut(key)) {
-					frame = Math.max(frame, key.key1.frame);
-				} else {
-					frame = Math.max(frame, key.frame);
-				}
-			});
-
-			track.keyFrameEvents?.forEach((event) => {
-				frame = Math.max(frame, event.frame);
-			});
-		});
-
-		return frame;
+		const sequence = this.props.cinematicEditor.state.sequence;
+		return sequence ? getCinematicSequenceFramesCount(sequence) : 0;
 	}
 
 	/**
-	 * Sorts all the keys in the track based on their frame value.
+	 * Sorts all the keys in the tracks of all sequences based on their frame value.
 	 */
 	public sortAnimationsKeys(): void {
-		this.props.cinematicEditor.cinematic.tracks.forEach((track) => {
-			track.keyFrameAnimations?.sort((a, b) => {
-				const frameA = isCinematicKeyCut(a) ? a.key1.frame : a.frame;
-				const frameB = isCinematicKeyCut(b) ? b.key1.frame : b.frame;
+		this.props.cinematicEditor.cinematic.sequences
+			.flatMap((sequence) => sequence.tracks)
+			.forEach((track) => {
+				track.keyFrameAnimations?.sort((a, b) => {
+					const frameA = isCinematicKeyCut(a) ? a.key1.frame : a.frame;
+					const frameB = isCinematicKeyCut(b) ? b.key1.frame : b.frame;
 
-				return frameA - frameB;
+					return frameA - frameB;
+				});
+
+				track.animationGroupWeight?.sort((a, b) => {
+					const frameA = isCinematicKeyCut(a) ? a.key1.frame : a.frame;
+					const frameB = isCinematicKeyCut(b) ? b.key1.frame : b.frame;
+
+					return frameA - frameB;
+				});
+
+				track.soundVolume?.sort((a, b) => {
+					const frameA = isCinematicKeyCut(a) ? a.key1.frame : a.frame;
+					const frameB = isCinematicKeyCut(b) ? b.key1.frame : b.frame;
+
+					return frameA - frameB;
+				});
+
+				track.keyFrameEvents?.sort((a, b) => {
+					return a.frame - b.frame;
+				});
+
+				track.animationGroups?.sort((a, b) => {
+					return a.frame - b.frame;
+				});
+
+				track.sounds?.sort((a, b) => {
+					return a.frame - b.frame;
+				});
+
+				track._id = Tools.RandomId(); // Update the ID to force a re-render
 			});
-
-			track.animationGroupWeight?.sort((a, b) => {
-				const frameA = isCinematicKeyCut(a) ? a.key1.frame : a.frame;
-				const frameB = isCinematicKeyCut(b) ? b.key1.frame : b.frame;
-
-				return frameA - frameB;
-			});
-
-			track.soundVolume?.sort((a, b) => {
-				const frameA = isCinematicKeyCut(a) ? a.key1.frame : a.frame;
-				const frameB = isCinematicKeyCut(b) ? b.key1.frame : b.frame;
-
-				return frameA - frameB;
-			});
-
-			track.keyFrameEvents?.sort((a, b) => {
-				return a.frame - b.frame;
-			});
-
-			track.animationGroups?.sort((a, b) => {
-				return a.frame - b.frame;
-			});
-
-			track.sounds?.sort((a, b) => {
-				return a.frame - b.frame;
-			});
-
-			track._id = Tools.RandomId(); // Update the ID to force a re-render
-		});
 	}
 
 	private _handlePointerDown(ev: MouseEvent<HTMLDivElement>): void {
