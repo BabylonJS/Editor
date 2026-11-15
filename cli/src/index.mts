@@ -37,12 +37,12 @@ program
 	.option("--merge-decals", "Try to optimize draw calls count by merging decals which share the same material into a single mesh and geometry.", false)
 	.option(
 		"--gzip",
-		'Compress the scenes, geometries, JSON files and WAV sounds using gzip before uploading them ("Content-Encoding: gzip"): browsers decompress them while downloading. Fast to compress. Files already compressed (KTX2, PNG, JPEG, MP3...) are uploaded as is.'
+		'Compress the scenes, geometries, JSON files, WAV sounds and KTX textures (PVRTexTool) using gzip before uploading them ("Content-Encoding: gzip"): browsers decompress them while downloading. Fast to compress. Files already compressed (KTX2, PNG, JPEG, MP3...) are uploaded as is.'
 	)
 	.addOption(
 		new Option(
 			"--brotli",
-			'Compress the scenes, geometries, JSON files and WAV sounds using brotli before uploading them ("Content-Encoding: br"): browsers decompress them while downloading. Smaller than with gzip but slower to compress. Files already compressed (KTX2, PNG, JPEG, MP3...) are uploaded as is.'
+			'Compress the scenes, geometries, JSON files, WAV sounds and KTX textures (PVRTexTool) using brotli before uploading them ("Content-Encoding: br"): browsers decompress them while downloading. Smaller than with gzip but slower to compress. Files already compressed (KTX2, PNG, JPEG, MP3...) are uploaded as is.'
 		).conflicts("gzip")
 	)
 	.action((projectDir: string, { gzip, brotli, ...options }: { mergeGeometries: boolean; mergeDecals: boolean; gzip?: boolean; brotli?: boolean }) => {
