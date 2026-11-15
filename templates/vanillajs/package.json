@@ -12,11 +12,11 @@
 		"serve": "vite preview"
 	},
 	"dependencies": {
-		"@babylonjs/addons": "9.12.1",
-		"@babylonjs/core": "9.12.1",
-		"@babylonjs/gui": "9.12.1",
-		"@babylonjs/havok": "1.3.12",
-		"@babylonjs/materials": "9.12.1",
+		"@babylonjs/addons": "9.27.1",
+		"@babylonjs/core": "9.27.1",
+		"@babylonjs/gui": "9.27.1",
+		"@babylonjs/havok": "1.3.14",
+		"@babylonjs/materials": "9.27.1",
 		"babylonjs-editor-tools": "latest"
 	},
 	"devDependencies": {
@@ -24,7 +24,7 @@
 		"babylonjs-editor-cli": "latest",
 		"tailwindcss": "4.1.18",
 		"typescript": "7.0.2",
-		"vite": "7.3.5",
+		"vite": "7.3.7",
 		"@types/node": "^22"
 	}
 }

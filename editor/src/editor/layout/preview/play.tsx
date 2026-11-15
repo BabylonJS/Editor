@@ -18,6 +18,7 @@ import {
 	setSSRRenderingPipelineRef,
 	setTAARenderingPipelineRef,
 	setVLSPostProcessRef,
+	setVolumetricLightingRenderingPipelineRef,
 } from "babylonjs-editor-tools";
 
 import { Badge } from "../../../ui/shadcn/ui/badge";
@@ -28,7 +29,7 @@ import { ensureTemporaryDirectoryExists } from "../../../tools/project";
 import { compileScript } from "../../../tools/compile";
 import { setUndoRedoEnabled } from "../../../tools/undoredo";
 import { wait, waitNextAnimationFrame } from "../../../tools/tools";
-import { forceCompileAllSceneMaterials } from "../../../tools/scene/materials";
+import { forceCompileAllSceneMaterials } from "../../../tools/material/material";
 import { applyOverrides, restorePlayOverrides } from "../../../tools/scene/play/override";
 
 import { exportProject } from "../../../project/export/export";
@@ -382,7 +383,10 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 		this._requireCompiledScripts();
 
 		const scene = new Scene(this.props.editor.layout.preview.engine);
-		scene.enablePhysics(new Vector3(0, -981, 0), new HavokPlugin());
+		const physicsPlugin = new HavokPlugin();
+		// Scenes are in centimeters: Havok limits the linear velocity to 200 units/s by default, which is only 2 m/s. Raise it to 200 m/s.
+		physicsPlugin.setVelocityLimits(200 * 100, 100);
+		scene.enablePhysics(new Vector3(0, -981, 0), physicsPlugin);
 
 		this.scene = scene;
 		this.props.editor.layout.graph.setState({
@@ -409,6 +413,7 @@ export class EditorPreviewPlayComponent extends Component<IEditorPreviewPlayComp
 			setMotionBlurPostProcessRef(this._compiledScriptExports.getMotionBlurPostProcess());
 			setSSAO2RenderingPipelineRef(this._compiledScriptExports.getSSAO2RenderingPipeline());
 			setDefaultRenderingPipelineRef(this._compiledScriptExports.getDefaultRenderingPipeline());
+			setVolumetricLightingRenderingPipelineRef(this._compiledScriptExports.getVolumetricLightingRenderingPipeline());
 		} catch (e) {
 			console.error(e);
 			toast.error("Failed to load scene. Check the console for more information.");

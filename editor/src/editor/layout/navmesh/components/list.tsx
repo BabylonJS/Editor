@@ -43,8 +43,6 @@ export function NavMeshEditorListComponent<T extends INavMeshStaticMeshConfigura
 	function handleDrop(event: DragEvent<HTMLDivElement>) {
 		event.preventDefault();
 
-		let needsUpdate = false;
-
 		const result = props.items.slice(0);
 		const graphNode = JSON.parse(event.dataTransfer.getData("graph/node")) as string[];
 
@@ -56,14 +54,11 @@ export function NavMeshEditorListComponent<T extends INavMeshStaticMeshConfigura
 
 			const existingMesh = props.items.find((m) => m.id === node.id);
 			if (!existingMesh) {
-				needsUpdate = true;
 				result.push(props.onCreateItem(node));
 			}
 		});
 
-		if (needsUpdate) {
-			props.onItemsChange(result, true);
-		}
+		props.onItemsChange(result, false);
 	}
 
 	function handleMeshClick(ev: MouseEvent<HTMLDivElement>, mesh: AbstractMesh, isContextMenu: boolean) {
@@ -118,7 +113,7 @@ export function NavMeshEditorListComponent<T extends INavMeshStaticMeshConfigura
 			}
 		});
 
-		props.onItemsChange(staticMeshes, true);
+		props.onItemsChange(staticMeshes, false);
 	}
 
 	function handleSetMeshEnabled(mesh: AbstractMesh) {

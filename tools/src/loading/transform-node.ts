@@ -1,6 +1,7 @@
 import { Scene } from "@babylonjs/core/scene";
 import { Material } from "@babylonjs/core/Materials/material";
 import { AssetContainer } from "@babylonjs/core/assetContainer";
+import { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 
 import { isAbstractMesh, isTransformNode } from "../tools/guards";
 
@@ -15,7 +16,9 @@ export function configureTransformNodes(scene: Scene | AssetContainer) {
 
 			descendants.forEach((node) => {
 				if (isAbstractMesh(node) || (isTransformNode(node) && !node.isWorldMatrixFrozen)) {
-					node.freezeWorldMatrix();
+					if (node.billboardMode === AbstractMesh.BILLBOARDMODE_NONE) {
+						node.freezeWorldMatrix();
+					}
 				}
 
 				if (isAbstractMesh(node)) {

@@ -50,6 +50,7 @@ export function registerNodeTools(server: McpServer): void {
 			title: "Set node properties",
 			description:
 				'Deep-set arbitrary node properties by dotted path, e.g. `"material.albedoColor"`, `"isVisible"`, `"receiveShadows"`. ' +
+				'`"isEnabled"` (true/false) enables or disables the node; other methods can\'t be set. ' +
 				"Values may be numbers, strings, booleans, or `[r,g,b]`/`[x,y,z]` arrays which are coerced to Color3/Vector3 based on the existing property type. " +
 				"This is the catch-all for DEEP customization not covered by a dedicated tool — including built-in collisions: " +
 				'`"checkCollisions"` (true to make a mesh block moveWithCollisions), `"ellipsoid"`/`"ellipsoidOffset"` ([x,y,z], the collider used for character-style movement), `"isPickable"`, `"applyGravity"`. ' +

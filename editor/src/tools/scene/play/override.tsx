@@ -66,18 +66,6 @@ const savedHtmlElementListeners: {
 const savedTimeoutIds: number[] = [];
 const savedIntervalIds: number[] = [];
 
-function normalizeUrl(url: string) {
-	if (url.startsWith("scene/")) {
-		url = url.substring("scene/".length);
-	}
-
-	if (url.startsWith("/scene/")) {
-		url = url.substring("/scene/".length);
-	}
-
-	return url;
-}
-
 /**
  * To play scene inline in the editor, we need to override some methods.
  * This function restores all the orignal methods for all object that have been overridden.
@@ -87,6 +75,8 @@ export function restorePlayOverrides(editor: Editor) {
 	console.info = savedConsoleMethods.info;
 	console.warn = savedConsoleMethods.warn;
 	console.error = savedConsoleMethods.error;
+
+	stopListeningUncaughtErrors();
 
 	window.fetch = savedWindowMethods.fetch;
 
@@ -159,7 +149,7 @@ export function applyOverrides(editor: Editor) {
 			const node = (
 				<div className="text-inherit">
 					<b className="font-bold text-[#2d72d2]">[{method.toUpperCase()}] </b>
-					{args.join(", ")}
+					{args.map((argument) => formatConsoleArgument(argument)).join(" ")}
 				</div>
 			);
 
@@ -181,6 +171,9 @@ export function applyOverrides(editor: Editor) {
 			savedConsoleMethods[method].apply(window, args);
 		};
 	});
+
+	stopListeningUncaughtErrors();
+	listenUncaughtErrors(editor);
 
 	const projectDir = dirname(editor.state.projectPath ?? "");
 	const publicDir = join(projectDir, "public");
@@ -385,4 +378,104 @@ export function applyOverrides(editor: Editor) {
 			}
 		}
 	};
+}
+
+function normalizeUrl(url: string) {
+	if (url.startsWith("scene/")) {
+		url = url.substring("scene/".length);
+	}
+
+	if (url.startsWith("/scene/")) {
+		url = url.substring("/scene/".length);
+	}
+
+	return url;
+}
+
+/**
+ * Waits for the given duration with the timers of the editor. While the game plays, "window.setTimeout" is the one of
+ * the game, whose timers are cleared when it stops: a wait started with it never ends if the game stops meanwhile.
+ * @param duration defines the duration to wait, in milliseconds.
+ */
+export function waitWithEditorTimers(duration: number): Promise<void> {
+	return new Promise((resolve) => savedWindowMethods.setTimeout.call(window, resolve, duration));
+}
+
+let uncaughtErrorListener: ((event: ErrorEvent) => void) | null = null;
+let unhandledRejectionListener: ((event: PromiseRejectionEvent) => void) | null = null;
+
+/**
+ * Returns the text logged in the console of the editor for the given argument of a "console" method of the game.
+ */
+function formatConsoleArgument(argument: any): string {
+	if (typeof argument === "string") {
+		return argument;
+	}
+
+	if (argument instanceof Error) {
+		return argument.stack ?? `${argument.name}: ${argument.message}`;
+	}
+
+	if (argument && typeof argument === "object") {
+		try {
+			const text = JSON.stringify(argument, (_, value) => (typeof value === "bigint" ? value.toString() : value));
+			if (text !== undefined) {
+				return text.length > 2000 ? `${text.substring(0, 2000)}…` : text;
+			}
+		} catch (e) {
+			// Circular objects, like the nodes of Babylon.js.
+		}
+
+		return argument.getClassName?.() ? `[${argument.getClassName()} "${argument.name ?? ""}"]` : Object.prototype.toString.call(argument);
+	}
+
+	return String(argument);
+}
+
+/**
+ * Logs the errors the game doesn't catch, like the ones thrown by the scripts in the render loop, in the console of the
+ * editor. An error raised again each frame is only logged once.
+ */
+function listenUncaughtErrors(editor: Editor): void {
+	let lastMessage = "";
+
+	const logError = (message: string) => {
+		if (message === lastMessage) {
+			return;
+		}
+
+		lastMessage = message;
+		editor.layout.console.error(
+			<div className="text-inherit">
+				<b className="font-bold text-[#2d72d2]">[UNCAUGHT ERROR] </b>
+				{message}
+			</div>
+		);
+	};
+
+	window.addEventListener(
+		"error",
+		(uncaughtErrorListener = (event) => {
+			logError(event.error ? formatConsoleArgument(event.error) : event.message);
+		})
+	);
+
+	window.addEventListener(
+		"unhandledrejection",
+		(unhandledRejectionListener = (event) => {
+			logError(`Unhandled promise rejection: ${formatConsoleArgument(event.reason)}`);
+		})
+	);
+}
+
+function stopListeningUncaughtErrors(): void {
+	if (uncaughtErrorListener) {
+		window.removeEventListener("error", uncaughtErrorListener);
+		uncaughtErrorListener = null;
+	}
+
+	if (unhandledRejectionListener) {
+		window.removeEventListener("unhandledrejection", unhandledRejectionListener);
+		unhandledRejectionListener = null;
+	}
 }

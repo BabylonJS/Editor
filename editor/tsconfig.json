@@ -1,6 +1,7 @@
 {
 	"compilerOptions": {
-		"target": "ESNext",
+		"target": "ES2022",
+		"lib": ["ESNext", "DOM", "DOM.Iterable"],
 		"module": "commonjs",
 		"sourceMap": true,
 		"declaration": true,
@@ -13,7 +14,7 @@
 		"allowSyntheticDefaultImports": true,
 		"resolveJsonModule": true,
 		"esModuleInterop": true,
-		"experimentalDecorators": true,
+		"experimentalDecorators": false,
 		"skipLibCheck": true,
 		"noImplicitAny": false
 	},

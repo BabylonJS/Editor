@@ -1,23 +1,27 @@
 ---
 name: babylonjs-editor-tools
 description: >-
-  Write and attach TypeScript scripts, load scenes, and use the editor decorators in projects created
-  with the Babylon.js Editor (the babylonjs-editor-tools runtime package). Use when working with files
-  like src/scripts/*.ts, src/scripts.ts, or App.ts that import from "babylonjs-editor-tools", or whenever
-  the task mentions editor scripts, IScript onStart/onUpdate, loadScene, AdvancedAssetContainer, or any of
-  the @nodeFromScene / @visibleAs* / @onPointerEvent / @sceneAsset / @visibleAsAsset decorators.
+  Write and attach TypeScript scripts, load scenes, and use the editor decorators and runtime helpers in projects
+  created with the Babylon.js Editor (the babylonjs-editor-tools runtime package). Use when working with files
+  like src/scripts/*.ts, src/scripts.ts, or App.ts that import from "babylonjs-editor-tools", or whenever the task
+  mentions editor scripts, IScript onStart/onUpdate, loadScene, AdvancedAssetContainer, the @nodeFromScene /
+  @visibleAs* / @onPointerEvent / @sceneAsset / @visibleAsAsset decorators, or runtime helpers such as
+  getScriptByClassForObject, applyScriptOnObject, cinematics, sprites, sounds, ragdolls, navmeshes, decals,
+  post-processes or the offline assets database.
 ---
 
 # babylonjs-editor-tools
 
 `babylonjs-editor-tools` is the runtime library bundled into every project exported or packaged by the
 Babylon.js Editor. It is what user game code (`src/scripts/*.ts`) and the app bootstrap (`App.ts` /
-`page.tsx` / `app.vue`) import. It provides three things:
+`page.tsx` / `app.vue`) import. It provides:
 
 1. **A scene loader** (`loadScene`) that reconstructs everything the editor saved and re-attaches scripts.
 2. **A script contract** (`IScript`: `onStart` / `onUpdate` / `onStop`).
 3. **Decorators** used inside scripts to retrieve scene objects, expose customizable inspector fields,
    link assets, and listen to input events.
+4. **Runtime helpers** to find or attach scripts, play cinematics and sprite animations, drive sounds,
+   post-processes, ragdolls, navmeshes and decals, and cache assets offline.
 
 Everything is imported from the package root:
 
@@ -31,11 +35,20 @@ import { loadScene, nodeFromScene, visibleAsNumber, onPointerEvent } from "babyl
   object in the editor (mesh, transform node, light, camera, sprite, or the scene itself).
 - The object the script is attached to is passed to the **constructor** (class) or as the **first argument**
   (functions). Conventionally the parameter is named after the type, e.g. `public mesh: Mesh`.
-- Decorators are processed by the loader **after** construction, when the scene is loaded. **Decorated
-  properties are `null`/undefined inside the `constructor` — only use them from `onStart` onward.**
+- Decorators are applied by the loader **right after construction**, before `onStart`. **Inside the
+  constructor, decorated properties still hold their initializer values** (the values set in the editor and the
+  linked objects/assets are not assigned yet) — only use them from `onStart` onward.
 - Decorators only work on **class-based** scripts, not function-based scripts.
 - The editor works in **centimeters** and auto-scales glTF/GLB imports ×100 — keep that in mind for any
-  positions, speeds, or distances you compute.
+  positions, speeds, or distances you compute (gravity is `-981`).
+
+## When the editor's MCP tools are available
+
+In the editor's AI assistant (or any agent connected to the `babylonjs-editor` MCP server), **author the
+scene with the MCP tools** — meshes, materials, instances, lights, cameras, particles, physics, decals — so the
+user can edit the result by hand. Scripts written with this package are for runtime **behavior** only (input,
+game rules, AI, reacting to events, spawning copies of authored assets). Write them under `src/`, attach them
+with the MCP script tools, and set their `@visibleAs*` values from the editor rather than hard-coding them.
 
 ## Quick reference
 
@@ -43,9 +56,9 @@ import { loadScene, nodeFromScene, visibleAsNumber, onPointerEvent } from "babyl
 
 | Method | Called |
 | --- | --- |
-| `onStart(object?)` | Once, when the script loads and the scene is ready. |
-| `onUpdate(object?)` | Every rendered frame. Use `scene.getAnimationRatio()` for frame-rate independence. |
-| `onStop(object?)` | When the script is stopped or the object is disposed. |
+| `onStart(object)` | Once, before the first frame after the script loads and the scene is ready. |
+| `onUpdate(object)` | Every rendered frame. Use `scene.getAnimationRatio()` for frame-rate independence. |
+| `onStop(object)` | When the script is stopped or the object is disposed. |
 
 ### Retrieving scene objects — see [references/scene-decorators.md](references/scene-decorators.md)
 
@@ -54,9 +67,10 @@ import { loadScene, nodeFromScene, visibleAsNumber, onPointerEvent } from "babyl
 | `@nodeFromScene(name)` | First node (Mesh / TransformNode / Light / Camera) with that name, anywhere in the scene. |
 | `@nodeFromDescendants(name, directOnly?)` | Same, but only among descendants of the attached object. |
 | `@animationGroupFromScene(name)` | An `AnimationGroup` by name. |
-| `@particleSystemFromScene(name, directOnly?)` | A particle system by name. |
+| `@particleSystemFromScene(name, directOnly?)` | A particle system by name (`directOnly`: only the ones emitted by the attached object). |
 | `@soundFromScene(name)` | A `SoundNode` by name. |
-| `@spriteFromSpriteManager(name)` / `@animationFromSprite(name)` | A sprite / sprite animation (scripts on a `SpriteManagerNode`). |
+| `@spriteFromSpriteManager(name)` | A sprite of the manager (scripts on a `SpriteManagerNode`). |
+| `@animationFromSprite(name)` | An `ISpriteAnimation` of the sprite (scripts on a `Sprite`). |
 | `@componentFromScene(OtherScriptClass)` | The single instance of another script class in the scene. |
 | `@sceneAsset(file)` | A `.scene` loaded as an `AdvancedAssetContainer` (instantiate on demand). |
 
@@ -64,7 +78,7 @@ import { loadScene, nodeFromScene, visibleAsNumber, onPointerEvent } from "babyl
 
 `@visibleAsBoolean`, `@visibleAsNumber`, `@visibleAsString`, `@visibleAsVector2`, `@visibleAsVector3`,
 `@visibleAsColor3`, `@visibleAsColor4`, `@visibleAsEntity`, `@visibleAsTexture`, `@visibleAsKeyMap`.
-Each makes a property editable per-object in the editor inspector.
+Each makes a property editable per-object in the editor inspector; `{ group }` sorts fields into sections.
 
 ### Linking assets — see [references/asset-decorators.md](references/asset-decorators.md)
 
@@ -83,8 +97,20 @@ preloads script assets, configures lights/shadows/LODs/physics/post-processing, 
 
 ### Instantiating sub-scenes — see [references/scene-containers.md](references/scene-containers.md)
 
-`AdvancedAssetContainer` (from `@sceneAsset`) — `.removeDefault()`, `.instantiate(options?)`,
-`.getRootNodeByName()`, `.getScriptByClassByObjectName()`.
+`AdvancedAssetContainer` (from `@sceneAsset` or `@visibleAsAsset("scene")`) — `.removeDefault()`,
+`.instantiate(options?)`, `.getRootNodeByName()`, `.getScriptByClassByObjectName()`.
+
+### Runtime helpers — see [references/runtime-helpers.md](references/runtime-helpers.md)
+
+| Need | Helper |
+| --- | --- |
+| Get the script instance on an object | `getScriptByClassForObject(object, Class)` / `getAllScriptsByClassForObject` |
+| Attach a script at runtime | `applyScriptOnObject(object, Class)` |
+| Play a cinematic | `parseCinematic` + `generateCinematicAnimationGroup` → `Cinematic.onEvent(...)` |
+| Play a sprite animation by name | `playSpriteAnimationFromName(sprite, name, onEnd?)` |
+| Tune a post-process | `getDefaultRenderingPipeline()`, `getSSAO2RenderingPipeline()`, … |
+| Ragdolls / navmeshes / decals | `applyRagdollJointLimits`, `RecastNavigationHelper`, `setStaticDecalsEnabled` |
+| Load assets offline / faster | `setupOfflineProvider`, `preloadAssetsToDatabase`, `forceCompileAllSceneMaterials` |
 
 ## Minimal class-based script
 
@@ -97,7 +123,7 @@ export default class RotateScript {
     private _speed: number = 1;
 
     public constructor(public mesh: Mesh) {
-        // ⚠️ decorated properties are NOT available here yet.
+        // ⚠️ _speed is still 1 here: the value set in the editor is applied after the constructor.
     }
 
     public onStart(): void {
@@ -116,6 +142,7 @@ export default class RotateScript {
 - Type decorated reference properties as nullable (`Mesh | null = null`) and guard before use, since they
   resolve only after construction.
 - Never read decorated properties in the `constructor`.
+- Never edit the generated `src/scripts.ts`: the editor rewrites it.
 - Match the repo's Prettier style: **tabs**, double quotes, semicolons, `printWidth` 180.
 - Import Babylon.js symbols from deep paths (`@babylonjs/core/Meshes/mesh`) to keep tree-shaking working,
   exactly like the templates and documentation examples do.

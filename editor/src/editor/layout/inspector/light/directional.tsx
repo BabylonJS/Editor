@@ -20,6 +20,7 @@ import { CustomMetadataInspector } from "../metadata/custom-metadata";
 
 import { EditorLightPBRInspector } from "./components/pbr";
 import { EditorLightShadowsInspector } from "./components/shadows";
+import { EditorLightVolumetricInspector } from "./components/volumetric";
 
 export class EditorDirectionalLightInspector extends Component<IEditorInspectorImplementationProps<DirectionalLight>> {
 	/**
@@ -85,6 +86,8 @@ export class EditorDirectionalLightInspector extends Component<IEditorInspectorI
 				<ScriptInspectorComponent editor={this.props.editor} object={this.props.object} />
 
 				<EditorLightShadowsInspector editor={this.props.editor} light={this.props.object} onShadowGeneratorChanged={() => this.forceUpdate()} />
+
+				<EditorLightVolumetricInspector editor={this.props.editor} light={this.props.object} />
 
 				<CustomMetadataInspector object={this.props.object} />
 			</>

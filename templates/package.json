@@ -3,9 +3,9 @@
 	"version": "0.1.0",
 	"private": true,
 	"scripts": {
-		"postinstall": "rimraf --glob ./**/node_modules/babylonjs-editor-tools ./**/node_modules/babylonjs-editor-cli",
-		"clean": "rimraf --glob nextjs/.next nuxtjs/.nuxt nuxtjs/.output ./**/dist ./**/public/scene electron/electron-packages",
-		"build": "yarn workspace babylonjs-editor-nextjs-template build && yarn workspace babylonjs-editor-nuxtjs-template build && yarn workspace babylonjs-editor-solidjs-template build && yarn workspace babylonjs-editor-vanillajs-template build && yarn workspace babylonjs-editor-electron-template build",
-		"build-concurrently": "concurrently \"yarn workspace babylonjs-editor-nextjs-template build\" \"yarn workspace babylonjs-editor-nuxtjs-template build\" \"yarn workspace babylonjs-editor-solidjs-template build\" \"yarn workspace babylonjs-editor-vanillajs-template build\" \"yarn workspace babylonjs-editor-electron-template build\" -c bgMagenta.bold,bgGreen.bold,bgCyan.bold,bgYellow.bold,bgBlue.bold --names nextjs,nuxtjs,solidjs,vanillajs,electron"
+		"postinstall": "rimraf --glob ./**/node_modules/babylonjs-editor-tools ./**/node_modules/babylonjs-editor-cli ./**/node_modules/babylonjs-editor-tools-lite",
+		"clean": "rimraf --glob nextjs/.next nextjs-lite/.next nuxtjs/.nuxt nuxtjs/.output ./**/dist ./**/public/scene electron/electron-packages",
+		"build": "yarn workspace babylonjs-editor-nextjs-template build && yarn workspace babylonjs-editor-nuxtjs-template build && yarn workspace babylonjs-editor-solidjs-template build && yarn workspace babylonjs-editor-vanillajs-template build && yarn workspace babylonjs-editor-electron-template build && yarn workspace babylonjs-editor-nextjs-lite-template build",
+		"build-concurrently": "concurrently \"yarn workspace babylonjs-editor-nextjs-template build\" \"yarn workspace babylonjs-editor-nuxtjs-template build\" \"yarn workspace babylonjs-editor-solidjs-template build\" \"yarn workspace babylonjs-editor-vanillajs-template build\" \"yarn workspace babylonjs-editor-electron-template build\" \"yarn workspace babylonjs-editor-nextjs-lite-template build\" -c bgMagenta.bold,bgGreen.bold,bgCyan.bold,bgYellow.bold,bgBlue.bold,bgRed.bold --names nextjs,nuxtjs,solidjs,vanillajs,electron,nextjs-lite"
 	}
 }

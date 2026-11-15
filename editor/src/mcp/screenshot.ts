@@ -7,6 +7,7 @@ import { startProjectDevProcess } from "../project/run";
 
 import { IMCPActionOptions } from "./action";
 import { resolveNode } from "./tools/resolve";
+import { getScreenshotScene } from "./play/play";
 
 /**
  * Strips the data-url prefix from a base64 data URL.
@@ -17,12 +18,33 @@ function stripDataUrlPrefix(dataUrl: string): string {
 }
 
 /**
- * Takes a screenshot of the preview for visual verification.
+ * Returns the image shown in the canvas of the preview, where the engine copies each frame of the game while it plays:
+ * the canvas the game renders to doesn't keep its frames.
  */
-export async function getScreenshot(scene: Scene, data: any): Promise<any> {
+function getPreviewCanvasScreenshot(canvas: HTMLCanvasElement, size?: { width: number; height: number }): string {
+	if (!size) {
+		return canvas.toDataURL("image/png");
+	}
+
+	const resizedCanvas = document.createElement("canvas");
+	resizedCanvas.width = size.width;
+	resizedCanvas.height = size.height;
+	resizedCanvas.getContext("2d")?.drawImage(canvas, 0, 0, size.width, size.height);
+
+	return resizedCanvas.toDataURL("image/png");
+}
+
+/**
+ * Takes a screenshot of the preview for visual verification: the game when it plays in the preview (the scene of the
+ * editor is not rendered then), the scene of the editor otherwise.
+ */
+export async function getScreenshot(scene: Scene, data: any, options: IMCPActionOptions): Promise<any> {
 	const size = data.width && data.height ? { width: data.width, height: data.height } : undefined;
 
-	const base64 = await getBase64SceneScreenshot(scene, size);
+	const screenshotScene = getScreenshotScene(scene, options);
+	const previewCanvas = options.editor.layout.preview.canvas;
+
+	const base64 = screenshotScene !== scene && previewCanvas ? getPreviewCanvasScreenshot(previewCanvas, size) : await getBase64SceneScreenshot(scene, size);
 	if (!base64) {
 		throw new Error("Failed to take a screenshot of the scene.");
 	}

@@ -1,4 +1,12 @@
-const editorUrl = "http://localhost:3712";
+/**
+ * The URL of the editor. The AI assistant of the editor starts its own server on a random port and gives its URL here.
+ */
+const editorUrl = process.env.BABYLONJS_EDITOR_MCP_URL ?? "http://localhost:3712";
+
+/**
+ * The token the editor expects in every request, when it was started with one.
+ */
+const editorToken = process.env.BABYLONJS_EDITOR_MCP_TOKEN;
 
 export interface IGetFromEditorData {
 	endpoint: string;
@@ -31,6 +39,7 @@ export async function notifyAndGetResultFromEditor(endpoint: string, data?: any)
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
+				...(editorToken ? { "X-BabylonJS-Editor-Token": editorToken } : {}),
 			},
 			body: data
 				? JSON.stringify({

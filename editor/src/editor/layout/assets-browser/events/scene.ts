@@ -15,20 +15,34 @@ export function listenSceneAssetsEvents(editor: Editor) {
 			return;
 		}
 
-		const scene = editor.layout.preview.scene;
-
-		scene.transformNodes.forEach(async (transformNode) => {
-			if (!isSceneLinkNode(transformNode)) {
-				return;
-			}
-
-			const relativePath = data.replace(join(dirname(projectConfiguration.path!), "/"), "");
-			if (transformNode.relativePath === relativePath) {
-				await transformNode.reload();
-			}
-
-			checkProjectCachedCompressedTextures(editor);
-			editor.layout.preview.setRenderScene(true);
-		});
+		reloadSceneLinks(editor, data);
 	});
+}
+
+/**
+ * Reloads every link of the current scene to the given scene.
+ * @param editor defines the reference to the editor.
+ * @param absolutePath defines the absolute path of the linked scene (.scene).
+ * @returns the number of scene links reloaded.
+ */
+export async function reloadSceneLinks(editor: Editor, absolutePath: string): Promise<number> {
+	if (!projectConfiguration.path) {
+		return 0;
+	}
+
+	const relativePath = absolutePath.replace(join(dirname(projectConfiguration.path), "/"), "");
+	const sceneLinks = editor.layout.preview.scene.transformNodes.filter((transformNode) => isSceneLinkNode(transformNode) && transformNode.relativePath === relativePath);
+
+	await Promise.all(
+		sceneLinks.map(async (sceneLink) => {
+			if (isSceneLinkNode(sceneLink)) {
+				await sceneLink.reload();
+			}
+		})
+	);
+
+	checkProjectCachedCompressedTextures(editor);
+	editor.layout.preview.setRenderScene(true);
+
+	return sceneLinks.length;
 }

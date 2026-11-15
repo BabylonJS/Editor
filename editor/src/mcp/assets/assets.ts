@@ -4,6 +4,7 @@ import { pathExists, readFile, readdir } from "fs-extra";
 import { Scene } from "babylonjs";
 
 import { normalizedGlob } from "../../tools/fs";
+import { getProjectRelativePath, sourceAssetMetadataKey } from "../../tools/assets/reload";
 import { loadImportedSceneFile } from "../../editor/layout/preview/import/import";
 
 import { projectConfiguration } from "../../project/configuration";
@@ -158,6 +159,15 @@ export async function instantiateMeshAsset(scene: Scene, data: any, options: IMC
 	}
 
 	const root = result.meshes.find((m) => m.parent === null) ?? result.meshes[0];
+
+	// Links the imported hierarchy to its asset: it is imported again, in place, when the asset changes on disk.
+	const importedRoots = [...result.meshes, ...result.transformNodes, ...result.lights].filter((node) => !node.parent);
+	if (root && importedRoots.length === 1 && importedRoots[0] === root) {
+		root.metadata = {
+			...(root.metadata ?? {}),
+			[sourceAssetMetadataKey]: getProjectRelativePath(absolutePath),
+		};
+	}
 
 	let parent: any = null;
 	if (data.parentId || data.parentName) {

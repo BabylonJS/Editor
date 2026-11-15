@@ -35,9 +35,9 @@ export function Experiment(props: IExperimentProps) {
 	return (
 		<div className="flex flex-col gap-20 justify-center items-center w-full px-5 lg:pt-20 lg:pb-10">
 			<Fade damping={0.1} cascade triggerOnce direction={props.direction}>
-				<div className="text-5xl md:text-7xl lg:text-8xl xl:text-9xl font-semibold font-sans drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)] tracking-tighter text-center px-5">
+				<h2 className="text-5xl md:text-7xl lg:text-8xl xl:text-9xl font-semibold font-sans drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)] tracking-tighter text-center px-5">
 					{props.title}
-				</div>
+				</h2>
 			</Fade>
 
 			<Fade damping={0.1} cascade triggerOnce direction={props.direction} delay={150}>

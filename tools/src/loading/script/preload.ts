@@ -12,7 +12,7 @@ import { preloadCommonScriptAsset } from "./preload/common";
  * Defines the cache of all preloaded assets for scripts.
  * Used to populate decorated properties in scripts using @visibleAsAsset.
  */
-export const scriptAssetsCache = new Map<string, any>();
+export const scriptAssetsCache = new Map<Scene, Map<string, any>>();
 
 /**
  * Defines the map of all parsers available to parse script assets.
@@ -46,6 +46,16 @@ export function registerScriptAssetParser(extension: string, parser: (parameters
 export async function _preloadScriptsAssets(rootUrl: string, scene: Scene, scriptsMap: ScriptMap) {
 	const nodes = [scene, ...scene.transformNodes, ...scene.meshes, ...scene.lights, ...scene.cameras];
 
+	let sceneAssetsCache = scriptAssetsCache.get(scene);
+	if (!sceneAssetsCache) {
+		sceneAssetsCache = new Map<string, any>();
+		scriptAssetsCache.set(scene, sceneAssetsCache);
+	}
+
+	scene.onDisposeObservable.addOnce(() => {
+		scriptAssetsCache.delete(scene);
+	});
+
 	const scriptNodes = nodes
 		.filter((node) => node.metadata?.scripts?.length)
 		.map((node) => node.metadata.scripts)
@@ -54,8 +64,8 @@ export async function _preloadScriptsAssets(rootUrl: string, scene: Scene, scrip
 	scriptNodes.forEach((script) => {
 		const ctor = scriptsMap[script.key]?.default as ISceneDecoratorData;
 		ctor?._SceneAssets?.forEach((asset) => {
-			if (!scriptAssetsCache.get(asset.sceneName)) {
-				scriptAssetsCache.set(asset.sceneName, null);
+			if (!sceneAssetsCache.get(asset.sceneName)) {
+				sceneAssetsCache.set(asset.sceneName, null);
 			}
 		});
 
@@ -66,15 +76,15 @@ export async function _preloadScriptsAssets(rootUrl: string, scene: Scene, scrip
 				}
 
 				const obj = script.values[key];
-				if (obj.type === "asset" && obj.value && !scriptAssetsCache.get(obj.value)) {
-					scriptAssetsCache.set(obj.value, null);
+				if (obj.type === "asset" && obj.value && !sceneAssetsCache.get(obj.value)) {
+					sceneAssetsCache.set(obj.value, null);
 				}
 			}
 		}
 	});
 
 	let loadedAssetsCount = 0;
-	for (const value of scriptAssetsCache.values()) {
+	for (const value of sceneAssetsCache.values()) {
 		if (value === null) {
 			++loadedAssetsCount;
 		}
@@ -86,8 +96,8 @@ export async function _preloadScriptsAssets(rootUrl: string, scene: Scene, scrip
 
 	const promises: Promise<void>[] = [];
 
-	scriptAssetsCache.forEach((_, key) => {
-		if (scriptAssetsCache.get(key)) {
+	sceneAssetsCache.forEach((_, key) => {
+		if (sceneAssetsCache.get(key)) {
 			return;
 		}
 
@@ -100,19 +110,19 @@ export async function _preloadScriptsAssets(rootUrl: string, scene: Scene, scrip
 							const container = await preloadSceneScriptAsset(key, rootUrl, scene);
 							scene.onDisposeObservable.addOnce(() => {
 								container.dispose();
-								scriptAssetsCache.delete(key);
+								sceneAssetsCache.delete(key);
 							});
 
-							scriptAssetsCache.set(key, new AdvancedAssetContainer(container, rootUrl, scriptsMap));
+							sceneAssetsCache.set(key, new AdvancedAssetContainer(container, rootUrl, scriptsMap));
 							break;
 
 						default:
 							if (scriptAssetsParsers.has(extension!)) {
 								const parser = scriptAssetsParsers.get(extension!)!;
-								scriptAssetsCache.set(key, await parser({ key, rootUrl, scene }));
+								sceneAssetsCache.set(key, await parser({ key, rootUrl, scene }));
 								break;
 							} else {
-								scriptAssetsCache.set(key, await preloadCommonScriptAsset(key, rootUrl));
+								sceneAssetsCache.set(key, await preloadCommonScriptAsset(key, rootUrl));
 							}
 							break;
 					}

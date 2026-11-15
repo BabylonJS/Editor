@@ -19,16 +19,17 @@ import { applyRenderingConfigurations } from "./rendering";
 import { _applyScriptsForObject } from "./script/apply";
 import { _preloadScriptsAssets } from "./script/preload";
 
+import { registerMeshParser } from "./mesh";
 import { registerAudioParser } from "./sound";
 import { registerTextureParser } from "./texture";
+import { registerSpriteMapParser } from "./sprite-map";
 import { registerShadowGeneratorParser } from "./shadows";
+import { configureTransformNodes } from "./transform-node";
 import { registerSpriteManagerParser } from "./sprite-manager";
 import { registerMorphTargetManagerParser } from "./morph-target-manager";
 import { registerNodeParticleSystemSetParser } from "./node-particle-system-set";
 
 import { configureLights } from "./light";
-import { registerSpriteMapParser } from "./sprite-map";
-import { configureTransformNodes } from "./transform-node";
 
 /**
  * Defines the possible output type of a script.
@@ -134,13 +135,14 @@ async function waitForWaitingItems(scene: Scene, onProgress: (value: number) => 
 	}
 }
 
-export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scene, scriptsMap: ScriptMap, options?: SceneLoaderOptions) {
+export async function loadScene(rootUrl: string, sceneFilename: string, scene: Scene, scriptsMap: ScriptMap, options?: SceneLoaderOptions) {
 	scene.loadingQuality = options?.quality ?? "high";
 
 	scene.loadingTexturesQuality = options?.texturesQuality ?? scene.loadingQuality;
 	scene.loadingShadowsQuality = options?.shadowsQuality ?? scene.loadingQuality;
 	scene.loadingLodsQuality = options?.lodsQuality ?? scene.loadingQuality;
 
+	registerMeshParser();
 	registerAudioParser();
 	registerTextureParser();
 	registerShadowGeneratorParser();
@@ -156,12 +158,17 @@ export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scen
 	const configuration = sceneConfigurationMap.get(scene) ?? {};
 	sceneConfigurationMap.set(scene, configuration);
 
+	scene.onDisposeObservable.addOnce(() => {
+		sceneConfigurationMap.delete(scene);
+	});
+
 	// Append to the given scene
 	await AppendSceneAsync(`${rootUrl}${sceneFilename}`, scene, {
 		pluginExtension: ".babylon",
 		onProgress: (event) => {
-			const progress = Math.min((event.loaded / event.total) * 0.5);
-			options?.onProgress?.(progress);
+			if (event.total) {
+				options?.onProgress?.(Math.min((event.loaded / event.total) * 0.5, 0.5));
+			}
 		},
 	});
 
@@ -203,7 +210,7 @@ export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scen
 	configureShadowMapRefreshRate(scene);
 
 	if (scene.metadata?.rendering) {
-		applyRenderingConfigurations(scene, scene.metadata.rendering);
+		applyRenderingConfigurations(scene, scene.metadata);
 
 		if (scene.activeCamera) {
 			applyRenderingConfigurationForCamera(scene.activeCamera, rootUrl, options?.postProcessConfiguration);
@@ -214,28 +221,46 @@ export async function loadScene(rootUrl: any, sceneFilename: string, scene: Scen
 		scene.getPhysicsEngine()?.setGravity(Vector3.FromArray(scene.metadata?.physicsGravity));
 	}
 
-	_applyScriptsForObject(scene, scene, scriptsMap, rootUrl);
+	_applyScriptsForObject(scene, scene, scriptsMap, {
+		rootUrl,
+	});
 
 	scene.transformNodes.forEach((transformNode) => {
-		_applyScriptsForObject(scene, transformNode, scriptsMap, rootUrl);
+		_applyScriptsForObject(scene, transformNode, scriptsMap, {
+			rootUrl,
+		});
 	});
 
 	scene.meshes.forEach((mesh) => {
 		configurePhysicsAggregate(mesh);
-		_applyScriptsForObject(scene, mesh, scriptsMap, rootUrl);
+		_applyScriptsForObject(scene, mesh, scriptsMap, {
+			rootUrl,
+		});
 	});
 
 	scene.lights.forEach((light) => {
-		_applyScriptsForObject(scene, light, scriptsMap, rootUrl);
+		_applyScriptsForObject(scene, light, scriptsMap, {
+			rootUrl,
+		});
+	});
+
+	clusteredLightContainer.lights.forEach((light) => {
+		_applyScriptsForObject(scene, light, scriptsMap, {
+			rootUrl,
+		});
 	});
 
 	scene.cameras.forEach((camera) => {
-		_applyScriptsForObject(scene, camera, scriptsMap, rootUrl);
+		_applyScriptsForObject(scene, camera, scriptsMap, {
+			rootUrl,
+		});
 	});
 
 	scene.spriteManagers?.forEach((spriteManager) => {
 		spriteManager.sprites.forEach((sprite) => {
-			_applyScriptsForObject(scene, sprite, scriptsMap, rootUrl);
+			_applyScriptsForObject(scene, sprite, scriptsMap, {
+				rootUrl,
+			});
 		});
 	});
 

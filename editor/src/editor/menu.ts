@@ -3,7 +3,7 @@ import { BrowserWindow, Menu, MenuItem, shell } from "electron";
 
 import { cameraCommandItems, lightCommandItems, meshCommandItems, nodeCommandItems, spriteCommandItems } from "./dialogs/command-palette/shared-commands";
 
-export function setupEditorMenu(options: { enableExperimentalFeatures: boolean; openedTabs?: string[] }): void {
+export function setupEditorMenu(options: { enableExperimentalFeatures: boolean; openedTabs?: string[]; assistantOpen?: boolean }): void {
 	Menu.setApplicationMenu(
 		Menu.buildFromTemplate([
 			{
@@ -254,6 +254,13 @@ export function setupEditorMenu(options: { enableExperimentalFeatures: boolean; 
 						type: "checkbox" as MenuItem["type"],
 						checked: options.openedTabs?.includes("marketplace"),
 						click: () => BrowserWindow.getFocusedWindow()?.webContents.send("editor:toggle-marketplace"),
+					},
+					{
+						label: "AI Assistant",
+						type: "checkbox" as MenuItem["type"],
+						checked: options.assistantOpen ?? false,
+						visible: options.enableExperimentalFeatures,
+						click: () => BrowserWindow.getFocusedWindow()?.webContents.send("editor:toggle-assistant"),
 					},
 				],
 			},

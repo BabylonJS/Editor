@@ -1,10 +1,10 @@
 import { platform } from "os";
 
 import { Component, ReactNode } from "react";
+import { ImperativePanelHandle, Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { Actions, ICloseType, IJsonModel, Layout, Model, TabNode, TabSetNode } from "flexlayout-react";
 
 import { Observable, Tools } from "babylonjs";
-import { ipcRenderer } from "electron";
 
 import { waitNextAnimationFrame } from "../tools/tools";
 
@@ -20,6 +20,9 @@ import { EditorAnimation } from "./layout/animation";
 import { EditorAssetsBrowser } from "./layout/assets-browser";
 import { EditorTerminal } from "./layout/terminal";
 import { EditorMarketplaceBrowser } from "./layout/marketplace";
+
+import { EditorAssistant } from "./layout/assistant";
+import { playAssistantSmokeEffectOnce } from "./layout/assistant/smoke";
 
 export interface IEditorLayoutProps {
 	/**
@@ -71,6 +74,10 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
 	 * The marketplace browser of the editor.
 	 */
 	public marketplace: EditorMarketplaceBrowser | null = null;
+	/**
+	 * The AI assistant docked on the right of the editor.
+	 */
+	public assistant: EditorAssistant | null = null;
 
 	/**
 	 * Observable for when the layout has changed.
@@ -92,6 +99,11 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
 
 	private _layoutVersion: string = "5.0.0-alpha.3";
 
+	private _assistantSize: number = 30;
+	private _assistantLayoutSize: number | null = null;
+	private _assistantPanel: ImperativePanelHandle | null = null;
+	private _assistantAnimationTimeout: ReturnType<typeof setTimeout> | null = null;
+
 	public constructor(props: IEditorLayoutProps) {
 		super(props);
 
@@ -112,11 +124,40 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
 			<div className={`flex flex-col w-screen h-screen ${platform() === "darwin" ? "pt-10" : ""}`}>
 				<EditorToolbar editor={this.props.editor} />
 
-				<div className="relative w-full h-full">
-					<Layout model={this._model} ref={(r) => (this._layoutRef = r)} factory={(n) => this._layoutFactory(n)} onModelChange={(m) => this._saveLayout(m)} />
-				</div>
+				<PanelGroup id="editor-layout-group" direction="horizontal" className="w-full h-full min-h-0" onLayout={(sizes) => this._handleSplitLayout(sizes)}>
+					<Panel id="editor-layout" order={1} minSize={30}>
+						<div className="relative w-full h-full">
+							<Layout model={this._model} ref={(r) => (this._layoutRef = r)} factory={(n) => this._layoutFactory(n)} onModelChange={(m) => this._saveLayout(m)} />
+						</div>
+					</Panel>
+
+					<PanelResizeHandle
+						disabled={!this.props.editor.state.assistantOpen}
+						className={this.props.editor.state.assistantOpen ? "w-1 bg-border/40 hover:bg-primary/40 transition-colors duration-300" : "hidden"}
+					/>
+
+					<Panel
+						id="editor-assistant"
+						order={2}
+						collapsible
+						collapsedSize={0}
+						minSize={15}
+						maxSize={70}
+						defaultSize={0}
+						ref={(r) => (this._assistantPanel = r)}
+						onCollapse={() => this.props.editor.setAssistantOpen(false)}
+					>
+						{this.props.editor.state.enableExperimentalFeatures && (
+							<EditorAssistant editor={this.props.editor} open={this.props.editor.state.assistantOpen} ref={(r) => (this.assistant = r)} />
+						)}
+					</Panel>
+				</PanelGroup>
 			</div>
 		);
+	}
+
+	public componentDidUpdate(): void {
+		this._syncAssistantPanel(true);
 	}
 
 	public componentDidCatch(): void {
@@ -161,12 +202,7 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
 		const changed = openedTabs.length !== prev.length || openedTabs.some((t) => !prev.includes(t));
 
 		if (changed) {
-			this.props.editor.setState({ openedTabs });
-
-			ipcRenderer.send("editor:setup-menu", {
-				enableExperimentalFeatures: this.props.editor.state.enableExperimentalFeatures,
-				openedTabs,
-			});
+			this.props.editor.setState({ openedTabs }, () => this.props.editor.updateMenu());
 		}
 
 		this.onLayoutChanged.notifyObservers();
@@ -257,6 +293,77 @@ export class EditorLayout extends Component<IEditorLayoutProps> {
 		const existingNode = this._layoutRef?.props.model.getNodeById(tabId);
 		if (existingNode) {
 			this._layoutRef?.props.model.doAction(Actions.deleteTab(tabId));
+		}
+	}
+
+	/**
+	 * Expands or collapses the panel of the assistant to match the state of the editor. The panel can only be resized
+	 * once the group computed its first layout: until then, its default size already matches the state.
+	 * @param animate defines wether or not the panel slides to its new size.
+	 */
+	private _syncAssistantPanel(animate: boolean): void {
+		const panel = this._assistantPanel;
+		if (!panel || this._assistantLayoutSize === null) {
+			return;
+		}
+
+		const isOpen = this.props.editor.state.assistantOpen;
+		const isCollapsed = this._assistantLayoutSize === 0;
+
+		if (isOpen && isCollapsed) {
+			if (animate) {
+				this._animateAssistantPanel();
+				playAssistantSmokeEffectOnce(() => this._getAssistantPanelLeft(), 300);
+			}
+			panel.resize(this._assistantSize);
+		} else if (!isOpen && !isCollapsed) {
+			if (animate) {
+				this._animateAssistantPanel();
+			}
+			panel.collapse();
+		}
+	}
+
+	/**
+	 * Lets the panels slide to their new sizes the next time they change, by enabling the transition of their size for
+	 * the duration of the animation only: resizing the panels by dragging their handle must follow the pointer.
+	 */
+	private _animateAssistantPanel(): void {
+		const group = document.querySelector<HTMLElement>('[data-panel-group-id="editor-layout-group"]');
+		if (!group) {
+			return;
+		}
+
+		if (this._assistantAnimationTimeout) {
+			clearTimeout(this._assistantAnimationTimeout);
+		}
+
+		group.classList.add("editor-assistant-panel-animating");
+
+		this._assistantAnimationTimeout = setTimeout(() => {
+			this._assistantAnimationTimeout = null;
+			group.classList.remove("editor-assistant-panel-animating");
+		}, 300);
+	}
+
+	private _getAssistantPanelLeft(): number {
+		const element = document.querySelector<HTMLElement>('[data-panel-id="editor-assistant"]');
+		return element?.getBoundingClientRect().left ?? window.innerWidth;
+	}
+
+	private _handleSplitLayout(sizes: number[]): void {
+		const isFirstLayout = this._assistantLayoutSize === null;
+		const assistantSize = sizes[1] ?? 0;
+
+		this._assistantLayoutSize = assistantSize;
+
+		if (assistantSize > 0) {
+			this._assistantSize = assistantSize;
+		}
+
+		// The assistant may have been toggled before the first layout.
+		if (isFirstLayout) {
+			this._syncAssistantPanel(false);
 		}
 	}
 }

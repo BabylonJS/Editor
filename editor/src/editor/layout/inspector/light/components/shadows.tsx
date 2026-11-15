@@ -232,6 +232,10 @@ export class EditorLightShadowsInspector extends Component<IEditorLightShadowsIn
 						object={shadowMap}
 						property="refreshRate"
 						label="Refresh Rate"
+						onChange={(v) => {
+							this.props.light.metadata ??= {};
+							this.props.light.metadata.refreshRate = v;
+						}}
 						items={[
 							{ text: "Once", value: RenderTargetTexture.REFRESHRATE_RENDER_ONCE },
 							{ text: "2 Frames", value: RenderTargetTexture.REFRESHRATE_RENDER_ONEVERYTWOFRAMES },

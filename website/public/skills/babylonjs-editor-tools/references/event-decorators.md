@@ -34,8 +34,11 @@ By default the decorator listens **globally** (anywhere in the scene). Set `mode
 | Mode | Behavior |
 | --- | --- |
 | `"global"` (default) | Fires for the event anywhere in the scene. |
-| `"attachedMeshOnly"` | Fires only when the event targets the script's attached mesh. **Requires the attached object to be a `Mesh`** — otherwise an error is thrown at load time. |
+| `"attachedMeshOnly"` | Fires only when the event targets the script's attached mesh. **Requires the attached object to be a mesh** (`Mesh`, `InstancedMesh`, …) — otherwise an error is thrown at load time. |
 | `"includeDescendants"` | Fires when the event targets the attached object **or any of its descendants**. Works for any node type (TransformNode, Light, …), useful for imported GLB hierarchies. |
+
+Modes other than `"global"` need the script to be attached to a node: on the scene or on a sprite, they throw
+an error at load time.
 
 ```ts
 @onPointerEvent(PointerEventTypes.POINTERTAP, { mode: "attachedMeshOnly" })

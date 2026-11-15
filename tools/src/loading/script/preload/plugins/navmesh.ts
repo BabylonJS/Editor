@@ -27,6 +27,10 @@ export async function preloadNavMeshScriptAsset(parameters: IScriptAssetParserPa
 	recast.buildFromNavmeshData(new Uint8Array(navmeshData));
 	recast.buildFromTileCacheData(new Uint8Array(tilesData));
 
+	parameters.scene.onDisposeObservable.addOnce(() => {
+		recast.dispose();
+	});
+
 	const createdObstacles: IObstacle[] = [];
 
 	recast.refreshObstacles = function () {

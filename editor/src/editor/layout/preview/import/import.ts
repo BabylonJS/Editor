@@ -1,6 +1,6 @@
 import { isAbsolute } from "path";
-import { join, dirname, basename, extname } from "path/posix";
 import { pathExists, readFile, readJSON, writeFile } from "fs-extra";
+import { join, dirname, basename, extname, normalize } from "path/posix";
 
 import axios from "axios";
 import { toast } from "sonner";
@@ -15,8 +15,6 @@ import {
 	Texture,
 	Tools,
 	ColorGradingTexture,
-	Vector3,
-	Quaternion,
 	Sprite,
 	IParticleSystem,
 	HDRCubeTexture,
@@ -27,6 +25,7 @@ import { UniqueNumber } from "../../../../tools/tools";
 import { isSprite } from "../../../../tools/guards/sprites";
 import { isTexture } from "../../../../tools/guards/texture";
 import { executeSimpleWorker } from "../../../../tools/worker";
+import { convertGltfToLeftHanded } from "../../../../tools/scene/gltf";
 import { isMultiMaterial } from "../../../../tools/guards/material";
 import { getLoaderPluginOptions } from "../../../../tools/assets/loader";
 import { flipTextureV } from "../../../../tools/material/texture";
@@ -74,12 +73,14 @@ export async function loadImportedSceneFile(scene: Scene, absolutePath: string, 
 		return null;
 	}
 
+	const extension = extname(absolutePath).toLowerCase();
+
 	let result: ISceneLoaderAsyncResult;
 
 	try {
 		let gaussianSplattingMesh: GaussianSplattingMesh | undefined = undefined;
 
-		switch (extname(absolutePath).toLowerCase()) {
+		switch (extension) {
 			case ".ply":
 			case ".sog":
 			case ".spz":
@@ -110,9 +111,13 @@ export async function loadImportedSceneFile(scene: Scene, absolutePath: string, 
 	if (root) {
 		root.scaling.scaleInPlace(100);
 		root.name = basename(absolutePath);
+	}
 
-		// TODO: try cleaning the gltf to remove useless transform nodes. Also, does it make sens to clean the gltf for the user?
-		// cleanImportedGltf(result);
+	switch (extension) {
+		case ".glb":
+		case ".gltf":
+			convertGltfToLeftHanded(result);
+			break;
 	}
 
 	for (const mesh of result.meshes) {
@@ -354,7 +359,7 @@ export function cleanTexture(texture: Texture, filename: string) {
 		texture.updateURL(filename);
 	}
 
-	const relativePath = filename.replace(join(dirname(projectConfiguration.path!), "/"), "");
+	const relativePath = normalize(filename).replace(join(dirname(projectConfiguration.path!), "/"), "");
 	texture.name = relativePath;
 	texture.url = relativePath;
 
@@ -382,25 +387,4 @@ export async function loadImportedMaterial(scene: Scene, absolutePath: string) {
 	material.uniqueId = uniqueId;
 
 	return material;
-}
-
-export function cleanImportedGltf(result: ISceneLoaderAsyncResult) {
-	const identityQuaternion = Quaternion.Identity();
-	const allBones = result?.skeletons.map((s) => s.bones).flat();
-
-	result.transformNodes.slice().forEach((transformNode) => {
-		if (
-			transformNode.position.equalsWithEpsilon(Vector3.ZeroReadOnly) &&
-			(transformNode.rotation.equalsWithEpsilon(Vector3.ZeroReadOnly) || transformNode.rotationQuaternion?.equalsWithEpsilon(identityQuaternion)) &&
-			transformNode.scaling.equalsWithEpsilon(Vector3.OneReadOnly) &&
-			!allBones.find((b) => b._linkedTransformNode === transformNode)
-		) {
-			const descendants = transformNode.getDescendants(true);
-			descendants.forEach((node) => {
-				node.parent = transformNode.parent;
-			});
-
-			transformNode.dispose(true, false);
-		}
-	});
 }

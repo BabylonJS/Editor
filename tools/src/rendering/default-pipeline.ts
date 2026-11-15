@@ -7,6 +7,7 @@ import { ColorGradingTexture } from "@babylonjs/core/Materials/Textures/colorGra
 import { DefaultRenderingPipeline } from "@babylonjs/core/PostProcesses/RenderPipeline/Pipelines/defaultRenderingPipeline";
 
 import { isTexture } from "../tools/guards";
+import { IRenderingOptions } from "./tools";
 
 let defaultRenderingPipeline: DefaultRenderingPipeline | null = null;
 
@@ -37,9 +38,9 @@ export function disposeDefaultRenderingPipeline(): void {
 	}
 }
 
-export function createDefaultRenderingPipeline(scene: Scene, camera: Camera): DefaultRenderingPipeline {
+export function createDefaultRenderingPipeline(scene: Scene, camera: Camera, options?: IRenderingOptions): DefaultRenderingPipeline {
 	defaultRenderingPipeline = new DefaultRenderingPipeline("DefaultRenderingPipeline", true, scene, [camera]);
-	defaultRenderingPipeline.samples = 4;
+	defaultRenderingPipeline.samples = options?.msaaSamples ?? 1;
 
 	defaultRenderingPipeline.depthOfField.lensSize = 512;
 	defaultRenderingPipeline.depthOfField.fStop = 0.25;
@@ -130,14 +131,10 @@ export function serializeDefaultRenderingPipeline(): any {
 	};
 }
 
-export function parseDefaultRenderingPipeline(scene: Scene, camera: Camera, data: any, rootUrl: string): DefaultRenderingPipeline {
-	if (defaultRenderingPipeline) {
-		return defaultRenderingPipeline;
-	}
+export function parseDefaultRenderingPipeline(scene: Scene, camera: Camera, data: any, rootUrl: string, options?: IRenderingOptions): DefaultRenderingPipeline {
+	const pipeline = defaultRenderingPipeline ?? createDefaultRenderingPipeline(scene, camera, options);
+	pipeline.samples = options?.msaaSamples ?? 1;
 
-	const pipeline = createDefaultRenderingPipeline(scene, camera);
-
-	pipeline.samples = data.samples;
 	pipeline.fxaaEnabled = data.fxaaEnabled;
 
 	pipeline.imageProcessingEnabled = data.imageProcessingEnabled;

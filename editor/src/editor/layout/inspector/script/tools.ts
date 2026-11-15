@@ -8,6 +8,8 @@ export type VisibleInInspectorDecoratorObject = {
 
 export type VisibleInInspectorDecoratorConfiguration = {
 	type: string;
+
+	group?: string;
 	description?: string;
 
 	min?: number;

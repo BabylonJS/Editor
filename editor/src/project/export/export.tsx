@@ -21,6 +21,7 @@ import { ssrRenderingPipelineCameraConfigurations } from "../../editor/rendering
 import { ssaoRenderingPipelineCameraConfigurations } from "../../editor/rendering/ssao";
 import { defaultPipelineCameraConfigurations } from "../../editor/rendering/default-pipeline";
 import { motionBlurPostProcessCameraConfigurations } from "../../editor/rendering/motion-blur";
+import { getVolumetricLightingRenderingPipelineConfiguration } from "../../editor/rendering/volumetric-lighting";
 
 import { Editor } from "../../editor/main";
 
@@ -33,6 +34,7 @@ import { configureMaterials } from "./materials";
 import { configureMeshesPhysics } from "./physics";
 import { configureClusteredLights } from "./light";
 import { configureParticleSystems } from "./particles";
+import { configureAnimationGroups } from "./animation";
 import { EditorExportProjectProgressComponent } from "./progress";
 import { ExportSceneProgressComponent, showExportSceneProgressDialog } from "./dialog";
 
@@ -40,6 +42,7 @@ export type IExportProjectOptions = {
 	optimize: boolean;
 	debugMode: boolean;
 	noDialog?: boolean;
+	sceneOnly?: boolean;
 	noProgress?: boolean;
 };
 
@@ -152,6 +155,8 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 			taaRenderingPipeline: taaPipelineCameraConfigurations.get(camera),
 		}));
 
+	data.metadata.volumetricLightingRenderingPipelineConfiguration = getVolumetricLightingRenderingPipelineConfiguration();
+
 	delete data.effectLayers;
 	delete data.postProcesses;
 	delete data.spriteManagers;
@@ -162,6 +167,7 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 	configureMeshesLODs(data, scene);
 	configureMeshesPhysics(data, scene);
 	configureParticleSystems(data, scene);
+	configureAnimationGroups(data, scene);
 	configureClusteredLights(data, clusteredLightContainer);
 
 	// Configure environment texture
@@ -407,61 +413,63 @@ async function _exportProject(editor: Editor, options: IExportProjectOptions): P
 		})
 	);
 
-	// Copy files
-	const files = await normalizedGlob(join(projectDir, "/assets/**/*"), {
-		nodir: true,
-		ignore: {
-			childrenIgnored: (p) => extname(p.name) === ".scene",
-		},
-	});
+	if (!options.sceneOnly) {
+		// Copy files
+		const files = await normalizedGlob(join(projectDir, "/assets/**/*"), {
+			nodir: true,
+			ignore: {
+				childrenIgnored: (p) => extname(p.name) === ".scene",
+			},
+		});
 
-	// Export scripts
-	await handleExportScripts(editor, options.debugMode);
+		// Export scripts
+		await handleExportScripts(editor, options.debugMode);
 
-	// Export assets
-	const promises: Promise<void>[] = [];
-	const progressStep = 100 / files.length;
+		// Export assets
+		const promises: Promise<void>[] = [];
+		const progressStep = 100 / files.length;
 
-	let cache: Record<string, string> = {};
-	try {
-		cache = await readJSON(join(projectDir, "assets/.export-cache.json"));
-	} catch (e) {
-		// Catch silently.
-	}
-
-	for (const file of files) {
-		if (promises.length >= 5) {
-			await Promise.all(promises);
-			promises.length = 0;
+		let cache: Record<string, string> = {};
+		try {
+			cache = await readJSON(join(projectDir, "assets/.export-cache.json"));
+		} catch (e) {
+			// Catch silently.
 		}
 
-		promises.push(
-			new Promise<void>(async (resolve) => {
-				await processAssetFile(editor, file.toString(), {
-					cache,
-					scenePath,
-					projectDir,
-					exportedAssets,
-					optimize: options.optimize,
-				});
-				progress?.step(progressStep);
-				dialog?.step(progressStep);
-				resolve();
-			})
-		);
+		for (const file of files) {
+			if (promises.length >= 5) {
+				await Promise.all(promises);
+				promises.length = 0;
+			}
+
+			promises.push(
+				new Promise<void>(async (resolve) => {
+					await processAssetFile(editor, file.toString(), {
+						cache,
+						scenePath,
+						projectDir,
+						exportedAssets,
+						optimize: options.optimize,
+					});
+					progress?.step(progressStep);
+					dialog?.step(progressStep);
+					resolve();
+				})
+			);
+		}
+
+		await Promise.all(promises);
+
+		await writeJSON(join(projectDir, "assets/.export-cache.json"), cache, {
+			encoding: "utf-8",
+			spaces: "\t",
+		});
 	}
-
-	await Promise.all(promises);
-
-	await writeJSON(join(projectDir, "assets/.export-cache.json"), cache, {
-		encoding: "utf-8",
-		spaces: "\t",
-	});
 
 	toast.dismiss(toastId);
 	dialog?.dispose();
 
-	if (options.optimize) {
+	if (!options.sceneOnly && options.optimize) {
 		toast.success("Project exported");
 
 		const publicFiles = await normalizedGlob(join(projectDir, "/public/scene/assets/**/*"), {

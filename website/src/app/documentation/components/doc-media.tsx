@@ -1,3 +1,7 @@
+"use client";
+
+// Kept as client components: rendered by the server pages directly, the images of a page would be preloaded each time a link to that page is prefetched.
+
 import React from "react";
 
 export interface IDocVideoProps {

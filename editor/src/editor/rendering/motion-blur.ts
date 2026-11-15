@@ -1,3 +1,4 @@
+import { getHdrTextureType } from "babylonjs-editor-tools";
 import { MotionBlurPostProcess, Camera, Texture } from "babylonjs";
 
 import { Editor } from "../main";
@@ -29,11 +30,11 @@ export function createMotionBlurPostProcess(editor: Editor): MotionBlurPostProce
 		Texture.TRILINEAR_SAMPLINGMODE,
 		undefined,
 		false,
-		undefined,
+		getHdrTextureType(editor.layout.preview.engine as any),
 		undefined,
 		false
 	);
-	motionBlurPostProcess.samples = 16;
+	motionBlurPostProcess.samples = 1;
 	motionBlurPostProcess.motionStrength = 1.0;
 	motionBlurPostProcess.isObjectBased = true;
 

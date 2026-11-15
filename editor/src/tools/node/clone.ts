@@ -30,6 +30,7 @@ export interface ICloneNodeOptions {
 	shareSkeleton?: boolean;
 	cloneMaterial?: boolean;
 	cloneThinInstances?: boolean;
+	doNotCloneChildren?: boolean;
 }
 
 export function cloneNode(editor: Editor, node: Node | Sprite | ParticleSystem | GPUParticleSystem, options?: ICloneNodeOptions) {
@@ -42,9 +43,9 @@ export function cloneNode(editor: Editor, node: Node | Sprite | ParticleSystem |
 	if (isMesh(node)) {
 		const clonedMesh = (clone = node.clone(name, {
 			parent: node.parent,
-			doNotCloneChildren: false,
 			clonePhysicsImpostor: false,
 			cloneThinInstances: options?.cloneThinInstances ?? true,
+			doNotCloneChildren: options?.doNotCloneChildren ?? false,
 		}) as Mesh);
 
 		if (node.physicsAggregate) {
@@ -59,7 +60,7 @@ export function cloneNode(editor: Editor, node: Node | Sprite | ParticleSystem |
 	} else if (isCamera(node)) {
 		clone = node.clone(name, node.parent);
 	} else if (isTransformNode(node) || isInstancedMesh(node)) {
-		clone = node.clone(name, node.parent, false);
+		clone = node.clone(name, node.parent, options?.doNotCloneChildren ?? false);
 	} else if (isSprite(node)) {
 		clone = cloneSprite(node);
 	} else if (isSoundNode(node)) {
@@ -79,7 +80,7 @@ export function cloneNode(editor: Editor, node: Node | Sprite | ParticleSystem |
 	} else if (isAnyParticleSystem(node)) {
 		clone = node.clone(name, node.emitter);
 	} else if (isNodeParticleSystemSetMesh(node)) {
-		clone = node.clone(name, node.parent, false, true);
+		clone = node.clone(name, node.parent, options?.doNotCloneChildren ?? false, true);
 	}
 
 	if (!clone) {

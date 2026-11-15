@@ -5,6 +5,7 @@ import {
 	Light,
 	Mesh,
 	Node,
+	AbstractMesh,
 	PointLight,
 	TransformNode,
 	DirectionalLight,
@@ -16,8 +17,9 @@ import {
 	Skeleton,
 	ClusteredLightContainer,
 	GaussianSplattingMesh,
-	GaussianSplattingPartProxyMesh,
 } from "babylonjs";
+
+import { GaussianSplattingPartProxyMesh } from "babylonjs/Meshes/GaussianSplatting/gaussianSplattingPartProxyMesh";
 
 import { EditorCamera } from "../../editor/nodes/camera";
 import { CollisionMesh } from "../../editor/nodes/collision";
@@ -30,7 +32,7 @@ import { isSpriteManagerNode, isSpriteMapNode } from "./sprites";
  * Returns wether or not the given object is an AbstractMesh.
  * @param object defines the reference to the object to test its class name.
  */
-export function isAbstractMesh(object: any): object is Mesh {
+export function isAbstractMesh(object: any): object is AbstractMesh {
 	switch (object.getClassName?.()) {
 		case "Mesh":
 		case "LineMesh":

@@ -1,3 +1,4 @@
+import { readJSON } from "fs-extra";
 import { platform, arch } from "os";
 import { autoUpdater } from "electron-updater";
 import { basename, dirname, join } from "path/posix";
@@ -117,7 +118,7 @@ ipcMain.on("app:quit", () => {
 });
 
 let dashboardWindow: BrowserWindow | null = null;
-let menuOptions = { enableExperimentalFeatures: false, openedTabs: [] };
+let menuOptions = { enableExperimentalFeatures: false, openedTabs: [], assistantOpen: false };
 
 ipcMain.on("editor:setup-menu", (_, options) => {
 	menuOptions = options;
@@ -172,7 +173,11 @@ async function openProject(filePath: string): Promise<void> {
 
 	setupEditorMenu(menuOptions);
 
-	const window = await createEditorWindow();
+	const projectConfiguration = await readJSON(filePath, {
+		encoding: "utf-8",
+	});
+
+	const window = await createEditorWindow(projectConfiguration.isWebGPU ?? false);
 	window.setTitle(basename(dirname(filePath)));
 
 	window.on("focus", () => setupEditorMenu(menuOptions));

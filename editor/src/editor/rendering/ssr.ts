@@ -1,4 +1,5 @@
 import { SSRRenderingPipeline, Camera } from "babylonjs";
+import { getHdrTextureType } from "babylonjs-editor-tools";
 
 import { Editor } from "../main";
 
@@ -21,8 +22,14 @@ export function disposeSSRRenderingPipeline(): void {
 }
 
 export function createSSRRenderingPipeline(editor: Editor): SSRRenderingPipeline {
-	ssrRenderingPipeline = new SSRRenderingPipeline("SSRRenderingPipeline", editor.layout.preview.scene, [editor.layout.preview.scene.activeCamera!], false);
-	ssrRenderingPipeline.samples = 16;
+	ssrRenderingPipeline = new SSRRenderingPipeline(
+		"SSRRenderingPipeline",
+		editor.layout.preview.scene,
+		[editor.layout.preview.scene.activeCamera!],
+		false,
+		getHdrTextureType(editor.layout.preview.engine as any)
+	);
+	ssrRenderingPipeline.samples = 1;
 
 	return ssrRenderingPipeline;
 }
@@ -64,7 +71,7 @@ export function serializeSSRRenderingPipeline(): any {
 export function parseSSRRenderingPipeline(editor: Editor, data: any): SSRRenderingPipeline {
 	const ssrRenderingPipeline = getSSRRenderingPipeline() ?? createSSRRenderingPipeline(editor);
 
-	ssrRenderingPipeline.samples = data.samples;
+	// ssrRenderingPipeline.samples = data.samples;
 
 	ssrRenderingPipeline.step = data.step;
 	ssrRenderingPipeline.thickness = data.thickness;

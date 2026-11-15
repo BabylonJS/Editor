@@ -19,6 +19,10 @@ export async function preloadSceneScriptAsset(key: string, rootUrl: string, scen
 		pluginExtension: ".babylon",
 	});
 
+	scene.onDisposeObservable.addOnce(() => {
+		container.dispose();
+	});
+
 	// Ensure all meshes perform their delay state check
 	if (SceneLoaderFlags.ForceFullSceneLoadingForIncremental) {
 		scene.meshes.forEach((m) => isMesh(m) && m._checkDelayState());

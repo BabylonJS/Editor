@@ -35,7 +35,7 @@ export function DownloadVersionComponent(props: IDownloadVersionComponentProps) 
 	return (
 		<div className="flex flex-col gap-8 w-full">
 			<Fade>
-				<div className="text-3xl font-semibold font-sans tracking-tighter text-neutral-500 text-center">{props.version}</div>
+				<h2 className="text-3xl font-semibold font-sans tracking-tighter text-neutral-500 text-center">{props.version}</h2>
 			</Fade>
 
 			<Fade className="w-full">

@@ -33,7 +33,7 @@ export function disposeDefaultRenderingPipeline(): void {
 
 export function createDefaultRenderingPipeline(editor: Editor): DefaultRenderingPipeline {
 	defaultRenderingPipeline = new DefaultRenderingPipeline("DefaultRenderingPipeline", true, editor.layout.preview.scene, [editor.layout.preview.scene.activeCamera!]);
-	defaultRenderingPipeline.samples = 16;
+	defaultRenderingPipeline.samples = 1;
 
 	defaultRenderingPipeline.depthOfField.lensSize = 512;
 	defaultRenderingPipeline.depthOfField.fStop = 0.25;
@@ -127,7 +127,7 @@ export function serializeDefaultRenderingPipeline(): any {
 export function parseDefaultRenderingPipeline(editor: Editor, data: any): DefaultRenderingPipeline {
 	const defaultRenderingPipeline = getDefaultRenderingPipeline() ?? createDefaultRenderingPipeline(editor);
 
-	defaultRenderingPipeline.samples = data.samples;
+	// defaultRenderingPipeline.samples = data.samples;
 	defaultRenderingPipeline.fxaaEnabled = data.fxaaEnabled;
 
 	defaultRenderingPipeline.imageProcessingEnabled = data.imageProcessingEnabled;

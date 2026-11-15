@@ -1,8 +1,11 @@
-"use client";
+import type { Metadata } from "next";
 
 import { Kbd } from "@/components/ui/kbd";
 
-import { DocPage, DocHeading } from "../../components";
+import { CustomLink, DocPage, DocHeading } from "../../components";
+import { getDocMetadata } from "../../config";
+
+export const metadata: Metadata = getDocMetadata("/documentation/tips/shortcuts");
 
 export default function DocumentationShortcutsPage() {
 	return (
@@ -33,7 +36,9 @@ export default function DocumentationShortcutsPage() {
 						<Kbd>⌘S</Kbd> or <Kbd>CTRL+S</Kbd>: Save project.
 					</div>
 					<div>
-						<Kbd>⌘G</Kbd> or <Kbd>CTRL+G</Kbd>: Generate project output (downsized & compressed textures, scripts map, output scene, assets copy, etc.).
+						<Kbd>⌘G</Kbd> or <Kbd>CTRL+G</Kbd>: Generate project output (downsized &{" "}
+						<CustomLink href="/documentation/advanced/compressing-textures">compressed textures</CustomLink>, scripts map, output scene, assets copy, etc.). Also
+						available from the command line with the <CustomLink href="/documentation/deploying/babylonjs-editor-cli">Babylon.js Editor CLI</CustomLink>.
 					</div>
 					<div>
 						<Kbd>⌘P</Kbd> or <Kbd>CTRL+P</Kbd>: Open commands dialog.
@@ -45,7 +50,7 @@ export default function DocumentationShortcutsPage() {
 
 				<div className="flex flex-col gap-1">
 					<div>
-						<Kbd>⌘T</Kbd> or <Kbd>CTRL+T</Kbd>: Select translation gizmo.
+						<Kbd>⌘T</Kbd> or <Kbd>CTRL+T</Kbd>: Select translation <CustomLink href="/documentation/basics/composing-scene#using-gizmos">gizmo</CustomLink>.
 					</div>
 					<div>
 						<Kbd>⌘R</Kbd> or <Kbd>CTRL+R</Kbd>: Select rotation gizmo.
@@ -56,7 +61,7 @@ export default function DocumentationShortcutsPage() {
 				</div>
 
 				<div>
-					<Kbd>⌘B</Kbd> or <Kbd>CTRL+B</Kbd>: Play / Stop scene in preview panel.
+					<Kbd>⌘B</Kbd> or <Kbd>CTRL+B</Kbd>: <CustomLink href="/documentation/basics/running-project">Play / Stop scene</CustomLink> in preview panel.
 				</div>
 
 				<div className="flex flex-col gap-1">

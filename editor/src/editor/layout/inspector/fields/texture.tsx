@@ -632,6 +632,8 @@ export class EditorInspectorTextureField extends Component<IEditorInspectorTextu
 
 	private _handleDrop(ev: DragEvent<HTMLDivElement>): void {
 		ev.preventDefault();
+		ev.stopPropagation();
+
 		this.setState({ dragOver: false });
 
 		const absolutePath = JSON.parse(ev.dataTransfer.getData("assets"))[0];

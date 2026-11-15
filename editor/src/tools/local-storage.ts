@@ -110,3 +110,55 @@ export function trySetTerminalInLocalStorage(terminalPath: string): void {
 		// Catch silently.
 	}
 }
+
+/**
+ * Returns the identifier of the agent the user chose to run in the AI assistant, or null if none was chosen yet.
+ */
+export function tryGetAssistantAgentFromLocalStorage(): string | null {
+	try {
+		return localStorage.getItem("babylonjs-editor-assistant-agent") || null;
+	} catch (e) {
+		return null;
+	}
+}
+
+/**
+ * Sets the identifier of the agent the user chose to run in the AI assistant in the local storage.
+ * @param agent defines the identifier of the agent, like "claude", "codex" or "antigravity".
+ */
+export function trySetAssistantAgentInLocalStorage(agent: string): void {
+	try {
+		localStorage.setItem("babylonjs-editor-assistant-agent", agent);
+	} catch (e) {
+		// Catch silently.
+	}
+}
+
+/**
+ * Returns the path of the executable of the given agent chosen by the user, or null to find it automatically.
+ * @param agent defines the identifier of the agent, like "claude", "codex" or "antigravity".
+ */
+export function tryGetAssistantExecutablePathFromLocalStorage(agent: string): string | null {
+	try {
+		return localStorage.getItem(`babylonjs-editor-assistant-${agent}-path`) || null;
+	} catch (e) {
+		return null;
+	}
+}
+
+/**
+ * Sets the path of the executable of the given agent chosen by the user in the local storage.
+ * @param agent defines the identifier of the agent, like "claude", "codex" or "antigravity".
+ * @param path defines the absolute path of the executable, or null to find it automatically.
+ */
+export function trySetAssistantExecutablePathInLocalStorage(agent: string, path: string | null): void {
+	try {
+		if (path) {
+			localStorage.setItem(`babylonjs-editor-assistant-${agent}-path`, path);
+		} else {
+			localStorage.removeItem(`babylonjs-editor-assistant-${agent}-path`);
+		}
+	} catch (e) {
+		// Catch silently.
+	}
+}

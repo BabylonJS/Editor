@@ -1,8 +1,11 @@
-"use client";
+import type { Metadata } from "next";
 
 import { FaArrowRight } from "react-icons/fa6";
 
 import { CustomLink, DocPage, DocHeading, DocImage, DocVideo } from "../../components";
+import { getDocMetadata } from "../../config";
+
+export const metadata: Metadata = getDocMetadata("/documentation/tips/creating-skybox");
 
 export default function DocumentationCreatingSkyboxPage() {
 	return (
@@ -42,8 +45,9 @@ export default function DocumentationCreatingSkyboxPage() {
 			<DocHeading level={2}>Using Cube Texture</DocHeading>
 
 			<p>
-				The goal here is to create a new material that will be assigned on the newly created Skybox. Then, assign an existing Cube Texture to the material as an{" "}
-				<b>Environment Texture</b>. The last step will be to edit the Cube Texture to use "Skybox" coordinates mode.
+				The goal here is to <CustomLink href="/documentation/basics/managing-assets#creating-your-own-materials">create a new material</CustomLink> that will be assigned on
+				the newly created Skybox. Then, assign an existing Cube Texture to the material as an <b>Environment Texture</b>. The last step will be to edit the Cube Texture to
+				use "Skybox" coordinates mode.
 			</p>
 
 			<DocVideo src="/documentation/tips/creating-skybox/assign-cube-texture.mp4" />

@@ -21,6 +21,8 @@ import { isAbstractMesh, isNode, isSoundNode, isSprite, isTransformNode } from "
 import { scriptAssetsCache } from "../loading/script/preload";
 import { getScriptByClassForObject } from "../loading/script/apply";
 
+import { NodeFromSceneOptions } from "./scene";
+import { SoundFromSceneOptions } from "./sound";
 import { IPointerEventDecoratorOptions } from "./events";
 import { VisibleInInspectorDecoratorConfiguration, VisibleInInspectorDecoratorEntityConfiguration, VisibleInspectorDecoratorAssetConfiguration } from "./inspector";
 
@@ -29,12 +31,7 @@ export interface ISceneDecoratorData {
 	_NodesFromScene?: {
 		nodeName: string;
 		propertyKey: string | Symbol;
-	}[];
-
-	// @componentFromScene
-	_ComponentsFromScene?: {
-		componentConstructor: new (...args: any) => any;
-		propertyKey: string | Symbol;
+		options?: NodeFromSceneOptions;
 	}[];
 
 	// @nodeFromDescendants
@@ -53,6 +50,13 @@ export interface ISceneDecoratorData {
 	// @soundFromScene
 	_SoundsFromScene?: {
 		soundName: string;
+		propertyKey: string | Symbol;
+		options?: SoundFromSceneOptions;
+	}[];
+
+	// @componentFromScene
+	_ComponentsFromScene?: {
+		componentConstructor: new (...args: any) => any;
 		propertyKey: string | Symbol;
 	}[];
 
@@ -126,7 +130,11 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 
 	// @nodeFromScene
 	ctor._NodesFromScene?.forEach((params) => {
-		instance[params.propertyKey.toString()] = getNodeByName(formatNameWithId(params.nodeName, options.namingId), scene);
+		instance[params.propertyKey.toString()] = getNodeByName(
+			formatNameWithId(params.nodeName, params.options?.global ? undefined : options.namingId),
+			scene,
+			params.options?.global ? undefined : object._parentContainer
+		);
 	});
 
 	// @componentFromScene
@@ -162,12 +170,16 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 
 	// @fromAnimationGroups
 	ctor._AnimationGroups?.forEach((params) => {
-		instance[params.propertyKey.toString()] = scene.getAnimationGroupByName(params.animationGroupName);
+		instance[params.propertyKey.toString()] = scene.getAnimationGroupByName(formatNameWithId(params.animationGroupName, options.namingId));
 	});
 
 	// @soundFromScene
 	ctor._SoundsFromScene?.forEach((params) => {
-		const sound = getNodeByName(formatNameWithId(params.soundName, options.namingId), scene);
+		const sound = getNodeByName(
+			formatNameWithId(params.soundName, params.options?.global ? undefined : options.namingId),
+			scene,
+			params.options?.global ? undefined : object._parentContainer
+		);
 		if (sound && isSoundNode(sound)) {
 			instance[params.propertyKey.toString()] = sound ?? null;
 		}
@@ -194,7 +206,7 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 	// @fromParticleSystems
 	ctor._ParticleSystemsFromScene?.forEach((params) => {
 		const particleSystem = scene.particleSystems?.find((particleSystem) => {
-			if (particleSystem.name !== params.particleSystemName) {
+			if (particleSystem.name !== formatNameWithId(params.particleSystemName, options.namingId)) {
 				return false;
 			}
 
@@ -263,7 +275,9 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 				case "asset":
 					if (value) {
 						const assetType = (params.configuration as VisibleInspectorDecoratorAssetConfiguration).assetType;
-						const data = scriptAssetsCache.get(value);
+
+						const assetsCache = scriptAssetsCache.get(scene)!;
+						const data = assetsCache.get(value);
 
 						switch (assetType) {
 							case "json":
@@ -377,7 +391,7 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 		}
 
 		ctor._SpritesFromSpriteManager?.forEach((params) => {
-			const sprite = spriteManagerNode.spriteManager?.sprites.find((s) => s.name === params.spriteName) || null;
+			const sprite = spriteManagerNode.spriteManager?.sprites.find((s) => s.name === formatNameWithId(params.spriteName, options.namingId)) || null;
 			instance[params.propertyKey.toString()] = sprite;
 		});
 	}
@@ -394,18 +408,19 @@ export function applyDecorators(scene: Scene, object: any, script: any, instance
 		}
 
 		ctor._AnimationsFromSprite.forEach((params) => {
-			const animation = spriteAnimations.find((a) => a.name === params.animationName);
+			const animation = spriteAnimations.find((a) => a.name === formatNameWithId(params.animationName, options.namingId));
 			if (animation) {
 				instance[params.propertyKey.toString()] = animation ?? null;
 			} else {
-				console.warn(`Sprite animation named "${params.animationName}" not found on sprite "${object.name}".`);
+				console.warn(`Sprite animation named "${formatNameWithId(params.animationName, options.namingId)}" not found on sprite "${object.name}".`);
 			}
 		});
 	}
 
 	// @sceneAsset
 	ctor._SceneAssets?.forEach((params) => {
-		instance[params.propertyKey.toString()] = scriptAssetsCache.get(params.sceneName);
+		const assetsCache = scriptAssetsCache.get(scene)!;
+		instance[params.propertyKey.toString()] = assetsCache.get(params.sceneName);
 	});
 
 	return {

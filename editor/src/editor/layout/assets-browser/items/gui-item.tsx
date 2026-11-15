@@ -1,9 +1,12 @@
 import { readJSON } from "fs-extra";
+import { dirname } from "path/posix";
 import { ipcRenderer } from "electron";
 
 import { ReactNode } from "react";
 
 import { CgIfDesign } from "react-icons/cg";
+
+import { projectConfiguration } from "../../../../project/configuration";
 
 import { AssetsBrowserItem } from "./item";
 
@@ -35,8 +38,13 @@ export class AssetBrowserGUIItem extends AssetsBrowserItem {
 	 * @override
 	 */
 	protected async onDoubleClick(): Promise<void> {
+		if (!projectConfiguration.path) {
+			return;
+		}
+
 		ipcRenderer.send("window:open", "build/src/editor/windows/ge", {
 			filePath: this.props.absolutePath,
+			projectPath: dirname(projectConfiguration.path),
 		});
 	}
 }

@@ -54,6 +54,13 @@ export interface IPreloadAssetsToDatabaseOptions {
 	 * @param progress defines the progress of the asset loading process, as a value between 0 and 1.
 	 */
 	onProgress?: (progress: number) => void;
+
+	/**
+	 * A callback function that is called for each file to determine whether it should be preloaded.
+	 * @param fileName defines the name of the file to check.
+	 * @param sceneFilesList defines the list of files used by the scene.
+	 */
+	shouldPreloadFile?: (fileName: string, sceneFilesList: string[]) => boolean;
 }
 
 /**
@@ -172,6 +179,11 @@ export async function preloadAssetsToDatabase(databaseName: string, rootUrl: str
 			const assetUrl = `${rootUrl}${file}`;
 
 			if (allSupportedExtensions.includes(extension)) {
+				if (options?.shouldPreloadFile && !options.shouldPreloadFile(file, files)) {
+					notifyProgress();
+					continue;
+				}
+
 				promises.push(
 					new Promise<void>(async (resolve) => {
 						if (await database.isFileMatchingVersion(assetUrl)) {

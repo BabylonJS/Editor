@@ -7,16 +7,30 @@ import { Observable } from "babylonjs";
 import { isWindows } from "./os";
 import { tryGetTerminalFromLocalStorage } from "./local-storage";
 
+export interface INodePtyExecutableOptions {
+	/**
+	 * Defines wether or not the shell stays open for the user to type commands. The given command is then not run.
+	 */
+	interactive?: boolean;
+	/**
+	 * Defines the absolute path to an executable to spawn instead of the shell of the user. The process is then
+	 * always interactive: the given command is ignored and the executable runs until it exits or is killed.
+	 */
+	file?: string;
+	/**
+	 * Defines the arguments given to the executable set in "file". On Windows, they can also be given as an already
+	 * escaped command line.
+	 */
+	args?: string[] | string;
+}
+
 /**
  * Creates a new node-pty instance.
  * @param command The command to run in the pty process.
  * @param options The options to pass to the pty process.
  * @returns A promise that resolves with the node-pty instance.
  */
-export async function execNodePty(
-	command: string,
-	options: IPtyForkOptions | IWindowsPtyForkOptions | (IPtyForkOptions & { interactive?: boolean }) | (IWindowsPtyForkOptions & { interactive?: boolean }) = {}
-): Promise<NodePtyInstance> {
+export async function execNodePty(command: string, options: (IPtyForkOptions | IWindowsPtyForkOptions) & INodePtyExecutableOptions = {}): Promise<NodePtyInstance> {
 	const id = randomUUID();
 
 	let forcedShell: string | null = null;
@@ -50,6 +64,10 @@ export class NodePtyInstance {
 	 * An observable that is triggered when data is received from the pty.
 	 */
 	public onGetDataObservable: Observable<string> = new Observable<string>();
+	/**
+	 * An observable that is triggered when the pty process exited, with its exit code.
+	 */
+	public onExitObservable: Observable<number> = new Observable<number>();
 
 	private _exited: boolean = false;
 	private _exitCode: number = -1;
@@ -61,15 +79,26 @@ export class NodePtyInstance {
 	public constructor(id: string) {
 		this.id = id;
 
+		const onData = (_: unknown, data: string) => {
+			this.onGetDataObservable.notifyObservers(data);
+		};
+
+		ipcRenderer.on(`editor:node-pty-data:${id}`, onData);
+
 		ipcRenderer.once(`editor:node-pty-exit:${this.id}`, (_, code) => {
 			this._exited = true;
 			this._exitCode = code;
-		});
 
-		ipcRenderer.on(`editor:node-pty-data:${id}`, (_, data) => {
-			// console.log(data);
-			this.onGetDataObservable.notifyObservers(data);
+			ipcRenderer.off(`editor:node-pty-data:${id}`, onData);
+			this.onExitObservable.notifyObservers(code);
 		});
+	}
+
+	/**
+	 * Gets wether or not the pty process exited.
+	 */
+	public get exited(): boolean {
+		return this._exited;
 	}
 
 	/**

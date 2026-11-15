@@ -15,7 +15,7 @@ async function loadScene(
 
 | Argument | Meaning |
 | --- | --- |
-| `rootUrl` | Base URL/folder containing the scene and its assets (e.g. `"/scene/"`). |
+| `rootUrl` | Base URL/folder containing the scene and its assets (e.g. `"/scene/"`, or `"./scene/"` in the Electron template). |
 | `sceneFilename` | The `.babylon` filename (e.g. `"example.babylon"`). |
 | `scene` | An already-created Babylon.js `Scene`. |
 | `scriptsMap` | The generated map from `src/scripts.ts` (see writing-scripts.md). |
@@ -25,16 +25,18 @@ async function loadScene(
 
 Beyond appending the file, `loadScene`:
 
-- Registers parsers for audio, textures, shadow generators, morph targets, sprite managers/maps, and node
-  particle system sets.
+- Registers parsers for meshes, audio, textures, shadow generators, morph targets, sprite managers/maps, and
+  node particle system sets.
 - Waits until the scene is fully ready (textures, delayed-load items).
 - Preloads all assets linked to scripts (e.g. via `@visibleAsAsset`), looping until none remain — unless
   `skipAssetsPreload` is set.
 - Configures clustered lights, shadow map refresh/render-list predicates, mesh LOD quality, and
   distance/screen-coverage LOD switching.
 - Applies the saved rendering/post-processing configuration to the active camera.
-- Applies physics gravity from scene metadata.
-- Instantiates and attaches every script to the scene, transform nodes, meshes, lights, cameras and sprites.
+- Applies physics gravity from scene metadata and creates the physics bodies configured on meshes and
+  transform nodes (physics must be enabled on the scene **before** calling `loadScene`).
+- Instantiates and attaches every script to the scene, transform nodes, meshes, lights (including the lights
+  of clustered light containers), cameras and sprites.
 
 ## `SceneLoaderOptions`
 
@@ -57,6 +59,22 @@ type SceneLoaderOptions = {
     /** Skip preloading of script-linked assets. Default false. */
     skipAssetsPreload?: boolean;
 };
+```
+
+`postProcessConfiguration` (`IApplyRenderingConfigurationOptions`) lets you turn off the saved post-processes
+on low-end devices, or change the MSAA samples:
+
+```ts
+{
+    msaaSamples?: number;
+    defaultPipelineDisabled?: boolean;
+    ssao2Disabled?: boolean;
+    ssrDisabled?: boolean;
+    motionBlurDisabled?: boolean;
+    vlsDisabled?: boolean;
+    volumetricLightingDisabled?: boolean;
+    taaDisabled?: boolean;
+}
 ```
 
 Lower quality levels reduce memory and improve performance (especially on mobile): the editor precomputes
@@ -86,7 +104,10 @@ const engine = new Engine(canvas, true, { stencil: true, antialias: true, audioE
 const scene = new Scene(engine);
 
 const havok = await HavokPhysics();
-scene.enablePhysics(new Vector3(0, -981, 0), new HavokPlugin(true, havok));
+const physicsPlugin = new HavokPlugin(true, havok);
+// Scenes are in centimeters: Havok limits the linear velocity to 200 units/s by default, which is only 2 m/s.
+physicsPlugin.setVelocityLimits(200 * 100, 100);
+scene.enablePhysics(new Vector3(0, -981, 0), physicsPlugin);
 
 SceneLoaderFlags.ForceFullSceneLoadingForIncremental = true;
 await loadScene("/scene/", "example.babylon", scene, scriptsMap, { quality: "high" });
@@ -97,7 +118,8 @@ engine.runRenderLoop(() => scene.render());
 
 Notes:
 
-- Gravity uses `-981` because the editor works in **centimeters** (≈ 9.81 m/s² → 981 cm/s²).
+- Gravity uses `-981` because the editor works in **centimeters** (≈ 9.81 m/s² → 981 cm/s²), and the
+  velocity limits of Havok are raised for the same reason — without it, fast bodies are capped at 2 m/s.
 - The many `import "@babylonjs/core/..."` side-effect imports register the engine features the saved scene
   needs; keep the ones your scene uses.
 - `SceneLoaderFlags.ForceFullSceneLoadingForIncremental = true` ensures meshes fully resolve their delayed

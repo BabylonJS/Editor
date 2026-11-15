@@ -1,8 +1,9 @@
 # Retrieving scene objects (decorators)
 
 These decorators link a class property to an object that exists elsewhere in the scene. The loader resolves
-them **after** the script's constructor runs, so the values are available from `onStart` onward — never in
-the constructor. All require the **class-based** script form.
+them right **after** the script's constructor runs, so the values are available from `onStart` onward — never in
+the constructor. All require the **class-based** script form. When no object matches, the property is left
+`null`/`undefined` (and a warning is logged for some decorators): always guard before use.
 
 They are roughly equivalent to calling `scene.getMeshById(...)`, `scene.getTransformNodeById(...)`, etc.,
 but resolved automatically by the editor's loader.
@@ -75,10 +76,12 @@ export default class MyMeshComponent {
 
 ## `@particleSystemFromScene(name, directDescendantsOnly = false)`
 
-Retrieve a particle system by name. With `directDescendantsOnly = false` (default), both descendants and
-global particle systems are considered.
+Retrieve a particle system by name. With `directDescendantsOnly = false` (default), any particle system of the
+scene with that name matches. With `true`, only the particle systems **emitted by the attached object** (their
+`emitter` is the object) are considered.
 
 ```ts
+import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { ParticleSystem } from "@babylonjs/core/Particles/particleSystem";
 import { particleSystemFromScene } from "babylonjs-editor-tools";
 
@@ -99,6 +102,7 @@ export default class MyScriptComponent {
 Retrieve a `SoundNode` by name.
 
 ```ts
+import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { soundFromScene, SoundNode } from "babylonjs-editor-tools";
 
 export default class MyScriptComponent {
@@ -113,21 +117,48 @@ export default class MyScriptComponent {
 }
 ```
 
-## `@spriteFromSpriteManager(name)` and `@animationFromSprite(name)`
+## `@spriteFromSpriteManager(name)`
 
-For scripts attached to a `SpriteManagerNode`: link a property to a sprite, or to a named sprite animation.
+For scripts attached to a **`SpriteManagerNode`** (a transform node holding a sprite manager): link a property to
+one of its sprites by name.
 
 ```ts
-import { spriteFromSpriteManager, animationFromSprite } from "babylonjs-editor-tools";
+import { Sprite } from "@babylonjs/core/Sprites/sprite";
+import { spriteFromSpriteManager, SpriteManagerNode } from "babylonjs-editor-tools";
 
 export default class MySpriteManagerComponent {
     @spriteFromSpriteManager("player")
-    private _player = null;
+    private _player: Sprite | null = null;
 
+    public constructor(public node: SpriteManagerNode) {}
+
+    public onStart(): void {
+        this._player?.playAnimation(0, 3, true, 100);
+    }
+}
+```
+
+## `@animationFromSprite(name)`
+
+For scripts attached to a **`Sprite`**: link a property to one of the animations defined on the sprite in the
+editor, as an `ISpriteAnimation` (`{ name, from, to, loop, delay }`). To play one by name without a decorator,
+use `playSpriteAnimationFromName` (see [runtime-helpers.md](runtime-helpers.md)).
+
+```ts
+import { Sprite } from "@babylonjs/core/Sprites/sprite";
+import { animationFromSprite, ISpriteAnimation } from "babylonjs-editor-tools";
+
+export default class MySpriteComponent {
     @animationFromSprite("walk")
-    private _walk = null;
+    private _walk: ISpriteAnimation | null = null;
 
-    public constructor(public manager: any) {}
+    public constructor(public sprite: Sprite) {}
+
+    public onStart(): void {
+        if (this._walk) {
+            this.sprite.playAnimation(this._walk.from, this._walk.to, this._walk.loop, this._walk.delay);
+        }
+    }
 }
 ```
 
@@ -137,7 +168,10 @@ Retrieve the **single** instance of another script class attached somewhere in t
 talk to each other directly.
 
 > **Important:** exactly one instance of the target class must exist in the scene. If multiple instances are
-> found, an error is thrown at load time and the project won't run (it can't decide which one to link).
+> found, an error is thrown on the first frame (it can't decide which one to link). The link is resolved on the
+> first frame, still before `onStart`, among the scripts of the scene, transform nodes, meshes, lights and
+> cameras (not sprites). To get the script of a given object instead, use `getScriptByClassForObject` (see
+> [runtime-helpers.md](runtime-helpers.md)).
 
 ```ts
 // my-component.ts
@@ -166,11 +200,13 @@ export default class MyOtherComponentClass {
 
 ## `@sceneAsset(sceneName)`
 
-Load a `.scene` asset as an `AdvancedAssetContainer` and link it to the property. Used both for one-shot
-scenes (e.g. a map) and for sub-scenes you instantiate many times (e.g. enemies). See
-[scene-containers.md](scene-containers.md) for the container API.
+Load a `.scene` asset (the name must end with `.scene`; only the file name is used) as an
+`AdvancedAssetContainer` and link it to the property. Used both for one-shot scenes (e.g. a map) and for
+sub-scenes you instantiate many times (e.g. enemies). See [scene-containers.md](scene-containers.md) for the
+container API. `@visibleAsAsset("scene", ...)` does the same with a scene chosen in the inspector.
 
 ```ts
+import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { sceneAsset, AdvancedAssetContainer } from "babylonjs-editor-tools";
 
 export default class MyMeshComponent {
@@ -180,8 +216,8 @@ export default class MyMeshComponent {
     public constructor(public mesh: Mesh) {}
 
     public onStart(): void {
-        // The container auto-instantiates once. Remove those default nodes if you only
-        // want to instantiate on demand:
+        // The nodes of the container are added to the scene once, with their scripts. Remove them if
+        // you only want to instantiate on demand:
         this._enemy?.removeDefault();
 
         for (let i = 0; i < 10; i++) {

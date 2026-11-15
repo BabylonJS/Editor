@@ -7,6 +7,8 @@ import { VolumetricLightScatteringPostProcess } from "@babylonjs/core/PostProces
 
 import { isMesh } from "../tools/guards";
 
+import { IRenderingOptions } from "./tools";
+
 let vlsPostProcess: VolumetricLightScatteringPostProcess | null = null;
 
 /**
@@ -33,7 +35,7 @@ export function disposeVLSPostProcess(scene: Scene): void {
 	}
 }
 
-export function createVLSPostProcess(scene: Scene, mesh?: Mesh | null): VolumetricLightScatteringPostProcess {
+export function createVLSPostProcess(scene: Scene, mesh?: Mesh | null, options?: IRenderingOptions): VolumetricLightScatteringPostProcess {
 	mesh ??= scene.meshes.find((mesh) => isMesh(mesh)) as Mesh;
 
 	vlsPostProcess = new VolumetricLightScatteringPostProcess(
@@ -46,6 +48,8 @@ export function createVLSPostProcess(scene: Scene, mesh?: Mesh | null): Volumetr
 		scene.getEngine(),
 		false
 	);
+
+	vlsPostProcess.samples = options?.msaaSamples ?? 1;
 
 	return vlsPostProcess;
 }
@@ -67,7 +71,7 @@ export function serializeVLSPostProcess(): any {
 	};
 }
 
-export function parseVLSPostProcess(scene: Scene, data: any): VolumetricLightScatteringPostProcess {
+export function parseVLSPostProcess(scene: Scene, data: any, options?: IRenderingOptions): VolumetricLightScatteringPostProcess {
 	let mesh: Mesh | null = null;
 
 	if (data.meshId) {
@@ -77,15 +81,16 @@ export function parseVLSPostProcess(scene: Scene, data: any): VolumetricLightSca
 		}
 	}
 
-	const vlsPostProcess = createVLSPostProcess(scene, mesh);
+	const pipeline = vlsPostProcess ?? createVLSPostProcess(scene, mesh, options);
+	pipeline.samples = options?.msaaSamples ?? 1;
 
-	vlsPostProcess.exposure = data.exposure;
-	vlsPostProcess.decay = data.decay;
-	vlsPostProcess.weight = data.weight;
-	vlsPostProcess.density = data.density;
-	vlsPostProcess.invert = data.invert;
-	vlsPostProcess.useCustomMeshPosition = data.useCustomMeshPosition;
-	vlsPostProcess.customMeshPosition.copyFrom(Vector3.FromArray(data.customMeshPosition));
+	pipeline.exposure = data.exposure;
+	pipeline.decay = data.decay;
+	pipeline.weight = data.weight;
+	pipeline.density = data.density;
+	pipeline.invert = data.invert;
+	pipeline.useCustomMeshPosition = data.useCustomMeshPosition;
+	pipeline.customMeshPosition.copyFrom(Vector3.FromArray(data.customMeshPosition));
 
-	return vlsPostProcess;
+	return pipeline;
 }

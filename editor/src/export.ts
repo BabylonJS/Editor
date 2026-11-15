@@ -41,8 +41,8 @@ export * from "./tools/light/shadows";
 export * from "./tools/node/metadata";
 export * from "./tools/material/material";
 export * from "./tools/material/extract";
+export * from "./tools/material/material";
 export * from "./tools/mesh/collision";
-export * from "./tools/scene/materials";
 
 export * from "./tools/guards/material";
 export * from "./tools/guards/math";
@@ -61,6 +61,7 @@ export * from "./editor/rendering/vls";
 export * from "./editor/rendering/ssao";
 export * from "./editor/rendering/motion-blur";
 export * from "./editor/rendering/default-pipeline";
+export * from "./editor/rendering/volumetric-lighting";
 
 export * from "./ui/spinner";
 export * from "./ui/color-picker";

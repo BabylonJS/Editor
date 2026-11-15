@@ -2,11 +2,21 @@
 
 The same script can be attached to many objects, each with its own configuration. Decorating a property with
 a `@visibleAs*` decorator exposes it as an editable field in the editor's inspector, **per object and per
-script**. The value the user sets in the editor is applied to the property at runtime before `onStart`.
+script**. The value the user sets in the editor is applied to the property at runtime right after the
+constructor, before `onStart`. The property initializer is the default value shown in the inspector.
 
 Every decorator takes an optional **label** (shown in the inspector; defaults to the property name) and an
-optional **configuration** object. The configuration always supports a `description` (tooltip), plus
-type-specific options listed below. Class-based scripts only.
+optional **configuration** object. The configuration always supports a `description` (tooltip) and a
+`group` (the fields sharing a group are shown together under that heading), plus type-specific options listed
+below. Class-based scripts only.
+
+```ts
+@visibleAsNumber("Speed", { group: "Movement", min: 0 })
+private _speed: number = 5;
+
+@visibleAsNumber("Jump Height", { group: "Movement", min: 0 })
+private _jumpHeight: number = 150;
+```
 
 ---
 
@@ -67,8 +77,9 @@ export default class MyMeshComponent {
 
 ## `@visibleAsVector2(label?, config?)` / `@visibleAsVector3(label?, config?)`
 
-2D (X, Y) or 3D (X, Y, Z) vector field. Config: `{ description?, min?, max?, step?, asDegrees? }`.
-`asDegrees` converts radians ⇄ degrees in the UI for easier editing.
+2D (X, Y) or 3D (X, Y, Z) vector field. Config: `{ description?, group?, min?, max?, step?, asDegrees? }`.
+`asDegrees` converts radians ⇄ degrees in the UI for easier editing. The inspector currently ignores `min`,
+`max` and `step` for vectors: clamp the values in the script if needed.
 
 ```ts
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
@@ -138,7 +149,9 @@ To assign: select the entity in the editor's graph and drag it onto the field in
 
 ## `@visibleAsTexture(label?, config?)`
 
-A field that accepts a texture. Config: `{ description?, acceptCubes?, onlyCubes? }`.
+A field that accepts a texture. Config: `{ description?, group?, acceptCubes?, onlyCubes? }`. The texture is
+parsed at runtime from the saved data. `onlyCubes` is accepted by the types but not enforced by the inspector
+yet: use `acceptCubes` to allow cube textures.
 
 ```ts
 import { Texture } from "@babylonjs/core/Materials/Textures/texture";
@@ -154,17 +167,28 @@ export default class MyMeshComponent {
 
 ## `@visibleAsKeyMap(label?, config?)`
 
-A key-binding field (lets the user pick a keyboard key). Config: `{ description? }`. Pairs well with
-`@onKeyboardEvent` (see [event-decorators.md](event-decorators.md)).
+A key-binding field: the user clicks it in the inspector, then presses a key. The value is a **number**, the
+character code of the upper-cased key (`event.key.toUpperCase().charCodeAt(0)`): `32` for space, `87` for W.
+Config: `{ description?, group? }` (the inspector doesn't show the description of this field). Pairs well with `@onKeyboardEvent` (see
+[event-decorators.md](event-decorators.md)).
 
 ```ts
-import { visibleAsKeyMap } from "babylonjs-editor-tools";
+import { Mesh } from "@babylonjs/core/Meshes/mesh";
+import { KeyboardEventTypes, KeyboardInfo } from "@babylonjs/core/Events/keyboardEvents";
+import { onKeyboardEvent, visibleAsKeyMap } from "babylonjs-editor-tools";
 
 export default class MyMeshComponent {
     @visibleAsKeyMap("Jump Key")
-    private _jumpKey: string = " ";
+    private _jumpKey: number = 32; // Space
 
     public constructor(public mesh: Mesh) {}
+
+    @onKeyboardEvent(KeyboardEventTypes.KEYDOWN)
+    public onKeyDown(info: KeyboardInfo): void {
+        if (info.event.key.toUpperCase().charCodeAt(0) === this._jumpKey) {
+            // Jump.
+        }
+    }
 }
 ```
 

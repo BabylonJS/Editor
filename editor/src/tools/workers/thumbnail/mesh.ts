@@ -7,7 +7,7 @@ import { readBlobAsDataUrl } from "../../tools";
 
 import { getLoaderPluginOptions } from "../../assets/loader";
 
-import { forceCompileAllSceneMaterials } from "../../scene/materials";
+import { forceCompileAllSceneMaterials } from "../../material/material";
 
 const assimpLoader = new AssimpJSLoader(false, false);
 RegisterSceneLoaderPlugin(assimpLoader);

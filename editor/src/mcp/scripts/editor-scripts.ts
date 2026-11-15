@@ -9,6 +9,7 @@ import { compileScript } from "../../tools/compile";
 import { ensureTemporaryDirectoryExists } from "../../tools/project";
 
 import { projectConfiguration } from "../../project/configuration";
+import { getAgentDataDirectory as getProjectAgentDataDirectory } from "../../project/agent-data";
 
 import { IMCPActionOptions } from "../action";
 
@@ -25,10 +26,11 @@ function getProjectDirectory(): string {
 
 /**
  * Returns the absolute path of the "agentdata" folder at the root of the project, where agent
- * automation scripts are stored.
+ * automation scripts are stored. The AI assistant of the editor removes it once the agent finished.
  */
 function getAgentDataDirectory(): string {
-	return join(getProjectDirectory(), "agentdata");
+	getProjectDirectory(); // Throws when no project is open.
+	return getProjectAgentDataDirectory(projectConfiguration.path!);
 }
 
 /**
@@ -192,6 +194,7 @@ PROJECT / APP:
 - editor.path -> the editor application path.
 
 CONVENTIONS
+- NEVER save the project (no saving through IPC, menus or editor internals): the user reviews your work and saves it themselves. The "agentdata/" folder is deleted when you finish your answer.
 - Units are centimeters. Pass editor.layout.preview.scene to Babylon constructors / MeshBuilder so new objects join the live scene.
 - MANDATORY: every entity you create (mesh, instance, light, camera, transform node, material, ...) MUST have BOTH an "id" and a "uniqueId" set, otherwise the editor inspector, selection and serialization break:
       import { Tools } from "babylonjs";

@@ -47,6 +47,7 @@ import { ICommandPaletteType } from "../dialogs/command-palette/command-palette"
 import { getMaterialCommands, getMaterialsLibraryCommands } from "../dialogs/command-palette/material";
 
 import { loadScene } from "../../project/load/scene";
+import { getAgentDataDirectory } from "../../project/agent-data";
 import { saveProject, saveProjectConfiguration } from "../../project/save/save";
 import { getProjectAssetsRootUrl, onProjectConfigurationChangedObservable, projectConfiguration } from "../../project/configuration";
 
@@ -153,6 +154,8 @@ export interface IEditorAssetsBrowserState {
 export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IEditorAssetsBrowserState> {
 	private _isMouseOver: boolean = false;
 	private _selectedFiles: string[] = [];
+
+	private _divNodesMap: Map<string, HTMLDivElement> = new Map();
 
 	public constructor(props: IEditorAssetsBrowserProps) {
 		super(props);
@@ -268,11 +271,16 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 		return this.state.browsedPath?.startsWith(join(dirname(projectConfiguration.path!), "/src")) ?? false;
 	}
 
+	private _isAgentDataFolder(projectPath: string, path: string): boolean {
+		const agentDataDirectory = getAgentDataDirectory(projectPath);
+		return path.replace(/\\/g, "/") === agentDataDirectory;
+	}
+
 	private async _refreshFilesTreeNodes(path: string): Promise<void> {
 		const files = await normalizedGlob(join(dirname(path), "**"), {
 			ignore: {
-				childrenIgnored: (p) => directoryPackagesExtensions.includes(extname(p.name).toLowerCase()),
-				ignored: (p) => !p.isDirectory() || directoryPackagesExtensions.includes(extname(p.name).toLowerCase()),
+				childrenIgnored: (p) => directoryPackagesExtensions.includes(extname(p.name).toLowerCase()) || this._isAgentDataFolder(path, p.fullpath()),
+				ignored: (p) => !p.isDirectory() || directoryPackagesExtensions.includes(extname(p.name).toLowerCase()) || this._isAgentDataFolder(path, p.fullpath()),
 			},
 		});
 
@@ -361,6 +369,8 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 	 * Sets the new path being browsed by the assets browser.
 	 */
 	public async setBrowsePath(path: string): Promise<void> {
+		this._divNodesMap.clear();
+
 		this.setState({
 			gridSearch: "",
 			browsedPath: path,
@@ -515,6 +525,12 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 		const scripts = nodes.map((node) => node.metadata?.scripts ?? []).flat();
 
 		scripts.forEach((script) => {
+			if (oldRelativePath.startsWith("src/") && newRelativePath.startsWith("src/")) {
+				if (script.key === oldRelativePath.replace("src/", "")) {
+					script.key = newRelativePath.replace("src/", "");
+				}
+			}
+
 			for (const v in script.values) {
 				if (!script.values.hasOwnProperty(v)) {
 					continue;
@@ -567,7 +583,16 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 			return;
 		}
 
-		this.setState({ selectedKeys: [absolutePath] });
+		this.setState({ selectedKeys: [absolutePath] }, () => {
+			this._scrollToNode(absolutePath);
+		});
+	}
+
+	private _scrollToNode(absolutePath: string): void {
+		const node = this._divNodesMap.get(absolutePath);
+		if (node) {
+			node.scrollIntoView({ behavior: "instant", block: "center" });
+		}
 	}
 
 	private async _handleDropInTree(ev: React.DragEvent<HTMLDivElement>, relativePath: string): Promise<void> {
@@ -605,9 +630,15 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 	}
 
 	private async _refreshItems(path: string): Promise<void> {
+		const agentDataDirectory = projectConfiguration.path ? getAgentDataDirectory(projectConfiguration.path) : null;
+
 		let files = await readdir(path);
 		files = files.filter((f) => {
 			if (f.charAt(0) === ".") {
+				return false;
+			}
+
+			if (agentDataDirectory && join(path.replace(/\\/g, "/"), f) === agentDataDirectory) {
 				return false;
 			}
 
@@ -771,7 +802,11 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 									const key = join(this.state.browsedPath!, f);
 									const selected = this.state.selectedKeys.indexOf(key) > -1;
 
-									return this._getAssetBrowserItem(f, key, selected);
+									return (
+										<div key={key} ref={(el) => el && this._divNodesMap.set(key, el)}>
+											{this._getAssetBrowserItem(f, key, selected)}
+										</div>
+									);
 								})}
 						</div>
 					</ContextMenuTrigger>
@@ -871,8 +906,7 @@ export class EditorAssetsBrowser extends Component<IEditorAssetsBrowserProps, IE
 	private _getAssetBrowserItem(filename: string, key: string, selected: boolean): ReactNode {
 		const extension = extname(filename).toLowerCase();
 
-		const props: IAssetsBrowserItemProps & { key: string } = {
-			key,
+		const props: IAssetsBrowserItemProps = {
 			selected,
 			absolutePath: key,
 			selectableKey: key,

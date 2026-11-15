@@ -54,4 +54,36 @@ export function registerAssetTools(server: McpServer): void {
 		},
 		async (args): Promise<CallToolResult> => callTextTool("instantiate_mesh_asset", args)
 	);
+
+	server.registerTool(
+		"import_asset",
+		{
+			title: "Import asset",
+			description:
+				"Copy a file from anywhere on disk into the project's assets folder: a texture you generated, a mesh you downloaded, a sound, etc. Only assets can be imported (images, `.env`/`.hdr`, meshes, sounds, videos, `.npss`, `.material`, `.gui`). The external buffers and images of a `.gltf` are copied with it, into a folder of their own. " +
+				"An existing asset is never replaced unless `overwrite` is true: the copy gets a free name instead. Replacing an asset reloads the elements of the scene that use it. " +
+				"Returns `{ path, absolutePath, resources[], reloaded }` where `path` is project-relative (e.g. `assets/textures/rock.png`), ready for `instantiate_mesh_asset`, `assign_texture_to_material`, `create_sound`, ...",
+			inputSchema: z.object({
+				sourcePath: z.string().describe("Absolute path of the file to copy into the project."),
+				folder: z.string().optional().describe("Destination folder, relative to the assets folder (e.g. `textures/ground`). Defaults to the assets folder itself."),
+				name: z.string().optional().describe("File name of the copy. Defaults to the name of the source file."),
+				overwrite: z.boolean().optional().describe("Replace the asset if it already exists. Defaults to false."),
+			}),
+		},
+		async (args): Promise<CallToolResult> => callTextTool("import_asset", args)
+	);
+
+	server.registerTool(
+		"reload_asset",
+		{
+			title: "Reload asset",
+			description:
+				"Reload, in the scene, the elements created from an asset after the file changed on disk: textures using an image, node particle systems created from a `.npss`, the material saved in a `.material`, a `.gui`, links to a `.scene`, and hierarchies imported with `instantiate_mesh_asset` from a mesh file (imported again in place, keeping their transform, parent, id and scripts). " +
+				"The editor already does it automatically for files modified under `assets/`; call this to force it. Returns `{ path, type, reloaded }` with the number of elements reloaded.",
+			inputSchema: z.object({
+				path: z.string().describe("Project-relative or absolute path of the asset that changed."),
+			}),
+		},
+		async (args): Promise<CallToolResult> => callTextTool("reload_asset", args)
+	);
 }

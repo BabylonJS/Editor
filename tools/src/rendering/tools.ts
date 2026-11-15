@@ -1,4 +1,8 @@
 import { Camera } from "@babylonjs/core/Cameras/camera";
+import { Constants } from "@babylonjs/core/Engines/constants";
+import { AbstractEngine } from "@babylonjs/core/Engines/abstractEngine";
+
+import { keepRenderingPipelinesOrdered } from "./order";
 
 import { disposeVLSPostProcess, parseVLSPostProcess, serializeVLSPostProcess, vlsPostProcessCameraConfigurations } from "./vls";
 import { disposeSSRRenderingPipeline, parseSSRRenderingPipeline, serializeSSRRenderingPipeline, ssrRenderingPipelineCameraConfigurations } from "./ssr";
@@ -6,6 +10,13 @@ import { disposeTAARenderingPipeline, parseTAARenderingPipeline, serializeTAARen
 import { disposeSSAO2RenderingPipeline, parseSSAO2RenderingPipeline, serializeSSAO2RenderingPipeline, ssaoRenderingPipelineCameraConfigurations } from "./ssao";
 import { disposeMotionBlurPostProcess, motionBlurPostProcessCameraConfigurations, parseMotionBlurPostProcess, serializeMotionBlurPostProcess } from "./motion-blur";
 import { defaultPipelineCameraConfigurations, disposeDefaultRenderingPipeline, parseDefaultRenderingPipeline, serializeDefaultRenderingPipeline } from "./default-pipeline";
+import {
+	disposeVolumetricLightingRenderingPipeline,
+	parseVolumetricLightingRenderingPipeline,
+	serializeVolumetricLightingRenderingPipeline,
+	setVolumetricLightingRenderingPipelineConfiguration,
+	getVolumetricLightingRenderingPipelineConfiguration,
+} from "./volumetric-lighting";
 
 /**
  * Saves the rendering configurations for the given camera. This is useful to restore the rendering configurations
@@ -19,13 +30,20 @@ export function saveRenderingConfigurationForCamera(camera: Camera) {
 	motionBlurPostProcessCameraConfigurations.set(camera, serializeMotionBlurPostProcess());
 	defaultPipelineCameraConfigurations.set(camera, serializeDefaultRenderingPipeline());
 	taaRenderingPipelineCameraConfigurations.set(camera, serializeTAARenderingPipeline());
+
+	setVolumetricLightingRenderingPipelineConfiguration(serializeVolumetricLightingRenderingPipeline());
 }
 
-export interface IApplyRenderingConfigurationOptions {
+export interface IRenderingOptions {
+	msaaSamples?: number;
+}
+
+export interface IApplyRenderingConfigurationOptions extends IRenderingOptions {
 	ssao2Disabled?: boolean;
 	vlsDisabled?: boolean;
 	ssrDisabled?: boolean;
 	motionBlurDisabled?: boolean;
+	volumetricLightingDisabled?: boolean;
 	defaultPipelineDisabled?: boolean;
 	taaDisabled?: boolean;
 }
@@ -42,36 +60,71 @@ export function applyRenderingConfigurationForCamera(camera: Camera, rootUrl: st
 	disposeVLSPostProcess(camera.getScene());
 	disposeSSRRenderingPipeline();
 	disposeMotionBlurPostProcess();
+	disposeVolumetricLightingRenderingPipeline();
 	disposeDefaultRenderingPipeline();
 	disposeTAARenderingPipeline();
 
+	// Pipelines created, or rebuilt, later on must still run in the order they are created in below.
+	keepRenderingPipelinesOrdered(camera.getScene());
+
 	const ssao2RenderingPipeline = ssaoRenderingPipelineCameraConfigurations.get(camera);
 	if (ssao2RenderingPipeline && !options?.ssao2Disabled) {
-		parseSSAO2RenderingPipeline(camera.getScene(), camera, ssao2RenderingPipeline);
+		parseSSAO2RenderingPipeline(camera.getScene(), camera, ssao2RenderingPipeline, options);
+	}
+
+	const volumetricLightingRenderingPipeline = getVolumetricLightingRenderingPipelineConfiguration();
+	if (volumetricLightingRenderingPipeline && !options?.volumetricLightingDisabled) {
+		parseVolumetricLightingRenderingPipeline(camera.getScene(), camera, volumetricLightingRenderingPipeline, options);
 	}
 
 	const vlsPostProcess = vlsPostProcessCameraConfigurations.get(camera);
 	if (vlsPostProcess && !options?.vlsDisabled) {
-		parseVLSPostProcess(camera.getScene(), vlsPostProcess);
+		parseVLSPostProcess(camera.getScene(), vlsPostProcess, options);
 	}
 
 	const ssrRenderingPipeline = ssrRenderingPipelineCameraConfigurations.get(camera);
 	if (ssrRenderingPipeline && !options?.ssrDisabled) {
-		parseSSRRenderingPipeline(camera.getScene(), camera, ssrRenderingPipeline);
+		parseSSRRenderingPipeline(camera.getScene(), camera, ssrRenderingPipeline, options);
 	}
 
 	const motionBlurPostProcess = motionBlurPostProcessCameraConfigurations.get(camera);
 	if (motionBlurPostProcess && !options?.motionBlurDisabled) {
-		parseMotionBlurPostProcess(camera.getScene(), camera, motionBlurPostProcess);
+		parseMotionBlurPostProcess(camera.getScene(), camera, motionBlurPostProcess, options);
 	}
 
 	const defaultRenderingPipeline = defaultPipelineCameraConfigurations.get(camera);
 	if (defaultRenderingPipeline && !options?.defaultPipelineDisabled) {
-		parseDefaultRenderingPipeline(camera.getScene(), camera, defaultRenderingPipeline, rootUrl);
+		parseDefaultRenderingPipeline(camera.getScene(), camera, defaultRenderingPipeline, rootUrl, options);
 	}
 
 	const taaRenderingPipeline = taaRenderingPipelineCameraConfigurations.get(camera);
 	if (taaRenderingPipeline && !options?.taaDisabled) {
-		parseTAARenderingPipeline(camera.getScene(), camera, taaRenderingPipeline);
+		parseTAARenderingPipeline(camera.getScene(), camera, taaRenderingPipeline, options);
 	}
+}
+
+/**
+ * Determines whether the given engine can use HDR (High Dynamic Range) rendering.
+ * Returns true if the engine supports either half-float or full-float render targets.
+ * @param engine defines the Babylon.js engine instance.
+ */
+export function canUseHdr(engine: AbstractEngine) {
+	const caps = engine.getCaps();
+	return caps.textureHalfFloatRender || caps.textureFloatRender;
+}
+
+/**
+ * Gets the appropriate HDR texture type for the given engine.
+ * @param engine defines the Babylon.js engine instance.
+ * @returns the HDR texture type constant.
+ */
+export function getHdrTextureType(engine: AbstractEngine) {
+	const caps = engine.getCaps();
+	if (caps.textureHalfFloatRender) {
+		return Constants.TEXTURETYPE_HALF_FLOAT;
+	} else if (caps.textureFloatRender) {
+		return Constants.TEXTURETYPE_FLOAT;
+	}
+
+	return Constants.TEXTURETYPE_UNSIGNED_BYTE;
 }

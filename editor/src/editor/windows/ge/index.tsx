@@ -14,10 +14,13 @@ import { Toaster } from "../../../ui/shadcn/ui/sonner";
 
 import { waitNextAnimationFrame } from "../../../tools/tools";
 
+import { imageUrlRewriter, registerGEImage } from "./image";
+
 const { GUIEditor } = require("babylonjs-gui-editor");
 
 export interface INodeMaterialEditorWindowProps {
 	filePath: string;
+	projectPath: string;
 }
 
 export default class NodeMaterialEditorWindow extends Component<INodeMaterialEditorWindowProps> {
@@ -75,7 +78,9 @@ export default class NodeMaterialEditorWindow extends Component<INodeMaterialEdi
 			return;
 		}
 
-		this._gui.parseSerializedObject(data.content, false);
+		registerGEImage(this.props.projectPath);
+
+		this._gui.parseSerializedObject(data.content, false, (url) => imageUrlRewriter(url));
 		this._gui.uniqueId = data.uniqueId;
 
 		GUIEditor.Show({

@@ -15,6 +15,8 @@ Derived from `mcp/specifications.md`. Goal: an AI agent connected to this MCP mu
 
 - Editor runs an HTTP server on `http://127.0.0.1:3712` (see `editor/src/mcp/mcp.ts`).
 - The MCP server POSTs to `http://localhost:3712/{endpoint}` with JSON body `{ endpoint, ...inputFields }` (see `mcp/src/request.mts`).
+- The AI assistant panel of the editor (`editor/src/editor/layout/assistant.tsx`) starts its own server per editor window with `startMcpServer(editor, { port: 0, token })`: a free port and a random token. The MCP server it gives to Claude Code reads them from `BABYLONJS_EDITOR_MCP_URL` and `BABYLONJS_EDITOR_MCP_TOKEN`, and sends the token in the `X-BabylonJS-Editor-Token` header. `BABYLONJS_EDITOR_ASSISTANT=1` adds assistant-specific server instructions.
+- The server only listens on the loopback interface and answers `403` to any request carrying an `Origin` header (web pages), `401` when a token is configured and missing or wrong, `400` to an invalid body and `404` to an unknown endpoint.
 - **Editor handler return contract:**
   - Handlers are `(scene: Scene, data: any, options: IMCPActionOptions) => any | Promise<any>`.
   - On success: HTTP `200`, body = the JSON value the handler returns (this is the tool's `data`).
@@ -46,7 +48,7 @@ Every editor handler that mutates the scene MUST make the change visible in the 
 | `get_scene_hierarchy` | Hierarchy of nodes as a tree (EXISTS, keep). | `{ rootNodeName?: string }` | tree of `{ id, name, type, children[] }` (extend existing to include `type`) |
 | `list_scenes` | List all `.scene` assets in the project. | `{}` | `{ scenes: [{ name, path, isActive }] }` |
 | `get_active_scene` | Name/path of the currently edited scene + counts. | `{}` | `{ name, path, meshCount, lightCount, materialCount }` |
-| `save_scene` | Save the current scene/project. | `{}` | `{ saved: true }` |
+| `save_scene` | Save the current scene/project, after the user confirms it in a dialog of the editor (`showConfirm`): users review, maybe tweak, and save the agent's work themselves. Declining is not an error. | `{}` | `{ saved: true }` or `{ saved: false, message }` |
 | `get_scene_settings` | Scene-level settings (clear color, ambient color, environment texture, fog, active camera). | `{}` | object |
 | `set_scene_settings` | Set scene-level settings via property paths. | `{ properties: { [path]: value } }` | updated settings |
 
@@ -74,6 +76,15 @@ Every editor handler that mutates the scene MUST make the change visible in the 
 | `set_mesh_visibility` | Visibility/enabled toggles. | `{ nodeId?, nodeName?, isVisible?, isEnabled?, visibility?: number }` | updated node summary |
 | `set_mesh_physics` | Add/update/remove a Havok physics body (gameplay). Mirrors `editor/src/editor/layout/inspector/mesh/physics.tsx`: creates a `PhysicsAggregate` with `getPhysicsShapeForMesh` default, sets `body.disableSync=true`. `motionType` static/dynamic/animated; `shapeType` box/sphere/capsule/cylinder/mesh; mass on body mass properties; friction/restitution on shape material. | `{ nodeId?, nodeName?, enabled?: boolean, mass?, motionType?, shapeType?, friction?, restitution? }` | node summary + `{ physics }` |
 | `get_mesh_bounding_info` | Bounding box in local & world space + whole-hierarchy world bounds (for scattering/placement). | `{ nodeId?, nodeName? }` | `{ local:{min,max,center,size}, world:{min,max,center,size}, hierarchyWorld:{min,max,size} }` |
+
+### Decals
+
+Decals are meshes built with `MeshBuilder.CreateDecal` (`localMode`, `cullBackFaces`), parented to the mesh they are projected on, with `metadata.decal = { angle, sizeX, sizeY, sizeZ, meshId, position, normal }` — the same shape as the decals painted with the editor's decals tool (`editor/src/editor/layout/inspector/decals/decals.tsx`), so the mesh inspector's Decal section edits them and saving merges the static decals of each material (`editor/src/project/save/decals.ts`). Editor side: `editor/src/mcp/meshes/decals.ts`.
+
+| endpoint | description | input | output |
+|---|---|---|---|
+| `create_decal` | Project a decal on a mesh. The material is a scene material (`materialId`/`materialName`) or a `.material` asset (`materialAssetPath`, loaded like the decals tool does); its `zOffset` becomes -3 when 0. `position`/`normal` are in world space (cm); without `normal`, rays are cast towards `position` from the active camera and along each axis, and the hit on the target closest to `position` gives the point and the face normal used. Default size `[100,100,100]`. | `{ targetNodeId?, targetNodeName?, materialId?, materialName?, materialAssetPath?, position: [x,y,z], normal?: [x,y,z], size?: [w,h,depth?], angle?: number, name? }` | node summary + `{ decal }` |
+| `update_decal` | Rebuild a decal's geometry with a new size/angle/position/normal on the same mesh (values not given are kept). Fails for decals merged at save time (no `meshId`). | `{ nodeId?, nodeName?, position?, normal?, size?, angle? }` | node summary + `{ decal }` |
 
 ### Lights & shadows
 
@@ -119,7 +130,9 @@ Per-camera effects. **Post-processes are per-camera**, so configuring one switch
 |---|---|---|---|
 | `list_assets` | List project assets, optionally filtered by type. Include whether an `editor_preview.png` exists for the containing folder. | `{ type?: "texture"|"cube-texture"|"mesh"|"sound"|"material"|"particle"|"json"|"navmesh", folder?: string }` | `{ assets: [{ name, path, type, hasPreview }] }` |
 | `get_asset_preview` | Return the folder `editor_preview.(png/jpg/bmp)` or a generated thumbnail as base64 (image tool). | `{ path }` | `{ imageBase64, mimeType }` |
-| `instantiate_mesh_asset` | Load a mesh asset (`.glb/.gltf/.babylon/.fbx`) into the scene = drag'n'drop equivalent (auto x100 scale for glTF per spec). Reuse `editor/src/editor/layout/preview/import/*`. | `{ path, name?, parentId?, position? }` | `{ rootNodeId, createdNodes: [nodeSummary] }` |
+| `instantiate_mesh_asset` | Load a mesh asset (`.glb/.gltf/.babylon/.fbx`) into the scene = drag'n'drop equivalent (auto x100 scale for glTF per spec). Reuse `editor/src/editor/layout/preview/import/*`. A single imported root is linked to its asset (`metadata.editorSourceAsset`) so it is imported again in place when the asset changes. | `{ path, name?, parentId?, position? }` | `{ rootNodeId, createdNodes: [nodeSummary] }` |
+| `import_asset` | Copy a file from anywhere on disk into `assets/` (or `assets/<folder>`). Never replaces an existing asset unless `overwrite` (a free name is used instead); the external buffers/images of a `.gltf` are copied with it in a folder of their own. Replacing an asset reloads the scene elements using it. | `{ sourcePath, folder?, name?, overwrite? }` | `{ path, absolutePath, resources: string[], reloaded }` |
+| `reload_asset` | Reload the scene elements created from an asset modified on disk: textures (image assets), node particle systems (`.npss`), the material of a `.material`, `.gui`, links to a `.scene`, hierarchies linked by `instantiate_mesh_asset`. The assistant also does it automatically for files changed under `assets/` (see `editor/src/tools/assets/reload.ts`). | `{ path }` | `{ path, type, reloaded }` |
 
 ### Particle systems
 
@@ -170,9 +183,9 @@ Reference: `tools/src/script.ts` (`IScript` = `onStart`/`onUpdate`/`onStop`). Sc
 | `create_script` | Create a new TS script with the editor's default skeleton at a path under `src/`. | `{ path, className? }` | `{ path }` |
 | `read_script` | Read a script's content. | `{ path }` | `{ content }` |
 | `write_script` | Overwrite/update a script's content. | `{ path, content }` | `{ path }` |
-| `attach_script` | Attach a script file to a node (writes the node script metadata as the inspector does). | `{ nodeId?, nodeName?, path }` | updated node summary |
-| `list_attached_scripts` | List scripts attached to a node + their exported values. | `{ nodeId?, nodeName? }` | `{ scripts: [{ path, exportedValues }] }` |
-| `set_script_exported_value` | Set an exported/inspector value of an attached script on a node. | `{ nodeId?, nodeName?, path, key, value }` | updated summary |
+| `attach_script` | Attach a script file to a node (writes the node script metadata as the inspector does), then compile it like the inspector (`workers/script.js` compile + extract, `editor/src/mcp/scripts/values.ts`) to fill `metadata.scripts[i].values` with `computeDefaultValuesForObject`: the loader of the game throws for a script with decorated properties and no `values`. | `{ nodeId?, nodeName?, path }` | node summary + `{ script: { path, enabled, properties: [{ key, type, label, description, entityType?, assetType?, value }] } \| { compileError } }` |
+| `list_attached_scripts` | List scripts attached to a node with their inspector properties (values updated the same way). | `{ nodeId?, nodeName? }` | `{ scripts: [{ path, enabled, properties \| compileError }] }` |
+| `set_script_exported_value` | Set an inspector value of an attached script. The key must be a decorated property (name or label); the value is converted to the format the inspector saves: arrays for vectors/colors (also `{x,y,z}`, `#rrggbb`), key code for keymaps (`"w"`, `"Space"`), node/sound/particle system **id** or animation group **name** for entities (resolved from id or name), project-relative path for assets (extension checked), serialized texture for textures (from an image path). | `{ nodeId?, nodeName?, path, key, value }` | node summary + `{ script: { path, properties } }` |
 | `detach_script` | Remove an attached script from a node. | `{ nodeId?, nodeName?, path }` | updated summary |
 
 ### Agent automation scripts (`.js` run in the editor)
@@ -184,15 +197,30 @@ Distinct from behavior scripts: these are `.js` files in a root **`agentdata/`**
 | `get_editor_api` | Reference for the `editor` mediator object (scene at `editor.layout.preview.scene`, graph/inspector/assets/console, conventions) + the `main(editor)` skeleton + a forest example. Derived from `/editor/src/editor`. | `{}` | `{ reference: string }` |
 | `write_agent_script` | Write/overwrite a `.js` script under `agentdata/` (name sanitized, `.js` enforced, no `..`). Must export `main(editor)`. | `{ name, content }` | `{ path }` |
 | `run_agent_script` | Compile + run an `agentdata/` script's `main(editor)` (await async). Accepts existing `name` or inline `content` (write-and-run). Refreshes graph/assets after. Returns only a primitive script result. | `{ name?, content? }` | `{ ran: true, script, result }` |
+
+`agentdata/` and its compiled scripts (`.bjseditor/agent-scripts`) are removed by `editor/src/project/agent-data.ts` `removeAgentData`: when the AI assistant's agent finishes an answer (its work state goes back to idle), when its session stops or exits, and when a project is opened (leftovers of agents that didn't finish, like external MCP clients).
 | `list_agent_scripts` | List `.js` scripts in `agentdata/`. | `{}` | `{ scripts: [{ name, path }] }` |
 
 ### Verification & utility
 
 | endpoint | description | input | output |
 |---|---|---|---|
-| `get_screenshot` | Screenshot of the preview for visual verification. Reuse `editor/src/tools/scene/screenshot.ts` `getBase64SceneScreenshot`. | `{ width?: number, height?: number }` | `{ imageBase64, mimeType: "image/png" }` (image tool) |
+| `get_screenshot` | Screenshot of the preview for visual verification. Reuse `editor/src/tools/scene/screenshot.ts` `getBase64SceneScreenshot`. While the game plays, the game scene is captured (the editor scene isn't rendered then). | `{ width?: number, height?: number }` | `{ imageBase64, mimeType: "image/png" }` (image tool) |
 | `focus_node` | Frame the camera on a node (helps screenshots). | `{ nodeId?, nodeName? }` | `{ ok: true }` |
 | `run_project` | (Optional) Start the project dev/run process. | `{}` | `{ started: true }` |
+| `get_instructions` | The server-level `instructions`, as a tool. Served by the MCP server itself (no editor endpoint). For the agents that don't give the instructions of MCP servers to their model: Codex only shows its models the tools they search for, so the AI assistant tells them to call it first (`developer_instructions`, see `editor/src/editor/layout/assistant/codex.ts`). | `{}` | text: the instructions |
+
+### Play-testing
+
+The game played in the preview like the Play button (`editor/src/editor/layout/preview/play.tsx`: export, esbuild compile of `src/scripts.ts`, `loadScene` in a new scene with Havok). During play, `editor/src/tools/scene/play/override.tsx` forwards the `console` methods of the game and its uncaught errors (`error`/`unhandledrejection`, repeated errors logged once) to the editor console, which keeps a text history (`EditorConsole.entries`, `nextEntryId`, `getEntriesSince`). Editor handlers in `editor/src/mcp/play/play.ts`. Only `play_scene` runs the project's code: the assistant doesn't pre-approve it.
+
+| endpoint | description | input | output |
+|---|---|---|---|
+| `play_scene` | Play (stopping a running game first, so scripts are compiled again), wait `durationMs` (default 2000, max 30000), report the console messages logged since. Stops the game when the scripts don't compile. | `{ durationMs? }` | `{ playing, compiled, activeCamera, fps, errors, warnings, logs }` |
+| `stop_scene` | Stop the game. | `{}` | `{ playing: false, wasPlaying }` |
+| `simulate_input` | Dispatch `keydown`/`keyup` (with legacy `keyCode`) and `pointermove`/`pointerdown`/`pointerup` events on the canvas: keys held for `durationMs`, `pointerMovement` spread over it, then a click at the center. Pointer lock can't be obtained by synthetic events. | `{ keys?: string[], durationMs?, pointerMovement?: [dx, dy], click?: "left"\|"right", holdClick? }` | `{ playing, keys, durationMs, errors, logs }` |
+| `inspect_play_scene` | State of the playing scene: active camera, pointer lock, playing animation groups, FPS, and world position/rotation/linear velocity of nodes looked up by id or name in the playing scene. | `{ nodeIds?, nodeNames? }` | `{ activeCamera, pointerLocked, playingAnimationGroups, fps, nodes }` |
+| `get_console_logs` | Messages of the editor console, optionally since an id and filtered by level. | `{ sinceId?, levels?, limit? }` | `{ entries: [{ id, level, message, time }], nextId }` |
 
 ### Batch (spec §"Important notes")
 
@@ -233,5 +261,5 @@ The MCP server exposes `execute_batch` as a single tool taking an array of `{ to
 - Add an image helper so `get_screenshot`/`get_asset_preview` return `{ type: "image", data, mimeType }`.
 - Update `mcp/manifest.json` `tools` array to list every tool with a one-line description.
 - Tool `title`/`description` text is the agent's only guidance — write descriptions that teach the agent the workflow & performance rules from the spec (prefer instances over clones; non-shadow lights go in the clustered container; verify with screenshots; download assets via the visible marketplace; scripts go under `src/`).
-- Pass server-level `instructions` to the `McpServer` constructor (2nd arg `ServerOptions`). These are surfaced to the agent once and are the place to state global guidance. The **#1 rule** must be: AUTHOR the scene with editor tools (real meshes/materials/instances/lights/cameras/particles/physics) so the user can hand-edit the result — do NOT clear the scene, create empty placeholder meshes, or generate geometry/materials/lighting/levels procedurally inside scripts. Scripts (`create_script`/`write_script`/`attach_script`) are for runtime BEHAVIOR only (input, game rules, AI, runtime spawning from already-authored assets). Then: **use `execute_batch` as much as possible** (one round-trip + one UI refresh; only split when a later action needs an earlier action's returned id), prefer instances over clones, clustered lights, cm units / glTF ×100, scripts under `src/`, physics via `set_mesh_physics`, collisions/deep props via `set_node_properties`, verify with `get_screenshot`. The script tool descriptions must reinforce "behavior only, not scene construction".
+- Pass server-level `instructions` to the `McpServer` constructor (2nd arg `ServerOptions`). These are surfaced to the agent once and are the place to state global guidance. The **#1 rule** must be: AUTHOR the scene with editor tools (real meshes/materials/instances/lights/cameras/particles/physics) so the user can hand-edit the result — do NOT clear the scene, create empty placeholder meshes, or generate geometry/materials/lighting/levels procedurally inside scripts. Scripts (`create_script`/`write_script`/`attach_script`) are for runtime BEHAVIOR only (input, game rules, AI, runtime spawning from already-authored assets). Then: **use `execute_batch` as much as possible** (one round-trip + one UI refresh; only split when a later action needs an earlier action's returned id), prefer instances over clones, clustered lights, cm units / glTF ×100, scripts under `src/`, physics via `set_mesh_physics`, collisions/deep props via `set_node_properties`, verify with `get_screenshot`. The script tool descriptions must reinforce "behavior only, not scene construction". The same text is returned by the `get_instructions` tool, for the agents that don't read server instructions.
 ```

@@ -38,6 +38,7 @@ import { ssaoRenderingPipelineCameraConfigurations } from "../../editor/renderin
 import { defaultPipelineCameraConfigurations } from "../../editor/rendering/default-pipeline";
 import { motionBlurPostProcessCameraConfigurations } from "../../editor/rendering/motion-blur";
 import { iblShadowsRenderingPipelineCameraConfigurations } from "../../editor/rendering/ibl-shadows";
+import { getVolumetricLightingRenderingPipelineConfiguration } from "../../editor/rendering/volumetric-lighting";
 
 import { writeBinaryGeometry } from "../tools/geometry";
 import { writeBinaryMorphTarget } from "../tools/morph-target";
@@ -196,6 +197,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 								}
 
 								instanceData.uniqueId = instance.uniqueId;
+								instanceData.billboardMode = instance.billboardMode;
 
 								delete instanceData.parentId;
 
@@ -737,6 +739,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 			try {
 				const data = animationGroup.serialize();
 				data.uniqueId = animationGroup.uniqueId;
+				data.doNotSerialize = animationGroup.doNotSerialize;
 
 				await writeJSON(animationGroupPath, data);
 			} catch (e) {
@@ -843,6 +846,7 @@ export async function saveScene(editor: Editor, projectPath: string, scenePath: 
 				physics: {
 					gravity: scene.getPhysicsEngine()?.gravity?.asArray(),
 				},
+				volumetricLightingRenderingPipelineConfiguration: getVolumetricLightingRenderingPipelineConfiguration(),
 				rendering: scene.cameras.map((camera) => ({
 					cameraId: camera.id,
 					ssao2RenderingPipeline: ssaoRenderingPipelineCameraConfigurations.get(camera),

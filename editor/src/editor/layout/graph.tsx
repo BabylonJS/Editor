@@ -48,7 +48,7 @@ import { isAdvancedDynamicTexture } from "../../tools/guards/texture";
 import { updateIblShadowsRenderPipeline } from "../../tools/light/ibl";
 import { getSpriteManagerNodeFromSprite } from "../../tools/sprite/tools";
 import { isParticleSystemVisibleInGraph } from "../../tools/particles/metadata";
-import { unique, UniqueNumber, waitNextAnimationFrame } from "../../tools/tools";
+import { cloneJSObject, unique, UniqueNumber, waitNextAnimationFrame } from "../../tools/tools";
 import {
 	applyNodeParentingConfiguration,
 	applyTransformNodeParentingConfiguration,
@@ -162,6 +162,9 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 
 	private _playRefreshIntervalId: number | null = null;
 
+	private _tree: Tree | null = null;
+	private _scrollToNodeTimeout: ReturnType<typeof setTimeout> | null = null;
+
 	public constructor(props: IEditorGraphProps) {
 		super(props);
 
@@ -269,6 +272,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 
 				<div className="flex flex-col w-full h-full overflow-y-auto">
 					<Tree
+						ref={(r) => (this._tree = r)}
 						contents={this.state.nodes}
 						onNodeExpand={(n) => this._handleNodeExpanded(n)}
 						onNodeCollapse={(n) => this._handleNodeCollapsed(n)}
@@ -507,17 +511,26 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 			}
 		}
 
+		let treeNodeId: string | number | null = null;
+
 		this._forEachNode(this.state.nodes, (n) => {
 			if (typeof n.id === "string" && idsToExpand.includes(n.id)) {
 				n.isExpanded = true;
 			}
 
 			n.isSelected = n.nodeData === node;
+
+			if (n.isSelected) {
+				treeNodeId = n.id;
+			}
 		});
 
-		this.setState({
-			nodes: this.state.nodes,
-		});
+		this.setState(
+			{
+				nodes: this.state.nodes,
+			},
+			() => this._scrollToNode(treeNodeId)
+		);
 	}
 
 	/**
@@ -533,15 +546,39 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 	 * @param node defines the reference to the node to select in the graph.
 	 */
 	public addToSelectedNodes(node: Node | IParticleSystem | Sprite): void {
+		let treeNodeId: string | number | null = null;
+
 		this._forEachNode(this.state.nodes, (n) => {
 			if (n.nodeData === node) {
 				n.isSelected = true;
+				treeNodeId = n.id;
 			}
 		});
 
-		this.setState({
-			nodes: this.state.nodes,
-		});
+		this.setState(
+			{
+				nodes: this.state.nodes,
+			},
+			() => this._scrollToNode(treeNodeId)
+		);
+	}
+
+	/**
+	 * Scrolls the graph to center the given node of the tree, selected from elsewhere (the preview for example), when it
+	 * isn't visible. The parents expanded to show it open with an animation of 200ms: it scrolls once they are open.
+	 * @param treeNodeId defines the id of the node of the tree to show.
+	 */
+	private _scrollToNode(treeNodeId: string | number | null): void {
+		if (this._scrollToNodeTimeout) {
+			clearTimeout(this._scrollToNodeTimeout);
+		}
+
+		this._scrollToNodeTimeout = setTimeout(() => {
+			if (treeNodeId !== null) {
+				// Chromium only, not typed: centers the node only when it isn't visible.
+				(this._tree?.getNodeContentElement(treeNodeId) as any)?.scrollIntoViewIfNeeded(true);
+			}
+		}, 200);
 	}
 
 	/**
@@ -657,74 +694,7 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 
 				try {
 					nodesToCopy.forEach(async (object) => {
-						let node: Node | IParticleSystem | Sprite | null = null;
-
-						if (isAbstractMesh(object) && !isNodeParticleSystemSetMesh(object) && !isGaussianSplattingPartProxyMesh(object)) {
-							const suffix = "(Instanced Mesh)";
-							const name = isInstancedMesh(object) ? object.name : `${object.name.replace(` ${suffix}`, "")} ${suffix}`;
-
-							const instance = (node = object.createInstance(name));
-							instance.isPickable = object.isPickable;
-							instance.position.copyFrom(object.position);
-							instance.rotation.copyFrom(object.rotation);
-							instance.scaling.copyFrom(object.scaling);
-							instance.rotationQuaternion = object.rotationQuaternion?.clone() ?? null;
-							instance.parent = object.parent;
-
-							if (object.physicsAggregate) {
-								instance.physicsAggregate = parsePhysicsAggregate(instance, serializePhysicsAggregate(object.physicsAggregate));
-								instance.physicsAggregate.body.disableSync = true;
-							}
-
-							const collisionMesh = getCollisionMeshFor(instance.sourceMesh);
-							collisionMesh?.updateInstances(instance.sourceMesh);
-						} else if (isParticleSystem(object) && isAbstractMesh(parent)) {
-							const suffix = "(Clone)";
-							const name = `${object.name.replace(` ${suffix}`, "")} ${suffix}`;
-
-							node = object.clone(name, parent, false);
-						} else if (isGaussianSplattingPartProxyMesh(object) && object.baseGaussianSplattingMesh) {
-							const proxyMesh = addGaussianSplattingMeshPartProxyMesh(object.baseGaussianSplattingMesh, this.props.editor);
-							if (proxyMesh) {
-								node = proxyMesh;
-
-								const suffix = "(Proxy Mesh)";
-								const name = `${object.name.replace(` ${suffix}`, "")} ${suffix}`;
-
-								proxyMesh.name = name;
-								proxyMesh.position.copyFrom(object.position);
-								proxyMesh.rotation.copyFrom(object.rotation);
-								proxyMesh.scaling.copyFrom(object.scaling);
-								proxyMesh.rotationQuaternion = object.rotationQuaternion?.clone() ?? null;
-								proxyMesh.parent = object.parent;
-							}
-						} else if (isNode(object) || isSprite(object)) {
-							node = cloneNode(this.props.editor, object);
-						}
-
-						if (node) {
-							if (!isSprite(node)) {
-								node.id = Tools.RandomId();
-							}
-
-							node.uniqueId = UniqueNumber.Get();
-
-							if (parent && isNode(node)) {
-								if (shift && isNode(object)) {
-									applyTransformNodeParentingConfiguration(node, parent, tempTransfromNode);
-								} else {
-									node.parent = parent;
-								}
-							}
-
-							if (isAbstractMesh(node) && !isGaussianSplattingPartProxyMesh(node)) {
-								this.props.editor.layout.preview.scene.lights
-									.map((light) => light.getShadowGenerator())
-									.forEach((generator) => generator?.getShadowMap()?.renderList?.push(node));
-							}
-
-							newNodes.push(node);
-						}
+						this._recursivelyCloneNode(object, tempTransfromNode, newNodes, parent, shift);
 					});
 				} catch (e) {
 					console.error(e);
@@ -733,6 +703,114 @@ export class EditorGraph extends Component<IEditorGraphProps, IEditorGraphState>
 				tempTransfromNode.dispose(false, true);
 			},
 		});
+	}
+
+	private _recursivelyCloneNode(
+		object: unknown,
+		tempTransfromNode: TransformNode,
+		newNodes: (Node | IParticleSystem | Sprite)[],
+		parent?: Node,
+		shift?: boolean
+	): Node | IParticleSystem | Sprite | null {
+		const node = this._cloneNode(object, tempTransfromNode, parent, shift);
+
+		if (node) {
+			newNodes.push(node);
+		}
+
+		if (isNode(object)) {
+			const descendants = object.getDescendants(true);
+			descendants.forEach((descendant) => {
+				const childNode = this._recursivelyCloneNode(descendant, tempTransfromNode, newNodes, parent, shift);
+				if (childNode && isNode(childNode) && isNode(node)) {
+					childNode.parent = node;
+				}
+			});
+		}
+
+		return node;
+	}
+
+	private _cloneNode(object: unknown, tempTransfromNode: TransformNode, parent?: Node, shift?: boolean): Node | IParticleSystem | Sprite | null {
+		let node: Node | IParticleSystem | Sprite | null = null;
+
+		if ((isMesh(object) || isInstancedMesh(object)) && !isNodeParticleSystemSetMesh(object) && !isGaussianSplattingPartProxyMesh(object)) {
+			const suffix = "(Instanced Mesh)";
+			const name = isInstancedMesh(object) ? object.name : `${object.name.replace(` ${suffix}`, "")} ${suffix}`;
+
+			const instance = (node = object.createInstance(name));
+			instance.isPickable = object.isPickable;
+			instance.isVisible = object.isVisible;
+			instance.setEnabled(object.isEnabled(false));
+			instance.position.copyFrom(object.position);
+			instance.rotation.copyFrom(object.rotation);
+			instance.scaling.copyFrom(object.scaling);
+			instance.rotationQuaternion = object.rotationQuaternion?.clone() ?? null;
+			instance.billboardMode = object.billboardMode;
+			instance.parent = object.parent;
+
+			try {
+				if (object.metadata) {
+					instance.metadata = cloneJSObject(object.metadata);
+				}
+			} catch (e) {
+				// Catch silently
+			}
+
+			if (object.physicsAggregate) {
+				instance.physicsAggregate = parsePhysicsAggregate(instance, serializePhysicsAggregate(object.physicsAggregate));
+				instance.physicsAggregate.body.disableSync = true;
+			}
+
+			const collisionMesh = getCollisionMeshFor(instance.sourceMesh);
+			collisionMesh?.updateInstances(instance.sourceMesh);
+		} else if (isParticleSystem(object) && isAbstractMesh(parent)) {
+			const suffix = "(Clone)";
+			const name = `${object.name.replace(` ${suffix}`, "")} ${suffix}`;
+
+			node = object.clone(name, parent, false);
+		} else if (isGaussianSplattingPartProxyMesh(object) && object.baseGaussianSplattingMesh) {
+			const proxyMesh = addGaussianSplattingMeshPartProxyMesh(object.baseGaussianSplattingMesh, this.props.editor);
+			if (proxyMesh) {
+				node = proxyMesh;
+
+				const suffix = "(Proxy Mesh)";
+				const name = `${object.name.replace(` ${suffix}`, "")} ${suffix}`;
+
+				proxyMesh.name = name;
+				proxyMesh.position.copyFrom(object.position);
+				proxyMesh.rotation.copyFrom(object.rotation);
+				proxyMesh.scaling.copyFrom(object.scaling);
+				proxyMesh.rotationQuaternion = object.rotationQuaternion?.clone() ?? null;
+				proxyMesh.parent = object.parent;
+			}
+		} else if (isNode(object) || isSprite(object)) {
+			node = cloneNode(this.props.editor, object, {
+				doNotCloneChildren: true,
+			});
+		}
+
+		if (node) {
+			if (!isSprite(node)) {
+				node.id = Tools.RandomId();
+			}
+
+			node.uniqueId = UniqueNumber.Get();
+
+			if (parent && isNode(node)) {
+				if (shift && isNode(object)) {
+					applyTransformNodeParentingConfiguration(node, parent, tempTransfromNode);
+				} else {
+					node.parent = parent;
+				}
+			}
+
+			if (isAbstractMesh(node) && !isGaussianSplattingPartProxyMesh(node)) {
+				this.props.editor.layout.preview.scene.lights.map((light) => light.getShadowGenerator()).forEach((generator) => generator?.getShadowMap()?.renderList?.push(node));
+			}
+		}
+
+		return node;
 	}
 
 	public copySelectedNodeTransform(node: Node): void {

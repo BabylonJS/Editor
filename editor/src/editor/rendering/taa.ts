@@ -1,4 +1,6 @@
 import { TAARenderingPipeline, Camera } from "babylonjs";
+import { getHdrTextureType } from "babylonjs-editor-tools";
+
 import { Editor } from "../main";
 
 let taaRenderingPipeline: TAARenderingPipeline | null = null;
@@ -20,7 +22,12 @@ export function disposeTAARenderingPipeline(): void {
 }
 
 export function createTAARenderingPipeline(editor: Editor): TAARenderingPipeline {
-	taaRenderingPipeline = new TAARenderingPipeline("TAARenderingPipeline", editor.layout.preview.scene, [editor.layout.preview.scene.activeCamera!]);
+	taaRenderingPipeline = new TAARenderingPipeline(
+		"TAARenderingPipeline",
+		editor.layout.preview.scene,
+		[editor.layout.preview.scene.activeCamera!],
+		getHdrTextureType(editor.layout.preview.engine as any)
+	);
 	taaRenderingPipeline.samples = 16;
 	taaRenderingPipeline.disableOnCameraMove = false;
 	taaRenderingPipeline.reprojectHistory = true;

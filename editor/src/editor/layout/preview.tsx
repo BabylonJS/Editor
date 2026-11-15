@@ -39,6 +39,7 @@ import {
 	_GetAudioEngine,
 	GaussianSplattingCompoundMesh,
 } from "babylonjs";
+import { keepRenderingPipelinesOrdered } from "babylonjs-editor-tools";
 
 import { SpinnerUIComponent } from "../../ui/spinner";
 
@@ -81,6 +82,11 @@ import { disposeSSRRenderingPipeline, parseSSRRenderingPipeline, ssrRenderingPip
 import { disposeSSAO2RenderingPipeline, parseSSAO2RenderingPipeline, ssaoRenderingPipelineCameraConfigurations } from "../rendering/ssao";
 import { disposeMotionBlurPostProcess, motionBlurPostProcessCameraConfigurations, parseMotionBlurPostProcess } from "../rendering/motion-blur";
 import { defaultPipelineCameraConfigurations, disposeDefaultRenderingPipeline, parseDefaultRenderingPipeline } from "../rendering/default-pipeline";
+import {
+	getVolumetricLightingRenderingPipelineConfiguration,
+	disposeVolumetricLightingRenderingPipeline,
+	parseVolumetricLightingRenderingPipeline,
+} from "../rendering/volumetric-lighting";
 
 import { EditorGraphContextMenu } from "./graph/context-menu";
 
@@ -331,12 +337,17 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 			return;
 		}
 
+		const hardwareScalingLevel = this.engine?.getHardwareScalingLevel();
+
 		this.axis?.stop();
 		this.icons?.stop();
+
+		this.statistics?.dispose();
 
 		disposeSSRRenderingPipeline();
 		disposeMotionBlurPostProcess();
 		disposeSSAO2RenderingPipeline();
+		disposeVolumetricLightingRenderingPipeline();
 		disposeDefaultRenderingPipeline();
 		disposeTAARenderingPipeline();
 
@@ -361,7 +372,11 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 
 		this._previewCamera = null;
 
-		return this._onGotCanvasRef(this.canvas);
+		await this._onGotCanvasRef(this.canvas);
+
+		if ((hardwareScalingLevel ?? null) !== null) {
+			this.engine?.setHardwareScalingLevel(hardwareScalingLevel);
+		}
 	}
 
 	/**
@@ -521,8 +536,8 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		Animation.AllowMatricesInterpolation = true;
 		Animation.AllowMatrixDecomposeForInterpolation = true;
 
-		const webGpuSupported = false;
-		// const webGpuSupported = await WebGPUEngine.IsSupportedAsync;
+		// const webGpuSupported = false;
+		const webGpuSupported = location.href.includes("isWebGPU=true") && (await WebGPUEngine.IsSupportedAsync);
 
 		if (webGpuSupported) {
 			this.engine = await this._createWebgpuEngine(this._workingCanvas);
@@ -548,6 +563,10 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		this.scene.skipPointerUpPicking = true;
 		this.scene.skipPointerDownPicking = true;
 		this.scene.skipPointerMovePicking = true;
+
+		// Enabling a pipeline in the inspector appends it at the end of the chain of the camera: keeps the same order
+		// as when they are all created at once. @see _switchToCameraById
+		keepRenderingPipelinesOrdered(this.scene as any);
 
 		this.camera = new EditorCamera("camera", Vector3.Zero(), this.scene);
 		this.camera.attachControl(true);
@@ -606,7 +625,10 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 			mode: EasingFunction.EASINGMODE_EASEINOUT,
 		};
 
-		this.scene.enablePhysics(new Vector3(0, -981, 0), new HavokPlugin());
+		const physicsPlugin = new HavokPlugin();
+		// Scenes are in centimeters: Havok limits the linear velocity to 200 units/s by default, which is only 2 m/s. Raise it to 200 m/s.
+		physicsPlugin.setVelocityLimits(200 * 100, 100);
+		this.scene.enablePhysics(new Vector3(0, -981, 0), physicsPlugin);
 
 		this.statistics = new Stats(this.props.editor);
 		this.statistics.onValuesChangedObservable.add((values) => {
@@ -623,24 +645,39 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		this.forceUpdate();
 	}
 
-	private async _createWebgpuEngine(canvas: HTMLCanvasElement): Promise<WebGPUEngine> {
-		const glslangJs = require("@babylonjs/core/assets/glslang/glslang.cjs");
-		const glslang = await glslangJs(join(process.cwd(), "../node_modules/@babylonjs/core/assets/glslang/glslang.wasm"));
+	private _twgsl: any = null;
+	private _glslang: any = null;
 
-		const twgslJs = require("@babylonjs/core/assets/twgsl/twgsl.cjs");
-		const twgsl = await twgslJs(join(process.cwd(), "../node_modules/@babylonjs/core/assets/twgsl/twgsl.wasm"));
+	private async _createWebgpuEngine(canvas: HTMLCanvasElement): Promise<WebGPUEngine> {
+		await waitUntil(() => this.props.editor.path);
+
+		const appPath = this.props.editor.path!;
+		const nodeModules = process.env.DEBUG ? "../node_modules" : "node_modules";
+
+		if (!this._glslang) {
+			const glslangJs = require("@babylonjs/core/assets/glslang/glslang.cjs");
+			this._glslang = await glslangJs(join(appPath, nodeModules, "@babylonjs/core/assets/glslang/glslang.wasm"));
+		}
+
+		if (!this._twgsl) {
+			const twgslJs = require("@babylonjs/core/assets/twgsl/twgsl.cjs");
+			this._twgsl = await twgslJs(join(appPath, nodeModules, "@babylonjs/core/assets/twgsl/twgsl.wasm"));
+		}
 
 		const engine = new WebGPUEngine(canvas, {
 			antialias: true,
 			audioEngine: true,
 			adaptToDeviceRatio: true,
 			glslangOptions: {
-				glslang,
+				glslang: this._glslang,
 			},
 			twgslOptions: {
-				twgsl,
+				twgsl: this._twgsl,
 			},
+			setMaximumLimits: true,
+			enableAllFeatures: true,
 			useHighPrecisionMatrix: true,
+			useExactSrgbConversions: true,
 			powerPreference: "high-performance",
 		});
 
@@ -1138,12 +1175,18 @@ export class EditorPreview extends Component<IEditorPreviewProps, IEditorPreview
 		disposeVLSPostProcess(this.props.editor);
 		disposeSSRRenderingPipeline();
 		disposeMotionBlurPostProcess();
+		disposeVolumetricLightingRenderingPipeline();
 		disposeDefaultRenderingPipeline();
 		disposeTAARenderingPipeline();
 
 		const ssao2Pipeline = ssaoRenderingPipelineCameraConfigurations.get(camera);
 		if (ssao2Pipeline) {
 			parseSSAO2RenderingPipeline(this.props.editor, ssao2Pipeline);
+		}
+
+		const volumetricLightingRenderingPipeline = getVolumetricLightingRenderingPipelineConfiguration();
+		if (volumetricLightingRenderingPipeline) {
+			parseVolumetricLightingRenderingPipeline(this.props.editor, volumetricLightingRenderingPipeline);
 		}
 
 		const vlsPostProcess = vlsPostProcessCameraConfigurations.get(camera);

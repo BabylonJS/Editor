@@ -15,6 +15,7 @@ import { tryGetExperimentalFeaturesEnabledFromLocalStorage } from "../tools/loca
 import { checkNodeJSAvailable, checkVisualStudioCodeAvailable, nodeJSAvailable, visualStudioCodeAvailable } from "../tools/process";
 
 import { saveProject } from "../project/save/save";
+import { removeAgentData } from "../project/agent-data";
 import { onProjectConfigurationChangedObservable, projectConfiguration } from "../project/configuration";
 
 // import { initializeMcpServer } from "../mcp/mcp";
@@ -29,6 +30,7 @@ import { disposeSSRRenderingPipeline } from "./rendering/ssr";
 import { disposeSSAO2RenderingPipeline } from "./rendering/ssao";
 import { disposeMotionBlurPostProcess } from "./rendering/motion-blur";
 import { disposeDefaultRenderingPipeline } from "./rendering/default-pipeline";
+import { disposeVolumetricLightingRenderingPipeline } from "./rendering/volumetric-lighting";
 
 import { CommandPalette } from "./dialogs/command-palette/command-palette";
 import { EditorGenerateProjectComponent } from "./dialogs/generate/generate-project";
@@ -39,6 +41,7 @@ import { Toaster } from "../ui/shadcn/ui/sonner";
 
 import { EditorLayout } from "./layout";
 import { removeNodes } from "./layout/graph/remove";
+import { EditorAssistantWorkState } from "./layout/assistant/hooks";
 
 import "./nodes/camera";
 import "./nodes/scene-link";
@@ -132,6 +135,15 @@ export interface IEditorState {
 	openedTabs: string[];
 
 	/**
+	 * Defines wether or not the AI assistant panel is open on the right of the editor.
+	 */
+	assistantOpen: boolean;
+	/**
+	 * Defines what the AI assistant is doing: nothing, working on a request, or waiting for the user to answer it.
+	 */
+	assistantWorkState: EditorAssistantWorkState;
+
+	/**
 	 * Defines if the project is being edited.
 	 */
 	editProject: boolean;
@@ -173,6 +185,8 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 	public constructor(props: IEditorProps) {
 		super(props);
 
+		const enableExperimentalFeatures = tryGetExperimentalFeaturesEnabledFromLocalStorage();
+
 		this.state = {
 			plugins: [],
 			lastOpenedScenePath: null,
@@ -187,8 +201,11 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 
 			convertImportedLightmaps: true,
 
-			enableExperimentalFeatures: tryGetExperimentalFeaturesEnabledFromLocalStorage(),
+			enableExperimentalFeatures,
+
 			openedTabs: [],
+			assistantOpen: false,
+			assistantWorkState: "idle",
 
 			editProject: false,
 			editPreferences: false,
@@ -259,6 +276,8 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 
 		ipcRenderer.on("editor:run-project", () => startProjectDevProcess(this));
 
+		ipcRenderer.on("editor:toggle-assistant", () => this.setAssistantOpen(!this.state.assistantOpen));
+
 		onUndoObservable.add(() => {
 			this.layout.graph.refresh();
 			this.layout.inspector.forceUpdate();
@@ -280,10 +299,6 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 
 		// Ready
 		ipcRenderer.send("editor:ready");
-		ipcRenderer.send("editor:setup-menu", {
-			enableExperimentalFeatures: this.state.enableExperimentalFeatures,
-			openedTabs: this.state.openedTabs,
-		});
 
 		// Start the MCP server once the layout/preview scene is ready.
 		await waitUntil(() => this.layout?.preview?.scene);
@@ -313,6 +328,8 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 				}
 			});
 		}
+
+		this.updateMenu();
 	}
 
 	/**
@@ -320,7 +337,7 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 	 * @param absolutePath defines the absolute path to the project to open.
 	 */
 	public async openProject(absolutePath: string): Promise<void> {
-		await waitUntil(() => this.layout.preview.scene);
+		await waitUntil(() => this.layout.preview.scene && this.path);
 
 		ipcRenderer.send("editor:maximize-window");
 
@@ -328,15 +345,53 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 
 		projectConfiguration.path = absolutePath;
 
+		// Automation scripts an agent left in the project, if it didn't finish.
+		void removeAgentData(absolutePath);
+
 		disposeVLSPostProcess(this);
 		disposeSSRRenderingPipeline();
 		disposeMotionBlurPostProcess();
 		disposeSSAO2RenderingPipeline();
+		disposeVolumetricLightingRenderingPipeline();
 		disposeDefaultRenderingPipeline();
 
 		onProjectConfigurationChangedObservable.notifyObservers(projectConfiguration);
 
 		await loadProject(this, absolutePath);
+	}
+
+	/**
+	 * Updates the native menu of the application with the current state of the editor.
+	 */
+	public updateMenu(): void {
+		ipcRenderer.send("editor:setup-menu", {
+			enableExperimentalFeatures: this.state.enableExperimentalFeatures,
+			openedTabs: this.state.openedTabs,
+			assistantOpen: this.state.assistantOpen,
+		});
+	}
+
+	/**
+	 * Shows or hides the AI assistant panel docked on the right of the editor. Hiding it keeps its session running.
+	 * The AI assistant is an experimental feature: it can't be shown while experimental features are disabled.
+	 * @param open defines wether or not the AI assistant panel is open.
+	 */
+	public setAssistantOpen(open: boolean): void {
+		if (open === this.state.assistantOpen || (open && !this.state.enableExperimentalFeatures)) {
+			return;
+		}
+
+		if (open) {
+			ipcRenderer.send("editor:project-hook", "AI assistant opened");
+		}
+
+		this.setState({ assistantOpen: open }, () => {
+			this.updateMenu();
+
+			if (open) {
+				requestAnimationFrame(() => this.layout.assistant?.focus());
+			}
+		});
 	}
 
 	/**

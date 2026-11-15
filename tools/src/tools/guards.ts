@@ -20,6 +20,8 @@ import { SpotLight } from "@babylonjs/core/Lights/spotLight";
 import { PointLight } from "@babylonjs/core/Lights/pointLight";
 import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
 import { DirectionalLight } from "@babylonjs/core/Lights/directionalLight";
+import { ShadowGenerator } from "@babylonjs/core/Lights/Shadows/shadowGenerator";
+import { CascadedShadowGenerator } from "@babylonjs/core/Lights/Shadows/cascadedShadowGenerator";
 import { ClusteredLightContainer } from "@babylonjs/core/Lights/Clustered/clusteredLightContainer";
 
 import { ParticleSystem } from "@babylonjs/core/Particles/particleSystem";
@@ -29,6 +31,7 @@ import { GPUParticleSystem } from "@babylonjs/core/Particles/gpuParticleSystem";
 import { Sprite } from "@babylonjs/core/Sprites/sprite";
 
 import { SoundNode } from "./sound";
+import { SpriteManagerNode } from "./sprite";
 
 /**
  * Returns wether or not the given object is an AbstractMesh.
@@ -190,6 +193,22 @@ export function isLight(object: any): object is Light {
 }
 
 /**
+ * Returns wether or not the given object is a ShadowGenerator.
+ * @param object defines the reference to the object to test its class name.
+ */
+export function isShadowGenerator(object: any): object is ShadowGenerator {
+	return object.getClassName?.() === "ShadowGenerator";
+}
+
+/**
+ * Returns wether or not the given object is a CascadedShadowGenerator.
+ * @param object defines the reference to the object to test its class name.
+ */
+export function isCascadedShadowGenerator(object: any): object is CascadedShadowGenerator {
+	return object.getClassName?.() === "CascadedShadowGenerator";
+}
+
+/**
  * Returns wether or not the given object is a ClusteredLightContainer.
  * @param object defines the reference to the object to test its class name.
  */
@@ -241,6 +260,15 @@ export function isAnyParticleSystem(object: any): object is IParticleSystem {
 	}
 
 	return false;
+}
+
+/**
+ * Returns wether or not the given object is a SpriteManagerNode.
+ * @param object defines the reference to the object to test its class name.
+ * @returns true if the object is a SpriteManagerNode, false otherwise.
+ */
+export function isSpriteManagerNode(object: any): object is SpriteManagerNode {
+	return object.getClassName?.() === "SpriteManagerNode";
 }
 
 /**

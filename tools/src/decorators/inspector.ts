@@ -4,6 +4,7 @@ export type VisibleInInspectorDecoratorType = "number" | "boolean" | "string" | 
 
 export type VisibleInInspectorDecoratorConfiguration = {
 	type: VisibleInInspectorDecoratorType;
+	group?: string;
 	description?: string;
 };
 

@@ -69,15 +69,15 @@ export function parseVLSPostProcess(editor: Editor, data: any): VolumetricLightS
 		}
 	}
 
-	const vlsPostProcess = createVLSPostProcess(editor, mesh);
+	const postProcess = vlsPostProcess ?? createVLSPostProcess(editor, mesh);
 
-	vlsPostProcess.exposure = data.exposure;
-	vlsPostProcess.decay = data.decay;
-	vlsPostProcess.weight = data.weight;
-	vlsPostProcess.density = data.density;
-	vlsPostProcess.invert = data.invert;
-	vlsPostProcess.useCustomMeshPosition = data.useCustomMeshPosition;
-	vlsPostProcess.customMeshPosition.copyFrom(Vector3.FromArray(data.customMeshPosition));
+	postProcess.exposure = data.exposure;
+	postProcess.decay = data.decay;
+	postProcess.weight = data.weight;
+	postProcess.density = data.density;
+	postProcess.invert = data.invert;
+	postProcess.useCustomMeshPosition = data.useCustomMeshPosition;
+	postProcess.customMeshPosition.copyFrom(Vector3.FromArray(data.customMeshPosition));
 
-	return vlsPostProcess;
+	return postProcess;
 }

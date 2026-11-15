@@ -2,6 +2,8 @@ import { dirname, join, basename, relative } from "path/posix";
 
 import { Scene } from "babylonjs";
 
+import { showConfirm } from "../../ui/dialog";
+
 import { normalizedGlob } from "../../tools/fs";
 import { saveProject } from "../../project/save/save";
 import { projectConfiguration } from "../../project/configuration";
@@ -64,6 +66,23 @@ export function getActiveScene(scene: Scene, _data: any, options: IMCPActionOpti
  * Saves the current scene/project.
  */
 export async function saveScene(_scene: Scene, _data: any, options: IMCPActionOptions): Promise<any> {
+	// Users prefer to review, and maybe tweak, what an agent did before keeping it: only they decide to save.
+	const confirmed = await showConfirm(
+		"Save the project?",
+		"The AI assistant asks to save the project. Review its changes in the scene first if you want: you can also keep editing and save later yourself.",
+		{
+			confirmText: "Save",
+			cancelText: "Not now",
+		}
+	);
+
+	if (!confirmed) {
+		return {
+			saved: false,
+			message: "The user chose not to save now: they review the changes and save the project themselves. Don't save again unless they ask.",
+		};
+	}
+
 	await saveProject(options.editor);
 
 	return { saved: true };

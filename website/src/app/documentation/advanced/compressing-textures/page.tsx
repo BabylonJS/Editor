@@ -1,8 +1,11 @@
-"use client";
+import type { Metadata } from "next";
 
 import { Callout, CodeBlock, CustomLink, DocPage, DocHeading } from "../../components";
+import { getDocMetadata } from "../../config";
 
 import { cliPack, enableKtx2 } from "./scripts";
+
+export const metadata: Metadata = getDocMetadata("/documentation/advanced/compressing-textures");
 
 export default function DocumentationCompressingTexturesPage() {
 	return (
@@ -89,8 +92,9 @@ export default function DocumentationCompressingTexturesPage() {
 			<DocHeading level={2}>Using Babylon.js Editor CLI</DocHeading>
 
 			<p>
-				When packing the assets of your project using the Babylon.js Editor CLI, textures will be automatically compressed if the option is enabled in the project
-				configuration. If not, only the original textures (.png, .jpg, etc.) will be packed without compression.
+				When packing the assets of your project using the <CustomLink href="/documentation/deploying/babylonjs-editor-cli">Babylon.js Editor CLI</CustomLink>, textures will
+				be automatically compressed if the option is enabled in the project configuration. If not, only the original textures (.png, .jpg, etc.) will be packed without
+				compression.
 			</p>
 
 			<CodeBlock language="bash" code={cliPack} />

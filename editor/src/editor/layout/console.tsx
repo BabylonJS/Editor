@@ -1,14 +1,41 @@
 import { clipboard } from "electron";
 
 import { Button } from "@blueprintjs/core";
-import { Component, ReactNode } from "react";
+import { Component, isValidElement, ReactNode } from "react";
 
 import { Editor } from "../main";
 
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from "../../ui/shadcn/ui/context-menu";
 
-import { EditorConsoleProgressLogComponent } from "./console/progress-log";
 import { UniqueNumber } from "../../tools/tools";
+
+import { EditorConsoleProgressLogComponent } from "./console/progress-log";
+
+export type EditorConsoleEntryLevel = "log" | "warn" | "error";
+
+export interface IEditorConsoleEntry {
+	/**
+	 * Defines the number of the entry, increasing with each message logged.
+	 */
+	id: number;
+	/**
+	 * Defines the level of the message.
+	 */
+	level: EditorConsoleEntryLevel;
+	/**
+	 * Defines the text of the message.
+	 */
+	message: string;
+	/**
+	 * Defines the date the message was logged at, in milliseconds.
+	 */
+	time: number;
+}
+
+/**
+ * Defines the maximum number of messages kept in the console.
+ */
+const maxConsoleEntries = 1000;
 
 export interface IEditorConsoleProps {
 	editor: Editor;
@@ -50,6 +77,7 @@ export class EditorConsole extends Component<IEditorConsoleProps, IEditorConsole
 	 * @param message defines the message to log.
 	 */
 	public log(message: ReactNode): void {
+		this._addEntry("log", message);
 		this._addLog(<div className="whitespace-break-spaces hover:bg-secondary/50 transition-all duration-300 ease-in-out">{message}</div>);
 	}
 
@@ -58,6 +86,7 @@ export class EditorConsole extends Component<IEditorConsoleProps, IEditorConsole
 	 * @param message defines the message to log.
 	 */
 	public warn(message: ReactNode): void {
+		this._addEntry("warn", message);
 		this._addLog(<div className="whitespace-break-spaces !text-yellow-500 hover:bg-secondary/50 transition-all duration-300 ease-in-out">{message}</div>);
 	}
 
@@ -66,6 +95,7 @@ export class EditorConsole extends Component<IEditorConsoleProps, IEditorConsole
 	 * @param message defines the message to log.
 	 */
 	public error(message: ReactNode): void {
+		this._addEntry("error", message);
 		this._addLog(<div className="whitespace-break-spaces !text-red-500 hover:bg-secondary/50 transition-all duration-300 ease-in-out">{message}</div>);
 	}
 
@@ -83,7 +113,7 @@ export class EditorConsole extends Component<IEditorConsoleProps, IEditorConsole
 	}
 
 	private _addLog(log: ReactNode): void {
-		if (this.state.logs.length === 1000) {
+		if (this.state.logs.length === maxConsoleEntries) {
 			this.state.logs.shift();
 		}
 
@@ -113,5 +143,57 @@ export class EditorConsole extends Component<IEditorConsoleProps, IEditorConsole
 				div.scrollTo(0, div.scrollHeight);
 			}
 		});
+	}
+
+	private _nextEntryId: number = 0;
+	private _entries: IEditorConsoleEntry[] = [];
+
+	/**
+	 * Gets the id the next message logged in the console will have. Read it before an operation to get the messages it
+	 * logs with `getEntriesSince`.
+	 */
+	public get nextEntryId(): number {
+		return this._nextEntryId;
+	}
+
+	/**
+	 * Returns the messages logged in the console since the given entry id, oldest first.
+	 * @param id defines the id of the first entry to return.
+	 */
+	public getEntriesSince(id: number): IEditorConsoleEntry[] {
+		return this._entries.filter((entry) => entry.id >= id);
+	}
+
+	private _addEntry(level: EditorConsoleEntryLevel, message: ReactNode): void {
+		if (this._entries.length === maxConsoleEntries) {
+			this._entries.shift();
+		}
+
+		this._entries.push({
+			level,
+			time: Date.now(),
+			id: this._nextEntryId++,
+			message: this._getConsoleMessageText(message),
+		});
+	}
+
+	private _getConsoleMessageText(node: ReactNode): string {
+		if (node === null || node === undefined || typeof node === "boolean") {
+			return "";
+		}
+
+		if (typeof node === "string" || typeof node === "number" || typeof node === "bigint") {
+			return String(node);
+		}
+
+		if (Array.isArray(node)) {
+			return node.map((child) => this._getConsoleMessageText(child)).join("");
+		}
+
+		if (isValidElement(node)) {
+			return this._getConsoleMessageText((node.props as { children?: ReactNode }).children);
+		}
+
+		return "";
 	}
 }

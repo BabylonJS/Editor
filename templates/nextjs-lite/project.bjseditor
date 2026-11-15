@@ -1,0 +1,20 @@
+{
+    "plugins": [],
+    "version": "5.5.3-alpha.1",
+    "packageManager": "yarn",
+    "lastOpenedScene": "/assets/example.scene",
+    "compressedTextureSoftware": "PVRTexTool",
+    "compressedTexturesEnabled": false,
+    "compressedTexturesEnabledInPreview": false,
+    "compressedEtc2Enabled": false,
+    "compressedPvrtcEnabled": false,
+    "compressedTextureQuality": "very-fast",
+    "gizmoSnap": {
+        "translationEnabled": false,
+        "translationStep": 1,
+        "rotationEnabled": false,
+        "rotationStepDegrees": 15,
+        "scaleEnabled": false,
+        "scaleStep": 0.25
+    }
+}

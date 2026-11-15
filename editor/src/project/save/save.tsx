@@ -10,7 +10,7 @@ import { Editor } from "../../editor/main";
 
 import { IEditorProject } from "../typings";
 
-// import { exportProject } from "../export/export";
+import { exportProject } from "../export/export";
 
 import { projectsKey } from "../../tools/project";
 import { onProjectSavedObservable } from "../../tools/observables";
@@ -21,6 +21,7 @@ import { saveScene } from "./scene";
 import { EditorSaveProjectProgressComponent } from "./progress";
 
 let saving = false;
+let lastSaveEndTime = 0;
 
 export async function saveProject(editor: Editor): Promise<void> {
 	if (saving) {
@@ -38,6 +39,7 @@ export async function saveProject(editor: Editor): Promise<void> {
 		}
 	} finally {
 		saving = false;
+		lastSaveEndTime = Date.now();
 		editor.layout.preview.setRenderScene(true);
 	}
 }
@@ -118,9 +120,19 @@ async function _saveProject(editor: Editor) {
 		// Catch silently.
 	}
 
-	// exportProject(editor, {
-	// 	optimize: false,
-	// 	noProgress: true,
-	// 	noDialog: false,
-	// });
+	exportProject(editor, {
+		optimize: false,
+		debugMode: false,
+		sceneOnly: true,
+		noDialog: true,
+		noProgress: true,
+	});
+}
+
+export function isSavingProject(): boolean {
+	return saving;
+}
+
+export function getLastProjectSaveEndTime(): number {
+	return lastSaveEndTime;
 }

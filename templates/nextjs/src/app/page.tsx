@@ -88,7 +88,10 @@ export default function Home() {
 
 	async function handleLoad(engine: Engine, scene: Scene) {
 		const havok = await HavokPhysics();
-		scene.enablePhysics(new Vector3(0, -981, 0), new HavokPlugin(true, havok));
+		const physicsPlugin = new HavokPlugin(true, havok);
+		// Scenes are in centimeters: Havok limits the linear velocity to 200 units/s by default, which is only 2 m/s. Raise it to 200 m/s.
+		physicsPlugin.setVelocityLimits(200 * 100, 100);
+		scene.enablePhysics(new Vector3(0, -981, 0), physicsPlugin);
 
 		SceneLoaderFlags.ForceFullSceneLoadingForIncremental = true;
 		await loadScene("/scene/", "example.babylon", scene, scriptsMap, {
