@@ -22,22 +22,51 @@ const KTX_WINDOWS_INSTALL_PATHS = ["C:/Program Files/KTX-Software/bin/ktx.exe", 
 let ktxCliCommand: string | null = null;
 
 /**
- * Returns the command that runs the KTX-Software CLI: `ktx` when the PATH has it, otherwise the quoted path of a
- * standard install.
+ * Returns the command that runs the KTX-Software CLI if it can be found: `ktx` when the PATH has it, otherwise the
+ * quoted path of a standard install, and null when neither has it.
+ *
+ * Only a found command is remembered. A miss is looked up again on the next call, so installing the CLI while the
+ * editor is open works without a restart - the case the install paths exist for.
  */
-export function getKtxCliCommand(): string {
+export function findKtxCliCommand(): string | null {
 	if (ktxCliCommand) {
 		return ktxCliCommand;
 	}
 
-	const onPath = (process.env.PATH ?? "")
-		.split(process.platform === "win32" ? ";" : ":")
-		.some((dir) => dir && existsSync(join(dir.replace(/\\/g, "/"), process.platform === "win32" ? "ktx.exe" : "ktx")));
+	const windows = process.platform === "win32";
+	const onPath = (process.env.PATH ?? "").split(windows ? ";" : ":").some((dir) => dir && existsSync(join(dir.replace(/\\/g, "/"), windows ? "ktx.exe" : "ktx")));
 
-	const installed = process.platform === "win32" ? KTX_WINDOWS_INSTALL_PATHS.find((path) => existsSync(path)) : undefined;
+	if (onPath) {
+		ktxCliCommand = "ktx";
+	} else {
+		const installed = windows ? KTX_WINDOWS_INSTALL_PATHS.find((path) => existsSync(path)) : undefined;
+		if (installed) {
+			ktxCliCommand = `"${installed}"`;
+		}
+	}
 
-	ktxCliCommand = !onPath && installed ? `"${installed}"` : "ktx";
 	return ktxCliCommand;
+}
+
+/**
+ * Returns the command that runs the KTX-Software CLI: the one found by `findKtxCliCommand`, or plain `ktx` so the
+ * shell still gets to try when it was not found.
+ */
+export function getKtxCliCommand(): string {
+	return findKtxCliCommand() ?? "ktx";
+}
+
+/**
+ * Returns the message logged when compressing an image failed. When the CLI cannot be found it says so, and how to
+ * fix it, instead of leaving the user with a bare "failed" for every texture.
+ * @param filename defines the name of the image that failed to compress.
+ */
+export function getKtx2CompressionErrorMessage(filename: string): string {
+	if (findKtxCliCommand()) {
+		return `Failed to compress image "${filename}"`;
+	}
+
+	return `Failed to compress image "${filename}": KTX-Software CLI not found. Install it from https://github.com/KhronosGroup/KTX-Software/releases - if it is already installed, restart the editor.`;
 }
 
 /**
@@ -117,7 +146,7 @@ export async function compressFileToKtx2(editor: Editor, absolutePath: string, o
 	} catch (e) {
 		log.setState({
 			error: true,
-			message: `Failed to compress image "${filename}"`,
+			message: getKtx2CompressionErrorMessage(filename),
 		});
 	} finally {
 		if (source !== absolutePath) {
