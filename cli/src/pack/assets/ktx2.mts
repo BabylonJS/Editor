@@ -27,8 +27,11 @@ const KTX_WINDOWS_INSTALL_PATHS = ["C:/Program Files/KTX-Software/bin/ktx.exe", 
 
 let ktxCliCommand: string | null = null;
 
-/** The command that runs the KTX-Software CLI: `ktx` when the PATH has it, otherwise the quoted path of an install. */
-export function getKtxCliCommand(): string {
+/**
+ * The command that runs the KTX-Software CLI if it can be found: `ktx` when the PATH has it, otherwise the quoted path
+ * of an install, and null when neither has it. Only a found command is remembered; a miss is looked up again.
+ */
+export function findKtxCliCommand(): string | null {
 	if (ktxCliCommand) {
 		return ktxCliCommand;
 	}
@@ -36,10 +39,30 @@ export function getKtxCliCommand(): string {
 	const windows = process.platform === "win32";
 	const onPath = (process.env.PATH ?? "").split(windows ? ";" : ":").some((dir) => dir && existsSync(join(dir.replace(/\\/g, "/"), windows ? "ktx.exe" : "ktx")));
 
-	const installed = windows ? KTX_WINDOWS_INSTALL_PATHS.find((path) => existsSync(path)) : undefined;
+	if (onPath) {
+		ktxCliCommand = "ktx";
+	} else {
+		const installed = windows ? KTX_WINDOWS_INSTALL_PATHS.find((path) => existsSync(path)) : undefined;
+		if (installed) {
+			ktxCliCommand = `"${installed}"`;
+		}
+	}
 
-	ktxCliCommand = !onPath && installed ? `"${installed}"` : "ktx";
 	return ktxCliCommand;
+}
+
+/** The command that runs the KTX-Software CLI: the one found, or plain `ktx` so the shell still gets to try. */
+export function getKtxCliCommand(): string {
+	return findKtxCliCommand() ?? "ktx";
+}
+
+/** The message logged when compressing an image failed, saying so when the CLI cannot be found. */
+export function getKtx2CompressionErrorMessage(filename: string): string {
+	if (findKtxCliCommand()) {
+		return `Failed to compress image "${filename}"`;
+	}
+
+	return `Failed to compress image "${filename}": KTX-Software CLI not found. Install it from https://github.com/KhronosGroup/KTX-Software/releases - if it is already installed, open a new terminal so it sees the updated PATH.`;
 }
 
 /**
@@ -140,7 +163,7 @@ export async function compressFileToKtx2(absolutePath: string, options: Partial<
 
 		return filename;
 	} catch (e) {
-		console.error(`Failed to compress image "${filename}"`);
+		console.error(getKtx2CompressionErrorMessage(filename));
 	} finally {
 		if (source !== absolutePath) {
 			await fs.remove(source);

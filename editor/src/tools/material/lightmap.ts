@@ -22,6 +22,11 @@ export const LIGHTMAP_COORDINATES_INDEX = 1;
  * the loader maps those to `emissiveTexture`, `emissiveColor` and `emissiveIntensity`, and that product becomes the
  * lightmap's level. An 8-bit atlas cannot hold lighting brighter than 1, so bakers divide it down and rely on
  * `KHR_materials_emissive_strength` to scale it back; this keeps that scale instead of clipping the bright end.
+ * The level is a single number, so only the brightest channel of `emissiveColor` is kept and a tint is lost; bakers
+ * export a white factor, where that makes no difference.
+ *
+ * When that product is zero the emission is switched off and the texture never reached the image. Converted, it
+ * would multiply the surface by zero and turn it black, so the material is left as it is.
  *
  * The material becomes unlit. With `useLightmapAsShadowmap` Babylon computes `lighting * lightmap`, and for an unlit
  * material the lighting term is plain albedo - which gives `albedo * lightmap`, the definition of a lightmap. Leaving
@@ -42,7 +47,12 @@ export function convertEmissiveLightmap(material: Material): boolean {
 	}
 
 	const color = material.emissiveColor;
-	texture.level *= material.emissiveIntensity * Math.max(color.r, color.g, color.b);
+	const strength = material.emissiveIntensity * Math.max(color.r, color.g, color.b);
+	if (strength <= 0) {
+		return false;
+	}
+
+	texture.level *= strength;
 
 	material.lightmapTexture = texture;
 	material.useLightmapAsShadowmap = true;
