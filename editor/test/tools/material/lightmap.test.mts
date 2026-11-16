@@ -77,6 +77,18 @@ describe("tools/material/lightmap", () => {
 		expect(material.unlit).toBe(false);
 	});
 
+	test("leaves a material alone when its emission is zero, instead of blacking it out", () => {
+		const material = createBakedMaterial(1);
+		material.emissiveColor.set(0, 0, 0);
+		const texture = material.emissiveTexture;
+
+		expect(convertEmissiveLightmap(material)).toBe(false);
+
+		expect(material.emissiveTexture).toBe(texture);
+		expect(material.lightmapTexture).toBeNull();
+		expect(material.unlit).toBe(false);
+	});
+
 	test("is idempotent, so a material shared by several meshes converts once", () => {
 		const material = createBakedMaterial(1);
 		material.emissiveIntensity = 1.6448;
