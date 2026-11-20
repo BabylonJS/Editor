@@ -25,11 +25,11 @@ import { UniqueNumber } from "../../../../tools/tools";
 import { isSprite } from "../../../../tools/guards/sprites";
 import { isTexture } from "../../../../tools/guards/texture";
 import { executeSimpleWorker } from "../../../../tools/worker";
-import { convertGltfToLeftHanded } from "../../../../tools/scene/gltf";
 import { isMultiMaterial } from "../../../../tools/guards/material";
 import { getLoaderPluginOptions } from "../../../../tools/assets/loader";
 import { configureSimultaneousLightsForMaterial } from "../../../../tools/material/material";
 import { onNodesAddedObservable, onTextureAddedObservable } from "../../../../tools/observables";
+import { cleanAnimationDuplicates, convertGltfToLeftHanded } from "../../../../tools/scene/gltf";
 import { addGaussianSplattingMeshPartProxyMesh } from "../../../../tools/mesh/gaussian-splatting";
 import { isGaussianSplattingMesh, isGaussianSplattingPartProxyMesh, isMesh } from "../../../../tools/guards/nodes";
 
@@ -115,6 +115,7 @@ export async function loadImportedSceneFile(scene: Scene, absolutePath: string, 
 		case ".glb":
 		case ".gltf":
 			convertGltfToLeftHanded(result);
+			cleanAnimationDuplicates(result);
 			break;
 	}
 
