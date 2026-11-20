@@ -1,4 +1,4 @@
-import { basename, dirname, join } from "path/posix";
+import { basename, dirname, extname, join } from "path/posix";
 
 import { Component, ReactNode } from "react";
 import { createRoot } from "react-dom/client";
@@ -25,6 +25,7 @@ import { UniqueNumber } from "../../../tools/tools";
 import { openSingleFileDialog } from "../../../tools/dialog";
 import { getLoaderPluginOptions } from "../../../tools/assets/loader";
 import { isMesh, isTransformNode } from "../../../tools/guards/nodes";
+import { cleanAnimationDuplicates, convertGltfToLeftHanded } from "../../../tools/scene/gltf";
 
 import { Editor } from "../../main";
 
@@ -160,6 +161,16 @@ export class UpdateResourcesFromAsset extends Component<IUpdateResourcesFromAsse
 			rootUrl: join(dirname(this.props.filename), "/"),
 			pluginOptions: getLoaderPluginOptions(this.props.editor.path ?? ""),
 		});
+
+		const extension = extname(this.props.filename).toLowerCase();
+
+		switch (extension) {
+			case ".glb":
+			case ".gltf":
+				convertGltfToLeftHanded(this._container);
+				cleanAnimationDuplicates(this._container);
+				break;
+		}
 
 		this._container.meshes.forEach((mesh) => {
 			mesh.id = Tools.RandomId();
