@@ -26,3 +26,13 @@ export function getPowerOfTwoUntil(limit: number): number {
 
 	return size >> 1;
 }
+
+/**
+ * Returns the power of two nearest to the given size, never under the given minimum.
+ * @param size The size to round.
+ * @param min The smallest power of two to return. Default is 1.
+ * @returns The nearest power of two, at least `min`.
+ */
+export function getNearestPowerOfTwo(size: number, min: number = 1): number {
+	return Math.max(min, 2 ** Math.round(Math.log2(Math.max(size, 1))));
+}
