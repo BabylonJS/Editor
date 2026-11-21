@@ -1,5 +1,5 @@
-import { extname, join } from "node:path/posix";
-import { createReadStream, existsSync } from "node:fs";
+import { extname } from "node:path/posix";
+import { createReadStream } from "node:fs";
 
 import fs from "fs-extra";
 import sharp from "sharp";
@@ -7,6 +7,7 @@ import { PNG } from "pngjs";
 
 import { ktxSupportedextensions } from "./ktx.mjs";
 import { executeAsync } from "../../tools/process.mjs";
+import { getNearestPowerOfTwo } from "../../tools/scalar.mjs";
 
 export type CompressFileToKtxOptions = {
 	force?: boolean;
@@ -18,81 +19,35 @@ export type CompressFileToKtxOptions = {
 };
 
 /**
- * Where installers put the KTX-Software CLI on Windows. Used when `ktx` is not on the PATH this process inherited: a
- * PATH entry added by the installer only reaches processes started after it, and a pack launched from an editor or a
- * terminal opened earlier keeps the old one - so a fresh install fails with "'ktx' is not recognized" until everything
- * is restarted.
+ * The smallest side KTX2 accepts here: the GPU formats UASTC transcodes to (BC7, ASTC, ETC2) work on 4x4 blocks.
  */
-const KTX_WINDOWS_INSTALL_PATHS = ["C:/Program Files/KTX-Software/bin/ktx.exe", "C:/Program Files (x86)/KTX-Software/bin/ktx.exe"];
-
-let ktxCliCommand: string | null = null;
+const KTX2_MIN_TEXTURE_SIZE = 4;
 
 /**
- * The command that runs the KTX-Software CLI if it can be found: `ktx` when the PATH has it, otherwise the quoted path
- * of an install, and null when neither has it. Only a found command is remembered; a miss is looked up again.
- */
-export function findKtxCliCommand(): string | null {
-	if (ktxCliCommand) {
-		return ktxCliCommand;
-	}
-
-	const windows = process.platform === "win32";
-	const onPath = (process.env.PATH ?? "").split(windows ? ";" : ":").some((dir) => dir && existsSync(join(dir.replace(/\\/g, "/"), windows ? "ktx.exe" : "ktx")));
-
-	if (onPath) {
-		ktxCliCommand = "ktx";
-	} else {
-		const installed = windows ? KTX_WINDOWS_INSTALL_PATHS.find((path) => existsSync(path)) : undefined;
-		if (installed) {
-			ktxCliCommand = `"${installed}"`;
-		}
-	}
-
-	return ktxCliCommand;
-}
-
-/** The command that runs the KTX-Software CLI: the one found, or plain `ktx` so the shell still gets to try. */
-export function getKtxCliCommand(): string {
-	return findKtxCliCommand() ?? "ktx";
-}
-
-/** The message logged when compressing an image failed, saying so when the CLI cannot be found. */
-export function getKtx2CompressionErrorMessage(filename: string): string {
-	if (findKtxCliCommand()) {
-		return `Failed to compress image "${filename}"`;
-	}
-
-	return `Failed to compress image "${filename}": KTX-Software CLI not found. Install it from https://github.com/KhronosGroup/KTX-Software/releases - if it is already installed, open a new terminal so it sees the updated PATH.`;
-}
-
-/**
- * The nearest power of two to `size`, and never under 4.
+ * Returns the image to give to the KTX-Software CLI.
  *
- * The GPU formats UASTC transcodes to (BC7, ASTC, ETC2) are 4x4 blocks: a level whose sides are not multiples of four
- * is rejected ("Invalid compressed image size"), and a side that is not a power of two stops being a multiple of four
- * a few mips down ("Level of detail outside of range"). The scaled copies the pack makes for lower qualities - 198x198,
- * 99x99 - hit this as often as the originals.
+ * UASTC needs every mip level to be a multiple of 4x4 blocks: a side that is not a multiple of four is rejected
+ * ("Invalid compressed image size"), and a side that is not a power of two stops being one a few mips down
+ * ("Level of detail outside of range"). Without this, `ktx create` fails on such textures (and on the 66% / 33%
+ * scaled copies of them) and the scene is packed without their KTX2 version.
+ *
+ * When both sides are already powers of two the source is returned as is. Otherwise a temporary copy resampled to the
+ * nearest powers of two is written beside the output, a warning is logged, and the caller removes the copy once
+ * encoded. The source texture itself is never modified: uvs are normalised, so the stretch is invisible on the surface.
  */
-export function nearestPowerOfTwo(size: number): number {
-	return Math.max(4, 2 ** Math.round(Math.log2(Math.max(size, 1))));
-}
-
-/**
- * The image to encode: the source itself when both sides are already powers of two, otherwise a copy resampled to the
- * nearest ones, written beside the output. The source is never modified; uvs are normalised, so the stretch is
- * invisible on the surface.
- */
-async function toPowerOfTwoSource(absolutePath: string, output: string): Promise<string> {
+async function getKtx2EncodableSource(absolutePath: string, output: string): Promise<string> {
 	const { width, height } = await sharp(absolutePath).metadata();
 	if (!width || !height) {
 		return absolutePath;
 	}
 
-	const potWidth = nearestPowerOfTwo(width);
-	const potHeight = nearestPowerOfTwo(height);
+	const potWidth = getNearestPowerOfTwo(width, KTX2_MIN_TEXTURE_SIZE);
+	const potHeight = getNearestPowerOfTwo(height, KTX2_MIN_TEXTURE_SIZE);
 	if (potWidth === width && potHeight === height) {
 		return absolutePath;
 	}
+
+	console.warn(`Image "${absolutePath}" is ${width}x${height}, not a power of two: its KTX2 version is resized to ${potWidth}x${potHeight}`);
 
 	const resized = `${output}.pot.png`;
 	await sharp(absolutePath).resize(potWidth, potHeight, { fit: "fill" }).png().toFile(resized);
@@ -153,17 +108,17 @@ export async function compressFileToKtx2(absolutePath: string, options: Partial<
 				break;
 		}
 
-		source = await toPowerOfTwoSource(absolutePath, filename);
+		source = await getKtx2EncodableSource(absolutePath, filename);
 
 		await executeAsync(
-			`${getKtxCliCommand()} create --generate-mipmap --zstd 22 --convert-texcoord-origin bottom-left --encode uastc --uastc-quality ${quality} --format ${hasAlpha ? "R8G8B8A8_SRGB" : "R8G8B8_SRGB"} "${source}" "${filename}"`
+			`ktx create --generate-mipmap --zstd 22 --convert-texcoord-origin bottom-left --encode uastc --uastc-quality ${quality} --format ${hasAlpha ? "R8G8B8A8_SRGB" : "R8G8B8_SRGB"} "${source}" "${filename}"`
 		);
 		console.log(`Compressed image "${filename}"`);
 		options.exportedAssets?.push(filename);
 
 		return filename;
 	} catch (e) {
-		console.error(getKtx2CompressionErrorMessage(filename));
+		console.error(`Failed to compress image "${filename}"`);
 	} finally {
 		if (source !== absolutePath) {
 			await fs.remove(source);
