@@ -54,7 +54,7 @@ import { Editor } from "../../main";
 
 import { removeNodes } from "./remove";
 import { exportScene, exportNode } from "./export";
-import { showUpdateResourcesFromAsset } from "./update-resources";
+import { showUpdateResourcesFromAsset } from "./update-resources/update-resources";
 
 export interface IEditorGraphContextMenuProps extends PropsWithChildren {
 	editor: Editor;
