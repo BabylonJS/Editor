@@ -120,6 +120,12 @@ export interface IEditorState {
 	compressedTextureQuality?: EditorProjectCompressedTextureQuality;
 
 	/**
+	 * Defines wether or not baked lightmaps carried as emissive on the second uv set are moved to the lightmap
+	 * slot when importing a scene file. See `convertEmissiveLightmap`.
+	 */
+	convertImportedLightmaps: boolean;
+
+	/**
 	 * Defines wether or not experimental features are enabled.
 	 */
 	enableExperimentalFeatures: boolean;
@@ -192,6 +198,8 @@ export class Editor extends Component<IEditorProps, IEditorState> {
 			compressedEtc2Enabled: false,
 			compressedPvrtcEnabled: false,
 			compressedTextureQuality: "very-fast",
+
+			convertImportedLightmaps: true,
 
 			enableExperimentalFeatures,
 

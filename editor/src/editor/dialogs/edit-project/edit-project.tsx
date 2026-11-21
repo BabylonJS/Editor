@@ -11,6 +11,7 @@ import { checkProjectCachedCompressedTextures } from "../../../tools/assets/ktx"
 import { saveProjectConfiguration } from "../../../project/save/save";
 import { projectConfiguration } from "../../../project/configuration";
 
+import { EditorEditProjectImportComponent } from "./import/component";
 import { EditorEditProjectPluginComponent } from "./plugins/component";
 import { EditorEditProjectTextureComponent } from "./textures/component";
 
@@ -48,6 +49,7 @@ export class EditorEditProjectComponent extends Component<IEditorEditProjectComp
 
 							<TabsContent value="editor">
 								<EditorEditProjectTextureComponent editor={this.props.editor} />
+								<EditorEditProjectImportComponent editor={this.props.editor} />
 							</TabsContent>
 							<TabsContent value="plugins">
 								<EditorEditProjectPluginComponent editor={this.props.editor} />

@@ -42,6 +42,11 @@ export interface IEditorProject {
 	compressedTextureQuality?: EditorProjectCompressedTextureQuality;
 
 	/**
+	 * If baked lightmaps carried as emissive on the second uv set are moved to the lightmap slot on import.
+	 */
+	convertImportedLightmaps?: boolean;
+
+	/**
 	 * The package manager being used by the project.
 	 */
 	packageManager?: EditorProjectPackageManager;

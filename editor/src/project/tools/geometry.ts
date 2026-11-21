@@ -39,13 +39,19 @@ export async function writeBinaryGeometry(options: IWriteBinaryGeometryOptions):
 		offset += geometry.uvs.length * Float32Array.BYTES_PER_ELEMENT;
 	}
 
-	if (geometry.uv2s) {
-		mesh._binaryInfo.uvs2AttrDesc = { count: geometry.uv2s.length, stride: 2, offset, dataType: 1 };
-		stream?.write(Buffer.from(new Float32Array(geometry.uv2s).buffer));
+	// `uvs2`, not `uv2s`. Geometry.serializeVerticeData writes `uvs`, `uvs2`,
+	// `uvs3`... while MorphTarget.serialize writes `uv2s` - and the morph target
+	// writer next door uses that second spelling correctly. Reading the geometry
+	// with the morph target's key made this branch dead code: the second uv set
+	// was dropped from every saved and exported scene, silently, which takes
+	// lightmaps with it since a lightmap is the one texture that needs it.
+	if (geometry.uvs2) {
+		mesh._binaryInfo.uvs2AttrDesc = { count: geometry.uvs2.length, stride: 2, offset, dataType: 1 };
+		stream?.write(Buffer.from(new Float32Array(geometry.uvs2).buffer));
 
-		mesh.uv2s = null;
+		mesh.uvs2 = null;
 		mesh.hasUVs2 = true;
-		offset += geometry.uv2s.length * Float32Array.BYTES_PER_ELEMENT;
+		offset += geometry.uvs2.length * Float32Array.BYTES_PER_ELEMENT;
 	}
 
 	if (geometry.tangents) {
