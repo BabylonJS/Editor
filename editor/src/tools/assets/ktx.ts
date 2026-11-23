@@ -1,7 +1,7 @@
 import { join, dirname, extname } from "path/posix";
 import { ensureDir, readJSON, stat, writeJSON } from "fs-extra";
 
-import { Engine, KhronosTextureContainer2 } from "babylonjs";
+import { Engine, KhronosTextureContainer2, Scene, Texture } from "babylonjs";
 
 import { Editor } from "../../editor/main";
 
@@ -55,70 +55,47 @@ export async function checkProjectCachedCompressedTextures(editor: Editor) {
 		return;
 	}
 
-	const computedTextures: string[] = [];
 	const supportedType = engine.texturesSupported[0] as KTXToolsType;
 
-	for (const texture of scene.textures) {
-		if (!isTexture(texture) || computedTextures.includes(texture.name)) {
-			continue;
-		}
-
-		const name = texture.name;
-		const extension = extname(name).toLowerCase();
-
-		if (!ktxSupportedextensions.includes(extension)) {
-			continue;
-		}
-
-		const internalTexture = texture.getInternalTexture();
-		if (!internalTexture) {
-			continue;
-		}
-
-		const internalTextureExtension = extname(internalTexture.url).toLowerCase();
-
+	for (const [name, textures] of getCompressibleTexturesByName(scene)) {
 		if (editor.state.compressedTexturesEnabledInPreview) {
 			try {
 				const fileStat = await stat(join(projectDirectory, name));
 				const hash = fileStat.mtimeMs.toString();
 
+				// Textures already using the compressed image are checked too: when the project is loaded, the cached compressed
+				// image is used directly (see project/load/texture.ts), even if the image changed since it was compressed.
 				const isNewFile = !cache[name] || cache[name] !== hash;
 
 				const destinationFolder = join(texturesDirectory, dirname(name));
 				await ensureDir(destinationFolder);
 
-				if (editor.state.compressedTextureSoftware === "PVRTexTool" && getCompressedTexturesCliPath() && internalTextureExtension !== ".ktx") {
-					cache[name] = hash;
+				if (editor.state.compressedTextureSoftware === "PVRTexTool" && getCompressedTexturesCliPath()) {
+					if (isNewFile || textures.some((texture) => getInternalTextureExtension(texture) !== ".ktx")) {
+						const result = await compressFileToKtxFormat(editor, join(projectDirectory, name), {
+							force: isNewFile,
+							destinationFolder,
+							format: supportedType,
+						});
 
-					const result = await compressFileToKtxFormat(editor, join(projectDirectory, name), {
-						force: isNewFile,
-						destinationFolder,
-						format: supportedType,
-					});
-
-					if (result) {
-						const previousUrl = texture.url;
-						texture.updateURL(result);
-						texture.url = previousUrl;
-
-						computedTextures.push(name);
+						if (result) {
+							cache[name] = hash;
+							useCompressedTexture(engine, textures, result, isNewFile);
+						}
 					}
 
 					continue;
-				} else if (editor.state.compressedTextureSoftware === "Khronos KTX-Software" && internalTextureExtension !== ".ktx2") {
-					cache[name] = hash;
+				} else if (editor.state.compressedTextureSoftware === "Khronos KTX-Software") {
+					if (isNewFile || textures.some((texture) => getInternalTextureExtension(texture) !== ".ktx2")) {
+						const result = await compressFileToKtx2(editor, join(projectDirectory, name), {
+							force: isNewFile,
+							destinationFolder,
+						});
 
-					const result = await compressFileToKtx2(editor, join(projectDirectory, name), {
-						force: isNewFile,
-						destinationFolder,
-					});
-
-					if (result) {
-						const previousUrl = texture.url;
-						texture.updateURL(result);
-						texture.url = previousUrl;
-
-						computedTextures.push(name);
+						if (result) {
+							cache[name] = hash;
+							useCompressedTexture(engine, textures, result, isNewFile);
+						}
 					}
 
 					continue;
@@ -131,12 +108,15 @@ export async function checkProjectCachedCompressedTextures(editor: Editor) {
 			}
 		}
 
-		if (!editor.state.compressedTexturesEnabledInPreview && (internalTextureExtension === ".ktx" || internalTextureExtension === ".ktx2")) {
-			const previousUrl = texture.url;
-			texture.updateURL(join(projectDirectory, name));
-			texture.url = previousUrl;
-
-			computedTextures.push(name);
+		if (!editor.state.compressedTexturesEnabledInPreview) {
+			textures.forEach((texture) => {
+				const internalTextureExtension = getInternalTextureExtension(texture);
+				if (internalTextureExtension === ".ktx" || internalTextureExtension === ".ktx2") {
+					const previousUrl = texture.url;
+					texture.updateURL(join(projectDirectory, name));
+					texture.url = previousUrl;
+				}
+			});
 		}
 	}
 
@@ -146,4 +126,49 @@ export async function checkProjectCachedCompressedTextures(editor: Editor) {
 	});
 
 	processingCompressedTextures = false;
+}
+
+/**
+ * Returns the textures of the given scene created from an image that can be compressed, by name. The textures created from the
+ * same image (for example by several materials) have the same name: the path of the image relative to the project.
+ */
+function getCompressibleTexturesByName(scene: Scene): Map<string, Texture[]> {
+	const textures = new Map<string, Texture[]>();
+
+	scene.textures.forEach((texture) => {
+		if (isTexture(texture) && texture.getInternalTexture() && ktxSupportedextensions.includes(extname(texture.name).toLowerCase())) {
+			textures.set(texture.name, [...(textures.get(texture.name) ?? []), texture]);
+		}
+	});
+
+	return textures;
+}
+
+function getInternalTextureExtension(texture: Texture): string {
+	return extname(texture.getInternalTexture()?.url ?? "").toLowerCase();
+}
+
+/**
+ * Makes the given textures, created from the same image, use the given compressed version of the image. When the compressed image
+ * was created again (the image changed), the textures already using it load it again.
+ */
+function useCompressedTexture(engine: Engine, textures: Texture[], absolutePath: string, reload: boolean): void {
+	const extension = extname(absolutePath).toLowerCase();
+	const updatedTextures = textures.filter((texture) => texture.getInternalTexture() && (reload || getInternalTextureExtension(texture) !== extension));
+
+	// Textures loaded from the same file share their internal texture through the cache of the engine. Without removing it, the
+	// textures already using the compressed image would get its previous version back from the cache.
+	const cache = engine.getLoadedTexturesCache();
+	updatedTextures.forEach((texture) => {
+		const index = cache.indexOf(texture.getInternalTexture()!);
+		if (index !== -1) {
+			cache.splice(index, 1);
+		}
+	});
+
+	updatedTextures.forEach((texture) => {
+		const previousUrl = texture.url;
+		texture.updateURL(absolutePath);
+		texture.url = previousUrl;
+	});
 }
