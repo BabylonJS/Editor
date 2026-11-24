@@ -1,6 +1,17 @@
-import { Scene, Node, Material, Color3, Color4, Vector2, Vector3, Vector4, AbstractMesh } from "babylonjs";
+import { AdvancedDynamicTexture } from "babylonjs-gui";
+import { Scene, Node, Light, Material, Color3, Color4, Vector2, Vector3, Vector4, AbstractMesh, IParticleSystem, Skeleton, Sprite } from "babylonjs";
 
-import { isAbstractMesh } from "../../tools/guards/nodes";
+import { isSpriteManagerNode } from "../../tools/guards/sprites";
+import { isNodeVisibleInGraph } from "../../tools/node/metadata";
+import { isAdvancedDynamicTexture } from "../../tools/guards/texture";
+import { isParticleSystemVisibleInGraph } from "../../tools/particles/metadata";
+import { isGPUParticleSystem, isParticleSystem } from "../../tools/guards/particles";
+import { isAbstractMesh, isAnyTransformNode, isCamera, isClusteredLightContainer, isEditorCamera, isMesh, isNode } from "../../tools/guards/nodes";
+
+/**
+ * Defines the objects shown in the graph of the editor.
+ */
+export type GraphObject = Node | IParticleSystem | Sprite | Skeleton | AdvancedDynamicTexture;
 
 /**
  * Defines the shape of the options used to resolve a node from the scene.
@@ -38,27 +49,142 @@ export interface INodeSummary {
 }
 
 /**
- * Resolves a node from the given scene using its id first, then its name.
- * @param options defines the scene and the id/name to resolve the node from.
+ * Returns the lights of the clustered light container of the given scene. The container takes them out of `scene.lights`,
+ * so the `get*` functions of the scene don't find them.
+ * @param scene defines the reference to the scene to get the clustered lights from.
  */
-export function resolveNode(options: IResolveNodeOptions): Node {
+function getClusteredLights(scene: Scene): readonly Light[] {
+	return scene.lights.find((light) => isClusteredLightContainer(light))?.lights ?? [];
+}
+
+/**
+ * Finds a node in the given scene using its id first, then its name.
+ * @param options defines the scene and the id/name to find the node from.
+ */
+function findNode(options: IResolveNodeOptions): Node | null {
 	const { scene, nodeId, nodeName } = options;
+
+	const clusteredLights = getClusteredLights(scene);
 
 	let node: Node | null = null;
 
 	if (nodeId) {
-		node = scene.getNodeById(nodeId);
+		node = scene.getNodeById(nodeId) ?? clusteredLights.find((light) => light.id === nodeId) ?? null;
 	}
 
 	if (!node && nodeName) {
-		node = scene.getNodeByName(nodeName);
-	}
-
-	if (!node) {
-		throw new Error(`Node not found: ${nodeId ?? nodeName}`);
+		node = scene.getNodeByName(nodeName) ?? clusteredLights.find((light) => light.name === nodeName) ?? null;
 	}
 
 	return node;
+}
+
+/**
+ * Resolves a node from the given scene using its id first, then its name.
+ * @param options defines the scene and the id/name to resolve the node from.
+ */
+export function resolveNode(options: IResolveNodeOptions): Node {
+	const node = findNode(options);
+
+	if (!node) {
+		throw new Error(`Node not found: ${options.nodeId ?? options.nodeName}`);
+	}
+
+	return node;
+}
+
+/**
+ * Returns wether or not the given particle system is shown in the graph of the editor.
+ * @param particleSystem defines the reference to the particle system to check.
+ */
+export function isParticleSystemInGraph(particleSystem: IParticleSystem): boolean {
+	return (isParticleSystem(particleSystem) || isGPUParticleSystem(particleSystem)) && isParticleSystemVisibleInGraph(particleSystem);
+}
+
+/**
+ * Returns wether or not the given node is shown in the graph of the editor, using the same rules as `EditorGraph._parseSceneNode`.
+ * This excludes the nodes internal to the editor (its camera, collision meshes, LODs, ...) and the removed nodes: they stay
+ * in memory, attached to their parent, so the user can undo their removal.
+ * @param node defines the reference to the node to check.
+ */
+export function isNodeInGraph(node: Node): boolean {
+	if (isClusteredLightContainer(node)) {
+		return true;
+	}
+
+	if (!isNode(node) || isEditorCamera(node) || node.reservedDataStore?.hidden) {
+		return false;
+	}
+
+	if (isMesh(node) && (node._masterMesh || !isNodeVisibleInGraph(node))) {
+		return false;
+	}
+
+	const scene = node.getScene();
+
+	if (isAnyTransformNode(node)) {
+		return scene.transformNodes.includes(node);
+	}
+
+	if (isAbstractMesh(node)) {
+		return scene.meshes.includes(node);
+	}
+
+	if (isCamera(node)) {
+		return scene.cameras.includes(node);
+	}
+
+	return scene.lights.includes(node as Light) || getClusteredLights(scene).includes(node as Light);
+}
+
+/**
+ * Returns the id of the given object of the graph, the one `resolveGraphObject` resolves. Sprites and GUI have no id
+ * of their own: the graph identifies them by their unique id.
+ * @param object defines the reference to the object of the graph.
+ */
+export function getGraphObjectId(object: any): string | null {
+	return object.id ?? object.uniqueId?.toString() ?? null;
+}
+
+/**
+ * Resolves an object from what the graph of the editor shows: a node, or a particle system, a sprite, a skeleton or a GUI.
+ * @param options defines the scene and the id/name to resolve the object from.
+ */
+export function resolveGraphObject(options: IResolveNodeOptions): GraphObject {
+	const { scene, nodeId, nodeName } = options;
+
+	const node = findNode(options);
+	if (node) {
+		return node;
+	}
+
+	const objects: GraphObject[] = [
+		...scene.particleSystems.filter((particleSystem) => isParticleSystemInGraph(particleSystem)),
+		...scene.transformNodes.filter((transformNode) => isSpriteManagerNode(transformNode)).flatMap((spriteManagerNode) => spriteManagerNode.spriteManager?.sprites ?? []),
+		...scene.skeletons,
+		...scene.textures.filter((texture) => isAdvancedDynamicTexture(texture)),
+	];
+
+	const object = objects.find((o) => getGraphObjectId(o) === nodeId) ?? objects.find((o) => o.name === nodeName);
+	if (!object) {
+		throw new Error(`Node not found: ${nodeId ?? nodeName}`);
+	}
+
+	return object;
+}
+
+/**
+ * Resolves an object of the graph the user can modify, refusing the nodes internal to the editor.
+ * @param options defines the scene and the id/name to resolve the object from.
+ */
+export function resolveEditableGraphObject(options: IResolveNodeOptions): GraphObject {
+	const object = resolveGraphObject(options);
+
+	if (object instanceof Node && !isNodeInGraph(object)) {
+		throw new Error(`"${object.name}" is internal to the editor: it isn't part of the scene shown in the graph.`);
+	}
+
+	return object;
 }
 
 /**
@@ -122,6 +248,22 @@ export function toNodeSummary(node: Node): INodeSummary {
 	}
 
 	return summary;
+}
+
+/**
+ * Produces the summary of the given object of the graph: the contract's node-summary shape for nodes.
+ * @param object defines the reference to the object of the graph to summarize.
+ */
+export function toGraphObjectSummary(object: GraphObject): INodeSummary | (Pick<INodeSummary, "name" | "className"> & { id: string | null }) {
+	if (object instanceof Node) {
+		return toNodeSummary(object);
+	}
+
+	return {
+		id: getGraphObjectId(object),
+		name: object.name,
+		className: object.getClassName(),
+	};
 }
 
 /**

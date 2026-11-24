@@ -9,7 +9,7 @@ import { IMCPActionOptions } from "./action";
 import { getSceneHierarchy } from "./scene/hierarchy";
 import { listScenes, getActiveScene, saveScene, getSceneSettings, setSceneSettings } from "./scene/scene";
 
-import { getNode, setNodeTransform, setNodeProperties, setNodeParent, renameNode, deleteNode, selectNode, getSelectedNodes } from "./nodes/nodes";
+import { getNode, setNodeTransform, setNodeProperties, setNodeParent, renameNode, deleteNode, cloneGraphNode, selectNode, getSelectedNodes } from "./nodes/nodes";
 import { createPrimitiveMesh, createInstance, cloneMesh, setMeshMaterial, setMeshVisibility, setMeshPhysics, getMeshBoundingInfo } from "./meshes/meshes";
 import { createDecal, updateDecal } from "./meshes/decals";
 import { createLight, setLightShadows, removeLightShadows, createClusteredLightContainer, addLightToClusteredContainer, removeLightFromClusteredContainer } from "./lights/lights";
@@ -59,6 +59,7 @@ export const MCPEndpoints: Record<string, (scene: Scene, data: any, options: IMC
 	set_node_parent: setNodeParent,
 	rename_node: renameNode,
 	delete_node: deleteNode,
+	clone_node: cloneGraphNode,
 	select_node: selectNode,
 	get_selected_nodes: getSelectedNodes,
 

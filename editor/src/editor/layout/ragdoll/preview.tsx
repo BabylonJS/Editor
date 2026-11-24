@@ -23,8 +23,8 @@ import {
 	AssetContainer,
 } from "babylonjs";
 
-import { convertGltfToLeftHanded } from "../../../tools/scene/gltf";
 import { getLoaderPluginOptions } from "../../../tools/assets/loader";
+import { cleanAnimationDuplicates, convertGltfToLeftHanded } from "../../../tools/scene/gltf";
 
 import { getProjectAssetsRootUrl } from "../../../project/configuration";
 
@@ -152,6 +152,7 @@ export class RagdollEditorPreview extends Component<IRagdollEditorPreviewProps, 
 		this.container.addAllToScene();
 
 		convertGltfToLeftHanded(this.container);
+		cleanAnimationDuplicates(this.container);
 
 		this.container.animationGroups.forEach((animationGroup) => {
 			animationGroup.stop();

@@ -15,14 +15,33 @@ export interface IRequirePluginOptions {
 export async function requirePlugin(editor: Editor, options: IRequirePluginOptions) {
 	const isLocalPlugin = await pathExists(options.pluginNameOrPath);
 
+	let result: any = null;
 	let requireId = options.pluginNameOrPath;
+
 	if (!isLocalPlugin) {
 		const projectDir = dirname(options.projectPath);
-		requireId = join(projectDir, "node_modules", options.pluginNameOrPath);
+		const pathSplit = projectDir.split("/");
+
+		do {
+			try {
+				const path = join(pathSplit.join("/"), "node_modules", options.pluginNameOrPath);
+				result = require(path);
+				result.main(editor);
+				break;
+			} catch (e) {
+				// Catch silently.
+			}
+
+			pathSplit.pop();
+		} while (pathSplit.length > 0);
+	} else {
+		result = require(requireId);
+		result.main(editor);
 	}
 
-	const result = require(requireId);
-	result.main(editor);
+	if (!result) {
+		editor.layout.console.error(`Failed to load plugin "${requireId}"`);
+	}
 
 	if (isLocalPlugin) {
 		editor.layout.console.log(`Loaded plugin from local drive "${result.title ?? options.pluginNameOrPath}"`);

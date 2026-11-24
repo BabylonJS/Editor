@@ -97,6 +97,7 @@ const instructions = [
 	"- Give gameplay objects physics with `set_mesh_physics`; configure collisions and any other deep property via `set_node_properties`.",
 	"- Reach for real assets first: check existing project assets with `list_assets`/`get_asset_preview`, and download richer ones through the visible marketplace tools (never background APIs).",
 	"- Read the scene before changing it (`get_scene_hierarchy`, `get_active_scene`) and ADD to it; preserve what the user already has unless they ask otherwise. Verify the result visually with `get_screenshot`.",
+	"- When the user asks to reorganize the scene, use the operations of the editor's graph: `rename_node`, `set_node_parent`, `clone_node` (a node with its children) and `delete_node`. They work on everything `get_scene_hierarchy` lists and the user can undo them with Ctrl+Z. Pass `nodeIds` to `set_node_parent` and `delete_node` to handle many nodes in a single undo step; to group nodes, create an `empty` with `create_primitive_mesh` and move them under it.",
 	...(process.env.BABYLONJS_EDITOR_ASSISTANT === "1" ? assistantInstructions : []),
 ].join("\n");
 

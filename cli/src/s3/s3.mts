@@ -34,7 +34,7 @@ export interface IS3Options extends Partial<IPackOptions> {
 	compression?: S3Compression;
 }
 
-const compressedExtensions = [".babylon", ".babylonbinarymeshdata", ".bin", ".wav", ".wave", ".3dl", ...supportedJsonExtensions];
+const compressedExtensions = [".babylon", ".babylonbinarymeshdata", ".bin", ".wav", ".wave", ".3dl", ".ktx", ...supportedJsonExtensions];
 
 const gzipAsync = promisify(gzip);
 const brotliCompressAsync = promisify(brotliCompress);

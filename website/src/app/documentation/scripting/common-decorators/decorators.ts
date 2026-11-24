@@ -45,7 +45,7 @@ export default class MyMeshComponent {
     public constructor(public mesh: Mesh) { }
 
     public onStart(): void {
-        this._idle.play();
+        this._idle?.play();
     }
 }
 `;
@@ -56,8 +56,9 @@ import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { sceneAsset, AdvancedAssetContainer } from "babylonjs-editor-tools";
 
 export default class MyMeshComponent {
+    // You can add "!" to indicate that you ensure this property will be initialized by the decorator.
     @sceneAsset("enemy.scene")
-    private _enemy: AdvancedAssetContainer | null = null;
+    private _enemy!: AdvancedAssetContainer;
 
     public constructor(public mesh: Mesh) { }
 
@@ -86,11 +87,11 @@ export const componentFromScene = `
 // my-component.ts
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 
-import { nodeFromScene } from "babylonjs-editor-tools";
+import { componentFromScene } from "babylonjs-editor-tools";
 
 export default class MyMeshComponent {
     @componentFromScene(MyOtherComponentClass)
-    private _myComponennt: MyOtherComponentClass;
+    private _myComponennt!: MyOtherComponentClass;
 
     public constructor(public mesh: Mesh) { }
 

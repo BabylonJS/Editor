@@ -510,3 +510,40 @@ function restoreCameraWorldMatrix(camera: Camera, worldMatrix: Matrix, root: Tra
 		rotation.toEulerAnglesToRef(targetCamera.rotation);
 	}
 }
+
+/**
+ * Removes from the animated objects the duplicates of the animations of the animation groups loaded with the glTF.
+ *
+ * In addition to adding an animation to its animation group, the glTF loader pushes it to the "animations" array of its
+ * target (twice for the weights of the morph targets). Every animated node then holds the animations of all the animation
+ * groups animating it (with Blender, every bone of a skeleton is animated by every action), which are not used to play the
+ * animation groups but are serialized with the node in addition to the animation groups.
+ *
+ * The animation groups are kept as is: only the "animations" arrays of their targets are cleaned, and the animations that
+ * are not part of an animation group are kept.
+ * @param container defines the reference to the asset container containing the loaded glTF.
+ */
+export function cleanAnimationDuplicates(container: ISceneLoaderAsyncResult | AssetContainer): void {
+	const groupedAnimations = new Set<Animation>();
+	const targets = new Set<any>();
+
+	container.animationGroups.forEach((animationGroup) => {
+		animationGroup.targetedAnimations.forEach((targetedAnimation) => {
+			groupedAnimations.add(targetedAnimation.animation);
+			targets.add(targetedAnimation.target);
+		});
+	});
+
+	targets.forEach((target) => {
+		const animations: Animation[] | null | undefined = target?.animations;
+		if (!animations) {
+			return;
+		}
+
+		for (let i = animations.length - 1; i >= 0; --i) {
+			if (groupedAnimations.has(animations[i])) {
+				animations.splice(i, 1);
+			}
+		}
+	});
+}
